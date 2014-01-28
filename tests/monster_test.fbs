@@ -1,0 +1,34 @@
+// example IDL file
+
+namespace MyGame.Example;
+
+enum Color:byte { Red = 0, Green, Blue = 2 }
+
+union Any { Monster }  // TODO: add more elements
+
+struct Test { a:short; b:byte; }
+
+struct Vec3 (force_align: 16) {
+  x:float;
+  y:float;
+  z:float;
+  test1:double;
+  test2:byte;
+  test3:Test;
+}
+
+table Monster {
+  pos:Vec3;
+  mana:short = 150;
+  hp:short = 100;
+  name:string;
+  friendly:bool = false (deprecated, priority: 1);
+  inventory:[ubyte];
+  /// an example documentation comment: this will end up in the generated code
+  /// multiline too
+  color:Color = Blue;
+  test:Any;
+  test4:[Test];
+}
+
+root_type Monster;
