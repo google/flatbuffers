@@ -33,7 +33,7 @@ using namespace MyGame::Example;
     { printf(__VA_ARGS__); printf("\n"); }
 #endif
 
-bool testing_fails = 0;
+int testing_fails = 0;
 
 template<typename T, typename U>
 void TestEq(T expval, U val, const char *exp, const char *file, int line) {

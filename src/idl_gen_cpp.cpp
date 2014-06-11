@@ -298,7 +298,7 @@ static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
 
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-static std::string GenerateCPP(const Parser &parser) {
+std::string GenerateCPP(const Parser &parser) {
   using namespace cpp;
 
   // Generate code for all the enum declarations.

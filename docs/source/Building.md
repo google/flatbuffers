@@ -1,7 +1,10 @@
 # Building
 
-The system comes with a `cmake` file that should allow you to build the
-compiler `flatc` and the tests (optionally). For details on `cmake`, see
+There are project files for Visual Studio and Xcode that should allow you
+to build the compiler `flatc`, the samples and the tests out of the box.
+
+Alternatively, the distribution comes with a `cmake` file that should allow
+you to build project/make files for any platform. For details on `cmake`, see
 <http://www.cmake.org>. In brief, depending on your platform, use one of
 e.g.:
 
@@ -19,7 +22,7 @@ Optionally, run the `flattests` executable.
 to ensure everything is working correctly on your system. If this fails,
 please contact us!
 
-The cmake file will also build two sample executables, `sample_binary` and
+Building should also produce two sample executables, `sample_binary` and
 `sample_text`, see the corresponding `.cpp` file in the samples directory.
 
 There is an `android` directory that contains all you need to build the test
