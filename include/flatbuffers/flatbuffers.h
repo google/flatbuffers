@@ -24,6 +24,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <algorithm>
 
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
