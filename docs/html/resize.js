@@ -77,15 +77,19 @@ function initResizable()
   var _preventDefault = function(evt) { evt.preventDefault(); };
   $("#splitbar").bind("dragstart", _preventDefault).bind("selectstart", _preventDefault);
   $(document).bind('touchmove',function(e){
-    try {
-      var target = e.target;
-      while (target) {
-        if ($(target).css('-webkit-overflow-scrolling')=='touch') return;
-        target = target.parentNode;
+    var device = navigator.userAgent.toLowerCase();
+    var ios = device.match(/(iphone|ipod|ipad)/);
+    if (ios) {
+      try {
+        var target = e.target;
+        while (target) {
+          if ($(target).css('-webkit-overflow-scrolling')=='touch') return;
+          target = target.parentNode;
+        }
+        e.preventDefault();
+      } catch(err) {
+        e.preventDefault();
       }
-      e.preventDefault();
-    } catch(err) {
-      e.preventDefault();
     }
   });
 }
