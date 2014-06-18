@@ -88,8 +88,7 @@ Builtin scalar types are:
 -   64 bit: `long ulong double`
 
 -   Vector of any other type (denoted with `[type]`). Nesting vectors
-    require you wrap the inner vector in a struct/table rather than
-    writing `[[type]]`.
+    is not supported, instead you can wrap the inner vector in a table.
 
 -   `string`, which may only hold UTF-8 or 7-bit ASCII. For other text encodings
     or general binary data use vectors (`[byte]` or `[ubyte]`) instead.
