@@ -57,7 +57,9 @@ public class FlatBufferBuilder {
     ByteBuffer growByteBuffer(ByteBuffer bb) {
         byte[] old_buf = bb.array();
         int old_buf_size = old_buf.length;
-        int new_buf_size = old_buf_size * 2;
+        if ((old_buf_size & 0xC0000000) != 0)
+            throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
+        int new_buf_size = old_buf_size << 1;
         byte[] new_buf = new byte[new_buf_size];
         System.arraycopy(old_buf, 0, new_buf, new_buf_size - old_buf_size, old_buf_size);
         ByteBuffer nbb = newByteBuffer(new_buf);

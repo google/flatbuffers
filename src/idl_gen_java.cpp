@@ -255,7 +255,7 @@ static void GenStruct(StructDef &struct_def,
             code += "obj.__init(";
             code += field.value.type.struct_def->fixed
                       ? "o + bb_pos"
-                      : "__indirect(o + i)";
+                      : "__indirect(o + bb_pos)";
             code += ", bb) : null";
           }
           break;
