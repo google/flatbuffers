@@ -47,8 +47,8 @@ void TestEq(T expval, U val, const char *exp, const char *file, int line) {
   }
 }
 
-#define TEST_EQ(exp, val) TestEq( exp, val,   #exp, __FILE__, __LINE__)
-#define TEST_NOTNULL(exp) TestEq(!exp, false, #exp, __FILE__, __LINE__)
+#define TEST_EQ(exp, val) TestEq(exp,         val,   #exp, __FILE__, __LINE__)
+#define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
