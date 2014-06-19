@@ -193,7 +193,7 @@ struct String : public Vector<char> {
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(uoffset_t initial_size)
+  explicit vector_downward(size_t initial_size)
     : reserved_(initial_size),
       buf_(new uint8_t[reserved_]),
       cur_(buf_ + reserved_) {
@@ -204,11 +204,11 @@ class vector_downward {
 
   void clear() { cur_ = buf_ + reserved_; }
 
-  uoffset_t growth_policy(uoffset_t size) {
+  size_t growth_policy(size_t size) {
     return (size / 2) & ~(sizeof(largest_scalar_t) - 1);
   }
 
-  uint8_t *make_space(uoffset_t len) {
+  uint8_t *make_space(size_t len) {
     if (buf_ > cur_ - len) {
       auto old_size = size();
       reserved_ += std::max(len, growth_policy(reserved_));
@@ -232,7 +232,7 @@ class vector_downward {
 
   uint8_t *data() const { return cur_; }
 
-  uint8_t *data_at(uoffset_t offset) { return buf_ + reserved_ - offset; }
+  uint8_t *data_at(size_t offset) { return buf_ + reserved_ - offset; }
 
   // push() & fill() are most frequently called with small byte counts (<= 4),
   // which is why we're using loops rather than calling memcpy/memset.
@@ -249,7 +249,7 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
-  uoffset_t reserved_;
+  size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
 };
@@ -282,10 +282,10 @@ class FlatBufferBuilder {
     vtables_.reserve(16);
     EndianCheck();
     flatbuffer_version_string =
-	    "FlatBuffers "
-	    FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
-	    FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
-	    FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+      "FlatBuffers "
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
   }
 
   // Reset all the state in this FlatBufferBuilder so it can be reused
