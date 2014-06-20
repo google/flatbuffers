@@ -18,11 +18,12 @@ LICENSE
 echo
 echo Compile then run the Java test.
 
-testdir=$(dirname $0)
+testdir=$(readlink -fn `dirname $0`)
+thisdir=$(readlink -fn `pwd`)
 
-if [[ "$testdir" != "." ]]; then
-	echo error: must be run from inside the ./tests directory
-	echo you ran it from `pwd`
+if [[ "$testdir" != "$thisdir" ]]; then
+	echo error: must be run from inside the ${testdir} directory
+	echo you ran it from ${thisdir}
 	exit 1
 fi
 
