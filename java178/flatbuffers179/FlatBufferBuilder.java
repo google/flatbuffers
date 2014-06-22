@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
 public class FlatBufferBuilder {
     ByteBuffer bb;       // Where we construct the FlatBuffer.
     int space;           // Remaining space in the ByteBuffer.
-    final Charset utf8charset = Charset.forName("UTF-8");
+    static final Charset utf8charset = Charset.forName("UTF-8");
     int minalign = 1;    // Minimum alignment encountered so far.
     int[] vtable;        // The vtable for the current table, null otherwise.
     int object_start;    // Starting offset of the current struct/table.
@@ -245,6 +245,6 @@ public class FlatBufferBuilder {
 
     // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer:
     public int dataStart() {
-        return bb.array().length - offset();
+        return space;
     }
 }
