@@ -638,8 +638,6 @@ void Parser::ParseDecl() {
     struct_def.attributes.Lookup("original_order") == nullptr && !fixed;
   Expect('{');
   while (token_ != '}') ParseField(struct_def);
-  struct_def.PadLastField(struct_def.minalign);
-  Expect('}');
   auto force_align = struct_def.attributes.Lookup("force_align");
   if (fixed && force_align) {
     auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
@@ -651,6 +649,8 @@ void Parser::ParseDecl() {
             "struct\'s natural alignment to 256");
     struct_def.minalign = align;
   }
+  struct_def.PadLastField(struct_def.minalign);
+  Expect('}');
 }
 
 bool Parser::SetRootType(const char *name) {
