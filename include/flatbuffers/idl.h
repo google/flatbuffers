@@ -302,7 +302,8 @@ extern void GenerateText(const Parser &parser,
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
-extern std::string GenerateCPP(const Parser &parser);
+extern std::string GenerateCPP(const Parser &parser,
+                               const std::string &include_guard_ident);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
