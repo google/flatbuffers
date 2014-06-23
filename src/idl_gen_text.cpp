@@ -25,6 +25,12 @@ namespace flatbuffers {
 static void GenStruct(const StructDef &struct_def, const Table *table,
                       int indent, int indent_step, std::string *_text);
 
+// If indentation is less than 0, that indicates we don't want any newlines
+// either.
+const char *NewLine(int indent_step) {
+  return indent_step >= 0 ? "\n" : "";
+}
+
 // Print (and its template specialization below for pointers) generate text
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
@@ -39,9 +45,13 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
                                       int indent, int indent_step,
                                       std::string *_text) {
   std::string &text = *_text;
-  text += "[\n";
+  text += "[";
+  text += NewLine(indent_step);
   for (uoffset_t i = 0; i < v.Length(); i++) {
-    if (i) text += ",\n";
+    if (i) {
+      text += ",";
+      text += NewLine(indent_step);
+    }
     text.append(indent + indent_step, ' ');
     if (IsStruct(type))
       Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type,
@@ -49,7 +59,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
     else
       Print(v.Get(i), type, indent + indent_step, indent_step, nullptr, _text);
   }
-  text += "\n";
+  text += NewLine(indent_step);
   text.append(indent, ' ');
   text += "]";
 }
@@ -155,7 +165,8 @@ static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
 static void GenStruct(const StructDef &struct_def, const Table *table,
                       int indent, int indent_step, std::string *_text) {
   std::string &text = *_text;
-  text += "{\n";
+  text += "{";
+  text += NewLine(indent_step);
   int fieldout = 0;
   StructDef *union_sd = nullptr;
   for (auto it = struct_def.fields.vec.begin();
@@ -164,7 +175,10 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
     FieldDef &fd = **it;
     if (struct_def.fixed || table->CheckField(fd.value.offset)) {
       // The field is present.
-      if (fieldout++) text += ",\n";
+      if (fieldout++) {
+        text += ",";
+        text += NewLine(indent_step);
+      }
       text.append(indent + indent_step, ' ');
       text += fd.name;
       text += ": ";
@@ -191,7 +205,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       }
     }
   }
-  text += "\n";
+  text += NewLine(indent_step);
   text.append(indent, ' ');
   text += "}";
 }
@@ -207,7 +221,7 @@ void GenerateText(const Parser &parser, const void *flatbuffer,
             0,
             indent_step,
             _text);
-  text += "\n";
+  text += NewLine(indent_step);
 }
 
 }  // namespace flatbuffers
