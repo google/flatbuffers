@@ -15,8 +15,8 @@ meant to be representative of game data, e.g. a scene format.
 
 |                                                        | FlatBuffers (binary)  | Protocol Buffers LITE | Rapid JSON            | FlatBuffers (JSON)    |
 |--------------------------------------------------------|-----------------------|-----------------------|-----------------------|-----------------------|
-| Decode + Traverse + Dealloc (1 million times, seconds) | 0.08                  | 305                   | 583                   | 105                   |
-| Decode / Traverse / Dealloc (breakdown)                | 0 / 0.08 / 0          | 220 / 3.6 / 81        | 294 / 0.9 / 287       | 70 / 0.08 / 35        |
+| Decode + Traverse + Dealloc (1 million times, seconds) | 0.08                  | 302                   | 583                   | 105                   |
+| Decode / Traverse / Dealloc (breakdown)                | 0 / 0.08 / 0          | 220 / 0.15 / 81       | 294 / 0.9 / 287       | 70 / 0.08 / 35        |
 | Encode (1 million times, seconds)                      | 3.2                   | 185                   | 650                   | 169                   |
 | Wire format size (normal / zlib, bytes)                | 344 / 220             | 228 / 174             | 1475 / 322            | 1029 / 298            |
 | Memory needed to store decoded wire (bytes / blocks)   | 0 / 0                 | 760 / 20              | 65689 / 40            | 328 / 1               |

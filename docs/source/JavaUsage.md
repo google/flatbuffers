@@ -22,6 +22,12 @@ method to which you can pass a `Vec3` object you've already created. This allows
 you to reuse it across many calls and reduce the amount of object allocation (and
 thus garbage collection) your program does.
 
+Java does not support unsigned scalars. This means that any unsigned types you
+use in your schema will actually be represented as a signed value. This means
+all bits are still present, but may represent a negative value when used.
+For example, to read a `byte b` as an unsigned number, you can do:
+`(short)(b & 0xFF)`
+
 Sadly the string accessors currently always create a new string when accessed,
 since FlatBuffer's UTF-8 strings can't be read in-place by Java.
 
@@ -71,6 +77,11 @@ You can use the generated method `startInventoryVector` to conveniently call
 `startVector` with the right element size. You pass the number of
 elements you want to write. You write the elements backwards since the buffer
 is being constructed back to front.
+
+There are `add` functions for all the scalar types. You use `addOffset` for
+any previously constructed objects (such as other tables, strings, vectors).
+For structs, you use the appropriate `create` function in-line, as shown
+above in the `Monster` example.
 
 ## Text Parsing
 
