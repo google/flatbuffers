@@ -498,10 +498,9 @@ class FlatBufferBuilder {
   template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
     NotNested();
     StartVector(len, sizeof(T));
-    auto i = len;
-    do {
+    for (auto i = len; i > 0; ) {
       PushElement(v[--i]);
-    } while (i);
+    }
     return Offset<Vector<T>>(EndVector(len));
   }
 
