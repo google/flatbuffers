@@ -70,6 +70,43 @@ add_executable(flattests ${FlatBuffers_Tests_SRCS})
 add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
 add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
 
+#----------------------------------------------------------------------------
+# Copy all example files to the build directory. Important for 
+# out of place builds. The progem flatsampletext requires that monster.fbs
+# and monsterdata.json be in the directory ./samples
+#
+set(NEEDED_FILES
+   monster.fbs
+   monsterdata.json
+)
+
+foreach(NEEDED_ ${NEEDED_FILES})
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/samples/${NEEDED_}
+    ${PROJECT_BINARY_DIR}/samples/${NEEDED_}
+    COPYONLY
+    )
+endforeach()
+
+#----------------------------------------------------------------------------
+# Copy all example files to the build directory. Important for 
+# out of place builds. The progem flattests requires that monster_test.fbs
+# and monsterdata_test.json be in the directory ./test
+#
+set(NEEDED_FILES
+   monster_test.fbs
+   monsterdata_test.json
+)
+
+foreach(NEEDED_ ${NEEDED_FILES})
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/tests/${NEEDED_}
+    ${PROJECT_BINARY_DIR}/tests/${NEEDED_}
+    COPYONLY
+    )
+endforeach()
+
+#----------------------------------------------------------------------------
 add_test(NAME flattest
          CONFIGURATIONS Debug
          WORKING_DIRECTORY tests
