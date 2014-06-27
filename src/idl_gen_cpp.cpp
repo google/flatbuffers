@@ -62,6 +62,16 @@ static std::string GenTypeWire(const Type &type, const char *postfix) {
       : "flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
 }
 
+// Return a C++ type for any type (scalar/pointer) that reflects its
+// serialized size.
+static std::string GenTypeSize(const Type &type) {
+  return IsScalar(type.base_type)
+    ? GenTypeBasic(type)
+    : IsStruct(type)
+      ? GenTypePointer(type)
+      : "flatbuffers::uoffset_t";
+}
+
 // Return a C++ type for any type (scalar/pointer) specifically for
 // using a flatbuffer.
 static std::string GenTypeGet(const Type &type, const char *afterbasic,
@@ -82,9 +92,11 @@ static void GenComment(const std::string &dc,
 }
 
 // Generate an enum declaration and an enum string lookup table.
-static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
+  static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+                                         std::string *code_ptr_post) {
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
+  std::string &code_post = *code_ptr_post;
   GenComment(enum_def.doc_comment, code_ptr);
   code += "enum {\n";
   for (auto it = enum_def.vals.vec.begin();
@@ -123,6 +135,32 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
       code += " - " + enum_def.name + "_" + enum_def.vals.vec.front()->name;
     code += "]; }\n\n";
   }
+  
+  if (enum_def.is_union) {
+    // Generate a verifier function for this union that can be called by the
+    // table verifier functions. It uses a switch case to select a specific
+    // verifier function to call, this should be safe even if the union type
+    // has been corrupted, since the verifiers will simply fail when called
+    // on the wrong type.
+    auto signature = "bool Verify" + enum_def.name +
+                     "(const flatbuffers::Verifier &verifier, " +
+                     "const void *union_obj, uint8_t type)";
+    code += signature + ";\n\n";
+    code_post += signature + " {\n  switch (type) {\n";
+    for (auto it = enum_def.vals.vec.begin();
+         it != enum_def.vals.vec.end();
+         ++it) {
+      auto &ev = **it;
+      code_post += "    case " + enum_def.name + "_" + ev.name;
+      if (!ev.value) {
+        code_post += ": return true;\n";  // "NONE" enum value.
+      } else {
+        code_post += ": return reinterpret_cast<const " + ev.struct_def->name;
+        code_post += " *>(union_obj)->Verify(verifier);\n";
+      }
+    }
+    code_post += "    default: return false;\n  }\n}\n\n";
+  }
 }
 
 // Generate an accessor struct, builder structs & function for a table.
@@ -155,6 +193,58 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
+  // Generate a verifier function that can check a buffer from an untrusted
+  // source will never cause reads outside the buffer.
+  code += "  bool Verify(const flatbuffers::Verifier &verifier) const {\n";
+  code += "    return VerifyTable(verifier)";
+  std::string prefix = " &&\n           ";
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (!field.deprecated) {
+      code += prefix + "VerifyField<" + GenTypeSize(field.value.type);
+      code += ">(verifier, " + NumToString(field.value.offset);
+      code += " /* " + field.name + " */)";
+      switch (field.value.type.base_type) {
+        case BASE_TYPE_UNION:
+          code += prefix + "Verify" + field.value.type.enum_def->name;
+          code += "(verifier, " + field.name + "(), " + field.name + "_type())";
+          break;
+        case BASE_TYPE_STRUCT:
+          if (!field.value.type.struct_def->fixed) {
+            code += prefix + field.value.type.struct_def->name;
+            code += "()->Verify()";
+          }
+          break;
+        case BASE_TYPE_STRING:
+          code += prefix + "verifier.Verify(" + field.name + "())";
+          break;
+        case BASE_TYPE_VECTOR:
+          code += prefix + "verifier.Verify(" + field.name + "())";
+          switch (field.value.type.element) {
+            case BASE_TYPE_STRING: {
+              code += prefix + "verifier.VerifyVectorOfStrings(" + field.name;
+              code += "())";
+              break;
+            }
+            case BASE_TYPE_STRUCT: {
+              if (!field.value.type.struct_def->fixed) {
+                code += prefix + "verifier.VerifyVectorOfTables(" + field.name;
+                code += "())";
+              }
+              break;
+            }
+            default:
+              break;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  code += ";\n  }\n";
   code += "};\n\n";
 
   // Generate a builder struct, with methods of the form:
@@ -302,10 +392,10 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
   using namespace cpp;
 
   // Generate code for all the enum declarations.
-  std::string enum_code;
+  std::string enum_code, enum_code_post;
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
-    GenEnum(**it, &enum_code);
+    GenEnum(**it, &enum_code, &enum_code_post);
   }
 
   // Generate forward declarations for all structs/tables, since they may
@@ -361,13 +451,20 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
     code += forward_decl_code;
     code += "\n";
     code += decl_code;
+    code += enum_code_post;
 
-    // Generate convenient root datatype accessor.
+    // Generate convenient root datatype accessor, and root verifier.
     if (parser.root_struct_def) {
       code += "inline const " + parser.root_struct_def->name + " *Get";
       code += parser.root_struct_def->name;
       code += "(const void *buf) { return flatbuffers::GetRoot<";
       code += parser.root_struct_def->name + ">(buf); }\n\n";
+
+      code += "inline bool Verify";
+      code += parser.root_struct_def->name;
+      code += "Buffer(const flatbuffers::Verifier &verifier) { "
+              "return verifier.VerifyBuffer<";
+      code += parser.root_struct_def->name + ">(); }\n\n";
     }
 
     // Close the namespaces.

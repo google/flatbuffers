@@ -47,7 +47,7 @@ we can construct them in a familiar way.
 We have now serialized the non-scalar components of of the monster
 example, so we could create the monster something like this:
 
-    auto mloc = CreateMonster(fbb, &vec, 150, 80, name, inventory, Color_Red, Offset<void>(0), Any_NONE);
+    auto mloc = CreateMonster(fbb, &vec, 150, 80, name, inventory, Color_Red, 0, Any_NONE);
 
 Note that we're passing `150` for the `mana` field, which happens to be the
 default value: this means the field will not actually be written to the buffer,
@@ -58,7 +58,8 @@ since they won't bloat up the buffer sizes if they're not actually used.
 
 We do something similarly for the union field `test` by specifying a `0` offset
 and the `NONE` enum value (part of every union) to indicate we don't actually
-want to write this field.
+want to write this field. You can use `0` also as a default for other
+non-scalar types, such as strings, vectors and tables.
 
 Tables (like `Monster`) give you full flexibility on what fields you write
 (unlike `Vec3`, which always has all fields set because it is a `struct`).
@@ -154,6 +155,38 @@ It is important to note is that structs are still little endian on all
 machines, so only use tricks like this if you can guarantee you're not
 shipping on a big endian machine (an `assert(FLATBUFFERS_LITTLEENDIAN)`
 would be wise).
+
+### Access of untrusted buffers
+
+The generated accessor functions access fields over offsets, which is
+very quick. These offsets are not verified at run-time, so a malformed
+buffer could cause a program to crash by accessing random memory.
+
+When you're processing large amounts of data from a source you know (e.g.
+your own generated data on disk), this is acceptable, but when reading
+data from the network that can potentially have been modified by an
+attacker, this is undesirable.
+
+For this reason, you can optionally use a buffer verifier before you
+access the data. This verifier will check all offsets, all sizes of
+fields, and null termination of strings to ensure that when a buffer
+is accessed, all reads will end up inside the buffer.
+
+Each root type will have a verification function generated for it,
+e.g. for `Monster`, you can call:
+
+	bool ok = VerifyMonsterBuffer(Verifier(buf, len));
+
+if `ok` is true, the buffer is safe to read.
+
+Besides untrusted data, this function may be useful to call in debug
+mode, as extra insurance against data being corrupted somewhere along
+the way.
+
+While verifying a buffer isn't "free", it is typically faster than
+a full traversal (since any scalar data is not actually touched),
+and since it may cause the buffer to be brought into cache before
+reading, the actual overhead may be even lower than expected.
 
 ## Text & schema parsing
 

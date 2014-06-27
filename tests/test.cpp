@@ -79,10 +79,19 @@ std::string CreateFlatBufferTest() {
   mb.add_hp(20);
   auto mloc2 = mb.Finish();
 
+  // Create an array of strings:
+  flatbuffers::Offset<flatbuffers::String> strings[2];
+  strings[0] = builder.CreateString("bob");
+  strings[1] = builder.CreateString("fred");
+  auto vecofstrings = builder.CreateVector(strings, 2);
+
+  // Create an array of tables:
+  auto vecoftables = builder.CreateVector(&mloc2, 1);
+
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mloc2.Union(), // Store a union.
-                            testv);
+                            testv, vecofstrings, vecoftables);
 
   builder.Finish(mloc);
 
@@ -101,6 +110,13 @@ std::string CreateFlatBufferTest() {
 //  example of accessing a buffer loaded in memory:
 void AccessFlatBufferTest(const std::string &flatbuf) {
 
+  // First, verify the buffers integrity (optional)
+  flatbuffers::Verifier verifier(
+    reinterpret_cast<const uint8_t *>(flatbuf.c_str()),
+    flatbuf.length());
+  TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  // Access the buffer from the root.
   auto monster = GetMonster(flatbuf.c_str());
 
   TEST_EQ(monster->hp(), 80);
@@ -128,11 +144,22 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   TEST_NOTNULL(monster2);
   TEST_EQ(monster2->hp(), 20);
 
+  // Example of accessing a vector of strings:
+  auto vecofstrings = monster->testarrayofstring();
+  TEST_EQ(vecofstrings->Length(), 2U);
+  TEST_EQ(strcmp(vecofstrings->Get(0)->c_str(), "bob"), 0);
+  TEST_EQ(strcmp(vecofstrings->Get(1)->c_str(), "fred"), 0);
+
+  // Example of accessing a vector of tables:
+  auto vecoftables = monster->testarrayoftables();
+  TEST_EQ(vecoftables->Length(), 1U);
+  TEST_EQ(vecoftables->Get(0)->hp(), 20);
+
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
   // (Test consists of a short and byte):
-  TEST_EQ(flatbuffers::AlignOf<Test>(), static_cast<size_t>(2));
-  TEST_EQ(sizeof(Test), static_cast<size_t>(4));
+  TEST_EQ(flatbuffers::AlignOf<Test>(), 2UL);
+  TEST_EQ(sizeof(Test), 4UL);
 
   auto tests = monster->test4();
   TEST_NOTNULL(tests);
@@ -162,6 +189,11 @@ void ParseAndGenerateTextTest() {
   TEST_EQ(parser.Parse(jsonfile.c_str()), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                 parser.builder_.GetSize());
+  TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
