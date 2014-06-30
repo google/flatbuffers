@@ -207,7 +207,8 @@ void ParseAndGenerateTextTest() {
 }
 
 template<typename T> void CompareTableFieldValue(flatbuffers::Table *table,
-                                                 int voffset, T val) {
+                                                 flatbuffers::voffset_t voffset,
+                                                 T val) {
   T read = table->GetField(voffset, static_cast<T>(0));
   TEST_EQ(read, val);
 }
@@ -231,7 +232,7 @@ void FuzzTest1() {
   const double   double_val = 3.14159265359;
 
   const int test_values_max = 11;
-  const int fields_per_object = 4;
+  const flatbuffers::voffset_t fields_per_object = 4;
   const int num_fuzz_objects = 10000;  // The higher, the more thorough :)
 
   flatbuffers::FlatBufferBuilder builder;
@@ -244,9 +245,9 @@ void FuzzTest1() {
   // fields_per_object fields, each of a random type.
   for (int i = 0; i < num_fuzz_objects; i++) {
     auto start = builder.StartTable();
-    for (int f = 0; f < fields_per_object; f++) {
+    for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
       int choice = lcg_rand() % test_values_max;
-      flatbuffers::voffset_t off = flatbuffers::FieldIndexToOffset(f);
+      auto off = flatbuffers::FieldIndexToOffset(f);
       switch (choice) {
         case 0:  builder.AddElement<uint8_t >(off, bool_val,   0); break;
         case 1:  builder.AddElement<int8_t  >(off, char_val,   0); break;
@@ -274,7 +275,7 @@ void FuzzTest1() {
   // so this is deterministic.
   for (int i = 0; i < num_fuzz_objects; i++) {
     auto table = reinterpret_cast<flatbuffers::Table *>(eob - objects[i]);
-    for (int f = 0; f < fields_per_object; f++) {
+    for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
       int choice = lcg_rand() % test_values_max;
       flatbuffers::voffset_t off = flatbuffers::FieldIndexToOffset(f);
       switch (choice) {
@@ -477,7 +478,7 @@ void ErrorTest() {
   TestError("union Z { X } struct X { Y:int; }", "only tables");
 }
 
-int main(int argc, const char *argv[]) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
   auto flatbuf = CreateFlatBufferTest();

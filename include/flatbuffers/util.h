@@ -32,9 +32,15 @@ template<typename T> std::string NumToString(T t) {
   // to_string() prints different numbers of digits for floats depending on
   // platform and isn't available on Android, so we use stringstream
   std::stringstream ss;
-  if (sizeof(T) > 1) ss << t;
-  else ss << static_cast<int>(t);  // Avoid char types used as character data.
+  ss << t;
   return ss.str();
+}
+// Avoid char types used as character data.
+template<> inline std::string NumToString<signed char>(signed char t) {
+  return NumToString(static_cast<int>(t));
+}
+template<> inline std::string NumToString<unsigned char>(unsigned char t) {
+  return NumToString(static_cast<int>(t));
 }
 
 // Convert an integer value to a hexadecimal string.

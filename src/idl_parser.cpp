@@ -287,7 +287,7 @@ FieldDef &Parser::AddField(StructDef &struct_def,
     // the largest scalar
     struct_def.minalign = std::max(struct_def.minalign, alignment);
     struct_def.PadLastField(alignment);
-    field.value.offset = static_cast<uoffset_t>(struct_def.bytesize);
+    field.value.offset = static_cast<voffset_t>(struct_def.bytesize);
     struct_def.bytesize += size;
   }
   if (struct_def.fields.Add(name, &field))

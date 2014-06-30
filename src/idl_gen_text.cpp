@@ -34,8 +34,9 @@ const char *NewLine(int indent_step) {
 // Print (and its template specialization below for pointers) generate text
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
-template<typename T> void Print(T val, Type type, int indent, int indent_step,
-                                StructDef * /*union_sd*/, std::string *_text) {
+template<typename T> void Print(T val, Type /*type*/, int /*indent*/,
+                                int /*indent_step*/, StructDef * /*union_sd*/,
+                                std::string *_text) {
   std::string &text = *_text;
   text += NumToString(val);
 }

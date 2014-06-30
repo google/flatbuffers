@@ -632,7 +632,7 @@ class Verifier {
     }
     return true;
   }
-
+  
   // Verify this whole buffer, starting with root type T.
   template<typename T> bool VerifyBuffer() const {
     // Call T::Verify, which must be in the generated code for this type.

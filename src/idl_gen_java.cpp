@@ -78,9 +78,12 @@ static void GenComment(const std::string &dc,
 static std::string MakeCamel(const std::string &in, bool first = true) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first) s += toupper(in[0]);
-    else if (in[i] == '_' && i + 1 < in.length()) s += toupper(in[++i]);
-    else s += in[i];
+    if (!i && first)
+      s += static_cast<char>(toupper(in[0]));
+    else if (in[i] == '_' && i + 1 < in.length())
+      s += static_cast<char>(toupper(in[++i]));
+    else
+      s += in[i];
   }
   return s;
 }
@@ -373,7 +376,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
 
 bool GenerateJava(const Parser &parser,
                   const std::string &path,
-                  const std::string &file_name) {
+                  const std::string & /*file_name*/) {
   using namespace java;
 
   for (auto it = parser.enums_.vec.begin();

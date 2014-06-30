@@ -117,11 +117,11 @@ struct Type {
 
 // Represents a parsed scalar value, it's type, and field offset.
 struct Value {
-  Value() : constant("0"), offset(-1) {}
-
+  Value() : constant("0"), offset(static_cast<voffset_t>(
+                                ~(static_cast<voffset_t>(0U)))) {}
   Type type;
   std::string constant;
-  int offset;
+  voffset_t offset;
 };
 
 // Helper class that retains the original order of a set of identifiers and

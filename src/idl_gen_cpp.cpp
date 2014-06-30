@@ -135,7 +135,7 @@ static void GenComment(const std::string &dc,
       code += " - " + enum_def.name + "_" + enum_def.vals.vec.front()->name;
     code += "]; }\n\n";
   }
-  
+
   if (enum_def.is_union) {
     // Generate a verifier function for this union that can be called by the
     // table verifier functions. It uses a switch case to select a specific
@@ -274,6 +274,8 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
   code += "  " + struct_def.name;
   code += "Builder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) ";
   code += "{ start_ = fbb_.StartTable(); }\n";
+  code += "  " + struct_def.name + "Builder &operator=(const ";
+  code += struct_def.name + "Builder &);\n";
   code += "  flatbuffers::Offset<" + struct_def.name;
   code += "> Finish() { return flatbuffers::Offset<" + struct_def.name;
   code += ">(fbb_.EndTable(start_, ";
