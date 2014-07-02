@@ -95,6 +95,17 @@ std::string StripExtension(const std::string &filename) {
   return i != std::string::npos ? filename.substr(0, i) : filename;
 }
 
+std::string StripPath(const std::string &filename) {
+  size_t i = filename.find_last_of(
+    #ifdef WIN32
+      "\\:"
+    #else
+      "/"
+    #endif
+    );
+  return i != std::string::npos ? filename.substr(i + 1) : filename;
+}
+
 int main(int argc, const char *argv[]) {
   program_name = argv[0];
   flatbuffers::Parser parser;
@@ -149,7 +160,7 @@ int main(int argc, const char *argv[]) {
       if (!parser.Parse(contents.c_str()))
         Error(parser.error_.c_str());
 
-      std::string filebase = StripExtension(*file_it);
+      std::string filebase = StripPath(StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
