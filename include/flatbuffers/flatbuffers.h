@@ -518,7 +518,7 @@ class FlatBufferBuilder {
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                      const std::vector<T> &v) {
-    return CreateVector(&v[0], v.size());
+    return CreateVectorOfStructs(&v[0], v.size());
   }
 
   // Finish serializing a buffer by writing the root offset.
@@ -632,7 +632,7 @@ class Verifier {
     }
     return true;
   }
-  
+
   // Verify this whole buffer, starting with root type T.
   template<typename T> bool VerifyBuffer() const {
     // Call T::Verify, which must be in the generated code for this type.
