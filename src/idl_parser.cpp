@@ -580,14 +580,15 @@ void Parser::ParseEnum(bool is_union) {
   if (is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
     enum_def.underlying_type.enum_def = &enum_def;
-  } else if (IsNext(':')) {
-    // short is the default type for fields when you use enums,
-    // though people are encouraged to pick any integer type instead.
+  } else {
+    // Give specialized error message, since this type spec used to
+    // be optional in the first FlatBuffers release.
+    if (!IsNext(':')) Error("must specify the underlying integer type for this"
+                            " enum (e.g. \': short\', which was the default).");
+    // Specify the integer type underlying this enum.
     ParseType(enum_def.underlying_type);
     if (!IsInteger(enum_def.underlying_type.base_type))
       Error("underlying enum type must be integral");
-  } else {
-    enum_def.underlying_type.base_type = BASE_TYPE_SHORT;
   }
   ParseMetaData(enum_def);
   Expect('{');

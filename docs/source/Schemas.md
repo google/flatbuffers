@@ -121,8 +121,7 @@ Define a sequence of named constants, each with a given value, or
 increasing by one from the previous one. The default first value
 is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
-the type of any fields declared with this enum type. If you omit the underlying
-type, it will be `short`.
+the type of any fields declared with this enum type.
 
 ### Unions
 
