@@ -18,9 +18,9 @@ public class Vec3 extends Struct {
   public Test test3(Test obj) { return obj.__init(bb_pos + 26, bb); }
 
   public static int createVec3(FlatBufferBuilder builder, float x, float y, float z, double test1, byte test2, short Test_a, byte Test_b) {
-    builder.prep(16, 0);
+    builder.prep(16, 32);
     builder.pad(2);
-    builder.prep(2, 0);
+    builder.prep(2, 4);
     builder.pad(1);
     builder.putByte(Test_b);
     builder.putShort(Test_a);

@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
 public class FlatBufferBuilder {
     ByteBuffer bb;       // Where we construct the FlatBuffer.
     int space;           // Remaining space in the ByteBuffer.
-    final Charset utf8charset = Charset.forName("UTF-8");
+    static final Charset utf8charset = Charset.forName("UTF-8");
     int minalign = 1;    // Minimum alignment encountered so far.
     int[] vtable;        // The vtable for the current table, null otherwise.
     int object_start;    // Starting offset of the current struct/table.
@@ -42,6 +42,7 @@ public class FlatBufferBuilder {
 
     // Start with a buffer of size `initial_size`, then grow as required.
     public FlatBufferBuilder(int initial_size) {
+        if (initial_size <= 0) initial_size = 1;
         space = initial_size;
         bb = newByteBuffer(new byte[initial_size]);
     }
@@ -57,7 +58,7 @@ public class FlatBufferBuilder {
     ByteBuffer growByteBuffer(ByteBuffer bb) {
         byte[] old_buf = bb.array();
         int old_buf_size = old_buf.length;
-        if ((old_buf_size & 0xC0000000) != 0)
+        if ((old_buf_size & 0xC0000000) != 0)  // Ensure we don't grow beyond what fits in an int.
             throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
         int new_buf_size = old_buf_size << 1;
         byte[] new_buf = new byte[new_buf_size];
@@ -135,7 +136,7 @@ public class FlatBufferBuilder {
 
     public int createString(String s) {
         byte[] utf8 = s.getBytes(utf8charset);
-        bb.put(--space, (byte)0);
+        addByte((byte)0);
         startVector(1, utf8.length);
         System.arraycopy(utf8, 0, bb.array(), space -= utf8.length, utf8.length);
         return endVector();
@@ -192,12 +193,12 @@ public class FlatBufferBuilder {
         for (int i = vtable.length - 1; i >= 0 ; i--) {
             // Offset relative to the start of the table.
             short off = (short)(vtable[i] != 0 ? vtableloc - vtable[i] : 0);
-            putShort(off);
+            addShort(off);
         }
 
         final int standard_fields = 2; // The fields below:
-        putShort((short)(vtableloc - object_start));
-        putShort((short)((vtable.length + standard_fields) * SIZEOF_SHORT));
+        addShort((short)(vtableloc - object_start));
+        addShort((short)((vtable.length + standard_fields) * SIZEOF_SHORT));
 
         // Search for an existing vtable that matches the current one.
         int existing_vtable = 0;
@@ -245,6 +246,11 @@ public class FlatBufferBuilder {
 
     // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer:
     public int dataStart() {
-        return bb.array().length - offset();
+        return space;
+    }
+
+    // Utility function for copying a byte array that starts at 0.
+    public byte[] sizedByteArray() {
+        return Arrays.copyOfRange(bb.array(), dataStart(), bb.array().length);
     }
 }
