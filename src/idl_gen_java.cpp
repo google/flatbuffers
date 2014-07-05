@@ -78,9 +78,12 @@ static void GenComment(const std::string &dc,
 static std::string MakeCamel(const std::string &in, bool first = true) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first) s += toupper(in[0]);
-    else if (in[i] == '_' && i + 1 < in.length()) s += toupper(in[++i]);
-    else s += in[i];
+    if (!i && first)
+      s += static_cast<char>(toupper(in[0]));
+    else if (in[i] == '_' && i + 1 < in.length())
+      s += static_cast<char>(toupper(in[++i]));
+    else
+      s += in[i];
   }
   return s;
 }
@@ -157,7 +160,8 @@ static void GenStructArgs(const StructDef &struct_def, std::string *code_ptr,
 static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
                           const char *nameprefix) {
   std::string &code = *code_ptr;
-  code += "    builder.prep(" + NumToString(struct_def.minalign) + ", 0);\n";
+  code += "    builder.prep(" + NumToString(struct_def.minalign) + ", ";
+  code += NumToString(struct_def.bytesize) + ");\n";
   for (auto it = struct_def.fields.vec.rbegin();
        it != struct_def.fields.vec.rend();
        ++it) {
@@ -255,7 +259,7 @@ static void GenStruct(StructDef &struct_def,
             code += "obj.__init(";
             code += field.value.type.struct_def->fixed
                       ? "o + bb_pos"
-                      : "__indirect(o + i)";
+                      : "__indirect(o + bb_pos)";
             code += ", bb) : null";
           }
           break;
@@ -344,7 +348,8 @@ static void GenStruct(StructDef &struct_def,
 // Save out the generated code for a single Java class while adding
 // declaration boilerplate.
 static bool SaveClass(const Parser &parser, const Definition &def,
-                      const std::string &classcode, const std::string &path) {
+                      const std::string &classcode, const std::string &path,
+                      bool needs_imports) {
   if (!classcode.length()) return true;
 
   std::string name_space_java;
@@ -362,8 +367,10 @@ static bool SaveClass(const Parser &parser, const Definition &def,
 
   std::string code = "// automatically generated, do not modify\n\n";
   code += "package " + name_space_java + ";\n\n";
-  code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
-  code += "import flatbuffers.*;\n\n";
+  if (needs_imports) {
+    code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
+    code += "import flatbuffers.*;\n\n";
+  }
   code += classcode;
   auto filename = name_space_dir + PATH_SEPARATOR + def.name + ".java";
   return SaveFile(filename.c_str(), code, false);
@@ -373,14 +380,14 @@ static bool SaveClass(const Parser &parser, const Definition &def,
 
 bool GenerateJava(const Parser &parser,
                   const std::string &path,
-                  const std::string &file_name) {
+                  const std::string & /*file_name*/) {
   using namespace java;
 
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
     GenEnum(**it, &enumcode);
-    if (!SaveClass(parser, **it, enumcode, path))
+    if (!SaveClass(parser, **it, enumcode, path, false))
       return false;
   }
 
@@ -388,7 +395,7 @@ bool GenerateJava(const Parser &parser,
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
     GenStruct(**it, &declcode, parser.root_struct_def);
-    if (!SaveClass(parser, **it, declcode, path))
+    if (!SaveClass(parser, **it, declcode, path, true))
       return false;
   }
 

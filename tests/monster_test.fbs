@@ -29,6 +29,8 @@ table Monster {
   color:Color = Blue;
   test:Any;
   test4:[Test];
+  testarrayofstring:[string];
+  testarrayoftables:[Monster];
 }
 
 root_type Monster;

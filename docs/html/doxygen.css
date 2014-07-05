@@ -1,4 +1,4 @@
-/* The standard CSS for doxygen 1.8.5 */
+/* The standard CSS for doxygen 1.8.7 */
 
 body, table, div, p, dl {
 	font: 400 14px/22px Roboto,sans-serif;
@@ -56,8 +56,12 @@ div.multicol {
 	-webkit-column-count: 3;
 }
 
-p.startli, p.startdd, p.starttd {
+p.startli, p.startdd {
 	margin-top: 2px;
+}
+
+p.starttd {
+	margin-top: 0px;
 }
 
 p.endli {
@@ -169,8 +173,8 @@ pre.fragment {
 }
 
 div.fragment {
-        padding: 0px;
-        margin: 0px;
+        padding: 4px 6px;
+        margin: 4px 8px 4px 2px;
 	background-color: #FBFCFD;
 	border: 1px solid #C4CFE5;
 }
@@ -666,12 +670,12 @@ span.mlabel {
 
 /* @end */
 
-/* these are for tree view when not used as main index */
+/* these are for tree view inside a (index) page */
 
 div.directory {
         margin: 10px 0px;
-        border-top: 1px solid #A8B8D9;
-        border-bottom: 1px solid #A8B8D9;
+        border-top: 1px solid #9CAFD4;
+        border-bottom: 1px solid #9CAFD4;
         width: 100%;
 }
 
@@ -729,6 +733,80 @@ div.directory {
         padding-right: 2px;
 	color: #3D578C;
 }
+
+.arrow {
+    color: #9CAFD4;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    font-size: 80%;
+    display: inline-block;
+    width: 16px;
+    height: 22px;
+}
+
+.icon {
+    font-family: Arial, Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    height: 14px;
+    width: 16px;
+    display: inline-block;
+    background-color: #728DC1;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.icona {
+    width: 24px;
+    height: 22px;
+    display: inline-block;
+}
+
+.iconfopen {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 4px;
+    background-image:url('ftv2folderopen.png');
+    background-position: 0px -4px;
+    background-repeat: repeat-y;
+    vertical-align:top;
+    display: inline-block;
+}
+
+.iconfclosed {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 4px;
+    background-image:url('ftv2folderclosed.png');
+    background-position: 0px -4px;
+    background-repeat: repeat-y;
+    vertical-align:top;
+    display: inline-block;
+}
+
+.icondoc {
+    width: 24px;
+    height: 18px;
+    margin-bottom: 4px;
+    background-image:url('ftv2doc.png');
+    background-position: 0px -4px;
+    background-repeat: repeat-y;
+    vertical-align:top;
+    display: inline-block;
+}
+
+table.directory {
+    font: 400 14px Roboto,sans-serif;
+}
+
+/* @end */
 
 div.dynheader {
         margin-top: 8px;
@@ -1061,6 +1139,11 @@ dl.section dd {
 }
 
 .mscgraph
+{
+        text-align: center;
+}
+
+.diagraph
 {
         text-align: center;
 }

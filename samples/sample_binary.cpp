@@ -22,7 +22,7 @@ using namespace MyGame::Sample;
 
 // Example how to use FlatBuffers to create and read binary buffers.
 
-int main(int argc, const char *argv[]) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   // Build up a serialized buffer algorithmically:
   flatbuffers::FlatBufferBuilder builder;
 

@@ -88,8 +88,7 @@ Builtin scalar types are:
 -   64 bit: `long ulong double`
 
 -   Vector of any other type (denoted with `[type]`). Nesting vectors
-    require you wrap the inner vector in a struct/table rather than
-    writing `[[type]]`.
+    is not supported, instead you can wrap the inner vector in a table.
 
 -   `string`, which may only hold UTF-8 or 7-bit ASCII. For other text encodings
     or general binary data use vectors (`[byte]` or `[ubyte]`) instead.
@@ -122,8 +121,7 @@ Define a sequence of named constants, each with a given value, or
 increasing by one from the previous one. The default first value
 is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
-the type of any fields declared with this enum type. If you omit the underlying
-type, it will be `short`.
+the type of any fields declared with this enum type.
 
 ### Unions
 

@@ -287,7 +287,7 @@ FieldDef &Parser::AddField(StructDef &struct_def,
     // the largest scalar
     struct_def.minalign = std::max(struct_def.minalign, alignment);
     struct_def.PadLastField(alignment);
-    field.value.offset = static_cast<uoffset_t>(struct_def.bytesize);
+    field.value.offset = static_cast<voffset_t>(struct_def.bytesize);
     struct_def.bytesize += size;
   }
   if (struct_def.fields.Add(name, &field))
@@ -580,14 +580,15 @@ void Parser::ParseEnum(bool is_union) {
   if (is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
     enum_def.underlying_type.enum_def = &enum_def;
-  } else if (IsNext(':')) {
-    // short is the default type for fields when you use enums,
-    // though people are encouraged to pick any integer type instead.
+  } else {
+    // Give specialized error message, since this type spec used to
+    // be optional in the first FlatBuffers release.
+    if (!IsNext(':')) Error("must specify the underlying integer type for this"
+                            " enum (e.g. \': short\', which was the default).");
+    // Specify the integer type underlying this enum.
     ParseType(enum_def.underlying_type);
     if (!IsInteger(enum_def.underlying_type.base_type))
       Error("underlying enum type must be integral");
-  } else {
-    enum_def.underlying_type.base_type = BASE_TYPE_SHORT;
   }
   ParseMetaData(enum_def);
   Expect('{');
@@ -638,8 +639,6 @@ void Parser::ParseDecl() {
     struct_def.attributes.Lookup("original_order") == nullptr && !fixed;
   Expect('{');
   while (token_ != '}') ParseField(struct_def);
-  struct_def.PadLastField(struct_def.minalign);
-  Expect('}');
   auto force_align = struct_def.attributes.Lookup("force_align");
   if (fixed && force_align) {
     auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
@@ -651,6 +650,8 @@ void Parser::ParseDecl() {
             "struct\'s natural alignment to 256");
     struct_def.minalign = align;
   }
+  struct_def.PadLastField(struct_def.minalign);
+  Expect('}');
 }
 
 bool Parser::SetRootType(const char *name) {

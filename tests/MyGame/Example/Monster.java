@@ -24,8 +24,13 @@ public class Monster extends Table {
   public Test test4(int j) { return test4(new Test(), j); }
   public Test test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
   public int test4Length() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
+  public String testarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int testarrayofstringLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
+  public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(10); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(12); }
   public static void addPos(FlatBufferBuilder builder, int pos) { builder.addStruct(0, pos, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -37,6 +42,10 @@ public class Monster extends Table {
   public static void addTest(FlatBufferBuilder builder, int test) { builder.addOffset(8, test, 0); }
   public static void addTest4(FlatBufferBuilder builder, int test4) { builder.addOffset(9, test4, 0); }
   public static void startTest4Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
+  public static void addTestarrayofstring(FlatBufferBuilder builder, int testarrayofstring) { builder.addOffset(10, testarrayofstring, 0); }
+  public static void startTestarrayofstringVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
+  public static void addTestarrayoftables(FlatBufferBuilder builder, int testarrayoftables) { builder.addOffset(11, testarrayoftables, 0); }
+  public static void startTestarrayoftablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
   public static int endMonster(FlatBufferBuilder builder) { return builder.endObject(); }
 };
 

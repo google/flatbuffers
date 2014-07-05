@@ -44,9 +44,12 @@ class JavaTest {
         TestBuffer(bb, 0);
 
         // Second, let's create a FlatBuffer from scratch in Java, and test it also.
-        // We set up the same values as monsterdata.json:
+        // We use an initial size of 1 to exercise the reallocation algorithm,
+        // normally a size larger than the typical FlatBuffer you generate would be
+        // better for performance.
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
 
-        FlatBufferBuilder fbb = new FlatBufferBuilder(1024);
+        // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
 

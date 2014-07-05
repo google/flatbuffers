@@ -13,7 +13,7 @@ public class Test extends Struct {
   public byte b() { return bb.get(bb_pos + 2); }
 
   public static int createTest(FlatBufferBuilder builder, short a, byte b) {
-    builder.prep(2, 0);
+    builder.prep(2, 4);
     builder.pad(1);
     builder.putByte(b);
     builder.putShort(a);
