@@ -264,6 +264,7 @@
     <ClInclude Include="..\..\include\flatbuffers\flatbuffers.h" />
     <ClInclude Include="..\..\include\flatbuffers\idl.h" />
     <ClInclude Include="..\..\include\flatbuffers\util.h" />
+    <ClCompile Include="..\..\src\idl_gen_csharp.cpp" />
     <ClCompile Include="..\..\src\idl_parser.cpp" />
     <ClCompile Include="..\..\src\idl_gen_cpp.cpp" />
     <ClCompile Include="..\..\src\idl_gen_java.cpp" />

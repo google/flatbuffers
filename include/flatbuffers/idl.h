@@ -314,6 +314,10 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &path,
                          const std::string &file_name);
 
+extern bool GenerateCSharp(const Parser &parser,
+						   const std::string &path,	
+						   const std::string &file_name);	
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

@@ -68,6 +68,10 @@ const Generator generators[] = {
     "Generate C++ headers for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
+  // OW Added for FlatBuffersNet - Begin
+  { flatbuffers::GenerateCSharp,     "n", "C#",
+    "Generate C# classes for tables/structs" },
+  // OW Added for FlatBuffersNet - End
 };
 
 const char *program_name = NULL;
@@ -147,7 +151,7 @@ int main(int argc, const char *argv[]) {
 
   if (!any_generator)
     Error("no options: no output files generated.",
-          "specify one of -c -j -t -b etc.", true);
+          "specify one of -c -j -n -t -b etc.", true);
 
   // Now process the files:
   for (auto file_it = filenames.begin();

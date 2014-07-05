@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>FlatBuffersNet</id>
+    <version>1.0.0-alpha00001</version>
+    <authors>Oli Wilkinson</authors>
+    <description>A .NET port of Google's FlatBuffers project.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/evolutional/flatbuffers</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+  </metadata>
+</package>
