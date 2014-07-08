@@ -51,6 +51,9 @@ and backwards compatibility. Note that:
     definition. Older data will still
     read correctly, and give you the default value when read. Older code
     will simply ignore the new field.
+    If you want to have flexibility to use any order for fields in your
+    schema, you can manually assign ids (much like Protocol Buffers),
+    see the `id` attribute below.
 
 -   You cannot delete fields you don't use anymore from the schema,
     but you can simply
@@ -164,6 +167,17 @@ help text).
 
 Current understood attributes:
 
+-   `id: n` (on a table field): manually set the field identifier to `n`.
+    If you use this attribute, you must use it on ALL fields of this table,
+    and the numbers must be a contiguous range from 0 onwards.
+    Additionally, since a union type effectively adds two fields, its
+    id must be that of the second field (the first field is the type
+    field and not explicitly declared in the schema).
+    For example, if the last field before the union field had id 6,
+    the union field should have id 8, and the unions type field will
+    implicitly be 7.
+    IDs allow the fields to be placed in any order in the schema.
+    When a new field is added to the schema is must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `original_order` (on a table): since elements in a table do not need
@@ -182,7 +196,8 @@ Current understood attributes:
 FlatBuffers relies on new field declarations being added at the end, and earlier
 declarations to not be removed, but be marked deprecated when needed. We think
 this is an improvement over the manual number assignment that happens in
-Protocol Buffers.
+Protocol Buffers (and which is still an option using the `id` attribute
+mentioned above).
 
 One place where this is possibly problematic however is source control. If user
 A adds a field, generates new binary data with this new schema, then tries to
@@ -192,5 +207,7 @@ the new schema.
 
 The solution of course is that you should not be generating binary data before
 your schema changes have been committed, ensuring consistency with the rest of
-the world.
+the world. If this is not practical for you, use explicit field ids, which
+should always generate a merge conflict if two people try to allocate the same
+id.
 

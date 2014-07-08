@@ -85,12 +85,12 @@ struct Monster : private flatbuffers::Table {
   int16_t hp() const { return GetField<int16_t>(8, 100); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
-  /// an example documentation comment: this will end up in the generated code multiline too
   int8_t color() const { return GetField<int8_t>(16, 2); }
   uint8_t test_type() const { return GetField<uint8_t>(18, 0); }
   const void *test() const { return GetPointer<const void *>(20); }
   const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(22); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(24); }
+  /// an example documentation comment: this will end up in the generated code multiline too
   const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(26); }
   bool Verify(const flatbuffers::Verifier &verifier) const {
     return VerifyTable(verifier) &&

@@ -18,19 +18,19 @@ struct Vec3 (force_align: 16) {
 }
 
 table Monster {
-  pos:Vec3;
-  mana:short = 150;
-  hp:short = 100;
-  name:string;
-  friendly:bool = false (deprecated, priority: 1);
-  inventory:[ubyte];
+  pos:Vec3 (id: 0);
+  hp:short = 100 (id: 2);
+  mana:short = 150 (id: 1);
+  name:string (id: 3);
+  color:Color = Blue (id: 6);
+  inventory:[ubyte] (id: 5);
+  friendly:bool = false (deprecated, priority: 1, id: 4);
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
-  color:Color = Blue;
-  test:Any;
-  test4:[Test];
-  testarrayofstring:[string];
-  testarrayoftables:[Monster];
+  testarrayoftables:[Monster] (id: 11);
+  testarrayofstring:[string] (id: 10);
+  test:Any (id: 8);
+  test4:[Test] (id: 9);
 }
 
 root_type Monster;

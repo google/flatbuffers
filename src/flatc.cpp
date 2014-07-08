@@ -18,7 +18,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-void Error(const char *err, const char *obj = nullptr, bool usage = false);
+static void Error(const char *err, const char *obj = nullptr,
+                  bool usage = false);
 
 namespace flatbuffers {
 
@@ -72,7 +73,7 @@ const Generator generators[] = {
 
 const char *program_name = NULL;
 
-void Error(const char *err, const char *obj, bool usage) {
+static void Error(const char *err, const char *obj, bool usage) {
   printf("%s: %s\n", program_name, err);
   if (obj) printf(": %s", obj);
   printf("\n");
