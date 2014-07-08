@@ -15,16 +15,16 @@
  */
 
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using MyGame.Example;
 using MyTest = MyGame.Example;
 
 namespace FlatBuffersNet.Test
 {
-    [TestClass]
+    [TestFixture]
     public class FlatBuffersExampleTests
     {
-        [TestMethod]
+        [Test]
         public void CanCreateNewFlatBufferFromScratch()
         {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
@@ -123,7 +123,7 @@ namespace FlatBuffersNet.Test
             Assert.AreEqual(100, test0.A() + test0.B() + test1.A() + test1.B());
         }
 
-        [TestMethod]
+        [Test]
         public void CanReadCppGeneratedWireFile()
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test_wire.bin");
