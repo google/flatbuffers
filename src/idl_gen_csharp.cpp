@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Oli Wilkinson. All rights reserved.
+ * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,13 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * 
- * This work is a derivative of Flatbuffers, Copyright 2014 Google Inc.
- * See original: https://github.com/google/flatbuffers
- * 
  */
-// independent from idl_parser, since this code is not needed for most clients
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -94,8 +88,8 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
   // Generate enum definitions of the form:
-  // public static final int name = value;
-  // We use ints rather than the Java Enum feature, because we want them
+  // public static int Name = value;
+  // We use ints rather than the C# Enum feature, because we want them
   // to map directly to how they're used in C/C++ and file formats.
   GenComment(enum_def.doc_comment, code_ptr);
   code += "public class " + enum_def.name + "\n{\n";
@@ -155,7 +149,7 @@ static void GenStructArgs(const StructDef &struct_def, std::string *code_ptr,
 }
 
 // Recusively generate struct construction statements of the form:
-// builder.putType(name);
+// builder.PutType(name);
 // and insert manual padding.
 static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
                           const char *nameprefix) {
@@ -185,10 +179,10 @@ static void GenStruct(StructDef &struct_def,
   std::string &code = *code_ptr;
 
   // Generate a struct accessor class, with methods of the form:
-  // public type name() { return bb.getType(i + offset); }
+  // public type Name() { return bb.GetType(i + offset); }
   // or for tables of the form:
-  // public type name() {
-  //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
+  // public type Name() {
+  //   int o = __offset(offset); return o != 0 ? bb.GetType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr);
   code += "public class " + struct_def.name + " : ";
@@ -200,8 +194,7 @@ static void GenStruct(StructDef &struct_def,
     code += "  public static " + struct_def.name + " GetRootAs";
     code += struct_def.name;
     code += "(ByteBuffer _bb, int offset) { ";
-	// Endian?
-   // code += "_bb.order(ByteOrder.LITTLE_ENDIAN); ";
+	// Endian handled by .NET ByteBuffer impl
     code += "return (new " + struct_def.name;
     code += "()).__init(_bb.GetInt(offset) + offset, _bb); }\n";
   }
@@ -317,8 +310,8 @@ static void GenStruct(StructDef &struct_def,
   } else {
     // Create a set of static methods that allow table construction,
     // of the form:
-    // public static void addName(FlatBufferBuilder builder, short name)
-    // { builder.addShort(id, name, default); }
+    // public static void AddName(FlatBufferBuilder builder, short name)
+    // { builder.AddShort(id, name, default); }
     code += "  public static void Start" + struct_def.name;
     code += "(FlatBufferBuilder builder) { builder.StartObject(";
     code += NumToString(struct_def.fields.vec.size()) + "); }\n";

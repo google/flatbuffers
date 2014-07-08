@@ -68,10 +68,8 @@ const Generator generators[] = {
     "Generate C++ headers for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
-  // OW Added for FlatBuffersNet - Begin
   { flatbuffers::GenerateCSharp,     "n", "C#",
     "Generate C# classes for tables/structs" },
-  // OW Added for FlatBuffersNet - End
 };
 
 const char *program_name = NULL;
