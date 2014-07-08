@@ -84,7 +84,7 @@ root_type Monster;
 <p>Tables are the main way of defining objects in FlatBuffers, and consist of a name (here <code>Monster</code>) and a list of fields. Each field has a name, a type, and optionally a default value (if omitted, it defaults to 0 / NULL).</p>
 <p>Each field is optional: It does not have to appear in the wire representation, and you can choose to omit fields for each individual object. As a result, you have the flexibility to add fields without fear of bloating your data. This design is also FlatBuffer's mechanism for forward and backwards compatibility. Note that:</p>
 <ul>
-<li>You can add new fields in the schema ONLY at the end of a table definition. Older data will still read correctly, and give you the default value when read. Older code will simply ignore the new field.</li>
+<li>You can add new fields in the schema ONLY at the end of a table definition. Older data will still read correctly, and give you the default value when read. Older code will simply ignore the new field. If you want to have flexibility to use any order for fields in your schema, you can manually assign ids (much like protocol buffer), see the <code>id</code> attribute below.</li>
 <li>You cannot delete fields you don't use anymore from the schema, but you can simply stop writing them into your data for almost the same effect. Additionally you can mark them as <code>deprecated</code> as in the example above, which will prevent the generation of accessors in the generated C++, as a way to enforce the field not being used any more. (careful: this may break code!).</li>
 <li>You may change field names and table names, if you're ok with your code breaking until you've renamed them there too.</li>
 </ul>
@@ -106,7 +106,7 @@ root_type Monster;
 <p>Values are a sequence of digits, optionally followed by a <code>.</code> and more digits for float constants, and optionally prefixed by a <code>-</code>. Non-scalar defaults are currently not supported (always NULL).</p>
 <p>You generally do not want to change default values after they're initially defined. Fields that have the default value are not actually stored in the serialized data but are generated in code, so when you change the default, you'd now get a different value than from code generated from an older version of the schema. There are situations however where this may be desirable, especially if you can ensure a simultaneous rebuild of all code.</p>
 <h3>Enums</h3>
-<p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type. If you omit the underlying type, it will be <code>short</code>.</p>
+<p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type.</p>
 <h3>Unions</h3>
 <p>Unions share a lot of properties with enums, but instead of new names for constants, you use names of tables. You can then declare a union field which can hold a reference to any of those types, and additionally a hidden field with the suffix <code>_type</code> is generated that holds the corresponding enum value, allowing you to know which type to cast to at runtime.</p>
 <h3>Namespaces</h3>
@@ -119,15 +119,16 @@ root_type Monster;
 <p>Attributes may be attached to a declaration, behind a field, or after the name of a table/struct/enum/union. These may either have a value or not. Some attributes like <code>deprecated</code> are understood by the compiler, others are simply ignored (like <code>priority</code>), but are available to query if you parse the schema at runtime. This is useful if you write your own code generators/editors etc., and you wish to add additional information specific to your tool (such as a help text).</p>
 <p>Current understood attributes:</p>
 <ul>
+<li><code>id: n</code> (on a table field): manually set the field id to <code>n</code>. If you use this attribute, you must use it on ALL fields of this table, and the numbers must be a contiguous range from 0 onwards. Additionally, since a union type effectively adds two fields, its id must be that of the second field (the first field is the type field and not explicitly declared in the schema). Once you've added id's, you can now order fields in any order in the schema, though new fields must still use the next available id when added.</li>
 <li><code>deprecated</code> (on a field): do not generate accessors for this field anymore, code should stop using this data.</li>
 <li><code>original_order</code> (on a table): since elements in a table do not need to be stored in any particular order, they are often optimized for space by sorting them to size. This attribute stops that from happening.</li>
 <li><code>force_align: size</code> (on a struct): force the alignment of this struct to be something higher than what it is naturally aligned to. Causes these structs to be aligned to that amount inside a buffer, IF that buffer is allocated with that alignment (which is not necessarily the case for buffers accessed directly inside a <code>FlatBufferBuilder</code>).</li>
 </ul>
 <h2>Gotchas</h2>
 <h3>Schemas and version control</h3>
-<p>FlatBuffers relies on new field declarations being added at the end, and earlier declarations to not be removed, but be marked deprecated when needed. We think this is an improvement over the manual number assignment that happens in Protocol Buffers.</p>
+<p>FlatBuffers relies on new field declarations being added at the end, and earlier declarations to not be removed, but be marked deprecated when needed. We think this is an improvement over the manual number assignment that happens in Protocol Buffers (and which is still an option using the <code>id</code> attribute mentioned above).</p>
 <p>One place where this is possibly problematic however is source control. If user A adds a field, generates new binary data with this new schema, then tries to commit both to source control after user B already committed a new field also, and just auto-merges the schema, the binary files are now invalid compared to the new schema.</p>
-<p>The solution of course is that you should not be generating binary data before your schema changes have been committed, ensuring consistency with the rest of the world. </p>
+<p>The solution of course is that you should not be generating binary data before your schema changes have been committed, ensuring consistency with the rest of the world. If this is not practical for you, use explicit field ids, which should always generate a merge conflict if two people try to allocate the same id. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->
