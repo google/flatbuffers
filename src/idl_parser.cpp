@@ -669,7 +669,7 @@ void Parser::ParseDecl() {
   // Check if this is a table that has manual id assignments
   auto &fields = struct_def.fields.vec;
   if (!struct_def.fixed && fields.size()) {
-    int num_id_fields = 0;
+    size_t num_id_fields = 0;
     for (auto it = fields.begin(); it != fields.end(); ++it) {
       if ((*it)->attributes.Lookup("id")) num_id_fields++;
     }

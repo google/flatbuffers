@@ -198,7 +198,8 @@ void ParseAndGenerateTextTest() {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), 2, &jsongen);
+  flatbuffers::GeneratorOptions opts;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
@@ -406,7 +407,9 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(json.c_str()), true);
 
   std::string jsongen;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), 0, &jsongen);
+  flatbuffers::GeneratorOptions opts;
+  opts.indent_step = 0;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
 
   if (jsongen != json) {
     // These strings are larger than a megabyte, so we show the bytes around

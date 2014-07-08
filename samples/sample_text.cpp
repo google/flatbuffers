@@ -46,7 +46,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), 2, &jsongen);
+  GenerateText(parser, parser.builder_.GetBufferPointer(),
+               flatbuffers::GeneratorOptions(), &jsongen);
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());

@@ -380,7 +380,8 @@ static bool SaveClass(const Parser &parser, const Definition &def,
 
 bool GenerateJava(const Parser &parser,
                   const std::string &path,
-                  const std::string & /*file_name*/) {
+                  const std::string & /*file_name*/,
+                  const GeneratorOptions & /*opts*/) {
   using namespace java;
 
   for (auto it = parser.enums_.vec.begin();

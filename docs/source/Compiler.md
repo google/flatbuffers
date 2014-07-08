@@ -2,7 +2,7 @@
 
 Usage:
 
-    flatc [ -c ] [ -j ] [ -b ] [ -t ] file1 file2 ..
+    flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] file1 file2 ..
 
 The files are read and parsed in order, and can contain either schemas
 or data (see below). Later files can make use of definitions in earlier
@@ -20,3 +20,10 @@ be generated for each file processed:
 -   `-t` : If data is contained in this file, generate a
     `filename_wire.txt` (for debugging).
 
+-   `-o PATH` : Output all generated files to PATH (either absolute, or
+    relative to the current directory). If omitted, PATH will be the
+    current directory. PATH should end in your systems path separator,
+    e.g. `/` or `\`.
+
+-   `-S` : Generate strict JSON (field names are enclosed in quotes).
+    By default, no quotes are generated.

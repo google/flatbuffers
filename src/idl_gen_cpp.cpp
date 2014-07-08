@@ -486,7 +486,8 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
 
 bool GenerateCPP(const Parser &parser,
                  const std::string &path,
-                 const std::string &file_name) {
+                 const std::string &file_name,
+                 const GeneratorOptions & /*opts*/) {
     auto code = GenerateCPP(parser, file_name);
     return !code.length() ||
            SaveFile((path + file_name + "_generated.h").c_str(), code, false);
