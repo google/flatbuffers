@@ -36,7 +36,7 @@ public class Monster extends Table {
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
   public static void addName(FlatBufferBuilder builder, int name) { builder.addOffset(3, name, 0); }
   public static void addInventory(FlatBufferBuilder builder, int inventory) { builder.addOffset(5, inventory, 0); }
-  public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
+  public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems); }
   public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 2); }
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
   public static void addTest(FlatBufferBuilder builder, int test) { builder.addOffset(8, test, 0); }

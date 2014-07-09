@@ -335,7 +335,7 @@ static void GenStruct(StructDef &struct_def,
         code += "  public static void start" + MakeCamel(field.name);
         code += "Vector(FlatBufferBuilder builder, int numElems) ";
         code += "{ builder.startVector(";
-        code += NumToString(InlineSize(field.value.type));
+        code += NumToString(InlineSize(field.value.type.VectorType()));
         code += ", numElems); }\n";
       }
     }
