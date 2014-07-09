@@ -29,6 +29,7 @@ table Monster {
   /// multiline too
   testarrayoftables:[Monster] (id: 11);
   testarrayofstring:[string] (id: 10);
+  enemy:Monster (id:12);
   test:Any (id: 8);
   test4:[Test] (id: 9);
 }

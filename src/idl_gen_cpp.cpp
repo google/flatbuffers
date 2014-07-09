@@ -155,8 +155,8 @@ static void GenComment(const std::string &dc,
       if (!ev.value) {
         code_post += ": return true;\n";  // "NONE" enum value.
       } else {
-        code_post += ": return reinterpret_cast<const " + ev.struct_def->name;
-        code_post += " *>(union_obj)->Verify(verifier);\n";
+        code_post += ": return verifier.VerifyTable(reinterpret_cast<const ";
+        code_post += ev.struct_def->name + " *>(union_obj));\n";
       }
     }
     code_post += "    default: return false;\n  }\n}\n\n";
@@ -213,8 +213,8 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
           break;
         case BASE_TYPE_STRUCT:
           if (!field.value.type.struct_def->fixed) {
-            code += prefix + field.value.type.struct_def->name;
-            code += "()->Verify()";
+            code += prefix + "verifier.VerifyTable(" + field.name;
+            code += "())";
           }
           break;
         case BASE_TYPE_STRING:

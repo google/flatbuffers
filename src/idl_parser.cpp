@@ -83,7 +83,7 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(NameSpace, 265, "namespace") \
   TD(RootType, 266, "root_type")
 enum {
-  #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME,
+  #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
     FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
   #undef FLATBUFFERS_TOKEN
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) kToken ## ENUM,

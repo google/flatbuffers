@@ -582,6 +582,11 @@ class Verifier {
     return Verify(elem, sizeof(T));
   }
 
+  // Verify a pointer (may be NULL) of a table type.
+  template<typename T> bool VerifyTable(const T *table) const {
+    return !table || table->Verify(*this);
+  }
+
   // Verify a pointer (may be NULL) of any vector type.
   template<typename T> bool Verify(const Vector<T> *vec) const {
     const uint8_t *end;

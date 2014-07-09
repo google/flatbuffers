@@ -92,6 +92,7 @@ struct Monster : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(24); }
   /// an example documentation comment: this will end up in the generated code multiline too
   const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(26); }
+  const Monster *enemy() const { return GetPointer<const Monster *>(28); }
   bool Verify(const flatbuffers::Verifier &verifier) const {
     return VerifyTable(verifier) &&
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
@@ -112,7 +113,9 @@ struct Monster : private flatbuffers::Table {
            verifier.VerifyVectorOfStrings(testarrayofstring()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 26 /* testarrayoftables */) &&
            verifier.Verify(testarrayoftables()) &&
-           verifier.VerifyVectorOfTables(testarrayoftables());
+           verifier.VerifyVectorOfTables(testarrayoftables()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 28 /* enemy */) &&
+           verifier.VerifyTable(enemy());
   }
 };
 
@@ -130,13 +133,15 @@ struct MonsterBuilder {
   void add_test4(flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4) { fbb_.AddOffset(22, test4); }
   void add_testarrayofstring(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring) { fbb_.AddOffset(24, testarrayofstring); }
   void add_testarrayoftables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables) { fbb_.AddOffset(26, testarrayoftables); }
+  void add_enemy(flatbuffers::Offset<Monster> enemy) { fbb_.AddOffset(28, enemy); }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
-  flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 12)); }
+  flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 13)); }
 };
 
-inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color, uint8_t test_type, flatbuffers::Offset<void> test, flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables) {
+inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color, uint8_t test_type, flatbuffers::Offset<void> test, flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables, flatbuffers::Offset<Monster> enemy) {
   MonsterBuilder builder_(_fbb);
+  builder_.add_enemy(enemy);
   builder_.add_testarrayoftables(testarrayoftables);
   builder_.add_testarrayofstring(testarrayofstring);
   builder_.add_test4(test4);
@@ -154,7 +159,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 bool VerifyAny(const flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type) {
   switch (type) {
     case Any_NONE: return true;
-    case Any_Monster: return reinterpret_cast<const Monster *>(union_obj)->Verify(verifier);
+    case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));
     default: return false;
   }
 }

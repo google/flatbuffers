@@ -91,7 +91,7 @@ std::string CreateFlatBufferTest() {
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mloc2.Union(), // Store a union.
-                            testv, vecofstrings, vecoftables);
+                            testv, vecofstrings, vecoftables, 0);
 
   builder.Finish(mloc);
 
