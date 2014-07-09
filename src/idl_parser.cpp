@@ -713,6 +713,7 @@ bool Parser::Parse(const char *source) {
     while (token_ != kTokenEof) {
       if (token_ == kTokenNameSpace) {
         Next();
+        name_space_.clear();
         for (;;) {
           name_space_.push_back(attribute_);
           Expect(kTokenIdentifier);
