@@ -291,7 +291,8 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
        ++it) {
     auto &field = **it;
     if (!field.deprecated) {
-      code += ", " + GenTypeWire(field.value.type, " ") + field.name;
+      code += ",\n   " + GenTypeWire(field.value.type, " ") + field.name;
+      code += " = " + field.value.constant;
     }
   }
   code += ") {\n  " + struct_def.name + "Builder builder_(_fbb);\n";

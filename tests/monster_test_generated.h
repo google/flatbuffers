@@ -139,7 +139,19 @@ struct MonsterBuilder {
   flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 13)); }
 };
 
-inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color, uint8_t test_type, flatbuffers::Offset<void> test, flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring, flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables, flatbuffers::Offset<Monster> enemy) {
+inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+   const Vec3 *pos = 0,
+   int16_t mana = 150,
+   int16_t hp = 100,
+   flatbuffers::Offset<flatbuffers::String> name = 0,
+   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
+   int8_t color = 2,
+   uint8_t test_type = 0,
+   flatbuffers::Offset<void> test = 0,
+   flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4 = 0,
+   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring = 0,
+   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables = 0,
+   flatbuffers::Offset<Monster> enemy = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_enemy(enemy);
   builder_.add_testarrayoftables(testarrayoftables);
