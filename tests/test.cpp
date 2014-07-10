@@ -481,6 +481,21 @@ void ErrorTest() {
   TestError("union Z { X } struct X { Y:int; }", "only tables");
 }
 
+// Additional parser testing not covered elsewhere.
+void TokenTest() {
+  flatbuffers::Parser parser;
+
+  // Simple schema.
+  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;"), true);
+
+  // Test scientific notation numbers.
+  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }"), true);
+  auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
+  // root will point to the table, which is a 32bit vtable offset followed
+  // by a float:
+  TEST_EQ(fabs(root[1] - 3.14159) < 0.001, true);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -495,6 +510,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   FuzzTest2();
 
   ErrorTest();
+  TokenTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

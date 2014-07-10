@@ -200,6 +200,13 @@ void Parser::Next() {
           if (*cursor_ == '.') {
             cursor_++;
             while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
+            // See if this float has a scientific notation suffix. Both JSON
+            // and C++ (through strtod() we use) have the same format:
+            if (*cursor_ == 'e' || *cursor_ == 'E') {
+              cursor_++;
+              if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
+              while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
+            }
             token_ = kTokenFloatConstant;
           } else {
             token_ = kTokenIntegerConstant;
