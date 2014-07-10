@@ -50,6 +50,12 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
+#ifndef WIN32
+#define FLATBUFFERS_WEAK __attribute__((weak))
+#else
+#define FLATBUFFERS_WEAK __declspec(selectany)
+#endif  // WIN32
+
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 0
 #define FLATBUFFERS_VERSION_REVISION 0
@@ -281,11 +287,6 @@ class FlatBufferBuilder {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
-    flatbuffer_version_string =
-      "FlatBuffers "
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
   }
 
   // Reset all the state in this FlatBufferBuilder so it can be reused
@@ -301,8 +302,6 @@ class FlatBufferBuilder {
 
   // Get the serialized buffer (after you call Finish()).
   uint8_t *GetBufferPointer() const { return buf_.data(); }
-
-  const char *GetVersionString() { return flatbuffer_version_string; }
 
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
@@ -544,16 +543,6 @@ class FlatBufferBuilder {
   size_t minalign_;
 
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
-
-  // String which identifies the current version of FlatBuffers.
-  // flatbuffer_version_string is used by Google developers to identify which
-  // applications uploaded to Google Play are using this library.  This allows
-  // the development team at Google to determine the popularity of the library.
-  // How it works: Applications that are uploaded to the Google Play Store are
-  // scanned for this version string.  We track which applications are using it
-  // to measure popularity.  You are free to remove it (of course) but we would
-  // appreciate if you left it in.
-  const char *flatbuffer_version_string;
 };
 
 // Helper to get a typed pointer to the root object contained in the buffer.
@@ -788,6 +777,22 @@ inline int LookupEnum(const char **names, const char *name) {
 #else
   #error Unknown compiler, please define structure alignment macros
 #endif
+
+// String which identifies the current version of FlatBuffers.
+// flatbuffer_version_string is used by Google developers to identify which
+// applications uploaded to Google Play are using this library.  This allows
+// the development team at Google to determine the popularity of the library.
+// How it works: Applications that are uploaded to the Google Play Store are
+// scanned for this version string.  We track which applications are using it
+// to measure popularity.  You are free to remove it (of course) but we would
+// appreciate if you left it in.
+
+extern volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string;
+volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string =
+  "FlatBuffers "
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
 
 }  // namespace flatbuffers
 
