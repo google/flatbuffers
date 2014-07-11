@@ -71,6 +71,8 @@ const Generator generators[] = {
     "Generate text output for any data definitions" },
   { flatbuffers::GenerateCPP,      "c", "C++",
     "Generate C++ headers for tables/structs" },
+  { flatbuffers::GenerateGo,       "g", "Go",
+    "Generate Go files for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
 };
@@ -162,7 +164,7 @@ int main(int argc, const char *argv[]) {
 
   if (!any_generator)
     Error("no options: no output files generated.",
-          "specify one of -c -j -t -b etc.", true);
+          "specify one of -c -g -j -t -b etc.", true);
 
   // Now process the files:
   for (auto file_it = filenames.begin();
