@@ -31,31 +31,31 @@ namespace flatbuffers {
 // Additionally, Parser::ParseType assumes bool..string is a contiguous range
 // of type tokens.
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte  ) \
-  TD(UTYPE,  "",       uint8_t,  byte  ) /* begin scalars, ints */ \
-  TD(BOOL,   "bool",   uint8_t,  byte  ) \
-  TD(CHAR,   "byte",   int8_t,   byte  ) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte  ) \
-  TD(SHORT,  "short",  int16_t,  short ) \
-  TD(USHORT, "ushort", uint16_t, short ) \
-  TD(INT,    "int",    int32_t,  int   ) \
-  TD(UINT,   "uint",   uint32_t, int   ) \
-  TD(LONG,   "long",   int64_t,  long  ) \
-  TD(ULONG,  "ulong",  uint64_t, long  ) /* end ints */ \
-  TD(FLOAT,  "float",  float,    float ) /* begin floats */ \
-  TD(DOUBLE, "double", double,   double) /* end floats, scalars */
+  TD(NONE,   "",       uint8_t,  byte,   byte) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte) /* begin scalars, ints */ \
+  TD(BOOL,   "bool",   uint8_t,  byte,   byte) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte) \
+  TD(SHORT,  "short",  int16_t,  short,  int16) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16) \
+  TD(INT,    "int",    int32_t,  int,    int32) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32) \
+  TD(LONG,   "long",   int64_t,  long,   int64) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64) /* end ints */ \
+  TD(FLOAT,  "float",  float,    float,  float32) /* begin floats */ \
+  TD(DOUBLE, "double", double,   double, float64) /* end floats, scalars */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int) \
-  TD(VECTOR, "",       Offset<void>, int) \
-  TD(STRUCT, "",       Offset<void>, int) \
-  TD(UNION,  "",       Offset<void>, int)
+  TD(STRING, "string", Offset<void>, int, int) \
+  TD(VECTOR, "",       Offset<void>, int, int) \
+  TD(STRUCT, "",       Offset<void>, int, int) \
+  TD(UNION,  "",       Offset<void>, int, int)
 
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
 /*
 switch (type) {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -69,12 +69,12 @@ switch (type) {
 
 // Create an enum for all the types above
 enum BaseType {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) BASE_TYPE_ ## ENUM,
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -291,6 +291,23 @@ class Parser {
   std::vector<uint8_t> struct_stack_;
 };
 
+// Utility functions for generators:
+
+// Convert an underscore_based_indentifier in to camelCase.
+// Also uppercases the first character if first is true.
+inline std::string MakeCamel(const std::string &in, bool first = true) {
+  std::string s;
+  for (size_t i = 0; i < in.length(); i++) {
+    if (!i && first)
+      s += static_cast<char>(toupper(in[0]));
+    else if (in[i] == '_' && i + 1 < in.length())
+      s += static_cast<char>(toupper(in[++i]));
+    else
+      s += in[i];
+  }
+  return s;
+}
+
 // Container of options that may apply to any of the source/text generators.
 struct GeneratorOptions {
   bool strict_json;
@@ -320,6 +337,13 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,
                         const GeneratorOptions &opts);
+
+// Generate Go files from the definitions in the Parser object.
+// See idl_gen_go.cpp.
+extern bool GenerateGo(const Parser &parser,
+                       const std::string &path,
+                       const std::string &file_name,
+                       const GeneratorOptions &opts);
 
 // Generate Java files from the definitions in the Parser object.
 // See idl_gen_java.cpp.

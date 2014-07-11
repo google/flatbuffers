@@ -33,4 +33,4 @@ flattests
 flatsamplebinary
 flatsampletext
 snapshot.sh
-
+tests/go_gen

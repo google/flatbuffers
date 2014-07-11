@@ -34,7 +34,7 @@ namespace java {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) #JTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -71,21 +71,6 @@ static void GenComment(const std::string &dc,
   if (dc.length()) {
     code += std::string(prefix) + "///" + dc + "\n";
   }
-}
-
-// Convert an underscore_based_indentifier in to camelCase.
-// Also uppercases the first character if first is true.
-static std::string MakeCamel(const std::string &in, bool first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
-    else
-      s += in[i];
-  }
-  return s;
 }
 
 static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
