@@ -53,7 +53,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="title">FlatBuffers Documentation</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>FlatBuffers is an efficient cross platform serialization library in for C++ and Java. It was created at Google specifically for game development and other performance-critical applications.</p>
+<div class="textblock"><p>FlatBuffers is an efficient cross platform serialization library for C++, with support for Java and Go. It was created at Google specifically for game development and other performance-critical applications.</p>
 <p>It is available as open source under the Apache license, v2 (see LICENSE.txt).</p>
 <h2>Why use FlatBuffers?</h2>
 <ul>
@@ -63,9 +63,9 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li><b>Tiny code footprint</b> - Small amounts of generated code, and just a single small header as the minimum dependency, which is very easy to integrate. Again, see the benchmark section for details.</li>
 <li><b>Strongly typed</b> - Errors happen at compile time rather than manually having to write repetitive and error prone run-time checks. Useful code can be generated for you.</li>
 <li><p class="startli"><b>Convenient to use</b> - Generated C++ code allows for terse access &amp; construction code. Then there's optional functionality for parsing schemas and JSON-like text representations at runtime efficiently if needed (faster and more memory efficient than other JSON parsers).</p>
-<p class="startli">Java code supports object-reuse.</p>
+<p class="startli">Java and Go code supports object-reuse.</p>
 </li>
-<li><b>Cross platform C++11/Java code with no dependencies</b> - will work with any recent gcc/clang and VS2010. Comes with build files for the tests &amp; samples (Android .mk files, and cmake for all other platforms).</li>
+<li><b>Cross platform C++11/Java/Go code with no dependencies</b> - will work with any recent gcc/clang and VS2010. Comes with build files for the tests &amp; samples (Android .mk files, and cmake for all other platforms).</li>
 </ul>
 <h3>Why not use Protocol Buffers, or .. ?</h3>
 <p>Protocol Buffers is indeed relatively similar to FlatBuffers, with the primary difference being that FlatBuffers does not need a parsing/ unpacking step to a secondary representation before you can access data, often coupled with per-object memory allocation. The code is an order of magnitude bigger, too. Protocol Buffers has neither optional text import/export nor schema language features like unions.</p>
@@ -76,7 +76,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <p>This section is a quick rundown of how to use this system. Subsequent sections provide a more in-depth usage guide.</p>
 <ul>
 <li>Write a schema file that allows you to define the data structures you may want to serialize. Fields can have a scalar type (ints/floats of all sizes), or they can be a: string; array of any type; reference to yet another object; or, a set of possible objects (unions). Fields are optional and have defaults, so they don't need to be present for every object instance.</li>
-<li>Use <code>flatc</code> (the FlatBuffer compiler) to generate a C++ header (or Java classes) with helper classes to access and construct serialized data. This header (say <code>mydata_generated.h</code>) only depends on <code>flatbuffers.h</code>, which defines the core functionality.</li>
+<li>Use <code>flatc</code> (the FlatBuffer compiler) to generate a C++ header (or Java/Go classes) with helper classes to access and construct serialized data. This header (say <code>mydata_generated.h</code>) only depends on <code>flatbuffers.h</code>, which defines the core functionality.</li>
 <li>Use the <code>FlatBufferBuilder</code> class to construct a flat binary buffer. The generated functions allow you to add objects to this buffer recursively, often as simply as making a single function call.</li>
 <li>Store or send your buffer somewhere!</li>
 <li>When reading it back, you can obtain the pointer to the root object from the binary buffer, and from there traverse it conveniently in-place with <code>object-&gt;field()</code>.</li>
@@ -88,6 +88,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li>How to <a href="md__schemas.html">write a schema</a>.</li>
 <li>How to <a href="md__cpp_usage.html">use the generated C++ code</a> in your own programs.</li>
 <li>How to <a href="md__java_usage.html">use the generated Java code</a> in your own programs.</li>
+<li>How to <a href="md__go_usage.html">use the generated Go code</a> in your own programs.</li>
 <li>Some <a href="md__benchmarks.html">benchmarks</a> showing the advantage of using FlatBuffers.</li>
 <li>A <a href="md__white_paper.html">white paper</a> explaining the "why" of FlatBuffers.</li>
 <li>A description of the <a href="md__internals.html">internals</a> of FlatBuffers.</li>
