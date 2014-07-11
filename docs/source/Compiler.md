@@ -2,23 +2,30 @@
 
 Usage:
 
-    flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] file1 file2 ..
+    flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] FILES...
+          [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
 or data (see below). Later files can make use of definitions in earlier
-files. Depending on the flags passed, additional files may
+files.
+
+`--` indicates that the following files are binary files in
+FlatBuffer format conforming to the schema(s) indicated before it.
+Incompatible binary files currently will give unpredictable results (!)
+
+Depending on the flags passed, additional files may
 be generated for each file processed:
 
 -   `-c` : Generate a C++ header for all definitions in this file (as
-    `filename_generated.h`). Skips data.
+    `filename_generated.h`). Skipped for data.
 
--   `-j` : Generate Java classes.
+-   `-j` : Generate Java classes. Skipped for data.
 
 -   `-b` : If data is contained in this file, generate a
-    `filename_wire.bin` containing the binary flatbuffer.
+    `filename.bin` containing the binary flatbuffer.
 
 -   `-t` : If data is contained in this file, generate a
-    `filename_wire.txt` (for debugging).
+    `filename.json` representing the data in the flatbuffer.
 
 -   `-o PATH` : Output all generated files to PATH (either absolute, or
     relative to the current directory). If omitted, PATH will be the

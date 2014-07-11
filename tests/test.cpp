@@ -181,7 +181,7 @@ void ParseAndGenerateTextTest() {
   TEST_EQ(flatbuffers::LoadFile(
     "tests/monster_test.fbs", false, &schemafile), true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monsterdata_test.json", false, &jsonfile), true);
+    "tests/monsterdata_test.golden", false, &jsonfile), true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;

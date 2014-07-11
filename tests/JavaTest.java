@@ -26,7 +26,7 @@ class JavaTest {
         // This file was generated from monsterdata_test.json
 
         byte[] data = null;
-        File file = new File("monsterdata_test_wire.bin");
+        File file = new File("monsterdata_test.bin");
         RandomAccessFile f = null;
         try {
             f = new RandomAccessFile(file, "r");
