@@ -33,22 +33,22 @@ public class Monster extends Table {
   public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
 
   public static void startMonster(FlatBufferBuilder builder) { builder.startObject(13); }
-  public static void addPos(FlatBufferBuilder builder, int pos) { builder.addStruct(0, pos, 0); }
+  public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
-  public static void addName(FlatBufferBuilder builder, int name) { builder.addOffset(3, name, 0); }
-  public static void addInventory(FlatBufferBuilder builder, int inventory) { builder.addOffset(5, inventory, 0); }
+  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(3, nameOffset, 0); }
+  public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems); }
   public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 2); }
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
-  public static void addTest(FlatBufferBuilder builder, int test) { builder.addOffset(8, test, 0); }
-  public static void addTest4(FlatBufferBuilder builder, int test4) { builder.addOffset(9, test4, 0); }
+  public static void addTest(FlatBufferBuilder builder, int testOffset) { builder.addOffset(8, testOffset, 0); }
+  public static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }
   public static void startTest4Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
-  public static void addTestarrayofstring(FlatBufferBuilder builder, int testarrayofstring) { builder.addOffset(10, testarrayofstring, 0); }
+  public static void addTestarrayofstring(FlatBufferBuilder builder, int testarrayofstringOffset) { builder.addOffset(10, testarrayofstringOffset, 0); }
   public static void startTestarrayofstringVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
-  public static void addTestarrayoftables(FlatBufferBuilder builder, int testarrayoftables) { builder.addOffset(11, testarrayoftables, 0); }
+  public static void addTestarrayoftables(FlatBufferBuilder builder, int testarrayoftablesOffset) { builder.addOffset(11, testarrayoftablesOffset, 0); }
   public static void startTestarrayoftablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems); }
-  public static void addEnemy(FlatBufferBuilder builder, int enemy) { builder.addOffset(12, enemy, 0); }
+  public static void addEnemy(FlatBufferBuilder builder, int enemyOffset) { builder.addOffset(12, enemyOffset, 0); }
   public static int endMonster(FlatBufferBuilder builder) { return builder.endObject(); }
 };
 

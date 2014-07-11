@@ -326,10 +326,12 @@ static void GenStruct(StructDef &struct_def,
       if (field.deprecated) continue;
       code += "  public static void add" + MakeCamel(field.name);
       code += "(FlatBufferBuilder builder, " + GenTypeBasic(field.value.type);
-      code += " " + MakeCamel(field.name, false) + ") { builder.add";
+      auto argname = MakeCamel(field.name, false);
+      if (!IsScalar(field.value.type.base_type)) argname += "Offset";
+      code += " " + argname + ") { builder.add";
       code += GenMethod(field) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      code += MakeCamel(field.name, false) + ", " + field.value.constant;
+      code += argname + ", " + field.value.constant;
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         code += "  public static void start" + MakeCamel(field.name);
