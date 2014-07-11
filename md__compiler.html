@@ -53,13 +53,16 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <div class="title">Using the schema compiler </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] file1 file2 ..
-</pre><p>The files are read and parsed in order, and can contain either schemas or data (see below). Later files can make use of definitions in earlier files. Depending on the flags passed, additional files may be generated for each file processed:</p>
+<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] FILES...
+      [ -- FILES...]
+</pre><p>The files are read and parsed in order, and can contain either schemas or data (see below). Later files can make use of definitions in earlier files.</p>
+<p><code>--</code> indicates that the following files are binary files in FlatBuffer format conforming to the schema(s) indicated before it. Incompatible binary files currently will give unpredictable results (!)</p>
+<p>Depending on the flags passed, additional files may be generated for each file processed:</p>
 <ul>
-<li><code>-c</code> : Generate a C++ header for all definitions in this file (as <code>filename_generated.h</code>). Skips data.</li>
-<li><code>-j</code> : Generate Java classes.</li>
-<li><code>-b</code> : If data is contained in this file, generate a <code>filename_wire.bin</code> containing the binary flatbuffer.</li>
-<li><code>-t</code> : If data is contained in this file, generate a <code>filename_wire.txt</code> (for debugging).</li>
+<li><code>-c</code> : Generate a C++ header for all definitions in this file (as <code>filename_generated.h</code>). Skipped for data.</li>
+<li><code>-j</code> : Generate Java classes. Skipped for data.</li>
+<li><code>-b</code> : If data is contained in this file, generate a <code>filename.bin</code> containing the binary flatbuffer.</li>
+<li><code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
 <li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated. </li>
 </ul>
