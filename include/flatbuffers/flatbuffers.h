@@ -44,13 +44,17 @@
       #define FLATBUFFERS_LITTLEENDIAN 1
     #endif // __BIG_ENDIAN__
   #elif defined(_MSC_VER)
-    #define FLATBUFFERS_LITTLEENDIAN 1
+    #if defined(_M_PPC)
+      #define FLATBUFFERS_LITTLEENDIAN 0
+    #else
+      #define FLATBUFFERS_LITTLEENDIAN 1
+    #endif
   #else
     #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#ifndef WIN32
+#if !defined(_MSC_VER)
 #define FLATBUFFERS_WEAK __attribute__((weak))
 #else
 #define FLATBUFFERS_WEAK __declspec(selectany)
@@ -97,6 +101,14 @@ template<typename T> T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
   #else
+    #if defined(_MSC_VER)
+      #pragma push_macro("__builtin_bswap16")
+      #pragma push_macro("__builtin_bswap32")
+      #pragma push_macro("__builtin_bswap64")
+      #define __builtin_bswap16 _byteswap_ushort
+      #define __builtin_bswap32 _byteswap_ulong
+      #define __builtin_bswap64 _byteswap_uint64
+    #endif
     // If you're on the few remaining big endian platforms, we make the bold
     // assumption you're also on gcc/clang, and thus have bswap intrinsics:
     if (sizeof(T) == 1) {   // Compile-time if-then's.
@@ -113,6 +125,11 @@ template<typename T> T EndianScalar(T t) {
     } else {
       assert(0);
     }
+    #if defined(_MSC_VER)
+      #pragma pop_macro("__builtin_bswap16")
+      #pragma pop_macro("__builtin_bswap32")
+      #pragma pop_macro("__builtin_bswap64")
+    #endif
   #endif
 }
 
