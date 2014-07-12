@@ -142,12 +142,14 @@ template<typename T> size_t AlignOf() {
 // (avoiding the need for a trailing return decltype)
 template<typename T> struct IndirectHelper {
   typedef T return_type;
+  static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return EndianScalar((reinterpret_cast<const T *>(p))[i]);
   }
 };
 template<typename T> struct IndirectHelper<Offset<T>> {
   typedef const T *return_type;
+  static const size_t element_stride = sizeof(uoffset_t);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     p += i * sizeof(uoffset_t);
     return EndianScalar(reinterpret_cast<return_type>(
@@ -156,15 +158,61 @@ template<typename T> struct IndirectHelper<Offset<T>> {
 };
 template<typename T> struct IndirectHelper<const T *> {
   typedef const T &return_type;
+  static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return *reinterpret_cast<const T *>(p + i * sizeof(T));
   }
 };
 
+// This is used to iterate over the contents of a Vector. Effectively calling Get for every element.
+template<typename T, bool bConst>
+struct VectorIterator : public
+  std::iterator < std::input_iterator_tag,
+  typename std::conditional < bConst,
+  const typename IndirectHelper<T>::return_type,
+  typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
+      
+  typedef std::iterator<std::input_iterator_tag,
+    typename std::conditional<bConst,
+    const typename IndirectHelper<T>::return_type,
+    typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
+      
+public:
+  VectorIterator(const uint8_t* data, uoffset_t i) : data_(data + IndirectHelper<T>::element_stride*i) {};
+  VectorIterator(const VectorIterator& other) : data_(other.data_) {}
+  VectorIterator(VectorIterator&& other) : data_(std::move(other.data_)) {}
+
+  VectorIterator& operator=(const VectorIterator& other) { data_ = other.data_; return *this; }
+  VectorIterator& operator=(VectorIterator&& other) { data_ = other.data_; return *this; }
+
+  bool operator==(const VectorIterator& other) const { return data_ == other.data_; }
+  bool operator!=(const VectorIterator& other) const { return data_ != other.data_; }
+
+  typename super_type::value_type operator *() const { return IndirectHelper<T>::Read(data_, 0); }
+  typename super_type::pointer operator->() const { return &IndirectHelper<T>::Read(data_, 0); }
+
+  VectorIterator &operator++() {
+    data_ += IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator operator++(int) {
+    VectorIterator temp(data_);
+    data_ += IndirectHelper<T>::element_stride;
+    return temp;
+  }
+
+private:
+  const uint8_t *data_;
+};
+
 // This is used as a helper type for accessing vectors.
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
- public:
+public:
+  typedef VectorIterator<T, false> iterator;
+  typedef VectorIterator<T, true> const_iterator;
+
   uoffset_t Length() const { return EndianScalar(length_); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
@@ -178,7 +226,13 @@ template<typename T> class Vector {
     return reinterpret_cast<const void *>(Data() + o);
   }
 
- protected:
+  iterator begin() { return iterator(Data(), 0); }
+  const_iterator begin() const { return const_iterator(Data(), 0); }
+
+  iterator end() { return iterator(Data(), length_); }
+  const_iterator end() const { return const_iterator(Data(), length_); }
+
+protected:
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   Vector();
