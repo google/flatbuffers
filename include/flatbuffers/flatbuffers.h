@@ -54,12 +54,6 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#if !defined(_MSC_VER)
-#define FLATBUFFERS_WEAK __attribute__((weak))
-#else
-#define FLATBUFFERS_WEAK __declspec(selectany)
-#endif  // WIN32
-
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 0
 #define FLATBUFFERS_VERSION_REVISION 0
@@ -345,6 +339,10 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  vector_downward(const vector_downward &);
+  vector_downward &operator=(const vector_downward &);
+
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -594,7 +592,7 @@ class FlatBufferBuilder {
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
-    return CreateVector(&v[0], v.size());
+    return CreateVector(v.begin(), v.size());
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
@@ -607,7 +605,7 @@ class FlatBufferBuilder {
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                      const std::vector<T> &v) {
-    return CreateVectorOfStructs(&v[0], v.size());
+    return CreateVectorOfStructs(v.begin(), v.size());
   }
 
   // Finish serializing a buffer by writing the root offset.
@@ -618,6 +616,10 @@ class FlatBufferBuilder {
   }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  FlatBufferBuilder(const FlatBufferBuilder &);
+  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+
   struct FieldLoc {
     uoffset_t off;
     voffset_t id;
@@ -877,12 +879,17 @@ inline int LookupEnum(const char **names, const char *name) {
 // to measure popularity.  You are free to remove it (of course) but we would
 // appreciate if you left it in.
 
-extern volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string;
-volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string =
+// Weak linkage is culled by VS & doesn't work on cygwin.
+#if !defined(_WIN32) && !defined(__CYGWIN__)
+
+extern volatile __attribute__((weak)) const char *flatbuffer_version_string;
+volatile __attribute__((weak)) const char *flatbuffer_version_string =
   "FlatBuffers "
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+
+#endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
 }  // namespace flatbuffers
 

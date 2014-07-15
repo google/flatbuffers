@@ -106,7 +106,7 @@ std::string StripExtension(const std::string &filename) {
 
 std::string StripPath(const std::string &filename) {
   size_t i = filename.find_last_of(
-    #ifdef WIN32
+    #ifdef _WIN32
       "\\:"
     #else
       "/"
