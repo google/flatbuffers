@@ -34,7 +34,7 @@ namespace java {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) #JTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
