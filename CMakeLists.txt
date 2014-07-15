@@ -71,6 +71,9 @@ add_executable(flattests ${FlatBuffers_Tests_SRCS})
 add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
 add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
 
+install(DIRECTORY include/flatbuffers DESTINATION include)
+install(TARGETS flatc DESTINATION bin)
+
 add_test(NAME flattest
          CONFIGURATIONS Debug
          WORKING_DIRECTORY tests
