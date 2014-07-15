@@ -32,14 +32,30 @@ const char *NewLine(int indent_step) {
   return indent_step >= 0 ? "\n" : "";
 }
 
+// Output an identifier with or without quotes depending on strictness.
+void OutputIdentifier(const std::string &name, const GeneratorOptions &opts,
+                      std::string *_text) {
+  std::string &text = *_text;
+  if (opts.strict_json) text += "\"";
+  text += name;
+  if (opts.strict_json) text += "\"";
+}
+
 // Print (and its template specialization below for pointers) generate text
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
-template<typename T> void Print(T val, Type /*type*/, int /*indent*/,
+template<typename T> void Print(T val, Type type, int /*indent*/,
                                 StructDef * /*union_sd*/,
-                                const GeneratorOptions & /*opts*/,
+                                const GeneratorOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
+  if (type.enum_def && opts.output_enum_identifiers) {
+    auto enum_val = type.enum_def->ReverseLookup(static_cast<int>(val));
+    if (enum_val) {
+      OutputIdentifier(enum_val->name, opts, _text);
+      return;
+    }
+  }
   text += NumToString(val);
 }
 
@@ -188,9 +204,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
         text += NewLine(opts.indent_step);
       }
       text.append(indent + opts.indent_step, ' ');
-      if (opts.strict_json) text += "\"";
-      text += fd.name;
-      if (opts.strict_json) text += "\"";
+      OutputIdentifier(fd.name, opts, _text);
       text += ": ";
       switch (fd.value.type.base_type) {
          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
@@ -210,8 +224,10 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
             break;
       }
       if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
-        union_sd = fd.value.type.enum_def->ReverseLookup(
+        auto enum_val = fd.value.type.enum_def->ReverseLookup(
                                  table->GetField<uint8_t>(fd.value.offset, 0));
+        assert(enum_val);
+        union_sd = enum_val->struct_def;
       }
     }
   }

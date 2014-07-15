@@ -19,7 +19,7 @@
     3,
     4
   ],
-  test_type: 1,
+  test_type: Monster,
   test: {
     hp: 20
   },

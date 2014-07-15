@@ -465,7 +465,8 @@ void ErrorTest() {
   TestError("table X { Y:int; } root_type X; { Z:", "unknown field");
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
             "{ V:{ Y:1 } }", "incomplete");
-  TestError("table X { Y:byte; } root_type X; { Y:U }", "valid enum");
+  TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
+            "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");
   TestError("enum X:byte { Y } enum X {", "enum already");
   TestError("enum X:float {}", "underlying");
@@ -482,7 +483,7 @@ void ErrorTest() {
 }
 
 // Additional parser testing not covered elsewhere.
-void TokenTest() {
+void ScientificTest() {
   flatbuffers::Parser parser;
 
   // Simple schema.
@@ -495,6 +496,15 @@ void TokenTest() {
   // by a float:
   TEST_EQ(fabs(root[1] - 3.14159) < 0.001, true);
 }
+
+void EnumStringsTest() {
+  flatbuffers::Parser parser;
+
+  TEST_EQ(parser.Parse("enum E:byte { A, B, C } table T { F:[E]; } root_type T;"
+                       "{ F:[ A, B, \"C\" ] }"), true);
+}
+
+
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
@@ -510,7 +520,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   FuzzTest2();
 
   ErrorTest();
-  TokenTest();
+  ScientificTest();
+  EnumStringsTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

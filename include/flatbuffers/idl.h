@@ -100,19 +100,21 @@ struct EnumDef;
 // Represents any type in the IDL, which is a combination of the BaseType
 // and additional information for vectors/structs_.
 struct Type {
-  explicit Type(BaseType _base_type = BASE_TYPE_NONE, StructDef *_sd = nullptr)
+  explicit Type(BaseType _base_type = BASE_TYPE_NONE,
+                StructDef *_sd = nullptr, EnumDef *_ed = nullptr)
     : base_type(_base_type),
       element(BASE_TYPE_NONE),
       struct_def(_sd),
-      enum_def(nullptr)
+      enum_def(_ed)
   {}
 
-  Type VectorType() const { return Type(element, struct_def); }
+  Type VectorType() const { return Type(element, struct_def, enum_def); }
 
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
-  EnumDef *enum_def;      // only set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE
+  EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
+                          // or for an integral type derived from an enum.
 };
 
 // Represents a parsed scalar value, it's type, and field offset.
@@ -220,11 +222,10 @@ struct EnumVal {
 struct EnumDef : public Definition {
   EnumDef() : is_union(false) {}
 
-  StructDef *ReverseLookup(int enum_idx) {
-    assert(is_union);
+  EnumVal *ReverseLookup(int enum_idx) {
     for (auto it = vals.vec.begin() + 1; it != vals.vec.end(); ++it) {
       if ((*it)->value == enum_idx) {
-        return (*it)->struct_def;
+        return *it;
       }
     }
     return nullptr;
@@ -294,8 +295,10 @@ class Parser {
 struct GeneratorOptions {
   bool strict_json;
   int indent_step;
+  bool output_enum_identifiers;
 
-  GeneratorOptions() : strict_json(false), indent_step(2) {}
+  GeneratorOptions() : strict_json(false), indent_step(2),
+                       output_enum_identifiers(true) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser

@@ -268,7 +268,7 @@ void Parser::ParseType(Type &type) {
         // union element.
         Error("vector of union types not supported (wrap in table first).");
       }
-      type = Type(BASE_TYPE_VECTOR, subtype.struct_def);
+      type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
       type.element = subtype.base_type;
       Expect(']');
       return;
@@ -359,9 +359,9 @@ void Parser::ParseAnyValue(Value &val, FieldDef *field) {
         Error("missing type field before this union value: " + field->name);
       auto enum_idx = atot<unsigned char>(
                                     field_stack_.back().first.constant.c_str());
-      auto struct_def = val.type.enum_def->ReverseLookup(enum_idx);
-      if (!struct_def) Error("illegal type id for: " + field->name);
-      val.constant = NumToString(ParseTable(*struct_def));
+      auto enum_val = val.type.enum_def->ReverseLookup(enum_idx);
+      if (!enum_val) Error("illegal type id for: " + field->name);
+      val.constant = NumToString(ParseTable(*enum_val->struct_def));
       break;
     }
     case BASE_TYPE_STRUCT:
@@ -546,7 +546,16 @@ bool Parser::TryTypedValue(int dtoken,
 }
 
 void Parser::ParseSingleValue(Value &e) {
-  if (TryTypedValue(kTokenIntegerConstant,
+  // First check if derived from an enum, to allow strings/identifier values:
+  if (e.type.enum_def && (token_ == kTokenIdentifier ||
+                          token_ == kTokenStringConstant)) {
+    auto enum_val = e.type.enum_def->vals.Lookup(attribute_);
+    if (!enum_val)
+      Error("unknown enum value: " + attribute_ +
+            ", for enum: " + e.type.enum_def->name);
+    e.constant = NumToString(enum_val->value);
+    Next();
+  } else if (TryTypedValue(kTokenIntegerConstant,
                     IsScalar(e.type.base_type),
                     e,
                     BASE_TYPE_INT) ||
@@ -558,19 +567,6 @@ void Parser::ParseSingleValue(Value &e) {
                     e.type.base_type == BASE_TYPE_STRING,
                     e,
                     BASE_TYPE_STRING)) {
-  } else if (token_ == kTokenIdentifier) {
-    for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
-      auto ev = (*it)->vals.Lookup(attribute_);
-      if (ev) {
-        attribute_ = NumToString(ev->value);
-        TryTypedValue(kTokenIdentifier,
-                      IsInteger(e.type.base_type),
-                      e,
-                      BASE_TYPE_INT);
-        return;
-      }
-    }
-    Error("not valid enum value: " + attribute_);
   } else {
     Error("cannot parse value starting with: " + TokenToString(token_));
   }
@@ -611,6 +607,8 @@ void Parser::ParseEnum(bool is_union) {
     ParseType(enum_def.underlying_type);
     if (!IsInteger(enum_def.underlying_type.base_type))
       Error("underlying enum type must be integral");
+    // Make this type refer back to the enum it was derived from.
+    enum_def.underlying_type.enum_def = &enum_def;
   }
   ParseMetaData(enum_def);
   Expect('{');
