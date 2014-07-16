@@ -135,8 +135,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   auto inventory = monster->inventory();
   TEST_NOTNULL(inventory);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  for (flatbuffers::uoffset_t i = 0; i < inventory->Length(); i++)
-    TEST_EQ(inventory->Get(i), inv_data[i]);
+  for (auto it = inventory->begin(); it != inventory->end(); ++it)
+    TEST_EQ(*it, inv_data[it - inventory->begin()]);
 
   // Example of accessing a union:
   TEST_EQ(monster->test_type(), Any_Monster);  // First make sure which it is.
@@ -153,7 +153,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->Length(), 1U);
-  TEST_EQ(vecoftables->Get(0)->hp(), 20);
+  for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
+    TEST_EQ(it->hp(), 20);
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
@@ -163,12 +164,16 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
 
   auto tests = monster->test4();
   TEST_NOTNULL(tests);
-  auto &test_0 = tests->Get(0);
-  auto &test_1 = tests->Get(1);
-  TEST_EQ(test_0.a(), 10);
-  TEST_EQ(test_0.b(), 20);
-  TEST_EQ(test_1.a(), 30);
-  TEST_EQ(test_1.b(), 40);
+  auto test_0 = tests->Get(0);
+  auto test_1 = tests->Get(1);
+  TEST_EQ(test_0->a(), 10);
+  TEST_EQ(test_0->b(), 20);
+  TEST_EQ(test_1->a(), 30);
+  TEST_EQ(test_1->b(), 40);
+  for (auto it = tests->begin(); it != tests->end(); ++it) {
+    TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
+  }
+
 }
 
 // example of parsing text straight into a buffer, and generating

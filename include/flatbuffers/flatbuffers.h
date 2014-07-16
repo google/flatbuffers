@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include <cstdint>
+#include <cstddef>
 #include <cstring>
 #include <string>
 #include <type_traits>
@@ -163,15 +164,14 @@ template<typename T> struct IndirectHelper<Offset<T>> {
   static const size_t element_stride = sizeof(uoffset_t);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     p += i * sizeof(uoffset_t);
-    return EndianScalar(reinterpret_cast<return_type>(
-        p + ReadScalar<uoffset_t>(p)));
+    return reinterpret_cast<return_type>(p + ReadScalar<uoffset_t>(p));
   }
 };
 template<typename T> struct IndirectHelper<const T *> {
-  typedef const T &return_type;
+  typedef const T *return_type;
   static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
-    return *reinterpret_cast<const T *>(p + i * sizeof(T));
+    return reinterpret_cast<const T *>(p + i * sizeof(T));
   }
 };
 
@@ -213,12 +213,16 @@ public:
     return data_ != other.data_;
   }
 
+  ptrdiff_t operator-(const VectorIterator& other) const {
+    return (data_ - other.data_) / IndirectHelper<T>::element_stride;
+  }
+
   typename super_type::value_type operator *() const {
     return IndirectHelper<T>::Read(data_, 0);
   }
 
-  typename super_type::pointer operator->() const {
-    return &IndirectHelper<T>::Read(data_, 0);
+  typename super_type::value_type operator->() const {
+    return IndirectHelper<T>::Read(data_, 0);
   }
 
   VectorIterator &operator++() {
