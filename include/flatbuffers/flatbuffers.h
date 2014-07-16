@@ -262,14 +262,15 @@ public:
   iterator end() { return iterator(Data(), length_); }
   const_iterator end() const { return const_iterator(Data(), length_); }
 
+  // The raw data in little endian format. Use with care.
+  const uint8_t *Data() const {
+    return reinterpret_cast<const uint8_t *>(&length_ + 1);
+  }
+
 protected:
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   Vector();
-
-  const uint8_t *Data() const {
-    return reinterpret_cast<const uint8_t *>(&length_ + 1);
-  }
 
   uoffset_t length_;
 };

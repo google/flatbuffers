@@ -164,7 +164,8 @@ static void GenComment(const std::string &dc,
 }
 
 // Generate an accessor struct, builder structs & function for a table.
-static void GenTable(StructDef &struct_def, std::string *code_ptr) {
+static void GenTable(const Parser &parser, StructDef &struct_def,
+                     std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -191,6 +192,14 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
       if (IsScalar(field.value.type.base_type))
         code += ", " + field.value.constant;
       code += "); }\n";
+      auto nested = field.attributes.Lookup("nested_flatbuffer");
+      if (nested) {
+        auto nested_root = parser.structs_.Lookup(nested->constant);
+        assert(nested_root);  // Guaranteed to exist by parser.
+        code += "  const " + nested_root->name + " *" + field.name;
+        code += "_nested_root() { return flatbuffers::GetRoot<";
+        code += nested_root->name + ">(" + field.name + "()->Data()); }\n";
+      }
     }
   }
   // Generate a verifier function that can check a buffer from an untrusted
@@ -418,7 +427,7 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
   }
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
-    if (!(**it).fixed) GenTable(**it, &decl_code);
+    if (!(**it).fixed) GenTable(parser, **it, &decl_code);
   }
 
   // Only output file-level code if there were any declarations.

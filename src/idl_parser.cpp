@@ -333,6 +333,17 @@ void Parser::ParseField(StructDef &struct_def) {
   field.deprecated = field.attributes.Lookup("deprecated") != nullptr;
   if (field.deprecated && struct_def.fixed)
     Error("can't deprecate fields in a struct");
+  auto nested = field.attributes.Lookup("nested_flatbuffer");
+  if (nested) {
+    if (nested->type.base_type != BASE_TYPE_STRING)
+      Error("nested_flatbuffer attribute must be a string (the root type)");
+    if (field.value.type.base_type != BASE_TYPE_VECTOR ||
+        field.value.type.element != BASE_TYPE_UCHAR)
+      Error("nested_flatbuffer attribute may only apply to a vector of ubyte");
+    // This will cause an error if the root type of the nested flatbuffer
+    // wasn't defined elsewhere.
+    LookupCreateStruct(nested->constant);
+  }
 
   if (typefield) {
     // If this field is a union, and it has a manually assigned id,
