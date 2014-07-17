@@ -188,6 +188,10 @@ Current understood attributes:
     these structs to be aligned to that amount inside a buffer, IF that
     buffer is allocated with that alignment (which is not necessarily
     the case for buffers accessed directly inside a `FlatBufferBuilder`).
+-   `bit_flags` (on an enum): the values of this field indicate bits,
+    meaning that any value N specified in the schema will end up
+    representing 1<<N, or if you don't specify values at all, you'll get
+    the sequence 1, 2, 4, 8, ...
 
 ## Gotchas
 

@@ -123,6 +123,7 @@ root_type Monster;
 <li><code>deprecated</code> (on a field): do not generate accessors for this field anymore, code should stop using this data.</li>
 <li><code>original_order</code> (on a table): since elements in a table do not need to be stored in any particular order, they are often optimized for space by sorting them to size. This attribute stops that from happening.</li>
 <li><code>force_align: size</code> (on a struct): force the alignment of this struct to be something higher than what it is naturally aligned to. Causes these structs to be aligned to that amount inside a buffer, IF that buffer is allocated with that alignment (which is not necessarily the case for buffers accessed directly inside a <code>FlatBufferBuilder</code>).</li>
+<li><code>bit_flags</code> (on an enum): the values of this field indicate bits, meaning that any value N specified in the schema will end up representing 1&lt;&lt;N, or if you don't specify values at all, you'll get the sequence 1, 2, 4, 8, ...</li>
 </ul>
 <h2>Gotchas</h2>
 <h3>Schemas and version control</h3>

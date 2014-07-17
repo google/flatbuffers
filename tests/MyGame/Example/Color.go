@@ -3,7 +3,7 @@
 package Example
 
 const (
-	ColorRed = 0
-	ColorGreen = 1
-	ColorBlue = 2
+	ColorRed = 1
+	ColorGreen = 2
+	ColorBlue = 8
 )

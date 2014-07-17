@@ -629,10 +629,10 @@ void Parser::ParseEnum(bool is_union) {
     std::string dc = doc_comment_;
     Expect(kTokenIdentifier);
     auto prevsize = enum_def.vals.vec.size();
-    auto &ev = *new EnumVal(name, static_cast<int>(
-                      enum_def.vals.vec.size()
-                        ? enum_def.vals.vec.back()->value + 1
-                        : 0));
+    auto value = enum_def.vals.vec.size()
+      ? enum_def.vals.vec.back()->value + 1
+      : 0;
+    auto &ev = *new EnumVal(name, value);
     if (enum_def.vals.Add(name, &ev))
       Error("enum value already exists: " + name);
     ev.doc_comment = dc;
@@ -647,6 +647,15 @@ void Parser::ParseEnum(bool is_union) {
     }
   } while (IsNext(','));
   Expect('}');
+  if (enum_def.attributes.Lookup("bit_flags")) {
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      if (static_cast<size_t>((*it)->value) >=
+           SizeOf(enum_def.underlying_type.base_type) * 8)
+        Error("bit flag out of range of underlying integral type");
+      (*it)->value = 1 << (*it)->value;
+    }
+  }
 }
 
 void Parser::ParseDecl() {

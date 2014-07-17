@@ -17,7 +17,7 @@ public class Monster extends Table {
   public String name() { int o = __offset(10); return o != 0 ? __string(o) : null; }
   public byte inventory(int j) { int o = __offset(14); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int inventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
-  public byte color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 2; }
+  public byte color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 8; }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test test4(int j) { return test4(new Test(), j); }
@@ -41,7 +41,7 @@ public class Monster extends Table {
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(3, nameOffset, 0); }
   public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems); }
-  public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 2); }
+  public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 8); }
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
   public static void addTest(FlatBufferBuilder builder, int testOffset) { builder.addOffset(8, testOffset, 0); }
   public static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }

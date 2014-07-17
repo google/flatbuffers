@@ -9,17 +9,17 @@ namespace MyGame {
 namespace Example {
 
 enum {
-  Color_Red = 0,
-  Color_Green = 1,
-  Color_Blue = 2,
+  Color_Red = 1,
+  Color_Green = 2,
+  Color_Blue = 8,
 };
 
 inline const char **EnumNamesColor() {
-  static const char *names[] = { "Red", "Green", "Blue", nullptr };
+  static const char *names[] = { "Red", "Green", "", "", "", "", "", "Blue", nullptr };
   return names;
 }
 
-inline const char *EnumNameColor(int e) { return EnumNamesColor()[e]; }
+inline const char *EnumNameColor(int e) { return EnumNamesColor()[e - Color_Red]; }
 
 enum {
   Any_NONE = 0,
@@ -85,7 +85,7 @@ struct Monster : private flatbuffers::Table {
   int16_t hp() const { return GetField<int16_t>(8, 100); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
-  int8_t color() const { return GetField<int8_t>(16, 2); }
+  int8_t color() const { return GetField<int8_t>(16, 8); }
   uint8_t test_type() const { return GetField<uint8_t>(18, 0); }
   const void *test() const { return GetPointer<const void *>(20); }
   const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(22); }
@@ -131,7 +131,7 @@ struct MonsterBuilder {
   void add_hp(int16_t hp) { fbb_.AddElement<int16_t>(8, hp, 100); }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(10, name); }
   void add_inventory(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory) { fbb_.AddOffset(14, inventory); }
-  void add_color(int8_t color) { fbb_.AddElement<int8_t>(16, color, 2); }
+  void add_color(int8_t color) { fbb_.AddElement<int8_t>(16, color, 8); }
   void add_test_type(uint8_t test_type) { fbb_.AddElement<uint8_t>(18, test_type, 0); }
   void add_test(flatbuffers::Offset<void> test) { fbb_.AddOffset(20, test); }
   void add_test4(flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4) { fbb_.AddOffset(22, test4); }
@@ -150,7 +150,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    int16_t hp = 100,
    flatbuffers::Offset<flatbuffers::String> name = 0,
    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
-   int8_t color = 2,
+   int8_t color = 8,
    uint8_t test_type = 0,
    flatbuffers::Offset<void> test = 0,
    flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4 = 0,

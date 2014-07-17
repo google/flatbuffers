@@ -100,7 +100,8 @@ static void EscapeString(const String &s, std::string *_text) {
           text += c;
         } else {
           auto u = static_cast<unsigned char>(c);
-          text += "\\x" + IntToStringHex(u);
+          text += "\\x";
+          text += IntToStringHex(u);
         }
         break;
     }
