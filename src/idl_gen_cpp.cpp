@@ -480,9 +480,9 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
     }
 
     // Close the namespaces.
-    for (auto it = parser.name_space_.begin();
-         it != parser.name_space_.end(); ++it) {
-      code += "};  // namespace " + *it + "\n";
+    for (auto it = parser.name_space_.rbegin();
+         it != parser.name_space_.rend(); ++it) {
+      code += "}  // namespace " + *it + "\n";
     }
 
     // Close the include guard.

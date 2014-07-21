@@ -187,7 +187,7 @@ inline const Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<
 
 inline bool VerifyMonsterBuffer(const flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Monster>(); }
 
-};  // namespace MyGame
-};  // namespace Example
+}  // namespace Example
+}  // namespace MyGame
 
 #endif  // FLATBUFFERS_GENERATED_MONSTER_TEST_MYGAME_EXAMPLE_H_
