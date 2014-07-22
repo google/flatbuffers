@@ -22,11 +22,9 @@
 
 #ifdef _WIN32
 #include <direct.h>
-#define PATH_SEPARATOR "\\"
 #define mkdir(n, m) _mkdir(n)
 #else
 #include <sys/stat.h>
-#define PATH_SEPARATOR "/"
 #endif
 
 namespace flatbuffers {
@@ -360,7 +358,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
         it != parser.name_space_.end(); ++it) {
     if (name_space_java.length()) {
       name_space_java += ".";
-      name_space_dir += PATH_SEPARATOR;
+      name_space_dir += kPathSeparator;
     }
     name_space_java += *it;
     name_space_dir += *it;
@@ -374,7 +372,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
     code += "import flatbuffers.*;\n\n";
   }
   code += classcode;
-  auto filename = name_space_dir + PATH_SEPARATOR + def.name + ".java";
+  auto filename = name_space_dir + kPathSeparator + def.name + ".java";
   return SaveFile(filename.c_str(), code, false);
 }
 
@@ -406,4 +404,3 @@ bool GenerateJava(const Parser &parser,
 }
 
 }  // namespace flatbuffers
-
