@@ -40,15 +40,13 @@ cp -u ./go_test.go ./go_gen/src/flatbuffers_test/
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
 GOPATH=${go_path} go test flatbuffers_test \
-                    --test.coverpkg=github.com/google/flatbuffers/go \
-                    --cpp_data=${test_dir}/monsterdata_test.bin \
-                    --java_data=${test_dir}/monsterdata_java_wire.bin \
-                    --out_data=${test_dir}/monsterdata_go_wire.bin \
-                    --fuzz=true \
-                    --super_fuzz=false \
-                    --fuzz_fields=4 \
-                    --fuzz_objects=10000
+                     --test.coverpkg=github.com/google/flatbuffers/go \
+                     --cpp_data=${test_dir}/monsterdata_test.bin \
+                     --out_data=${test_dir}/monsterdata_go_wire.bin \
+                     --fuzz=true \
+                     --fuzz_fields=4 \
+                     --fuzz_objects=10000
 
-rm -rf ./go_gen/{pkg,src}
+rm -rf ${go_path}/{pkg,src}
 
 echo "OK: Go tests passed."
