@@ -136,6 +136,10 @@ int main(int argc, const char *argv[]) {
         case 'o':
           if (++i >= argc) Error("missing path following", arg, true);
           output_path = argv[i];
+          if (!(output_path.back() == flatbuffers::kPathSeparator ||
+                output_path.back() == flatbuffers::kPosixPathSeparator)) {
+            output_path += flatbuffers::kPathSeparator;
+          }
           break;
         case 'S':
           opts.strict_json = true;
@@ -214,4 +218,3 @@ int main(int argc, const char *argv[]) {
 
   return 0;
 }
-
