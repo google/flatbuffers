@@ -597,7 +597,7 @@ class FlatBufferBuilder {
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
-    return CreateVector(v.begin(), v.size());
+    return CreateVector(v.data(), v.size());
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
@@ -610,7 +610,7 @@ class FlatBufferBuilder {
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                      const std::vector<T> &v) {
-    return CreateVectorOfStructs(v.begin(), v.size());
+    return CreateVectorOfStructs(v.data(), v.size());
   }
 
   // Finish serializing a buffer by writing the root offset.
