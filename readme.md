@@ -1,18 +1,18 @@
-FlatBuffers.Net Version 0.1 (alpha)
+FlatBuffers in .NET Version 0.1 (alpha)
 
 This project is a .NET (C#) port of FlatBuffers by Google Inc. 
 
-With FlatBuffersNet, you can read and write FlatBuffers from .NET applications.
+With this project you can read and write FlatBuffers from .NET applications.
 
 See the original project at [FlatBuffers GitHub Page][] for more information about FlatBuffers.
 
 The port is close to a straight port of the Java version of FlatBuffers, and as such the 
-code will look and behave mostly the same.
+generated code will look and behave mostly the same.
 
 The **flatc** code generator has been adapted to generate C# code, using the -n
 command line switch, which I've added specifically for the .NET version.
 
-To see how to use FlatBuffersNet, I've included a simple port of the JavaTest code as a couple
+To see how to use FlatBuffers for .NET, I've included a simple port of the JavaTest code as a couple
 of MSVC Unit Tests.
 
 Future intentions for this project will be to build a simple Protobuf-net style serialization

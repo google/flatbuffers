@@ -363,7 +363,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
   std::string code = "// automatically generated, do not modify\n\n";
   code += "namespace " + name_space_csharp + "\n{\n\n";
 // Other usings
-  code += "using FlatBuffersNet;\n\n";
+  code += "using FlatBuffers;\n\n";
   code += classcode;
   code += "\n}\n";
   auto filename = name_space_dir + PATH_SEPARATOR + def.name + ".cs";

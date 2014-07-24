@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("FlatBuffersNet")]
+[assembly: AssemblyTitle("FlatBuffers")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("FlatBuffersNet")]
+[assembly: AssemblyProduct("FlatBuffers")]
 [assembly: AssemblyCopyright("Copyright ©  2014 Google Inc")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

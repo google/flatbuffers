@@ -15,11 +15,10 @@
  */
 
 using System.IO;
-using NUnit.Framework;
 using MyGame.Example;
-using MyTest = MyGame.Example;
+using NUnit.Framework;
 
-namespace FlatBuffersNet.Test
+namespace FlatBuffers.Test
 {
     [TestFixture]
     public class FlatBuffersExampleTests
@@ -49,8 +48,8 @@ namespace FlatBuffersNet.Test
             var mon2 = Monster.EndMonster(fbb);
 
             Monster.StartTest4Vector(fbb, 2);
-            MyTest.Test.CreateTest(fbb, (short)10, (byte)20);
-            MyTest.Test.CreateTest(fbb, (short)30, (byte)40);
+            MyGame.Example.Test.CreateTest(fbb, (short)10, (byte)20);
+            MyGame.Example.Test.CreateTest(fbb, (short)30, (byte)40);
             var test4 = fbb.EndVector();
 
 

@@ -16,7 +16,7 @@
 
 using System.Text;
 
-namespace FlatBuffersNet
+namespace FlatBuffers
 {
     /// <summary>
     /// All tables in the generated code derive from this class, and add their own accessors.

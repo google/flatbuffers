@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace FlatBuffersNet
+namespace FlatBuffers
 {
     /// <summary>
     /// All structs in the generated code derive from this class, and add their own accessors.

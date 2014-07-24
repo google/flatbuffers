@@ -1,11 +1,10 @@
 // automatically generated, do not modify
 
+using FlatBuffers;
+
 namespace MyGame.Example
 {
-
-using FlatBuffersNet;
-
-public class Vec3 : Struct {
+    public class Vec3 : Struct {
   public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
   public float X() { return bb.GetFloat(bb_pos + 0); }
   public float Y() { return bb.GetFloat(bb_pos + 4); }

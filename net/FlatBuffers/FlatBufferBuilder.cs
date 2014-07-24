@@ -17,7 +17,7 @@
 using System;
 using System.Text;
 
-namespace FlatBuffersNet
+namespace FlatBuffers
 {
     /// <summary>
     /// Responsible for building up and accessing a flatbuffer formatted byte array (via ByteBuffer)

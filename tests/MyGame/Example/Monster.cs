@@ -1,11 +1,10 @@
 // automatically generated, do not modify
 
+using FlatBuffers;
+
 namespace MyGame.Example
 {
-
-using FlatBuffersNet;
-
-public class Monster : Table {
+    public class Monster : Table {
   public static Monster GetRootAsMonster(ByteBuffer _bb, int offset) { return (new Monster()).__init(_bb.GetInt(offset) + offset, _bb); }
   public Monster __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
   public Vec3 Pos() { return Pos(new Vec3()); }

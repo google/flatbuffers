@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>FlatBuffersNet</id>
-    <version>1.0.0-alpha00002</version>
+    <id>FlatBuffers</id>
+    <version>1.0.0-alpha00003</version>
     <authors>Google Inc</authors>
     <description>A .NET port of Google Inc's FlatBuffers project.</description>
     <language>en-US</language>

@@ -17,7 +17,7 @@
 using System;
 using NUnit.Framework;
 
-namespace FlatBuffersNet.Test
+namespace FlatBuffers.Test
 {
     [TestFixture]
     public class ByteBufferTests

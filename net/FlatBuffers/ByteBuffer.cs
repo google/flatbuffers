@@ -17,7 +17,7 @@
 using System;
 using System.Linq;
 
-namespace FlatBuffersNet
+namespace FlatBuffers
 {
     /// <summary>
     /// Class to mimick Java's ByteBuffer which is used heavily in Flatbuffers
