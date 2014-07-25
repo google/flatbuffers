@@ -144,7 +144,8 @@ packages.
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
-serialized data.
+serialized data. This is particular important for parsing JSON data,
+which doesn't include object type information.
 
 ### Comments & documentation
 
@@ -192,6 +193,29 @@ Current understood attributes:
     meaning that any value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
+
+## JSON Parsing
+
+The same parser that parses the schema declarations above is also able
+to parse JSON objects that conform to this schema. So, unlike other JSON
+parsers, this parser is strongly typed, and parses directly into a FlatBuffer
+(see the compiler documentation on how to do this from the command line, or
+the C++ documentation on how to do this at runtime).
+
+Besides needing a schema, there are a few other changes to how it parses
+JSON:
+
+-   It accepts field names with and without quotes, like many JSON parsers
+    already do. It outputs them without quotes as well, though can be made
+    to output them using the `strict_json` flag.
+-   If a field has an enum type, the parser will recognize symbolic enum
+    values (with or without quotes) instead of numbers, e.g.
+    `field: EnumVal`. If a field is of integral type, you can still use
+    symbolic names, but values need to be prefixed with their type and
+    need to be quoted, e.g. `field: "Enum.EnumVal"`. For enums
+    representing flags, you may place multiple inside a string
+    separated by spaces to OR them, e.g.
+    `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
 
 ## Gotchas
 

@@ -199,6 +199,9 @@ Another reason might be that you already have a lot of data in JSON
 format, or a tool that generates JSON, and if you can write a schema for
 it, this will provide you an easy way to use that data directly.
 
+(see the schema documentation for some specifics on the JSON format
+accepted).
+
 There are two ways to use text formats:
 
 ### Using the compiler as a conversion tool

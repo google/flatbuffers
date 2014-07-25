@@ -556,16 +556,51 @@ bool Parser::TryTypedValue(int dtoken,
   return match;
 }
 
+int64_t Parser::ParseIntegerFromString(Type &type) {
+  int64_t result = 0;
+  // Parse one or more enum identifiers, separated by spaces.
+  const char *next = attribute_.c_str();
+  do {
+    const char *divider = strchr(next, ' ');
+    std::string word;
+    if (divider) {
+      word = std::string(next, divider);
+      next = divider + strspn(divider, " ");
+    } else {
+      word = next;
+      next += word.length();
+    }
+    if (type.enum_def) {  // The field has an enum type
+      auto enum_val = type.enum_def->vals.Lookup(word);
+      if (!enum_val)
+        Error("unknown enum value: " + word +
+              ", for enum: " + type.enum_def->name);
+      result |= enum_val->value;
+    } else {  // No enum type, probably integral field.
+      if (!IsInteger(type.base_type))
+        Error("not a valid value for this field: " + word);
+      // TODO: could check if its a valid number constant here.
+      const char *dot = strchr(word.c_str(), '.');
+      if (!dot) Error("enum values need to be qualified by an enum type");
+      std::string enum_def_str(word.c_str(), dot);
+      std::string enum_val_str(dot + 1, word.c_str() + word.length());
+      auto enum_def = enums_.Lookup(enum_def_str);
+      if (!enum_def) Error("unknown enum: " + enum_def_str);
+      auto enum_val = enum_def->vals.Lookup(enum_val_str);
+      if (!enum_val) Error("unknown enum value: " + enum_val_str);
+      result |= enum_val->value;
+    }
+  } while(*next);
+  return result;
+}
+
 void Parser::ParseSingleValue(Value &e) {
-  // First check if derived from an enum, to allow strings/identifier values:
-  if (e.type.enum_def && (token_ == kTokenIdentifier ||
-                          token_ == kTokenStringConstant)) {
-    auto enum_val = e.type.enum_def->vals.Lookup(attribute_);
-    if (!enum_val)
-      Error("unknown enum value: " + attribute_ +
-            ", for enum: " + e.type.enum_def->name);
-    e.constant = NumToString(enum_val->value);
-    Next();
+  // First check if this could be a string/identifier enum value:
+  if (e.type.base_type != BASE_TYPE_STRING &&
+      e.type.base_type != BASE_TYPE_NONE &&
+      (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
+      e.constant = NumToString(ParseIntegerFromString(e.type));
+      Next();
   } else if (TryTypedValue(kTokenIntegerConstant,
                     IsScalar(e.type.base_type),
                     e,
@@ -653,7 +688,7 @@ void Parser::ParseEnum(bool is_union) {
       if (static_cast<size_t>((*it)->value) >=
            SizeOf(enum_def.underlying_type.base_type) * 8)
         Error("bit flag out of range of underlying integral type");
-      (*it)->value = 1 << (*it)->value;
+      (*it)->value = 1LL << (*it)->value;
     }
   }
 }

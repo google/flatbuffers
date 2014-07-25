@@ -210,12 +210,12 @@ inline size_t InlineAlignment(const Type &type) {
 }
 
 struct EnumVal {
-  EnumVal(const std::string &_name, int _val)
+  EnumVal(const std::string &_name, int64_t _val)
     : name(_name), value(_val), struct_def(nullptr) {}
 
   std::string name;
   std::string doc_comment;
-  int value;
+  int64_t value;
   StructDef *struct_def;  // only set if this is a union
 };
 
@@ -268,6 +268,7 @@ class Parser {
   void ParseMetaData(Definition &def);
   bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
   void ParseSingleValue(Value &e);
+  int64_t ParseIntegerFromString(Type &type);
   StructDef *LookupCreateStruct(const std::string &name);
   void ParseEnum(bool is_union);
   void ParseDecl();

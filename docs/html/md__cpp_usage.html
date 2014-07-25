@@ -107,6 +107,7 @@ assert(inv-&gt;Get(9) == 9);
 <h2>Text &amp; schema parsing</h2>
 <p>Using binary buffers with the generated header provides a super low overhead use of FlatBuffer data. There are, however, times when you want to use text formats, for example because it interacts better with source control, or you want to give your users easy access to data.</p>
 <p>Another reason might be that you already have a lot of data in JSON format, or a tool that generates JSON, and if you can write a schema for it, this will provide you an easy way to use that data directly.</p>
+<p>(see the schema documentation for some specifics on the JSON format accepted).</p>
 <p>There are two ways to use text formats:</p>
 <h3>Using the compiler as a conversion tool</h3>
 <p>This is the preferred path, as it doesn't require you to add any new code to your program, and is maximally efficient since you can ship with binary data. The disadvantage is that it is an extra step for your users/developers to perform, though you might be able to automate it. </p><pre class="fragment">flatc -b myschema.fbs mydata.json

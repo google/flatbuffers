@@ -112,7 +112,7 @@ root_type Monster;
 <h3>Namespaces</h3>
 <p>These will generate the corresponding namespace in C++ for all helper code, and packages in Java. You can use <code>.</code> to specify nested namespaces / packages.</p>
 <h3>Root type</h3>
-<p>This declares what you consider to be the root table (or struct) of the serialized data.</p>
+<p>This declares what you consider to be the root table (or struct) of the serialized data. This is particular important for parsing JSON data, which doesn't include object type information.</p>
 <h3>Comments &amp; documentation</h3>
 <p>May be written as in most C-based languages. Additionally, a triple comment (<code>///</code>) on a line by itself signals that a comment is documentation for whatever is declared on the line after it (table/struct/field/enum/union/element), and the comment is output in the corresponding C++ code. Multiple such lines per item are allowed.</p>
 <h3>Attributes</h3>
@@ -124,6 +124,13 @@ root_type Monster;
 <li><code>original_order</code> (on a table): since elements in a table do not need to be stored in any particular order, they are often optimized for space by sorting them to size. This attribute stops that from happening.</li>
 <li><code>force_align: size</code> (on a struct): force the alignment of this struct to be something higher than what it is naturally aligned to. Causes these structs to be aligned to that amount inside a buffer, IF that buffer is allocated with that alignment (which is not necessarily the case for buffers accessed directly inside a <code>FlatBufferBuilder</code>).</li>
 <li><code>bit_flags</code> (on an enum): the values of this field indicate bits, meaning that any value N specified in the schema will end up representing 1&lt;&lt;N, or if you don't specify values at all, you'll get the sequence 1, 2, 4, 8, ...</li>
+</ul>
+<h2>JSON Parsing</h2>
+<p>The same parser that is parsing the schema declarations above is also able to parse JSON objects that conform to this schema. So, unlike other JSON parsers, this parser is strongly typed, and parses directly into a FlatBuffer (see the compiler documentation on how to do this from the command line, or the C++ documentation on how to do this at runtime).</p>
+<p>Besides needing a schema, there are a few other changes to how it parses JSON:</p>
+<ul>
+<li>It accepts field names with and without quotes, like many JSON parsers already do. It outputs them without quotes as well, though can be made to output them using the <code>strict_json</code> flag.</li>
+<li>If a field has an enum type, the parser will recognize symbolic enum values (with or without quotes) instead of numbers, e.g. <code>field: EnumVal</code>. If a field is of integral type, you can still use symbolic names, but values need to be prefixed with their type and need to be quoted, e.g. <code>field: "Enum.EnumVal"</code>. For enums representing flags, you may place multiple inside a string separated by spaces to OR them, e.g. <code>field: "EnumVal1 EnumVal2"</code> or <code>field: "Enum.EnumVal1 Enum.EnumVal2"</code>.</li>
 </ul>
 <h2>Gotchas</h2>
 <h3>Schemas and version control</h3>

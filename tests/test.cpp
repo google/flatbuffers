@@ -504,10 +504,14 @@ void ScientificTest() {
 }
 
 void EnumStringsTest() {
-  flatbuffers::Parser parser;
-
-  TEST_EQ(parser.Parse("enum E:byte { A, B, C } table T { F:[E]; } root_type T;"
-                       "{ F:[ A, B, \"C\" ] }"), true);
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse("enum E:byte { A, B, C } table T { F:[E]; }"
+                        "root_type T;"
+                        "{ F:[ A, B, \"C\", \"A B C\" ] }"), true);
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse("enum E:byte { A, B, C } table T { F:[int]; }"
+                        "root_type T;"
+                        "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"), true);
 }
 
 

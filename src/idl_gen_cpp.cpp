@@ -113,15 +113,15 @@ static void GenComment(const std::string &dc,
   // Problem is, if values are very sparse that could generate really big
   // tables. Ideally in that case we generate a map lookup instead, but for
   // the moment we simply don't output a table at all.
-  int range = enum_def.vals.vec.back()->value -
-              enum_def.vals.vec.front()->value + 1;
+  auto range = enum_def.vals.vec.back()->value -
+               enum_def.vals.vec.front()->value + 1;
   // Average distance between values above which we consider a table
   // "too sparse". Change at will.
   static const int kMaxSparseness = 5;
-  if (range / static_cast<int>(enum_def.vals.vec.size()) < kMaxSparseness) {
+  if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
     code += "inline const char **EnumNames" + enum_def.name + "() {\n";
     code += "  static const char *names[] = { ";
-    int val = enum_def.vals.vec.front()->value;
+    auto val = enum_def.vals.vec.front()->value;
     for (auto it = enum_def.vals.vec.begin();
          it != enum_def.vals.vec.end();
          ++it) {
