@@ -81,7 +81,7 @@ example.MonsterAddTest_Type(builder, 1)
 example.MonsterAddTest(builder, mon2)
 example.MonsterAddTest4(builder, test4s)
 mon := example.MonsterEnd(builder)
-</pre><p>Unlike C++, Go does not support table creation functions like 'createMonster()'. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline). Structs do have convenient methods that allow you to construct them in one call. These even have arguments for nested structs, e.g. if a struct has a field <code>a</code> and a nested struct field <code>b</code> (which has fields <code>c</code> and <code>d</code>), then the arguments will be <code>a</code>, <code>c</code> and <code>d</code>.</p>
+</pre><p>Unlike C++, Go does not support table creation functions like 'createMonster()'. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline). Structs do have convenient methods that allow you to construct them in one call. These also have arguments for nested structs, e.g. if a struct has a field <code>a</code> and a nested struct field <code>b</code> (which has fields <code>c</code> and <code>d</code>), then the arguments will be <code>a</code>, <code>c</code> and <code>d</code>.</p>
 <p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs: </p><pre class="fragment">example.MonsterStartInventoryVector(builder, 5)
 for i := 4; i &gt;= 0; i-- {
     builder.PrependByte(byte(i))
