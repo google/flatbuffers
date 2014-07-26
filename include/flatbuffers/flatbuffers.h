@@ -299,8 +299,8 @@ class vector_downward {
 
   void clear() { cur_ = buf_ + reserved_; }
 
-  size_t growth_policy(size_t size) {
-    return (size / 2) & ~(sizeof(largest_scalar_t) - 1);
+  size_t growth_policy(size_t bytes) {
+    return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
   }
 
   uint8_t *make_space(size_t len) {
@@ -331,9 +331,9 @@ class vector_downward {
 
   // push() & fill() are most frequently called with small byte counts (<= 4),
   // which is why we're using loops rather than calling memcpy/memset.
-  void push(const uint8_t *bytes, size_t size) {
-    auto dest = make_space(size);
-    for (size_t i = 0; i < size; i++) dest[i] = bytes[i];
+  void push(const uint8_t *bytes, size_t num) {
+    auto dest = make_space(num);
+    for (size_t i = 0; i < num; i++) dest[i] = bytes[i];
   }
 
   void fill(size_t zero_pad_bytes) {
