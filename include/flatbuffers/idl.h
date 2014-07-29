@@ -67,7 +67,10 @@ switch (type) {
         FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
         FLATBUFFERS_GEN_TYPES_POINTER(TD)
 
-// Create an enum for all the types above
+// Create an enum for all the types above.
+#ifdef __GNUC__
+__extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
+#endif
 enum BaseType {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)

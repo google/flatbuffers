@@ -11,7 +11,7 @@ namespace Sample {
 enum {
   Color_Red = 0,
   Color_Green = 1,
-  Color_Blue = 2,
+  Color_Blue = 2
 };
 
 inline const char **EnumNamesColor() {
@@ -23,7 +23,7 @@ inline const char *EnumNameColor(int e) { return EnumNamesColor()[e]; }
 
 enum {
   Any_NONE = 0,
-  Any_Monster = 1,
+  Any_Monster = 1
 };
 
 inline const char **EnumNamesAny() {

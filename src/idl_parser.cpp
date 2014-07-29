@@ -82,6 +82,9 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(Union, 264, "union") \
   TD(NameSpace, 265, "namespace") \
   TD(RootType, 266, "root_type")
+#ifdef __GNUC__
+__extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
+#endif
 enum {
   #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
     FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
