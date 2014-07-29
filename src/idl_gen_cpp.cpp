@@ -105,7 +105,8 @@ static void GenComment(const std::string &dc,
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, "  ");
     code += "  " + enum_def.name + "_" + ev.name + " = ";
-    code += NumToString(ev.value) + ",\n";
+    code += NumToString(ev.value);
+    code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
   }
   code += "};\n\n";
 
