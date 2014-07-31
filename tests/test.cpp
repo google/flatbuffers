@@ -93,7 +93,7 @@ std::string CreateFlatBufferTest() {
                             Any_Monster, mloc2.Union(), // Store a union.
                             testv, vecofstrings, vecoftables, 0);
 
-  builder.Finish(mloc);
+  FinishMonsterBuffer(builder, mloc);
 
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
@@ -115,6 +115,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
     reinterpret_cast<const uint8_t *>(flatbuf.c_str()),
     flatbuf.length());
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  TEST_EQ(MonsterBufferHasIdentifier(flatbuf.c_str()), true);
 
   // Access the buffer from the root.
   auto monster = GetMonster(flatbuf.c_str());

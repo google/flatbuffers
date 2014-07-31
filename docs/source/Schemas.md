@@ -147,6 +147,43 @@ This declares what you consider to be the root table (or struct) of the
 serialized data. This is particular important for parsing JSON data,
 which doesn't include object type information.
 
+### File identification and extension
+
+Typically, a FlatBuffer binary buffer is not self-describing, i.e. it
+needs you to know its schema to parse it correctly. But if you
+want to use a FlatBuffer as a file format, it would be convenient
+to be able to have a "magic number" in there, like most file formats
+have, to be able to do a sanity check to see if you're reading the
+kind of file you're expecting.
+
+Now, you can always prefix a FlatBuffer with your own file header,
+but FlatBuffers has a built-in way to add an identifier to a
+FlatBuffer that takes up minimal space, and keeps the buffer
+compatible with buffers that don't have such an identifier.
+
+You can specify in a schema, similar to `root_type`, that you intend
+for this type of FlatBuffer to be used as a file format:
+
+    file_identifier "MYFI";
+
+Identifiers must always be exactly 4 characters long. These 4 characters
+will end up as bytes at offsets 4-7 (inclusive) in the buffer.
+
+For any schema that has such an identifier, `flatc` will automatically
+add the identifier to any binaries it generates (with `-b`),
+and generated calls like `FinishMonsterBuffer` also add the identifier.
+If you have specified an identifier and wish to generate a buffer
+without one, you can always still do so by calling
+`FlatBufferBuilder::Finish` explicitly.
+
+After loading a buffer, you can use a call like
+`MonsterBufferHasIdentifier` to check if the identifier is present.
+
+Additionally, by default `flatc` will output binary files as `.bin`.
+This declaration in the schema will change that to whatever you want:
+
+    file_extension "ext";
+
 ### Comments & documentation
 
 May be written as in most C-based languages. Additionally, a triple

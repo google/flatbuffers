@@ -187,6 +187,10 @@ inline const Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<
 
 inline bool VerifyMonsterBuffer(const flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Monster>(); }
 
+inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Monster> root) { fbb.Finish(root, "MONS"); }
+
+inline bool MonsterBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, "MONS"); }
+
 }  // namespace Example
 }  // namespace MyGame
 

@@ -88,7 +88,7 @@ Regardless of whether you used `CreateMonster` or `MonsterBuilder`, you
 now have an offset to the root of your data, and you can finish the
 buffer using:
 
-    fbb.Finish(mloc);
+    FinishMonsterBuffer(fbb, mloc);
 
 The buffer is now ready to be stored somewhere, sent over the network,
 be compressed, or whatever you'd like to do with it. You can access the

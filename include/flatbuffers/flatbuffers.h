@@ -613,10 +613,21 @@ class FlatBufferBuilder {
     return CreateVectorOfStructs(v.data(), v.size());
   }
 
+  static const int kFileIdentifierLength = 4;
+
   // Finish serializing a buffer by writing the root offset.
-  template<typename T> void Finish(Offset<T> root) {
+  // If a file_identifier is given, the buffer will be prefix with a standard
+  // FlatBuffers file header.
+  template<typename T> void Finish(Offset<T> root,
+                                   const char *file_identifier = nullptr) {
     // This will cause the whole buffer to be aligned.
-    PreAlign(sizeof(uoffset_t), minalign_);
+    PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
+             minalign_);
+    if (file_identifier) {
+      assert(strlen(file_identifier) == kFileIdentifierLength);
+      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
+                kFileIdentifierLength);
+    }
     PushElement(ReferTo(root.o));  // Location of root.
   }
 
@@ -647,6 +658,12 @@ template<typename T> const T *GetRoot(const void *buf) {
   EndianCheck();
   return reinterpret_cast<const T *>(reinterpret_cast<const uint8_t *>(buf) +
     EndianScalar(*reinterpret_cast<const uoffset_t *>(buf)));
+}
+
+// Helper to see if the identifier in a buffer has the expected value.
+inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
+  return strncmp(reinterpret_cast<const char *>(buf) + 4, identifier,
+                 FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 
 // Helper class to verify the integrity of a FlatBuffer

@@ -81,7 +81,9 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(Enum, 263, "enum") \
   TD(Union, 264, "union") \
   TD(NameSpace, 265, "namespace") \
-  TD(RootType, 266, "root_type")
+  TD(RootType, 266, "root_type") \
+  TD(FileIdentifier, 267, "file_identifier") \
+  TD(FileExtension, 268, "file_extension")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -194,6 +196,14 @@ void Parser::Next() {
           if (attribute_ == "union")     { token_ = kTokenUnion;     return; }
           if (attribute_ == "namespace") { token_ = kTokenNameSpace; return; }
           if (attribute_ == "root_type") { token_ = kTokenRootType;  return; }
+          if (attribute_ == "file_identifier") {
+            token_ = kTokenFileIdentifier;
+            return;
+          }
+          if (attribute_ == "file_extension") {
+            token_ = kTokenFileExtension;
+            return;
+          }
           // If not, it is a user-defined identifier:
           token_ = kTokenIdentifier;
           return;
@@ -802,11 +812,26 @@ bool Parser::Parse(const char *source) {
         Next();
         auto root_type = attribute_;
         Expect(kTokenIdentifier);
-        Expect(';');
         if (!SetRootType(root_type.c_str()))
           Error("unknown root type: " + root_type);
         if (root_struct_def->fixed)
           Error("root type must be a table");
+        Expect(';');
+      } else if (token_ == kTokenFileIdentifier) {
+        Next();
+        file_identifier_ = attribute_;
+        Expect(kTokenStringConstant);
+        if (file_identifier_.length() !=
+            FlatBufferBuilder::kFileIdentifierLength)
+          Error("file_identifier must be exactly " +
+                NumToString(FlatBufferBuilder::kFileIdentifierLength) +
+                " characters");
+        Expect(';');
+      } else if (token_ == kTokenFileExtension) {
+        Next();
+        file_extension_ = attribute_;
+        Expect(kTokenStringConstant);
+        Expect(';');
       } else {
         ParseDecl();
       }

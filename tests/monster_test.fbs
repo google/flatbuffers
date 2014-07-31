@@ -36,3 +36,6 @@ table Monster {
 }
 
 root_type Monster;
+
+file_identifier "MONS";
+file_extension "mon";

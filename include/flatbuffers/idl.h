@@ -284,6 +284,8 @@ class Parser {
 
   FlatBufferBuilder builder_;  // any data contained in the file
   StructDef *root_struct_def;
+  std::string file_identifier_;
+  std::string file_extension_;
 
  private:
   const char *source_, *cursor_;

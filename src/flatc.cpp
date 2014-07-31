@@ -27,9 +27,10 @@ bool GenerateBinary(const Parser &parser,
                     const std::string &path,
                     const std::string &file_name,
                     const GeneratorOptions & /*opts*/) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
-           (path + file_name + ".bin").c_str(),
+           (path + file_name + "." + ext).c_str(),
            reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
            parser.builder_.GetSize(),
            true);

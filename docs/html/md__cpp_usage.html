@@ -74,7 +74,7 @@ mb.add_name(name);
 mb.add_inventory(inventory);
 auto mloc = mb.Finish();
 </pre><p>We start with a temporary helper class <code>MonsterBuilder</code> (which is defined in our generated code also), then call the various <code>add_</code> methods to set fields, and <code>Finish</code> to complete the object. This is pretty much the same code as you find inside <code>CreateMonster</code>, except we're leaving out a few fields. Fields may also be added in any order, though orderings with fields of the same size adjacent to each other most efficient in size, due to alignment. You should not nest these Builder classes (serialize your data in pre-order).</p>
-<p>Regardless of whether you used <code>CreateMonster</code> or <code>MonsterBuilder</code>, you now have an offset to the root of your data, and you can finish the buffer using: </p><pre class="fragment">fbb.Finish(mloc);
+<p>Regardless of whether you used <code>CreateMonster</code> or <code>MonsterBuilder</code>, you now have an offset to the root of your data, and you can finish the buffer using: </p><pre class="fragment">FinishMonsterBuffer(fbb, mloc);
 </pre><p>The buffer is now ready to be stored somewhere, sent over the network, be compressed, or whatever you'd like to do with it. You can access the start of the buffer with <code>fbb.GetBufferPointer()</code>, and it's size from <code>fbb.GetSize()</code>.</p>
 <p><code>samples/sample_binary.cpp</code> is a complete code sample similar to the code above, that also includes the reading code below.</p>
 <h3>Reading in C++</h3>
