@@ -32,5 +32,9 @@
       a: 30,
       b: 40
     }
+  ],
+  testarrayofstring: [
+    "test1",
+    "test2"
   ]
 }

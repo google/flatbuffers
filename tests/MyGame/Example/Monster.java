@@ -14,7 +14,7 @@ public class Monster extends Table {
   public Vec3 pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
   public short mana() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) : 150; }
   public short hp() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) : 100; }
-  public String name() { int o = __offset(10); return o != 0 ? __string(o) : null; }
+  public String name() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
   public byte inventory(int j) { int o = __offset(14); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int inventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public byte color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 8; }
