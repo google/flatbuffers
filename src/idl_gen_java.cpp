@@ -247,7 +247,7 @@ static void GenStruct(StructDef &struct_def,
           }
           break;
         case BASE_TYPE_STRING:
-          code += offset_prefix + getter +"(o) : null";
+          code += offset_prefix + getter +"(o + bb_pos) : null";
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
