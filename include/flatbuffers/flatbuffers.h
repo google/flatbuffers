@@ -676,7 +676,9 @@ class Verifier {
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
     bool ok = elem >= buf_ && elem <= end_ - elem_len;
-    assert(ok);
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      assert(ok);
+    #endif
     return ok;
   }
 
