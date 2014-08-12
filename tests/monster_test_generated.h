@@ -95,6 +95,7 @@ struct Monster : private flatbuffers::Table {
   const Monster *enemy() const { return GetPointer<const Monster *>(28); }
   const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(30); }
   const Monster *testnestedflatbuffer_nested_root() { return flatbuffers::GetRoot<Monster>(testnestedflatbuffer()->Data()); }
+  const Monster *testempty() const { return GetPointer<const Monster *>(32); }
   bool Verify(const flatbuffers::Verifier &verifier) const {
     return VerifyTable(verifier) &&
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
@@ -119,7 +120,9 @@ struct Monster : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, 28 /* enemy */) &&
            verifier.VerifyTable(enemy()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 30 /* testnestedflatbuffer */) &&
-           verifier.Verify(testnestedflatbuffer());
+           verifier.Verify(testnestedflatbuffer()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 32 /* testempty */) &&
+           verifier.VerifyTable(testempty());
   }
 };
 
@@ -139,9 +142,10 @@ struct MonsterBuilder {
   void add_testarrayoftables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables) { fbb_.AddOffset(26, testarrayoftables); }
   void add_enemy(flatbuffers::Offset<Monster> enemy) { fbb_.AddOffset(28, enemy); }
   void add_testnestedflatbuffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer) { fbb_.AddOffset(30, testnestedflatbuffer); }
+  void add_testempty(flatbuffers::Offset<Monster> testempty) { fbb_.AddOffset(32, testempty); }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
-  flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 14)); }
+  flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 15)); }
 };
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
@@ -157,8 +161,10 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring = 0,
    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables = 0,
    flatbuffers::Offset<Monster> enemy = 0,
-   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0) {
+   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0,
+   flatbuffers::Offset<Monster> testempty = 0) {
   MonsterBuilder builder_(_fbb);
+  builder_.add_testempty(testempty);
   builder_.add_testnestedflatbuffer(testnestedflatbuffer);
   builder_.add_enemy(enemy);
   builder_.add_testarrayoftables(testarrayoftables);

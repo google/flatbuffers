@@ -191,7 +191,6 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
                       std::string *_text) {
   std::string &text = *_text;
   text += "{";
-  text += NewLine(opts.indent_step);
   int fieldout = 0;
   StructDef *union_sd = nullptr;
   for (auto it = struct_def.fields.vec.begin();
@@ -202,8 +201,8 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       // The field is present.
       if (fieldout++) {
         text += ",";
-        text += NewLine(opts.indent_step);
       }
+      text += NewLine(opts.indent_step);
       text.append(indent + opts.indent_step, ' ');
       OutputIdentifier(fd.name, opts, _text);
       text += ": ";

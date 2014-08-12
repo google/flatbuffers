@@ -33,6 +33,7 @@ table Monster {
   test:Any (id: 8);
   test4:[Test] (id: 9);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
+  testempty:Monster (id:14);
 }
 
 root_type Monster;

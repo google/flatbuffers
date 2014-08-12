@@ -36,5 +36,7 @@
   testarrayofstring: [
     "test1",
     "test2"
-  ]
+  ],
+  testempty: {
+  }
 }
