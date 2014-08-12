@@ -446,9 +446,13 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
-              builder_.AddElement(value.offset, \
+              if (struct_def.fixed) { \
+                builder_.PushElement(atot<CTYPE>(value.constant.c_str())); \
+              } else { \
+                builder_.AddElement(value.offset, \
                              atot<CTYPE>(       value.constant.c_str()), \
                              atot<CTYPE>(field->value.constant.c_str())); \
+              } \
               break;
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
@@ -501,7 +505,8 @@ uoffset_t Parser::ParseVector(const Type &type) {
   }
   Next();
 
-  builder_.StartVector(count * InlineSize(type), InlineAlignment((type)));
+  builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
+                       InlineAlignment(type));
   for (int i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
