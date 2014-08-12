@@ -613,7 +613,7 @@ class FlatBufferBuilder {
     return CreateVectorOfStructs(v.data(), v.size());
   }
 
-  static const int kFileIdentifierLength = 4;
+  static const size_t kFileIdentifierLength = 4;
 
   // Finish serializing a buffer by writing the root offset.
   // If a file_identifier is given, the buffer will be prefix with a standard
