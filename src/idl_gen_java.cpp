@@ -176,16 +176,43 @@ static void GenStruct(StructDef &struct_def,
   GenComment(struct_def.doc_comment, code_ptr);
   code += "public class " + struct_def.name + " extends ";
   code += struct_def.fixed ? "Struct" : "Table";
-  code += " {\n";
   if (&struct_def == root_struct_def) {
+    // We need the length and offset to implement Serializable interface.
+    code += " implements java.io.Serializable {\n";
+    code += "  public int length;\n";
+    code += "  public int offset;\n";
     // Generate a special accessor for the table that has been declared as
     // the root type.
     code += "  public static " + struct_def.name + " getRootAs";
     code += struct_def.name;
-    code += "(ByteBuffer _bb, int offset) { ";
+    code += "(ByteBuffer _bb, int offset, int length) { ";
     code += "_bb.order(ByteOrder.LITTLE_ENDIAN); ";
-    code += "return (new " + struct_def.name;
-    code += "()).__init(_bb.getInt(offset) + offset, _bb); }\n";
+    code += struct_def.name + " table = (new " + struct_def.name;
+    code += "()).__init(_bb.getInt(offset) + offset, _bb); ";
+    code += " table.length = length; table.offset = offset; return table; }\n";
+    // Implementations of Serializable.
+    code += "  private void writeObject(java.io.ObjectOutputStream out) throws IOException {\n";
+    code += "    if (bb == null) {\n";
+    code += "      out.writeInt(0); \n";
+    code += "    } else {\n";
+    code += "      out.writeInt(this.length); \n";
+    code += "      out.write(bb.array(), this.offset, this.length);\n";
+    code += "    }\n";
+    code += "  }\n";
+    code += "  private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {\n";
+    code += "    this.length = in.readInt(); \n";
+    code += "    this.offset = 0; \n";
+    code += "    if (this.length > 0) {\n";
+    code += "      byte[] buf = new byte[this.length];\n";
+    code += "      in.readFully(buf);\n";
+    code += "      ByteBuffer bb = ByteBuffer.wrap(buf);\n";
+    code += "      bb.order(ByteOrder.LITTLE_ENDIAN);\n";
+    code += "      __init(bb.getInt(0), bb);\n";
+    code += "    }\n";
+    code += "  }\n";
+    code += "  private void readObjectNoData() throws ObjectStreamException {}\n";
+  } else {
+    code += " {\n";
   }
   // Generate the __init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
@@ -355,6 +382,8 @@ static bool SaveClass(const Parser &parser, const Definition &def,
   if (needs_imports) {
     code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
     code += "import flatbuffers.*;\n\n";
+    // Serializer dependency.
+    code += "import java.io.IOException;\nimport java.io.ObjectStreamException;\n";
   }
   code += classcode;
   auto filename = name_space_dir + kPathSeparator + def.name + ".java";
