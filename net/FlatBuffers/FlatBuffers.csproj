@@ -45,7 +45,7 @@
     <Compile Include="Table.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FlatBuffersNet.1.0.0.nuspec" />
+    <None Include="FlatBuffers.1.0.0.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

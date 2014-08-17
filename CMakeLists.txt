@@ -13,6 +13,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_cpp.cpp
   src/idl_gen_java.cpp
   src/idl_gen_csharp.cpp
+  src/idl_gen_go.cpp
   src/idl_gen_text.cpp
   src/flatc.cpp
 )
@@ -51,17 +52,18 @@ set(CMAKE_BUILD_TYPE Debug)
 # source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
 # source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  add_definitions("-std=c++0x")
-  add_definitions("-Wall")
-endif()
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  add_definitions("-std=c++0x")
+if(APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra")
+
 if(FLATBUFFERS_CODE_COVERAGE)
-  add_definitions("-g -fprofile-arcs -ftest-coverage")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
 include_directories(include)
@@ -70,6 +72,9 @@ add_executable(flatc ${FlatBuffers_Compiler_SRCS})
 add_executable(flattests ${FlatBuffers_Tests_SRCS})
 add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
 add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+
+install(DIRECTORY include/flatbuffers DESTINATION include)
+install(TARGETS flatc DESTINATION bin)
 
 add_test(NAME flattest
          CONFIGURATIONS Debug

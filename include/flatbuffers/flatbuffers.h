@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include <cstdint>
+#include <cstddef>
 #include <cstring>
 #include <string>
 #include <type_traits>
@@ -44,7 +45,11 @@
       #define FLATBUFFERS_LITTLEENDIAN 1
     #endif // __BIG_ENDIAN__
   #elif defined(_MSC_VER)
-    #define FLATBUFFERS_LITTLEENDIAN 1
+    #if defined(_M_PPC)
+      #define FLATBUFFERS_LITTLEENDIAN 0
+    #else
+      #define FLATBUFFERS_LITTLEENDIAN 1
+    #endif
   #else
     #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
   #endif
@@ -91,6 +96,14 @@ template<typename T> T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
   #else
+    #if defined(_MSC_VER)
+      #pragma push_macro("__builtin_bswap16")
+      #pragma push_macro("__builtin_bswap32")
+      #pragma push_macro("__builtin_bswap64")
+      #define __builtin_bswap16 _byteswap_ushort
+      #define __builtin_bswap32 _byteswap_ulong
+      #define __builtin_bswap64 _byteswap_uint64
+    #endif
     // If you're on the few remaining big endian platforms, we make the bold
     // assumption you're also on gcc/clang, and thus have bswap intrinsics:
     if (sizeof(T) == 1) {   // Compile-time if-then's.
@@ -107,6 +120,11 @@ template<typename T> T EndianScalar(T t) {
     } else {
       assert(0);
     }
+    #if defined(_MSC_VER)
+      #pragma pop_macro("__builtin_bswap16")
+      #pragma pop_macro("__builtin_bswap32")
+      #pragma pop_macro("__builtin_bswap64")
+    #endif
   #endif
 }
 
@@ -136,29 +154,99 @@ template<typename T> size_t AlignOf() {
 // (avoiding the need for a trailing return decltype)
 template<typename T> struct IndirectHelper {
   typedef T return_type;
+  static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return EndianScalar((reinterpret_cast<const T *>(p))[i]);
   }
 };
 template<typename T> struct IndirectHelper<Offset<T>> {
   typedef const T *return_type;
+  static const size_t element_stride = sizeof(uoffset_t);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     p += i * sizeof(uoffset_t);
-    return EndianScalar(reinterpret_cast<return_type>(
-        p + ReadScalar<uoffset_t>(p)));
+    return reinterpret_cast<return_type>(p + ReadScalar<uoffset_t>(p));
   }
 };
 template<typename T> struct IndirectHelper<const T *> {
-  typedef const T &return_type;
+  typedef const T *return_type;
+  static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
-    return *reinterpret_cast<const T *>(p + i * sizeof(T));
+    return reinterpret_cast<const T *>(p + i * sizeof(T));
   }
+};
+
+// An STL compatible iterator implementation for Vector below, effectively
+// calling Get() for every element.
+template<typename T, bool bConst>
+struct VectorIterator : public
+  std::iterator < std::input_iterator_tag,
+  typename std::conditional < bConst,
+  const typename IndirectHelper<T>::return_type,
+  typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
+
+  typedef std::iterator<std::input_iterator_tag,
+    typename std::conditional<bConst,
+    const typename IndirectHelper<T>::return_type,
+    typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
+
+public:
+  VectorIterator(const uint8_t *data, uoffset_t i) :
+      data_(data + IndirectHelper<T>::element_stride * i) {};
+  VectorIterator(const VectorIterator &other) : data_(other.data_) {}
+  VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
+
+  VectorIterator &operator=(const VectorIterator &other) {
+    data_ = other.data_;
+    return *this;
+  }
+
+  VectorIterator &operator=(VectorIterator &&other) {
+    data_ = other.data_;
+    return *this;
+  }
+
+  bool operator==(const VectorIterator& other) const {
+    return data_ == other.data_;
+  }
+
+  bool operator!=(const VectorIterator& other) const {
+    return data_ != other.data_;
+  }
+
+  ptrdiff_t operator-(const VectorIterator& other) const {
+    return (data_ - other.data_) / IndirectHelper<T>::element_stride;
+  }
+
+  typename super_type::value_type operator *() const {
+    return IndirectHelper<T>::Read(data_, 0);
+  }
+
+  typename super_type::value_type operator->() const {
+    return IndirectHelper<T>::Read(data_, 0);
+  }
+
+  VectorIterator &operator++() {
+    data_ += IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator operator++(int) {
+    VectorIterator temp(data_);
+    data_ += IndirectHelper<T>::element_stride;
+    return temp;
+  }
+
+private:
+  const uint8_t *data_;
 };
 
 // This is used as a helper type for accessing vectors.
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
- public:
+public:
+  typedef VectorIterator<T, false> iterator;
+  typedef VectorIterator<T, true> const_iterator;
+
   uoffset_t Length() const { return EndianScalar(length_); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
@@ -172,14 +260,21 @@ template<typename T> class Vector {
     return reinterpret_cast<const void *>(Data() + o);
   }
 
- protected:
-  // This class is only used to access pre-existing data. Don't ever
-  // try to construct these manually.
-  Vector();
+  iterator begin() { return iterator(Data(), 0); }
+  const_iterator begin() const { return const_iterator(Data(), 0); }
 
+  iterator end() { return iterator(Data(), length_); }
+  const_iterator end() const { return const_iterator(Data(), length_); }
+
+  // The raw data in little endian format. Use with care.
   const uint8_t *Data() const {
     return reinterpret_cast<const uint8_t *>(&length_ + 1);
   }
+
+protected:
+  // This class is only used to access pre-existing data. Don't ever
+  // try to construct these manually.
+  Vector();
 
   uoffset_t length_;
 };
@@ -204,8 +299,8 @@ class vector_downward {
 
   void clear() { cur_ = buf_ + reserved_; }
 
-  size_t growth_policy(size_t size) {
-    return (size / 2) & ~(sizeof(largest_scalar_t) - 1);
+  size_t growth_policy(size_t bytes) {
+    return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
   }
 
   uint8_t *make_space(size_t len) {
@@ -236,9 +331,9 @@ class vector_downward {
 
   // push() & fill() are most frequently called with small byte counts (<= 4),
   // which is why we're using loops rather than calling memcpy/memset.
-  void push(const uint8_t *bytes, size_t size) {
-    auto dest = make_space(size);
-    for (size_t i = 0; i < size; i++) dest[i] = bytes[i];
+  void push(const uint8_t *bytes, size_t num) {
+    auto dest = make_space(num);
+    for (size_t i = 0; i < num; i++) dest[i] = bytes[i];
   }
 
   void fill(size_t zero_pad_bytes) {
@@ -249,6 +344,10 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  vector_downward(const vector_downward &);
+  vector_downward &operator=(const vector_downward &);
+
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -281,11 +380,6 @@ class FlatBufferBuilder {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
-    flatbuffer_version_string =
-      "FlatBuffers "
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
-      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
   }
 
   // Reset all the state in this FlatBufferBuilder so it can be reused
@@ -301,8 +395,6 @@ class FlatBufferBuilder {
 
   // Get the serialized buffer (after you call Finish()).
   uint8_t *GetBufferPointer() const { return buf_.data(); }
-
-  const char *GetVersionString() { return flatbuffer_version_string; }
 
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
@@ -505,30 +597,45 @@ class FlatBufferBuilder {
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
-    return CreateVector(&v[0], v.size());
+    return CreateVector(v.data(), v.size());
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                       const T *v, size_t len) {
     NotNested();
-    StartVector(len, AlignOf<T>());
+    StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
     PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                      const std::vector<T> &v) {
-    return CreateVectorOfStructs(&v[0], v.size());
+    return CreateVectorOfStructs(v.data(), v.size());
   }
 
+  static const size_t kFileIdentifierLength = 4;
+
   // Finish serializing a buffer by writing the root offset.
-  template<typename T> void Finish(Offset<T> root) {
+  // If a file_identifier is given, the buffer will be prefix with a standard
+  // FlatBuffers file header.
+  template<typename T> void Finish(Offset<T> root,
+                                   const char *file_identifier = nullptr) {
     // This will cause the whole buffer to be aligned.
-    PreAlign(sizeof(uoffset_t), minalign_);
+    PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
+             minalign_);
+    if (file_identifier) {
+      assert(strlen(file_identifier) == kFileIdentifierLength);
+      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
+                kFileIdentifierLength);
+    }
     PushElement(ReferTo(root.o));  // Location of root.
   }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  FlatBufferBuilder(const FlatBufferBuilder &);
+  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+
   struct FieldLoc {
     uoffset_t off;
     voffset_t id;
@@ -544,16 +651,6 @@ class FlatBufferBuilder {
   size_t minalign_;
 
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
-
-  // String which identifies the current version of FlatBuffers.
-  // flatbuffer_version_string is used by Google developers to identify which
-  // applications uploaded to Google Play are using this library.  This allows
-  // the development team at Google to determine the popularity of the library.
-  // How it works: Applications that are uploaded to the Google Play Store are
-  // scanned for this version string.  We track which applications are using it
-  // to measure popularity.  You are free to remove it (of course) but we would
-  // appreciate if you left it in.
-  const char *flatbuffer_version_string;
 };
 
 // Helper to get a typed pointer to the root object contained in the buffer.
@@ -561,6 +658,12 @@ template<typename T> const T *GetRoot(const void *buf) {
   EndianCheck();
   return reinterpret_cast<const T *>(reinterpret_cast<const uint8_t *>(buf) +
     EndianScalar(*reinterpret_cast<const uoffset_t *>(buf)));
+}
+
+// Helper to see if the identifier in a buffer has the expected value.
+inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
+  return strncmp(reinterpret_cast<const char *>(buf) + 4, identifier,
+                 FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 
 // Helper class to verify the integrity of a FlatBuffer
@@ -573,13 +676,20 @@ class Verifier {
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
     bool ok = elem >= buf_ && elem <= end_ - elem_len;
-    assert(ok);
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      assert(ok);
+    #endif
     return ok;
   }
 
   // Verify a range indicated by sizeof(T).
   template<typename T> bool Verify(const void *elem) const {
     return Verify(elem, sizeof(T));
+  }
+
+  // Verify a pointer (may be NULL) of a table type.
+  template<typename T> bool VerifyTable(const T *table) const {
+    return !table || table->Verify(*this);
   }
 
   // Verify a pointer (may be NULL) of any vector type.
@@ -772,17 +882,38 @@ inline int LookupEnum(const char **names, const char *name) {
     struct __declspec(align(alignment))
   #define STRUCT_END(name, size) \
     __pragma(pack()); \
-    static_assert(sizeof(name) == size, "compiler breaks packing rules");
+    static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #elif defined(__GNUC__) || defined(__clang__)
   #define MANUALLY_ALIGNED_STRUCT(alignment) \
-    _Pragma("pack(1)"); \
+    _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))
   #define STRUCT_END(name, size) \
-    _Pragma("pack()"); \
-    static_assert(sizeof(name) == size, "compiler breaks packing rules");
+    _Pragma("pack()") \
+    static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #else
   #error Unknown compiler, please define structure alignment macros
 #endif
+
+// String which identifies the current version of FlatBuffers.
+// flatbuffer_version_string is used by Google developers to identify which
+// applications uploaded to Google Play are using this library.  This allows
+// the development team at Google to determine the popularity of the library.
+// How it works: Applications that are uploaded to the Google Play Store are
+// scanned for this version string.  We track which applications are using it
+// to measure popularity.  You are free to remove it (of course) but we would
+// appreciate if you left it in.
+
+// Weak linkage is culled by VS & doesn't work on cygwin.
+#if !defined(_WIN32) && !defined(__CYGWIN__)
+
+extern volatile __attribute__((weak)) const char *flatbuffer_version_string;
+volatile __attribute__((weak)) const char *flatbuffer_version_string =
+  "FlatBuffers "
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
+  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+
+#endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
 }  // namespace flatbuffers
 

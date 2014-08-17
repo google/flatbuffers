@@ -1,11 +1,11 @@
 # Use in Java
 
-There's experimental support for reading FlatBuffers in Java. Generate code
+FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate code
 for Java with the `-j` option to `flatc`.
 
 See `javaTest.java` for an example. Essentially, you read a FlatBuffer binary
 file into a `byte[]`, which you then turn into a `ByteBuffer`, which you pass to
-the `getRootAsMonster` function:
+the `getRootAsMyRootType` function:
 
     ByteBuffer bb = ByteBuffer.wrap(data);
     Monster monster = Monster.getRootAsMonster(bb);
@@ -33,9 +33,9 @@ since FlatBuffer's UTF-8 strings can't be read in-place by Java.
 
 Vector access is also a bit different from C++: you pass an extra index
 to the vector field accessor. Then a second method with the same name
-suffixed by `_length` let's you know the number of elements you can access:
+suffixed by `Length` let's you know the number of elements you can access:
 
-    for (int i = 0; i < monster.inventory_length(); i++)
+    for (int i = 0; i < monster.inventoryLength(); i++)
         monster.inventory(i); // do something here
 
 You can also construct these buffers in Java using the static methods found
@@ -61,10 +61,18 @@ Create a table with a struct contained therein:
 
 As you can see, the Java code for tables does not use a convenient
 `createMonster` call like the C++ code. This is to create the buffer without
-using temporary object allocation (since the `Vec3` is an inline component of
-`Monster`, it has to be created right where it is added, whereas the name and
-the inventory are not inline).
+using temporary object allocation.
+
+It's important to understand that fields that are structs are inline (like
+`Vec3` above), and MUST thus be created between the start and end calls of
+a table. Everything else (other tables, strings, vectors) MUST be created
+before the start of the table they are referenced in.
+
 Structs do have convenient methods that even have arguments for nested structs.
+
+As you can see, references to other objects (e.g. the string above) are simple
+ints, and thus do not have the type-safety of the Offset type in C++. Extra
+case must thus be taken that you set the right offset on the right field.
 
 Vectors also use this start/end pattern to allow vectors of both scalar types
 and structs:

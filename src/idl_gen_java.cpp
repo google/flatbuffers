@@ -22,11 +22,9 @@
 
 #ifdef _WIN32
 #include <direct.h>
-#define PATH_SEPARATOR "\\"
 #define mkdir(n, m) _mkdir(n)
 #else
 #include <sys/stat.h>
-#define PATH_SEPARATOR "/"
 #endif
 
 namespace flatbuffers {
@@ -34,7 +32,7 @@ namespace java {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) #JTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -71,21 +69,6 @@ static void GenComment(const std::string &dc,
   if (dc.length()) {
     code += std::string(prefix) + "///" + dc + "\n";
   }
-}
-
-// Convert an underscore_based_indentifier in to camelCase.
-// Also uppercases the first character if first is true.
-static std::string MakeCamel(const std::string &in, bool first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
-    else
-      s += in[i];
-  }
-  return s;
 }
 
 static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
@@ -264,7 +247,7 @@ static void GenStruct(StructDef &struct_def,
           }
           break;
         case BASE_TYPE_STRING:
-          code += offset_prefix + getter +"(o) : null";
+          code += offset_prefix + getter +"(o + bb_pos) : null";
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
@@ -326,17 +309,23 @@ static void GenStruct(StructDef &struct_def,
       if (field.deprecated) continue;
       code += "  public static void add" + MakeCamel(field.name);
       code += "(FlatBufferBuilder builder, " + GenTypeBasic(field.value.type);
-      code += " " + MakeCamel(field.name, false) + ") { builder.add";
+      auto argname = MakeCamel(field.name, false);
+      if (!IsScalar(field.value.type.base_type)) argname += "Offset";
+      code += " " + argname + ") { builder.add";
       code += GenMethod(field) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      code += MakeCamel(field.name, false) + ", " + field.value.constant;
+      code += argname + ", " + field.value.constant;
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         code += "  public static void start" + MakeCamel(field.name);
         code += "Vector(FlatBufferBuilder builder, int numElems) ";
         code += "{ builder.startVector(";
-        code += NumToString(InlineSize(field.value.type));
-        code += ", numElems); }\n";
+        auto vector_type = field.value.type.VectorType();
+        auto alignment = InlineAlignment(vector_type);
+        auto elem_size = InlineSize(vector_type);
+        code += NumToString(elem_size);
+        code += ", numElems, " + NumToString(alignment);
+        code += "); }\n";
       }
     }
     code += "  public static int end" + struct_def.name;
@@ -358,7 +347,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
         it != parser.name_space_.end(); ++it) {
     if (name_space_java.length()) {
       name_space_java += ".";
-      name_space_dir += PATH_SEPARATOR;
+      name_space_dir += kPathSeparator;
     }
     name_space_java += *it;
     name_space_dir += *it;
@@ -372,7 +361,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
     code += "import flatbuffers.*;\n\n";
   }
   code += classcode;
-  auto filename = name_space_dir + PATH_SEPARATOR + def.name + ".java";
+  auto filename = name_space_dir + kPathSeparator + def.name + ".java";
   return SaveFile(filename.c_str(), code, false);
 }
 
@@ -380,7 +369,8 @@ static bool SaveClass(const Parser &parser, const Definition &def,
 
 bool GenerateJava(const Parser &parser,
                   const std::string &path,
-                  const std::string & /*file_name*/) {
+                  const std::string & /*file_name*/,
+                  const GeneratorOptions & /*opts*/) {
   using namespace java;
 
   for (auto it = parser.enums_.vec.begin();
@@ -403,4 +393,3 @@ bool GenerateJava(const Parser &parser,
 }
 
 }  // namespace flatbuffers
-

@@ -18,16 +18,19 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-void Error(const char *err, const char *obj = nullptr, bool usage = false);
+static void Error(const char *err, const char *obj = nullptr,
+                  bool usage = false);
 
 namespace flatbuffers {
 
 bool GenerateBinary(const Parser &parser,
                     const std::string &path,
-                    const std::string &file_name) {
+                    const std::string &file_name,
+                    const GeneratorOptions & /*opts*/) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
-           (path + file_name + "_wire.bin").c_str(),
+           (path + file_name + "." + ext).c_str(),
            reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
            parser.builder_.GetSize(),
            true);
@@ -35,12 +38,14 @@ bool GenerateBinary(const Parser &parser,
 
 bool GenerateTextFile(const Parser &parser,
                       const std::string &path,
-                      const std::string &file_name) {
+                      const std::string &file_name,
+                      const GeneratorOptions &opts) {
   if (!parser.builder_.GetSize()) return true;
   if (!parser.root_struct_def) Error("root_type not set");
   std::string text;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), 2, &text);
-  return flatbuffers::SaveFile((path + file_name + "_wire.txt").c_str(),
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts,
+               &text);
+  return flatbuffers::SaveFile((path + file_name + ".json").c_str(),
                                text,
                                false);
 
@@ -53,7 +58,8 @@ bool GenerateTextFile(const Parser &parser,
 struct Generator {
   bool (*generate)(const flatbuffers::Parser &parser,
                    const std::string &path,
-                   const std::string &file_name);
+                   const std::string &file_name,
+                   const flatbuffers::GeneratorOptions &opts);
   const char *extension;
   const char *name;
   const char *help;
@@ -66,6 +72,8 @@ const Generator generators[] = {
     "Generate text output for any data definitions" },
   { flatbuffers::GenerateCPP,      "c", "C++",
     "Generate C++ headers for tables/structs" },
+  { flatbuffers::GenerateGo,       "g", "Go",
+    "Generate Go files for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
   { flatbuffers::GenerateCSharp,     "n", "C#",
@@ -74,16 +82,18 @@ const Generator generators[] = {
 
 const char *program_name = NULL;
 
-void Error(const char *err, const char *obj, bool usage) {
-  printf("%s: %s\n", program_name, err);
+static void Error(const char *err, const char *obj, bool usage) {
+  printf("%s: %s", program_name, err);
   if (obj) printf(": %s", obj);
   printf("\n");
   if (usage) {
-    printf("usage: %s [OPTION]... FILE...\n", program_name);
+    printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
       printf("  -%s      %s.\n", generators[i].extension, generators[i].help);
     printf("  -o PATH Prefix PATH to all generated files.\n"
+           "  -S      Strict JSON: add quotes to field names.\n"
            "FILEs may depend on declarations in earlier files.\n"
+           "FILEs after the -- must be binary flatbuffer format files.\n"
            "Output files are named using the base file name of the input,"
            "and written to the current directory or the path given by -o.\n"
            "example: %s -c -b schema1.fbs schema2.fbs data.json\n",
@@ -99,7 +109,7 @@ std::string StripExtension(const std::string &filename) {
 
 std::string StripPath(const std::string &filename) {
   size_t i = filename.find_last_of(
-    #ifdef WIN32
+    #ifdef _WIN32
       "\\:"
     #else
       "/"
@@ -111,15 +121,17 @@ std::string StripPath(const std::string &filename) {
 int main(int argc, const char *argv[]) {
   program_name = argv[0];
   flatbuffers::Parser parser;
+  flatbuffers::GeneratorOptions opts;
   std::string output_path;
   const size_t num_generators = sizeof(generators) / sizeof(generators[0]);
   bool generator_enabled[num_generators] = { false };
   bool any_generator = false;
   std::vector<std::string> filenames;
+  size_t binary_files_from = std::numeric_limits<size_t>::max();
   for (int i = 1; i < argc; i++) {
     const char *arg = argv[i];
     if (arg[0] == '-') {
-      if (filenames.size())
+      if (filenames.size() && arg[1] != '-')
         Error("invalid option location", arg, true);
       if (strlen(arg) != 2)
         Error("invalid commandline argument", arg, true);
@@ -127,6 +139,16 @@ int main(int argc, const char *argv[]) {
         case 'o':
           if (++i >= argc) Error("missing path following", arg, true);
           output_path = argv[i];
+          if (!(output_path.back() == flatbuffers::kPathSeparator ||
+                output_path.back() == flatbuffers::kPosixPathSeparator)) {
+            output_path += flatbuffers::kPathSeparator;
+          }
+          break;
+        case 'S':
+          opts.strict_json = true;
+          break;
+        case '-':  // Separator between text and binary input files.
+          binary_files_from = filenames.size();
           break;
         default:
           for (size_t i = 0; i < num_generators; ++i) {
@@ -149,7 +171,7 @@ int main(int argc, const char *argv[]) {
 
   if (!any_generator)
     Error("no options: no output files generated.",
-          "specify one of -c -j -n -t -b etc.", true);
+          "specify one of -c -g -j -n -t -b etc.", true);
 
   // Now process the files:
   for (auto file_it = filenames.begin();
@@ -159,14 +181,23 @@ int main(int argc, const char *argv[]) {
       if (!flatbuffers::LoadFile(file_it->c_str(), true, &contents))
         Error("unable to load file", file_it->c_str());
 
-      if (!parser.Parse(contents.c_str()))
-        Error(parser.error_.c_str());
+      bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
+                       binary_files_from;
+      if (is_binary) {
+        parser.builder_.Clear();
+        parser.builder_.PushBytes(
+          reinterpret_cast<const uint8_t *>(contents.c_str()),
+          contents.length());
+      } else {
+        if (!parser.Parse(contents.c_str()))
+          Error(parser.error_.c_str());
+      }
 
       std::string filebase = StripPath(StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
-          if (!generators[i].generate(parser, output_path, filebase)) {
+          if (!generators[i].generate(parser, output_path, filebase, opts)) {
             Error((std::string("Unable to generate ") +
                    generators[i].name +
                    " for " +
@@ -190,4 +221,3 @@ int main(int argc, const char *argv[]) {
 
   return 0;
 }
-

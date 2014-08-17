@@ -58,17 +58,16 @@
     <Compile Include="FlatBuffersExampleTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\net\FlatBuffersNet\FlatBuffers.csproj">
+    <ProjectReference Include="..\..\net\FlatBuffers\FlatBuffers.csproj">
       <Project>{28C00774-1E73-4A75-AD8F-844CD21A064D}</Project>
       <Name>FlatBuffers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\monsterdata_test_wire.bin">
+    <Content Include="..\monsterdata_test.bin">
+      <Link>Resources\monsterdata_test.bin</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -25,6 +25,13 @@
 
 namespace flatbuffers {
 
+static const char kPosixPathSeparator = '/';
+#ifdef _WIN32
+static const char kPathSeparator = '\\';
+#else
+static const char kPathSeparator = kPosixPathSeparator;
+#endif // _WIN32
+
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits.

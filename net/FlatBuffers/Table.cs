@@ -45,7 +45,6 @@ namespace FlatBuffers
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
         protected string __string(int offset) 
         {
-            offset += bb_pos;
             offset += bb.GetInt(offset);
             var len = bb.GetInt(offset);
             var startPos = offset + sizeof(int); 

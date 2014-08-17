@@ -33,4 +33,5 @@ flattests
 flatsamplebinary
 flatsampletext
 snapshot.sh
-
+tests/go_gen
+CMakeLists.txt.user

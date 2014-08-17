@@ -145,11 +145,12 @@ namespace FlatBuffers
             PutInt32(off);
         }
 
-        public void StartVector(int elemSize, int count)
+        public void StartVector(int elemSize, int count, int alignment)
         {
             NotNested();
             vector_num_elems = count;
             Prep(sizeof(int), elemSize * count);
+            Prep(alignment, elemSize * count); // Just in case alignment > int.
         }
 
         public int EndVector()
@@ -203,7 +204,7 @@ namespace FlatBuffers
             NotNested();
             byte[] utf8 = Encoding.UTF8.GetBytes(s);
             AddByte((byte)0);
-            StartVector(1, utf8.Length);
+            StartVector(1, utf8.Length, 1);
             Buffer.BlockCopy(utf8, 0, _bb.Data, _space -= utf8.Length, utf8.Length);
             return EndVector();
         }
@@ -239,7 +240,7 @@ namespace FlatBuffers
 
             // Search for an existing vtable that matches the current one.
             int existing_vtable = 0;
-            outer_loop:
+
             for (int i = 0; i < num_vtables; i++) {
                 int vt1 = _bb.Length - vtables[i];
                 int vt2 = _space;

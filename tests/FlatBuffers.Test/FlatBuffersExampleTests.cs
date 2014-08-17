@@ -35,6 +35,9 @@ namespace FlatBuffers.Test
             // We set up the same values as monsterdata.json:
 
             var str = fbb.CreateString("MyMonster");
+            var test1 = fbb.CreateString("test1");
+            var test2 = fbb.CreateString("test2"); 
+
 
             Monster.StartInventoryVector(fbb, 5);
             for (int i = 4; i >= 0; i--)
@@ -52,6 +55,11 @@ namespace FlatBuffers.Test
             MyGame.Example.Test.CreateTest(fbb, (short)30, (byte)40);
             var test4 = fbb.EndVector();
 
+            Monster.StartTestarrayofstringVector(fbb, 2); 
+            fbb.AddOffset(test2); 
+            fbb.AddOffset(test1); 
+            var testArrayOfString = fbb.EndVector(); 
+
 
             Monster.StartMonster(fbb);
             Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
@@ -62,23 +70,20 @@ namespace FlatBuffers.Test
             Monster.AddTestType(fbb, (byte)1);
             Monster.AddTest(fbb, mon2);
             Monster.AddTest4(fbb, test4);
+            Monster.AddTestarrayofstring(fbb, testArrayOfString);
             var mon = Monster.EndMonster(fbb);
 
             fbb.Finish(mon);
 
-
+            // Dump to output directory so we can inspect later, if needed
             using (var ms= new MemoryStream(fbb.Data.Data, fbb.DataStart, fbb.Offset))
             {
                 var data = ms.ToArray();
-                File.WriteAllBytes(@"Resources/monsterdata_cstest_wire.bin",data);
+                File.WriteAllBytes(@"Resources/monsterdata_cstest.bin",data);
             }
-
-            
-
 
             // Now assert the buffer
             TestBuffer(fbb.Data, fbb.DataStart);
-
         }
 
         private void TestBuffer(ByteBuffer bb, int start)
@@ -120,14 +125,18 @@ namespace FlatBuffers.Test
             Assert.AreEqual(2, monster.Test4Length());
 
             Assert.AreEqual(100, test0.A() + test0.B() + test1.A() + test1.B());
+
+
+            Assert.AreEqual(2, monster.TestarrayofstringLength());
+            Assert.AreEqual("test1", monster.Testarrayofstring(0));
+            Assert.AreEqual("test2", monster.Testarrayofstring(1)); 
         }
 
         [Test]
         public void CanReadCppGeneratedWireFile()
         {
-            var data = File.ReadAllBytes(@"Resources/monsterdata_test_wire.bin");
+            var data = File.ReadAllBytes(@"Resources/monsterdata_test.bin");
             var bb = new ByteBuffer(data);
-            
             TestBuffer(bb, 0);
         }
     }

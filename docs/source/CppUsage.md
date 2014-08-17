@@ -88,7 +88,7 @@ Regardless of whether you used `CreateMonster` or `MonsterBuilder`, you
 now have an offset to the root of your data, and you can finish the
 buffer using:
 
-    fbb.Finish(mloc);
+    FinishMonsterBuffer(fbb, mloc);
 
 The buffer is now ready to be stored somewhere, sent over the network,
 be compressed, or whatever you'd like to do with it. You can access the
@@ -198,6 +198,9 @@ control, or you want to give your users easy access to data.
 Another reason might be that you already have a lot of data in JSON
 format, or a tool that generates JSON, and if you can write a schema for
 it, this will provide you an easy way to use that data directly.
+
+(see the schema documentation for some specifics on the JSON format
+accepted).
 
 There are two ways to use text formats:
 

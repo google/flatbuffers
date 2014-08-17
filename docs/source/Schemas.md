@@ -51,6 +51,9 @@ and backwards compatibility. Note that:
     definition. Older data will still
     read correctly, and give you the default value when read. Older code
     will simply ignore the new field.
+    If you want to have flexibility to use any order for fields in your
+    schema, you can manually assign ids (much like Protocol Buffers),
+    see the `id` attribute below.
 
 -   You cannot delete fields you don't use anymore from the schema,
     but you can simply
@@ -141,7 +144,45 @@ packages.
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
-serialized data.
+serialized data. This is particular important for parsing JSON data,
+which doesn't include object type information.
+
+### File identification and extension
+
+Typically, a FlatBuffer binary buffer is not self-describing, i.e. it
+needs you to know its schema to parse it correctly. But if you
+want to use a FlatBuffer as a file format, it would be convenient
+to be able to have a "magic number" in there, like most file formats
+have, to be able to do a sanity check to see if you're reading the
+kind of file you're expecting.
+
+Now, you can always prefix a FlatBuffer with your own file header,
+but FlatBuffers has a built-in way to add an identifier to a
+FlatBuffer that takes up minimal space, and keeps the buffer
+compatible with buffers that don't have such an identifier.
+
+You can specify in a schema, similar to `root_type`, that you intend
+for this type of FlatBuffer to be used as a file format:
+
+    file_identifier "MYFI";
+
+Identifiers must always be exactly 4 characters long. These 4 characters
+will end up as bytes at offsets 4-7 (inclusive) in the buffer.
+
+For any schema that has such an identifier, `flatc` will automatically
+add the identifier to any binaries it generates (with `-b`),
+and generated calls like `FinishMonsterBuffer` also add the identifier.
+If you have specified an identifier and wish to generate a buffer
+without one, you can always still do so by calling
+`FlatBufferBuilder::Finish` explicitly.
+
+After loading a buffer, you can use a call like
+`MonsterBufferHasIdentifier` to check if the identifier is present.
+
+Additionally, by default `flatc` will output binary files as `.bin`.
+This declaration in the schema will change that to whatever you want:
+
+    file_extension "ext";
 
 ### Comments & documentation
 
@@ -164,6 +205,17 @@ help text).
 
 Current understood attributes:
 
+-   `id: n` (on a table field): manually set the field identifier to `n`.
+    If you use this attribute, you must use it on ALL fields of this table,
+    and the numbers must be a contiguous range from 0 onwards.
+    Additionally, since a union type effectively adds two fields, its
+    id must be that of the second field (the first field is the type
+    field and not explicitly declared in the schema).
+    For example, if the last field before the union field had id 6,
+    the union field should have id 8, and the unions type field will
+    implicitly be 7.
+    IDs allow the fields to be placed in any order in the schema.
+    When a new field is added to the schema is must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `original_order` (on a table): since elements in a table do not need
@@ -174,6 +226,33 @@ Current understood attributes:
     these structs to be aligned to that amount inside a buffer, IF that
     buffer is allocated with that alignment (which is not necessarily
     the case for buffers accessed directly inside a `FlatBufferBuilder`).
+-   `bit_flags` (on an enum): the values of this field indicate bits,
+    meaning that any value N specified in the schema will end up
+    representing 1<<N, or if you don't specify values at all, you'll get
+    the sequence 1, 2, 4, 8, ...
+
+## JSON Parsing
+
+The same parser that parses the schema declarations above is also able
+to parse JSON objects that conform to this schema. So, unlike other JSON
+parsers, this parser is strongly typed, and parses directly into a FlatBuffer
+(see the compiler documentation on how to do this from the command line, or
+the C++ documentation on how to do this at runtime).
+
+Besides needing a schema, there are a few other changes to how it parses
+JSON:
+
+-   It accepts field names with and without quotes, like many JSON parsers
+    already do. It outputs them without quotes as well, though can be made
+    to output them using the `strict_json` flag.
+-   If a field has an enum type, the parser will recognize symbolic enum
+    values (with or without quotes) instead of numbers, e.g.
+    `field: EnumVal`. If a field is of integral type, you can still use
+    symbolic names, but values need to be prefixed with their type and
+    need to be quoted, e.g. `field: "Enum.EnumVal"`. For enums
+    representing flags, you may place multiple inside a string
+    separated by spaces to OR them, e.g.
+    `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
 
 ## Gotchas
 
@@ -182,7 +261,8 @@ Current understood attributes:
 FlatBuffers relies on new field declarations being added at the end, and earlier
 declarations to not be removed, but be marked deprecated when needed. We think
 this is an improvement over the manual number assignment that happens in
-Protocol Buffers.
+Protocol Buffers (and which is still an option using the `id` attribute
+mentioned above).
 
 One place where this is possibly problematic however is source control. If user
 A adds a field, generates new binary data with this new schema, then tries to
@@ -192,5 +272,7 @@ the new schema.
 
 The solution of course is that you should not be generating binary data before
 your schema changes have been committed, ensuring consistency with the rest of
-the world.
+the world. If this is not practical for you, use explicit field ids, which
+should always generate a merge conflict if two people try to allocate the same
+id.
 

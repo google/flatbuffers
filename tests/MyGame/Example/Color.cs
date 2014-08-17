@@ -2,11 +2,14 @@
 
 namespace MyGame.Example
 {
-    public class Color
+
+using FlatBuffers;
+
+public class Color
 {
-  public static byte Red = 0;
-  public static byte Green = 1;
-  public static byte Blue = 2;
+  public static byte Red = 1;
+  public static byte Green = 2;
+  public static byte Blue = 8;
 };
 
 
