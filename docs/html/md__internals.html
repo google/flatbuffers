@@ -107,7 +107,7 @@ inline const char **EnumNamesAny() {
 inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
 </pre><p>Unions share a lot with enums. </p><pre class="fragment">struct Vec3;
 struct Monster;
-</pre><p>Predeclare all datatypes since there may be circular references. </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+</pre><p>Predeclare all data types since circular references between types are allowed (circular references between object are not, though). </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
  private:
   float x_;
   float y_;
