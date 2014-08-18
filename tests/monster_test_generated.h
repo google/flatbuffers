@@ -47,7 +47,7 @@ MANUALLY_ALIGNED_STRUCT(2) Test {
 
  public:
   Test(int16_t a, int8_t b)
-    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) {}
+    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) { (void)__padding0; }
 
   int16_t a() const { return flatbuffers::EndianScalar(a_); }
   int8_t b() const { return flatbuffers::EndianScalar(b_); }
@@ -68,7 +68,7 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 {
 
  public:
   Vec3(float x, float y, float z, double test1, int8_t test2, const Test &test3)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(test2)), __padding1(0), test3_(test3), __padding2(0) {}
+    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(test2)), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
   float y() const { return flatbuffers::EndianScalar(y_); }

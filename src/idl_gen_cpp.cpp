@@ -376,7 +376,16 @@ static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     if (field.padding)
       code += ", __padding" + NumToString(padding_id++) + "(0)";
   }
-  code += " {}\n\n";
+  code += " {";
+  padding_id = 0;
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (field.padding)
+      code += " (void)__padding" + NumToString(padding_id++) + ";";
+  }
+  code += " }\n\n";
 
   // Generate accessor methods of the form:
   // type name() const { return flatbuffers::EndianScalar(name_); }
