@@ -6,7 +6,17 @@
 #include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
+namespace OtherNameSpace {
+struct Unused;
+}  // namespace OtherNameSpace
+}  // namespace MyGame
+
+namespace MyGame {
 namespace Example {
+
+struct Test;
+struct Vec3;
+struct Monster;
 
 enum {
   Color_Red = 1,
@@ -34,10 +44,6 @@ inline const char **EnumNamesAny() {
 inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
 
 bool VerifyAny(const flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type);
-
-struct Test;
-struct Vec3;
-struct Monster;
 
 MANUALLY_ALIGNED_STRUCT(2) Test {
  private:

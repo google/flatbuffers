@@ -341,27 +341,27 @@ static bool SaveClass(const Parser &parser, const Definition &def,
                       bool needs_imports) {
   if (!classcode.length()) return true;
 
-  std::string name_space_java;
-  std::string name_space_dir = path;
-  for (auto it = parser.name_space_.begin();
-        it != parser.name_space_.end(); ++it) {
-    if (name_space_java.length()) {
-      name_space_java += ".";
-      name_space_dir += kPathSeparator;
+  std::string namespace_java;
+  std::string namespace_dir = path;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+    if (namespace_java.length()) {
+      namespace_java += ".";
+      namespace_dir += kPathSeparator;
     }
-    name_space_java += *it;
-    name_space_dir += *it;
-    mkdir(name_space_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    namespace_java += *it;
+    namespace_dir += *it;
+    mkdir(namespace_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
   }
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += "package " + name_space_java + ";\n\n";
+  code += "package " + namespace_java + ";\n\n";
   if (needs_imports) {
     code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
     code += "import flatbuffers.*;\n\n";
   }
   code += classcode;
-  auto filename = name_space_dir + kPathSeparator + def.name + ".java";
+  auto filename = namespace_dir + kPathSeparator + def.name + ".java";
   return SaveFile(filename.c_str(), code, false);
 }
 

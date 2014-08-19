@@ -647,6 +647,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name) {
     structs_.Add(name, struct_def);
     struct_def->name = name;
     struct_def->predecl = true;
+    struct_def->defined_namespace = namespaces_.back();
   }
   return struct_def;
 }
@@ -838,9 +839,10 @@ bool Parser::Parse(const char *source, const char *filepath) {
     while (token_ != kTokenEof) {
       if (token_ == kTokenNameSpace) {
         Next();
-        name_space_.clear();
+        auto ns = new Namespace();
+        namespaces_.push_back(ns);
         for (;;) {
-          name_space_.push_back(attribute_);
+          ns->components.push_back(attribute_);
           Expect(kTokenIdentifier);
           if (!IsNext('.')) break;
         }

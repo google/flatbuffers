@@ -159,6 +159,11 @@ template<typename T> class SymbolTable {
   std::vector<T *> vec;  // Used to iterate in order of insertion
 };
 
+// A name space, as set in the schema.
+struct Namespace {
+  std::vector<std::string> components;
+};
+
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
   Definition() : generated(false) {}
@@ -183,7 +188,8 @@ struct StructDef : public Definition {
       predecl(true),
       sortbysize(true),
       minalign(1),
-      bytesize(0)
+      bytesize(0),
+      defined_namespace(nullptr)
     {}
 
   void PadLastField(size_t minalign) {
@@ -198,6 +204,7 @@ struct StructDef : public Definition {
   bool sortbysize;  // Whether fields come in the declaration or size order.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+  Namespace *defined_namespace;  // Where it was defined.
 };
 
 inline bool IsStruct(const Type &type) {
@@ -245,7 +252,16 @@ class Parser {
     root_struct_def(nullptr),
     source_(nullptr),
     cursor_(nullptr),
-    line_(1) {}
+    line_(1) {
+      // Just in case none are declared:
+      namespaces_.push_back(new Namespace());
+  }
+
+  ~Parser() {
+    for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
+      delete *it;
+    }
+  }
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
@@ -284,7 +300,7 @@ class Parser {
  public:
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
-  std::vector<std::string> name_space_;  // As set in the schema.
+  std::vector<Namespace *> namespaces_;
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file
