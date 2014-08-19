@@ -111,6 +111,10 @@ root_type Monster;
 <p>Unions share a lot of properties with enums, but instead of new names for constants, you use names of tables. You can then declare a union field which can hold a reference to any of those types, and additionally a hidden field with the suffix <code>_type</code> is generated that holds the corresponding enum value, allowing you to know which type to cast to at runtime.</p>
 <h3>Namespaces</h3>
 <p>These will generate the corresponding namespace in C++ for all helper code, and packages in Java. You can use <code>.</code> to specify nested namespaces / packages.</p>
+<h3>Includes</h3>
+<p>You can include other schemas files in your current one, e.g.: </p><pre class="fragment">include "mydefinitions.fbs"
+</pre><p>This makes it easier to refer to types defined elsewhere. <code>include</code> automatically ensures each file is parsed just once, even when referred to more than once.</p>
+<p>When using the <code>flatc</code> compiler to generate code for schema definitions, only definitions in the current file will be generated, not those from the included files (those you still generate separately).</p>
 <h3>Root type</h3>
 <p>This declares what you consider to be the root table (or struct) of the serialized data. This is particular important for parsing JSON data, which doesn't include object type information.</p>
 <h3>File identification and extension</h3>
