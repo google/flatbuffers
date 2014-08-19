@@ -83,7 +83,8 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(NameSpace, 265, "namespace") \
   TD(RootType, 266, "root_type") \
   TD(FileIdentifier, 267, "file_identifier") \
-  TD(FileExtension, 268, "file_extension")
+  TD(FileExtension, 268, "file_extension") \
+  TD(Include, 269, "include")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -196,6 +197,7 @@ void Parser::Next() {
           if (attribute_ == "union")     { token_ = kTokenUnion;     return; }
           if (attribute_ == "namespace") { token_ = kTokenNameSpace; return; }
           if (attribute_ == "root_type") { token_ = kTokenRootType;  return; }
+          if (attribute_ == "include")   { token_ = kTokenInclude;  return; }
           if (attribute_ == "file_identifier") {
             token_ = kTokenFileIdentifier;
             return;
@@ -781,13 +783,58 @@ bool Parser::SetRootType(const char *name) {
   return root_struct_def != nullptr;
 }
 
-bool Parser::Parse(const char *source) {
+void Parser::MarkGenerated() {
+  // Since the Parser object retains definitions across files, we must
+  // ensure we only output code for definitions once, in the file they are first
+  // declared. This function marks all existing definitions as having already
+  // been generated.
+  for (auto it = enums_.vec.begin();
+           it != enums_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
+  for (auto it = structs_.vec.begin();
+           it != structs_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
+}
+
+bool Parser::Parse(const char *source, const char *filepath) {
+  included_files_[filepath] = true;
+  // This is the starting point to reset to if we interrupted our parsing
+  // to deal with an include:
+  restart_parse_after_include:
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();
   builder_.Clear();
   try {
     Next();
+    // Includes must come first:
+    while (IsNext(kTokenInclude)) {
+      auto name = attribute_;
+      Expect(kTokenStringConstant);
+      name = StripFileName(filepath) + name;
+      if (included_files_.find(name) == included_files_.end()) {
+        // We found an include file that we have not parsed yet.
+        // Load it and parse it.
+        std::string contents;
+        if (!LoadFile(name.c_str(), true, &contents))
+          Error("unable to load include file: " + name);
+        Parse(contents.c_str(), name.c_str());
+        // Any errors, we're done.
+        if (error_.length()) return false;
+        // We do not want to output code for any included files:
+        MarkGenerated();
+        // This is the easiest way to continue this file after an include:
+        // instead of saving and restoring all the state, we simply start the
+        // file anew. This will cause it to encounter the same include statement
+        // again, but this time it will skip it, because it was entered into
+        // included_files_.
+        goto restart_parse_after_include;
+      }
+      Expect(';');
+    }
+    // Now parse all other kinds of declarations:
     while (token_ != kTokenEof) {
       if (token_ == kTokenNameSpace) {
         Next();
@@ -832,6 +879,8 @@ bool Parser::Parse(const char *source) {
         file_extension_ = attribute_;
         Expect(kTokenStringConstant);
         Expect(';');
+      } else if(token_ == kTokenInclude) {
+        Error("includes must come before declarations");
       } else {
         ParseDecl();
       }

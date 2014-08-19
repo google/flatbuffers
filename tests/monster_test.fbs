@@ -1,5 +1,7 @@
 // example IDL file
 
+include "include_test1.fbs";
+
 namespace MyGame.Example;
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3 }

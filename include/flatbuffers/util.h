@@ -25,13 +25,6 @@
 
 namespace flatbuffers {
 
-static const char kPosixPathSeparator = '/';
-#ifdef _WIN32
-static const char kPathSeparator = '\\';
-#else
-static const char kPathSeparator = kPosixPathSeparator;
-#endif // _WIN32
-
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits.
@@ -105,6 +98,32 @@ inline bool SaveFile(const char *name, const char *buf, size_t len,
 // data is written with no transcoding.
 inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
   return SaveFile(name, buf.c_str(), buf.size(), binary);
+}
+
+// Functionality for minimalistic portable path handling:
+
+static const char kPosixPathSeparator = '/';
+#ifdef _WIN32
+static const char kPathSeparator = '\\';
+static const char *PathSeparatorSet = "\\:/";
+#else
+static const char kPathSeparator = kPosixPathSeparator;
+static const char *PathSeparatorSet = "/";
+#endif // _WIN32
+
+inline std::string StripExtension(const std::string &filepath) {
+  size_t i = filepath.find_last_of(".");
+  return i != std::string::npos ? filepath.substr(0, i) : filepath;
+}
+
+inline std::string StripPath(const std::string &filepath) {
+  size_t i = filepath.find_last_of(PathSeparatorSet);
+  return i != std::string::npos ? filepath.substr(i + 1) : filepath;
+}
+
+inline std::string StripFileName(const std::string &filepath) {
+  size_t i = filepath.find_last_of(PathSeparatorSet);
+  return i != std::string::npos ? filepath.substr(0, i + 1) : "";
 }
 
 }  // namespace flatbuffers

@@ -141,6 +141,20 @@ These will generate the corresponding namespace in C++ for all helper
 code, and packages in Java. You can use `.` to specify nested namespaces /
 packages.
 
+### Includes
+
+You can include other schemas files in your current one, e.g.:
+
+    include "mydefinitions.fbs"
+    
+This makes it easier to refer to types defined elsewhere. `include`
+automatically ensures each file is parsed just once, even when referred to
+more than once.
+
+When using the `flatc` compiler to generate code for schema definitions,
+only definitions in the current file will be generated, not those from the
+included files (those you still generate separately).
+
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the

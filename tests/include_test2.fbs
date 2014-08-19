@@ -1,0 +1,4 @@
+include "include_test2.fbs";    // should be skipped
+
+enum FromInclude:long { IncludeVal }
+

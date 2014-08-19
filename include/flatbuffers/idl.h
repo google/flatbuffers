@@ -249,10 +249,15 @@ class Parser {
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
-  bool Parse(const char *_source);
+  // filepath indicates the file that _source was loaded from, it is
+  // used to resolve any include statements.
+  bool Parse(const char *_source, const char *filepath);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
+
+  // Mark all definitions as already having code generated.
+  void MarkGenerated();
 
  private:
   void Next();
@@ -295,6 +300,7 @@ class Parser {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
+  std::map<std::string, bool> included_files_;
 };
 
 // Utility functions for generators:

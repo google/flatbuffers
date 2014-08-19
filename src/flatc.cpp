@@ -100,22 +100,6 @@ static void Error(const char *err, const char *obj, bool usage) {
   exit(1);
 }
 
-std::string StripExtension(const std::string &filename) {
-  size_t i = filename.find_last_of(".");
-  return i != std::string::npos ? filename.substr(0, i) : filename;
-}
-
-std::string StripPath(const std::string &filename) {
-  size_t i = filename.find_last_of(
-    #ifdef _WIN32
-      "\\:"
-    #else
-      "/"
-    #endif
-    );
-  return i != std::string::npos ? filename.substr(i + 1) : filename;
-}
-
 int main(int argc, const char *argv[]) {
   program_name = argv[0];
   flatbuffers::Parser parser;
@@ -187,11 +171,12 @@ int main(int argc, const char *argv[]) {
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
       } else {
-        if (!parser.Parse(contents.c_str()))
+        if (!parser.Parse(contents.c_str(), file_it->c_str()))
           Error(parser.error_.c_str());
       }
 
-      std::string filebase = StripPath(StripExtension(*file_it));
+      std::string filebase = flatbuffers::StripPath(
+                               flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
@@ -204,17 +189,9 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      // Since the Parser object retains definitions across files, we must
-      // ensure we only output code for these once, in the file they are first
-      // declared:
-      for (auto it = parser.enums_.vec.begin();
-               it != parser.enums_.vec.end(); ++it) {
-        (*it)->generated = true;
-      }
-      for (auto it = parser.structs_.vec.begin();
-               it != parser.structs_.vec.end(); ++it) {
-        (*it)->generated = true;
-      }
+      // We do not want to generate code for the definitions in this file
+      // in any files coming up next.
+      parser.MarkGenerated();
   }
 
   return 0;
