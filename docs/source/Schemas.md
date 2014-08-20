@@ -268,6 +268,26 @@ JSON:
     separated by spaces to OR them, e.g.
     `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
 
+When parsing JSON, it recognizes the following escape codes in strings:
+
+-   `\n` - linefeed.
+-   `\t` - tab.
+-   `\r` - carriage return.
+-   `\b` - backspace.
+-   `\f` - form feed.
+-   `\"` - double quote.
+-   `\\` - backslash.
+-   `\/` - forward slash.
+-   `\uXXXX` - 16-bit unicode code point, converted to the equivalent UTF-8
+    representation.
+-   `\xXX` - 8-bit binary hexadecimal number XX. This is the only one that is
+     not in the JSON spec (see http://json.org/), but is needed to be able to
+     encode arbitrary binary in strings to text and back without losing
+     information (e.g. the byte 0xFF can't be represented in standard JSON).
+
+It also generates these escape codes back again when generating JSON from a
+binary representation.
+
 ## Gotchas
 
 ### Schemas and version control

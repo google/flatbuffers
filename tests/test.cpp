@@ -516,7 +516,19 @@ void EnumStringsTest() {
                         "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }", ""), true);
 }
 
-
+void UnicodeTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }", ""), true);
+  std::string jsongen;
+  flatbuffers::GeneratorOptions opts;
+  opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                     "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+}
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
@@ -534,6 +546,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ErrorTest();
   ScientificTest();
   EnumStringsTest();
+  UnicodeTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

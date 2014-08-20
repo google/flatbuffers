@@ -144,6 +144,20 @@ root_type Monster;
 <li>It accepts field names with and without quotes, like many JSON parsers already do. It outputs them without quotes as well, though can be made to output them using the <code>strict_json</code> flag.</li>
 <li>If a field has an enum type, the parser will recognize symbolic enum values (with or without quotes) instead of numbers, e.g. <code>field: EnumVal</code>. If a field is of integral type, you can still use symbolic names, but values need to be prefixed with their type and need to be quoted, e.g. <code>field: "Enum.EnumVal"</code>. For enums representing flags, you may place multiple inside a string separated by spaces to OR them, e.g. <code>field: "EnumVal1 EnumVal2"</code> or <code>field: "Enum.EnumVal1 Enum.EnumVal2"</code>.</li>
 </ul>
+<p>When parsing JSON, it recognizes the following escape codes in strings:</p>
+<ul>
+<li><code>\n</code> - linefeed.</li>
+<li><code>\t</code> - tab.</li>
+<li><code>\r</code> - carriage return.</li>
+<li><code>\b</code> - backspace.</li>
+<li><code>\f</code> - form feed.</li>
+<li><code>\"</code> - double quote.</li>
+<li><code>\\</code> - backslash.</li>
+<li><code>\/</code> - forward slash.</li>
+<li><code>\uXXXX</code> - 16-bit unicode code point, converted to the equivalent UTF-8 representation.</li>
+<li><code>\xXX</code> - 8-bit binary hexadecimal number XX. This is the only one that is not in the JSON spec (see <a href="http://json.org/">http://json.org/</a>), but is needed to be able to encode arbitrary binary in strings to text and back without losing information (e.g. the byte 0xFF can't be represented in standard JSON).</li>
+</ul>
+<p>It also generates these escape codes back again when generating JSON from a binary representation.</p>
 <h2>Gotchas</h2>
 <h3>Schemas and version control</h3>
 <p>FlatBuffers relies on new field declarations being added at the end, and earlier declarations to not be removed, but be marked deprecated when needed. We think this is an improvement over the manual number assignment that happens in Protocol Buffers (and which is still an option using the <code>id</code> attribute mentioned above).</p>

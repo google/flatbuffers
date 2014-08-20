@@ -276,6 +276,7 @@ class Parser {
   void MarkGenerated();
 
  private:
+  int64_t ParseHexNum(int nibbles);
   void Next();
   bool IsNext(int t);
   void Expect(int t);

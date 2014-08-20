@@ -115,6 +115,17 @@ static std::string TokenToString(int t) {
   }
 }
 
+// Parses exactly nibbles worth of hex digits into a number, or error.
+int64_t Parser::ParseHexNum(int nibbles) {
+  for (int i = 0; i < nibbles; i++)
+    if (!isxdigit(cursor_[i]))
+      Error("escape code must be followed by " + NumToString(nibbles) +
+            " hex digits");
+  auto val = StringToInt(cursor_, 16);
+  cursor_ += nibbles;
+  return val;
+}
+
 void Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
@@ -142,8 +153,21 @@ void Parser::Next() {
               case 'n':  attribute_ += '\n'; cursor_++; break;
               case 't':  attribute_ += '\t'; cursor_++; break;
               case 'r':  attribute_ += '\r'; cursor_++; break;
+              case 'b':  attribute_ += '\b'; cursor_++; break;
+              case 'f':  attribute_ += '\f'; cursor_++; break;
               case '\"': attribute_ += '\"'; cursor_++; break;
               case '\\': attribute_ += '\\'; cursor_++; break;
+              case '/':  attribute_ += '/';  cursor_++; break;
+              case 'x': {  // Not in the JSON standard
+                cursor_++;
+                attribute_ += static_cast<char>(ParseHexNum(2));
+                break;
+              }
+              case 'u': {
+                cursor_++;
+                ToUTF8(static_cast<int>(ParseHexNum(4)), &attribute_);
+                break;
+              }
               default: Error("unknown escape code in string constant"); break;
             }
           } else { // printable chars + UTF-8 bytes
