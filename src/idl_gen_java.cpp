@@ -20,13 +20,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#define mkdir(n, m) _mkdir(n)
-#else
-#include <sys/stat.h>
-#endif
-
 namespace flatbuffers {
 namespace java {
 
@@ -351,8 +344,8 @@ static bool SaveClass(const Parser &parser, const Definition &def,
     }
     namespace_java += *it;
     namespace_dir += *it;
-    mkdir(namespace_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
   }
+  EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
   code += "package " + namespace_java + ";\n\n";

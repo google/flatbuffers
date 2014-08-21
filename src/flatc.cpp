@@ -180,6 +180,7 @@ int main(int argc, const char *argv[]) {
 
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
+          flatbuffers::EnsureDirExists(output_path);
           if (!generators[i].generate(parser, output_path, filebase, opts)) {
             Error((std::string("Unable to generate ") +
                    generators[i].name +

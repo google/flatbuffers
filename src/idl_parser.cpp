@@ -838,7 +838,8 @@ bool Parser::Parse(const char *source, const char *filepath) {
     while (IsNext(kTokenInclude)) {
       auto name = attribute_;
       Expect(kTokenStringConstant);
-      name = StripFileName(filepath) + name;
+      auto path = StripFileName(filepath);
+      if (path.length()) name = path + kPathSeparator + name;
       if (included_files_.find(name) == included_files_.end()) {
         // We found an include file that we have not parsed yet.
         // Load it and parse it.

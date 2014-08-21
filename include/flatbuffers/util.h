@@ -22,6 +22,11 @@
 #include <string>
 #include <sstream>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 
 namespace flatbuffers {
 
@@ -103,25 +108,40 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
 static const char kPosixPathSeparator = '/';
 #ifdef _WIN32
 static const char kPathSeparator = '\\';
-static const char *PathSeparatorSet = "\\:/";
+static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
 #else
 static const char kPathSeparator = kPosixPathSeparator;
 static const char *PathSeparatorSet = "/";
 #endif // _WIN32
 
+// Returns the path with the extension, if any, removed.
 inline std::string StripExtension(const std::string &filepath) {
   size_t i = filepath.find_last_of(".");
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
+// Return the last component of the path, after the last separator.
 inline std::string StripPath(const std::string &filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
   return i != std::string::npos ? filepath.substr(i + 1) : filepath;
 }
 
+// Strip the last component of the path + separator.
 inline std::string StripFileName(const std::string &filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
-  return i != std::string::npos ? filepath.substr(0, i + 1) : "";
+  return i != std::string::npos ? filepath.substr(0, i) : "";
+}
+
+// This function ensure a directory exists, by recursively
+// creating dirs for any parts of the path that don't exist yet.
+inline void EnsureDirExists(const std::string &filepath) {
+  auto parent = StripFileName(filepath);
+  if (parent.length()) EnsureDirExists(parent);
+  #ifdef _WIN32
+    _mkdir(filepath.c_str())
+  #else
+    mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
+  #endif
 }
 
 // To and from UTF-8 unicode conversion functions
