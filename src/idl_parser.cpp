@@ -725,7 +725,7 @@ void Parser::ParseEnum(bool is_union) {
       if (prevsize && enum_def.vals.vec[prevsize - 1]->value >= ev.value)
         Error("enum values must be specified in ascending order");
     }
-  } while (IsNext(','));
+  } while (IsNext(',') && token_ != '}');
   Expect('}');
   if (enum_def.attributes.Lookup("bit_flags")) {
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();

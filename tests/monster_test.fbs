@@ -4,7 +4,7 @@ include "include_test1.fbs";
 
 namespace MyGame.Example;
 
-enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3 }
+enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster }  // TODO: add more elements
 
