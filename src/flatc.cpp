@@ -90,6 +90,7 @@ static void Error(const char *err, const char *obj, bool usage) {
       printf("  -%s      %s.\n", generators[i].extension, generators[i].help);
     printf("  -o PATH Prefix PATH to all generated files.\n"
            "  -S      Strict JSON: add quotes to field names.\n"
+           "  -P      Don\'t prefix enum values with the enum name in C++.\n"
            "FILEs may depend on declarations in earlier files.\n"
            "FILEs after the -- must be binary flatbuffer format files.\n"
            "Output files are named using the base file name of the input,"
@@ -128,6 +129,9 @@ int main(int argc, const char *argv[]) {
           break;
         case 'S':
           opts.strict_json = true;
+          break;
+        case 'P':
+          opts.prefixed_enums = false;
           break;
         case '-':  // Separator between text and binary input files.
           binary_files_from = filenames.size();

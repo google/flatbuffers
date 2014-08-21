@@ -342,9 +342,10 @@ struct GeneratorOptions {
   bool strict_json;
   int indent_step;
   bool output_enum_identifiers;
+  bool prefixed_enums;
 
   GeneratorOptions() : strict_json(false), indent_step(2),
-                       output_enum_identifiers(true) {}
+                       output_enum_identifiers(true), prefixed_enums(true) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
@@ -361,7 +362,8 @@ extern void GenerateText(const Parser &parser,
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
 extern std::string GenerateCPP(const Parser &parser,
-                               const std::string &include_guard_ident);
+                               const std::string &include_guard_ident,
+                               const GeneratorOptions &opts);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,

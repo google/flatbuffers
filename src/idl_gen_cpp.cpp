@@ -106,9 +106,16 @@ static void GenComment(const std::string &dc,
   }
 }
 
+static std::string GenEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
+                              const GeneratorOptions &opts) {
+  return opts.prefixed_enums ? enum_def.name + "_" + enum_val.name
+                             : enum_val.name;
+}
+
 // Generate an enum declaration and an enum string lookup table.
-  static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-                                         std::string *code_ptr_post) {
+static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+                    std::string *code_ptr_post,
+                    const GeneratorOptions &opts) {
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
   std::string &code_post = *code_ptr_post;
@@ -119,7 +126,7 @@ static void GenComment(const std::string &dc,
        ++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, "  ");
-    code += "  " + enum_def.name + "_" + ev.name + " = ";
+    code += "  " + GenEnumVal(enum_def, ev, opts) + " = ";
     code += NumToString(ev.value);
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
   }
@@ -148,7 +155,7 @@ static void GenComment(const std::string &dc,
     code += "inline const char *EnumName" + enum_def.name;
     code += "(int e) { return EnumNames" + enum_def.name + "()[e";
     if (enum_def.vals.vec.front()->value)
-      code += " - " + enum_def.name + "_" + enum_def.vals.vec.front()->name;
+      code += " - " + GenEnumVal(enum_def, *enum_def.vals.vec.front(), opts);
     code += "]; }\n\n";
   }
 
@@ -167,7 +174,7 @@ static void GenComment(const std::string &dc,
          it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
-      code_post += "    case " + enum_def.name + "_" + ev.name;
+      code_post += "    case " + GenEnumVal(enum_def, ev, opts);
       if (!ev.value) {
         code_post += ": return true;\n";  // "NONE" enum value.
       } else {
@@ -440,14 +447,16 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-std::string GenerateCPP(const Parser &parser, const std::string &include_guard_ident) {
+std::string GenerateCPP(const Parser &parser,
+                        const std::string &include_guard_ident,
+                        const GeneratorOptions &opts) {
   using namespace cpp;
 
   // Generate code for all the enum declarations.
   std::string enum_code, enum_code_post;
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
-    GenEnum(**it, &enum_code, &enum_code_post);
+    GenEnum(**it, &enum_code, &enum_code_post, opts);
   }
 
   // Generate forward declarations for all structs/tables, since they may
@@ -577,8 +586,8 @@ std::string GenerateCPP(const Parser &parser, const std::string &include_guard_i
 bool GenerateCPP(const Parser &parser,
                  const std::string &path,
                  const std::string &file_name,
-                 const GeneratorOptions & /*opts*/) {
-    auto code = GenerateCPP(parser, file_name);
+                 const GeneratorOptions &opts) {
+    auto code = GenerateCPP(parser, file_name, opts);
     return !code.length() ||
            SaveFile((path + file_name + "_generated.h").c_str(), code, false);
 }
