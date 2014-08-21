@@ -800,6 +800,31 @@ void Parser::ParseDecl() {
       }
     }
   }
+  // Check that no identifiers clash with auto generated fields.
+  // This is not an ideal situation, but should occur very infrequently,
+  // and allows us to keep using very readable names for type & length fields
+  // without inducing compile errors.
+  auto CheckClash = [&fields, &struct_def](const char *suffix,
+                                           BaseType basetype) {
+    auto len = strlen(suffix);
+    for (auto it = fields.begin(); it != fields.end(); ++it) {
+      auto &name = (*it)->name;
+      if (name.length() > len &&
+          name.compare(name.length() - len, len, suffix) == 0 &&
+          (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
+        auto field = struct_def.fields.Lookup(
+                       name.substr(0, name.length() - len));
+        if (field && field->value.type.base_type == basetype)
+          Error("Field " + name +
+                " would clash with generated functions for field " +
+                field->name);
+      }
+    }
+  };
+  CheckClash("_type", BASE_TYPE_UNION);
+  CheckClash("Type", BASE_TYPE_UNION);
+  CheckClash("_length", BASE_TYPE_VECTOR);
+  CheckClash("Length", BASE_TYPE_VECTOR);
   Expect('}');
 }
 

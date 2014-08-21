@@ -488,6 +488,7 @@ void ErrorTest() {
   TestError("struct X { Y:int; } root_type X;", "a table");
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
+  TestError("table X { Y:[int]; YLength:int; }", "clash");
 }
 
 // Additional parser testing not covered elsewhere.
