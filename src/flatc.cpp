@@ -172,7 +172,7 @@ int main(int argc, const char *argv[]) {
           contents.length());
       } else {
         if (!parser.Parse(contents.c_str(), file_it->c_str()))
-          Error(parser.error_.c_str());
+          Error((*file_it + ": " + parser.error_).c_str());
       }
 
       std::string filebase = flatbuffers::StripPath(
