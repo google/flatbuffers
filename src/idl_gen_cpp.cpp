@@ -166,7 +166,7 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     // has been corrupted, since the verifiers will simply fail when called
     // on the wrong type.
     auto signature = "bool Verify" + enum_def.name +
-                     "(const flatbuffers::Verifier &verifier, " +
+                     "(flatbuffers::Verifier &verifier, " +
                      "const void *union_obj, uint8_t type)";
     code += signature + ";\n\n";
     code_post += signature + " {\n  switch (type) {\n";
@@ -227,8 +227,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   }
   // Generate a verifier function that can check a buffer from an untrusted
   // source will never cause reads outside the buffer.
-  code += "  bool Verify(const flatbuffers::Verifier &verifier) const {\n";
-  code += "    return VerifyTable(verifier)";
+  code += "  bool Verify(flatbuffers::Verifier &verifier) const {\n";
+  code += "    return VerifyTableStart(verifier)";
   std::string prefix = " &&\n           ";
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
@@ -276,6 +276,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       }
     }
   }
+  code += prefix + "verifier.EndTable()";
   code += ";\n  }\n";
   code += "};\n\n";
 
@@ -551,7 +552,7 @@ std::string GenerateCPP(const Parser &parser,
       // The root verifier:
       code += "inline bool Verify";
       code += parser.root_struct_def->name;
-      code += "Buffer(const flatbuffers::Verifier &verifier) { "
+      code += "Buffer(flatbuffers::Verifier &verifier) { "
               "return verifier.VerifyBuffer<";
       code += parser.root_struct_def->name + ">(); }\n\n";
 
