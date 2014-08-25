@@ -112,7 +112,8 @@ static void EscapeString(const String &s, std::string *_text) {
             // Parses as Unicode within JSON's \uXXXX range, so use that.
             text += "\\u";
             text += IntToStringHex(ucc, 4);
-            i = utf8 - s.c_str() - 1;  // Skip past characters recognized.
+            // Skip past characters recognized.
+            i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
           } else {
             // It's either unprintable ASCII, arbitrary binary, or Unicode data
             // that doesn't fit \uXXXX, so use \xXX escape code instead.

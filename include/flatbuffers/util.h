@@ -138,7 +138,7 @@ inline void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
   #ifdef _WIN32
-    _mkdir(filepath.c_str())
+    _mkdir(filepath.c_str());
   #else
     mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
   #endif
@@ -154,7 +154,7 @@ inline int ToUTF8(uint32_t ucc, std::string *out) {
   for (int i = 0; i < 6; i++) {
     // Max bits this encoding can represent.
     uint32_t max_bits = 6 + i * 5 + static_cast<int>(!i);
-    if (ucc < (1 << max_bits)) {  // does it fit?
+    if (ucc < (1u << max_bits)) {  // does it fit?
       // Remaining bits not encoded in the first byte, store 6 bits each
       uint32_t remain_bits = i * 6;
       // Store first byte:
