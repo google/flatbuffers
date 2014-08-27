@@ -140,7 +140,11 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
+#ifdef FLATBUFFERS_USE_CXX03_STDLIB
+    vec.push_back(e);
+#else
     vec.emplace_back(e);
+#endif
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;
@@ -386,4 +390,3 @@ extern bool GenerateJava(const Parser &parser,
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
-

@@ -32,7 +32,7 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef FLATBUFFERS_USE_BOOST
+#ifdef FLATBUFFERS_USE_CXX03_STDLIB
 #  include <boost/type_traits/conditional.hpp>
 #  include <boost/move/move.hpp>
 namespace flatbufferstd = boost;

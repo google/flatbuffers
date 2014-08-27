@@ -20,7 +20,7 @@
 
 #include "monster_test_generated.h"
 
-#include <random>
+#include <cmath>
 
 using namespace MyGame::Example;
 
@@ -503,7 +503,7 @@ void ScientificTest() {
   auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
   // root will point to the table, which is a 32bit vtable offset followed
   // by a float:
-  TEST_EQ(fabs(root[1] - 3.14159) < 0.001, true);
+  TEST_EQ(::fabs(root[1] - 3.14159) < 0.001, true);
 }
 
 void EnumStringsTest() {
@@ -557,4 +557,3 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     return 1;
   }
 }
-

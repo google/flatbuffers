@@ -4,10 +4,10 @@ project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
-option(FLATBUFFERS_USE_BOOST
+option(FLATBUFFERS_USE_CXX03_STDLIB
  "Use boost classes to enable C++03 stdlib compatibility" OFF)
 
-if(FLATBUFFERS_USE_BOOST)
+if(FLATBUFFERS_USE_CXX03_STDLIB)
   find_package(Boost 1.41.0 REQUIRED)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif()
@@ -65,7 +65,10 @@ set(CMAKE_BUILD_TYPE Debug)
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+    "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Werror -Wextra")
+  if(NOT FLATBUFFERS_USE_CXX03_STDLIB)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
 elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
