@@ -4,8 +4,20 @@ project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
+option(FLATBUFFERS_USE_BOOST
+ "Use boost classes to enable C++03 stdlib compatibility" OFF)
+
+if(FLATBUFFERS_USE_BOOST)
+  find_package(Boost 1.41.0 REQUIRED)
+  include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+endif()
+
+configure_file(include/flatbuffers/options.in.h
+  "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h")
+include_directories("${PROJECT_BINARY_DIR}/include")
 
 set(FlatBuffers_Compiler_SRCS
+  "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h"
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
@@ -69,6 +81,8 @@ add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
 add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
 
 install(DIRECTORY include/flatbuffers DESTINATION include)
+install(FILES "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h"
+  DESTINATION include/flatbuffers)
 install(TARGETS flatc DESTINATION bin)
 
 add_test(NAME flattest
