@@ -52,6 +52,8 @@ class JavaTest {
         // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
+        int test1 = fbb.createString("test1");
+        int test2 = fbb.createString("test2");
 
         Monster.startInventoryVector(fbb, 5);
         for (byte i = 4; i >=0; i--) fbb.addByte(i);
@@ -66,6 +68,11 @@ class JavaTest {
         Test.createTest(fbb, (short)30, (byte)40);
         int test4 = fbb.endVector();
 
+        Monster.startTestarrayofstringVector(fbb, 2);
+        fbb.addOffset(test2);
+        fbb.addOffset(test1);
+        int testArrayOfString = fbb.endVector();
+
         Monster.startMonster(fbb);
         Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
                                                  (byte)4, (short)5, (byte)6));
@@ -75,6 +82,7 @@ class JavaTest {
         Monster.addTestType(fbb, (byte)1);
         Monster.addTest(fbb, mon2);
         Monster.addTest4(fbb, test4);
+        Monster.addTestarrayofstring(fbb, testArrayOfString);
         int mon = Monster.endMonster(fbb);
 
         fbb.finish(mon);
@@ -135,6 +143,10 @@ class JavaTest {
         Test test_1 = monster.test4(1);
         TestEq(monster.test4Length(), 2);
         TestEq(test_0.a() + test_0.b() + test_1.a() + test_1.b(), 100);
+
+        TestEq(monster.testarrayofstringLength(), 2);
+        TestEq(monster.testarrayofstring(0),"test1");
+        TestEq(monster.testarrayofstring(1),"test2");
     }
 
     static <T> void TestEq(T a, T b) {

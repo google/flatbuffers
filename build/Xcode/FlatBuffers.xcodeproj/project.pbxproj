@@ -11,6 +11,7 @@
 		3343DD4ED370434BBA148FAB /* idl_gen_java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3803689175184C7E8CB3EED0 /* idl_gen_java.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		61FF3C34FBEC4819A1C30F92 /* sample_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECCEBFFA6977404F858F9739 /* sample_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */; };
 		A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD29781D8E490284B06504 /* flatc.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AD71FEBEE4E846529002C1F0 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
@@ -32,6 +33,7 @@
 		423CA92401AE442B91546E63 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = /Users/wvo/flatbuffers_snapshot9/CMakeLists.txt; sourceTree = "<absolute>"; };
 		5EE44BFFAF8E43F485859145 /* sample_binary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sample_binary.cpp; path = samples/sample_binary.cpp; sourceTree = SOURCE_ROOT; };
 		6AD24EEB3D024825A37741FF /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = test.cpp; path = tests/test.cpp; sourceTree = SOURCE_ROOT; };
+		8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_go.cpp; path = src/idl_gen_go.cpp; sourceTree = "<group>"; };
 		A13F25CDAD23435DA293690D /* flattests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flattests; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_test_generated.h; path = tests/monster_test_generated.h; sourceTree = SOURCE_ROOT; };
 		AD3682C6E1DD4EABB822C0CC /* monster_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_generated.h; path = samples/monster_generated.h; sourceTree = SOURCE_ROOT; };
@@ -53,6 +55,7 @@
 		28237E300FE042DEADA302D3 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */,
 				0DFD29781D8E490284B06504 /* flatc.cpp */,
 				CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */,
 				3803689175184C7E8CB3EED0 /* idl_gen_java.cpp */,
@@ -314,6 +317,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */,
 				AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */,
 				BE03D7B0C9584DD58B50ED34 /* idl_gen_cpp.cpp in Sources */,
 				3343DD4ED370434BBA148FAB /* idl_gen_java.cpp in Sources */,

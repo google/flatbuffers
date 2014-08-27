@@ -4,10 +4,10 @@ project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
-option(FLATBUFFERS_USE_BOOST
+option(FLATBUFFERS_USE_CXX03_STDLIB
  "Use boost classes to enable C++03 stdlib compatibility" OFF)
 
-if(FLATBUFFERS_USE_BOOST)
+if(FLATBUFFERS_USE_CXX03_STDLIB)
   find_package(Boost 1.41.0 REQUIRED)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif()
@@ -24,6 +24,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_parser.cpp
   src/idl_gen_cpp.cpp
   src/idl_gen_java.cpp
+  src/idl_gen_go.cpp
   src/idl_gen_text.cpp
   src/flatc.cpp
 )
@@ -63,14 +64,20 @@ set(CMAKE_BUILD_TYPE Debug)
 # source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
 
 if(APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall")
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Werror -Wextra")
+  if(NOT FLATBUFFERS_USE_CXX03_STDLIB)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
 elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
 include_directories(include)

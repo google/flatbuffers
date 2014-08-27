@@ -19,7 +19,7 @@
     3,
     4
   ],
-  test_type: 1,
+  test_type: Monster,
   test: {
     hp: 20
   },
@@ -32,5 +32,11 @@
       a: 30,
       b: 40
     }
-  ]
+  ],
+  testarrayofstring: [
+    "test1",
+    "test2"
+  ],
+  testempty: {
+  }
 }

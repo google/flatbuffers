@@ -28,18 +28,38 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
 
 // If indentation is less than 0, that indicates we don't want any newlines
 // either.
-const char *NewLine(int indent_step) {
-  return indent_step >= 0 ? "\n" : "";
+const char *NewLine(const GeneratorOptions &opts) {
+  return opts.indent_step >= 0 ? "\n" : "";
+}
+
+int Indent(const GeneratorOptions &opts) {
+  return std::max(opts.indent_step, 0);
+}
+
+// Output an identifier with or without quotes depending on strictness.
+void OutputIdentifier(const std::string &name, const GeneratorOptions &opts,
+                      std::string *_text) {
+  std::string &text = *_text;
+  if (opts.strict_json) text += "\"";
+  text += name;
+  if (opts.strict_json) text += "\"";
 }
 
 // Print (and its template specialization below for pointers) generate text
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
-template<typename T> void Print(T val, Type /*type*/, int /*indent*/,
+template<typename T> void Print(T val, Type type, int /*indent*/,
                                 StructDef * /*union_sd*/,
-                                const GeneratorOptions & /*opts*/,
+                                const GeneratorOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
+  if (type.enum_def && opts.output_enum_identifiers) {
+    auto enum_val = type.enum_def->ReverseLookup(static_cast<int>(val));
+    if (enum_val) {
+      OutputIdentifier(enum_val->name, opts, _text);
+      return;
+    }
+  }
   text += NumToString(val);
 }
 
@@ -49,21 +69,21 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
                                       std::string *_text) {
   std::string &text = *_text;
   text += "[";
-  text += NewLine(opts.indent_step);
+  text += NewLine(opts);
   for (uoffset_t i = 0; i < v.Length(); i++) {
     if (i) {
       text += ",";
-      text += NewLine(opts.indent_step);
+      text += NewLine(opts);
     }
-    text.append(indent + opts.indent_step, ' ');
+    text.append(indent + Indent(opts), ' ');
     if (IsStruct(type))
       Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type,
-            indent + opts.indent_step, nullptr, opts, _text);
+            indent + Indent(opts), nullptr, opts, _text);
     else
-      Print(v.Get(i), type, indent + opts.indent_step, nullptr,
+      Print(v.Get(i), type, indent + Indent(opts), nullptr,
             opts, _text);
   }
-  text += NewLine(opts.indent_step);
+  text += NewLine(opts);
   text.append(indent, ' ');
   text += "]";
 }
@@ -77,14 +97,29 @@ static void EscapeString(const String &s, std::string *_text) {
       case '\n': text += "\\n"; break;
       case '\t': text += "\\t"; break;
       case '\r': text += "\\r"; break;
+      case '\b': text += "\\b"; break;
+      case '\f': text += "\\f"; break;
       case '\"': text += "\\\""; break;
       case '\\': text += "\\\\"; break;
       default:
         if (c >= ' ' && c <= '~') {
           text += c;
         } else {
-          auto u = static_cast<unsigned char>(c);
-          text += "\\x" + IntToStringHex(u);
+          // Not printable ASCII data. Let's see if it's valid UTF-8 first:
+          const char *utf8 = s.c_str() + i;
+          int ucc = FromUTF8(&utf8);
+          if (ucc >= 0x80 && ucc <= 0xFFFF) {
+            // Parses as Unicode within JSON's \uXXXX range, so use that.
+            text += "\\u";
+            text += IntToStringHex(ucc, 4);
+            // Skip past characters recognized.
+            i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
+          } else {
+            // It's either unprintable ASCII, arbitrary binary, or Unicode data
+            // that doesn't fit \uXXXX, so use \xXX escape code instead.
+            text += "\\x";
+            text += IntToStringHex(static_cast<uint8_t>(c), 2);
+          }
         }
         break;
     }
@@ -124,7 +159,7 @@ template<> void Print<const void *>(const void *val,
       type = type.VectorType();
       // Call PrintVector above specifically for each element type:
       switch (type.base_type) {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
           case BASE_TYPE_ ## ENUM: \
             PrintVector<CTYPE>( \
               *reinterpret_cast<const Vector<CTYPE> *>(val), \
@@ -174,7 +209,6 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
                       std::string *_text) {
   std::string &text = *_text;
   text += "{";
-  text += NewLine(opts.indent_step);
   int fieldout = 0;
   StructDef *union_sd = nullptr;
   for (auto it = struct_def.fields.vec.begin();
@@ -185,37 +219,37 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       // The field is present.
       if (fieldout++) {
         text += ",";
-        text += NewLine(opts.indent_step);
       }
-      text.append(indent + opts.indent_step, ' ');
-      if (opts.strict_json) text += "\"";
-      text += fd.name;
-      if (opts.strict_json) text += "\"";
+      text += NewLine(opts);
+      text.append(indent + Indent(opts), ' ');
+      OutputIdentifier(fd.name, opts, _text);
       text += ": ";
       switch (fd.value.type.base_type) {
-         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
+         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
            case BASE_TYPE_ ## ENUM: \
               GenField<CTYPE>(fd, table, struct_def.fixed, \
-                              opts, indent + opts.indent_step, _text); \
+                              opts, indent + Indent(opts), _text); \
               break;
           FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
           case BASE_TYPE_ ## ENUM:
           FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
-            GenFieldOffset(fd, table, struct_def.fixed, indent + opts.indent_step,
+            GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
                            union_sd, opts, _text);
             break;
       }
       if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
-        union_sd = fd.value.type.enum_def->ReverseLookup(
+        auto enum_val = fd.value.type.enum_def->ReverseLookup(
                                  table->GetField<uint8_t>(fd.value.offset, 0));
+        assert(enum_val);
+        union_sd = enum_val->struct_def;
       }
     }
   }
-  text += NewLine(opts.indent_step);
+  text += NewLine(opts);
   text.append(indent, ' ');
   text += "}";
 }
@@ -231,7 +265,7 @@ void GenerateText(const Parser &parser, const void *flatbuffer,
             0,
             opts,
             _text);
-  text += NewLine(opts.indent_step);
+  text += NewLine(opts);
 }
 
 }  // namespace flatbuffers

@@ -141,10 +141,62 @@ These will generate the corresponding namespace in C++ for all helper
 code, and packages in Java. You can use `.` to specify nested namespaces /
 packages.
 
+### Includes
+
+You can include other schemas files in your current one, e.g.:
+
+    include "mydefinitions.fbs"
+    
+This makes it easier to refer to types defined elsewhere. `include`
+automatically ensures each file is parsed just once, even when referred to
+more than once.
+
+When using the `flatc` compiler to generate code for schema definitions,
+only definitions in the current file will be generated, not those from the
+included files (those you still generate separately).
+
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
-serialized data.
+serialized data. This is particular important for parsing JSON data,
+which doesn't include object type information.
+
+### File identification and extension
+
+Typically, a FlatBuffer binary buffer is not self-describing, i.e. it
+needs you to know its schema to parse it correctly. But if you
+want to use a FlatBuffer as a file format, it would be convenient
+to be able to have a "magic number" in there, like most file formats
+have, to be able to do a sanity check to see if you're reading the
+kind of file you're expecting.
+
+Now, you can always prefix a FlatBuffer with your own file header,
+but FlatBuffers has a built-in way to add an identifier to a
+FlatBuffer that takes up minimal space, and keeps the buffer
+compatible with buffers that don't have such an identifier.
+
+You can specify in a schema, similar to `root_type`, that you intend
+for this type of FlatBuffer to be used as a file format:
+
+    file_identifier "MYFI";
+
+Identifiers must always be exactly 4 characters long. These 4 characters
+will end up as bytes at offsets 4-7 (inclusive) in the buffer.
+
+For any schema that has such an identifier, `flatc` will automatically
+add the identifier to any binaries it generates (with `-b`),
+and generated calls like `FinishMonsterBuffer` also add the identifier.
+If you have specified an identifier and wish to generate a buffer
+without one, you can always still do so by calling
+`FlatBufferBuilder::Finish` explicitly.
+
+After loading a buffer, you can use a call like
+`MonsterBufferHasIdentifier` to check if the identifier is present.
+
+Additionally, by default `flatc` will output binary files as `.bin`.
+This declaration in the schema will change that to whatever you want:
+
+    file_extension "ext";
 
 ### Comments & documentation
 
@@ -188,6 +240,53 @@ Current understood attributes:
     these structs to be aligned to that amount inside a buffer, IF that
     buffer is allocated with that alignment (which is not necessarily
     the case for buffers accessed directly inside a `FlatBufferBuilder`).
+-   `bit_flags` (on an enum): the values of this field indicate bits,
+    meaning that any value N specified in the schema will end up
+    representing 1<<N, or if you don't specify values at all, you'll get
+    the sequence 1, 2, 4, 8, ...
+
+## JSON Parsing
+
+The same parser that parses the schema declarations above is also able
+to parse JSON objects that conform to this schema. So, unlike other JSON
+parsers, this parser is strongly typed, and parses directly into a FlatBuffer
+(see the compiler documentation on how to do this from the command line, or
+the C++ documentation on how to do this at runtime).
+
+Besides needing a schema, there are a few other changes to how it parses
+JSON:
+
+-   It accepts field names with and without quotes, like many JSON parsers
+    already do. It outputs them without quotes as well, though can be made
+    to output them using the `strict_json` flag.
+-   If a field has an enum type, the parser will recognize symbolic enum
+    values (with or without quotes) instead of numbers, e.g.
+    `field: EnumVal`. If a field is of integral type, you can still use
+    symbolic names, but values need to be prefixed with their type and
+    need to be quoted, e.g. `field: "Enum.EnumVal"`. For enums
+    representing flags, you may place multiple inside a string
+    separated by spaces to OR them, e.g.
+    `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
+
+When parsing JSON, it recognizes the following escape codes in strings:
+
+-   `\n` - linefeed.
+-   `\t` - tab.
+-   `\r` - carriage return.
+-   `\b` - backspace.
+-   `\f` - form feed.
+-   `\"` - double quote.
+-   `\\` - backslash.
+-   `\/` - forward slash.
+-   `\uXXXX` - 16-bit unicode code point, converted to the equivalent UTF-8
+    representation.
+-   `\xXX` - 8-bit binary hexadecimal number XX. This is the only one that is
+     not in the JSON spec (see http://json.org/), but is needed to be able to
+     encode arbitrary binary in strings to text and back without losing
+     information (e.g. the byte 0xFF can't be represented in standard JSON).
+
+It also generates these escape codes back again when generating JSON from a
+binary representation.
 
 ## Gotchas
 

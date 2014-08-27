@@ -1,0 +1,5 @@
+include "include_test2.fbs";
+include "include_test2.fbs";  // should be skipped
+include "include_test1.fbs";  // should be skipped
+
+

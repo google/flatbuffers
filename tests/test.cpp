@@ -20,7 +20,7 @@
 
 #include "monster_test_generated.h"
 
-#include <random>
+#include <cmath>
 
 using namespace MyGame::Example;
 
@@ -93,7 +93,7 @@ std::string CreateFlatBufferTest() {
                             Any_Monster, mloc2.Union(), // Store a union.
                             testv, vecofstrings, vecoftables, 0);
 
-  builder.Finish(mloc);
+  FinishMonsterBuffer(builder, mloc);
 
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
@@ -116,6 +116,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
     flatbuf.length());
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
+  TEST_EQ(MonsterBufferHasIdentifier(flatbuf.c_str()), true);
+
   // Access the buffer from the root.
   auto monster = GetMonster(flatbuf.c_str());
 
@@ -135,8 +137,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   auto inventory = monster->inventory();
   TEST_NOTNULL(inventory);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  for (flatbuffers::uoffset_t i = 0; i < inventory->Length(); i++)
-    TEST_EQ(inventory->Get(i), inv_data[i]);
+  for (auto it = inventory->begin(); it != inventory->end(); ++it)
+    TEST_EQ(*it, inv_data[it - inventory->begin()]);
 
   // Example of accessing a union:
   TEST_EQ(monster->test_type(), Any_Monster);  // First make sure which it is.
@@ -153,7 +155,8 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->Length(), 1U);
-  TEST_EQ(vecoftables->Get(0)->hp(), 20);
+  for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
+    TEST_EQ(it->hp(), 20);
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
@@ -163,12 +166,16 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
 
   auto tests = monster->test4();
   TEST_NOTNULL(tests);
-  auto &test_0 = tests->Get(0);
-  auto &test_1 = tests->Get(1);
-  TEST_EQ(test_0.a(), 10);
-  TEST_EQ(test_0.b(), 20);
-  TEST_EQ(test_1.a(), 30);
-  TEST_EQ(test_1.b(), 40);
+  auto test_0 = tests->Get(0);
+  auto test_1 = tests->Get(1);
+  TEST_EQ(test_0->a(), 10);
+  TEST_EQ(test_0->b(), 20);
+  TEST_EQ(test_1->a(), 30);
+  TEST_EQ(test_1->b(), 40);
+  for (auto it = tests->begin(); it != tests->end(); ++it) {
+    TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
+  }
+
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -185,8 +192,8 @@ void ParseAndGenerateTextTest() {
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse(schemafile.c_str()), true);
-  TEST_EQ(parser.Parse(jsonfile.c_str()), true);
+  TEST_EQ(parser.Parse(schemafile.c_str(), "tests/"), true);
+  TEST_EQ(parser.Parse(jsonfile.c_str(), "tests/"), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
 
@@ -399,12 +406,12 @@ void FuzzTest2() {
 
   // Parse the schema, parse the generated data, then generate text back
   // from the binary and compare against the original.
-  TEST_EQ(parser.Parse(schema.c_str()), true);
+  TEST_EQ(parser.Parse(schema.c_str(), ""), true);
 
   const std::string &json =
     definitions[num_definitions - 1].instances[0] + "\n";
 
-  TEST_EQ(parser.Parse(json.c_str()), true);
+  TEST_EQ(parser.Parse(json.c_str(), ""), true);
 
   std::string jsongen;
   flatbuffers::GeneratorOptions opts;
@@ -436,7 +443,7 @@ void FuzzTest2() {
 // Test that parser errors are actually generated.
 void TestError(const char *src, const char *error_substr) {
   flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse(src), false);  // Must signal error
+  TEST_EQ(parser.Parse(src, ""), false);  // Must signal error
   // Must be the error we're expecting
   TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
 }
@@ -465,12 +472,14 @@ void ErrorTest() {
   TestError("table X { Y:int; } root_type X; { Z:", "unknown field");
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
             "{ V:{ Y:1 } }", "incomplete");
-  TestError("table X { Y:byte; } root_type X; { Y:U }", "valid enum");
+  TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
+            "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");
   TestError("enum X:byte { Y } enum X {", "enum already");
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=1 }", "ascending");
+  TestError("enum X:byte (bit_flags) { Y=8 }", "bit flag out");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("{}", "no root");
@@ -479,21 +488,47 @@ void ErrorTest() {
   TestError("struct X { Y:int; } root_type X;", "a table");
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
+  TestError("table X { Y:[int]; YLength:int; }", "clash");
 }
 
 // Additional parser testing not covered elsewhere.
-void TokenTest() {
+void ScientificTest() {
   flatbuffers::Parser parser;
 
   // Simple schema.
-  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;"), true);
+  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;", ""), true);
 
   // Test scientific notation numbers.
-  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }"), true);
+  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }", ""), true);
   auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
   // root will point to the table, which is a 32bit vtable offset followed
   // by a float:
-  TEST_EQ(fabs(root[1] - 3.14159) < 0.001, true);
+  TEST_EQ(::fabs(root[1] - 3.14159) < 0.001, true);
+}
+
+void EnumStringsTest() {
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse("enum E:byte { A, B, C } table T { F:[E]; }"
+                        "root_type T;"
+                        "{ F:[ A, B, \"C\", \"A B C\" ] }", ""), true);
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse("enum E:byte { A, B, C } table T { F:[int]; }"
+                        "root_type T;"
+                        "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }", ""), true);
+}
+
+void UnicodeTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }", ""), true);
+  std::string jsongen;
+  flatbuffers::GeneratorOptions opts;
+  opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                     "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
 }
 
 int main(int /*argc*/, const char * /*argv*/[]) {
@@ -510,7 +545,9 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   FuzzTest2();
 
   ErrorTest();
-  TokenTest();
+  ScientificTest();
+  EnumStringsTest();
+  UnicodeTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
@@ -520,4 +557,3 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     return 1;
   }
 }
-

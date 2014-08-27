@@ -53,15 +53,15 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 <div class="title">Use in Java </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>There's experimental support for reading FlatBuffers in Java. Generate code for Java with the <code>-j</code> option to <code>flatc</code>.</p>
-<p>See <code>javaTest.java</code> for an example. Essentially, you read a FlatBuffer binary file into a <code>byte[]</code>, which you then turn into a <code>ByteBuffer</code>, which you pass to the <code>getRootAsMonster</code> function: </p><pre class="fragment">ByteBuffer bb = ByteBuffer.wrap(data);
+<div class="textblock"><p>FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate code for Java with the <code>-j</code> option to <code>flatc</code>.</p>
+<p>See <code>javaTest.java</code> for an example. Essentially, you read a FlatBuffer binary file into a <code>byte[]</code>, which you then turn into a <code>ByteBuffer</code>, which you pass to the <code>getRootAsMyRootType</code> function: </p><pre class="fragment">ByteBuffer bb = ByteBuffer.wrap(data);
 Monster monster = Monster.getRootAsMonster(bb);
 </pre><p>Now you can access values much like C++: </p><pre class="fragment">short hp = monster.hp();
 Vec3 pos = monster.pos();
 </pre><p>Note that whenever you access a new object like in the <code>pos</code> example above, a new temporary accessor object gets created. If your code is very performance sensitive (you iterate through a lot of objects), there's a second <code>pos()</code> method to which you can pass a <code>Vec3</code> object you've already created. This allows you to reuse it across many calls and reduce the amount of object allocation (and thus garbage collection) your program does.</p>
 <p>Java does not support unsigned scalars. This means that any unsigned types you use in your schema will actually be represented as a signed value. This means all bits are still present, but may represent a negative value when used. For example, to read a <code>byte b</code> as an unsigned number, you can do: <code>(short)(b &amp; 0xFF)</code></p>
 <p>Sadly the string accessors currently always create a new string when accessed, since FlatBuffer's UTF-8 strings can't be read in-place by Java.</p>
-<p>Vector access is also a bit different from C++: you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>_length</code> let's you know the number of elements you can access: </p><pre class="fragment">for (int i = 0; i &lt; monster.inventory_length(); i++)
+<p>Vector access is also a bit different from C++: you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access: </p><pre class="fragment">for (int i = 0; i &lt; monster.inventoryLength(); i++)
     monster.inventory(i); // do something here
 </pre><p>You can also construct these buffers in Java using the static methods found in the generated code, and the FlatBufferBuilder class: </p><pre class="fragment">FlatBufferBuilder fbb = new FlatBufferBuilder();
 </pre><p>Create strings: </p><pre class="fragment">int str = fbb.createString("MyMonster");
@@ -74,7 +74,10 @@ Monster.addTest_type(fbb, (byte)1);
 Monster.addTest(fbb, mon2);
 Monster.addTest4(fbb, test4s);
 int mon = Monster.endMonster(fbb);
-</pre><p>As you can see, the Java code for tables does not use a convenient <code>createMonster</code> call like the C++ code. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline). Structs do have convenient methods that even have arguments for nested structs.</p>
+</pre><p>As you can see, the Java code for tables does not use a convenient <code>createMonster</code> call like the C++ code. This is to create the buffer without using temporary object allocation.</p>
+<p>It's important to understand that fields that are structs are inline (like <code>Vec3</code> above), and MUST thus be created between the start and end calls of a table. Everything else (other tables, strings, vectors) MUST be created before the start of the table they are referenced in.</p>
+<p>Structs do have convenient methods that even have arguments for nested structs.</p>
+<p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra case must thus be taken that you set the right offset on the right field.</p>
 <p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs: </p><pre class="fragment">Monster.startInventoryVector(fbb, 5);
 for (byte i = 4; i &gt;=0; i--) fbb.addByte(i);
 int inv = fbb.endVector();

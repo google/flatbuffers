@@ -26,12 +26,13 @@
 #else
 #  include <cstdint>
 #endif
+#include <cstddef>
 #include <cstring>
 #include <string>
 #include <vector>
 #include <algorithm>
 
-#ifdef FLATBUFFERS_USE_BOOST
+#ifdef FLATBUFFERS_USE_CXX03_STDLIB
 #  include <boost/type_traits/conditional.hpp>
 #  include <boost/move/move.hpp>
 namespace flatbufferstd = boost;
@@ -67,12 +68,6 @@ namespace flatbufferstd = std;
     #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
-
-#if !defined(_MSC_VER)
-#define FLATBUFFERS_WEAK __attribute__((weak))
-#else
-#define FLATBUFFERS_WEAK __declspec(selectany)
-#endif  // WIN32
 
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 0
@@ -183,15 +178,14 @@ template<typename T> struct IndirectHelper<Offset<T>> {
   static const size_t element_stride = sizeof(uoffset_t);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     p += i * sizeof(uoffset_t);
-    return EndianScalar(reinterpret_cast<return_type>(
-        p + ReadScalar<uoffset_t>(p)));
+    return reinterpret_cast<return_type>(p + ReadScalar<uoffset_t>(p));
   }
 };
 template<typename T> struct IndirectHelper<const T *> {
-  typedef const T &return_type;
+  typedef const T *return_type;
   static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
-    return *reinterpret_cast<const T *>(p + i * sizeof(T));
+    return reinterpret_cast<const T *>(p + i * sizeof(T));
   }
 };
 
@@ -233,12 +227,16 @@ public:
     return data_ != other.data_;
   }
 
+  ptrdiff_t operator-(const VectorIterator& other) const {
+    return (data_ - other.data_) / IndirectHelper<T>::element_stride;
+  }
+
   typename super_type::value_type operator *() const {
     return IndirectHelper<T>::Read(data_, 0);
   }
 
-  typename super_type::pointer operator->() const {
-    return &IndirectHelper<T>::Read(data_, 0);
+  typename super_type::value_type operator->() const {
+    return IndirectHelper<T>::Read(data_, 0);
   }
 
   VectorIterator &operator++() {
@@ -282,14 +280,15 @@ public:
   iterator end() { return iterator(Data(), length_); }
   const_iterator end() const { return const_iterator(Data(), length_); }
 
+  // The raw data in little endian format. Use with care.
+  const uint8_t *Data() const {
+    return reinterpret_cast<const uint8_t *>(&length_ + 1);
+  }
+
 protected:
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   Vector();
-
-  const uint8_t *Data() const {
-    return reinterpret_cast<const uint8_t *>(&length_ + 1);
-  }
 
   uoffset_t length_;
 };
@@ -359,6 +358,10 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  vector_downward(const vector_downward &);
+  vector_downward &operator=(const vector_downward &);
+
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -608,30 +611,45 @@ class FlatBufferBuilder {
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
-    return CreateVector(&v[0], v.size());
+    return CreateVector(v.data(), v.size());
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                       const T *v, size_t len) {
     NotNested();
-    StartVector(len, AlignOf<T>());
+    StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
     PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                      const std::vector<T> &v) {
-    return CreateVectorOfStructs(&v[0], v.size());
+    return CreateVectorOfStructs(v.data(), v.size());
   }
 
+  static const size_t kFileIdentifierLength = 4;
+
   // Finish serializing a buffer by writing the root offset.
-  template<typename T> void Finish(Offset<T> root) {
+  // If a file_identifier is given, the buffer will be prefix with a standard
+  // FlatBuffers file header.
+  template<typename T> void Finish(Offset<T> root,
+                                   const char *file_identifier = nullptr) {
     // This will cause the whole buffer to be aligned.
-    PreAlign(sizeof(uoffset_t), minalign_);
+    PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
+             minalign_);
+    if (file_identifier) {
+      assert(strlen(file_identifier) == kFileIdentifierLength);
+      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
+                kFileIdentifierLength);
+    }
     PushElement(ReferTo(root.o));  // Location of root.
   }
 
  private:
+  // You shouldn't really be copying instances of this class.
+  FlatBufferBuilder(const FlatBufferBuilder &);
+  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+
   struct FieldLoc {
     uoffset_t off;
     voffset_t id;
@@ -656,17 +674,27 @@ template<typename T> const T *GetRoot(const void *buf) {
     EndianScalar(*reinterpret_cast<const uoffset_t *>(buf)));
 }
 
+// Helper to see if the identifier in a buffer has the expected value.
+inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
+  return strncmp(reinterpret_cast<const char *>(buf) + 4, identifier,
+                 FlatBufferBuilder::kFileIdentifierLength) == 0;
+}
+
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier {
  public:
-  Verifier(const uint8_t *buf, size_t buf_len)
-    : buf_(buf), end_(buf + buf_len)
+  Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
+           size_t _max_tables = 1000000)
+    : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
+      num_tables_(0), max_tables_(_max_tables)
     {}
 
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
     bool ok = elem >= buf_ && elem <= end_ - elem_len;
-    assert(ok);
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      assert(ok);
+    #endif
     return ok;
   }
 
@@ -676,7 +704,7 @@ class Verifier {
   }
 
   // Verify a pointer (may be NULL) of a table type.
-  template<typename T> bool VerifyTable(const T *table) const {
+  template<typename T> bool VerifyTable(const T *table) {
     return !table || table->Verify(*this);
   }
 
@@ -721,8 +749,7 @@ class Verifier {
   }
 
   // Special case for table contents, after the above has been called.
-  template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec)
-      const {
+  template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->Length(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
@@ -732,16 +759,40 @@ class Verifier {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() const {
+  template<typename T> bool VerifyBuffer() {
     // Call T::Verify, which must be in the generated code for this type.
     return Verify<uoffset_t>(buf_) &&
       reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
         Verify(*this);
   }
 
+  // Called at the start of a table to increase counters measuring data
+  // structure depth and amount, and possibly bails out with false if
+  // limits set by the constructor have been hit. Needs to be balanced
+  // with EndTable().
+  bool VerifyComplexity() {
+    depth_++;
+    num_tables_++;
+    bool too_complex = depth_ > max_depth_ || num_tables_ > max_tables_;
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      assert(!too_complex);
+    #endif
+    return !too_complex;
+  }
+
+  // Called at the end of a table to pop the depth count.
+  bool EndTable() {
+    depth_--;
+    return true;
+  }
+
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
+  size_t depth_;
+  size_t max_depth_;
+  size_t num_tables_;
+  size_t max_tables_;
 };
 
 // "structs" are flat structures that do not have an offset table, thus
@@ -816,12 +867,13 @@ class Table {
 
   // Verify the vtable of this table.
   // Call this once per table, followed by VerifyField once per field.
-  bool VerifyTable(const Verifier &verifier) const {
+  bool VerifyTableStart(Verifier &verifier) const {
     // Check the vtable offset.
     if (!verifier.Verify<soffset_t>(data_)) return false;
     auto vtable = data_ - ReadScalar<soffset_t>(data_);
     // Check the vtable size field, then check vtable fits in its entirety.
-    return verifier.Verify<voffset_t>(vtable) &&
+    return verifier.VerifyComplexity() &&
+           verifier.Verify<voffset_t>(vtable) &&
            verifier.Verify(vtable, ReadScalar<voffset_t>(vtable));
   }
 
@@ -870,14 +922,14 @@ inline int LookupEnum(const char **names, const char *name) {
     struct __declspec(align(alignment))
   #define STRUCT_END(name, size) \
     __pragma(pack()); \
-    static_assert(sizeof(name) == size, "compiler breaks packing rules");
+    static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #elif defined(__GNUC__) || defined(__clang__)
   #define MANUALLY_ALIGNED_STRUCT(alignment) \
-    _Pragma("pack(1)"); \
+    _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))
   #define STRUCT_END(name, size) \
-    _Pragma("pack()"); \
-    static_assert(sizeof(name) == size, "compiler breaks packing rules");
+    _Pragma("pack()") \
+    static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #else
   #error Unknown compiler, please define structure alignment macros
 #endif
@@ -891,12 +943,17 @@ inline int LookupEnum(const char **names, const char *name) {
 // to measure popularity.  You are free to remove it (of course) but we would
 // appreciate if you left it in.
 
-extern volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string;
-volatile FLATBUFFERS_WEAK const char *flatbuffer_version_string =
+// Weak linkage is culled by VS & doesn't work on cygwin.
+#if !defined(_WIN32) && !defined(__CYGWIN__)
+
+extern volatile __attribute__((weak)) const char *flatbuffer_version_string;
+volatile __attribute__((weak)) const char *flatbuffer_version_string =
   "FlatBuffers "
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
   FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+
+#endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
 }  // namespace flatbuffers
 

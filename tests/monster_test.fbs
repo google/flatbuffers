@@ -1,8 +1,10 @@
 // example IDL file
 
+include "include_test1.fbs";
+
 namespace MyGame.Example;
 
-enum Color:byte { Red = 0, Green, Blue = 2 }
+enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster }  // TODO: add more elements
 
@@ -32,6 +34,11 @@ table Monster {
   enemy:Monster (id:12);
   test:Any (id: 8);
   test4:[Test] (id: 9);
+  testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
+  testempty:Monster (id:14);
 }
 
 root_type Monster;
+
+file_identifier "MONS";
+file_extension "mon";
