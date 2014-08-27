@@ -56,7 +56,7 @@ $(document).ready(function(){initNavTree('md__internals.html','');});
 <div class="textblock"><p>This section is entirely optional for the use of FlatBuffers. In normal usage, you should never need the information contained herein. If you're interested however, it should give you more of an appreciation of why FlatBuffers is both efficient and convenient.</p>
 <h3>Format components</h3>
 <p>A FlatBuffer is a binary file and in-memory format consisting mostly of scalars of various sizes, all aligned to their own size. Each scalar is also always represented in little-endian format, as this corresponds to all commonly used CPUs today. FlatBuffers will also work on big-endian machines, but will be slightly slower because of additional byte-swap intrinsics.</p>
-<p>On purpose, the format leaves a lot of details about where exactly things live in memory undefined, e.g. fields in a table can have any order, and objects to some extend can be stored in many orders. This is because the format doesn't need this information to be efficient, and it leaves room for optimization and extension (for example, fields can be packed in a way that is most compact). Instead, the format is defined in terms of offsets and adjacency only.</p>
+<p>On purpose, the format leaves a lot of details about where exactly things live in memory undefined, e.g. fields in a table can have any order, and objects to some extend can be stored in many orders. This is because the format doesn't need this information to be efficient, and it leaves room for optimization and extension (for example, fields can be packed in a way that is most compact). Instead, the format is defined in terms of offsets and adjacency only. This may mean two different implementations may produce different binaries given the same input values, and this is perfectly valid.</p>
 <h3>Format identification</h3>
 <p>The format also doesn't contain information for format identification and versioning, which is also by design. FlatBuffers is a statically typed system, meaning the user of a buffer needs to know what kind of buffer it is. FlatBuffers can of course be wrapped inside other containers where needed, or you can use its union feature to dynamically identify multiple possible sub-objects stored. Additionally, it can be used together with the schema parser if full reflective capabilities are desired.</p>
 <p>Versioning is something that is intrinsically part of the format (the optionality / extensibility of fields), so the format itself does not need a version number (it's a meta-format, in a sense). We're hoping that this format can accommodate all data needed. If format breaking changes are ever necessary, it would become a new kind of format rather than just a variation.</p>
@@ -107,7 +107,7 @@ inline const char **EnumNamesAny() {
 inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
 </pre><p>Unions share a lot with enums. </p><pre class="fragment">struct Vec3;
 struct Monster;
-</pre><p>Predeclare all datatypes since there may be circular references. </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+</pre><p>Predeclare all data types since circular references between types are allowed (circular references between object are not, though). </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
  private:
   float x_;
   float y_;

@@ -123,10 +123,11 @@ public class FlatBufferBuilder {
         putInt(off);
     }
 
-    public void startVector(int elem_size, int num_elems) {
+    public void startVector(int elem_size, int num_elems, int alignment) {
         notNested();
         vector_num_elems = num_elems;
         prep(SIZEOF_INT, elem_size * num_elems);
+        prep(alignment, elem_size * num_elems); // Just in case alignment > int.
     }
 
     public int endVector() {
@@ -137,7 +138,7 @@ public class FlatBufferBuilder {
     public int createString(String s) {
         byte[] utf8 = s.getBytes(utf8charset);
         addByte((byte)0);
-        startVector(1, utf8.length);
+        startVector(1, utf8.length, 1);
         System.arraycopy(utf8, 0, bb.array(), space -= utf8.length, utf8.length);
         return endVector();
     }

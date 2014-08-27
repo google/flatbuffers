@@ -34,3 +34,6 @@ be generated for each file processed:
 
 -   `-S` : Generate strict JSON (field names are enclosed in quotes).
     By default, no quotes are generated.
+
+-   `-P` : Don't prefix enum values in generated C++ by their enum type.
+

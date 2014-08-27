@@ -41,7 +41,6 @@ public class Table {
 
   // Create a java String from UTF-8 data stored inside the flatbuffer.
   protected String __string(int offset) {
-    offset += bb_pos;
     offset += bb.getInt(offset);
     return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), Charset.forName("UTF-8"));
   }

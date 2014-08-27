@@ -5,6 +5,7 @@ var NAVTREE =
     [ "Using the schema compiler", "md__compiler.html", null ],
     [ "Writing a schema", "md__schemas.html", null ],
     [ "Use in C++", "md__cpp_usage.html", null ],
+    [ "Use in Go", "md__go_usage.html", null ],
     [ "Use in Java", "md__java_usage.html", null ],
     [ "Benchmarks", "md__benchmarks.html", null ],
     [ "FlatBuffers white paper", "md__white_paper.html", null ],

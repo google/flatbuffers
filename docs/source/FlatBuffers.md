@@ -1,8 +1,8 @@
 # FlatBuffers
 
-FlatBuffers is an efficient cross platform serialization library in for C++ and
-Java. It was created at Google specifically for game development and other
-performance-critical applications.
+FlatBuffers is an efficient cross platform serialization library for C++,
+with support for Java and Go. It was created at Google specifically for game
+development and other performance-critical applications.
 
 It is available as open source under the Apache license, v2 (see LICENSE.txt).
 
@@ -46,9 +46,9 @@ It is available as open source under the Apache license, v2 (see LICENSE.txt).
     needed (faster and more memory efficient than other JSON
     parsers).
 
-    Java code supports object-reuse.
+    Java and Go code supports object-reuse.
 
--   **Cross platform C++11/Java code with no dependencies** - will work with
+-   **Cross platform C++11/Java/Go code with no dependencies** - will work with
     any recent gcc/clang and VS2010. Comes with build files for the tests &
     samples (Android .mk files, and cmake for all other platforms).
 
@@ -87,7 +87,7 @@ sections provide a more in-depth usage guide.
     Fields are optional and have defaults, so they don't need to be
     present for every object instance.
 
--   Use `flatc` (the FlatBuffer compiler) to generate a C++ header (or Java
+-   Use `flatc` (the FlatBuffer compiler) to generate a C++ header (or Java/Go
     classes) with helper classes to access and construct serialized data. This
     header (say `mydata_generated.h`) only depends on `flatbuffers.h`, which
     defines the core functionality.
@@ -111,6 +111,8 @@ sections provide a more in-depth usage guide.
 -   How to [use the generated C++ code](md__cpp_usage.html) in your own
     programs.
 -   How to [use the generated Java code](md__java_usage.html) in your own
+    programs.
+-   How to [use the generated Go code](md__go_usage.html) in your own
     programs.
 -   Some [benchmarks](md__benchmarks.html) showing the advantage of using
     FlatBuffers.

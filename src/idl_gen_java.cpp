@@ -20,21 +20,12 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#define PATH_SEPARATOR "\\"
-#define mkdir(n, m) _mkdir(n)
-#else
-#include <sys/stat.h>
-#define PATH_SEPARATOR "/"
-#endif
-
 namespace flatbuffers {
 namespace java {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE) #JTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -71,21 +62,6 @@ static void GenComment(const std::string &dc,
   if (dc.length()) {
     code += std::string(prefix) + "///" + dc + "\n";
   }
-}
-
-// Convert an underscore_based_indentifier in to camelCase.
-// Also uppercases the first character if first is true.
-static std::string MakeCamel(const std::string &in, bool first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
-    else
-      s += in[i];
-  }
-  return s;
 }
 
 static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
@@ -264,7 +240,7 @@ static void GenStruct(StructDef &struct_def,
           }
           break;
         case BASE_TYPE_STRING:
-          code += offset_prefix + getter +"(o) : null";
+          code += offset_prefix + getter +"(o + bb_pos) : null";
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
@@ -337,8 +313,12 @@ static void GenStruct(StructDef &struct_def,
         code += "  public static void start" + MakeCamel(field.name);
         code += "Vector(FlatBufferBuilder builder, int numElems) ";
         code += "{ builder.startVector(";
-        code += NumToString(InlineSize(field.value.type.VectorType()));
-        code += ", numElems); }\n";
+        auto vector_type = field.value.type.VectorType();
+        auto alignment = InlineAlignment(vector_type);
+        auto elem_size = InlineSize(vector_type);
+        code += NumToString(elem_size);
+        code += ", numElems, " + NumToString(alignment);
+        code += "); }\n";
       }
     }
     code += "  public static int end" + struct_def.name;
@@ -354,27 +334,27 @@ static bool SaveClass(const Parser &parser, const Definition &def,
                       bool needs_imports) {
   if (!classcode.length()) return true;
 
-  std::string name_space_java;
-  std::string name_space_dir = path;
-  for (auto it = parser.name_space_.begin();
-        it != parser.name_space_.end(); ++it) {
-    if (name_space_java.length()) {
-      name_space_java += ".";
-      name_space_dir += PATH_SEPARATOR;
+  std::string namespace_java;
+  std::string namespace_dir = path;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+    if (namespace_java.length()) {
+      namespace_java += ".";
+      namespace_dir += kPathSeparator;
     }
-    name_space_java += *it;
-    name_space_dir += *it;
-    mkdir(name_space_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    namespace_java += *it;
+    namespace_dir += *it;
   }
+  EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += "package " + name_space_java + ";\n\n";
+  code += "package " + namespace_java + ";\n\n";
   if (needs_imports) {
     code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
     code += "import flatbuffers.*;\n\n";
   }
   code += classcode;
-  auto filename = name_space_dir + PATH_SEPARATOR + def.name + ".java";
+  auto filename = namespace_dir + kPathSeparator + def.name + ".java";
   return SaveFile(filename.c_str(), code, false);
 }
 
@@ -406,4 +386,3 @@ bool GenerateJava(const Parser &parser,
 }
 
 }  // namespace flatbuffers
-

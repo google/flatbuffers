@@ -27,9 +27,10 @@ bool GenerateBinary(const Parser &parser,
                     const std::string &path,
                     const std::string &file_name,
                     const GeneratorOptions & /*opts*/) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
-           (path + file_name + ".bin").c_str(),
+           (path + file_name + "." + ext).c_str(),
            reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
            parser.builder_.GetSize(),
            true);
@@ -71,6 +72,8 @@ const Generator generators[] = {
     "Generate text output for any data definitions" },
   { flatbuffers::GenerateCPP,      "c", "C++",
     "Generate C++ headers for tables/structs" },
+  { flatbuffers::GenerateGo,       "g", "Go",
+    "Generate Go files for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
 };
@@ -87,6 +90,7 @@ static void Error(const char *err, const char *obj, bool usage) {
       printf("  -%s      %s.\n", generators[i].extension, generators[i].help);
     printf("  -o PATH Prefix PATH to all generated files.\n"
            "  -S      Strict JSON: add quotes to field names.\n"
+           "  -P      Don\'t prefix enum values with the enum name in C++.\n"
            "FILEs may depend on declarations in earlier files.\n"
            "FILEs after the -- must be binary flatbuffer format files.\n"
            "Output files are named using the base file name of the input,"
@@ -95,22 +99,6 @@ static void Error(const char *err, const char *obj, bool usage) {
            program_name);
   }
   exit(1);
-}
-
-std::string StripExtension(const std::string &filename) {
-  size_t i = filename.find_last_of(".");
-  return i != std::string::npos ? filename.substr(0, i) : filename;
-}
-
-std::string StripPath(const std::string &filename) {
-  size_t i = filename.find_last_of(
-    #ifdef WIN32
-      "\\:"
-    #else
-      "/"
-    #endif
-    );
-  return i != std::string::npos ? filename.substr(i + 1) : filename;
 }
 
 int main(int argc, const char *argv[]) {
@@ -134,9 +122,16 @@ int main(int argc, const char *argv[]) {
         case 'o':
           if (++i >= argc) Error("missing path following", arg, true);
           output_path = argv[i];
+          if (!(output_path.back() == flatbuffers::kPathSeparator ||
+                output_path.back() == flatbuffers::kPosixPathSeparator)) {
+            output_path += flatbuffers::kPathSeparator;
+          }
           break;
         case 'S':
           opts.strict_json = true;
+          break;
+        case 'P':
+          opts.prefixed_enums = false;
           break;
         case '-':  // Separator between text and binary input files.
           binary_files_from = filenames.size();
@@ -162,7 +157,7 @@ int main(int argc, const char *argv[]) {
 
   if (!any_generator)
     Error("no options: no output files generated.",
-          "specify one of -c -j -t -b etc.", true);
+          "specify one of -c -g -j -t -b etc.", true);
 
   // Now process the files:
   for (auto file_it = filenames.begin();
@@ -180,14 +175,16 @@ int main(int argc, const char *argv[]) {
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
       } else {
-        if (!parser.Parse(contents.c_str()))
-          Error(parser.error_.c_str());
+        if (!parser.Parse(contents.c_str(), file_it->c_str()))
+          Error((*file_it + ": " + parser.error_).c_str());
       }
 
-      std::string filebase = StripPath(StripExtension(*file_it));
+      std::string filebase = flatbuffers::StripPath(
+                               flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
+          flatbuffers::EnsureDirExists(output_path);
           if (!generators[i].generate(parser, output_path, filebase, opts)) {
             Error((std::string("Unable to generate ") +
                    generators[i].name +
@@ -197,19 +194,10 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      // Since the Parser object retains definitions across files, we must
-      // ensure we only output code for these once, in the file they are first
-      // declared:
-      for (auto it = parser.enums_.vec.begin();
-               it != parser.enums_.vec.end(); ++it) {
-        (*it)->generated = true;
-      }
-      for (auto it = parser.structs_.vec.begin();
-               it != parser.structs_.vec.end(); ++it) {
-        (*it)->generated = true;
-      }
+      // We do not want to generate code for the definitions in this file
+      // in any files coming up next.
+      parser.MarkGenerated();
   }
 
   return 0;
 }
-

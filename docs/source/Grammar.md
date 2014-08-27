@@ -1,6 +1,9 @@
 # Formal Grammar of the schema language
 
-schema = namespace\_decl | type\_decl | enum\_decl | root\_decl | object
+schema = include*
+         ( namespace\_decl | type\_decl | enum\_decl | root\_decl | object )*
+
+include = `include` string\_constant `;`
 
 namespace\_decl = `namespace` ident ( `.` ident )* `;`
 
