@@ -17,14 +17,28 @@
 #ifndef FLATBUFFERS_H_
 #define FLATBUFFERS_H_
 
+#include <flatbuffers/options.h>
+
 #include <assert.h>
 
-#include <cstdint>
+#ifdef __APPLE__
+#  include <stdint.h>
+#else
+#  include <cstdint>
+#endif
 #include <cstring>
 #include <string>
-#include <type_traits>
 #include <vector>
 #include <algorithm>
+
+#ifdef FLATBUFFERS_USE_BOOST
+#  include <boost/type_traits/conditional.hpp>
+#  include <boost/move/move.hpp>
+namespace flatbufferstd = boost;
+#else
+#  include <type_traits>
+namespace flatbufferstd = std;
+#endif
 
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
@@ -186,12 +200,12 @@ template<typename T> struct IndirectHelper<const T *> {
 template<typename T, bool bConst>
 struct VectorIterator : public
   std::iterator < std::input_iterator_tag,
-  typename std::conditional < bConst,
+  typename flatbufferstd::conditional < bConst,
   const typename IndirectHelper<T>::return_type,
   typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
 
   typedef std::iterator<std::input_iterator_tag,
-    typename std::conditional<bConst,
+    typename flatbufferstd::conditional<bConst,
     const typename IndirectHelper<T>::return_type,
     typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
 
@@ -199,7 +213,7 @@ public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
       data_(data + IndirectHelper<T>::element_stride * i) {};
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
-  VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
+  VectorIterator(VectorIterator &&other) : data_(flatbufferstd::move(other.data_)) {}
 
   VectorIterator &operator=(const VectorIterator &other) {
     data_ = other.data_;
@@ -410,7 +424,7 @@ class FlatBufferBuilder {
 
   template<typename T> void AssertScalarT() {
     // The code assumes power of 2 sizes and endian-swap-ability.
-    static_assert(std::is_scalar<T>::value
+    static_assert(flatbufferstd::is_scalar<T>::value
         // The Offset<T> type is essentially a scalar but fails is_scalar.
         || sizeof(T) == sizeof(Offset<void>),
            "T must be a scalar type");
