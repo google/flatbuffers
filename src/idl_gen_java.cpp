@@ -154,9 +154,7 @@ static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
   }
 }
 
-static void GenStruct(StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -170,9 +168,9 @@ static void GenStruct(StructDef &struct_def,
   code += "public class " + struct_def.name + " extends ";
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
-  if (&struct_def == root_struct_def) {
-    // Generate a special accessor for the table that has been declared as
-    // the root type.
+  if (!struct_def.fixed) {
+    // Generate a special accessor for the table that when used as the root
+    // of a FlatBuffer
     code += "  public static " + struct_def.name + " getRootAs";
     code += struct_def.name;
     code += "(ByteBuffer _bb, int offset) { ";
@@ -377,7 +375,7 @@ bool GenerateJava(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(**it, &declcode, parser.root_struct_def);
+    GenStruct(**it, &declcode);
     if (!SaveClass(parser, **it, declcode, path, true))
       return false;
   }
