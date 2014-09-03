@@ -42,7 +42,17 @@ public class Table {
   // Create a java String from UTF-8 data stored inside the flatbuffer.
   protected String __string(int offset) {
     offset += bb.getInt(offset);
-    return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), Charset.forName("UTF-8"));
+    if (bb.hasArray()) {
+      return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), Charset.forName("UTF-8"));
+    } else {
+      // We can't access .array(), since the ByteBuffer is read-only.
+      // We're forced to make an extra copy:
+      bb.position(offset + SIZEOF_INT);
+      byte[] copy = new byte[bb.getInt(offset)];
+      bb.get(copy);
+      bb.position(0);
+      return new String(copy, 0, copy.length, Charset.forName("UTF-8"));
+    }
   }
 
   // Get the length of a vector whose offset is stored at "offset" in this object.

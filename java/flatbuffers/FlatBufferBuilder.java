@@ -30,7 +30,7 @@ public class FlatBufferBuilder {
     int space;           // Remaining space in the ByteBuffer.
     static final Charset utf8charset = Charset.forName("UTF-8");
     int minalign = 1;    // Minimum alignment encountered so far.
-    int[] vtable;        // The vtable for the current table, null otherwise.
+    int[] vtable = null; // The vtable for the current table, null otherwise.
     int object_start;    // Starting offset of the current struct/table.
     int[] vtables = new int[16];  // List of offsets of all vtables.
     int num_vtables = 0;          // Number of entries in `vtables` in use.
@@ -45,6 +45,14 @@ public class FlatBufferBuilder {
         if (initial_size <= 0) initial_size = 1;
         space = initial_size;
         bb = newByteBuffer(new byte[initial_size]);
+    }
+
+    // Alternative constructor allowing reuse of ByteBuffers
+    public FlatBufferBuilder(ByteBuffer existing_bb) {
+        bb = existing_bb;
+        bb.clear();
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        space = bb.capacity();
     }
 
     ByteBuffer newByteBuffer(byte[] buf) {
