@@ -364,6 +364,8 @@ void Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     Next();
+    if (!IsScalar(type.base_type))
+      Error("default values currently only supported for scalars");
     ParseSingleValue(field.value);
   }
 
