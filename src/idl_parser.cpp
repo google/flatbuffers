@@ -108,7 +108,7 @@ static std::string TokenToString(int t) {
   };
   if (t < 256) {  // A single ascii char token.
     std::string s;
-    s.append(1, t);
+    s.append(1, static_cast<char>(t));
     return s;
   } else {       // Other tokens.
     return tokens[t - 256];
