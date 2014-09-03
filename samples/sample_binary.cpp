@@ -54,9 +54,11 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   auto pos = monster->pos();
   assert(pos);
   assert(pos->z() == 3);
+  (void)pos;
 
   auto inv = monster->inventory();
   assert(inv);
   assert(inv->Get(9) == 9);
+  (void)inv;
 }
 

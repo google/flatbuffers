@@ -669,8 +669,10 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier {
  public:
-  Verifier(const uint8_t *buf, size_t buf_len)
-    : buf_(buf), end_(buf + buf_len)
+  Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
+           size_t _max_tables = 1000000)
+    : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
+      num_tables_(0), max_tables_(_max_tables)
     {}
 
   // Verify any range within the buffer.
@@ -688,7 +690,7 @@ class Verifier {
   }
 
   // Verify a pointer (may be NULL) of a table type.
-  template<typename T> bool VerifyTable(const T *table) const {
+  template<typename T> bool VerifyTable(const T *table) {
     return !table || table->Verify(*this);
   }
 
@@ -733,8 +735,7 @@ class Verifier {
   }
 
   // Special case for table contents, after the above has been called.
-  template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec)
-      const {
+  template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->Length(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
@@ -744,16 +745,40 @@ class Verifier {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() const {
+  template<typename T> bool VerifyBuffer() {
     // Call T::Verify, which must be in the generated code for this type.
     return Verify<uoffset_t>(buf_) &&
       reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
         Verify(*this);
   }
 
+  // Called at the start of a table to increase counters measuring data
+  // structure depth and amount, and possibly bails out with false if
+  // limits set by the constructor have been hit. Needs to be balanced
+  // with EndTable().
+  bool VerifyComplexity() {
+    depth_++;
+    num_tables_++;
+    bool too_complex = depth_ > max_depth_ || num_tables_ > max_tables_;
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      assert(!too_complex);
+    #endif
+    return !too_complex;
+  }
+
+  // Called at the end of a table to pop the depth count.
+  bool EndTable() {
+    depth_--;
+    return true;
+  }
+
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
+  size_t depth_;
+  size_t max_depth_;
+  size_t num_tables_;
+  size_t max_tables_;
 };
 
 // "structs" are flat structures that do not have an offset table, thus
@@ -828,12 +853,13 @@ class Table {
 
   // Verify the vtable of this table.
   // Call this once per table, followed by VerifyField once per field.
-  bool VerifyTable(const Verifier &verifier) const {
+  bool VerifyTableStart(Verifier &verifier) const {
     // Check the vtable offset.
     if (!verifier.Verify<soffset_t>(data_)) return false;
     auto vtable = data_ - ReadScalar<soffset_t>(data_);
     // Check the vtable size field, then check vtable fits in its entirety.
-    return verifier.Verify<voffset_t>(vtable) &&
+    return verifier.VerifyComplexity() &&
+           verifier.Verify<voffset_t>(vtable) &&
            verifier.Verify(vtable, ReadScalar<voffset_t>(vtable));
   }
 

@@ -192,8 +192,8 @@ void ParseAndGenerateTextTest() {
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse(schemafile.c_str()), true);
-  TEST_EQ(parser.Parse(jsonfile.c_str()), true);
+  TEST_EQ(parser.Parse(schemafile.c_str(), "tests/"), true);
+  TEST_EQ(parser.Parse(jsonfile.c_str(), "tests/"), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
 
@@ -406,12 +406,12 @@ void FuzzTest2() {
 
   // Parse the schema, parse the generated data, then generate text back
   // from the binary and compare against the original.
-  TEST_EQ(parser.Parse(schema.c_str()), true);
+  TEST_EQ(parser.Parse(schema.c_str(), ""), true);
 
   const std::string &json =
     definitions[num_definitions - 1].instances[0] + "\n";
 
-  TEST_EQ(parser.Parse(json.c_str()), true);
+  TEST_EQ(parser.Parse(json.c_str(), ""), true);
 
   std::string jsongen;
   flatbuffers::GeneratorOptions opts;
@@ -443,7 +443,7 @@ void FuzzTest2() {
 // Test that parser errors are actually generated.
 void TestError(const char *src, const char *error_substr) {
   flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse(src), false);  // Must signal error
+  TEST_EQ(parser.Parse(src, ""), false);  // Must signal error
   // Must be the error we're expecting
   TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
 }
@@ -488,6 +488,7 @@ void ErrorTest() {
   TestError("struct X { Y:int; } root_type X;", "a table");
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
+  TestError("table X { Y:[int]; YLength:int; }", "clash");
 }
 
 // Additional parser testing not covered elsewhere.
@@ -495,10 +496,10 @@ void ScientificTest() {
   flatbuffers::Parser parser;
 
   // Simple schema.
-  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;"), true);
+  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;", ""), true);
 
   // Test scientific notation numbers.
-  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }"), true);
+  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }", ""), true);
   auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
   // root will point to the table, which is a 32bit vtable offset followed
   // by a float:
@@ -509,14 +510,26 @@ void EnumStringsTest() {
   flatbuffers::Parser parser1;
   TEST_EQ(parser1.Parse("enum E:byte { A, B, C } table T { F:[E]; }"
                         "root_type T;"
-                        "{ F:[ A, B, \"C\", \"A B C\" ] }"), true);
+                        "{ F:[ A, B, \"C\", \"A B C\" ] }", ""), true);
   flatbuffers::Parser parser2;
   TEST_EQ(parser2.Parse("enum E:byte { A, B, C } table T { F:[int]; }"
                         "root_type T;"
-                        "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"), true);
+                        "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }", ""), true);
 }
 
-
+void UnicodeTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }", ""), true);
+  std::string jsongen;
+  flatbuffers::GeneratorOptions opts;
+  opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                     "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+}
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
@@ -534,6 +547,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ErrorTest();
   ScientificTest();
   EnumStringsTest();
+  UnicodeTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

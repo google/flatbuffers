@@ -159,7 +159,8 @@ Unions share a lot with enums.
     struct Vec3;
     struct Monster;
 
-Predeclare all datatypes since there may be circular references.
+Predeclare all data types since circular references between types are allowed
+(circular references between object are not, though).
 
     MANUALLY_ALIGNED_STRUCT(4) Vec3 {
      private:

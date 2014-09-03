@@ -18,13 +18,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#define mkdir(n, m) _mkdir(n)
-#else
-#include <sys/stat.h>
-#endif
-
 namespace flatbuffers {
 namespace csharp {
 
@@ -340,26 +333,26 @@ static bool SaveClass(const Parser &parser, const Definition &def,
                       const std::string &classcode, const std::string &path) {
   if (!classcode.length()) return true;
 
-  std::string name_space_csharp;
-  std::string name_space_dir = path;
-  for (auto it = parser.name_space_.begin();
-        it != parser.name_space_.end(); ++it) {
-    if (name_space_csharp.length()) {
-      name_space_csharp += ".";
-      name_space_dir += kPathSeparator;
-    }
-    name_space_csharp += *it;
-    name_space_dir += *it;
-    mkdir(name_space_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+  std::string namespace_csharp;
+  std::string namespace_dir = path;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+	if (namespace_csharp.length()) {
+		namespace_csharp += ".";
+		namespace_dir += kPathSeparator;
+	}
+    namespace_csharp += *it;
+    namespace_dir += *it;
   }
+  EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += "namespace " + name_space_csharp + "\n{\n\n";
+  code += "namespace " + namespace_csharp + "\n{\n\n";
 // Other usings
   code += "using FlatBuffers;\n\n";
   code += classcode;
   code += "\n}\n";
-  auto filename = name_space_dir + kPathSeparator + def.name + ".cs";
+  auto filename = namespace_dir + kPathSeparator + def.name + ".cs";
   return SaveFile(filename.c_str(), code, false);
 }
 

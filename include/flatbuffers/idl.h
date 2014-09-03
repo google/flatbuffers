@@ -159,6 +159,11 @@ template<typename T> class SymbolTable {
   std::vector<T *> vec;  // Used to iterate in order of insertion
 };
 
+// A name space, as set in the schema.
+struct Namespace {
+  std::vector<std::string> components;
+};
+
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
   Definition() : generated(false) {}
@@ -183,7 +188,8 @@ struct StructDef : public Definition {
       predecl(true),
       sortbysize(true),
       minalign(1),
-      bytesize(0)
+      bytesize(0),
+      defined_namespace(nullptr)
     {}
 
   void PadLastField(size_t minalign) {
@@ -198,6 +204,7 @@ struct StructDef : public Definition {
   bool sortbysize;  // Whether fields come in the declaration or size order.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+  Namespace *defined_namespace;  // Where it was defined.
 };
 
 inline bool IsStruct(const Type &type) {
@@ -245,16 +252,31 @@ class Parser {
     root_struct_def(nullptr),
     source_(nullptr),
     cursor_(nullptr),
-    line_(1) {}
+    line_(1) {
+      // Just in case none are declared:
+      namespaces_.push_back(new Namespace());
+  }
+
+  ~Parser() {
+    for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
+      delete *it;
+    }
+  }
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
-  bool Parse(const char *_source);
+  // filepath indicates the file that _source was loaded from, it is
+  // used to resolve any include statements.
+  bool Parse(const char *_source, const char *filepath);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
 
+  // Mark all definitions as already having code generated.
+  void MarkGenerated();
+
  private:
+  int64_t ParseHexNum(int nibbles);
   void Next();
   bool IsNext(int t);
   void Expect(int t);
@@ -279,7 +301,7 @@ class Parser {
  public:
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
-  std::vector<std::string> name_space_;  // As set in the schema.
+  std::vector<Namespace *> namespaces_;
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file
@@ -295,6 +317,7 @@ class Parser {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
+  std::map<std::string, bool> included_files_;
 };
 
 // Utility functions for generators:
@@ -319,9 +342,10 @@ struct GeneratorOptions {
   bool strict_json;
   int indent_step;
   bool output_enum_identifiers;
+  bool prefixed_enums;
 
   GeneratorOptions() : strict_json(false), indent_step(2),
-                       output_enum_identifiers(true) {}
+                       output_enum_identifiers(true), prefixed_enums(true) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
@@ -338,7 +362,8 @@ extern void GenerateText(const Parser &parser,
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
 extern std::string GenerateCPP(const Parser &parser,
-                               const std::string &include_guard_ident);
+                               const std::string &include_guard_ident,
+                               const GeneratorOptions &opts);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,
@@ -361,9 +386,10 @@ extern bool GenerateJava(const Parser &parser,
 // Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.
 extern bool GenerateCSharp(const Parser &parser,
-						   const std::string &path,	
+						   const std::string &path,
 						   const std::string &file_name,
 						   const GeneratorOptions &opts);
+
 
 }  // namespace flatbuffers
 

@@ -83,7 +83,8 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(NameSpace, 265, "namespace") \
   TD(RootType, 266, "root_type") \
   TD(FileIdentifier, 267, "file_identifier") \
-  TD(FileExtension, 268, "file_extension")
+  TD(FileExtension, 268, "file_extension") \
+  TD(Include, 269, "include")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -107,11 +108,22 @@ static std::string TokenToString(int t) {
   };
   if (t < 256) {  // A single ascii char token.
     std::string s;
-    s.append(1, t);
+    s.append(1, static_cast<char>(t));
     return s;
   } else {       // Other tokens.
     return tokens[t - 256];
   }
+}
+
+// Parses exactly nibbles worth of hex digits into a number, or error.
+int64_t Parser::ParseHexNum(int nibbles) {
+  for (int i = 0; i < nibbles; i++)
+    if (!isxdigit(cursor_[i]))
+      Error("escape code must be followed by " + NumToString(nibbles) +
+            " hex digits");
+  auto val = StringToInt(cursor_, 16);
+  cursor_ += nibbles;
+  return val;
 }
 
 void Parser::Next() {
@@ -141,8 +153,21 @@ void Parser::Next() {
               case 'n':  attribute_ += '\n'; cursor_++; break;
               case 't':  attribute_ += '\t'; cursor_++; break;
               case 'r':  attribute_ += '\r'; cursor_++; break;
+              case 'b':  attribute_ += '\b'; cursor_++; break;
+              case 'f':  attribute_ += '\f'; cursor_++; break;
               case '\"': attribute_ += '\"'; cursor_++; break;
               case '\\': attribute_ += '\\'; cursor_++; break;
+              case '/':  attribute_ += '/';  cursor_++; break;
+              case 'x': {  // Not in the JSON standard
+                cursor_++;
+                attribute_ += static_cast<char>(ParseHexNum(2));
+                break;
+              }
+              case 'u': {
+                cursor_++;
+                ToUTF8(static_cast<int>(ParseHexNum(4)), &attribute_);
+                break;
+              }
               default: Error("unknown escape code in string constant"); break;
             }
           } else { // printable chars + UTF-8 bytes
@@ -196,6 +221,7 @@ void Parser::Next() {
           if (attribute_ == "union")     { token_ = kTokenUnion;     return; }
           if (attribute_ == "namespace") { token_ = kTokenNameSpace; return; }
           if (attribute_ == "root_type") { token_ = kTokenRootType;  return; }
+          if (attribute_ == "include")   { token_ = kTokenInclude;  return; }
           if (attribute_ == "file_identifier") {
             token_ = kTokenFileIdentifier;
             return;
@@ -645,6 +671,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name) {
     structs_.Add(name, struct_def);
     struct_def->name = name;
     struct_def->predecl = true;
+    struct_def->defined_namespace = namespaces_.back();
   }
   return struct_def;
 }
@@ -698,7 +725,7 @@ void Parser::ParseEnum(bool is_union) {
       if (prevsize && enum_def.vals.vec[prevsize - 1]->value >= ev.value)
         Error("enum values must be specified in ascending order");
     }
-  } while (IsNext(','));
+  } while (IsNext(',') && token_ != '}');
   Expect('}');
   if (enum_def.attributes.Lookup("bit_flags")) {
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
@@ -773,6 +800,31 @@ void Parser::ParseDecl() {
       }
     }
   }
+  // Check that no identifiers clash with auto generated fields.
+  // This is not an ideal situation, but should occur very infrequently,
+  // and allows us to keep using very readable names for type & length fields
+  // without inducing compile errors.
+  auto CheckClash = [&fields, &struct_def](const char *suffix,
+                                           BaseType basetype) {
+    auto len = strlen(suffix);
+    for (auto it = fields.begin(); it != fields.end(); ++it) {
+      auto &name = (*it)->name;
+      if (name.length() > len &&
+          name.compare(name.length() - len, len, suffix) == 0 &&
+          (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
+        auto field = struct_def.fields.Lookup(
+                       name.substr(0, name.length() - len));
+        if (field && field->value.type.base_type == basetype)
+          Error("Field " + name +
+                " would clash with generated functions for field " +
+                field->name);
+      }
+    }
+  };
+  CheckClash("_type", BASE_TYPE_UNION);
+  CheckClash("Type", BASE_TYPE_UNION);
+  CheckClash("_length", BASE_TYPE_VECTOR);
+  CheckClash("Length", BASE_TYPE_VECTOR);
   Expect('}');
 }
 
@@ -781,19 +833,66 @@ bool Parser::SetRootType(const char *name) {
   return root_struct_def != nullptr;
 }
 
-bool Parser::Parse(const char *source) {
+void Parser::MarkGenerated() {
+  // Since the Parser object retains definitions across files, we must
+  // ensure we only output code for definitions once, in the file they are first
+  // declared. This function marks all existing definitions as having already
+  // been generated.
+  for (auto it = enums_.vec.begin();
+           it != enums_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
+  for (auto it = structs_.vec.begin();
+           it != structs_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
+}
+
+bool Parser::Parse(const char *source, const char *filepath) {
+  included_files_[filepath] = true;
+  // This is the starting point to reset to if we interrupted our parsing
+  // to deal with an include:
+  restart_parse_after_include:
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();
   builder_.Clear();
   try {
     Next();
+    // Includes must come first:
+    while (IsNext(kTokenInclude)) {
+      auto name = attribute_;
+      Expect(kTokenStringConstant);
+      auto path = StripFileName(filepath);
+      if (path.length()) name = path + kPathSeparator + name;
+      if (included_files_.find(name) == included_files_.end()) {
+        // We found an include file that we have not parsed yet.
+        // Load it and parse it.
+        std::string contents;
+        if (!LoadFile(name.c_str(), true, &contents))
+          Error("unable to load include file: " + name);
+        Parse(contents.c_str(), name.c_str());
+        // Any errors, we're done.
+        if (error_.length()) return false;
+        // We do not want to output code for any included files:
+        MarkGenerated();
+        // This is the easiest way to continue this file after an include:
+        // instead of saving and restoring all the state, we simply start the
+        // file anew. This will cause it to encounter the same include statement
+        // again, but this time it will skip it, because it was entered into
+        // included_files_.
+        goto restart_parse_after_include;
+      }
+      Expect(';');
+    }
+    // Now parse all other kinds of declarations:
     while (token_ != kTokenEof) {
       if (token_ == kTokenNameSpace) {
         Next();
-        name_space_.clear();
+        auto ns = new Namespace();
+        namespaces_.push_back(ns);
         for (;;) {
-          name_space_.push_back(attribute_);
+          ns->components.push_back(attribute_);
           Expect(kTokenIdentifier);
           if (!IsNext('.')) break;
         }
@@ -832,6 +931,8 @@ bool Parser::Parse(const char *source) {
         file_extension_ = attribute_;
         Expect(kTokenStringConstant);
         Expect(';');
+      } else if(token_ == kTokenInclude) {
+        Error("includes must come before declarations");
       } else {
         ParseDecl();
       }
