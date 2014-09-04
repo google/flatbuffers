@@ -457,10 +457,6 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
                             || struct_def.fields.vec[fieldn] != field)) {
        Error("struct field appearing out of order: " + name);
     }
-    for (auto it = field_stack_.rbegin();
-             it != field_stack_.rbegin() + fieldn; ++it) {
-      if (it->second == field) Error("field already set: " + name);
-    }
     Expect(':');
     Value val = field->value;
     ParseAnyValue(val, field);
@@ -468,6 +464,16 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
     fieldn++;
     if (IsNext('}')) break;
     Expect(',');
+  }
+  for (auto it = field_stack_.rbegin();
+           it != field_stack_.rbegin() + fieldn; ++it) {
+    if (it->second->used)
+      Error("field set more than once: " + it->second->name);
+    it->second->used = true;
+  }
+  for (auto it = field_stack_.rbegin();
+           it != field_stack_.rbegin() + fieldn; ++it) {
+    it->second->used = false;
   }
   if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
     Error("incomplete struct initialization: " + struct_def.name);
