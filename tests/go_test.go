@@ -429,7 +429,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	b = flatbuffers.NewBuilder(0)
 	check([]byte{})
-	b.StartVector(flatbuffers.SizeByte, 1)
+	b.StartVector(flatbuffers.SizeByte, 1, 1)
 	check([]byte{0, 0, 0}) // align to 4bytes
 	b.PrependByte(1)
 	check([]byte{1, 0, 0, 0})
@@ -439,7 +439,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	// test 3: 2xbyte vector
 
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeByte, 2)
+	b.StartVector(flatbuffers.SizeByte, 2, 1)
 	check([]byte{0, 0}) // align to 4bytes
 	b.PrependByte(1)
 	check([]byte{1, 0, 0})
@@ -451,7 +451,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	// test 4: 1xuint16 vector
 
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeUint16, 1)
+	b.StartVector(flatbuffers.SizeUint16, 1, 1)
 	check([]byte{0, 0}) // align to 4bytes
 	b.PrependUint16(1)
 	check([]byte{1, 0, 0, 0})
@@ -461,7 +461,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	// test 5: 2xuint16 vector
 
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeUint16, 2)
+	b.StartVector(flatbuffers.SizeUint16, 2, 1)
 	check([]byte{}) // align to 4bytes
 	b.PrependUint16(0xABCD)
 	check([]byte{0xCD, 0xAB})
@@ -565,7 +565,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	// test 12: vtable with empty vector
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeByte, 0)
+	b.StartVector(flatbuffers.SizeByte, 0, 1)
 	vecend := b.EndVector(0)
 	b.StartObject(1)
 	b.PrependUOffsetTSlot(0, vecend, 0)
@@ -581,7 +581,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	// test 12b: vtable with empty vector of byte and some scalars
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeByte, 0)
+	b.StartVector(flatbuffers.SizeByte, 0, 1)
 	vecend = b.EndVector(0)
 	b.StartObject(2)
 	b.PrependInt16Slot(0, 55, 0)
@@ -601,7 +601,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	// test 13: vtable with 1 int16 and 2-vector of int16
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeInt16, 2)
+	b.StartVector(flatbuffers.SizeInt16, 2, 1)
 	b.PrependInt16(0x1234)
 	b.PrependInt16(0x5678)
 	vecend = b.EndVector(2)
@@ -649,7 +649,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	// test 15: vtable with 1 vector of 2 struct of 2 int8
 	b = flatbuffers.NewBuilder(0)
-	b.StartVector(flatbuffers.SizeInt8*2, 2)
+	b.StartVector(flatbuffers.SizeInt8*2, 2, 1)
 	b.PrependInt8(33)
 	b.PrependInt8(44)
 	b.PrependInt8(55)
@@ -824,7 +824,7 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 	b := flatbuffers.NewBuilder(0)
 	str := b.CreateString("MyMonster")
 
-	b.StartVector(1, 5)
+	b.StartVector(1, 5, 1)
 	b.PrependByte(4)
 	b.PrependByte(3)
 	b.PrependByte(2)
@@ -837,7 +837,7 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 	mon2 := b.EndObject()
 
 	// Test4Vector
-	b.StartVector(4, 2)
+	b.StartVector(4, 2, 1)
 
 	// Test 0
 	b.Prep(2, 4)
