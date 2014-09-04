@@ -154,7 +154,8 @@ static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
   }
 }
 
-static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
+static void GenStruct(const Parser &parser, StructDef &struct_def,
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -177,12 +178,21 @@ static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "_bb.order(ByteOrder.LITTLE_ENDIAN); ";
     code += "return (new " + struct_def.name;
     code += "()).__init(_bb.getInt(offset) + offset, _bb); }\n";
+    if (parser.root_struct_def == &struct_def) {
+      if (parser.file_identifier_.length()) {
+        // Check if a buffer has the identifier.
+        code += "  public static boolean " + struct_def.name;
+        code += "BufferHasIdentifier(ByteBuffer _bb, int offset) { return ";
+        code += "__has_identifier(_bb, offset, \"" + parser.file_identifier_;
+        code += "\"); }\n";
+      }
+    }
   }
   // Generate the __init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   code += "  public " + struct_def.name;
   code += " __init(int _i, ByteBuffer _bb) ";
-  code += "{ bb_pos = _i; bb = _bb; return this; }\n";
+  code += "{ bb_pos = _i; bb = _bb; return this; }\n\n";
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -321,6 +331,14 @@ static void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
     code += "  public static int end" + struct_def.name;
     code += "(FlatBufferBuilder builder) { return builder.endObject(); }\n";
+    if (parser.root_struct_def == &struct_def) {
+      code += "  public static void finish" + struct_def.name;
+      code += "Buffer(FlatBufferBuilder builder, int offset) { ";
+      code += "builder.finish(offset";
+      if (parser.file_identifier_.length())
+        code += ", \"" + parser.file_identifier_ + "\"";
+      code += "); }\n";
+    }
   }
   code += "};\n\n";
 }
@@ -375,7 +393,7 @@ bool GenerateJava(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(**it, &declcode);
+    GenStruct(parser, **it, &declcode);
     if (!SaveClass(parser, **it, declcode, path, true))
       return false;
   }

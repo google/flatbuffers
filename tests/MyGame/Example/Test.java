@@ -9,6 +9,7 @@ import flatbuffers.*;
 
 public class Test extends Struct {
   public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+
   public short a() { return bb.getShort(bb_pos + 0); }
   public byte b() { return bb.get(bb_pos + 2); }
 

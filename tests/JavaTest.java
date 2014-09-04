@@ -85,7 +85,7 @@ class JavaTest {
         Monster.addTestarrayofstring(fbb, testArrayOfString);
         int mon = Monster.endMonster(fbb);
 
-        fbb.finish(mon);
+        Monster.finishMonsterBuffer(fbb, mon);
 
         // Write the result to a file for debugging purposes:
         // Note that the binaries are not necessarily identical, since the JSON
@@ -113,6 +113,8 @@ class JavaTest {
     }
 
     static void TestBuffer(ByteBuffer bb, int start) {
+        TestEq(Monster.MonsterBufferHasIdentifier(bb, start), true);
+
         Monster monster = Monster.getRootAsMonster(bb, start);
 
         TestEq(monster.hp(), (short)80);

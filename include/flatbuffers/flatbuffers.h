@@ -665,8 +665,8 @@ template<typename T> const T *GetRoot(const void *buf) {
 
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
-  return strncmp(reinterpret_cast<const char *>(buf) + 4, identifier,
-                 FlatBufferBuilder::kFileIdentifierLength) == 0;
+  return strncmp(reinterpret_cast<const char *>(buf) + sizeof(uoffset_t),
+                 identifier, FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 
 // Helper class to verify the integrity of a FlatBuffer

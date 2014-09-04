@@ -21,11 +21,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 // All tables in the generated code derive from this class, and add their own accessors.
-public class Table {
+public class Table extends Constants {
   protected int bb_pos;
   protected ByteBuffer bb;
-
-  final int SIZEOF_INT = 4;
 
   // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
   // present.
@@ -74,5 +72,15 @@ public class Table {
     t.bb_pos = offset + bb.getInt(offset);
     t.bb = bb;
     return t;
+  }
+
+  protected static boolean __has_identifier(ByteBuffer bb, int offset, String ident) {
+    if (ident.length() != FILE_IDENTIFIER_LENGTH)
+        throw new AssertionError("FlatBuffers: file identifier must be length " +
+                                 FILE_IDENTIFIER_LENGTH);
+    for (int i = 0; i < FILE_IDENTIFIER_LENGTH; i++) {
+      if (ident.charAt(i) != (char)bb.get(offset + SIZEOF_INT + i)) return false;
+    }
+    return true;
   }
 }

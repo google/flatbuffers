@@ -914,7 +914,8 @@ bool Parser::Parse(const char *source, const char *filepath) {
         if (builder_.GetSize()) {
           Error("cannot have more than one json object in a file");
         }
-        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def)));
+        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def)),
+          file_identifier_.length() ? file_identifier_.c_str() : nullptr);
       } else if (token_ == kTokenEnum) {
         ParseEnum(false);
       } else if (token_ == kTokenUnion) {
