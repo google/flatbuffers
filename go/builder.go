@@ -231,9 +231,10 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 // A vector has the following format:
 //   <UOffsetT: number of elements in this vector>
 //   <T: data>+, where T is the type of elements of this vector.
-func (b *Builder) StartVector(elemSize, numElems int) UOffsetT {
+func (b *Builder) StartVector(elemSize, numElems, alignment int) UOffsetT {
 	b.notNested()
 	b.Prep(SizeUint32, elemSize*numElems)
+	b.Prep(alignment, elemSize*numElems) // Just in case alignment > int.
 	return b.Offset()
 }
 

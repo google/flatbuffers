@@ -426,8 +426,12 @@ static void BuildVectorOfTable(const StructDef &struct_def,
   code += MakeCamel(field.name);
   code += "Vector(builder *flatbuffers.Builder, numElems int) ";
   code += "flatbuffers.UOffsetT { return builder.StartVector(";
-  code += NumToString(InlineSize(field.value.type.VectorType()));
-  code += ", numElems) }\n";
+  auto vector_type = field.value.type.VectorType();
+  auto alignment = InlineAlignment(vector_type);
+  auto elem_size = InlineSize(vector_type);
+  code += NumToString(elem_size);
+  code += ", numElems, " + NumToString(alignment);
+  code += ")\n}\n";
 }
 
 // Get the offset of the end of a table.
