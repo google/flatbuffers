@@ -63,7 +63,9 @@ Vec3 pos = monster.pos();
 <p>Sadly the string accessors currently always create a new string when accessed, since FlatBuffer's UTF-8 strings can't be read in-place by Java.</p>
 <p>Vector access is also a bit different from C++: you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access: </p><pre class="fragment">for (int i = 0; i &lt; monster.inventoryLength(); i++)
     monster.inventory(i); // do something here
-</pre><p>You can also construct these buffers in Java using the static methods found in the generated code, and the FlatBufferBuilder class: </p><pre class="fragment">FlatBufferBuilder fbb = new FlatBufferBuilder();
+</pre><p>If you specified a file_indentifier in the schema, you can query if the buffer is of the desired type before accessing it using: </p><pre class="fragment">if (Monster.MonsterBufferHasIdentifier(bb, start)) ...
+</pre><h2>Buffer construction in Java</h2>
+<p>You can also construct these buffers in Java using the static methods found in the generated code, and the FlatBufferBuilder class: </p><pre class="fragment">FlatBufferBuilder fbb = new FlatBufferBuilder();
 </pre><p>Create strings: </p><pre class="fragment">int str = fbb.createString("MyMonster");
 </pre><p>Create a table with a struct contained therein: </p><pre class="fragment">Monster.startMonster(fbb);
 Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0, (byte)4, (short)5, (byte)6));
@@ -83,6 +85,8 @@ for (byte i = 4; i &gt;=0; i--) fbb.addByte(i);
 int inv = fbb.endVector();
 </pre><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. You write the elements backwards since the buffer is being constructed back to front.</p>
 <p>There are <code>add</code> functions for all the scalar types. You use <code>addOffset</code> for any previously constructed objects (such as other tables, strings, vectors). For structs, you use the appropriate <code>create</code> function in-line, as shown above in the <code>Monster</code> example.</p>
+<p>To finish the buffer, call: </p><pre class="fragment">Monster.finishMonsterBuffer(fbb, mon);
+</pre><p>The buffer is now ready to be transmitted. It is contained in the <code>ByteBuffer</code> which you can obtain from <code>fbb.dataBuffer()</code>. Importantly, the valid data does not start from offset 0 in this buffer, but from <code>fbb.dataStart()</code> (this is because the data was built backwards in memory). It ends at <code>fbb,capacity()</code>.</p>
 <h2>Text Parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Java, though you could use the C++ parser through JNI. Please see the C++ documentation for more on text parsing. </p>
 </div></div><!-- contents -->
