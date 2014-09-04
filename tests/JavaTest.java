@@ -79,7 +79,7 @@ class JavaTest {
         Monster.addHp(fbb, (short)80);
         Monster.addName(fbb, str);
         Monster.addInventory(fbb, inv);
-        Monster.addTestType(fbb, (byte)1);
+        Monster.addTestType(fbb, (byte)Any.Monster);
         Monster.addTest(fbb, mon2);
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
