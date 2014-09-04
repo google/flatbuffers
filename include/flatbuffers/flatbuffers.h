@@ -247,12 +247,15 @@ public:
   typedef VectorIterator<T, false> iterator;
   typedef VectorIterator<T, true> const_iterator;
 
-  uoffset_t Length() const { return EndianScalar(length_); }
+  uoffset_t size() const { return EndianScalar(length_); }
+
+  // Deprecated: use size(). Here for backwards compatibility.
+  uoffset_t Length() const { return size(); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
 
   return_type Get(uoffset_t i) const {
-    assert(i < Length());
+    assert(i < size());
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -727,7 +730,7 @@ class Verifier {
   // Special case for string contents, after the above has been called.
   bool VerifyVectorOfStrings(const Vector<Offset<String>> *vec) const {
       if (vec) {
-        for (uoffset_t i = 0; i < vec->Length(); i++) {
+        for (uoffset_t i = 0; i < vec->size(); i++) {
           if (!Verify(vec->Get(i))) return false;
         }
       }
@@ -737,7 +740,7 @@ class Verifier {
   // Special case for table contents, after the above has been called.
   template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
-      for (uoffset_t i = 0; i < vec->Length(); i++) {
+      for (uoffset_t i = 0; i < vec->size(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
       }
     }
