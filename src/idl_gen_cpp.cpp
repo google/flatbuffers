@@ -459,7 +459,7 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 std::string GenerateCPP(const Parser &parser,
-                        const std::string &include_guard_ident,
+                        const std::string &file_name,
                         const GeneratorOptions &opts) {
   using namespace cpp;
 
@@ -522,8 +522,16 @@ std::string GenerateCPP(const Parser &parser,
            " do not modify\n\n";
 
     // Generate include guard.
+    std::string include_guard_ident = file_name;
+    // Remove any non-alpha-numeric characters that may appear in a filename.
+    include_guard_ident.erase(
+      std::remove_if(include_guard_ident.begin(),
+                     include_guard_ident.end(),
+                     [](char c) { return !isalnum(c); }),
+      include_guard_ident.end());
     std::string include_guard = "FLATBUFFERS_GENERATED_" + include_guard_ident;
     include_guard += "_";
+    // For further uniqueness, also add the namespace.
     auto name_space = parser.namespaces_.back();
     for (auto it = name_space->components.begin();
              it != name_space->components.end(); ++it) {
