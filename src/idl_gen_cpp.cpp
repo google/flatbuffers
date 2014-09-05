@@ -165,7 +165,7 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     // verifier function to call, this should be safe even if the union type
     // has been corrupted, since the verifiers will simply fail when called
     // on the wrong type.
-    auto signature = "bool Verify" + enum_def.name +
+    auto signature = "inline bool Verify" + enum_def.name +
                      "(flatbuffers::Verifier &verifier, " +
                      "const void *union_obj, uint8_t type)";
     code += signature + ";\n\n";
