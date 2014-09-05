@@ -235,7 +235,8 @@ struct EnumDef : public Definition {
   EnumDef() : is_union(false) {}
 
   EnumVal *ReverseLookup(int enum_idx) {
-    for (auto it = vals.vec.begin() + 1; it != vals.vec.end(); ++it) {
+    for (auto it = vals.vec.begin() + static_cast<int>(is_union);
+             it != vals.vec.end(); ++it) {
       if ((*it)->value == enum_idx) {
         return *it;
       }
