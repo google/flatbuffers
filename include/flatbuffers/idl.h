@@ -19,6 +19,7 @@
 
 #include <map>
 #include <memory>
+#include <functional>
 
 #include "flatbuffers/flatbuffers.h"
 
@@ -175,11 +176,12 @@ struct Definition {
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), padding(0) {}
+  FieldDef() : deprecated(false), padding(0), used(false) {}
 
   Value value;
   bool deprecated;
-  size_t padding;  // bytes to always pad after this field
+  size_t padding;  // Bytes to always pad after this field.
+  bool used;       // Used during JSON parsing to check for repeated fields.
 };
 
 struct StructDef : public Definition {
@@ -233,7 +235,8 @@ struct EnumDef : public Definition {
   EnumDef() : is_union(false) {}
 
   EnumVal *ReverseLookup(int enum_idx) {
-    for (auto it = vals.vec.begin() + 1; it != vals.vec.end(); ++it) {
+    for (auto it = vals.vec.begin() + static_cast<int>(is_union);
+             it != vals.vec.end(); ++it) {
       if ((*it)->value == enum_idx) {
         return *it;
       }

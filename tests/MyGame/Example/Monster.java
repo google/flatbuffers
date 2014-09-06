@@ -9,7 +9,9 @@ import flatbuffers.*;
 
 public class Monster extends Table {
   public static Monster getRootAsMonster(ByteBuffer _bb, int offset) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (new Monster()).__init(_bb.getInt(offset) + offset, _bb); }
+  public static boolean MonsterBufferHasIdentifier(ByteBuffer _bb, int offset) { return __has_identifier(_bb, offset, "MONS"); }
   public Monster __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+
   public Vec3 pos() { return pos(new Vec3()); }
   public Vec3 pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
   public short mana() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) : 150; }
@@ -57,5 +59,6 @@ public class Monster extends Table {
   public static void startTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.addOffset(14, testemptyOffset, 0); }
   public static int endMonster(FlatBufferBuilder builder) { return builder.endObject(); }
+  public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
 };
 

@@ -70,7 +70,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
   std::string &text = *_text;
   text += "[";
   text += NewLine(opts);
-  for (uoffset_t i = 0; i < v.Length(); i++) {
+  for (uoffset_t i = 0; i < v.size(); i++) {
     if (i) {
       text += ",";
       text += NewLine(opts);
@@ -91,7 +91,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
 static void EscapeString(const String &s, std::string *_text) {
   std::string &text = *_text;
   text += "\"";
-  for (uoffset_t i = 0; i < s.Length(); i++) {
+  for (uoffset_t i = 0; i < s.size(); i++) {
     char c = s.Get(i);
     switch (c) {
       case '\n': text += "\\n"; break;

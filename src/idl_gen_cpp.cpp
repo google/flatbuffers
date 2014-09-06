@@ -165,7 +165,7 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     // verifier function to call, this should be safe even if the union type
     // has been corrupted, since the verifiers will simply fail when called
     // on the wrong type.
-    auto signature = "bool Verify" + enum_def.name +
+    auto signature = "inline bool Verify" + enum_def.name +
                      "(flatbuffers::Verifier &verifier, " +
                      "const void *union_obj, uint8_t type)";
     code += signature + ";\n\n";
@@ -347,6 +347,15 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   code += "  return builder_.Finish();\n}\n\n";
 }
 
+static void GenPadding(const FieldDef &field, const std::function<void (int bits)> &f) {
+  if (field.padding) {
+    for (int i = 0; i < 4; i++)
+      if (static_cast<int>(field.padding) & (1 << i))
+        f((1 << i) * 8);
+    assert(!(field.padding & ~0xF));
+  }
+}
+
 // Generate an accessor struct with constructor for a flatbuffers struct.
 static void GenStruct(const Parser &parser, StructDef &struct_def,
                       std::string *code_ptr) {
@@ -368,13 +377,10 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     auto &field = **it;
     code += "  " + GenTypeGet(parser, field.value.type, " ", "", " ");
     code += field.name + "_;\n";
-    if (field.padding) {
-      for (int i = 0; i < 4; i++)
-        if (static_cast<int>(field.padding) & (1 << i))
-          code += "  int" + NumToString((1 << i) * 8) +
-                  "_t __padding" + NumToString(padding_id++) + ";\n";
-      assert(!(field.padding & ~0xF));
-    }
+    GenPadding(field, [&code, &padding_id](int bits) {
+      code += "  int" + NumToString(bits) +
+              "_t __padding" + NumToString(padding_id++) + ";\n";
+    });
   }
 
   // Generate a constructor that takes all fields as arguments.
@@ -399,8 +405,10 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       code += "flatbuffers::EndianScalar(" + field.name + "))";
     else
       code += field.name + ")";
-    if (field.padding)
+    GenPadding(field, [&code, &padding_id](int bits) {
+      (void)bits;
       code += ", __padding" + NumToString(padding_id++) + "(0)";
+    });
   }
   code += " {";
   padding_id = 0;
@@ -408,8 +416,10 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
        it != struct_def.fields.vec.end();
        ++it) {
     auto &field = **it;
-    if (field.padding)
+    GenPadding(field, [&code, &padding_id](int bits) {
+      (void)bits;
       code += " (void)__padding" + NumToString(padding_id++) + ";";
+    });
   }
   code += " }\n\n";
 
@@ -449,7 +459,7 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 std::string GenerateCPP(const Parser &parser,
-                        const std::string &include_guard_ident,
+                        const std::string &file_name,
                         const GeneratorOptions &opts) {
   using namespace cpp;
 
@@ -512,8 +522,16 @@ std::string GenerateCPP(const Parser &parser,
            " do not modify\n\n";
 
     // Generate include guard.
+    std::string include_guard_ident = file_name;
+    // Remove any non-alpha-numeric characters that may appear in a filename.
+    include_guard_ident.erase(
+      std::remove_if(include_guard_ident.begin(),
+                     include_guard_ident.end(),
+                     [](char c) { return !isalnum(c); }),
+      include_guard_ident.end());
     std::string include_guard = "FLATBUFFERS_GENERATED_" + include_guard_ident;
     include_guard += "_";
+    // For further uniqueness, also add the namespace.
     auto name_space = parser.namespaces_.back();
     for (auto it = name_space->components.begin();
              it != name_space->components.end(); ++it) {

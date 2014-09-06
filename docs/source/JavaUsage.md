@@ -38,6 +38,14 @@ suffixed by `Length` let's you know the number of elements you can access:
     for (int i = 0; i < monster.inventoryLength(); i++)
         monster.inventory(i); // do something here
 
+If you specified a file_indentifier in the schema, you can query if the
+buffer is of the desired type before accessing it using:
+
+    if (Monster.MonsterBufferHasIdentifier(bb, start)) ...
+
+
+## Buffer construction in Java
+
 You can also construct these buffers in Java using the static methods found
 in the generated code, and the FlatBufferBuilder class:
 
@@ -90,6 +98,16 @@ There are `add` functions for all the scalar types. You use `addOffset` for
 any previously constructed objects (such as other tables, strings, vectors).
 For structs, you use the appropriate `create` function in-line, as shown
 above in the `Monster` example.
+
+To finish the buffer, call:
+
+    Monster.finishMonsterBuffer(fbb, mon);
+
+The buffer is now ready to be transmitted. It is contained in the `ByteBuffer`
+which you can obtain from `fbb.dataBuffer()`. Importantly, the valid data does
+not start from offset 0 in this buffer, but from `fbb.dataStart()` (this is
+because the data was built backwards in memory). It ends at `fbb,capacity()`.
+
 
 ## Text Parsing
 

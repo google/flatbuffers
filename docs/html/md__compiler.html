@@ -64,7 +64,8 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>-b</code> : If data is contained in this file, generate a <code>filename.bin</code> containing the binary flatbuffer.</li>
 <li><code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
-<li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated. </li>
+<li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated.</li>
+<li><code>-P</code> : Don't prefix enum values in generated C++ by their enum type. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

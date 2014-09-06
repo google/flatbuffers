@@ -364,6 +364,8 @@ void Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     Next();
+    if (!IsScalar(type.base_type))
+      Error("default values currently only supported for scalars");
     ParseSingleValue(field.value);
   }
 
@@ -462,6 +464,16 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
     fieldn++;
     if (IsNext('}')) break;
     Expect(',');
+  }
+  for (auto it = field_stack_.rbegin();
+           it != field_stack_.rbegin() + fieldn; ++it) {
+    if (it->second->used)
+      Error("field set more than once: " + it->second->name);
+    it->second->used = true;
+  }
+  for (auto it = field_stack_.rbegin();
+           it != field_stack_.rbegin() + fieldn; ++it) {
+    it->second->used = false;
   }
   if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
     Error("incomplete struct initialization: " + struct_def.name);
@@ -902,7 +914,8 @@ bool Parser::Parse(const char *source, const char *filepath) {
         if (builder_.GetSize()) {
           Error("cannot have more than one json object in a file");
         }
-        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def)));
+        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def)),
+          file_identifier_.length() ? file_identifier_.c_str() : nullptr);
       } else if (token_ == kTokenEnum) {
         ParseEnum(false);
       } else if (token_ == kTokenUnion) {

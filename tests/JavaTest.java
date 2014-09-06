@@ -79,13 +79,13 @@ class JavaTest {
         Monster.addHp(fbb, (short)80);
         Monster.addName(fbb, str);
         Monster.addInventory(fbb, inv);
-        Monster.addTestType(fbb, (byte)1);
+        Monster.addTestType(fbb, (byte)Any.Monster);
         Monster.addTest(fbb, mon2);
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
         int mon = Monster.endMonster(fbb);
 
-        fbb.finish(mon);
+        Monster.finishMonsterBuffer(fbb, mon);
 
         // Write the result to a file for debugging purposes:
         // Note that the binaries are not necessarily identical, since the JSON
@@ -103,13 +103,18 @@ class JavaTest {
         }
 
         // Test it:
-
         TestBuffer(fbb.dataBuffer(), fbb.dataStart());
+
+        // Make sure it also works with read only ByteBuffers. This is slower, since
+        // creating strings incurs an additional copy (see Table.__string).
+        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer(), fbb.dataStart());
 
         System.out.println("FlatBuffers test: completed successfully");
     }
 
     static void TestBuffer(ByteBuffer bb, int start) {
+        TestEq(Monster.MonsterBufferHasIdentifier(bb, start), true);
+
         Monster monster = Monster.getRootAsMonster(bb, start);
 
         TestEq(monster.hp(), (short)80);
