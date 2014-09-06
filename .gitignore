@@ -35,3 +35,6 @@ flatsampletext
 snapshot.sh
 tests/go_gen
 CMakeLists.txt.user
+CMakeScripts/**
+build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
+build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**

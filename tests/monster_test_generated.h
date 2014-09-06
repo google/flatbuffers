@@ -6,7 +6,17 @@
 #include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
+namespace OtherNameSpace {
+struct Unused;
+}  // namespace OtherNameSpace
+}  // namespace MyGame
+
+namespace MyGame {
 namespace Example {
+
+struct Test;
+struct Vec3;
+struct Monster;
 
 enum {
   Color_Red = 1,
@@ -33,11 +43,7 @@ inline const char **EnumNamesAny() {
 
 inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
 
-bool VerifyAny(const flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type);
-
-struct Test;
-struct Vec3;
-struct Monster;
+bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type);
 
 MANUALLY_ALIGNED_STRUCT(2) Test {
  private:
@@ -47,7 +53,7 @@ MANUALLY_ALIGNED_STRUCT(2) Test {
 
  public:
   Test(int16_t a, int8_t b)
-    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) {}
+    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) { (void)__padding0; }
 
   int16_t a() const { return flatbuffers::EndianScalar(a_); }
   int8_t b() const { return flatbuffers::EndianScalar(b_); }
@@ -68,7 +74,7 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 {
 
  public:
   Vec3(float x, float y, float z, double test1, int8_t test2, const Test &test3)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(test2)), __padding1(0), test3_(test3), __padding2(0) {}
+    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(test2)), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
   float y() const { return flatbuffers::EndianScalar(y_); }
@@ -96,8 +102,8 @@ struct Monster : private flatbuffers::Table {
   const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(30); }
   const Monster *testnestedflatbuffer_nested_root() { return flatbuffers::GetRoot<Monster>(testnestedflatbuffer()->Data()); }
   const Monster *testempty() const { return GetPointer<const Monster *>(32); }
-  bool Verify(const flatbuffers::Verifier &verifier) const {
-    return VerifyTable(verifier) &&
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
            VerifyField<int16_t>(verifier, 6 /* mana */) &&
            VerifyField<int16_t>(verifier, 8 /* hp */) &&
@@ -122,7 +128,8 @@ struct Monster : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, 30 /* testnestedflatbuffer */) &&
            verifier.Verify(testnestedflatbuffer()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 32 /* testempty */) &&
-           verifier.VerifyTable(testempty());
+           verifier.VerifyTable(testempty()) &&
+           verifier.EndTable();
   }
 };
 
@@ -181,7 +188,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-bool VerifyAny(const flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type) {
+bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type) {
   switch (type) {
     case Any_NONE: return true;
     case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));
@@ -191,7 +198,7 @@ bool VerifyAny(const flatbuffers::Verifier &verifier, const void *union_obj, uin
 
 inline const Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<Monster>(buf); }
 
-inline bool VerifyMonsterBuffer(const flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Monster>(); }
+inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Monster>(); }
 
 inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Monster> root) { fbb.Finish(root, "MONS"); }
 

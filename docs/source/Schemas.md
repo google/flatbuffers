@@ -141,6 +141,20 @@ These will generate the corresponding namespace in C++ for all helper
 code, and packages in Java. You can use `.` to specify nested namespaces /
 packages.
 
+### Includes
+
+You can include other schemas files in your current one, e.g.:
+
+    include "mydefinitions.fbs"
+    
+This makes it easier to refer to types defined elsewhere. `include`
+automatically ensures each file is parsed just once, even when referred to
+more than once.
+
+When using the `flatc` compiler to generate code for schema definitions,
+only definitions in the current file will be generated, not those from the
+included files (those you still generate separately).
+
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
@@ -253,6 +267,26 @@ JSON:
     representing flags, you may place multiple inside a string
     separated by spaces to OR them, e.g.
     `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
+
+When parsing JSON, it recognizes the following escape codes in strings:
+
+-   `\n` - linefeed.
+-   `\t` - tab.
+-   `\r` - carriage return.
+-   `\b` - backspace.
+-   `\f` - form feed.
+-   `\"` - double quote.
+-   `\\` - backslash.
+-   `\/` - forward slash.
+-   `\uXXXX` - 16-bit unicode code point, converted to the equivalent UTF-8
+    representation.
+-   `\xXX` - 8-bit binary hexadecimal number XX. This is the only one that is
+     not in the JSON spec (see http://json.org/), but is needed to be able to
+     encode arbitrary binary in strings to text and back without losing
+     information (e.g. the byte 0xFF can't be represented in standard JSON).
+
+It also generates these escape codes back again when generating JSON from a
+binary representation.
 
 ## Gotchas
 

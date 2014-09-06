@@ -188,6 +188,11 @@ a full traversal (since any scalar data is not actually touched),
 and since it may cause the buffer to be brought into cache before
 reading, the actual overhead may be even lower than expected.
 
+In specialized cases where a denial of service attack is possible,
+the verifier has two additional constructor arguments that allow
+you to limit the nesting depth and total amount of tables the
+verifier may encounter before declaring the buffer malformed.
+
 ## Text & schema parsing
 
 Using binary buffers with the generated header provides a super low
