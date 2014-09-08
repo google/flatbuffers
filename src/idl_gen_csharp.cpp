@@ -152,9 +152,8 @@ static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
   }
 }
 
-static void GenStruct(StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+static void GenStruct(const Parser &parser, StructDef &struct_def,
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -168,21 +167,30 @@ static void GenStruct(StructDef &struct_def,
   code += "public class " + struct_def.name + " : ";
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
-  if (&struct_def == root_struct_def) {
-    // Generate a special accessor for the table that has been declared as
-    // the root type.
+  if (!struct_def.fixed) {
+    // Generate a special accessor for the table that when used as the root
+    // of a FlatBuffer
     code += "  public static " + struct_def.name + " GetRootAs";
     code += struct_def.name;
     code += "(ByteBuffer _bb, int offset) { ";
 	// Endian handled by .NET ByteBuffer impl
     code += "return (new " + struct_def.name;
     code += "()).__init(_bb.GetInt(offset) + offset, _bb); }\n";
+	if (parser.root_struct_def == &struct_def) {
+      if (parser.file_identifier_.length()) {
+        // Check if a buffer has the identifier.
+        code += "  public static bool " + struct_def.name;
+        code += "BufferHasIdentifier(ByteBuffer _bb, int offset) { return ";
+        code += "__has_identifier(_bb, offset, \"" + parser.file_identifier_;
+        code += "\"); }\n";
+      }
+    }
   }
   // Generate the __init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   code += "  public " + struct_def.name;
   code += " __init(int _i, ByteBuffer _bb) ";
-  code += "{ bb_pos = _i; bb = _bb; return this; }\n";
+  code += "{ bb_pos = _i; bb = _bb; return this; }\n\n";
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -313,16 +321,24 @@ static void GenStruct(StructDef &struct_def,
         code += "  public static void Start" + MakeCamel(field.name);
         code += "Vector(FlatBufferBuilder builder, int numElems) ";
         code += "{ builder.StartVector(";
-		auto vector_type = field.value.type.VectorType(); 
-		auto alignment = InlineAlignment(vector_type); 
-		auto elem_size = InlineSize(vector_type); 
-		code += NumToString(elem_size); 
-		code += ", numElems, " + NumToString(alignment); 
-		code += "); }\n"; 
+		auto vector_type = field.value.type.VectorType();
+		auto alignment = InlineAlignment(vector_type);
+		auto elem_size = InlineSize(vector_type);
+		code += NumToString(elem_size);
+		code += ", numElems, " + NumToString(alignment);
+		code += "); }\n";
       }
     }
     code += "  public static int End" + struct_def.name;
     code += "(FlatBufferBuilder builder) { return builder.EndObject(); }\n";
+    if (parser.root_struct_def == &struct_def) {
+      code += "  public static void Finish" + struct_def.name;
+      code += "Buffer(FlatBufferBuilder builder, int offset) { ";
+      code += "builder.Finish(offset";
+      if (parser.file_identifier_.length())
+        code += ", \"" + parser.file_identifier_ + "\"";
+      code += "); }\n";
+    }
   }
   code += "};\n\n";
 }
@@ -375,7 +391,7 @@ bool GenerateCSharp(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(**it, &declcode, parser.root_struct_def);
+    GenStruct(parser, **it, &declcode);
     if (!SaveClass(parser, **it, declcode, path))
       return false;
   }

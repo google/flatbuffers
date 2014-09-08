@@ -284,10 +284,10 @@ namespace FlatBuffers
             return vtableloc;
         }
 
-        public void Finish(int root_table)
+        public void Finish(int rootTable)
         {
             Prep(_minAlign, sizeof(int));
-            AddOffset(root_table);
+            AddOffset(rootTable);
         }
 
         public ByteBuffer Data { get { return _bb; }}
@@ -306,6 +306,19 @@ namespace FlatBuffers
             Buffer.BlockCopy(_bb.Data, DataStart, newArray, 0, _bb.Data.Length);
             return newArray;
         }
+
+         public void Finish(int rootTable, string fileIdentifier) 
+         {
+             Prep(_minAlign, sizeof(int) + FlatBufferConstants.FileIdentifierLength);
+             if (fileIdentifier.Length != FlatBufferConstants.FileIdentifierLength)
+                 throw new ArgumentException("FlatBuffers: file identifier must be length " + FlatBufferConstants.FileIdentifierLength, "fileIdentifier");
+             for (int i = FlatBufferConstants.FileIdentifierLength - 1; i >= 0; i--)
+             { 
+                AddByte((byte)fileIdentifier[i]); 
+             } 
+            AddOffset(rootTable); 
+        } 
+
 
     }
 }

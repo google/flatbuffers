@@ -30,11 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteBuffer.cs" />
     <Compile Include="FlatBufferBuilder.cs" />
+    <Compile Include="FlatBufferConstants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Struct.cs" />
     <Compile Include="Table.cs" />

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System;
 using System.Text;
 
 namespace FlatBuffers
@@ -74,5 +75,20 @@ namespace FlatBuffers
             t.bb = bb;
             return t;
         }
+
+        protected static bool __has_identifier(ByteBuffer bb, int offset, string ident) 
+        { 
+            if (ident.Length != FlatBufferConstants.FileIdentifierLength) 
+                throw new ArgumentException("FlatBuffers: file identifier must be length " + FlatBufferConstants.FileIdentifierLength, "ident");
+
+            for (var i = 0; i < FlatBufferConstants.FileIdentifierLength; i++)
+            { 
+                if (ident[i] != (char)bb.Get(offset + sizeof(int) + i)) return false; 
+            } 
+
+            return true; 
+        } 
+
+
     }
 }

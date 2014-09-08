@@ -7,7 +7,9 @@ using FlatBuffers;
 
 public class Monster : Table {
   public static Monster GetRootAsMonster(ByteBuffer _bb, int offset) { return (new Monster()).__init(_bb.GetInt(offset) + offset, _bb); }
+  public static bool MonsterBufferHasIdentifier(ByteBuffer _bb, int offset) { return __has_identifier(_bb, offset, "MONS"); }
   public Monster __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+
   public Vec3 Pos() { return Pos(new Vec3()); }
   public Vec3 Pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
   public short Mana() { int o = __offset(6); return o != 0 ? bb.GetShort(o + bb_pos) : (short)150; }
@@ -55,6 +57,7 @@ public class Monster : Table {
   public static void StartTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.AddOffset(14, testemptyOffset, 0); }
   public static int EndMonster(FlatBufferBuilder builder) { return builder.EndObject(); }
+  public static void FinishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.Finish(offset, "MONS"); }
 };
 
 
