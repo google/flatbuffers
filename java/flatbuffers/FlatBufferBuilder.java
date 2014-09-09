@@ -40,34 +40,37 @@ public class FlatBufferBuilder extends Constants {
     public FlatBufferBuilder(int initial_size) {
         if (initial_size <= 0) initial_size = 1;
         space = initial_size;
-        bb = newByteBuffer(initial_size);
+        bb = newByteBuffer(new byte[initial_size]);
     }
 
     // Alternative constructor allowing reuse of ByteBuffers
     public FlatBufferBuilder(ByteBuffer existing_bb) {
+        if (!existing_bb.hasArray())
+            throw new AssertionError("FlatBuffers: ByteBuffer must have backing array.");
         bb = existing_bb;
         bb.clear();
         bb.order(ByteOrder.LITTLE_ENDIAN);
         space = bb.capacity();
     }
 
-    static ByteBuffer newByteBuffer(int capacity) {
-        ByteBuffer newbb = ByteBuffer.allocate(capacity);
+    ByteBuffer newByteBuffer(byte[] buf) {
+        ByteBuffer newbb = ByteBuffer.wrap(buf);
         newbb.order(ByteOrder.LITTLE_ENDIAN);
         return newbb;
     }
 
     // Doubles the size of the ByteBuffer, and copies the old data towards the
     // end of the new buffer (since we build the buffer backwards).
-    static ByteBuffer growByteBuffer(ByteBuffer bb) {
-        int old_buf_size = bb.capacity();
+    ByteBuffer growByteBuffer(ByteBuffer bb) {
+        byte[] old_buf = bb.array();
+        int old_buf_size = old_buf.length;
         if ((old_buf_size & 0xC0000000) != 0)  // Ensure we don't grow beyond what fits in an int.
             throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
         int new_buf_size = old_buf_size << 1;
-        bb.position(0);
-        ByteBuffer nbb = newByteBuffer(new_buf_size);
-        nbb.position(new_buf_size - old_buf_size);
-        nbb.put(bb);
+        byte[] new_buf = new byte[new_buf_size];
+        System.arraycopy(old_buf, 0, new_buf, new_buf_size - old_buf_size, old_buf_size);
+        ByteBuffer nbb = newByteBuffer(new_buf);
+        nbb.position(bb.position());
         return nbb;
     }
 
@@ -142,8 +145,7 @@ public class FlatBufferBuilder extends Constants {
         byte[] utf8 = s.getBytes(utf8charset);
         addByte((byte)0);
         startVector(1, utf8.length, 1);
-        bb.position(space -= utf8.length);
-        bb.put(utf8, 0, utf8.length);
+        System.arraycopy(utf8, 0, bb.array(), space -= utf8.length, utf8.length);
         return endVector();
     }
 
@@ -265,15 +267,8 @@ public class FlatBufferBuilder extends Constants {
         return space;
     }
 
-    public byte[] sizedByteArray(int start, int length){
-        byte[] array = new byte[length];
-        bb.position(start);
-        bb.get(array);
-        return array;
-    }
-    
     // Utility function for copying a byte array that starts at 0.
-    public byte[] sizedByteArray(){
-        return sizedByteArray(space, bb.capacity() - space);
+    public byte[] sizedByteArray() {
+        return Arrays.copyOfRange(bb.array(), dataStart(), bb.capacity());
     }
 }
