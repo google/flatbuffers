@@ -40,7 +40,7 @@ public class FlatBufferBuilder extends Constants {
     public FlatBufferBuilder(int initial_size) {
         if (initial_size <= 0) initial_size = 1;
         space = initial_size;
-        bb = newByteBuffer(new byte[initial_size]);
+        bb = newByteBuffer(initial_size);
     }
 
     // Alternative constructor allowing reuse of ByteBuffers
@@ -51,30 +51,29 @@ public class FlatBufferBuilder extends Constants {
         space = bb.capacity();
     }
 
-    ByteBuffer newByteBuffer(byte[] buf) {
-        ByteBuffer newbb = ByteBuffer.wrap(buf);
+    static ByteBuffer newByteBuffer(int capacity) {
+        ByteBuffer newbb = ByteBuffer.allocate(capacity);
         newbb.order(ByteOrder.LITTLE_ENDIAN);
         return newbb;
     }
 
     // Doubles the size of the ByteBuffer, and copies the old data towards the
     // end of the new buffer (since we build the buffer backwards).
-    ByteBuffer growByteBuffer(ByteBuffer bb) {
-        byte[] old_buf = bb.array();
-        int old_buf_size = old_buf.length;
+    static ByteBuffer growByteBuffer(ByteBuffer bb) {
+        int old_buf_size = bb.capacity();
         if ((old_buf_size & 0xC0000000) != 0)  // Ensure we don't grow beyond what fits in an int.
             throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
         int new_buf_size = old_buf_size << 1;
-        byte[] new_buf = new byte[new_buf_size];
-        System.arraycopy(old_buf, 0, new_buf, new_buf_size - old_buf_size, old_buf_size);
-        ByteBuffer nbb = newByteBuffer(new_buf);
-        nbb.position(bb.position());
+        bb.position(0);
+        ByteBuffer nbb = newByteBuffer(new_buf_size);
+        nbb.position(new_buf_size - old_buf_size);
+        nbb.put(bb);
         return nbb;
     }
 
     // Offset relative to the end of the buffer.
     public int offset() {
-        return bb.array().length - space;
+        return bb.capacity() - space;
     }
 
     public void pad(int byte_size) {
@@ -91,12 +90,12 @@ public class FlatBufferBuilder extends Constants {
         if (size > minalign) minalign = size;
         // Find the amount of alignment needed such that `size` is properly
         // aligned after `additional_bytes`
-        int align_size = ((~(bb.array().length - space + additional_bytes)) + 1) & (size - 1);
+        int align_size = ((~(bb.capacity() - space + additional_bytes)) + 1) & (size - 1);
         // Reallocate the buffer if needed.
         while (space < align_size + size + additional_bytes) {
-            int old_buf_size = bb.array().length;
+            int old_buf_size = bb.capacity();
             bb = growByteBuffer(bb);
-            space += bb.array().length - old_buf_size;
+            space += bb.capacity() - old_buf_size;
         }
         pad(align_size);
     }
@@ -143,7 +142,8 @@ public class FlatBufferBuilder extends Constants {
         byte[] utf8 = s.getBytes(utf8charset);
         addByte((byte)0);
         startVector(1, utf8.length, 1);
-        System.arraycopy(utf8, 0, bb.array(), space -= utf8.length, utf8.length);
+        bb.position(space -= utf8.length);
+        bb.put(utf8, 0, utf8.length);
         return endVector();
     }
 
@@ -209,7 +209,7 @@ public class FlatBufferBuilder extends Constants {
         int existing_vtable = 0;
         outer_loop:
         for (int i = 0; i < num_vtables; i++) {
-            int vt1 = bb.array().length - vtables[i];
+            int vt1 = bb.capacity() - vtables[i];
             int vt2 = space;
             short len = bb.getShort(vt1);
             if (len == bb.getShort(vt2)) {
@@ -226,7 +226,7 @@ public class FlatBufferBuilder extends Constants {
         if (existing_vtable != 0) {
             // Found a match:
             // Remove the current vtable.
-            space = bb.array().length - vtableloc;
+            space = bb.capacity() - vtableloc;
             // Point table to existing vtable.
             bb.putInt(space, existing_vtable - vtableloc);
         } else {
@@ -235,7 +235,7 @@ public class FlatBufferBuilder extends Constants {
             if (num_vtables == vtables.length) vtables = Arrays.copyOf(vtables, num_vtables * 2);
             vtables[num_vtables++] = offset();
             // Point table to current vtable.
-            bb.putInt(bb.array().length - vtableloc, offset() - vtableloc);
+            bb.putInt(bb.capacity() - vtableloc, offset() - vtableloc);
         }
 
         vtable = null;
@@ -265,8 +265,15 @@ public class FlatBufferBuilder extends Constants {
         return space;
     }
 
+    public byte[] sizedByteArray(int start, int length){
+        byte[] array = new byte[length];
+        bb.position(start);
+        bb.get(array);
+        return array;
+    }
+    
     // Utility function for copying a byte array that starts at 0.
-    public byte[] sizedByteArray() {
-        return Arrays.copyOfRange(bb.array(), dataStart(), bb.array().length);
+    public byte[] sizedByteArray(){
+        return sizedByteArray(space, bb.capacity() - space);
     }
 }
