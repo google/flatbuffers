@@ -76,6 +76,8 @@ const Generator generators[] = {
     "Generate Go files for tables/structs" },
   { flatbuffers::GenerateJava,     "j", "Java",
     "Generate Java classes for tables/structs" },
+  { flatbuffers::GenerateCSharp,   "n", "C#",
+    "Generate C# classes for tables/structs" }
 };
 
 const char *program_name = NULL;

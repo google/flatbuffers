@@ -386,6 +386,14 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &file_name,
                          const GeneratorOptions &opts);
 
+// Generate C# files from the definitions in the Parser object.
+// See idl_gen_csharp.cpp.
+extern bool GenerateCSharp(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name,
+                           const GeneratorOptions &opts);
+
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
