@@ -15,22 +15,19 @@
  */
 
 using System;
-using NUnit.Framework;
 
 namespace FlatBuffers.Test
 {
-    [TestFixture]
     public class ByteBufferTests
     {
-        [Test]
+        
         public void ByteBuffer_Length_MatchesBufferLength()
         {
             var buffer = new byte[1000];
             var uut = new ByteBuffer(buffer);
             Assert.AreEqual(buffer.Length, uut.Length);
         }
-
-        [Test]
+        
         public void ByteBuffer_PutBytePopulatesBufferAtZeroOffset()
         {
             var buffer = new byte[1];
@@ -39,16 +36,14 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual((byte)99, buffer[0]);
         }
-
-        [Test]
+        
         public void ByteBuffer_PutByteCannotPutAtOffsetPastLength()
         {
             var buffer = new byte[1];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutByte(1, 99));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutShortPopulatesBufferCorrectly()
         {
             var buffer = new byte[2];
@@ -59,34 +54,28 @@ namespace FlatBuffers.Test
             Assert.AreEqual((byte)1, buffer[0]);
             Assert.AreEqual((byte)0, buffer[1]);
         }
-
-        [Test]
+        
         public void ByteBuffer_PutShortCannotPutAtOffsetPastLength()
         {
             var buffer = new byte[2];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutShort(2, 99));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutShortChecksLength()
         {
             var buffer = new byte[1];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutShort(0, 99));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutShortChecksLengthAndOffset()
         {
             var buffer = new byte[2];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutShort(1, 99));
         }
-
-
-
-        [Test]
+        
         public void ByteBuffer_PutIntPopulatesBufferCorrectly()
         {
             var buffer = new byte[4];
@@ -99,16 +88,14 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x0B, buffer[2]);
             Assert.AreEqual(0x0A, buffer[3]);
         }
-
-        [Test]
+        
         public void ByteBuffer_PutIntCannotPutAtOffsetPastLength()
         {
             var buffer = new byte[4];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutInt(2, 0x0A0B0C0D));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutIntChecksLength()
         {
             var buffer = new byte[1];
@@ -116,17 +103,13 @@ namespace FlatBuffers.Test
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutInt(0, 0x0A0B0C0D));
         }
 
-        [Test]
         public void ByteBuffer_PutIntChecksLengthAndOffset()
         {
             var buffer = new byte[4];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutInt(2, 0x0A0B0C0D));
         }
-
-
-
-        [Test]
+        
         public void ByteBuffer_PutLongPopulatesBufferCorrectly()
         {
             var buffer = new byte[8];
@@ -143,36 +126,28 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x02, buffer[6]);
             Assert.AreEqual(0x01, buffer[7]);
         }
-
-        [Test]
+        
         public void ByteBuffer_PutLongCannotPutAtOffsetPastLength()
         {
             var buffer = new byte[8];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutLong(2, 0x010203040A0B0C0D));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutLongChecksLength()
         {
             var buffer = new byte[1];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutLong(0, 0x010203040A0B0C0D));
         }
-
-        [Test]
+        
         public void ByteBuffer_PutLongChecksLengthAndOffset()
         {
             var buffer = new byte[8];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutLong(2, 0x010203040A0B0C0D));
         }
-
-
-
-
-
-        [Test]
+        
         public void ByteBuffer_GetByteReturnsCorrectData()
         {
             var buffer = new byte[1];
@@ -180,8 +155,7 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.AreEqual((byte)99, uut.Get(0));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetByteChecksOffset()
         {
             var buffer = new byte[1];
@@ -189,8 +163,6 @@ namespace FlatBuffers.Test
             Assert.Throws<ArgumentOutOfRangeException>(()=>uut.Get(1));
         }
 
-
-        [Test]
         public void ByteBuffer_GetShortReturnsCorrectData()
         {
             var buffer = new byte[2];
@@ -199,25 +171,21 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.AreEqual(1, uut.GetShort(0));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetShortChecksOffset()
         {
             var buffer = new byte[2];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetShort(2));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetShortChecksLength()
         {
             var buffer = new byte[2];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetShort(1));
         }
-
-
-        [Test]
+        
         public void ByteBuffer_GetIntReturnsCorrectData()
         {
             var buffer = new byte[4];
@@ -228,25 +196,21 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.AreEqual(0x0A0B0C0D, uut.GetInt(0));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetIntChecksOffset()
         {
             var buffer = new byte[4];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetInt(4));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetIntChecksLength()
         {
             var buffer = new byte[2];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetInt(0));
         }
-
-
-        [Test]
+        
         public void ByteBuffer_GetLongReturnsCorrectData()
         {
             var buffer = new byte[8];
@@ -261,16 +225,14 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.AreEqual(0x010203040A0B0C0D, uut.GetLong(0));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetLongChecksOffset()
         {
             var buffer = new byte[8];
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetLong(8));
         }
-
-        [Test]
+        
         public void ByteBuffer_GetLongChecksLength()
         {
             var buffer = new byte[7];

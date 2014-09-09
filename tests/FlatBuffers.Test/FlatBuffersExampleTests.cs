@@ -16,14 +16,17 @@
 
 using System.IO;
 using MyGame.Example;
-using NUnit.Framework;
 
 namespace FlatBuffers.Test
 {
-    [TestFixture]
     public class FlatBuffersExampleTests
     {
-        [Test]
+        public void RunTests()
+        {
+            CanCreateNewFlatBufferFromScratch();
+            CanReadCppGeneratedWireFile();
+        }
+
         public void CanCreateNewFlatBufferFromScratch()
         {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
@@ -132,7 +135,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual("test2", monster.Testarrayofstring(1)); 
         }
 
-        [Test]
         public void CanReadCppGeneratedWireFile()
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.bin");
