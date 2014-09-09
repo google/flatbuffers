@@ -16,12 +16,12 @@
 
 package flatbuffers;
 
-import java.lang.String;
+import static flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 // All tables in the generated code derive from this class, and add their own accessors.
-public class Table extends Constants {
+public class Table {
   protected int bb_pos;
   protected ByteBuffer bb;
 

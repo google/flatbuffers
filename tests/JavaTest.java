@@ -105,8 +105,9 @@ class JavaTest {
         // Test it:
         TestBuffer(fbb.dataBuffer(), fbb.dataStart());
 
-        // Make sure it also works with read only ByteBuffers. This is slower, since
-        // creating strings incurs an additional copy (see Table.__string).
+        // Make sure it also works with read only ByteBuffers. This is slower,
+        // since creating strings incurs an additional copy
+        // (see Table.__string).
         TestBuffer(fbb.dataBuffer().asReadOnlyBuffer(), fbb.dataStart());
 
         System.out.println("FlatBuffers test: completed successfully");
