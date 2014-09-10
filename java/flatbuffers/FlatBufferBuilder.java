@@ -245,6 +245,7 @@ public class FlatBufferBuilder {
     public void finish(int root_table) {
         prep(minalign, SIZEOF_INT);
         addOffset(root_table);
+        bb.position(space);
     }
 
     public void finish(int root_table, String file_identifier) {
@@ -255,13 +256,20 @@ public class FlatBufferBuilder {
         for (int i = FILE_IDENTIFIER_LENGTH - 1; i >= 0; i--) {
             addByte((byte)file_identifier.charAt(i));
         }
-        addOffset(root_table);
+        finish(root_table);
     }
 
+    // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
+    // called finish(). The actual data starts at the ByteBuffer's current position,
+    // not necessarily at 0.
     public ByteBuffer dataBuffer() { return bb; }
 
-    // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer:
-    public int dataStart() {
+    // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer,
+    // but now the ByteBuffer's position is set to that location upon
+    // finish(). This method should not be needed anymore, but is left
+    // here as private for the moment to document this API change.
+    // It will be removed in the future.
+    private int dataStart() {
         return space;
     }
 
@@ -273,7 +281,7 @@ public class FlatBufferBuilder {
     }
 
     // Utility function for copying a byte array that starts at 0.
-    public byte[] sizedByteArray(){
+    public byte[] sizedByteArray() {
         return sizedByteArray(space, bb.capacity() - space);
     }
 }

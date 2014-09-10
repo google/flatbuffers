@@ -1,7 +1,7 @@
 # Use in Java
 
-FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate code
-for Java with the `-j` option to `flatc`.
+FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate
+code for Java with the `-j` option to `flatc`.
 
 See `javaTest.java` for an example. Essentially, you read a FlatBuffer binary
 file into a `byte[]`, which you then turn into a `ByteBuffer`, which you pass to
@@ -19,8 +19,8 @@ Note that whenever you access a new object like in the `pos` example above,
 a new temporary accessor object gets created. If your code is very performance
 sensitive (you iterate through a lot of objects), there's a second `pos()`
 method to which you can pass a `Vec3` object you've already created. This allows
-you to reuse it across many calls and reduce the amount of object allocation (and
-thus garbage collection) your program does.
+you to reuse it across many calls and reduce the amount of object allocation
+(and thus garbage collection) your program does.
 
 Java does not support unsigned scalars. This means that any unsigned types you
 use in your schema will actually be represented as a signed value. This means
@@ -28,8 +28,12 @@ all bits are still present, but may represent a negative value when used.
 For example, to read a `byte b` as an unsigned number, you can do:
 `(short)(b & 0xFF)`
 
-Sadly the string accessors currently always create a new string when accessed,
-since FlatBuffer's UTF-8 strings can't be read in-place by Java.
+The default string accessor (e.g. `monster.name()`) currently always create
+a new Java `String` when accessed, since FlatBuffer's UTF-8 strings can't be
+used in-place by `String`. Alternatively, use `monster.nameAsByteBuffer()`
+which returns a `ByteBuffer` referring to the UTF-8 data in the original
+`ByteBuffer`, which is much more efficient. The `ByteBuffer`'s `position`
+points to the first character, and its `limit` to just after the last.
 
 Vector access is also a bit different from C++: you pass an extra index
 to the vector field accessor. Then a second method with the same name
@@ -38,10 +42,14 @@ suffixed by `Length` let's you know the number of elements you can access:
     for (int i = 0; i < monster.inventoryLength(); i++)
         monster.inventory(i); // do something here
 
+Alternatively, much like strings, you can use `monster.inventoryAsByteBuffer()`
+to get a `ByteBuffer` referring to the whole vector. Use `ByteBuffer` methods
+like `asFloatBuffer` to get specific views if needed.
+
 If you specified a file_indentifier in the schema, you can query if the
 buffer is of the desired type before accessing it using:
 
-    if (Monster.MonsterBufferHasIdentifier(bb, start)) ...
+    if (Monster.MonsterBufferHasIdentifier(bb)) ...
 
 
 ## Buffer construction in Java
@@ -105,8 +113,9 @@ To finish the buffer, call:
 
 The buffer is now ready to be transmitted. It is contained in the `ByteBuffer`
 which you can obtain from `fbb.dataBuffer()`. Importantly, the valid data does
-not start from offset 0 in this buffer, but from `fbb.dataStart()` (this is
-because the data was built backwards in memory). It ends at `fbb,capacity()`.
+not start from offset 0 in this buffer, but from `fbb.dataBuffer().position()`
+(this is because the data was built backwards in memory).
+It ends at `fbb.capacity()`.
 
 
 ## Text Parsing

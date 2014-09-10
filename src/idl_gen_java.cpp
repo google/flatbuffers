@@ -174,16 +174,16 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     // of a FlatBuffer
     code += "  public static " + struct_def.name + " getRootAs";
     code += struct_def.name;
-    code += "(ByteBuffer _bb, int offset) { ";
+    code += "(ByteBuffer _bb) { ";
     code += "_bb.order(ByteOrder.LITTLE_ENDIAN); ";
     code += "return (new " + struct_def.name;
-    code += "()).__init(_bb.getInt(offset) + offset, _bb); }\n";
+    code += "()).__init(_bb.getInt(_bb.position()) + _bb.position(), _bb); }\n";
     if (parser.root_struct_def == &struct_def) {
       if (parser.file_identifier_.length()) {
         // Check if a buffer has the identifier.
         code += "  public static boolean " + struct_def.name;
-        code += "BufferHasIdentifier(ByteBuffer _bb, int offset) { return ";
-        code += "__has_identifier(_bb, offset, \"" + parser.file_identifier_;
+        code += "BufferHasIdentifier(ByteBuffer _bb) { return ";
+        code += "__has_identifier(_bb, \"" + parser.file_identifier_;
         code += "\"); }\n";
       }
     }
@@ -284,6 +284,15 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       code += "  public int " + MakeCamel(field.name, false) + "Length(";
       code += offset_prefix;
       code += "__vector_len(o) : 0; }\n";
+    }
+    if (field.value.type.base_type == BASE_TYPE_VECTOR ||
+        field.value.type.base_type == BASE_TYPE_STRING) {
+      code += "  public ByteBuffer " + MakeCamel(field.name, false);
+      code += "AsByteBuffer() { return __vector_as_bytebuffer(";
+      code += NumToString(field.value.offset) + ", ";
+      code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
+                          InlineSize(field.value.type.VectorType()));
+      code += "); }\n";
     }
   }
   code += "\n";

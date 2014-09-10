@@ -41,7 +41,7 @@ class JavaTest {
         // Now test it:
 
         ByteBuffer bb = ByteBuffer.wrap(data);
-        TestBuffer(bb, 0);
+        TestBuffer(bb);
 
         // Second, let's create a FlatBuffer from scratch in Java, and test it also.
         // We use an initial size of 1 to exercise the reallocation algorithm,
@@ -95,7 +95,7 @@ class JavaTest {
         try {
              DataOutputStream os = new DataOutputStream(new FileOutputStream(
                                            "monsterdata_java_wire.bin"));
-             os.write(fbb.dataBuffer().array(), fbb.dataStart(), fbb.offset());
+             os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
              os.close();
         } catch(java.io.IOException e) {
             System.out.println("FlatBuffers test: couldn't write file");
@@ -103,20 +103,20 @@ class JavaTest {
         }
 
         // Test it:
-        TestBuffer(fbb.dataBuffer(), fbb.dataStart());
+        TestBuffer(fbb.dataBuffer());
 
         // Make sure it also works with read only ByteBuffers. This is slower,
         // since creating strings incurs an additional copy
         // (see Table.__string).
-        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer(), fbb.dataStart());
+        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
         System.out.println("FlatBuffers test: completed successfully");
     }
 
-    static void TestBuffer(ByteBuffer bb, int start) {
-        TestEq(Monster.MonsterBufferHasIdentifier(bb, start), true);
+    static void TestBuffer(ByteBuffer bb) {
+        TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
 
-        Monster monster = Monster.getRootAsMonster(bb, start);
+        Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
         TestEq(monster.mana(), (short)150);  // default
@@ -143,6 +143,13 @@ class JavaTest {
         int invsum = 0;
         for (int i = 0; i < monster.inventoryLength(); i++)
             invsum += monster.inventory(i);
+        TestEq(invsum, 10);
+
+        // Alternative way of accessing a vector:
+        ByteBuffer ibb = monster.inventoryAsByteBuffer();
+        invsum = 0;
+        while (ibb.position() < ibb.limit())
+            invsum += ibb.get();
         TestEq(invsum, 10);
 
         Test test_0 = monster.test4(0);
