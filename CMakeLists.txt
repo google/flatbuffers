@@ -4,6 +4,7 @@ project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
+option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 
 set(FlatBuffers_Compiler_SRCS
   include/flatbuffers/flatbuffers.h
@@ -68,14 +69,18 @@ endif()
 include_directories(include)
 
 add_executable(flatc ${FlatBuffers_Compiler_SRCS})
-add_executable(flattests ${FlatBuffers_Tests_SRCS})
-add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
-add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+if(FLATBUFFERS_BUILD_TESTS)
+  add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+endif()
 
 install(DIRECTORY include/flatbuffers DESTINATION include)
 install(TARGETS flatc DESTINATION bin)
 
-add_test(NAME flattest
-         CONFIGURATIONS Debug
-         WORKING_DIRECTORY tests
-         COMMAND flattests)
+if(FLATBUFFERS_BUILD_TESTS)
+  add_test(NAME flattest
+           CONFIGURATIONS Debug
+           WORKING_DIRECTORY tests
+           COMMAND flattests)
+endif()
