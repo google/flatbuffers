@@ -81,10 +81,11 @@ int mon = Monster.endMonster(fbb);
 <p>It's important to understand that fields that are structs are inline (like <code>Vec3</code> above), and MUST thus be created between the start and end calls of a table. Everything else (other tables, strings, vectors) MUST be created before the start of the table they are referenced in.</p>
 <p>Structs do have convenient methods that even have arguments for nested structs.</p>
 <p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra case must thus be taken that you set the right offset on the right field.</p>
-<p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs: </p><pre class="fragment">Monster.startInventoryVector(fbb, 5);
+<p>Vectors can be created from the corresponding Java array like so: </p><pre class="fragment">int inv = Monster.createInventoryVector(fbb, new byte[] { 0, 1, 2, 3, 4 });
+</pre><p>This works for arrays of scalars and (int) offsets to strings/tables, but not structs. If you want to write structs, or what you want to write does not sit in an array, you can also use the start/end pattern: </p><pre class="fragment">Monster.startInventoryVector(fbb, 5);
 for (byte i = 4; i &gt;=0; i--) fbb.addByte(i);
 int inv = fbb.endVector();
-</pre><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. You write the elements backwards since the buffer is being constructed back to front.</p>
+</pre><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. Note how you write the elements backwards since the buffer is being constructed back to front.</p>
 <p>There are <code>add</code> functions for all the scalar types. You use <code>addOffset</code> for any previously constructed objects (such as other tables, strings, vectors). For structs, you use the appropriate <code>create</code> function in-line, as shown above in the <code>Monster</code> example.</p>
 <p>To finish the buffer, call: </p><pre class="fragment">Monster.finishMonsterBuffer(fbb, mon);
 </pre><p>The buffer is now ready to be transmitted. It is contained in the <code>ByteBuffer</code> which you can obtain from <code>fbb.dataBuffer()</code>. Importantly, the valid data does not start from offset 0 in this buffer, but from <code>fbb.dataBuffer().position()</code> (this is because the data was built backwards in memory). It ends at <code>fbb.capacity()</code>.</p>

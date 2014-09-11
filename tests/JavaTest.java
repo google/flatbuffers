@@ -52,12 +52,8 @@ class JavaTest {
         // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
-        int test1 = fbb.createString("test1");
-        int test2 = fbb.createString("test2");
 
-        Monster.startInventoryVector(fbb, 5);
-        for (byte i = 4; i >=0; i--) fbb.addByte(i);
-        int inv = fbb.endVector();
+        int inv = Monster.createInventoryVector(fbb, new byte[] { 0, 1, 2, 3, 4 });
 
         Monster.startMonster(fbb);
         Monster.addHp(fbb, (short)20);
@@ -68,10 +64,10 @@ class JavaTest {
         Test.createTest(fbb, (short)30, (byte)40);
         int test4 = fbb.endVector();
 
-        Monster.startTestarrayofstringVector(fbb, 2);
-        fbb.addOffset(test2);
-        fbb.addOffset(test1);
-        int testArrayOfString = fbb.endVector();
+        int testArrayOfString = Monster.createTestarrayofstringVector(fbb, new int[] {
+            fbb.createString("test1"),
+            fbb.createString("test2")
+        });
 
         Monster.startMonster(fbb);
         Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
@@ -93,10 +89,10 @@ class JavaTest {
         // Java code. They are functionally equivalent though.
 
         try {
-             DataOutputStream os = new DataOutputStream(new FileOutputStream(
+            DataOutputStream os = new DataOutputStream(new FileOutputStream(
                                            "monsterdata_java_wire.bin"));
-             os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
-             os.close();
+            os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
+            os.close();
         } catch(java.io.IOException e) {
             System.out.println("FlatBuffers test: couldn't write file");
             return;

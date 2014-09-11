@@ -102,10 +102,10 @@ static std::string GenGetter(const Type &type) {
 }
 
 // Returns the method name for use with add/put calls.
-static std::string GenMethod(const FieldDef &field) {
-  return IsScalar(field.value.type.base_type)
-    ? MakeCamel(GenTypeBasic(field.value.type))
-    : (IsStruct(field.value.type) ? "Struct" : "Offset");
+static std::string GenMethod(const Type &type) {
+  return IsScalar(type.base_type)
+    ? MakeCamel(GenTypeBasic(type))
+    : (IsStruct(type) ? "Struct" : "Offset");
 }
 
 // Recursively generate arguments for a constructor, to deal with nested
@@ -148,7 +148,7 @@ static void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
       GenStructBody(*field.value.type.struct_def, code_ptr,
                     (field.value.type.struct_def->name + "_").c_str());
     } else {
-      code += "    builder.put" + GenMethod(field) + "(";
+      code += "    builder.put" + GenMethod(field.value.type) + "(";
       code += nameprefix + MakeCamel(field.name, false) + ");\n";
     }
   }
@@ -322,21 +322,33 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       auto argname = MakeCamel(field.name, false);
       if (!IsScalar(field.value.type.base_type)) argname += "Offset";
       code += " " + argname + ") { builder.add";
-      code += GenMethod(field) + "(";
+      code += GenMethod(field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
       code += argname + ", " + field.value.constant;
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-        code += "  public static void start" + MakeCamel(field.name);
-        code += "Vector(FlatBufferBuilder builder, int numElems) ";
-        code += "{ builder.startVector(";
         auto vector_type = field.value.type.VectorType();
         auto alignment = InlineAlignment(vector_type);
         auto elem_size = InlineSize(vector_type);
+        if (!IsStruct(vector_type)) {
+          // Generate a method to create a vector from a Java array.
+          code += "  public static int create" + MakeCamel(field.name);
+          code += "Vector(FlatBufferBuilder builder, ";
+          code += GenTypeBasic(vector_type) + "[] data) ";
+          code += "{ builder.startVector(";
+          code += NumToString(elem_size);
+          code += ", data.length, " + NumToString(alignment);
+          code += "); for (int i = data.length - 1; i >= 0; i--) builder.add";
+          code += GenMethod(vector_type);
+          code += "(data[i]); return builder.endVector(); }\n";
+        }
+        // Generate a method to start a vector, data to be added manually after.
+        code += "  public static void start" + MakeCamel(field.name);
+        code += "Vector(FlatBufferBuilder builder, int numElems) ";
+        code += "{ builder.startVector(";
         code += NumToString(elem_size);
         code += ", numElems, " + NumToString(alignment);
-        code += "); }\n";
-      }
+        code += "); }\n";      }
     }
     code += "  public static int end" + struct_def.name;
     code += "(FlatBufferBuilder builder) { return builder.endObject(); }\n";

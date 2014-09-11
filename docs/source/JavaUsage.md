@@ -90,8 +90,13 @@ As you can see, references to other objects (e.g. the string above) are simple
 ints, and thus do not have the type-safety of the Offset type in C++. Extra
 case must thus be taken that you set the right offset on the right field.
 
-Vectors also use this start/end pattern to allow vectors of both scalar types
-and structs:
+Vectors can be created from the corresponding Java array like so:
+
+    int inv = Monster.createInventoryVector(fbb, new byte[] { 0, 1, 2, 3, 4 });
+
+This works for arrays of scalars and (int) offsets to strings/tables,
+but not structs. If you want to write structs, or what you want to write
+does not sit in an array, you can also use the start/end pattern:
 
     Monster.startInventoryVector(fbb, 5);
     for (byte i = 4; i >=0; i--) fbb.addByte(i);
@@ -99,8 +104,8 @@ and structs:
 
 You can use the generated method `startInventoryVector` to conveniently call
 `startVector` with the right element size. You pass the number of
-elements you want to write. You write the elements backwards since the buffer
-is being constructed back to front.
+elements you want to write. Note how you write the elements backwards since
+the buffer is being constructed back to front.
 
 There are `add` functions for all the scalar types. You use `addOffset` for
 any previously constructed objects (such as other tables, strings, vectors).
