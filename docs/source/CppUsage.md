@@ -249,6 +249,10 @@ reference definitions in earlier files. Typically this means you first
 load a schema file (which populates `Parser` with definitions), followed
 by one or more JSON files.
 
+As optional argument to `Parse`, you may specify a null-terminated list of
+include paths. If not specified, any include statements try to resolve from
+the current directory.
+
 If there were any parsing errors, `Parse` will return `false`, and
 `Parser::err` contains a human readable error string with a line number
 etc, which you should present to the creator of that file.

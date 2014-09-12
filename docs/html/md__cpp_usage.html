@@ -120,6 +120,7 @@ assert(inv-&gt;Get(9) == 9);
 <p>Load text (either a schema or json) into an in-memory buffer (there is a convenient <code>LoadFile()</code> utility function in <code>flatbuffers/util.h</code> if you wish). Construct a parser: </p><pre class="fragment">flatbuffers::Parser parser;
 </pre><p>Now you can parse any number of text files in sequence: </p><pre class="fragment">parser.Parse(text_file.c_str());
 </pre><p>This works similarly to how the command-line compiler works: a sequence of files parsed by the same <code>Parser</code> object allow later files to reference definitions in earlier files. Typically this means you first load a schema file (which populates <code>Parser</code> with definitions), followed by one or more JSON files.</p>
+<p>As optional argument to <code>Parse</code>, you may specify a null-terminated list of include paths. If not specified, any include statements try to resolve from the current directory.</p>
 <p>If there were any parsing errors, <code>Parse</code> will return <code>false</code>, and <code>Parser::err</code> contains a human readable error string with a line number etc, which you should present to the creator of that file.</p>
 <p>After each JSON file, the <code>Parser::fbb</code> member variable is the <code>FlatBufferBuilder</code> that contains the binary buffer version of that file, that you can access as described above.</p>
 <p><code>samples/sample_text.cpp</code> is a code sample showing the above operations.</p>

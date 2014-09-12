@@ -91,6 +91,7 @@ static void Error(const char *err, const char *obj, bool usage) {
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
       printf("  -%s      %s.\n", generators[i].extension, generators[i].help);
     printf("  -o PATH Prefix PATH to all generated files.\n"
+           "  -I PATH Search for includes in the specified path.\n"
            "  -S      Strict JSON: add quotes to field names.\n"
            "  -P      Don\'t prefix enum values with the enum name in C++.\n"
            "FILEs may depend on declarations in earlier files.\n"
@@ -112,6 +113,7 @@ int main(int argc, const char *argv[]) {
   bool generator_enabled[num_generators] = { false };
   bool any_generator = false;
   std::vector<std::string> filenames;
+  std::vector<const char *> include_directories;
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   for (int i = 1; i < argc; i++) {
     const char *arg = argv[i];
@@ -123,11 +125,11 @@ int main(int argc, const char *argv[]) {
       switch (arg[1]) {
         case 'o':
           if (++i >= argc) Error("missing path following", arg, true);
-          output_path = argv[i];
-          if (!(output_path.back() == flatbuffers::kPathSeparator ||
-                output_path.back() == flatbuffers::kPosixPathSeparator)) {
-            output_path += flatbuffers::kPathSeparator;
-          }
+          output_path = flatbuffers::ConCatPathFileName(argv[i], "");
+          break;
+        case 'I':
+          if (++i >= argc) Error("missing path following", arg, true);
+          include_directories.push_back(argv[i]);
           break;
         case 'S':
           opts.strict_json = true;
@@ -177,8 +179,13 @@ int main(int argc, const char *argv[]) {
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
       } else {
-        if (!parser.Parse(contents.c_str(), file_it->c_str()))
+        auto local_include_directory = flatbuffers::StripFileName(*file_it);
+        include_directories.push_back(local_include_directory.c_str());
+        include_directories.push_back(nullptr);
+        if (!parser.Parse(contents.c_str(), &include_directories[0]))
           Error((*file_it + ": " + parser.error_).c_str());
+        include_directories.pop_back();
+        include_directories.pop_back();
       }
 
       std::string filebase = flatbuffers::StripPath(

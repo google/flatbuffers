@@ -860,11 +860,7 @@ void Parser::MarkGenerated() {
   }
 }
 
-bool Parser::Parse(const char *source, const char *filepath) {
-  included_files_[filepath] = true;
-  // This is the starting point to reset to if we interrupted our parsing
-  // to deal with an include:
-  restart_parse_after_include:
+bool Parser::Parse(const char *source, const char **include_paths) {
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();
@@ -875,17 +871,25 @@ bool Parser::Parse(const char *source, const char *filepath) {
     while (IsNext(kTokenInclude)) {
       auto name = attribute_;
       Expect(kTokenStringConstant);
-      auto path = StripFileName(filepath);
-      if (path.length()) name = path + kPathSeparator + name;
       if (included_files_.find(name) == included_files_.end()) {
         // We found an include file that we have not parsed yet.
         // Load it and parse it.
         std::string contents;
-        if (!LoadFile(name.c_str(), true, &contents))
+        if (!include_paths) {
+          const char *current_directory[] = { "", nullptr };
+          include_paths = current_directory;
+        }
+        for (auto paths = include_paths; paths && *paths; paths++) {
+          auto filepath = flatbuffers::ConCatPathFileName(*paths, name);
+          if(LoadFile(filepath.c_str(), true, &contents)) break;
+        }
+        if (contents.empty())
           Error("unable to load include file: " + name);
-        Parse(contents.c_str(), name.c_str());
-        // Any errors, we're done.
-        if (error_.length()) return false;
+        included_files_[name] = true;
+        if (!Parse(contents.c_str(), include_paths)) {
+          // Any errors, we're done.
+          return false;
+        }
         // We do not want to output code for any included files:
         MarkGenerated();
         // This is the easiest way to continue this file after an include:
@@ -893,7 +897,9 @@ bool Parser::Parse(const char *source, const char *filepath) {
         // file anew. This will cause it to encounter the same include statement
         // again, but this time it will skip it, because it was entered into
         // included_files_.
-        goto restart_parse_after_include;
+        // This is recursive, but only go as deep as the number of include
+        // statements.
+        return Parse(source, include_paths);
       }
       Expect(';');
     }

@@ -132,6 +132,18 @@ inline std::string StripFileName(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
+// Concatenates a path with a filename, regardless of wether the path
+// ends in a separator or not.
+inline std::string ConCatPathFileName(const std::string &path,
+                                      const std::string &filename) {
+  std::string filepath = path;
+  if (path.length() && path.back() != kPathSeparator &&
+                       path.back() != kPosixPathSeparator)
+    filepath += kPathSeparator;
+  filepath += filename;
+  return filepath;
+}
+
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
 inline void EnsureDirExists(const std::string &filepath) {

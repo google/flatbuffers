@@ -53,7 +53,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <div class="title">Using the schema compiler </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -S ] FILES...
+<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
       [ -- FILES...]
 </pre><p>The files are read and parsed in order, and can contain either schemas or data (see below). Later files can make use of definitions in earlier files.</p>
 <p><code>--</code> indicates that the following files are binary files in FlatBuffer format conforming to the schema(s) indicated before it. Incompatible binary files currently will give unpredictable results (!)</p>
@@ -64,6 +64,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>-b</code> : If data is contained in this file, generate a <code>filename.bin</code> containing the binary flatbuffer.</li>
 <li><code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
+<li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
 <li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated.</li>
 <li><code>-P</code> : Don't prefix enum values in generated C++ by their enum type. </li>
 </ul>
