@@ -22,6 +22,7 @@
 #include <string>
 #include <sstream>
 #include <stdlib.h>
+#include <assert.h>
 #ifdef _WIN32
 #include <direct.h>
 #else
