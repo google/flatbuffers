@@ -17,7 +17,7 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import MyGame.Example.*;
-import flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
     public static void main(String[] args) {

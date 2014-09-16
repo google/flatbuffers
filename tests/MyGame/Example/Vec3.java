@@ -5,7 +5,7 @@ package MyGame.Example;
 import java.nio.*;
 import java.lang.*;
 import java.util.*;
-import flatbuffers.*;
+import com.google.flatbuffers.*;
 
 public class Vec3 extends Struct {
   public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }

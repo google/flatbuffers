@@ -388,7 +388,7 @@ static bool SaveClass(const Parser &parser, const Definition &def,
   code += "package " + namespace_java + ";\n\n";
   if (needs_imports) {
     code += "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n";
-    code += "import flatbuffers.*;\n\n";
+    code += "import com.google.flatbuffers.*;\n\n";
   }
   code += classcode;
   auto filename = namespace_dir + kPathSeparator + def.name + ".java";

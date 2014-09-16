@@ -5,7 +5,7 @@ package MyGame.Example;
 import java.nio.*;
 import java.lang.*;
 import java.util.*;
-import flatbuffers.*;
+import com.google.flatbuffers.*;
 
 public class Monster extends Table {
   public static Monster getRootAsMonster(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (new Monster()).__init(_bb.getInt(_bb.position()) + _bb.position(), _bb); }

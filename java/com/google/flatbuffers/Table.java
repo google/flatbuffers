@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package flatbuffers;
+package com.google.flatbuffers;
 
-import static flatbuffers.Constants.*;
+import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 

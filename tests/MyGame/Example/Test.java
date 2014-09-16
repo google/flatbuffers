@@ -5,7 +5,7 @@ package MyGame.Example;
 import java.nio.*;
 import java.lang.*;
 import java.util.*;
-import flatbuffers.*;
+import com.google.flatbuffers.*;
 
 public class Test extends Struct {
   public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }

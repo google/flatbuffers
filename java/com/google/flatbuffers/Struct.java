@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package flatbuffers;
+package com.google.flatbuffers;
 
-// Class that holds shared constants.
+import java.nio.ByteBuffer;
 
-public class Constants {
-    // Java doesn't seem to have these.
-    static final int SIZEOF_SHORT = 2;
-    static final int SIZEOF_INT = 4;
-    static final int FILE_IDENTIFIER_LENGTH = 4;
+// All structs in the generated code derive from this class, and add their own accessors.
+public class Struct {
+  protected int bb_pos;
+  protected ByteBuffer bb;
 }
-
