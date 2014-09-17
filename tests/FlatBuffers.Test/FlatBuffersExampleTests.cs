@@ -39,7 +39,7 @@ namespace FlatBuffers.Test
 
             var str = fbb.CreateString("MyMonster");
             var test1 = fbb.CreateString("test1");
-            var test2 = fbb.CreateString("test2"); 
+            var test2 = fbb.CreateString("test2");
 
 
             Monster.StartInventoryVector(fbb, 5);
@@ -54,19 +54,19 @@ namespace FlatBuffers.Test
             var mon2 = Monster.EndMonster(fbb);
 
             Monster.StartTest4Vector(fbb, 2);
-            MyGame.Example.Test.CreateTest(fbb, (short)10, (byte)20);
-            MyGame.Example.Test.CreateTest(fbb, (short)30, (byte)40);
+            MyGame.Example.Test.CreateTest(fbb, (short)10, (sbyte)20);
+            MyGame.Example.Test.CreateTest(fbb, (short)30, (sbyte)40);
             var test4 = fbb.EndVector();
 
-            Monster.StartTestarrayofstringVector(fbb, 2); 
-            fbb.AddOffset(test2); 
-            fbb.AddOffset(test1); 
-            var testArrayOfString = fbb.EndVector(); 
+            Monster.StartTestarrayofstringVector(fbb, 2);
+            fbb.AddOffset(test2);
+            fbb.AddOffset(test1);
+            var testArrayOfString = fbb.EndVector();
 
 
             Monster.StartMonster(fbb);
             Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
-                                                     (byte)4, (short)5, (byte)6));
+                                                     (sbyte)4, (short)5, (sbyte)6));
             Monster.AddHp(fbb, (short)80);
             Monster.AddName(fbb, str);
             Monster.AddInventory(fbb, inv);
@@ -79,19 +79,19 @@ namespace FlatBuffers.Test
             fbb.Finish(mon);
 
             // Dump to output directory so we can inspect later, if needed
-            using (var ms= new MemoryStream(fbb.Data.Data, fbb.DataStart, fbb.Offset))
+            using (var ms = new MemoryStream(fbb.DataBuffer().Data, fbb.DataBuffer().position(), fbb.Offset()))
             {
                 var data = ms.ToArray();
                 File.WriteAllBytes(@"Resources/monsterdata_cstest.bin",data);
             }
 
             // Now assert the buffer
-            TestBuffer(fbb.Data, fbb.DataStart);
+            TestBuffer(fbb.DataBuffer());
         }
 
-        private void TestBuffer(ByteBuffer bb, int start)
+        private void TestBuffer(ByteBuffer bb)
         {
-            var monster = Monster.GetRootAsMonster(bb, start);
+            var monster = Monster.GetRootAsMonster(bb);
 
             Assert.AreEqual(80, monster.Hp());
             Assert.AreEqual(150, monster.Mana());
@@ -103,10 +103,10 @@ namespace FlatBuffers.Test
             Assert.AreEqual(3.0f, pos.Z());
 
             Assert.AreEqual(3.0f, pos.Test1());
-            Assert.AreEqual((byte)4, pos.Test2());
+            Assert.AreEqual((sbyte)4, pos.Test2());
             var t = pos.Test3();
             Assert.AreEqual((short)5, t.A());
-            Assert.AreEqual((byte)6, t.B());
+            Assert.AreEqual((sbyte)6, t.B());
 
             Assert.AreEqual((byte)Any.Monster, monster.TestType());
 
@@ -132,14 +132,14 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual(2, monster.TestarrayofstringLength());
             Assert.AreEqual("test1", monster.Testarrayofstring(0));
-            Assert.AreEqual("test2", monster.Testarrayofstring(1)); 
+            Assert.AreEqual("test2", monster.Testarrayofstring(1));
         }
 
         public void CanReadCppGeneratedWireFile()
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.bin");
             var bb = new ByteBuffer(data);
-            TestBuffer(bb, 0);
+            TestBuffer(bb);
         }
     }
 }

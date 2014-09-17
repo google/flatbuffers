@@ -26,7 +26,7 @@ namespace cpp {
 // Return a C++ type from the table in idl.h
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) #CTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) #CTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -94,16 +94,6 @@ static std::string GenTypeGet(const Parser &parser, const Type &type,
   return IsScalar(type.base_type)
     ? GenTypeBasic(type) + afterbasic
     : beforeptr + GenTypePointer(parser, type) + afterptr;
-}
-
-// Generate a documentation comment, if available.
-static void GenComment(const std::string &dc,
-                       std::string *code_ptr,
-                       const char *prefix = "") {
-  std::string &code = *code_ptr;
-  if (dc.length()) {
-    code += std::string(prefix) + "///" + dc + "\n";
-  }
 }
 
 static std::string GenEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,

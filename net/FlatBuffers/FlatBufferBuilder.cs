@@ -50,7 +50,7 @@ namespace FlatBuffers
         }
 
 
-        public int Offset { get { return _bb.Length - _space; } }
+        public int Offset() { return _bb.Length - _space; }
 
         public void Pad(int size)
         {
@@ -105,6 +105,11 @@ namespace FlatBuffers
             Pad(alignSize);
         }
 
+        public void PutSbyte(sbyte x)
+        {
+          _bb.PutSbyte(_space -= sizeof(sbyte), x);
+        }
+
         public void PutByte(byte x)
         {
             _bb.PutByte(_space -= sizeof(byte), x);
@@ -115,14 +120,29 @@ namespace FlatBuffers
             _bb.PutShort(_space -= sizeof(short), x);
         }
 
-        public void PutInt32(int x)
+        public void PutUshort(ushort x)
+        {
+          _bb.PutUshort(_space -= sizeof(ushort), x);
+        }
+
+        public void PutInt(int x)
         {
             _bb.PutInt(_space -= sizeof(int), x);
         }
 
-        public void PutInt64(long x)
+        public void PutUint(uint x)
+        {
+          _bb.PutUint(_space -= sizeof(uint), x);
+        }
+
+        public void PutLong(long x)
         {
             _bb.PutLong(_space -= sizeof(long), x);
+        }
+
+        public void PutUlong(ulong x)
+        {
+          _bb.PutUlong(_space -= sizeof(ulong), x);
         }
 
         public void PutFloat(float x)
@@ -137,10 +157,14 @@ namespace FlatBuffers
 
         // Adds a scalar to the buffer, properly aligned, and the buffer grown
         // if needed.
+        public void AddSbyte(sbyte x) { Prep(sizeof(sbyte), 0); PutSbyte(x); }
         public void AddByte(byte x) { Prep(sizeof(byte), 0); PutByte(x); }
         public void AddShort(short x) { Prep(sizeof(short), 0); PutShort(x); }
-        public void AddInt(int x) { Prep(sizeof(int), 0); PutInt32(x); }
-        public void AddLong(long x) { Prep(sizeof(long), 0); PutInt64(x); }
+        public void AddUshort(ushort x) { Prep(sizeof(ushort), 0); PutUshort(x); }
+        public void AddInt(int x) { Prep(sizeof(int), 0); PutInt(x); }
+        public void AddUint(uint x) { Prep(sizeof(uint), 0); PutUint(x); }
+        public void AddLong(long x) { Prep(sizeof(long), 0); PutLong(x); }
+        public void AddULong(ulong x) { Prep(sizeof(ulong), 0); PutUlong(x); }
         public void AddFloat(float x) { Prep(sizeof(float), 0); PutFloat(x); }
         public void AddDouble(double x) { Prep(sizeof(double), 0);
                                           PutDouble(x); }
@@ -151,11 +175,11 @@ namespace FlatBuffers
         public void AddOffset(int off)
         {
             Prep(sizeof(int), 0);  // Ensure alignment is already done.
-            if (off > Offset)
+            if (off > Offset())
                 throw new ArgumentException();
 
-            off = Offset - off + sizeof(int);
-            PutInt32(off);
+            off = Offset() - off + sizeof(int);
+            PutInt(off);
         }
 
         public void StartVector(int elemSize, int count, int alignment)
@@ -168,8 +192,8 @@ namespace FlatBuffers
 
         public int EndVector()
         {
-            PutInt32(_vectorNumElems);
-            return Offset;
+            PutInt(_vectorNumElems);
+            return Offset();
         }
 
         public void Nested(int obj)
@@ -177,7 +201,7 @@ namespace FlatBuffers
             // Structs are always stored inline, so need to be created right
             // where they are used. You'll get this assert if you created it
             // elsewhere.
-            if (obj != Offset)
+            if (obj != Offset())
                 throw new Exception(
                     "FlatBuffers: struct must be serialized inline.");
         }
@@ -195,7 +219,7 @@ namespace FlatBuffers
         {
             NotNested();
             _vtable = new int[numfields];
-            _objectStart = Offset;
+            _objectStart = Offset();
         }
 
 
@@ -203,14 +227,18 @@ namespace FlatBuffers
         // buffer.
         public void Slot(int voffset)
         {
-            _vtable[voffset] = Offset;
+            _vtable[voffset] = Offset();
         }
 
         // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-        public void AddByte(int o, byte x, int d) { if (x != d) { AddByte(x); Slot(o); } }
+        public void AddSbyte(int o, sbyte x, sbyte d) { if (x != d) { AddSbyte(x); Slot(o); } }
+        public void AddByte(int o, byte x, byte d) { if (x != d) { AddByte(x); Slot(o); } }
         public void AddShort(int o, short x, int d) { if (x != d) { AddShort(x); Slot(o); } }
+        public void AddUshort(int o, ushort x, ushort d) { if (x != d) { AddUshort(x); Slot(o); } }
         public void AddInt(int o, int x, int d) { if (x != d) { AddInt(x); Slot(o); } }
+        public void AddUint(int o, uint x, uint d) { if (x != d) { AddUint(x); Slot(o); } }
         public void AddLong(int o, long x, long d) { if (x != d) { AddLong(x); Slot(o); } }
+        public void AddULong(int o, ulong x, ulong d) { if (x != d) { AddULong(x); Slot(o); } }
         public void AddFloat(int o, float x, double d) { if (x != d) { AddFloat(x); Slot(o); } }
         public void AddDouble(int o, double x, double d) { if (x != d) { AddDouble(x); Slot(o); } }
         public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }
@@ -245,7 +273,7 @@ namespace FlatBuffers
                   "Flatbuffers: calling endObject without a startObject");
 
             AddInt((int)0);
-            var vtableloc = Offset;
+            var vtableloc = Offset();
             // Write out the current vtable.
             for (int i = _vtable.Length - 1; i >= 0 ; i--) {
                 // Offset relative to the start of the table.
@@ -298,9 +326,9 @@ namespace FlatBuffers
 
                     _vtables = newvtables;
                 };
-                _vtables[_numVtables++] = Offset;
+                _vtables[_numVtables++] = Offset();
                 // Point table to current vtable.
-                _bb.PutInt(_bb.Length - vtableloc, Offset - vtableloc);
+                _bb.PutInt(_bb.Length - vtableloc, Offset() - vtableloc);
             }
 
             _vtable = null;
@@ -313,17 +341,13 @@ namespace FlatBuffers
             AddOffset(rootTable);
         }
 
-        public ByteBuffer Data { get { return _bb; }}
-
-        // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer:
-        public int DataStart { get { return _space; } }
-
+        public ByteBuffer DataBuffer() { return _bb; }
 
         // Utility function for copying a byte array that starts at 0.
         public byte[] SizedByteArray()
         {
             var newArray = new byte[_bb.Data.Length];
-            Buffer.BlockCopy(_bb.Data, DataStart, newArray, 0,
+            Buffer.BlockCopy(_bb.Data, _bb.position(), newArray, 0,
                              _bb.Data.Length);
             return newArray;
         }

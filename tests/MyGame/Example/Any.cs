@@ -3,8 +3,6 @@
 namespace MyGame.Example
 {
 
-using FlatBuffers;
-
 public class Any
 {
   public static byte NONE = 0;

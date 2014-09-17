@@ -32,31 +32,38 @@ namespace flatbuffers {
 // Additionally, Parser::ParseType assumes bool..string is a contiguous range
 // of type tokens.
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte) /* begin scalars, ints */ \
-  TD(BOOL,   "bool",   uint8_t,  byte,   byte) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte) \
-  TD(SHORT,  "short",  int16_t,  short,  int16) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16) \
-  TD(INT,    "int",    int32_t,  int,    int32) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32) \
-  TD(LONG,   "long",   int64_t,  long,   int64) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64) /* end ints */ \
-  TD(FLOAT,  "float",  float,    float,  float32) /* begin floats */ \
-  TD(DOUBLE, "double", double,   double, float64) /* end floats, scalars */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  byte,   byte,    byte) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong)  /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float)  /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int) \
-  TD(VECTOR, "",       Offset<void>, int, int) \
-  TD(STRUCT, "",       Offset<void>, int, int) \
-  TD(UNION,  "",       Offset<void>, int, int)
+  TD(STRING, "string", Offset<void>, int, int, int) \
+  TD(VECTOR, "",       Offset<void>, int, int, int) \
+  TD(STRUCT, "",       Offset<void>, int, int, int) \
+  TD(UNION,  "",       Offset<void>, int, int, int)
 
+// The fields are:
+// - enum
+// - FlatBuffers schema type.
+// - C++ type.
+// - Java type.
+// - Go type.
+// - C# / .Net type.
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
 /*
 switch (type) {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -73,12 +80,13 @@ switch (type) {
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) BASE_TYPE_ ## ENUM,
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -327,22 +335,11 @@ class Parser {
   std::map<std::string, bool> included_files_;
 };
 
-// Utility functions for generators:
+// Utility functions for multiple generators:
 
-// Convert an underscore_based_indentifier in to camelCase.
-// Also uppercases the first character if first is true.
-inline std::string MakeCamel(const std::string &in, bool first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
-    else
-      s += in[i];
-  }
-  return s;
-}
+extern std::string MakeCamel(const std::string &in, bool first = true);
+extern void GenComment(const std::string &dc, std::string *code_ptr,
+                       const char *prefix = "");
 
 // Container of options that may apply to any of the source/text generators.
 struct GeneratorOptions {
@@ -351,8 +348,14 @@ struct GeneratorOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
 
+  // Possible options for the more general generator below.
+  enum Language { kJava, kCSharp, kMAX };
+
+  Language lang;
+
   GeneratorOptions() : strict_json(false), indent_step(2),
-                       output_enum_identifiers(true), prefixed_enums(true) {}
+                       output_enum_identifiers(true), prefixed_enums(true),
+                       lang(GeneratorOptions::kJava) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
@@ -397,6 +400,12 @@ extern bool GenerateCSharp(const Parser &parser,
                            const std::string &file_name,
                            const GeneratorOptions &opts);
 
+// Generate Java/C#/.. files from the definitions in the Parser object.
+// See idl_gen_general.cpp.
+extern bool GenerateGeneral(const Parser &parser,
+                            const std::string &path,
+                            const std::string &file_name,
+                            const GeneratorOptions &opts);
 
 }  // namespace flatbuffers
 

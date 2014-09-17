@@ -62,21 +62,28 @@ struct Generator {
                    const flatbuffers::GeneratorOptions &opts);
   const char *extension;
   const char *name;
+  flatbuffers::GeneratorOptions::Language lang;
   const char *help;
 };
 
 const Generator generators[] = {
   { flatbuffers::GenerateBinary,   "b", "binary",
+    flatbuffers::GeneratorOptions::kMAX,
     "Generate wire format binaries for any data definitions" },
   { flatbuffers::GenerateTextFile, "t", "text",
+    flatbuffers::GeneratorOptions::kMAX,
     "Generate text output for any data definitions" },
   { flatbuffers::GenerateCPP,      "c", "C++",
+    flatbuffers::GeneratorOptions::kMAX,
     "Generate C++ headers for tables/structs" },
   { flatbuffers::GenerateGo,       "g", "Go",
+    flatbuffers::GeneratorOptions::kMAX,
     "Generate Go files for tables/structs" },
-  { flatbuffers::GenerateJava,     "j", "Java",
+  { flatbuffers::GenerateGeneral,  "j", "Java",
+    flatbuffers::GeneratorOptions::kJava,
     "Generate Java classes for tables/structs" },
-  { flatbuffers::GenerateCSharp,   "n", "C#",
+  { flatbuffers::GenerateGeneral,  "n", "C#",
+    flatbuffers::GeneratorOptions::kCSharp,
     "Generate C# classes for tables/structs" }
 };
 
@@ -194,6 +201,7 @@ int main(int argc, const char *argv[]) {
       for (size_t i = 0; i < num_generators; ++i) {
         if (generator_enabled[i]) {
           flatbuffers::EnsureDirExists(output_path);
+          opts.lang = generators[i].lang;
           if (!generators[i].generate(parser, output_path, filebase, opts)) {
             Error((std::string("Unable to generate ") +
                    generators[i].name +

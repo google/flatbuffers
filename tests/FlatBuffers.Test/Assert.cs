@@ -63,7 +63,7 @@ namespace FlatBuffers.Test
             {
                 action();
             }
-            catch (T ex)
+            catch (T)
             {
                 caught = true;
             }

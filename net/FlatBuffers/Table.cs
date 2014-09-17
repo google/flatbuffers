@@ -74,14 +74,14 @@ namespace FlatBuffers
             return t;
         }
 
-        protected static bool __has_identifier(ByteBuffer bb, int offset, string ident)
+        protected static bool __has_identifier(ByteBuffer bb, string ident)
         {
             if (ident.Length != FlatBufferConstants.FileIdentifierLength)
                 throw new ArgumentException("FlatBuffers: file identifier must be length " + FlatBufferConstants.FileIdentifierLength, "ident");
 
             for (var i = 0; i < FlatBufferConstants.FileIdentifierLength; i++)
             {
-                if (ident[i] != (char)bb.Get(offset + sizeof(int) + i)) return false;
+                if (ident[i] != (char)bb.Get(bb.position() + sizeof(int) + i)) return false;
             }
 
             return true;

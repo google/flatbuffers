@@ -11,7 +11,7 @@
     <LocalDebuggerCommandArguments>-j -c -n -g -b -t monster_test.fbs monsterdata_test.golden</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-j -c -g -b -t monster_test.fbs monsterdata_test.golden</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-j -c -g -n -b -t monster_test.fbs monsterdata_test.golden</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>..\..\tests</LocalDebuggerWorkingDirectory>

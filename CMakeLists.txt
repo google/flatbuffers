@@ -12,8 +12,7 @@ set(FlatBuffers_Compiler_SRCS
   include/flatbuffers/util.h
   src/idl_parser.cpp
   src/idl_gen_cpp.cpp
-  src/idl_gen_java.cpp
-  src/idl_gen_csharp.cpp
+  src/idl_gen_general.cpp
   src/idl_gen_go.cpp
   src/idl_gen_text.cpp
   src/flatc.cpp

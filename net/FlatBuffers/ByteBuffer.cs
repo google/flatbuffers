@@ -25,6 +25,7 @@ namespace FlatBuffers
     public class ByteBuffer
     {
         private readonly byte[] _buffer;
+        private int _pos;  // Must track start of the buffer.
 
         public int Length { get { return _buffer.Length; } }
 
@@ -33,7 +34,10 @@ namespace FlatBuffers
         public ByteBuffer(byte[] buffer)
         {
             _buffer = buffer;
+            _pos = 0;
         }
+
+        public int position() { return _pos; }
 
         protected void WriteLittleEndian(int offset, byte[] data)
         {
@@ -42,6 +46,7 @@ namespace FlatBuffers
                 data = data.Reverse().ToArray();
             }
             Buffer.BlockCopy(data, 0, _buffer, offset, data.Length);
+            _pos = offset;
         }
 
         protected byte[] ReadLittleEndian(int offset, int count)
@@ -62,15 +67,29 @@ namespace FlatBuffers
                 throw new ArgumentOutOfRangeException();
         }
 
+        public void PutSbyte(int offset, sbyte value)
+        {
+            AssertOffsetAndLength(offset, sizeof(sbyte));
+            _buffer[offset] = (byte)value;
+            _pos = offset;
+        }
+
         public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
             _buffer[offset] = value;
+            _pos = offset;
         }
 
         public void PutShort(int offset, short value)
         {
             AssertOffsetAndLength(offset, sizeof(short));
+            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+        }
+
+        public void PutUshort(int offset, ushort value)
+        {
+            AssertOffsetAndLength(offset, sizeof(ushort));
             WriteLittleEndian(offset, BitConverter.GetBytes(value));
         }
 
@@ -80,9 +99,21 @@ namespace FlatBuffers
             WriteLittleEndian(offset, BitConverter.GetBytes(value));
         }
 
+        public void PutUint(int offset, uint value)
+        {
+            AssertOffsetAndLength(offset, sizeof(uint));
+            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+        }
+
         public void PutLong(int offset, long value)
         {
             AssertOffsetAndLength(offset, sizeof(long));
+            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+        }
+
+        public void PutUlong(int offset, ulong value)
+        {
+            AssertOffsetAndLength(offset, sizeof(ulong));
             WriteLittleEndian(offset, BitConverter.GetBytes(value));
         }
 
@@ -98,6 +129,12 @@ namespace FlatBuffers
             WriteLittleEndian(offset, BitConverter.GetBytes(value));
         }
 
+        public sbyte GetSbyte(int index)
+        {
+            AssertOffsetAndLength(index, sizeof(sbyte));
+            return (sbyte)_buffer[index];
+        }
+
         public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
@@ -111,6 +148,13 @@ namespace FlatBuffers
             return value;
         }
 
+        public ushort GetUshort(int index)
+        {
+            var tmp = ReadLittleEndian(index, sizeof(ushort));
+            var value = BitConverter.ToUInt16(tmp, 0);
+            return value;
+        }
+
         public int GetInt(int index)
         {
             var tmp = ReadLittleEndian(index, sizeof(int));
@@ -118,10 +162,24 @@ namespace FlatBuffers
             return value;
         }
 
+        public uint GetUint(int index)
+        {
+            var tmp = ReadLittleEndian(index, sizeof(uint));
+            var value = BitConverter.ToUInt32(tmp, 0);
+            return value;
+        }
+
         public long GetLong(int index)
         {
             var tmp = ReadLittleEndian(index, sizeof(long));
             var value = BitConverter.ToInt64(tmp, 0);
+            return value;
+        }
+
+        public ulong GetUlong(int index)
+        {
+            var tmp = ReadLittleEndian(index, sizeof(ulong));
+            var value = BitConverter.ToUInt64(tmp, 0);
             return value;
         }
 
