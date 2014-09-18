@@ -34,6 +34,7 @@
 
 #ifdef FLATBUFFERS_USE_CXX03_STDLIB
 #  include <boost/type_traits/conditional.hpp>
+#  include <boost/type_traits/is_scalar.hpp>
 #  include <boost/move/move.hpp>
 namespace flatbufferstd = boost;
 #else
