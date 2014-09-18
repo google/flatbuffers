@@ -25,6 +25,7 @@ namespace FlatBuffers.Test
         {
             CanCreateNewFlatBufferFromScratch();
             CanReadCppGeneratedWireFile();
+            TestEnums();
         }
 
         public void CanCreateNewFlatBufferFromScratch()
@@ -140,6 +141,14 @@ namespace FlatBuffers.Test
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.bin");
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
+        }
+
+        public void TestEnums()
+        {
+            Assert.AreEqual(Color.Name(Color.Red), "Red");
+            Assert.AreEqual(Color.Name(Color.Blue), "Blue");
+            Assert.AreEqual(Any.Name(Any.NONE), "NONE");
+            Assert.AreEqual(Any.Name(Any.Monster), "Monster");
         }
     }
 }

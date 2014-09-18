@@ -73,7 +73,7 @@ LanguageParameters language_parameters[] = {
     "String",
     "boolean ",
     " {\n",
-    "  public static final ",
+    " final ",
     " extends ",
     "package ",
     ";",
@@ -89,7 +89,7 @@ LanguageParameters language_parameters[] = {
     "string",
     "bool ",
     "\n{\n",
-    "  public static ",
+    " readonly ",
     " : ",
     "namespace ",
     "\n{",
@@ -164,11 +164,45 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
        ++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, "  ");
+    code += "  public static";
     code += lang.const_decl;
     code += GenTypeBasic(lang, enum_def.underlying_type);
     code += " " + ev.name + " = ";
     code += NumToString(ev.value) + ";\n";
   }
+
+  // Generate a generate string table for enum values.
+  // Problem is, if values are very sparse that could generate really big
+  // tables. Ideally in that case we generate a map lookup instead, but for
+  // the moment we simply don't output a table at all.
+  auto range = enum_def.vals.vec.back()->value -
+               enum_def.vals.vec.front()->value + 1;
+  // Average distance between values above which we consider a table
+  // "too sparse". Change at will.
+  static const int kMaxSparseness = 5;
+  if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
+    code += "\n  private static";
+    code += lang.const_decl;
+    code += lang.string_type;
+    code += "[] names = { ";
+    auto val = enum_def.vals.vec.front()->value;
+    for (auto it = enum_def.vals.vec.begin();
+         it != enum_def.vals.vec.end();
+         ++it) {
+      while (val++ != (*it)->value) code += "\"\", ";
+      code += "\"" + (*it)->name + "\", ";
+    }
+    code += "};\n\n";
+    code += "  public static ";
+    code += lang.string_type;
+    code += " " + MakeCamel("name", lang.first_camel_upper);
+    code += "(int e) { return names[e";
+    if (enum_def.vals.vec.front()->value)
+      code += " - " + enum_def.vals.vec.front()->name;
+    code += "]; }\n";
+  }
+
+  // Close the class
   code += "};\n\n";
 }
 

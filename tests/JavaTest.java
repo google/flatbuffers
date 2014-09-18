@@ -106,7 +106,16 @@ class JavaTest {
         // (see Table.__string).
         TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
+        TestEnums();
+
         System.out.println("FlatBuffers test: completed successfully");
+    }
+
+    static void TestEnums() {
+      TestEq(Color.name(Color.Red), "Red");
+      TestEq(Color.name(Color.Blue), "Blue");
+      TestEq(Any.name(Any.NONE), "NONE");
+      TestEq(Any.name(Any.Monster), "Monster");
     }
 
     static void TestBuffer(ByteBuffer bb) {

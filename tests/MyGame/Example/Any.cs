@@ -5,8 +5,12 @@ namespace MyGame.Example
 
 public class Any
 {
-  public static byte NONE = 0;
-  public static byte Monster = 1;
+  public static readonly byte NONE = 0;
+  public static readonly byte Monster = 1;
+
+  private static readonly string[] names = { "NONE", "Monster", };
+
+  public static string Name(int e) { return names[e]; }
 };
 
 
