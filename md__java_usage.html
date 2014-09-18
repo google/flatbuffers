@@ -77,7 +77,7 @@ Monster.addTest_type(fbb, (byte)1);
 Monster.addTest(fbb, mon2);
 Monster.addTest4(fbb, test4s);
 int mon = Monster.endMonster(fbb);
-</pre><p>As you can see, the Java code for tables does not use a convenient <code>createMonster</code> call like the C++ code. This is to create the buffer without using temporary object allocation.</p>
+</pre><p>For some simpler types, you can use a convenient <code>create</code> function call that allows you to construct tables in one function call. This example definition however contains an inline struct field, so we have to create the table manually. This is to create the buffer without using temporary object allocation.</p>
 <p>It's important to understand that fields that are structs are inline (like <code>Vec3</code> above), and MUST thus be created between the start and end calls of a table. Everything else (other tables, strings, vectors) MUST be created before the start of the table they are referenced in.</p>
 <p>Structs do have convenient methods that even have arguments for nested structs.</p>
 <p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra case must thus be taken that you set the right offset on the right field.</p>
