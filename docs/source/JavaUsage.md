@@ -75,9 +75,11 @@ Create a table with a struct contained therein:
     Monster.addTest4(fbb, test4s);
     int mon = Monster.endMonster(fbb);
 
-As you can see, the Java code for tables does not use a convenient
-`createMonster` call like the C++ code. This is to create the buffer without
-using temporary object allocation.
+For some simpler types, you can use a convenient `create` function call that
+allows you to construct tables in one function call. This example definition
+however contains an inline struct field, so we have to create the table
+manually.
+This is to create the buffer without using temporary object allocation.
 
 It's important to understand that fields that are structs are inline (like
 `Vec3` above), and MUST thus be created between the start and end calls of

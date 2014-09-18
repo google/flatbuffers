@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific GeneratorOptions::Language governing permissions and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
@@ -409,18 +409,71 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     code += "    return builder.";
     code += FunctionStart(lang, 'O') + "ffset();\n  }\n";
   } else {
-    // Create a set of static methods that allow table construction,
+    // Generate a method that creates a table in one go. This is only possible
+    // when the table has no struct fields, since those have to be created
+    // inline, and there's no way to do so in Java.
+    bool has_no_struct_fields = true;
+    int num_fields = 0;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      if (IsStruct(field.value.type)) {
+        has_no_struct_fields = false;
+      } else {
+        num_fields++;
+      }
+    }
+    if (has_no_struct_fields && num_fields) {
+      // Generate a table constructor of the form:
+      // public static void createName(FlatBufferBuilder builder, args...)
+      code += "  public static void " + FunctionStart(lang, 'C') + "reate";
+      code += struct_def.name;
+      code += "(FlatBufferBuilder builder";
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (field.deprecated) continue;
+        code += ",\n      " + GenTypeBasic(lang, field.value.type) + " ";
+        code += field.name;
+        // Java doesn't have defaults, which means this method must always
+        // supply all arguments, and thus won't compile when fields are added.
+        if (lang.language != GeneratorOptions::kJava)
+          code += " = " + field.value.constant;
+      }
+      code += ") {\n    builder.";
+      code += FunctionStart(lang, 'S') + "tartObject(";
+      code += NumToString(struct_def.fields.vec.size()) + ");\n";
+      for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
+           size;
+           size /= 2) {
+        for (auto it = struct_def.fields.vec.rbegin();
+             it != struct_def.fields.vec.rend(); ++it) {
+          auto &field = **it;
+          if (!field.deprecated &&
+              (!struct_def.sortbysize ||
+               size == SizeOf(field.value.type.base_type))) {
+            code += "    " + struct_def.name + ".";
+            code += FunctionStart(lang, 'A') + "dd";
+            code += MakeCamel(field.name) + "(builder, " + field.name + ");\n";
+          }
+        }
+      }
+      code += "    builder.";
+      code += FunctionStart(lang, 'E') + "ndObject();\n  }\n\n";
+    }
+    // Generate a set of static methods that allow table construction,
     // of the form:
     // public static void addName(FlatBufferBuilder builder, short name)
     // { builder.addShort(id, name, default); }
+    // Unlike the Create function, these always work.
     code += "  public static void " + FunctionStart(lang, 'S') + "tart";
     code += struct_def.name;
     code += "(FlatBufferBuilder builder) { builder.";
     code += FunctionStart(lang, 'S') + "tartObject(";
     code += NumToString(struct_def.fields.vec.size()) + "); }\n";
     for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end();
-         ++it) {
+         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
       code += "  public static void " + FunctionStart(lang, 'A') + "dd";
