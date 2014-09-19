@@ -26,7 +26,7 @@ class JavaTest {
         // This file was generated from monsterdata_test.json
 
         byte[] data = null;
-        File file = new File("monsterdata_test.bin");
+        File file = new File("monsterdata_test.mon");
         RandomAccessFile f = null;
         try {
             f = new RandomAccessFile(file, "r");
@@ -55,8 +55,9 @@ class JavaTest {
 
         int inv = Monster.createInventoryVector(fbb, new byte[] { 0, 1, 2, 3, 4 });
 
+        int fred = fbb.createString("Fred");
         Monster.startMonster(fbb);
-        Monster.addHp(fbb, (short)20);
+        Monster.addName(fbb, fred);
         int mon2 = Monster.endMonster(fbb);
 
         Monster.startTest4Vector(fbb, 2);
@@ -90,7 +91,7 @@ class JavaTest {
 
         try {
             DataOutputStream os = new DataOutputStream(new FileOutputStream(
-                                           "monsterdata_java_wire.bin"));
+                                           "monsterdata_java_wire.mon"));
             os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
             os.close();
         } catch(java.io.IOException e) {
@@ -142,7 +143,7 @@ class JavaTest {
         TestEq(monster.testType(), (byte)Any.Monster);
         Monster monster2 = new Monster();
         TestEq(monster.test(monster2) != null, true);
-        TestEq(monster2.hp(), (short)20);
+        TestEq(monster2.name(), "Fred");
 
         TestEq(monster.inventoryLength(), 5);
         int invsum = 0;

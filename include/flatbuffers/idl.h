@@ -184,10 +184,11 @@ struct Definition {
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), padding(0), used(false) {}
+  FieldDef() : deprecated(false), required(false), padding(0), used(false) {}
 
   Value value;
   bool deprecated;
+  bool required;
   size_t padding;  // Bytes to always pad after this field.
   bool used;       // Used during JSON parsing to check for repeated fields.
 };

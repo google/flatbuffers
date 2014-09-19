@@ -68,7 +68,11 @@ public class Monster extends Table {
   public static int createTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
   public static void startTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.addOffset(14, testemptyOffset, 0); }
-  public static int endMonster(FlatBufferBuilder builder) { return builder.endObject(); }
+  public static int endMonster(FlatBufferBuilder builder) {
+    int o = builder.endObject();
+    builder.required(o, 10);  // name
+    return o;
+  }
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
 };
 

@@ -23,7 +23,7 @@ table Monster {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
   mana:short = 150 (id: 1);
-  name:string (id: 3);
+  name:string (id: 3, required);
   color:Color = Blue (id: 6);
   inventory:[ubyte] (id: 5);
   friendly:bool = false (deprecated, priority: 1, id: 4);

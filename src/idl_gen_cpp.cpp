@@ -225,7 +225,9 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
        ++it) {
     auto &field = **it;
     if (!field.deprecated) {
-      code += prefix + "VerifyField<" + GenTypeSize(parser, field.value.type);
+      code += prefix + "VerifyField";
+      if (field.required) code += "Required";
+      code += "<" + GenTypeSize(parser, field.value.type);
       code += ">(verifier, " + NumToString(field.value.offset);
       code += " /* " + field.name + " */)";
       switch (field.value.type.base_type) {
@@ -301,9 +303,19 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   code += "  " + struct_def.name + "Builder &operator=(const ";
   code += struct_def.name + "Builder &);\n";
   code += "  flatbuffers::Offset<" + struct_def.name;
-  code += "> Finish() { return flatbuffers::Offset<" + struct_def.name;
+  code += "> Finish() {\n    auto o = flatbuffers::Offset<" + struct_def.name;
   code += ">(fbb_.EndTable(start_, ";
-  code += NumToString(struct_def.fields.vec.size()) + ")); }\n};\n\n";
+  code += NumToString(struct_def.fields.vec.size()) + "));\n";
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (!field.deprecated && field.required) {
+      code += "    fbb_.Required(o, " + NumToString(field.value.offset);
+      code += ");  // " + field.name + "\n";
+    }
+  }
+  code += "    return o;\n  }\n};\n\n";
 
   // Generate a convenient CreateX function that uses the above builder
   // to create a table in one go.

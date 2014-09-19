@@ -146,7 +146,7 @@ packages.
 You can include other schemas files in your current one, e.g.:
 
     include "mydefinitions.fbs"
-    
+
 This makes it easier to refer to types defined elsewhere. `include`
 automatically ensures each file is parsed just once, even when referred to
 more than once.
@@ -232,6 +232,16 @@ Current understood attributes:
     When a new field is added to the schema is must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
+-   `required` (on a non-scalar table field): this field must always be set.
+    By default, all fields are optional, i.e. may be left out. This is
+    desirable, as it helps with forwards/backwards compatibility, and
+    flexibility of data structures. It is also a burden on the reading code,
+    since for non-scalar fields it requires you to check against NULL and
+    take appropriate action. By specifying this field, you force code that
+    constructs FlatBuffers to ensure this field is initialized, so the reading
+    code may access it directly, without checking for NULL. If the constructing
+    code does not initialize this field, they will get an assert, and also
+    the verifier will fail on buffers that have missing required fields.
 -   `original_order` (on a table): since elements in a table do not need
     to be stored in any particular order, they are often optimized for
     space by sorting them to size. This attribute stops that from happening.

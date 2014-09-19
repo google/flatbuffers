@@ -554,8 +554,19 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     }
     code += "  public static int ";
     code += FunctionStart(lang, 'E') + "nd" + struct_def.name;
-    code += "(FlatBufferBuilder builder) { return builder.";
-    code += FunctionStart(lang, 'E') + "ndObject(); }\n";
+    code += "(FlatBufferBuilder builder) {\n    int o = builder.";
+    code += FunctionStart(lang, 'E') + "ndObject();\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      auto &field = **it;
+      if (!field.deprecated && field.required) {
+        code += "    builder." + FunctionStart(lang, 'R') + "equired(o, ";
+        code += NumToString(field.value.offset);
+        code += ");  // " + field.name + "\n";
+      }
+    }
+    code += "    return o;\n  }\n";
     if (parser.root_struct_def == &struct_def) {
       code += "  public static void ";
       code += FunctionStart(lang, 'F') + "inish" + struct_def.name;

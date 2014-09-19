@@ -75,8 +75,9 @@ std::string CreateFlatBufferTest() {
 
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
+  auto fred = builder.CreateString("Fred");
   MonsterBuilder mb(builder);
-  mb.add_hp(20);
+  mb.add_name(fred);
   auto mloc2 = mb.Finish();
 
   // Create an array of strings:
@@ -144,7 +145,7 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   TEST_EQ(monster->test_type(), Any_Monster);  // First make sure which it is.
   auto monster2 = reinterpret_cast<const Monster *>(monster->test());
   TEST_NOTNULL(monster2);
-  TEST_EQ(monster2->hp(), 20);
+  TEST_EQ(strcmp(monster2->name()->c_str(), "Fred"), 0);
 
   // Example of accessing a vector of strings:
   auto vecofstrings = monster->testarrayofstring();
@@ -156,7 +157,7 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->Length(), 1U);
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
-    TEST_EQ(it->hp(), 20);
+    TEST_EQ(strcmp(it->name()->c_str(), "Fred"), 0);
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:

@@ -60,7 +60,11 @@ public class Monster : Table {
   public static int CreateTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.AddOffset(14, testemptyOffset, 0); }
-  public static int EndMonster(FlatBufferBuilder builder) { return builder.EndObject(); }
+  public static int EndMonster(FlatBufferBuilder builder) {
+    int o = builder.EndObject();
+    builder.Required(o, 10);  // name
+    return o;
+  }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.Finish(offset, "MONS"); }
 };
 

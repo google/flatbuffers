@@ -540,6 +540,17 @@ class FlatBufferBuilder {
     return vtableoffsetloc;
   }
 
+  // This checks a required field has been set in a given table that has
+  // just been constructed.
+  template<typename T> void Required(Offset<T> table, voffset_t field) {
+    auto table_ptr = buf_.data_at(table.o);
+    auto vtable_ptr = table_ptr - ReadScalar<uoffset_t>(table_ptr);
+    bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
+    // If this fails, the caller will show what field needs to be set.
+    assert(ok);
+    (void)ok;
+  }
+
   uoffset_t StartStruct(size_t alignment) {
     Align(alignment);
     return GetSize();
@@ -678,13 +689,17 @@ class Verifier {
       num_tables_(0), max_tables_(_max_tables)
     {}
 
-  // Verify any range within the buffer.
-  bool Verify(const void *elem, size_t elem_len) const {
-    bool ok = elem >= buf_ && elem <= end_ - elem_len;
+  // Central location where any verification failures register.
+  bool Check(bool ok) const {
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       assert(ok);
     #endif
     return ok;
+  }
+
+  // Verify any range within the buffer.
+  bool Verify(const void *elem, size_t elem_len) const {
+    return Check(elem >= buf_ && elem <= end_ - elem_len);
   }
 
   // Verify a range indicated by sizeof(T).
@@ -710,8 +725,8 @@ class Verifier {
     const uint8_t *end;
     return !str ||
            (VerifyVector(reinterpret_cast<const uint8_t *>(str), 1, &end) &&
-            Verify(end, 1) &&  // Must have terminator
-            *end == '\0');  // Terminating byte must be 0.
+            Verify(end, 1) &&      // Must have terminator
+            Check(*end == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
@@ -762,11 +777,7 @@ class Verifier {
   bool VerifyComplexity() {
     depth_++;
     num_tables_++;
-    bool too_complex = depth_ > max_depth_ || num_tables_ > max_tables_;
-    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
-      assert(!too_complex);
-    #endif
-    return !too_complex;
+    return Check(depth_ <= max_depth_ && num_tables_ <= max_tables_);
   }
 
   // Called at the end of a table to pop the depth count.
@@ -874,6 +885,14 @@ class Table {
     auto field_offset = GetOptionalFieldOffset(field);
     // Check the actual field.
     return !field_offset || verifier.Verify<T>(data_ + field_offset);
+  }
+
+  // VerifyField for required fields.
+  template<typename T> bool VerifyFieldRequired(const Verifier &verifier,
+                                        voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return verifier.Check(field_offset != 0) &&
+           verifier.Verify<T>(data_ + field_offset);
   }
 
  private:

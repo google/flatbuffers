@@ -21,7 +21,7 @@
   ],
   test_type: Monster,
   test: {
-    hp: 20
+    name: "Fred"
   },
   test4: [
     {
@@ -36,7 +36,5 @@
   testarrayofstring: [
     "test1",
     "test2"
-  ],
-  testempty: {
-  }
+  ]
 }

@@ -335,6 +335,19 @@ namespace FlatBuffers
             return vtableloc;
         }
 
+        // This checks a required field has been set in a given table that has
+        // just been constructed.
+        public void Required(int table, int field)
+        {
+          int table_start = _bb.Length - table;
+          int vtable_start = table_start - _bb.GetInt(table_start);
+          bool ok = _bb.GetShort(vtable_start + field) != 0;
+          // If this fails, the caller will show what field needs to be set.
+          if (!ok)
+            throw new InvalidOperationException("FlatBuffers: field " + field +
+                                                " must be set");
+        }
+
         public void Finish(int rootTable)
         {
             Prep(_minAlign, sizeof(int));

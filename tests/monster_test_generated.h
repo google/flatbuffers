@@ -107,7 +107,7 @@ struct Monster : private flatbuffers::Table {
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
            VerifyField<int16_t>(verifier, 6 /* mana */) &&
            VerifyField<int16_t>(verifier, 8 /* hp */) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 10 /* name */) &&
+           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, 10 /* name */) &&
            verifier.Verify(name()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 14 /* inventory */) &&
            verifier.Verify(inventory()) &&
@@ -152,7 +152,11 @@ struct MonsterBuilder {
   void add_testempty(flatbuffers::Offset<Monster> testempty) { fbb_.AddOffset(32, testempty); }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
-  flatbuffers::Offset<Monster> Finish() { return flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 15)); }
+  flatbuffers::Offset<Monster> Finish() {
+    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 15));
+    fbb_.Required(o, 10);  // name
+    return o;
+  }
 };
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,

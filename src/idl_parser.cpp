@@ -376,6 +376,10 @@ void Parser::ParseField(StructDef &struct_def) {
   field.deprecated = field.attributes.Lookup("deprecated") != nullptr;
   if (field.deprecated && struct_def.fixed)
     Error("can't deprecate fields in a struct");
+  field.required = field.attributes.Lookup("required") != nullptr;
+  if (field.required && (struct_def.fixed ||
+                         IsScalar(field.value.type.base_type)))
+    Error("only non-scalar fields in tables may be 'required'");
   auto nested = field.attributes.Lookup("nested_flatbuffer");
   if (nested) {
     if (nested->type.base_type != BASE_TYPE_STRING)
