@@ -866,7 +866,9 @@ void Parser::MarkGenerated() {
   }
 }
 
-bool Parser::Parse(const char *source, const char **include_paths) {
+bool Parser::Parse(const char *source, const char **include_paths,
+                   const char *source_filename) {
+  if (source_filename) included_files_[source_filename] = true;
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();

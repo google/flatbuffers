@@ -66,7 +66,8 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
 <li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
 <li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated.</li>
-<li><code>-P</code> : Don't prefix enum values in generated C++ by their enum type. </li>
+<li><code>-P</code> : Don't prefix enum values in generated C++ by their enum type.</li>
+<li><code>-H</code> : Generate include statements for included schemas the generated file depends on (C++). </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

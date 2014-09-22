@@ -282,7 +282,10 @@ class Parser {
   // include_paths must be nullptr terminated if specified.
   // If include_paths is nullptr, it will attempt to load from the current
   // directory.
-  bool Parse(const char *_source, const char **include_paths = nullptr);
+  // If the source was loaded from a file and isn't an include file,
+  // supply its name in source_filename.
+  bool Parse(const char *_source, const char **include_paths = nullptr,
+             const char *source_filename = nullptr);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
@@ -324,6 +327,8 @@ class Parser {
   std::string file_identifier_;
   std::string file_extension_;
 
+  std::map<std::string, bool> included_files_;
+
  private:
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
@@ -332,8 +337,6 @@ class Parser {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
-
-  std::map<std::string, bool> included_files_;
 };
 
 // Utility functions for multiple generators:
@@ -348,6 +351,7 @@ struct GeneratorOptions {
   int indent_step;
   bool output_enum_identifiers;
   bool prefixed_enums;
+  bool include_dependence_headers;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kMAX };
@@ -356,6 +360,7 @@ struct GeneratorOptions {
 
   GeneratorOptions() : strict_json(false), indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
+                       include_dependence_headers(false),
                        lang(GeneratorOptions::kJava) {}
 };
 

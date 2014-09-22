@@ -101,6 +101,8 @@ static void Error(const char *err, const char *obj, bool usage) {
            "  -I PATH Search for includes in the specified path.\n"
            "  -S      Strict JSON: add quotes to field names.\n"
            "  -P      Don\'t prefix enum values with the enum name in C++.\n"
+           "  -H      Generate include statements for included schemas the\n"
+           "          generated file depends on (C++).\n"
            "FILEs may depend on declarations in earlier files.\n"
            "FILEs after the -- must be binary flatbuffer format files.\n"
            "Output files are named using the base file name of the input,"
@@ -143,6 +145,9 @@ int main(int argc, const char *argv[]) {
           break;
         case 'P':
           opts.prefixed_enums = false;
+          break;
+        case 'H':
+          opts.include_dependence_headers = true;
           break;
         case '-':  // Separator between text and binary input files.
           binary_files_from = filenames.size();
@@ -189,7 +194,8 @@ int main(int argc, const char *argv[]) {
         auto local_include_directory = flatbuffers::StripFileName(*file_it);
         include_directories.push_back(local_include_directory.c_str());
         include_directories.push_back(nullptr);
-        if (!parser.Parse(contents.c_str(), &include_directories[0]))
+        if (!parser.Parse(contents.c_str(), &include_directories[0],
+                          file_it->c_str()))
           Error((*file_it + ": " + parser.error_).c_str());
         include_directories.pop_back();
         include_directories.pop_back();

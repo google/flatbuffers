@@ -42,3 +42,5 @@ be generated for each file processed:
 
 -   `-P` : Don't prefix enum values in generated C++ by their enum type.
 
+-   `-H` : Generate include statements for included schemas the generated file
+    depends on (C++).

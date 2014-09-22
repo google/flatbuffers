@@ -547,6 +547,20 @@ std::string GenerateCPP(const Parser &parser,
 
     code += "#include \"flatbuffers/flatbuffers.h\"\n\n";
 
+    if (opts.include_dependence_headers) {
+      int num_includes = 0;
+      for (auto it = parser.included_files_.begin();
+           it != parser.included_files_.end(); ++it) {
+        auto basename = flatbuffers::StripPath(
+                          flatbuffers::StripExtension(it->first));
+        if (basename != file_name) {
+          code += "#include \"" + basename + "_generated.h\"\n";
+          num_includes++;
+        }
+      }
+      if (num_includes) code += "\n";
+    }
+
     code += forward_decl_code_other_namespace;
     code += "\n";
 
