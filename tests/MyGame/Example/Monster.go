@@ -53,7 +53,7 @@ func (rcv *Monster) Hp() int16 {
 func (rcv *Monster) Name() string {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
-		return rcv._tab.String(o)
+		return rcv._tab.String(o + rcv._tab.Pos)
 	}
 	return ""
 }
