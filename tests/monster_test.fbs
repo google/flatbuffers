@@ -1,4 +1,4 @@
-// example IDL file
+// test schema file
 
 include "include_test1.fbs";
 

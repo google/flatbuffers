@@ -907,7 +907,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
         // included_files_.
         // This is recursive, but only go as deep as the number of include
         // statements.
-        return Parse(source, include_paths);
+        return Parse(source, include_paths, source_filename);
       }
       Expect(';');
     }
@@ -981,7 +981,14 @@ bool Parser::Parse(const char *source, const char **include_paths,
       }
     }
   } catch (const std::string &msg) {
-    error_ = "line " + NumToString(line_) + ": " + msg;
+    error_ = source_filename ? AbsolutePath(source_filename) : "";
+    #ifdef _WIN32
+      error_ += "(" + NumToString(line_) + ")";  // MSVC alike
+    #else
+      if (source_filename) error_ += ":";
+      error_ += NumToString(line_) + ":0";  // gcc alike
+    #endif
+    error_ += ": error: " + msg;
     return false;
   }
   assert(!struct_stack_.size());

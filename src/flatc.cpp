@@ -19,7 +19,7 @@
 #include "flatbuffers/util.h"
 
 static void Error(const char *err, const char *obj = nullptr,
-                  bool usage = false);
+                  bool usage = false, bool show_exe_name = true);
 
 namespace flatbuffers {
 
@@ -89,8 +89,10 @@ const Generator generators[] = {
 
 const char *program_name = NULL;
 
-static void Error(const char *err, const char *obj, bool usage) {
-  printf("%s: %s", program_name, err);
+static void Error(const char *err, const char *obj, bool usage,
+                  bool show_exe_name) {
+  if (show_exe_name) printf("%s: ", program_name);
+  printf("%s", err);
   if (obj) printf(": %s", obj);
   printf("\n");
   if (usage) {
@@ -196,7 +198,7 @@ int main(int argc, const char *argv[]) {
         include_directories.push_back(nullptr);
         if (!parser.Parse(contents.c_str(), &include_directories[0],
                           file_it->c_str()))
-          Error((*file_it + ": " + parser.error_).c_str());
+          Error(parser.error_.c_str(), nullptr, false, false);
         include_directories.pop_back();
         include_directories.pop_back();
       }
