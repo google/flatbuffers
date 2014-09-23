@@ -235,6 +235,18 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 	if 100 != sum {
 		fail(FailString("test0 and test1 sum", 100, sum))
 	}
+
+	if got := monster.TestarrayofstringLength(); 2 != got {
+		fail(FailString("Testarrayofstring length", 2, got))
+	}
+
+	if got := monster.Testarrayofstring(0); "test1" != got {
+		fail(FailString("Testarrayofstring(0)", "test1", got))
+	}
+
+	if got := monster.Testarrayofstring(1); "test2" != got {
+		fail(FailString("Testarrayofstring(1)", "test2", got))
+	}
 }
 
 // Low level stress/fuzz test: serialize/deserialize a variety of
@@ -891,6 +903,9 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UOffsetT) {
 	b := flatbuffers.NewBuilder(0)
 	str := b.CreateString("MyMonster")
+	test1 := b.CreateString("test1")
+	test2 := b.CreateString("test2")
+
 	example.MonsterStartInventoryVector(b, 5)
 	b.PrependByte(4)
 	b.PrependByte(3)
@@ -908,6 +923,11 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	example.CreateTest(b, 30, 40)
 	test4 := b.EndVector(2)
 
+	example.MonsterStartTestarrayofstringVector(b, 2)
+	b.PrependUOffsetT(test2)
+	b.PrependUOffsetT(test1)
+	testArrayOfString := b.EndVector(2)
+
 	example.MonsterStart(b)
 
 	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 4, 5, 6)
@@ -919,6 +939,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	example.MonsterAddTestType(b, 1)
 	example.MonsterAddTest(b, mon2)
 	example.MonsterAddTest4(b, test4)
+	example.MonsterAddTestarrayofstring(b, testArrayOfString)
 	mon := example.MonsterEnd(b)
 
 	b.Finish(mon)

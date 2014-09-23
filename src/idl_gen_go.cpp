@@ -235,7 +235,7 @@ static void GetStringField(const StructDef &struct_def,
   code += " " +  MakeCamel(field.name);
   code += "() " + TypeName(field) + " ";
   code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
-  code += "(o)\n\t}\n\treturn \"\"\n";
+  code += "(o + rcv._tab.Pos)\n\t}\n\treturn \"\"\n";
   code += "}\n\n";
 }
 
