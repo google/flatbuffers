@@ -259,6 +259,13 @@ public:
     return IndirectHelper<T>::Read(Data(), i);
   }
 
+  // If this is a Vector of enums, T will be its storage type, not the enum
+  // type. This function makes it convenient to retrieve value with enum
+  // type E.
+  template<typename E> E GetEnum(uoffset_t i) const {
+    return static_cast<E>(Get(i));
+  }
+
   const void *GetStructFromOffset(size_t o) const {
     return reinterpret_cast<const void *>(Data() + o);
   }

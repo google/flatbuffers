@@ -68,7 +68,7 @@ namespace FlatBuffers.Test
 
             Monster.StartMonster(fbb);
             Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
-                                                     (sbyte)4, (short)5, (sbyte)6));
+                                                     Color.Green, (short)5, (sbyte)6));
             Monster.AddHp(fbb, (short)80);
             Monster.AddName(fbb, str);
             Monster.AddInventory(fbb, inv);
@@ -105,7 +105,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(3.0f, pos.Z());
 
             Assert.AreEqual(3.0f, pos.Test1());
-            Assert.AreEqual((sbyte)4, pos.Test2());
+            Assert.AreEqual(Color.Green, pos.Test2());
             var t = pos.Test3();
             Assert.AreEqual((short)5, t.A());
             Assert.AreEqual((sbyte)6, t.B());

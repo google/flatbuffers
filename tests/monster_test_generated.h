@@ -18,7 +18,7 @@ struct Test;
 struct Vec3;
 struct Monster;
 
-enum {
+enum Color {
   Color_Red = 1,
   Color_Green = 2,
   Color_Blue = 8
@@ -29,9 +29,9 @@ inline const char **EnumNamesColor() {
   return names;
 }
 
-inline const char *EnumNameColor(int e) { return EnumNamesColor()[e - Color_Red]; }
+inline const char *EnumNameColor(Color e) { return EnumNamesColor()[e - Color_Red]; }
 
-enum {
+enum Any {
   Any_NONE = 0,
   Any_Monster = 1
 };
@@ -41,7 +41,7 @@ inline const char **EnumNamesAny() {
   return names;
 }
 
-inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
+inline const char *EnumNameAny(Any e) { return EnumNamesAny()[e]; }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type);
 
@@ -73,14 +73,14 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 {
   int16_t __padding2;
 
  public:
-  Vec3(float x, float y, float z, double test1, int8_t test2, const Test &test3)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(test2)), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
+  Vec3(float x, float y, float z, double test1, Color test2, const Test &test3)
+    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(static_cast<int8_t>(test2))), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
   float y() const { return flatbuffers::EndianScalar(y_); }
   float z() const { return flatbuffers::EndianScalar(z_); }
   double test1() const { return flatbuffers::EndianScalar(test1_); }
-  int8_t test2() const { return flatbuffers::EndianScalar(test2_); }
+  Color test2() const { return static_cast<Color>(flatbuffers::EndianScalar(test2_)); }
   const Test &test3() const { return test3_; }
 };
 STRUCT_END(Vec3, 32);
@@ -91,8 +91,8 @@ struct Monster : private flatbuffers::Table {
   int16_t hp() const { return GetField<int16_t>(8, 100); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
-  int8_t color() const { return GetField<int8_t>(16, 8); }
-  uint8_t test_type() const { return GetField<uint8_t>(18, 0); }
+  Color color() const { return static_cast<Color>(GetField<int8_t>(16, 8)); }
+  Any test_type() const { return static_cast<Any>(GetField<uint8_t>(18, 0)); }
   const void *test() const { return GetPointer<const void *>(20); }
   const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(22); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(24); }
@@ -141,8 +141,8 @@ struct MonsterBuilder {
   void add_hp(int16_t hp) { fbb_.AddElement<int16_t>(8, hp, 100); }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(10, name); }
   void add_inventory(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory) { fbb_.AddOffset(14, inventory); }
-  void add_color(int8_t color) { fbb_.AddElement<int8_t>(16, color, 8); }
-  void add_test_type(uint8_t test_type) { fbb_.AddElement<uint8_t>(18, test_type, 0); }
+  void add_color(Color color) { fbb_.AddElement<int8_t>(16, static_cast<int8_t>(color), 8); }
+  void add_test_type(Any test_type) { fbb_.AddElement<uint8_t>(18, static_cast<uint8_t>(test_type), 0); }
   void add_test(flatbuffers::Offset<void> test) { fbb_.AddOffset(20, test); }
   void add_test4(flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4) { fbb_.AddOffset(22, test4); }
   void add_testarrayofstring(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring) { fbb_.AddOffset(24, testarrayofstring); }
@@ -165,8 +165,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    int16_t hp = 100,
    flatbuffers::Offset<flatbuffers::String> name = 0,
    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
-   int8_t color = 8,
-   uint8_t test_type = 0,
+   Color color = Color_Blue,
+   Any test_type = Any_NONE,
    flatbuffers::Offset<void> test = 0,
    flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4 = 0,
    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring = 0,

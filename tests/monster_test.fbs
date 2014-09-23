@@ -15,7 +15,7 @@ struct Vec3 (force_align: 16) {
   y:float;
   z:float;
   test1:double;
-  test2:byte;
+  test2:Color;
   test3:Test;
 }
 

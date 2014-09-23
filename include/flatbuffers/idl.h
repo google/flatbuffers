@@ -175,12 +175,13 @@ struct Namespace {
 
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
-  Definition() : generated(false) {}
+  Definition() : generated(false), defined_namespace(nullptr) {}
 
   std::string name;
   std::string doc_comment;
   SymbolTable<Value> attributes;
   bool generated;  // did we already output code for this definition?
+  Namespace *defined_namespace;  // Where it was defined.
 };
 
 struct FieldDef : public Definition {
@@ -199,8 +200,7 @@ struct StructDef : public Definition {
       predecl(true),
       sortbysize(true),
       minalign(1),
-      bytesize(0),
-      defined_namespace(nullptr)
+      bytesize(0)
     {}
 
   void PadLastField(size_t minalign) {
@@ -215,7 +215,6 @@ struct StructDef : public Definition {
   bool sortbysize;  // Whether fields come in the declaration or size order.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
-  Namespace *defined_namespace;  // Where it was defined.
 };
 
 inline bool IsStruct(const Type &type) {
@@ -243,8 +242,9 @@ struct EnumVal {
 struct EnumDef : public Definition {
   EnumDef() : is_union(false) {}
 
-  EnumVal *ReverseLookup(int enum_idx) {
-    for (auto it = vals.vec.begin() + static_cast<int>(is_union);
+  EnumVal *ReverseLookup(int enum_idx, bool skip_union_default = true) {
+    for (auto it = vals.vec.begin() + static_cast<int>(is_union &&
+                                                       skip_union_default);
              it != vals.vec.end(); ++it) {
       if ((*it)->value == enum_idx) {
         return *it;

@@ -63,7 +63,7 @@ void lcg_reset() { lcg_seed = 48271; }
 std::string CreateFlatBufferTest() {
   flatbuffers::FlatBufferBuilder builder;
 
-  auto vec = Vec3(1, 2, 3, 0, 0, Test(10, 20));
+  auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
 
   auto name = builder.CreateString("MyMonster");
 

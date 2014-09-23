@@ -371,6 +371,15 @@ void Parser::ParseField(StructDef &struct_def) {
     ParseSingleValue(field.value);
   }
 
+  if (type.enum_def &&
+      IsScalar(type.base_type) &&
+      !struct_def.fixed &&
+      !type.enum_def->attributes.Lookup("bit_flags") &&
+      !type.enum_def->ReverseLookup(StringToInt(field.value.constant.c_str())))
+    Error("enum " + type.enum_def->name +
+          " does not have a declaration for this field\'s default of " +
+          field.value.constant);
+
   field.doc_comment = dc;
   ParseMetaData(field);
   field.deprecated = field.attributes.Lookup("deprecated") != nullptr;
@@ -703,6 +712,7 @@ void Parser::ParseEnum(bool is_union) {
   enum_def.name = name;
   enum_def.doc_comment = dc;
   enum_def.is_union = is_union;
+  enum_def.defined_namespace = namespaces_.back();
   if (enums_.Add(name, &enum_def)) Error("enum already exists: " + name);
   if (is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;

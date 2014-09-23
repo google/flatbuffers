@@ -71,7 +71,7 @@ add_executable(flatc ${FlatBuffers_Compiler_SRCS})
 
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} DIRECTORY)
-  string(REGEX REPLACE ".fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+  string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
     COMMAND flatc -c -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -97,6 +97,7 @@ endif()
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
+       "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
 endif()

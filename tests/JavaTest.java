@@ -72,7 +72,7 @@ class JavaTest {
 
         Monster.startMonster(fbb);
         Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
-                                                 (byte)4, (short)5, (byte)6));
+                                                 Color.Green, (short)5, (byte)6));
         Monster.addHp(fbb, (short)80);
         Monster.addName(fbb, str);
         Monster.addInventory(fbb, inv);
@@ -135,7 +135,7 @@ class JavaTest {
         TestEq(pos.y(), 2.0f);
         TestEq(pos.z(), 3.0f);
         TestEq(pos.test1(), 3.0);
-        TestEq(pos.test2(), (byte)4);
+        TestEq(pos.test2(), Color.Green);
         Test t = pos.test3();
         TestEq(t.a(), (short)5);
         TestEq(t.b(), (byte)6);
