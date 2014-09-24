@@ -186,8 +186,7 @@ void Parser::Next() {
           if (*start == '/') {  // documentation comment
             if (!seen_newline)
               Error("a documentation comment should be on a line on its own");
-            // todo: do we want to support multiline comments instead?
-            doc_comment_ += std::string(start + 1, cursor_);
+            doc_comment_.push_back(std::string(start + 1, cursor_));
           }
           break;
         }
@@ -345,7 +344,7 @@ FieldDef &Parser::AddField(StructDef &struct_def,
 
 void Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
-  std::string dc = doc_comment_;
+  std::vector<std::string> dc = doc_comment_;
   Expect(kTokenIdentifier);
   Expect(':');
   Type type;
@@ -704,7 +703,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name) {
 }
 
 void Parser::ParseEnum(bool is_union) {
-  std::string dc = doc_comment_;
+  std::vector<std::string> dc = doc_comment_;
   Next();
   std::string name = attribute_;
   Expect(kTokenIdentifier);
@@ -734,7 +733,7 @@ void Parser::ParseEnum(bool is_union) {
   if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
   do {
     std::string name = attribute_;
-    std::string dc = doc_comment_;
+    std::vector<std::string> dc = doc_comment_;
     Expect(kTokenIdentifier);
     auto prevsize = enum_def.vals.vec.size();
     auto value = enum_def.vals.vec.size()
@@ -767,7 +766,7 @@ void Parser::ParseEnum(bool is_union) {
 }
 
 void Parser::ParseDecl() {
-  std::string dc = doc_comment_;
+  std::vector<std::string> dc = doc_comment_;
   bool fixed = IsNext(kTokenStruct);
   if (!fixed) Expect(kTokenTable);
   std::string name = attribute_;

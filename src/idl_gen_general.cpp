@@ -38,11 +38,13 @@ std::string MakeCamel(const std::string &in, bool first) {
 }
 
 // Generate a documentation comment, if available.
-void GenComment(const std::string &dc, std::string *code_ptr,
+void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
                 const char *prefix) {
   std::string &code = *code_ptr;
-  if (dc.length()) {
-    code += std::string(prefix) + "///" + dc + "\n";
+  for (auto it = dc.begin();
+       it != dc.end();
+       ++it) {
+    code += std::string(prefix) + "///" + *it + "\n";
   }
 }
 

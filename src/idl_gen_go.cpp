@@ -44,16 +44,6 @@ static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
 
 
-// Write a comment.
-static void Comment(const std::string &dc,
-                       std::string *code_ptr,
-                       const char *prefix = "") {
-  std::string &code = *code_ptr;
-  if (dc.length()) {
-    code += std::string(prefix) + "///" + dc + "\n";
-  }
-}
-
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
 std::string OffsetPrefix(const FieldDef &field) {
@@ -453,7 +443,7 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
 static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
                               std::string *code_ptr) {
-  Comment(field.doc_comment, code_ptr, "");
+  GenComment(field.doc_comment, code_ptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
       GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -520,7 +510,7 @@ static void GenStruct(const StructDef &struct_def,
                       StructDef *root_struct_def) {
   if (struct_def.generated) return;
 
-  Comment(struct_def.doc_comment, code_ptr);
+  GenComment(struct_def.doc_comment, code_ptr);
   BeginClass(struct_def, code_ptr);
   if (&struct_def == root_struct_def) {
     // Generate a special accessor for the table that has been declared as
@@ -552,13 +542,13 @@ static void GenStruct(const StructDef &struct_def,
 static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
-  Comment(enum_def.doc_comment, code_ptr);
+  GenComment(enum_def.doc_comment, code_ptr);
   BeginEnum(code_ptr);
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
-    Comment(ev.doc_comment, code_ptr, "  ");
+    GenComment(ev.doc_comment, code_ptr, "\t");
     EnumMember(enum_def, ev, code_ptr);
   }
   EndEnum(code_ptr);

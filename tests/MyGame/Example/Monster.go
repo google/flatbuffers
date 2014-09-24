@@ -139,7 +139,8 @@ func (rcv *Monster) TestarrayofstringLength() int {
 	return 0
 }
 
-/// an example documentation comment: this will end up in the generated code multiline too
+/// an example documentation comment: this will end up in the generated code
+/// multiline too
 func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {

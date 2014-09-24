@@ -31,7 +31,8 @@ public class Monster extends Table {
   public String testarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int testarrayofstringLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer testarrayofstringAsByteBuffer() { return __vector_as_bytebuffer(24, 4); }
-  /// an example documentation comment: this will end up in the generated code multiline too
+  /// an example documentation comment: this will end up in the generated code
+  /// multiline too
   public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
   public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }

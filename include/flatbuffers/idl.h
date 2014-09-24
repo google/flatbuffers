@@ -178,7 +178,7 @@ struct Definition {
   Definition() : generated(false), defined_namespace(nullptr) {}
 
   std::string name;
-  std::string doc_comment;
+  std::vector<std::string> doc_comment;
   SymbolTable<Value> attributes;
   bool generated;  // did we already output code for this definition?
   Namespace *defined_namespace;  // Where it was defined.
@@ -234,7 +234,7 @@ struct EnumVal {
     : name(_name), value(_val), struct_def(nullptr) {}
 
   std::string name;
-  std::string doc_comment;
+  std::vector<std::string> doc_comment;
   int64_t value;
   StructDef *struct_def;  // only set if this is a union
 };
@@ -333,7 +333,8 @@ class Parser {
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
-  std::string attribute_, doc_comment_;
+  std::string attribute_;
+  std::vector<std::string> doc_comment_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
@@ -342,7 +343,8 @@ class Parser {
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
-extern void GenComment(const std::string &dc, std::string *code_ptr,
+extern void GenComment(const std::vector<std::string> &dc,
+                       std::string *code_ptr,
                        const char *prefix = "");
 
 // Container of options that may apply to any of the source/text generators.
