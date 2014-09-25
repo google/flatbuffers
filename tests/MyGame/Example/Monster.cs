@@ -34,8 +34,8 @@ public class Monster : Table {
   public Monster Enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public byte Testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength() { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; }
-  public Monster Testempty() { return Testempty(new Monster()); }
-  public Monster Testempty(Monster obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public Stat Testempty() { return Testempty(new Stat()); }
+  public Stat Testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(15); }
   public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }

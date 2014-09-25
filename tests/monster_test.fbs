@@ -19,6 +19,11 @@ struct Vec3 (force_align: 16) {
   test3:Test;
 }
 
+table Stat {
+  id:string;
+  val:long;
+}
+
 table Monster {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
@@ -35,7 +40,7 @@ table Monster {
   test:Any (id: 8);
   test4:[Test] (id: 9);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
-  testempty:Monster (id:14);
+  testempty:Stat (id:14);
 }
 
 root_type Monster;

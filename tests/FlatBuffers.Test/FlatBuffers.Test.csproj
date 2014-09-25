@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
+    <Compile Include="MyGame\Example\Stat.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FlatBuffersExampleTests.cs" />

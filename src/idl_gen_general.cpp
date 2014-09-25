@@ -463,7 +463,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     if (has_no_struct_fields && num_fields) {
       // Generate a table constructor of the form:
       // public static void createName(FlatBufferBuilder builder, args...)
-      code += "  public static void " + FunctionStart(lang, 'C') + "reate";
+      code += "  public static int " + FunctionStart(lang, 'C') + "reate";
       code += struct_def.name;
       code += "(FlatBufferBuilder builder";
       for (auto it = struct_def.fields.vec.begin();
@@ -495,8 +495,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           }
         }
       }
-      code += "    builder.";
-      code += FunctionStart(lang, 'E') + "ndObject();\n  }\n\n";
+      code += "    return " + struct_def.name + ".";
+      code += FunctionStart(lang, 'E') + "nd" + struct_def.name;
+      code += "(builder);\n  }\n\n";
     }
     // Generate a set of static methods that allow table construction,
     // of the form:

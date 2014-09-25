@@ -21,9 +21,9 @@ var (
 
 func init() {
 	flag.StringVar(&cppData, "cpp_data", "",
-		"location of monsterdata_test.bin to verify against (required)")
+		"location of monsterdata_test.mon to verify against (required)")
 	flag.StringVar(&javaData, "java_data", "",
-		"location of monsterdata_java_wire.bin to verify against (optional)")
+		"location of monsterdata_java_wire.mon to verify against (optional)")
 	flag.StringVar(&outData, "out_data", "",
 		"location to write generated Go data")
 	flag.BoolVar(&fuzz, "fuzz", false, "perform fuzzing")
@@ -146,8 +146,8 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("Pos.Test1", float64(3.0), got))
 	}
 
-	if got := vec.Test2(); int8(4) != got {
-		fail(FailString("Pos.Test2", int8(4), got))
+	if got := vec.Test2(); int8(2) != got {
+		fail(FailString("Pos.Test2", int8(2), got))
 	}
 
 	// initialize a Test from Test3(...)
@@ -190,8 +190,8 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 	var monster2 example.Monster
 	monster2.Init(table2.Bytes, table2.Pos)
 
-	if got := monster2.Hp(); int16(20) != got {
-		fail(FailString("monster2.Hp()", int16(20), got))
+	if got := monster2.Name(); "Fred" != got {
+		fail(FailString("monster2.Name()", "Fred", got))
 	}
 
 	if got := monster.InventoryLength(); 5 != got {
@@ -905,6 +905,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	str := b.CreateString("MyMonster")
 	test1 := b.CreateString("test1")
 	test2 := b.CreateString("test2")
+	fred := b.CreateString("Fred")
 
 	example.MonsterStartInventoryVector(b, 5)
 	b.PrependByte(4)
@@ -915,7 +916,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	inv := b.EndVector(5)
 
 	example.MonsterStart(b)
-	example.MonsterAddHp(b, int16(20))
+	example.MonsterAddName(b, fred)
 	mon2 := example.MonsterEnd(b)
 
 	example.MonsterStartTest4Vector(b, 2)
@@ -930,7 +931,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 
 	example.MonsterStart(b)
 
-	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 4, 5, 6)
+	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
 	example.MonsterAddPos(b, pos)
 
 	example.MonsterAddHp(b, 80)

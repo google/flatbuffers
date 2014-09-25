@@ -139,8 +139,7 @@ func (rcv *Monster) TestarrayofstringLength() int {
 	return 0
 }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
+/// an example documentation comment: this will end up in the generated code multiline too
 func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -194,12 +193,12 @@ func (rcv *Monster) TestnestedflatbufferLength() int {
 	return 0
 }
 
-func (rcv *Monster) Testempty(obj *Monster) *Monster {
+func (rcv *Monster) Testempty(obj *Stat) *Stat {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(32))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
-			obj = new(Monster)
+			obj = new(Stat)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
