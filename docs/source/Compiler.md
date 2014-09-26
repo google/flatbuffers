@@ -21,6 +21,10 @@ be generated for each file processed:
 
 -   `-j` : Generate Java classes. Skipped for data.
 
+-   `-n` : Generate C# classes. Skipped for data.
+
+-   `-g` : Generate Go classes. Skipped for data.
+
 -   `-b` : If data is contained in this file, generate a
     `filename.bin` containing the binary flatbuffer.
 
@@ -37,10 +41,18 @@ be generated for each file processed:
     fail (or none are specified) it will try to load relative to the path of
     the schema file being parsed.
 
--   `-S` : Generate strict JSON (field names are enclosed in quotes).
+-   `--strict-json` : Generate strict JSON (field names are enclosed in quotes).
     By default, no quotes are generated.
 
--   `-P` : Don't prefix enum values in generated C++ by their enum type.
+-   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
+    type.
 
--   `-H` : Generate include statements for included schemas the generated file
-    depends on (C++).
+-   `--gen-includes` : Generate include statements for included schemas the
+    generated file depends on (C++).
+
+-   `--proto`: Expect input files to be .proto files (protocol buffers).
+    Output the corresponding .fbs file.
+    Currently supports: `package`, `message`, `enum`.
+    Does not support, but will skip without error: `import`, `option`.
+    Does not support, will generate error: `service`, `extend`, `extensions`,
+    `oneof`, `group`, custom options, nested declarations.

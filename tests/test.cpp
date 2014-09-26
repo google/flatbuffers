@@ -182,7 +182,6 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest() {
-
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -212,6 +211,34 @@ void ParseAndGenerateTextTest() {
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
+    TEST_NOTNULL(NULL);
+  }
+}
+
+// Parse a .proto schema, output as .fbs
+void ParseProtoTest() {
+  // load the .proto and the golden file from disk
+  std::string protofile;
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile(
+    "tests/prototest/test.proto", false, &protofile), true);
+  TEST_EQ(flatbuffers::LoadFile(
+    "tests/prototest/test.golden", false, &goldenfile), true);
+
+  // Parse proto.
+  flatbuffers::Parser parser(true);
+  TEST_EQ(parser.Parse(protofile.c_str(), nullptr), true);
+
+  // Generate fbs.
+  flatbuffers::GeneratorOptions opts;
+  auto fbs = flatbuffers::GenerateFBS(parser, "test", opts);
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+
+  if (fbs != goldenfile) {
+    printf("%s----------------\n%s", fbs.c_str(), goldenfile.c_str());
     TEST_NOTNULL(NULL);
   }
 }
@@ -544,6 +571,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   #ifndef __ANDROID__  // requires file access
   ParseAndGenerateTextTest();
+  ParseProtoTest();
   #endif
 
   FuzzTest1();

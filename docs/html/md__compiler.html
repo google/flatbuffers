@@ -61,13 +61,16 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <ul>
 <li><code>-c</code> : Generate a C++ header for all definitions in this file (as <code>filename_generated.h</code>). Skipped for data.</li>
 <li><code>-j</code> : Generate Java classes. Skipped for data.</li>
+<li><code>-n</code> : Generate C# classes. Skipped for data.</li>
+<li><code>-g</code> : Generate Go classes. Skipped for data.</li>
 <li><code>-b</code> : If data is contained in this file, generate a <code>filename.bin</code> containing the binary flatbuffer.</li>
 <li><code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
 <li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
-<li><code>-S</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated.</li>
-<li><code>-P</code> : Don't prefix enum values in generated C++ by their enum type.</li>
-<li><code>-H</code> : Generate include statements for included schemas the generated file depends on (C++). </li>
+<li><code>--strict-json</code> : Generate strict JSON (field names are enclosed in quotes). By default, no quotes are generated.</li>
+<li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>
+<li><code>--gen-includes</code> : Generate include statements for included schemas the generated file depends on (C++).</li>
+<li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>. Does not support, but will skip without error: <code>import</code>, <code>option</code>. Does not support, will generate error: <code>service</code>, <code>extend</code>, <code>extensions</code>, <code>oneof</code>, <code>group</code>, custom options, nested declarations. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

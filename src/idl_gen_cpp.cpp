@@ -168,7 +168,7 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     // on the wrong type.
     auto signature = "inline bool Verify" + enum_def.name +
                      "(flatbuffers::Verifier &verifier, " +
-                     "const void *union_obj, uint8_t type)";
+                     "const void *union_obj, " + enum_def.name + " type)";
     code += signature + ";\n\n";
     code_post += signature + " {\n  switch (type) {\n";
     for (auto it = enum_def.vals.vec.begin();
@@ -201,7 +201,7 @@ std::string GenUnderlyingCast(const Parser &parser, const FieldDef &field,
 
 // Generate an accessor struct, builder structs & function for a table.
 static void GenTable(const Parser &parser, StructDef &struct_def,
-                     std::string *code_ptr) {
+                     const GeneratorOptions &opts, std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -359,13 +359,13 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += ",\n   " + GenTypeWire(parser, field.value.type, " ", true);
       code += field.name + " = ";
       if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-        auto ed = field.value.type.enum_def->ReverseLookup(
-                      StringToInt(field.value.constant.c_str()), false);
-        if (ed) {
+        auto ev = field.value.type.enum_def->ReverseLookup(
+           static_cast<int>(StringToInt(field.value.constant.c_str())), false);
+        if (ev) {
           code += WrapInNameSpace(parser,
                                   field.value.type.enum_def->defined_namespace,
-                                  field.value.type.enum_def->name + "_" +
-                                    ed->name);
+                                  GenEnumVal(*field.value.type.enum_def, *ev,
+                                             opts));
         } else {
           code += GenUnderlyingCast(parser, field, true, field.value.constant);
         }
@@ -561,7 +561,7 @@ std::string GenerateCPP(const Parser &parser,
   }
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
-    if (!(**it).fixed) GenTable(parser, **it, &decl_code);
+    if (!(**it).fixed) GenTable(parser, **it, opts, &decl_code);
   }
 
   // Only output file-level code if there were any declarations.

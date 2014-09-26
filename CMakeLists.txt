@@ -16,6 +16,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
   src/idl_gen_text.cpp
+  src/idl_gen_fbs.cpp
   src/flatc.cpp
 )
 
@@ -25,6 +26,7 @@ set(FlatBuffers_Tests_SRCS
   include/flatbuffers/util.h
   src/idl_parser.cpp
   src/idl_gen_text.cpp
+  src/idl_gen_fbs.cpp
   tests/test.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h

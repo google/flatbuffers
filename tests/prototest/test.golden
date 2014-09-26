@@ -1,0 +1,32 @@
+// Generated from test.proto
+
+namespace proto.test;
+
+enum ProtoEnum : short {
+  FOO = 1,
+  BAR = 5,
+}
+
+table OtherMessage {
+  a:double;
+  b:float = 3.14149;
+}
+
+table ProtoMessage {
+  c:int = 16;
+  d:long;
+  p:uint;
+  e:ulong;
+  f:int = -1;
+  g:long;
+  h:uint;
+  q:ulong;
+  i:int;
+  j:long;
+  k:bool;
+  l:string (required);
+  m:string;
+  n:OtherMessage;
+  o:[string];
+}
+

@@ -44,7 +44,7 @@ inline const char **EnumNamesAny() {
 
 inline const char *EnumNameAny(Any e) { return EnumNamesAny()[e]; }
 
-inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type);
+inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type);
 
 MANUALLY_ALIGNED_STRUCT(2) Test {
  private:
@@ -228,7 +228,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, uint8_t type) {
+inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type) {
   switch (type) {
     case Any_NONE: return true;
     case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));

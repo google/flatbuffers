@@ -260,11 +260,12 @@ struct EnumDef : public Definition {
 
 class Parser {
  public:
-  Parser() :
+  Parser(bool proto_mode = false) :
     root_struct_def(nullptr),
     source_(nullptr),
     cursor_(nullptr),
-    line_(1) {
+    line_(1),
+    proto_mode_(proto_mode) {
       // Just in case none are declared:
       namespaces_.push_back(new Namespace());
   }
@@ -298,6 +299,7 @@ class Parser {
   void Next();
   bool IsNext(int t);
   void Expect(int t);
+  void ParseTypeIdent(Type &type);
   void ParseType(Type &type);
   FieldDef &AddField(StructDef &struct_def,
                      const std::string &name,
@@ -314,7 +316,11 @@ class Parser {
   int64_t ParseIntegerFromString(Type &type);
   StructDef *LookupCreateStruct(const std::string &name);
   void ParseEnum(bool is_union);
+  void ParseNamespace();
+  StructDef &StartStruct();
   void ParseDecl();
+  void ParseProtoDecl();
+  Type ParseTypeFromProtoType();
 
  public:
   SymbolTable<StructDef> structs_;
@@ -333,6 +339,7 @@ class Parser {
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
+  bool proto_mode_;
   std::string attribute_;
   std::vector<std::string> doc_comment_;
 
@@ -414,6 +421,16 @@ extern bool GenerateGeneral(const Parser &parser,
                             const std::string &path,
                             const std::string &file_name,
                             const GeneratorOptions &opts);
+
+// Generate a schema file from the internal representation, useful after
+// parsing a .proto schema.
+extern std::string GenerateFBS(const Parser &parser,
+                               const std::string &file_name,
+                               const GeneratorOptions &opts);
+extern bool GenerateFBS(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name,
+                        const GeneratorOptions &opts);
 
 }  // namespace flatbuffers
 
