@@ -54,40 +54,47 @@ $(document).ready(function(){initNavTree('md__go_usage.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>There's experimental support for reading FlatBuffers in Go. Generate code for Go with the <code>-g</code> option to <code>flatc</code>.</p>
-<p>See <code>go_test.go</code> for an example. You import the generated code, read a FlatBuffer binary file into a <code>[]byte</code>, which you pass to the <code>GetRootAsMonster</code> function: </p><pre class="fragment">import (
-   example "MyGame/Example"
-   flatbuffers "github.com/google/flatbuffers/go"
-
-   io/ioutil
-)
-
-buf, err := ioutil.ReadFile("monster.dat")
-// handle err
-monster := example.GetRootAsMonster(buf, 0)
-</pre><p>Now you can access values like this: </p><pre class="fragment">hp := monster.Hp()
-pos := monster.Pos(nil)
-</pre><p>Note that whenever you access a new object like in the <code>Pos</code> example above, a new temporary accessor object gets created. If your code is very performance sensitive (you iterate through a lot of objects), you can replace nil with a pointer to a <code>Vec3</code> object you've already created. This allows you to reuse it across many calls and reduce the amount of object allocation (and thus garbage collection) your program does.</p>
-<p>To access vectors you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access: </p><pre class="fragment">for i := 0; i &lt; monster.InventoryLength(); i++ {
-    monster.Inventory(i) // do something here
-}
-</pre><p>You can also construct these buffers in Go using the functions found in the generated code, and the FlatBufferBuilder class: </p><pre class="fragment">builder := flatbuffers.NewBuilder(0)
-</pre><p>Create strings: </p><pre class="fragment">str := builder.CreateString("MyMonster")
-</pre><p>Create a table with a struct contained therein: </p><pre class="fragment">example.MonsterStart(builder)
-example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
-example.MonsterAddHp(builder, 80)
-example.MonsterAddName(builder, str)
-example.MonsterAddInventory(builder, inv)
-example.MonsterAddTest_Type(builder, 1)
-example.MonsterAddTest(builder, mon2)
-example.MonsterAddTest4(builder, test4s)
-mon := example.MonsterEnd(builder)
-</pre><p>Unlike C++, Go does not support table creation functions like 'createMonster()'. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline). Structs do have convenient methods that allow you to construct them in one call. These also have arguments for nested structs, e.g. if a struct has a field <code>a</code> and a nested struct field <code>b</code> (which has fields <code>c</code> and <code>d</code>), then the arguments will be <code>a</code>, <code>c</code> and <code>d</code>.</p>
-<p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs: </p><pre class="fragment">example.MonsterStartInventoryVector(builder, 5)
-for i := 4; i &gt;= 0; i-- {
-    builder.PrependByte(byte(i))
-}
-inv := builder.EndVector(5)
-</pre><p>The generated method 'StartInventoryVector' is provided as a convenience function which calls 'StartVector' with the correct element size of the vector type which in this case is 'ubyte' or 1 byte per vector element. You pass the number of elements you want to write. You write the elements backwards since the buffer is being constructed back to front.</p>
+<p>See <code>go_test.go</code> for an example. You import the generated code, read a FlatBuffer binary file into a <code>[]byte</code>, which you pass to the <code>GetRootAsMonster</code> function:</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> (</div>
+<div class="line">   example <span class="stringliteral">&quot;MyGame/Example&quot;</span></div>
+<div class="line">   flatbuffers <span class="stringliteral">&quot;github.com/google/flatbuffers/go&quot;</span></div>
+<div class="line"></div>
+<div class="line">   io/ioutil</div>
+<div class="line">)</div>
+<div class="line"></div>
+<div class="line">buf, err := ioutil.ReadFile(<span class="stringliteral">&quot;monster.dat&quot;</span>)</div>
+<div class="line"><span class="comment">// handle err</span></div>
+<div class="line">monster := example.GetRootAsMonster(buf, 0)</div>
+</div><!-- fragment --><p>Now you can access values like this:</p>
+<div class="fragment"><div class="line">hp := monster.Hp()</div>
+<div class="line">pos := monster.Pos(nil)</div>
+</div><!-- fragment --><p>Note that whenever you access a new object like in the <code>Pos</code> example above, a new temporary accessor object gets created. If your code is very performance sensitive (you iterate through a lot of objects), you can replace nil with a pointer to a <code>Vec3</code> object you've already created. This allows you to reuse it across many calls and reduce the amount of object allocation (and thus garbage collection) your program does.</p>
+<p>To access vectors you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access:</p>
+<div class="fragment"><div class="line"><span class="keywordflow">for</span> i := 0; i &lt; monster.InventoryLength(); i++ {</div>
+<div class="line">    monster.Inventory(i) <span class="comment">// do something here</span></div>
+<div class="line">}</div>
+</div><!-- fragment --><p>You can also construct these buffers in Go using the functions found in the generated code, and the FlatBufferBuilder class:</p>
+<div class="fragment"><div class="line">builder := flatbuffers.NewBuilder(0)</div>
+</div><!-- fragment --><p>Create strings:</p>
+<div class="fragment"><div class="line">str := builder.CreateString(<span class="stringliteral">&quot;MyMonster&quot;</span>)</div>
+</div><!-- fragment --><p>Create a table with a struct contained therein:</p>
+<div class="fragment"><div class="line">example.MonsterStart(builder)</div>
+<div class="line">example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))</div>
+<div class="line">example.MonsterAddHp(builder, 80)</div>
+<div class="line">example.MonsterAddName(builder, str)</div>
+<div class="line">example.MonsterAddInventory(builder, inv)</div>
+<div class="line">example.MonsterAddTest_Type(builder, 1)</div>
+<div class="line">example.MonsterAddTest(builder, mon2)</div>
+<div class="line">example.MonsterAddTest4(builder, test4s)</div>
+<div class="line">mon := example.MonsterEnd(builder)</div>
+</div><!-- fragment --><p>Unlike C++, Go does not support table creation functions like 'createMonster()'. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline). Structs do have convenient methods that allow you to construct them in one call. These also have arguments for nested structs, e.g. if a struct has a field <code>a</code> and a nested struct field <code>b</code> (which has fields <code>c</code> and <code>d</code>), then the arguments will be <code>a</code>, <code>c</code> and <code>d</code>.</p>
+<p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs:</p>
+<div class="fragment"><div class="line">example.MonsterStartInventoryVector(builder, 5)</div>
+<div class="line"><span class="keywordflow">for</span> i := 4; i &gt;= 0; i-- {</div>
+<div class="line">    builder.PrependByte(byte(i))</div>
+<div class="line">}</div>
+<div class="line">inv := builder.EndVector(5)</div>
+</div><!-- fragment --><p>The generated method 'StartInventoryVector' is provided as a convenience function which calls 'StartVector' with the correct element size of the vector type which in this case is 'ubyte' or 1 byte per vector element. You pass the number of elements you want to write. You write the elements backwards since the buffer is being constructed back to front.</p>
 <p>There are <code>Prepend</code> functions for all the scalar types. You use <code>PrependUOffset</code> for any previously constructed objects (such as other tables, strings, vectors). For structs, you use the appropriate <code>create</code> function in-line, as shown above in the <code>Monster</code> example.</p>
 <h2>Text Parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Go, though you could use the C++ parser through cgo. Please see the C++ documentation for more on text parsing. </p>
