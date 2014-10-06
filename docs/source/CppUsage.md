@@ -12,17 +12,21 @@ your program by including the header. As noted, this header relies on
 To start creating a buffer, create an instance of `FlatBufferBuilder`
 which will contain the buffer as it grows:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     FlatBufferBuilder fbb;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before we serialize a Monster, we need to first serialize any objects
 that are contained there-in, i.e. we serialize the data tree using
 depth first, pre-order traversal. This is generally easy to do on
 any tree structures. For example:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     auto name = fbb.CreateString("MyMonster");
 
     unsigned char inv[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     auto inventory = fbb.CreateVector(inv, 10);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `CreateString` and `CreateVector` serialize these two built-in
 datatypes, and return offsets into the serialized data indicating where
@@ -38,7 +42,9 @@ correct type below. To create a vector of struct objects (which will
 be stored as contiguous memory in the buffer, use `CreateVectorOfStructs`
 instead.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     Vec3 vec(1, 2, 3);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `Vec3` is the first example of code from our generated
 header. Structs (unlike tables) translate to simple structs in C++, so
@@ -47,7 +53,9 @@ we can construct them in a familiar way.
 We have now serialized the non-scalar components of of the monster
 example, so we could create the monster something like this:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     auto mloc = CreateMonster(fbb, &vec, 150, 80, name, inventory, Color_Red, 0, Any_NONE);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that we're passing `150` for the `mana` field, which happens to be the
 default value: this means the field will not actually be written to the buffer,
@@ -67,12 +75,14 @@ If you want even more control over this (i.e. skip fields even when they are
 not default), instead of the convenient `CreateMonster` call we can also
 build the object field-by-field manually:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     MonsterBuilder mb(fbb);
     mb.add_pos(&vec);
     mb.add_hp(80);
     mb.add_name(name);
     mb.add_inventory(inventory);
     auto mloc = mb.Finish();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We start with a temporary helper class `MonsterBuilder` (which is
 defined in our generated code also), then call the various `add_`
@@ -88,7 +98,9 @@ Regardless of whether you used `CreateMonster` or `MonsterBuilder`, you
 now have an offset to the root of your data, and you can finish the
 buffer using:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     FinishMonsterBuffer(fbb, mloc);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The buffer is now ready to be stored somewhere, sent over the network,
 be compressed, or whatever you'd like to do with it. You can access the
@@ -103,33 +115,41 @@ the code above, that also includes the reading code below.
 If you've received a buffer from somewhere (disk, network, etc.) you can
 directly start traversing it using:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     auto monster = GetMonster(buffer_pointer);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `monster` is of type `Monster *`, and points to somewhere inside your
 buffer. If you look in your generated header, you'll see it has
 convenient accessors for all fields, e.g.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     assert(monster->hp() == 80);
     assert(monster->mana() == 150);  // default
     assert(strcmp(monster->name()->c_str(), "MyMonster") == 0);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These should all be true. Note that we never stored a `mana` value, so
 it will return the default.
 
 To access sub-objects, in this case the `Vec3`:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     auto pos = monster->pos();
     assert(pos);
     assert(pos->z() == 3);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If we had not set the `pos` field during serialization, it would be
 `NULL`.
 
 Similarly, we can access elements of the inventory array:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     auto inv = monster->inventory();
     assert(inv);
     assert(inv->Get(9) == 9);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Direct memory access
 
@@ -175,7 +195,9 @@ is accessed, all reads will end up inside the buffer.
 Each root type will have a verification function generated for it,
 e.g. for `Monster`, you can call:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 	bool ok = VerifyMonsterBuffer(Verifier(buf, len));
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if `ok` is true, the buffer is safe to read.
 
@@ -237,11 +259,15 @@ Load text (either a schema or json) into an in-memory buffer (there is a
 convenient `LoadFile()` utility function in `flatbuffers/util.h` if you
 wish). Construct a parser:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     flatbuffers::Parser parser;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you can parse any number of text files in sequence:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     parser.Parse(text_file.c_str());
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This works similarly to how the command-line compiler works: a sequence
 of files parsed by the same `Parser` object allow later files to
