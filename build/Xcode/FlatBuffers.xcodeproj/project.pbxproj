@@ -11,6 +11,15 @@
 		61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		61FF3C34FBEC4819A1C30F92 /* sample_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECCEBFFA6977404F858F9739 /* sample_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */; };
+		8C6905ED19F8357300CB8866 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
+		8C6905F619F835A900CB8866 /* flatc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EF19F835A900CB8866 /* flatc.cpp */; };
+		8C6905F719F835A900CB8866 /* idl_gen_cpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F019F835A900CB8866 /* idl_gen_cpp.cpp */; };
+		8C6905F819F835A900CB8866 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F119F835A900CB8866 /* idl_gen_fbs.cpp */; };
+		8C6905F919F835A900CB8866 /* idl_gen_general.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F219F835A900CB8866 /* idl_gen_general.cpp */; };
+		8C6905FA19F835A900CB8866 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F319F835A900CB8866 /* idl_gen_go.cpp */; };
+		8C6905FB19F835A900CB8866 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F419F835A900CB8866 /* idl_gen_text.cpp */; };
+		8C6905FC19F835A900CB8866 /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905F519F835A900CB8866 /* idl_parser.cpp */; };
+		8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
 		8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */; };
 		A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD29781D8E490284B06504 /* flatc.cpp */; settings = {COMPILER_FLAGS = ""; }; };
@@ -33,6 +42,14 @@
 		5EE44BFFAF8E43F485859145 /* sample_binary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sample_binary.cpp; path = samples/sample_binary.cpp; sourceTree = SOURCE_ROOT; };
 		6AD24EEB3D024825A37741FF /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = test.cpp; path = tests/test.cpp; sourceTree = SOURCE_ROOT; };
 		8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_go.cpp; path = src/idl_gen_go.cpp; sourceTree = "<group>"; };
+		8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_fbs.cpp; path = src/idl_gen_fbs.cpp; sourceTree = "<group>"; };
+		8C6905EF19F835A900CB8866 /* flatc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flatc.cpp; sourceTree = "<group>"; };
+		8C6905F019F835A900CB8866 /* idl_gen_cpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_gen_cpp.cpp; sourceTree = "<group>"; };
+		8C6905F119F835A900CB8866 /* idl_gen_fbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_gen_fbs.cpp; sourceTree = "<group>"; };
+		8C6905F219F835A900CB8866 /* idl_gen_general.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_gen_general.cpp; sourceTree = "<group>"; };
+		8C6905F319F835A900CB8866 /* idl_gen_go.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_gen_go.cpp; sourceTree = "<group>"; };
+		8C6905F419F835A900CB8866 /* idl_gen_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_gen_text.cpp; sourceTree = "<group>"; };
+		8C6905F519F835A900CB8866 /* idl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = idl_parser.cpp; sourceTree = "<group>"; };
 		8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_general.cpp; path = src/idl_gen_general.cpp; sourceTree = "<group>"; };
 		A13F25CDAD23435DA293690D /* flattests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flattests; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_test_generated.h; path = tests/monster_test_generated.h; sourceTree = SOURCE_ROOT; };
@@ -55,12 +72,11 @@
 		28237E300FE042DEADA302D3 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */,
 				8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */,
 				8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */,
 				0DFD29781D8E490284B06504 /* flatc.cpp */,
 				CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */,
-				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
-				3709AC883348409592530AE6 /* idl_parser.cpp */,
 			);
 			name = "Source Files";
 			sourceTree = "<group>";
@@ -68,6 +84,7 @@
 		355DCA17961E4B2FB2C71403 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				8C6905EE19F835A900CB8866 /* src */,
 				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
 				3709AC883348409592530AE6 /* idl_parser.cpp */,
 				6AD24EEB3D024825A37741FF /* test.cpp */,
@@ -80,7 +97,6 @@
 			children = (
 				5FEA84E7D39645988300317C /* Header Files */,
 				28237E300FE042DEADA302D3 /* Source Files */,
-				423CA92401AE442B91546E63 /* CMakeLists.txt */,
 			);
 			name = flatc;
 			sourceTree = "<group>";
@@ -88,9 +104,6 @@
 		40E30B8480BD493EA459E9B4 /* Header Files */ = {
 			isa = PBXGroup;
 			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				00154BD8654B4B5B9FF45FA6 /* idl.h */,
-				C0E7B66C3FF849A0AD9A7168 /* util.h */,
 				AD3682C6E1DD4EABB822C0CC /* monster_generated.h */,
 			);
 			name = "Header Files";
@@ -99,8 +112,6 @@
 		4D1151F6FE594E40A1C177FF /* Header Files */ = {
 			isa = PBXGroup;
 			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				AD3682C6E1DD4EABB822C0CC /* monster_generated.h */,
 			);
 			name = "Header Files";
 			sourceTree = "<group>";
@@ -127,9 +138,6 @@
 		5FEA84E7D39645988300317C /* Header Files */ = {
 			isa = PBXGroup;
 			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				00154BD8654B4B5B9FF45FA6 /* idl.h */,
-				C0E7B66C3FF849A0AD9A7168 /* util.h */,
 			);
 			name = "Header Files";
 			sourceTree = "<group>";
@@ -152,6 +160,20 @@
 				355DCA17961E4B2FB2C71403 /* Source Files */,
 			);
 			name = flattests;
+			sourceTree = "<group>";
+		};
+		8C6905EE19F835A900CB8866 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				8C6905EF19F835A900CB8866 /* flatc.cpp */,
+				8C6905F019F835A900CB8866 /* idl_gen_cpp.cpp */,
+				8C6905F119F835A900CB8866 /* idl_gen_fbs.cpp */,
+				8C6905F219F835A900CB8866 /* idl_gen_general.cpp */,
+				8C6905F319F835A900CB8866 /* idl_gen_go.cpp */,
+				8C6905F419F835A900CB8866 /* idl_gen_text.cpp */,
+				8C6905F519F835A900CB8866 /* idl_parser.cpp */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 		8F5E926B72104F4194B3BD5A = {
@@ -187,8 +209,6 @@
 			isa = PBXGroup;
 			children = (
 				ECCEBFFA6977404F858F9739 /* sample_text.cpp */,
-				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
-				3709AC883348409592530AE6 /* idl_parser.cpp */,
 			);
 			name = "Source Files";
 			sourceTree = "<group>";
@@ -317,11 +337,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C6905FB19F835A900CB8866 /* idl_gen_text.cpp in Sources */,
 				8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */,
 				AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */,
 				BE03D7B0C9584DD58B50ED34 /* idl_gen_cpp.cpp in Sources */,
 				AD71FEBEE4E846529002C1F0 /* idl_gen_text.cpp in Sources */,
+				8C6905F619F835A900CB8866 /* flatc.cpp in Sources */,
+				8C6905FC19F835A900CB8866 /* idl_parser.cpp in Sources */,
+				8C6905ED19F8357300CB8866 /* idl_gen_fbs.cpp in Sources */,
+				8C6905FA19F835A900CB8866 /* idl_gen_go.cpp in Sources */,
+				8C6905F919F835A900CB8866 /* idl_gen_general.cpp in Sources */,
 				A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */,
+				8C6905F719F835A900CB8866 /* idl_gen_cpp.cpp in Sources */,
+				8C6905F819F835A900CB8866 /* idl_gen_fbs.cpp in Sources */,
 				8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -330,6 +358,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */,
 				E0680D6B5BFD484BA9D88EE8 /* idl_gen_text.cpp in Sources */,
 				61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */,
 				EE4AEE138D684B30A1BF5462 /* test.cpp in Sources */,
