@@ -184,7 +184,7 @@ void Parser::Next() {
           const char *start = ++cursor_;
           while (*cursor_ && *cursor_ != '\n') cursor_++;
           if (*start == '/') {  // documentation comment
-            if (!seen_newline)
+            if (cursor_ != source_ && !seen_newline)
               Error("a documentation comment should be on a line on its own");
             doc_comment_.push_back(std::string(start + 1, cursor_));
           }
