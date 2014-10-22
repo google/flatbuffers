@@ -522,7 +522,7 @@ class FlatBufferBuilder {
     }
     offsetbuf_.clear();
     auto vt1 = reinterpret_cast<voffset_t *>(buf_.data());
-    auto vt1_size = *vt1;
+    auto vt1_size = ReadScalar<voffset_t>(vt1);
     auto vt_use = GetSize();
     // See if we already have generated a vtable with this exact same
     // layout before. If so, make it point to the old one, remove this one.
