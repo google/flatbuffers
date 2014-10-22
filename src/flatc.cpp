@@ -84,7 +84,10 @@ const Generator generators[] = {
     "Generate Java classes for tables/structs" },
   { flatbuffers::GenerateGeneral,  "-n", "C#",
     flatbuffers::GeneratorOptions::kCSharp,
-    "Generate C# classes for tables/structs" }
+    "Generate C# classes for tables/structs" },
+  { flatbuffers::GeneratePython,   "-p", "Python",
+    flatbuffers::GeneratorOptions::kMAX,
+    "Generate Python module for tables/structs" },
 };
 
 const char *program_name = NULL;
