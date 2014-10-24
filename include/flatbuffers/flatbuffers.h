@@ -293,19 +293,29 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
 };
 
+// Simple indirection for buffer allocation, to allow this to be overridden
+// with custom allocation (see the FlatBufferBuilder constructor).
+class simple_allocator {
+ public:
+  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
+  virtual void deallocate(uint8_t *p) const { delete[] p; }
+};
+
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(size_t initial_size)
+  explicit vector_downward(size_t initial_size,
+                           const simple_allocator &allocator)
     : reserved_(initial_size),
-      buf_(new uint8_t[reserved_]),
-      cur_(buf_ + reserved_) {
+      buf_(allocator.allocate(reserved_)),
+      cur_(buf_ + reserved_),
+      allocator_(allocator) {
     assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
-  ~vector_downward() { delete[] buf_; }
+  ~vector_downward() { allocator_.deallocate(buf_); }
 
   void clear() { cur_ = buf_ + reserved_; }
 
@@ -317,11 +327,11 @@ class vector_downward {
     if (buf_ > cur_ - len) {
       auto old_size = size();
       reserved_ += std::max(len, growth_policy(reserved_));
-      auto new_buf = new uint8_t[reserved_];
+      auto new_buf = allocator_.allocate(reserved_);
       auto new_cur = new_buf + reserved_ - old_size;
       memcpy(new_cur, cur_, old_size);
       cur_ = new_cur;
-      delete[] buf_;
+      allocator_.deallocate(buf_);
       buf_ = new_buf;
     }
     cur_ -= len;
@@ -361,6 +371,7 @@ class vector_downward {
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
+  const simple_allocator &allocator_;
 };
 
 // Converts a Field ID to a virtual table offset.
@@ -385,8 +396,10 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
 // Finish() wraps up the buffer ready for transport.
 class FlatBufferBuilder {
  public:
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024)
-    : buf_(initial_size), minalign_(1), force_defaults_(false) {
+  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
+                             const simple_allocator *allocator = nullptr)
+      : buf_(initial_size, allocator ? *allocator : default_allocator),
+        minalign_(1), force_defaults_(false) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -617,6 +630,16 @@ class FlatBufferBuilder {
     return Offset<Vector<T>>(EndVector(len));
   }
 
+  // Specialized version for non-copying use cases. Data to be written later.
+  // After calling this function, GetBufferPointer() can be cast to the
+  // corresponding Vector<> type to write the data (through Data()).
+  template<typename T> Offset<Vector<T>> CreateUninitializedVector(size_t len) {
+    NotNested();
+    StartVector(len, sizeof(T));
+    buf_.make_space(len * sizeof(T));
+    return Offset<Vector<T>>(EndVector(len));
+  }
+
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
     return CreateVector(v.data(), v.size());
   }
@@ -661,6 +684,8 @@ class FlatBufferBuilder {
     uoffset_t off;
     voffset_t id;
   };
+
+  simple_allocator default_allocator;
 
   vector_downward buf_;
 
