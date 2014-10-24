@@ -145,7 +145,7 @@ packages.
 
 You can include other schemas files in your current one, e.g.:
 
-    include "mydefinitions.fbs"
+    include "mydefinitions.fbs";
 
 This makes it easier to refer to types defined elsewhere. `include`
 automatically ensures each file is parsed just once, even when referred to
@@ -211,8 +211,8 @@ in the corresponding C++ code. Multiple such lines per item are allowed.
 Attributes may be attached to a declaration, behind a field, or after
 the name of a table/struct/enum/union. These may either have a value or
 not. Some attributes like `deprecated` are understood by the compiler,
-others are simply ignored (like `priority`), but are available to query
-if you parse the schema at runtime.
+others are simply ignored (like `priority` in the example above), but are
+available to query if you parse the schema at runtime.
 This is useful if you write your own code generators/editors etc., and
 you wish to add additional information specific to your tool (such as a
 help text).
@@ -254,6 +254,10 @@ Current understood attributes:
     meaning that any value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
+-   `nested_flatbuffer: table_name` (on a field): this indicates that the field
+    (which must be a vector of ubyte) contains flatbuffer data, for which the
+    root type is given by `table_name`. The generated code will then produce
+    a convenient accessor for the nested FlatBuffer.
 
 ## JSON Parsing
 

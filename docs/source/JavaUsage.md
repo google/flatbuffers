@@ -125,7 +125,8 @@ does not sit in an array, you can also use the start/end pattern:
 You can use the generated method `startInventoryVector` to conveniently call
 `startVector` with the right element size. You pass the number of
 elements you want to write. Note how you write the elements backwards since
-the buffer is being constructed back to front.
+the buffer is being constructed back to front. You then pass `inv` to the
+corresponding `Add` call when you construct the table containing it afterwards.
 
 There are `add` functions for all the scalar types. You use `addOffset` for
 any previously constructed objects (such as other tables, strings, vectors).

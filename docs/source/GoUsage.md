@@ -75,7 +75,8 @@ Unlike C++, Go does not support table creation functions like 'createMonster()'.
 This is to create the buffer without
 using temporary object allocation (since the `Vec3` is an inline component of
 `Monster`, it has to be created right where it is added, whereas the name and
-the inventory are not inline).
+the inventory are not inline, and **must** be created outside of the table
+creation sequence).
 Structs do have convenient methods that allow you to construct them in one call.
 These also have arguments for nested structs, e.g. if a struct has a field `a`
 and a nested struct field `b` (which has fields `c` and `d`), then the arguments
@@ -97,12 +98,21 @@ function which calls 'StartVector' with the correct element size of the vector
 type which in this case is 'ubyte' or 1 byte per vector element.
 You pass the number of elements you want to write.
 You write the elements backwards since the buffer
-is being constructed back to front.
+is being constructed back to front. You then pass `inv` to the corresponding
+`Add` call when you construct the table containing it afterwards.
 
 There are `Prepend` functions for all the scalar types. You use
 `PrependUOffset` for any previously constructed objects (such as other tables,
 strings, vectors). For structs, you use the appropriate `create` function
 in-line, as shown above in the `Monster` example.
+
+Once you're done constructing a buffer, you call `Finish` with the root object
+offset (`mon` in the example above). Your data now resides in Builder.Bytes.
+Important to note is that the real data starts at the index indicated by Head(),
+for Offset() bytes (this is because the buffer is constructed backwards).
+If you wanted to read the buffer right after creating it (using
+`GetRootAsMonster` above), the second argument, instead of `0` would thus
+also be `Head()`.
 
 ## Text Parsing
 

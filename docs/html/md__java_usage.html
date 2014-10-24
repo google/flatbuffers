@@ -94,7 +94,7 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 <div class="fragment"><div class="line">Monster.startInventoryVector(fbb, 5);</div>
 <div class="line"><span class="keywordflow">for</span> (byte i = 4; i &gt;=0; i--) fbb.addByte(i);</div>
 <div class="line"><span class="keywordtype">int</span> inv = fbb.endVector();</div>
-</div><!-- fragment --><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. Note how you write the elements backwards since the buffer is being constructed back to front.</p>
+</div><!-- fragment --><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. Note how you write the elements backwards since the buffer is being constructed back to front. You then pass <code>inv</code> to the corresponding <code>Add</code> call when you construct the table containing it afterwards.</p>
 <p>There are <code>add</code> functions for all the scalar types. You use <code>addOffset</code> for any previously constructed objects (such as other tables, strings, vectors). For structs, you use the appropriate <code>create</code> function in-line, as shown above in the <code>Monster</code> example.</p>
 <p>To finish the buffer, call:</p>
 <div class="fragment"><div class="line">Monster.finishMonsterBuffer(fbb, mon);</div>
