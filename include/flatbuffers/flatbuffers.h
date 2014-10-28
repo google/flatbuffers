@@ -44,6 +44,7 @@ namespace flatbufferstd = std;
 
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
+    (!defined(__INTEL_COMPILER)) && \
     (!defined(__GNUC__) || \
       (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40603))
   #error A C++11 compatible compiler is required for FlatBuffers.
@@ -152,7 +153,7 @@ template<typename T> void WriteScalar(void *p, T t) {
 }
 
 template<typename T> size_t AlignOf() {
-  #ifdef _MSC_VER
+  #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
     return __alignof(T);
   #else
     return alignof(T);

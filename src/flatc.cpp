@@ -18,6 +18,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#include <limits>
+
 static void Error(const char *err, const char *obj = nullptr,
                   bool usage = false);
 
