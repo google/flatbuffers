@@ -152,7 +152,7 @@ func (b *Builder) EndObject() UOffsetT {
 // Doubles the size of the byteslice, and copies the old data towards the
 // end of the new byteslice (since we build the buffer backwards).
 func (b *Builder) growByteBuffer() {
-	if (len(b.Bytes) & 0xC0000000) != 0 {
+	if (int64(len(b.Bytes)) & int64(0xC0000000)) != 0 {
 		panic("cannot grow buffer beyond 2 gigabytes")
 	}
 	newSize := len(b.Bytes) * 2
