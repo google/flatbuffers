@@ -268,5 +268,40 @@ void GenerateText(const Parser &parser, const void *flatbuffer,
   text += NewLine(opts);
 }
 
+std::string TextFileName(const std::string &path,
+                         const std::string &file_name) {
+  return path + file_name + ".json";
+}
+
+bool GenerateTextFile(const Parser &parser,
+                      const std::string &path,
+                      const std::string &file_name,
+                      const GeneratorOptions &opts) {
+  if (!parser.builder_.GetSize() || !parser.root_struct_def) return true;
+  std::string text;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), opts,
+               &text);
+  return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(),
+                               text,
+                               false);
+}
+
+std::string TextMakeRule(const Parser &parser,
+                         const std::string &path,
+                         const std::string &file_name,
+                         const GeneratorOptions & /*opts*/) {
+  if (!parser.builder_.GetSize() || !parser.root_struct_def) return "";
+  std::string filebase = flatbuffers::StripPath(
+      flatbuffers::StripExtension(file_name));
+  std::string make_rule = TextFileName(path, filebase) + ": " + file_name;
+  auto included_files = parser.GetIncludedFilesRecursive(
+      parser.root_struct_def->file);
+  for (auto it = included_files.begin();
+       it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
 }  // namespace flatbuffers
 

@@ -696,13 +696,33 @@ std::string GenerateCPP(const Parser &parser,
   return std::string();
 }
 
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.h";
+}
+
 bool GenerateCPP(const Parser &parser,
                  const std::string &path,
                  const std::string &file_name,
                  const GeneratorOptions &opts) {
     auto code = GenerateCPP(parser, file_name, opts);
     return !code.length() ||
-           SaveFile((path + file_name + "_generated.h").c_str(), code, false);
+           SaveFile(GeneratedFileName(path, file_name).c_str(), code, false);
+}
+
+std::string CPPMakeRule(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name,
+                        const GeneratorOptions & /*opts*/) {
+  std::string filebase = flatbuffers::StripPath(
+      flatbuffers::StripExtension(file_name));
+  std::string make_rule = GeneratedFileName(path, filebase) + ": ";
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin();
+       it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
 }
 
 }  // namespace flatbuffers

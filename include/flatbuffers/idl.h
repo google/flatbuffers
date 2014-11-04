@@ -19,6 +19,7 @@
 
 #include <map>
 #include <set>
+#include <stack>
 #include <memory>
 #include <functional>
 
@@ -179,6 +180,7 @@ struct Definition {
   Definition() : generated(false), defined_namespace(nullptr) {}
 
   std::string name;
+  std::string file;
   std::vector<std::string> doc_comment;
   SymbolTable<Value> attributes;
   bool generated;  // did we already output code for this definition?
@@ -309,6 +311,11 @@ class Parser {
   // Mark all definitions as already having code generated.
   void MarkGenerated();
 
+  // Get the files recursively included by the given file. The returned
+  // container will have at least the given file.
+  std::set<std::string> GetIncludedFilesRecursive(
+      const std::string &file_name) const;
+
  private:
   int64_t ParseHexNum(int nibbles);
   void Next();
@@ -349,11 +356,13 @@ class Parser {
   std::string file_extension_;
 
   std::map<std::string, bool> included_files_;
+  std::map<std::string, std::set<std::string>> files_included_per_file_;
 
  private:
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
+  std::stack<std::string> files_being_parsed_;
   bool proto_mode_;
   bool strict_json_;
   std::string attribute_;
@@ -381,7 +390,7 @@ struct GeneratorOptions {
   bool include_dependence_headers;
 
   // Possible options for the more general generator below.
-  enum Language { kJava, kCSharp, kMAX };
+  enum Language { kJava, kCSharp, kGo, kMAX };
 
   Language lang;
 
@@ -401,6 +410,18 @@ extern void GenerateText(const Parser &parser,
                          const void *flatbuffer,
                          const GeneratorOptions &opts,
                          std::string *text);
+extern bool GenerateTextFile(const Parser &parser,
+                             const std::string &path,
+                             const std::string &file_name,
+                             const GeneratorOptions &opts);
+
+// Generate binary files from a given FlatBuffer, and a given Parser
+// object that has been populated with the corresponding schema.
+// See idl_gen_general.cpp.
+extern bool GenerateBinary(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name,
+                           const GeneratorOptions &opts);
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
@@ -449,6 +470,34 @@ extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,
                         const GeneratorOptions &opts);
+
+// Generate a make rule for the generated C++ header.
+// See idl_gen_cpp.cpp.
+extern std::string CPPMakeRule(const Parser &parser,
+                               const std::string &path,
+                               const std::string &file_name,
+                               const GeneratorOptions &opts);
+
+// Generate a make rule for the generated Java/C#/... files.
+// See idl_gen_general.cpp.
+extern std::string GeneralMakeRule(const Parser &parser,
+                                   const std::string &path,
+                                   const std::string &file_name,
+                                   const GeneratorOptions &opts);
+
+// Generate a make rule for the generated text (JSON) files.
+// See idl_gen_text.cpp.
+extern std::string TextMakeRule(const Parser &parser,
+                                const std::string &path,
+                                const std::string &file_name,
+                                const GeneratorOptions &opts);
+
+// Generate a make rule for the generated binary files.
+// See idl_gen_general.cpp.
+extern std::string BinaryMakeRule(const Parser &parser,
+                                  const std::string &path,
+                                  const std::string &file_name,
+                                  const GeneratorOptions &opts);
 
 }  // namespace flatbuffers
 
