@@ -515,7 +515,7 @@ class FlatBufferBuilder {
   uoffset_t EndTable(uoffset_t start, voffset_t numfields) {
     // Write the vtable offset, which is the start of any Table.
     // We fill it's value later.
-    auto vtableoffsetloc = PushElement<uoffset_t>(0);
+    auto vtableoffsetloc = PushElement<soffset_t>(0);
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
     // by the offsets themselves. In reverse:
@@ -564,7 +564,7 @@ class FlatBufferBuilder {
   // just been constructed.
   template<typename T> void Required(Offset<T> table, voffset_t field) {
     auto table_ptr = buf_.data_at(table.o);
-    auto vtable_ptr = table_ptr - ReadScalar<uoffset_t>(table_ptr);
+    auto vtable_ptr = table_ptr - ReadScalar<soffset_t>(table_ptr);
     bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
     // If this fails, the caller will show what field needs to be set.
     assert(ok);
