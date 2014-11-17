@@ -137,7 +137,8 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 <p>After each JSON file, the <code>Parser::fbb</code> member variable is the <code>FlatBufferBuilder</code> that contains the binary buffer version of that file, that you can access as described above.</p>
 <p><code>samples/sample_text.cpp</code> is a code sample showing the above operations.</p>
 <h3>Threading</h3>
-<p>None of the code is thread-safe, by design. That said, since currently a FlatBuffer is read-only and entirely <code>const</code>, reading by multiple threads is possible. </p>
+<p>Reading a FlatBuffer does not touch any memory outside the original buffer, and is entirely read-only (all const), so is safe to access from multiple threads even without synchronisation primitives.</p>
+<p>Creating a FlatBuffer is not thread safe. All state related to building a FlatBuffer is contained in a FlatBufferBuilder instance, and no memory outside of it is touched. To make this thread safe, either do not share instances of FlatBufferBuilder between threads (recommended), or manually wrap it in synchronisation primites. There's no automatic way to accomplish this, by design, as we feel multithreaded construction of a single buffer will be rare, and synchronisation overhead would be costly. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

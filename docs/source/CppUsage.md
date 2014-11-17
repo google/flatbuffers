@@ -291,7 +291,14 @@ file, that you can access as described above.
 
 ### Threading
 
-None of the code is thread-safe, by design. That said, since currently a
-FlatBuffer is read-only and entirely `const`, reading by multiple threads
-is possible.
+Reading a FlatBuffer does not touch any memory outside the original buffer,
+and is entirely read-only (all const), so is safe to access from multiple
+threads even without synchronisation primitives.
 
+Creating a FlatBuffer is not thread safe. All state related to building
+a FlatBuffer is contained in a FlatBufferBuilder instance, and no memory
+outside of it is touched. To make this thread safe, either do not
+share instances of FlatBufferBuilder between threads (recommended), or
+manually wrap it in synchronisation primites. There's no automatic way to
+accomplish this, by design, as we feel multithreaded construction
+of a single buffer will be rare, and synchronisation overhead would be costly.
