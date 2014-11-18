@@ -18,6 +18,7 @@
 #define FLATBUFFERS_IDL_H_
 
 #include <map>
+#include <set>
 #include <memory>
 #include <functional>
 
@@ -260,14 +261,21 @@ struct EnumDef : public Definition {
 
 class Parser {
  public:
-  Parser(bool proto_mode = false) :
-    root_struct_def(nullptr),
-    source_(nullptr),
-    cursor_(nullptr),
-    line_(1),
-    proto_mode_(proto_mode) {
-      // Just in case none are declared:
-      namespaces_.push_back(new Namespace());
+  Parser(bool proto_mode = false)
+    : root_struct_def(nullptr),
+      source_(nullptr),
+      cursor_(nullptr),
+      line_(1),
+      proto_mode_(proto_mode) {
+    // Just in case none are declared:
+    namespaces_.push_back(new Namespace());
+    known_attributes_.insert("deprecated");
+    known_attributes_.insert("required");
+    known_attributes_.insert("id");
+    known_attributes_.insert("force_align");
+    known_attributes_.insert("bit_flags");
+    known_attributes_.insert("original_order");
+    known_attributes_.insert("nested_flatbuffer");
   }
 
   ~Parser() {
@@ -345,6 +353,8 @@ class Parser {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
+
+  std::set<std::string> known_attributes_;
 };
 
 // Utility functions for multiple generators:

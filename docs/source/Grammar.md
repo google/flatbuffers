@@ -1,11 +1,14 @@
 # Formal Grammar of the schema language
 
 schema = include*
-         ( namespace\_decl | type\_decl | enum\_decl | root\_decl | object )*
+         ( namespace\_decl | type\_decl | enum\_decl | root\_decl |
+           attribute\_decl | object )*
 
 include = `include` string\_constant `;`
 
 namespace\_decl = `namespace` ident ( `.` ident )* `;`
+
+attribute\_decl = `attribute` string\_constant `;`
 
 type\_decl = ( `table` | `struct` ) ident metadata `{` field\_decl+ `}`
 

@@ -85,7 +85,8 @@ template<> inline Offset<void> atot<Offset<void>>(const char *s) {
   TD(RootType, 266, "root_type") \
   TD(FileIdentifier, 267, "file_identifier") \
   TD(FileExtension, 268, "file_extension") \
-  TD(Include, 269, "include")
+  TD(Include, 269, "include") \
+  TD(Attribute, 270, "attribute")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -222,7 +223,8 @@ void Parser::Next() {
           if (attribute_ == "union")     { token_ = kTokenUnion;     return; }
           if (attribute_ == "namespace") { token_ = kTokenNameSpace; return; }
           if (attribute_ == "root_type") { token_ = kTokenRootType;  return; }
-          if (attribute_ == "include")   { token_ = kTokenInclude;  return; }
+          if (attribute_ == "include")   { token_ = kTokenInclude;   return; }
+          if (attribute_ == "attribute") { token_ = kTokenAttribute; return; }
           if (attribute_ == "file_identifier") {
             token_ = kTokenFileIdentifier;
             return;
@@ -598,6 +600,8 @@ void Parser::ParseMetaData(Definition &def) {
     for (;;) {
       auto name = attribute_;
       Expect(kTokenIdentifier);
+      if (known_attributes_.find(name) == known_attributes_.end())
+        Error("user define attributes must be declared before use: " + name);
       auto e = new Value();
       def.attributes.Add(name, e);
       if (IsNext(':')) {
@@ -1090,6 +1094,12 @@ bool Parser::Parse(const char *source, const char **include_paths,
         Expect(';');
       } else if(token_ == kTokenInclude) {
         Error("includes must come before declarations");
+      } else if(token_ == kTokenAttribute) {
+        Next();
+        auto name = attribute_;
+        Expect(kTokenStringConstant);
+        Expect(';');
+        known_attributes_.insert(name);
       } else {
         ParseDecl();
       }
