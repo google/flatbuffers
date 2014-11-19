@@ -61,6 +61,13 @@
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 
+#if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
+  #define FLATBUFFERS_FINAL_CLASS final
+#else
+  #define FLATBUFFERS_FINAL_CLASS
+#endif
+
 namespace flatbuffers {
 
 // Our default offset / size type, 32bit on purpose on 64bit systems.
@@ -394,7 +401,7 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
 // AddElement/EndTable, or the builtin CreateString/CreateVector functions.
 // Do this is depth-first order to build up a tree to the root.
 // Finish() wraps up the buffer ready for transport.
-class FlatBufferBuilder {
+class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
  public:
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
                              const simple_allocator *allocator = nullptr)
@@ -715,7 +722,7 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
 }
 
 // Helper class to verify the integrity of a FlatBuffer
-class Verifier {
+class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
   Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
            size_t _max_tables = 1000000)
@@ -833,7 +840,7 @@ class Verifier {
 // always have all members present and do not support forwards/backwards
 // compatible extensions.
 
-class Struct {
+class Struct FLATBUFFERS_FINAL_CLASS {
  public:
   template<typename T> T GetField(uoffset_t o) const {
     return ReadScalar<T>(&data_[o]);

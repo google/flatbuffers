@@ -208,7 +208,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   // Generate an accessor struct, with methods of the form:
   // type name() const { return GetField<type>(offset, defaultval); }
   GenComment(struct_def.doc_comment, code_ptr);
-  code += "struct " + struct_def.name + " : private flatbuffers::Table";
+  code += "struct " + struct_def.name;
+  code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
   code += " {\n";
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
@@ -414,7 +415,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
   // platforms.
   GenComment(struct_def.doc_comment, code_ptr);
   code += "MANUALLY_ALIGNED_STRUCT(" + NumToString(struct_def.minalign) + ") ";
-  code += struct_def.name + " {\n private:\n";
+  code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n private:\n";
   int padding_id = 0;
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
