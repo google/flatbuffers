@@ -20,7 +20,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := FlatBufferTest
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
-LOCAL_SRC_FILES := main.cpp ../../tests/test.cpp ../../src/idl_parser.cpp ../../src/idl_gen_text.cpp
+LOCAL_SRC_FILES := main.cpp ../../tests/test.cpp ../../src/idl_parser.cpp ../../src/idl_gen_text.cpp ../../src/idl_gen_fbs.cpp
 LOCAL_LDLIBS    := -llog -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 LOCAL_ARM_MODE:=arm
