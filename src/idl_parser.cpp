@@ -148,8 +148,13 @@ void Parser::Next() {
       case '\"':
         attribute_ = "";
         while (*cursor_ != '\"') {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
           if (*cursor_ < ' ' && *cursor_ >= 0)
             Error("illegal character in string constant");
+#pragma GCC diagnostic pop
+
           if (*cursor_ == '\\') {
             cursor_++;
             switch (*cursor_) {

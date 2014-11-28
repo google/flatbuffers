@@ -320,6 +320,7 @@ struct String : public Vector<char> {
 // with custom allocation (see the FlatBufferBuilder constructor).
 class simple_allocator {
  public:
+  virtual ~simple_allocator() {}
   virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
   virtual void deallocate(uint8_t *p) const { delete[] p; }
 };
