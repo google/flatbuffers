@@ -638,21 +638,27 @@ std::string GenerateCPP(const Parser &parser,
               "return verifier.VerifyBuffer<";
       code += parser.root_struct_def->name + ">(); }\n\n";
 
+      if (parser.file_identifier_.length()) {
+        // Return the identifier
+        code += "inline const char *" + parser.root_struct_def->name;
+        code += "Identifier() { return \"" + parser.file_identifier_;
+        code += "\"; }\n\n";
+
+        // Check if a buffer has the identifier.
+        code += "inline bool " + parser.root_struct_def->name;
+        code += "BufferHasIdentifier(const void *buf) { return flatbuffers::";
+        code += "BufferHasIdentifier(buf, ";
+        code += parser.root_struct_def->name + "Identifier()); }\n\n";
+      }
+
       // Finish a buffer with a given root object:
       code += "inline void Finish" + parser.root_struct_def->name;
       code += "Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<";
       code += parser.root_struct_def->name + "> root) { fbb.Finish(root";
       if (parser.file_identifier_.length())
-        code += ", \"" + parser.file_identifier_ + "\"";
+        code += ", " + parser.root_struct_def->name + "Identifier()";
       code += "); }\n\n";
 
-      if (parser.file_identifier_.length()) {
-        // Check if a buffer has the identifier.
-        code += "inline bool " + parser.root_struct_def->name;
-        code += "BufferHasIdentifier(const void *buf) { return flatbuffers::";
-        code += "BufferHasIdentifier(buf, \"" + parser.file_identifier_;
-        code += "\"); }\n\n";
-      }
     }
 
     CloseNestedNameSpaces(name_space, &code);
