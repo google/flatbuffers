@@ -70,6 +70,9 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   double test1_;
   int8_t test2_;
   int8_t __padding1;
+#ifdef __INTEL_COMPILER
+#  pragma warning (disable:3128)
+#endif
   Test test3_;
   int16_t __padding2;
 
