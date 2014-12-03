@@ -17,18 +17,34 @@
 #ifndef FLATBUFFERS_H_
 #define FLATBUFFERS_H_
 
+#include <flatbuffers/options.h>
+
 #include <assert.h>
 
-#include <cstdint>
+#ifdef __APPLE__
+#  include <stdint.h>
+#else
+#  include <cstdint>
+#endif
 #include <cstddef>
 #include <cstring>
 #include <string>
-#include <type_traits>
 #include <vector>
 #include <algorithm>
 
+#ifdef FLATBUFFERS_USE_CXX03_STDLIB
+#  include <boost/type_traits/conditional.hpp>
+#  include <boost/type_traits/is_scalar.hpp>
+#  include <boost/move/move.hpp>
+namespace flatbufferstd = boost;
+#else
+#  include <type_traits>
+namespace flatbufferstd = std;
+#endif
+
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
+    (!defined(__INTEL_COMPILER)) && \
     (!defined(__GNUC__) || \
       (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40603))
   #error A C++11 compatible compiler is required for FlatBuffers.
@@ -144,7 +160,7 @@ template<typename T> void WriteScalar(void *p, T t) {
 }
 
 template<typename T> size_t AlignOf() {
-  #ifdef _MSC_VER
+  #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
     return __alignof(T);
   #else
     return alignof(T);
@@ -187,12 +203,12 @@ template<typename T> struct IndirectHelper<const T *> {
 template<typename T, bool bConst>
 struct VectorIterator : public
   std::iterator < std::input_iterator_tag,
-  typename std::conditional < bConst,
+  typename flatbufferstd::conditional < bConst,
   const typename IndirectHelper<T>::return_type,
   typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
 
   typedef std::iterator<std::input_iterator_tag,
-    typename std::conditional<bConst,
+    typename flatbufferstd::conditional<bConst,
     const typename IndirectHelper<T>::return_type,
     typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
 
@@ -200,7 +216,7 @@ public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
       data_(data + IndirectHelper<T>::element_stride * i) {};
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
-  VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
+  VectorIterator(VectorIterator &&other) : data_(flatbufferstd::move(other.data_)) {}
 
   VectorIterator &operator=(const VectorIterator &other) {
     data_ = other.data_;
@@ -304,6 +320,7 @@ struct String : public Vector<char> {
 // with custom allocation (see the FlatBufferBuilder constructor).
 class simple_allocator {
  public:
+  virtual ~simple_allocator() {}
   virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
   virtual void deallocate(uint8_t *p) const { delete[] p; }
 };
@@ -443,7 +460,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
 
   template<typename T> void AssertScalarT() {
     // The code assumes power of 2 sizes and endian-swap-ability.
-    static_assert(std::is_scalar<T>::value
+    static_assert(flatbufferstd::is_scalar<T>::value
         // The Offset<T> type is essentially a scalar but fails is_scalar.
         || sizeof(T) == sizeof(Offset<void>),
            "T must be a scalar type");
