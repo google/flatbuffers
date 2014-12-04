@@ -18,7 +18,9 @@
 #define FLATBUFFERS_IDL_H_
 
 #include <map>
+#include <set>
 #include <memory>
+#include <functional>
 
 #include "flatbuffers/flatbuffers.h"
 
@@ -31,31 +33,38 @@ namespace flatbuffers {
 // Additionally, Parser::ParseType assumes bool..string is a contiguous range
 // of type tokens.
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte) /* begin scalars, ints */ \
-  TD(BOOL,   "bool",   uint8_t,  byte,   byte) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte) \
-  TD(SHORT,  "short",  int16_t,  short,  int16) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16) \
-  TD(INT,    "int",    int32_t,  int,    int32) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32) \
-  TD(LONG,   "long",   int64_t,  long,   int64) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64) /* end ints */ \
-  TD(FLOAT,  "float",  float,    float,  float32) /* begin floats */ \
-  TD(DOUBLE, "double", double,   double, float64) /* end floats, scalars */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  byte,   byte,    byte) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong)  /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float)  /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int) \
-  TD(VECTOR, "",       Offset<void>, int, int) \
-  TD(STRUCT, "",       Offset<void>, int, int) \
-  TD(UNION,  "",       Offset<void>, int, int)
+  TD(STRING, "string", Offset<void>, int, int, int) \
+  TD(VECTOR, "",       Offset<void>, int, int, int) \
+  TD(STRUCT, "",       Offset<void>, int, int, int) \
+  TD(UNION,  "",       Offset<void>, int, int, int)
 
+// The fields are:
+// - enum
+// - FlatBuffers schema type.
+// - C++ type.
+// - Java type.
+// - Go type.
+// - C# / .Net type.
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
 /*
 switch (type) {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -72,12 +81,13 @@ switch (type) {
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) BASE_TYPE_ ## ENUM,
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -170,20 +180,23 @@ struct Namespace {
 
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
-  Definition() : generated(false) {}
+  Definition() : generated(false), defined_namespace(nullptr) {}
 
   std::string name;
-  std::string doc_comment;
+  std::vector<std::string> doc_comment;
   SymbolTable<Value> attributes;
   bool generated;  // did we already output code for this definition?
+  Namespace *defined_namespace;  // Where it was defined.
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), padding(0) {}
+  FieldDef() : deprecated(false), required(false), padding(0), used(false) {}
 
   Value value;
   bool deprecated;
-  size_t padding;  // bytes to always pad after this field
+  bool required;
+  size_t padding;  // Bytes to always pad after this field.
+  bool used;       // Used during JSON parsing to check for repeated fields.
 };
 
 struct StructDef : public Definition {
@@ -192,8 +205,7 @@ struct StructDef : public Definition {
       predecl(true),
       sortbysize(true),
       minalign(1),
-      bytesize(0),
-      defined_namespace(nullptr)
+      bytesize(0)
     {}
 
   void PadLastField(size_t minalign) {
@@ -208,7 +220,6 @@ struct StructDef : public Definition {
   bool sortbysize;  // Whether fields come in the declaration or size order.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
-  Namespace *defined_namespace;  // Where it was defined.
 };
 
 inline bool IsStruct(const Type &type) {
@@ -228,7 +239,7 @@ struct EnumVal {
     : name(_name), value(_val), struct_def(nullptr) {}
 
   std::string name;
-  std::string doc_comment;
+  std::vector<std::string> doc_comment;
   int64_t value;
   StructDef *struct_def;  // only set if this is a union
 };
@@ -236,8 +247,10 @@ struct EnumVal {
 struct EnumDef : public Definition {
   EnumDef() : is_union(false) {}
 
-  EnumVal *ReverseLookup(int enum_idx) {
-    for (auto it = vals.vec.begin() + 1; it != vals.vec.end(); ++it) {
+  EnumVal *ReverseLookup(int enum_idx, bool skip_union_default = true) {
+    for (auto it = vals.vec.begin() + static_cast<int>(is_union &&
+                                                       skip_union_default);
+             it != vals.vec.end(); ++it) {
       if ((*it)->value == enum_idx) {
         return *it;
       }
@@ -252,13 +265,21 @@ struct EnumDef : public Definition {
 
 class Parser {
  public:
-  Parser() :
-    root_struct_def(nullptr),
-    source_(nullptr),
-    cursor_(nullptr),
-    line_(1) {
-      // Just in case none are declared:
-      namespaces_.push_back(new Namespace());
+  Parser(bool proto_mode = false)
+    : root_struct_def(nullptr),
+      source_(nullptr),
+      cursor_(nullptr),
+      line_(1),
+      proto_mode_(proto_mode) {
+    // Just in case none are declared:
+    namespaces_.push_back(new Namespace());
+    known_attributes_.insert("deprecated");
+    known_attributes_.insert("required");
+    known_attributes_.insert("id");
+    known_attributes_.insert("force_align");
+    known_attributes_.insert("bit_flags");
+    known_attributes_.insert("original_order");
+    known_attributes_.insert("nested_flatbuffer");
   }
 
   ~Parser() {
@@ -269,9 +290,15 @@ class Parser {
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
-  // filepath indicates the file that _source was loaded from, it is
-  // used to resolve any include statements.
-  bool Parse(const char *_source, const char *filepath);
+  // include_paths is used to resolve any include statements, and typically
+  // should at least include the project path (where you loaded source_ from).
+  // include_paths must be nullptr terminated if specified.
+  // If include_paths is nullptr, it will attempt to load from the current
+  // directory.
+  // If the source was loaded from a file and isn't an include file,
+  // supply its name in source_filename.
+  bool Parse(const char *_source, const char **include_paths = nullptr,
+             const char *source_filename = nullptr);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
@@ -284,6 +311,7 @@ class Parser {
   void Next();
   bool IsNext(int t);
   void Expect(int t);
+  void ParseTypeIdent(Type &type);
   void ParseType(Type &type);
   FieldDef &AddField(StructDef &struct_def,
                      const std::string &name,
@@ -300,7 +328,11 @@ class Parser {
   int64_t ParseIntegerFromString(Type &type);
   StructDef *LookupCreateStruct(const std::string &name);
   void ParseEnum(bool is_union);
+  void ParseNamespace();
+  StructDef &StartStruct();
   void ParseDecl();
+  void ParseProtoDecl();
+  Type ParseTypeFromProtoType();
 
  public:
   SymbolTable<StructDef> structs_;
@@ -313,33 +345,28 @@ class Parser {
   std::string file_identifier_;
   std::string file_extension_;
 
+  std::map<std::string, bool> included_files_;
+
  private:
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
-  std::string attribute_, doc_comment_;
+  bool proto_mode_;
+  std::string attribute_;
+  std::vector<std::string> doc_comment_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
   std::vector<uint8_t> struct_stack_;
-  std::map<std::string, bool> included_files_;
+
+  std::set<std::string> known_attributes_;
 };
 
-// Utility functions for generators:
+// Utility functions for multiple generators:
 
-// Convert an underscore_based_indentifier in to camelCase.
-// Also uppercases the first character if first is true.
-inline std::string MakeCamel(const std::string &in, bool first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
-    else
-      s += in[i];
-  }
-  return s;
-}
+extern std::string MakeCamel(const std::string &in, bool first = true);
+extern void GenComment(const std::vector<std::string> &dc,
+                       std::string *code_ptr,
+                       const char *prefix = "");
 
 // Container of options that may apply to any of the source/text generators.
 struct GeneratorOptions {
@@ -347,9 +374,17 @@ struct GeneratorOptions {
   int indent_step;
   bool output_enum_identifiers;
   bool prefixed_enums;
+  bool include_dependence_headers;
+
+  // Possible options for the more general generator below.
+  enum Language { kJava, kCSharp, kMAX };
+
+  Language lang;
 
   GeneratorOptions() : strict_json(false), indent_step(2),
-                       output_enum_identifiers(true), prefixed_enums(true) {}
+                       output_enum_identifiers(true), prefixed_enums(true),
+                       include_dependence_headers(false),
+                       lang(GeneratorOptions::kJava) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
@@ -386,6 +421,30 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &path,
                          const std::string &file_name,
                          const GeneratorOptions &opts);
+
+// Generate C# files from the definitions in the Parser object.
+// See idl_gen_csharp.cpp.
+extern bool GenerateCSharp(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name,
+                           const GeneratorOptions &opts);
+
+// Generate Java/C#/.. files from the definitions in the Parser object.
+// See idl_gen_general.cpp.
+extern bool GenerateGeneral(const Parser &parser,
+                            const std::string &path,
+                            const std::string &file_name,
+                            const GeneratorOptions &opts);
+
+// Generate a schema file from the internal representation, useful after
+// parsing a .proto schema.
+extern std::string GenerateFBS(const Parser &parser,
+                               const std::string &file_name,
+                               const GeneratorOptions &opts);
+extern bool GenerateFBS(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name,
+                        const GeneratorOptions &opts);
 
 }  // namespace flatbuffers
 

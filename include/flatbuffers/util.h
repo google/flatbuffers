@@ -22,10 +22,20 @@
 #include <string>
 #include <sstream>
 #include <stdlib.h>
+#include <assert.h>
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+  #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+  #define NOMINMAX
+#endif
+#include <windows.h>
+#include <winbase.h>
 #include <direct.h>
 #else
 #include <sys/stat.h>
+#include <limits.h>
 #endif
 
 namespace flatbuffers {
@@ -132,6 +142,18 @@ inline std::string StripFileName(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
+// Concatenates a path with a filename, regardless of wether the path
+// ends in a separator or not.
+inline std::string ConCatPathFileName(const std::string &path,
+                                      const std::string &filename) {
+  std::string filepath = path;
+  if (path.length() && path.back() != kPathSeparator &&
+                       path.back() != kPosixPathSeparator)
+    filepath += kPathSeparator;
+  filepath += filename;
+  return filepath;
+}
+
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
 inline void EnsureDirExists(const std::string &filepath) {
@@ -142,6 +164,20 @@ inline void EnsureDirExists(const std::string &filepath) {
   #else
     mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
   #endif
+}
+
+// Obtains the absolute path from any other path.
+// Returns the input path if the absolute path couldn't be resolved.
+inline std::string AbsolutePath(const std::string &filepath) {
+  #ifdef _WIN32
+    char abs_path[MAX_PATH];
+    return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+  #else
+    char abs_path[PATH_MAX];
+    return realpath(filepath.c_str(), abs_path)
+  #endif
+    ? abs_path
+    : filepath;
 }
 
 // To and from UTF-8 unicode conversion functions

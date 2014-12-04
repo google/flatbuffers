@@ -77,6 +77,13 @@ namespace flatbufferstd = std;
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 
+#if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
+  #define FLATBUFFERS_FINAL_CLASS final
+#else
+  #define FLATBUFFERS_FINAL_CLASS
+#endif
+
 namespace flatbuffers {
 
 // Our default offset / size type, 32bit on purpose on 64bit systems.
@@ -263,13 +270,23 @@ public:
   typedef VectorIterator<T, false> iterator;
   typedef VectorIterator<T, true> const_iterator;
 
-  uoffset_t Length() const { return EndianScalar(length_); }
+  uoffset_t size() const { return EndianScalar(length_); }
+
+  // Deprecated: use size(). Here for backwards compatibility.
+  uoffset_t Length() const { return size(); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
 
   return_type Get(uoffset_t i) const {
-    assert(i < Length());
+    assert(i < size());
     return IndirectHelper<T>::Read(Data(), i);
+  }
+
+  // If this is a Vector of enums, T will be its storage type, not the enum
+  // type. This function makes it convenient to retrieve value with enum
+  // type E.
+  template<typename E> E GetEnum(uoffset_t i) const {
+    return static_cast<E>(Get(i));
   }
 
   const void *GetStructFromOffset(size_t o) const {
@@ -299,19 +316,30 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
 };
 
+// Simple indirection for buffer allocation, to allow this to be overridden
+// with custom allocation (see the FlatBufferBuilder constructor).
+class simple_allocator {
+ public:
+  virtual ~simple_allocator() {}
+  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
+  virtual void deallocate(uint8_t *p) const { delete[] p; }
+};
+
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(size_t initial_size)
+  explicit vector_downward(size_t initial_size,
+                           const simple_allocator &allocator)
     : reserved_(initial_size),
-      buf_(new uint8_t[reserved_]),
-      cur_(buf_ + reserved_) {
+      buf_(allocator.allocate(reserved_)),
+      cur_(buf_ + reserved_),
+      allocator_(allocator) {
     assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
-  ~vector_downward() { delete[] buf_; }
+  ~vector_downward() { allocator_.deallocate(buf_); }
 
   void clear() { cur_ = buf_ + reserved_; }
 
@@ -323,11 +351,11 @@ class vector_downward {
     if (buf_ > cur_ - len) {
       auto old_size = size();
       reserved_ += std::max(len, growth_policy(reserved_));
-      auto new_buf = new uint8_t[reserved_];
+      auto new_buf = allocator_.allocate(reserved_);
       auto new_cur = new_buf + reserved_ - old_size;
       memcpy(new_cur, cur_, old_size);
       cur_ = new_cur;
-      delete[] buf_;
+      allocator_.deallocate(buf_);
       buf_ = new_buf;
     }
     cur_ -= len;
@@ -367,6 +395,7 @@ class vector_downward {
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
+  const simple_allocator &allocator_;
 };
 
 // Converts a Field ID to a virtual table offset.
@@ -389,10 +418,12 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
 // AddElement/EndTable, or the builtin CreateString/CreateVector functions.
 // Do this is depth-first order to build up a tree to the root.
 // Finish() wraps up the buffer ready for transport.
-class FlatBufferBuilder {
+class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
  public:
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024)
-    : buf_(initial_size), minalign_(1), force_defaults_(false) {
+  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
+                             const simple_allocator *allocator = nullptr)
+      : buf_(initial_size, allocator ? *allocator : default_allocator),
+        minalign_(1), force_defaults_(false) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -508,7 +539,7 @@ class FlatBufferBuilder {
   uoffset_t EndTable(uoffset_t start, voffset_t numfields) {
     // Write the vtable offset, which is the start of any Table.
     // We fill it's value later.
-    auto vtableoffsetloc = PushElement<uoffset_t>(0);
+    auto vtableoffsetloc = PushElement<soffset_t>(0);
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
     // by the offsets themselves. In reverse:
@@ -528,12 +559,14 @@ class FlatBufferBuilder {
     }
     offsetbuf_.clear();
     auto vt1 = reinterpret_cast<voffset_t *>(buf_.data());
-    auto vt1_size = *vt1;
+    auto vt1_size = ReadScalar<voffset_t>(vt1);
     auto vt_use = GetSize();
     // See if we already have generated a vtable with this exact same
     // layout before. If so, make it point to the old one, remove this one.
     for (auto it = vtables_.begin(); it != vtables_.end(); ++it) {
-      if (memcmp(buf_.data_at(*it), vt1, vt1_size)) continue;
+      auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*it));
+      auto vt2_size = *vt2;
+      if (vt1_size != vt2_size || memcmp(vt2, vt1, vt1_size)) continue;
       vt_use = *it;
       buf_.pop(GetSize() - vtableoffsetloc);
       break;
@@ -551,6 +584,17 @@ class FlatBufferBuilder {
                 static_cast<soffset_t>(vt_use) -
                   static_cast<soffset_t>(vtableoffsetloc));
     return vtableoffsetloc;
+  }
+
+  // This checks a required field has been set in a given table that has
+  // just been constructed.
+  template<typename T> void Required(Offset<T> table, voffset_t field) {
+    auto table_ptr = buf_.data_at(table.o);
+    auto vtable_ptr = table_ptr - ReadScalar<soffset_t>(table_ptr);
+    bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
+    // If this fails, the caller will show what field needs to be set.
+    assert(ok);
+    (void)ok;
   }
 
   uoffset_t StartStruct(size_t alignment) {
@@ -612,6 +656,16 @@ class FlatBufferBuilder {
     return Offset<Vector<T>>(EndVector(len));
   }
 
+  // Specialized version for non-copying use cases. Data to be written later.
+  // After calling this function, GetBufferPointer() can be cast to the
+  // corresponding Vector<> type to write the data (through Data()).
+  template<typename T> Offset<Vector<T>> CreateUninitializedVector(size_t len) {
+    NotNested();
+    StartVector(len, sizeof(T));
+    buf_.make_space(len * sizeof(T));
+    return Offset<Vector<T>>(EndVector(len));
+  }
+
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
     return CreateVector(v.data(), v.size());
   }
@@ -657,6 +711,8 @@ class FlatBufferBuilder {
     voffset_t id;
   };
 
+  simple_allocator default_allocator;
+
   vector_downward buf_;
 
   // Accumulating offsets of table members while it is being built.
@@ -678,12 +734,12 @@ template<typename T> const T *GetRoot(const void *buf) {
 
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
-  return strncmp(reinterpret_cast<const char *>(buf) + 4, identifier,
-                 FlatBufferBuilder::kFileIdentifierLength) == 0;
+  return strncmp(reinterpret_cast<const char *>(buf) + sizeof(uoffset_t),
+                 identifier, FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 
 // Helper class to verify the integrity of a FlatBuffer
-class Verifier {
+class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
   Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
            size_t _max_tables = 1000000)
@@ -691,13 +747,17 @@ class Verifier {
       num_tables_(0), max_tables_(_max_tables)
     {}
 
-  // Verify any range within the buffer.
-  bool Verify(const void *elem, size_t elem_len) const {
-    bool ok = elem >= buf_ && elem <= end_ - elem_len;
+  // Central location where any verification failures register.
+  bool Check(bool ok) const {
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       assert(ok);
     #endif
     return ok;
+  }
+
+  // Verify any range within the buffer.
+  bool Verify(const void *elem, size_t elem_len) const {
+    return Check(elem >= buf_ && elem <= end_ - elem_len);
   }
 
   // Verify a range indicated by sizeof(T).
@@ -723,8 +783,8 @@ class Verifier {
     const uint8_t *end;
     return !str ||
            (VerifyVector(reinterpret_cast<const uint8_t *>(str), 1, &end) &&
-            Verify(end, 1) &&  // Must have terminator
-            *end == '\0');  // Terminating byte must be 0.
+            Verify(end, 1) &&      // Must have terminator
+            Check(*end == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
@@ -743,7 +803,7 @@ class Verifier {
   // Special case for string contents, after the above has been called.
   bool VerifyVectorOfStrings(const Vector<Offset<String>> *vec) const {
       if (vec) {
-        for (uoffset_t i = 0; i < vec->Length(); i++) {
+        for (uoffset_t i = 0; i < vec->size(); i++) {
           if (!Verify(vec->Get(i))) return false;
         }
       }
@@ -753,7 +813,7 @@ class Verifier {
   // Special case for table contents, after the above has been called.
   template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
-      for (uoffset_t i = 0; i < vec->Length(); i++) {
+      for (uoffset_t i = 0; i < vec->size(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
       }
     }
@@ -775,11 +835,7 @@ class Verifier {
   bool VerifyComplexity() {
     depth_++;
     num_tables_++;
-    bool too_complex = depth_ > max_depth_ || num_tables_ > max_tables_;
-    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
-      assert(!too_complex);
-    #endif
-    return !too_complex;
+    return Check(depth_ <= max_depth_ && num_tables_ <= max_tables_);
   }
 
   // Called at the end of a table to pop the depth count.
@@ -801,7 +857,7 @@ class Verifier {
 // always have all members present and do not support forwards/backwards
 // compatible extensions.
 
-class Struct {
+class Struct FLATBUFFERS_FINAL_CLASS {
  public:
   template<typename T> T GetField(uoffset_t o) const {
     return ReadScalar<T>(&data_[o]);
@@ -887,6 +943,14 @@ class Table {
     auto field_offset = GetOptionalFieldOffset(field);
     // Check the actual field.
     return !field_offset || verifier.Verify<T>(data_ + field_offset);
+  }
+
+  // VerifyField for required fields.
+  template<typename T> bool VerifyFieldRequired(const Verifier &verifier,
+                                        voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return verifier.Check(field_offset != 0) &&
+           verifier.Verify<T>(data_ + field_offset);
   }
 
  private:

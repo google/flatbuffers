@@ -9,6 +9,8 @@ first:
 
     namespace MyGame;
 
+    attribute "priority";
+
     enum Color : byte { Red = 1, Green, Blue }
 
     union Any { Monster, Weapon, Pickup }
@@ -145,8 +147,8 @@ packages.
 
 You can include other schemas files in your current one, e.g.:
 
-    include "mydefinitions.fbs"
-    
+    include "mydefinitions.fbs";
+
 This makes it easier to refer to types defined elsewhere. `include`
 automatically ensures each file is parsed just once, even when referred to
 more than once.
@@ -211,8 +213,9 @@ in the corresponding C++ code. Multiple such lines per item are allowed.
 Attributes may be attached to a declaration, behind a field, or after
 the name of a table/struct/enum/union. These may either have a value or
 not. Some attributes like `deprecated` are understood by the compiler,
-others are simply ignored (like `priority`), but are available to query
-if you parse the schema at runtime.
+user defined ones need to be declared with the attribute declaration
+(like `priority` in the example above), and are
+available to query if you parse the schema at runtime.
 This is useful if you write your own code generators/editors etc., and
 you wish to add additional information specific to your tool (such as a
 help text).
@@ -232,6 +235,16 @@ Current understood attributes:
     When a new field is added to the schema is must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
+-   `required` (on a non-scalar table field): this field must always be set.
+    By default, all fields are optional, i.e. may be left out. This is
+    desirable, as it helps with forwards/backwards compatibility, and
+    flexibility of data structures. It is also a burden on the reading code,
+    since for non-scalar fields it requires you to check against NULL and
+    take appropriate action. By specifying this field, you force code that
+    constructs FlatBuffers to ensure this field is initialized, so the reading
+    code may access it directly, without checking for NULL. If the constructing
+    code does not initialize this field, they will get an assert, and also
+    the verifier will fail on buffers that have missing required fields.
 -   `original_order` (on a table): since elements in a table do not need
     to be stored in any particular order, they are often optimized for
     space by sorting them to size. This attribute stops that from happening.
@@ -244,6 +257,10 @@ Current understood attributes:
     meaning that any value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
+-   `nested_flatbuffer: table_name` (on a field): this indicates that the field
+    (which must be a vector of ubyte) contains flatbuffer data, for which the
+    root type is given by `table_name`. The generated code will then produce
+    a convenient accessor for the nested FlatBuffer.
 
 ## JSON Parsing
 

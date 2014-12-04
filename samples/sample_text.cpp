@@ -37,8 +37,9 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  ok = parser.Parse(schemafile.c_str(), "samples/") &&
-       parser.Parse(jsonfile.c_str(), "samples/");
+  const char *include_directories[] = { "samples", nullptr };
+  ok = parser.Parse(schemafile.c_str(), include_directories) &&
+       parser.Parse(jsonfile.c_str(), include_directories);
   assert(ok);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.

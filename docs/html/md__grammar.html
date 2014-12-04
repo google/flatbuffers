@@ -53,9 +53,10 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <div class="title">Formal Grammar of the schema language </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>schema = include* ( namespace_decl | type_decl | enum_decl | root_decl | object )*</p>
+<div class="textblock"><p>schema = include* ( namespace_decl | type_decl | enum_decl | root_decl | attribute_decl | object )*</p>
 <p>include = <code>include</code> string_constant <code>;</code></p>
 <p>namespace_decl = <code>namespace</code> ident ( <code>.</code> ident )* <code>;</code></p>
+<p>attribute_decl = <code>attribute</code> string_constant <code>;</code></p>
 <p>type_decl = ( <code>table</code> | <code>struct</code> ) ident metadata <code>{</code> field_decl+ <code>}</code></p>
 <p>enum_decl = ( <code>enum</code> | <code>union</code> ) ident [ <code>:</code> type ] metadata <code>{</code> commasep( enumval_decl ) <code>}</code></p>
 <p>root_decl = <code>root_type</code> ident <code>;</code></p>

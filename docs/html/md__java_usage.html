@@ -54,35 +54,51 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate code for Java with the <code>-j</code> option to <code>flatc</code>.</p>
-<p>See <code>javaTest.java</code> for an example. Essentially, you read a FlatBuffer binary file into a <code>byte[]</code>, which you then turn into a <code>ByteBuffer</code>, which you pass to the <code>getRootAsMyRootType</code> function: </p><pre class="fragment">ByteBuffer bb = ByteBuffer.wrap(data);
-Monster monster = Monster.getRootAsMonster(bb);
-</pre><p>Now you can access values much like C++: </p><pre class="fragment">short hp = monster.hp();
-Vec3 pos = monster.pos();
-</pre><p>Note that whenever you access a new object like in the <code>pos</code> example above, a new temporary accessor object gets created. If your code is very performance sensitive (you iterate through a lot of objects), there's a second <code>pos()</code> method to which you can pass a <code>Vec3</code> object you've already created. This allows you to reuse it across many calls and reduce the amount of object allocation (and thus garbage collection) your program does.</p>
+<p>See <code>javaTest.java</code> for an example. Essentially, you read a FlatBuffer binary file into a <code>byte[]</code>, which you then turn into a <code>ByteBuffer</code>, which you pass to the <code>getRootAsMyRootType</code> function:</p>
+<div class="fragment"><div class="line">ByteBuffer bb = ByteBuffer.wrap(data);</div>
+<div class="line">Monster monster = Monster.getRootAsMonster(bb);</div>
+</div><!-- fragment --><p>Now you can access values much like C++:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">short</span> hp = monster.hp();</div>
+<div class="line">Vec3 pos = monster.pos();</div>
+</div><!-- fragment --><p>Note that whenever you access a new object like in the <code>pos</code> example above, a new temporary accessor object gets created. If your code is very performance sensitive (you iterate through a lot of objects), there's a second <code>pos()</code> method to which you can pass a <code>Vec3</code> object you've already created. This allows you to reuse it across many calls and reduce the amount of object allocation (and thus garbage collection) your program does.</p>
 <p>Java does not support unsigned scalars. This means that any unsigned types you use in your schema will actually be represented as a signed value. This means all bits are still present, but may represent a negative value when used. For example, to read a <code>byte b</code> as an unsigned number, you can do: <code>(short)(b &amp; 0xFF)</code></p>
-<p>Sadly the string accessors currently always create a new string when accessed, since FlatBuffer's UTF-8 strings can't be read in-place by Java.</p>
-<p>Vector access is also a bit different from C++: you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access: </p><pre class="fragment">for (int i = 0; i &lt; monster.inventoryLength(); i++)
-    monster.inventory(i); // do something here
-</pre><p>You can also construct these buffers in Java using the static methods found in the generated code, and the FlatBufferBuilder class: </p><pre class="fragment">FlatBufferBuilder fbb = new FlatBufferBuilder();
-</pre><p>Create strings: </p><pre class="fragment">int str = fbb.createString("MyMonster");
-</pre><p>Create a table with a struct contained therein: </p><pre class="fragment">Monster.startMonster(fbb);
-Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0, (byte)4, (short)5, (byte)6));
-Monster.addHp(fbb, (short)80);
-Monster.addName(fbb, str);
-Monster.addInventory(fbb, inv);
-Monster.addTest_type(fbb, (byte)1);
-Monster.addTest(fbb, mon2);
-Monster.addTest4(fbb, test4s);
-int mon = Monster.endMonster(fbb);
-</pre><p>As you can see, the Java code for tables does not use a convenient <code>createMonster</code> call like the C++ code. This is to create the buffer without using temporary object allocation.</p>
+<p>The default string accessor (e.g. <code>monster.name()</code>) currently always create a new Java <code>String</code> when accessed, since FlatBuffer's UTF-8 strings can't be used in-place by <code>String</code>. Alternatively, use <code>monster.nameAsByteBuffer()</code> which returns a <code>ByteBuffer</code> referring to the UTF-8 data in the original <code>ByteBuffer</code>, which is much more efficient. The <code>ByteBuffer</code>'s <code>position</code> points to the first character, and its <code>limit</code> to just after the last.</p>
+<p>Vector access is also a bit different from C++: you pass an extra index to the vector field accessor. Then a second method with the same name suffixed by <code>Length</code> let's you know the number of elements you can access:</p>
+<div class="fragment"><div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; monster.inventoryLength(); i++)</div>
+<div class="line">    monster.inventory(i); <span class="comment">// do something here</span></div>
+</div><!-- fragment --><p>Alternatively, much like strings, you can use <code>monster.inventoryAsByteBuffer()</code> to get a <code>ByteBuffer</code> referring to the whole vector. Use <code>ByteBuffer</code> methods like <code>asFloatBuffer</code> to get specific views if needed.</p>
+<p>If you specified a file_indentifier in the schema, you can query if the buffer is of the desired type before accessing it using:</p>
+<div class="fragment"><div class="line"><span class="keywordflow">if</span> (Monster.MonsterBufferHasIdentifier(bb)) ...</div>
+</div><!-- fragment --><h2>Buffer construction in Java</h2>
+<p>You can also construct these buffers in Java using the static methods found in the generated code, and the FlatBufferBuilder class:</p>
+<div class="fragment"><div class="line">FlatBufferBuilder fbb = <span class="keyword">new</span> FlatBufferBuilder();</div>
+</div><!-- fragment --><p>Create strings:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> str = fbb.createString(<span class="stringliteral">&quot;MyMonster&quot;</span>);</div>
+</div><!-- fragment --><p>Create a table with a struct contained therein:</p>
+<div class="fragment"><div class="line">Monster.startMonster(fbb);</div>
+<div class="line">Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0, (byte)4, (<span class="keywordtype">short</span>)5, (byte)6));</div>
+<div class="line">Monster.addHp(fbb, (short)80);</div>
+<div class="line">Monster.addName(fbb, str);</div>
+<div class="line">Monster.addInventory(fbb, inv);</div>
+<div class="line">Monster.addTest_type(fbb, (byte)1);</div>
+<div class="line">Monster.addTest(fbb, mon2);</div>
+<div class="line">Monster.addTest4(fbb, test4s);</div>
+<div class="line"><span class="keywordtype">int</span> mon = Monster.endMonster(fbb);</div>
+</div><!-- fragment --><p>For some simpler types, you can use a convenient <code>create</code> function call that allows you to construct tables in one function call. This example definition however contains an inline struct field, so we have to create the table manually. This is to create the buffer without using temporary object allocation.</p>
 <p>It's important to understand that fields that are structs are inline (like <code>Vec3</code> above), and MUST thus be created between the start and end calls of a table. Everything else (other tables, strings, vectors) MUST be created before the start of the table they are referenced in.</p>
 <p>Structs do have convenient methods that even have arguments for nested structs.</p>
 <p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra case must thus be taken that you set the right offset on the right field.</p>
-<p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs: </p><pre class="fragment">Monster.startInventoryVector(fbb, 5);
-for (byte i = 4; i &gt;=0; i--) fbb.addByte(i);
-int inv = fbb.endVector();
-</pre><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. You write the elements backwards since the buffer is being constructed back to front.</p>
+<p>Vectors can be created from the corresponding Java array like so:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> inv = Monster.createInventoryVector(fbb, <span class="keyword">new</span> byte[] { 0, 1, 2, 3, 4 });</div>
+</div><!-- fragment --><p>This works for arrays of scalars and (int) offsets to strings/tables, but not structs. If you want to write structs, or what you want to write does not sit in an array, you can also use the start/end pattern:</p>
+<div class="fragment"><div class="line">Monster.startInventoryVector(fbb, 5);</div>
+<div class="line"><span class="keywordflow">for</span> (byte i = 4; i &gt;=0; i--) fbb.addByte(i);</div>
+<div class="line"><span class="keywordtype">int</span> inv = fbb.endVector();</div>
+</div><!-- fragment --><p>You can use the generated method <code>startInventoryVector</code> to conveniently call <code>startVector</code> with the right element size. You pass the number of elements you want to write. Note how you write the elements backwards since the buffer is being constructed back to front. You then pass <code>inv</code> to the corresponding <code>Add</code> call when you construct the table containing it afterwards.</p>
 <p>There are <code>add</code> functions for all the scalar types. You use <code>addOffset</code> for any previously constructed objects (such as other tables, strings, vectors). For structs, you use the appropriate <code>create</code> function in-line, as shown above in the <code>Monster</code> example.</p>
+<p>To finish the buffer, call:</p>
+<div class="fragment"><div class="line">Monster.finishMonsterBuffer(fbb, mon);</div>
+</div><!-- fragment --><p>The buffer is now ready to be transmitted. It is contained in the <code>ByteBuffer</code> which you can obtain from <code>fbb.dataBuffer()</code>. Importantly, the valid data does not start from offset 0 in this buffer, but from <code>fbb.dataBuffer().position()</code> (this is because the data was built backwards in memory). It ends at <code>fbb.capacity()</code>.</p>
 <h2>Text Parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Java, though you could use the C++ parser through JNI. Please see the C++ documentation for more on text parsing. </p>
 </div></div><!-- contents -->

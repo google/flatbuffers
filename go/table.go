@@ -26,7 +26,6 @@ func (t *Table) Indirect(off UOffsetT) UOffsetT {
 
 // String gets a string from data stored inside the flatbuffer.
 func (t *Table) String(off UOffsetT) string {
-	off += t.Pos
 	off += GetUOffsetT(t.Bytes[off:])
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])

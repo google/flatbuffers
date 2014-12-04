@@ -41,8 +41,8 @@ cp -u ./go_test.go ./go_gen/src/flatbuffers_test/
 #   go -test -test.bench=. ...
 GOPATH=${go_path} go test flatbuffers_test \
                      --test.coverpkg=github.com/google/flatbuffers/go \
-                     --cpp_data=${test_dir}/monsterdata_test.bin \
-                     --out_data=${test_dir}/monsterdata_go_wire.bin \
+                     --cpp_data=${test_dir}/monsterdata_test.mon \
+                     --out_data=${test_dir}/monsterdata_go_wire.mon \
                      --fuzz=true \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000

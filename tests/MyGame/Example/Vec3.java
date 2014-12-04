@@ -5,10 +5,11 @@ package MyGame.Example;
 import java.nio.*;
 import java.lang.*;
 import java.util.*;
-import flatbuffers.*;
+import com.google.flatbuffers.*;
 
 public class Vec3 extends Struct {
   public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+
   public float x() { return bb.getFloat(bb_pos + 0); }
   public float y() { return bb.getFloat(bb_pos + 4); }
   public float z() { return bb.getFloat(bb_pos + 8); }

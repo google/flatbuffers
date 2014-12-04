@@ -4,7 +4,7 @@
     y: 2,
     z: 3,
     test1: 3,
-    test2: 4,
+    test2: Green,
     test3: {
       a: 5,
       b: 6
@@ -21,7 +21,7 @@
   ],
   test_type: Monster,
   test: {
-    hp: 20
+    name: "Fred"
   },
   test4: [
     {
@@ -32,5 +32,9 @@
       a: 30,
       b: 40
     }
+  ],
+  testarrayofstring: [
+    "test1",
+    "test2"
   ]
 }

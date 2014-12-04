@@ -70,7 +70,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
   std::string &text = *_text;
   text += "[";
   text += NewLine(opts);
-  for (uoffset_t i = 0; i < v.Length(); i++) {
+  for (uoffset_t i = 0; i < v.size(); i++) {
     if (i) {
       text += ",";
       text += NewLine(opts);
@@ -91,7 +91,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
 static void EscapeString(const String &s, std::string *_text) {
   std::string &text = *_text;
   text += "\"";
-  for (uoffset_t i = 0; i < s.Length(); i++) {
+  for (uoffset_t i = 0; i < s.size(); i++) {
     char c = s.Get(i);
     switch (c) {
       case '\n': text += "\\n"; break;
@@ -159,7 +159,7 @@ template<> void Print<const void *>(const void *val,
       type = type.VectorType();
       // Call PrintVector above specifically for each element type:
       switch (type.base_type) {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
           case BASE_TYPE_ ## ENUM: \
             PrintVector<CTYPE>( \
               *reinterpret_cast<const Vector<CTYPE> *>(val), \
@@ -225,7 +225,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       OutputIdentifier(fd.name, opts, _text);
       text += ": ";
       switch (fd.value.type.base_type) {
-         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
            case BASE_TYPE_ ## ENUM: \
               GenField<CTYPE>(fd, table, struct_def.fixed, \
                               opts, indent + Indent(opts), _text); \
@@ -233,7 +233,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
           FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
           case BASE_TYPE_ ## ENUM:
           FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD

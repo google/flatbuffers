@@ -266,12 +266,13 @@
     <ClInclude Include="..\..\include\flatbuffers\flatbuffers.h" />
     <ClInclude Include="..\..\include\flatbuffers\idl.h" />
     <ClInclude Include="..\..\include\flatbuffers\util.h" />
+    <ClCompile Include="..\..\src\idl_gen_fbs.cpp" />
+    <ClCompile Include="..\..\src\idl_gen_general.cpp" />
     <ClCompile Include="..\..\src\idl_gen_go.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level4</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\..\src\idl_parser.cpp" />
     <ClCompile Include="..\..\src\idl_gen_cpp.cpp" />
-    <ClCompile Include="..\..\src\idl_gen_java.cpp" />
     <ClCompile Include="..\..\src\idl_gen_text.cpp" />
     <ClCompile Include="..\..\src\flatc.cpp" />
   </ItemGroup>
