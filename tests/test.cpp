@@ -117,6 +117,7 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
     flatbuf.length());
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
+  TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf.c_str()), true);
 
   // Access the buffer from the root.
