@@ -82,7 +82,7 @@ parent object, and use no virtual table).
 
 ### Types
 
-Builtin scalar types are:
+Built-in scalar types are:
 
 -   8 bit: `byte ubyte bool`
 
@@ -91,6 +91,8 @@ Builtin scalar types are:
 -   32 bit: `int uint float`
 
 -   64 bit: `long ulong double`
+
+Built-in non-scalar types:
 
 -   Vector of any other type (denoted with `[type]`). Nesting vectors
     is not supported, instead you can wrap the inner vector in a table.
@@ -136,6 +138,14 @@ a union field which can hold a reference to any of those types, and
 additionally a hidden field with the suffix `_type` is generated that
 holds the corresponding enum value, allowing you to know which type to
 cast to at runtime.
+
+Unions are a good way to be able to send multiple message types as a FlatBuffer.
+Note that because a union field is really two fields, it must always be
+part of a table, it cannot be the root of a FlatBuffer by itself.
+
+If you have a need to distinguish between different FlatBuffers in a more
+open-ended way, for example for use as files, see the file identification
+feature below.
 
 ### Namespaces
 
@@ -194,6 +204,10 @@ without one, you can always still do so by calling
 
 After loading a buffer, you can use a call like
 `MonsterBufferHasIdentifier` to check if the identifier is present.
+
+Note that this is best for open-ended uses such as files. If you simply wanted
+to send one of a set of possible messages over a network for example, you'd
+be better off with a union.
 
 Additionally, by default `flatc` will output binary files as `.bin`.
 This declaration in the schema will change that to whatever you want:
