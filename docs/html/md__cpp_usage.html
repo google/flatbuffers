@@ -86,7 +86,7 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 <h3>Reading in C++</h3>
 <p>If you've received a buffer from somewhere (disk, network, etc.) you can directly start traversing it using:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> monster = GetMonster(buffer_pointer);</div>
-</div><!-- fragment --><p><code>monster</code> is of type <code>Monster *</code>, and points to somewhere inside your buffer. If you look in your generated header, you'll see it has convenient accessors for all fields, e.g.</p>
+</div><!-- fragment --><p><code>monster</code> is of type <code>Monster *</code>, and points to somewhere <em>inside</em> your buffer (root object pointers are not the same as <code>buffer_pointer</code> !). If you look in your generated header, you'll see it has convenient accessors for all fields, e.g.</p>
 <div class="fragment"><div class="line">assert(monster-&gt;hp() == 80);</div>
 <div class="line">assert(monster-&gt;mana() == 150);  <span class="comment">// default</span></div>
 <div class="line">assert(strcmp(monster-&gt;name()-&gt;c_str(), <span class="stringliteral">&quot;MyMonster&quot;</span>) == 0);</div>
