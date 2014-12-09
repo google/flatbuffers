@@ -422,7 +422,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "Length(" + offset_prefix;
       code += "__vector_len(o) : 0; }\n";
     }
-    if ((field.value.type.base_type == BASE_TYPE_VECTOR ||
+    // Generate a ByteBuffer accessor for strings & vectors of scalars.
+    if (((field.value.type.base_type == BASE_TYPE_VECTOR &&
+          IsScalar(field.value.type.VectorType().base_type)) ||
          field.value.type.base_type == BASE_TYPE_STRING) &&
         lang.language == GeneratorOptions::kJava) {
       code += "  public ByteBuffer ";
