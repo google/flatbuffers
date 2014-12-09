@@ -1,7 +1,12 @@
-# Use in Java
+# Use in Java/C#
 
-FlatBuffers supports reading and writing binary FlatBuffers in Java. Generate
-code for Java with the `-j` option to `flatc`.
+FlatBuffers supports reading and writing binary FlatBuffers in Java and C#.
+Generate code for Java with the `-j` option to `flatc`, or for C# with `-n`
+(think .Net).
+
+Note that this document is from the perspective of Java. Code for both languages
+is generated in the same way, with only very subtle differences, for example
+any `camelCase` Java call will be `CamelCase` in C#.
 
 See `javaTest.java` for an example. Essentially, you read a FlatBuffer binary
 file into a `byte[]`, which you then turn into a `ByteBuffer`, which you pass to

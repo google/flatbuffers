@@ -119,8 +119,9 @@ directly start traversing it using:
     auto monster = GetMonster(buffer_pointer);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`monster` is of type `Monster *`, and points to somewhere inside your
-buffer. If you look in your generated header, you'll see it has
+`monster` is of type `Monster *`, and points to somewhere *inside* your
+buffer (root object pointers are not the same as `buffer_pointer` !).
+If you look in your generated header, you'll see it has
 convenient accessors for all fields, e.g.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
