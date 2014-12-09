@@ -93,12 +93,15 @@ root_type Monster;
 <h3>Structs</h3>
 <p>Similar to a table, only now none of the fields are optional (so no defaults either), and fields may not be added or be deprecated. Structs may only contain scalars or other structs. Use this for simple objects where you are very sure no changes will ever be made (as quite clear in the example <code>Vec3</code>). Structs use less memory than tables and are even faster to access (they are always stored in-line in their parent object, and use no virtual table).</p>
 <h3>Types</h3>
-<p>Builtin scalar types are:</p>
+<p>Built-in scalar types are:</p>
 <ul>
 <li>8 bit: <code>byte ubyte bool</code></li>
 <li>16 bit: <code>short ushort</code></li>
 <li>32 bit: <code>int uint float</code></li>
 <li>64 bit: <code>long ulong double</code></li>
+</ul>
+<p>Built-in non-scalar types:</p>
+<ul>
 <li>Vector of any other type (denoted with <code>[type]</code>). Nesting vectors is not supported, instead you can wrap the inner vector in a table.</li>
 <li><code>string</code>, which may only hold UTF-8 or 7-bit ASCII. For other text encodings or general binary data use vectors (<code>[byte]</code> or <code>[ubyte]</code>) instead.</li>
 <li>References to other tables or structs, enums or unions (see below).</li>
@@ -111,6 +114,8 @@ root_type Monster;
 <p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type.</p>
 <h3>Unions</h3>
 <p>Unions share a lot of properties with enums, but instead of new names for constants, you use names of tables. You can then declare a union field which can hold a reference to any of those types, and additionally a hidden field with the suffix <code>_type</code> is generated that holds the corresponding enum value, allowing you to know which type to cast to at runtime.</p>
+<p>Unions are a good way to be able to send multiple message types as a FlatBuffer. Note that because a union field is really two fields, it must always be part of a table, it cannot be the root of a FlatBuffer by itself.</p>
+<p>If you have a need to distinguish between different FlatBuffers in a more open-ended way, for example for use as files, see the file identification feature below.</p>
 <h3>Namespaces</h3>
 <p>These will generate the corresponding namespace in C++ for all helper code, and packages in Java. You can use <code>.</code> to specify nested namespaces / packages.</p>
 <h3>Includes</h3>
@@ -126,6 +131,7 @@ root_type Monster;
 </pre><p>Identifiers must always be exactly 4 characters long. These 4 characters will end up as bytes at offsets 4-7 (inclusive) in the buffer.</p>
 <p>For any schema that has such an identifier, <code>flatc</code> will automatically add the identifier to any binaries it generates (with <code>-b</code>), and generated calls like <code>FinishMonsterBuffer</code> also add the identifier. If you have specified an identifier and wish to generate a buffer without one, you can always still do so by calling <code>FlatBufferBuilder::Finish</code> explicitly.</p>
 <p>After loading a buffer, you can use a call like <code>MonsterBufferHasIdentifier</code> to check if the identifier is present.</p>
+<p>Note that this is best for open-ended uses such as files. If you simply wanted to send one of a set of possible messages over a network for example, you'd be better off with a union.</p>
 <p>Additionally, by default <code>flatc</code> will output binary files as <code>.bin</code>. This declaration in the schema will change that to whatever you want: </p><pre class="fragment">file_extension "ext";
 </pre><h3>Comments &amp; documentation</h3>
 <p>May be written as in most C-based languages. Additionally, a triple comment (<code>///</code>) on a line by itself signals that a comment is documentation for whatever is declared on the line after it (table/struct/field/enum/union/element), and the comment is output in the corresponding C++ code. Multiple such lines per item are allowed.</p>
