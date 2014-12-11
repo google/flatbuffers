@@ -60,6 +60,9 @@ elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
 endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
+endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
@@ -89,17 +92,14 @@ if(FLATBUFFERS_BUILD_TESTS)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+
+  enable_testing()
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
+       "${CMAKE_CURRENT_BINARY_DIR}")
+  add_test(NAME flattests COMMAND flattests)
 endif()
 
 if(FLATBUFFERS_INSTALL)
   install(DIRECTORY include/flatbuffers DESTINATION include)
   install(TARGETS flatc DESTINATION bin)
-endif()
-
-if(FLATBUFFERS_BUILD_TESTS)
-  enable_testing()
-
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
-       "${CMAKE_CURRENT_BINARY_DIR}")
-  add_test(NAME flattests COMMAND flattests)
 endif()
