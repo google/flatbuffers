@@ -239,6 +239,34 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetLong(0));
         }
+        public void ByteBuffer_ReverseBytesUshort()
+        {
+            ushort original = (ushort)0x1234U;
+            ushort reverse = ByteBuffer.ReverseBytes(original);
+            Assert.AreEqual(0x3412U, reverse);
 
+            ushort rereverse = ByteBuffer.ReverseBytes(reverse);
+            Assert.AreEqual(original, rereverse);
+        }
+
+        public void ByteBuffer_ReverseBytesUint()
+        {
+            uint original = 0x12345678;
+            uint reverse = ByteBuffer.ReverseBytes(original);
+            Assert.AreEqual(0x78563412U, reverse);
+
+            uint rereverse = ByteBuffer.ReverseBytes(reverse);
+            Assert.AreEqual(original, rereverse);
+        }
+
+        public void ByteBuffer_ReverseBytesUlong()
+        {
+            ulong original = 0x1234567890ABCDEFUL;
+            ulong reverse = ByteBuffer.ReverseBytes(original);
+            Assert.AreEqual(0xEFCDAB9078563412UL, reverse);
+
+            ulong rereverse = ByteBuffer.ReverseBytes(reverse);
+            Assert.AreEqual(original, rereverse);
+        }
     }
 }
