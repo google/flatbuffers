@@ -48,3 +48,4 @@ FlatBuffers.xcodeproj/
 java/.idea
 java/*.iml
 java/target
+**/*.pyc
