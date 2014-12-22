@@ -13,7 +13,8 @@ def lcg_rand(seed=48271):
     """
     x = seed
     while True:
-        yield (x * 279470273) % 4294967291
+        x = (x * 279470273) % 4294967291
+        yield x
 
 
 def check_read_buffer(buf):

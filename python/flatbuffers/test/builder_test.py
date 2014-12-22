@@ -9,7 +9,7 @@ def test_scalars():
     def check(offset, expected):
         assert_equal(expected, list(builder.data()))
 
-    check(builder.prepend_byte(42), [0x2A])
-    check(builder.prepend_byte(-1), [0xFF, 0x2A])
-    check(builder.prepend_ubyte(255), [0xFF, 0xFF, 0x2A])
-    check(builder.prepend_short(-1), [0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x2A])
+    check(builder.push_byte(42), [0x2A])
+    check(builder.push_byte(-1), [0xFF, 0x2A])
+    check(builder.push_ubyte(255), [0xFF, 0xFF, 0x2A])
+    check(builder.push_short(-1), [0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x2A])

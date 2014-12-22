@@ -11,74 +11,127 @@ else:
     _tobytes = lambda arr: arr.tostring()
 
 
+def padding_bytes(size, scalar_size):
+    return (~(size + 1) & (scalar_size - 1))
+
+
 class Builder(object):
+    def __init__(self, block_size=1024, force_defaults=False):
+        self._buf = DownwardArray(block_size)
+        self._force_defaults = force_defaults
+        self._minalign = 1
+        self._vtable = {}
+        self._vtables = {}
+
+    def data(self):
+        return self._buf.data()
+
+    def pre_align(self, size, scalar_size):
+        padding = padding_bytes(len(self._buf) + size, scalar_size)
+        if padding != 0:
+            self.fill(padding)
+
+    def align(self, scalar_size):
+        self._minalign = max(self._minalign, scalar_size)
+        padding = padding_bytes(len(self._buf), scalar_size)
+        if padding != 0:
+            self._buf.fill(padding)
+
+    def track_field(self, field, offset):
+        assert(field not in self._vtable)
+        self._vtable[field] = offset
+
+    def not_nested(self):
+        assert(not self._vtable)
+
+    def start_table(self):
+        self.not_nested()
+        return len(self._buf)
+
+    def end_table(self):
+        # if self._vtable in self._vtables:
+        pass
+
+    def refer_to(self, offset):
+        self.align(4)
+        assert(offset <= len(self._buf))
+        return len(self._buf) - offset + 4
+
+    def _make_elements(fmt):
+        scalar_fmt = Struct('<{}'.format(fmt))
+
+        def push_element(self, value):
+            self.align(scalar_fmt.size)
+            return self._buf.extend_struct(scalar_fmt, value)
+
+        def add_element(self, field, value, default):
+            if field == default and not self._force_defaults:
+                return
+
+            off = push_element(value)
+            self.track_field(field, off)
+
+        return push_element, add_element
+
+    # 8 bit
+    push_byte, add_byte = _make_elements('b')
+    push_ubyte, add_ubyte = _make_elements('B')
+
+    # 16 bit
+    push_short, add_short = _make_elements('h')
+    push_ushort, add_ushort = _make_elements('H')
+
+    # 32 bit
+    push_int, add_int = _make_elements('i')
+    push_uint, add_uint = _make_elements('I')
+    push_float, add_float = _make_elements('f')
+
+    # 64 bit
+    push_long, add_long = _make_elements('q')
+    push_ulong, add_ulong = _make_elements('Q')
+    push_double, add_double = _make_elements('d')
+
+
+class DownwardArray(object):
     def __init__(self, block_size=1024):
         self._block_size = block_size
         self._padding = bytearray(block_size)
-        self._buffer = bytearray(block_size)
-        self._offset = 0
+        self._buf = bytearray(block_size)
+        self._cur = 0
 
-    def data(self):
-        return self._buffer[-self._offset:]
+    def __len__(self):
+        return self._cur
 
-    def _pre_align(self, size, scalar_size):
-        padding = (~(self._offset + size) + 1) & (scalar_size - 1)
-        self._make_space(self._offset + size + padding)
+    def extend(self, b):
+        self.make_space(len(b))
+        newcur = self._cur + len(b)
+        self.buf_[-newcur:-self._cur] = b
+        self._cur = newcur
+        return self._cur
 
-        if padding != 0:
-            self._buffer[-self._offset - padding:-self._offset] = self._padding[:padding]
-            self._offset += padding
+    def extend_struct(self, fmt, value):
+        self.make_space(fmt.size)
+        newcur = self._cur + fmt.size
+        fmt.pack_into(self._buf, -newcur, value)
+        self._cur = newcur
+        return self._cur
 
-    def _make_space(self, size):
-        original_size = len(self._buffer)
+    def fill(self, size):
+        self.make_space(size)
+        self._cur += size
+        return self._cur
+
+    def make_space(self, size):
+        size += self._cur
+        original_size = len(self._buf)
         if(size <= original_size):
             return
 
         while size > 0:
-            self._buffer[len(self._buffer):] = self._padding
+            self._buf[len(self._buf):] = self._padding
             size -= self._block_size
 
-        self._buffer[-original_size:] = self._buffer[0:original_size]
+        self._buf[-original_size:] = self._buf[0:original_size]
 
-    def _make_prependers(fmt):
-        scalar_fmt = Struct('<{}'.format(fmt))
-
-        def prepend_scalar(self, value):
-            size = scalar_fmt.size
-            self._pre_align(size, size)
-            self._offset += size
-            scalar_fmt.pack_into(self._buffer, -self._offset, value)
-            return self._offset
-
-        def prepend_scalar_vector(self, value):
-            arr = array(fmt, value)
-            if not _little_endian:
-                arr.byteswap()
-
-            raw = _tobytes(arr)
-            self._pre_align(len(raw), arr.itemsize)
-
-            old_offset = self._offset
-            self._offset += len(raw)
-            self._buffer[-self._offset:-old_offset] = raw
-            return prepend_scalar(self, len(value))
-
-        return prepend_scalar, prepend_scalar_vector
-
-    # 8 bit
-    prepend_byte, prepend_byte_vector = _make_prependers('b')
-    prepend_ubyte, prepend_ubyte_vector = _make_prependers('B')
-
-    # 16 bit
-    prepend_short, prepend_short_vector = _make_prependers('h')
-    prepend_ushort, prepend_ushort_vector = _make_prependers('H')
-
-    # 32 bit
-    prepend_int, prepend_int_vector = _make_prependers('i')
-    prepend_uint, prepend_uint_vector = _make_prependers('I')
-    prepend_float, prepend_float_vector = _make_prependers('f')
-
-    # 64 bit
-    prepend_long, prepend_long_vector = _make_prependers('q')
-    prepend_ulong, prepend_ulong_vector = _make_prependers('Q')
-    prepend_double, prepend_double_vector = _make_prependers('d')
+    def data(self):
+        return self._buf[-self._cur:]
