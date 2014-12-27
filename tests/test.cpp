@@ -137,7 +137,7 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
   TEST_EQ(pos->test3().b(), 20);
 
   auto inventory = monster->inventory();
-  TEST_EQ(VectorLength(inventory), 10);  // Works even if inventory is null.
+  TEST_EQ(VectorLength(inventory), static_cast<size_t>(10));  // Works even if inventory is null.
   TEST_NOTNULL(inventory);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   for (auto it = inventory->begin(); it != inventory->end(); ++it)
