@@ -42,7 +42,9 @@ static std::string GenTypeBasic(const Type &type) {
   return pytypename[type.base_type];
 }
 
-void GenPyComment(const std::vector<std::string> &dc, std::string *code_ptr, std::string prefix = "") {
+void GenPyComment(const std::vector<std::string> &dc, 
+                  std::string *code_ptr, 
+                  std::string prefix = "") {
   std::string &code = *code_ptr;
   if (!dc.empty()) {
       for(const auto &line: dc) {
@@ -51,7 +53,9 @@ void GenPyComment(const std::vector<std::string> &dc, std::string *code_ptr, std
   }
 }
 
-void GenDocString(const std::vector<std::string> &dc, std::string *code_ptr, std::string prefix = "") {
+void GenDocString(const std::vector<std::string> &dc, 
+                  std::string *code_ptr, 
+                  std::string prefix = "") {
   std::string &code = *code_ptr;
   if (!dc.empty()) {
     code += prefix + "\"\"\"\n";
@@ -102,22 +106,18 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
 
   code += "\n\n"
       "def read_" + enum_def.name + "(view, offset):\n"
-                                                     "    return " + enum_def.name + "(flatbuffers.read_" + type +
-                                                     "(view, offset))\n"
-                                                     "\n\n";
+      "    return " + enum_def.name + "(flatbuffers.read_" + type +
+      "(view, offset))\n"
+      "\n\n";
 }
 
-static std::string GenTypeGet(const Type& type) {
-  std::string target;
-  if(IsScalar(type.base_type)) {
-    target = "flatbuffers.read_" + GenTypeBasic(type);
-  } else if(type.base_type == BASE_TYPE_STRING) {
-    target = "flatbuffers.read_unicode";
-  } else if(type.base_type == BASE_TYPE_STRUCT) {
-    target = type.struct_def->name;
-  };
+static void GenFieldOffset(const std::string& offset, std::string *code_ptr) {
+  std::string &code = *code_ptr;
 
-  return IsFixed(type) ? target : "flatbuffers.indirect(" + target + ")";
+  code += "        offset = self.get_offset(" + offset + ")\n"
+          "        if offset == 0:\n"
+          "            return None\n"
+          "        data_offset = self._offset + offset\n";
 }
 
 static void GenProperty(const FieldDef &field, std::string *code_ptr) {
@@ -129,39 +129,61 @@ static void GenProperty(const FieldDef &field, std::string *code_ptr) {
       "    def " + field.name + "(self):\n";
   GenDocString(field.doc_comment, code_ptr, "        ");
 
-  if(type.base_type != BASE_TYPE_UNION && type.enum_def != nullptr) {
-    code += "        return self._read_field(" + offset + ", read_" + type.enum_def->name + 
-        ", default=" + field.value.constant + ")\n\n";
-  } else if(IsScalar(type.base_type)) {
-    code += "        return self._read_field(" + offset + ", " + GenTypeGet(type) + ", "
-        "default=" + field.value.constant + ")\n\n";
+  if(IsScalar(type.base_type) && type.enum_def == nullptr) {
+    code += "        return self.read_" + GenTypeBasic(type) + "_field(" +
+            offset + ", " + field.value.constant + ")\n\n";
+  } else if(type.base_type != BASE_TYPE_UNION && type.enum_def != nullptr) {
+    code += "        return self.read_field(" + offset + ", read_" + 
+            type.enum_def->name + ", " + field.value.constant + ")\n\n";
+  } else if(type.base_type == BASE_TYPE_STRING) {
+    GenFieldOffset(offset, code_ptr);
+    code += "        data_offset += flatbuffers.read_uoffset"
+            "(self._buf, data_offset)\n"
+            "        return flatbuffers.read_string(self._buf, "
+            "data_offset)\n\n";
   } else if(type.base_type == BASE_TYPE_VECTOR) {
-    code += "        return self._read_field(" + offset + ", flatbuffers.indirect(";
+    GenFieldOffset(offset, code_ptr);
+
     if(IsScalar(type.element)) {
-      code += "flatbuffers.read_" + GenTypeBasic(type.VectorType()) + "_vector";
-    } else if (IsStruct(type.VectorType())){
-      code += "flatbuffers.vector(" +
-          type.VectorType().struct_def->name + ", " + 
-          NumToString(type.VectorType().struct_def->bytesize) + ")";
+      code += "        return flatbuffers.read_vector(\"";
+      code += GenPyFmtChar(type.VectorType());
+      code += "\", self._buf, data_offset)\n\n";
+    } else if (IsStruct(type.VectorType())) {
+      code += "        return flatbuffers.StructVector(" +
+              type.struct_def->name + ", " + 
+              NumToString(type.struct_def->bytesize) + ", " +
+              "self._buf, data_offset)\n\n";
+    } else if (type.element == BASE_TYPE_STRING) {
+      code += "        return flatbuffers.IndirectVector(" 
+              "flatbuffers.read_string, self._buf, data_offset)\n\n";
     } else {
-      code += "flatbuffers.vector(" + 
-          GenTypeGet(type.VectorType()) + ")";
+      code += "        return flatbuffers.IndirectVector(" + 
+              type.struct_def->name + ", self._buf, data_offset)\n\n";
     }
-    code += "))\n\n";
   } else if (type.base_type == BASE_TYPE_UNION) {
     const auto& enum_def = *type.enum_def;
 
     code += "        tpe = self." + field.name + "_type\n"
         "        if tpe == " + enum_def.name + ".NONE:\n"
         "            return None\n";
+
     for(std::size_t i=1; i<enum_def.vals.vec.size(); i++) {
       const auto& val = enum_def.vals.vec[i]->name;
       code += "        if tpe == " + enum_def.name + "." + val + ":\n"
-          "            target = " + val + "\n";
+              "            target = " + val + "\n";
     }
-    code += "        return self._read_field(" + offset + ", flatbuffers.indirect(target))\n\n";
+    GenFieldOffset(offset, code_ptr);
+    code += "        data_offset += flatbuffers.read_uoffset"
+            "(self._buf, data_offset)\n"
+            "        return target(self._buf, data_offset)\n\n";
   } else {
-    code += "        return self._read_field(" + offset + ", " + GenTypeGet(type) + ")\n\n";
+    GenFieldOffset(offset, code_ptr);
+    if (!IsStruct(type)) {
+        code += "        data_offset += flatbuffers.read_uoffset"
+                "(self._buf, data_offset)\n";
+    }
+    code += "        return " + type.struct_def->name + "("
+            "self._buf, data_offset)\n\n";
   }
 }
 
@@ -241,10 +263,12 @@ static void GenStruct(StructDef &struct_def,
   code += "class " + struct_def.name + "(flatbuffers.Struct):\n";
   GenDocString(struct_def.doc_comment, code_ptr, "    ");
 
-  code += "    _format = struct.Struct(\"" + GenStructFormat(struct_def) + "\")\n\n";
+  code += "    _FORMAT = struct.Struct(\"" + GenStructFormat(struct_def) + 
+          "\")\n\n";
 
   code += "    def __new__(cls, buf, offset):\n"
-          "        return tuple.__new__(cls, cls._format.unpack_from(buf, offset))\n\n";
+          "        return tuple.__new__(cls, "
+          "cls._FORMAT.unpack_from(buf, offset))\n\n";
 
   int i = 0;
   for (auto &field: fields) {
@@ -254,7 +278,8 @@ static void GenStruct(StructDef &struct_def,
               "    def " + field->name + "(self):\n";
       GenDocString(field->doc_comment, code_ptr, "        ");
     if(type.enum_def != nullptr) {
-      code += "        return " + type.enum_def->name + "(_getitem(self, " + NumToString(i) + "))\n\n";
+      code += "        return " + type.enum_def->name + "(_getitem(self, " + 
+              NumToString(i) + "))\n\n";
       i++;
     } else if (IsScalar(type.base_type)) {
       code += "        return _getitem(self, " + NumToString(i) + ")\n\n";
@@ -262,7 +287,8 @@ static void GenStruct(StructDef &struct_def,
     } else if(IsStruct(type)) {
       int size = TotalValues(type);
       code += "        return _tuple.__new__(" + type.struct_def->name + ", "
-              "_getitem(self, slice(" + NumToString(i) + ", " + NumToString(i + size) + ")))\n\n";
+              "_getitem(self, slice(" + NumToString(i) + ", " + 
+              NumToString(i + size) + ")))\n\n";
       i += size;
     }
   }
@@ -323,23 +349,18 @@ std::string GeneratePython(const Parser &parser,
 
     if (parser.root_struct_def) {
       code += "def get_root_as_" + parser.root_struct_def->name +
-          "(source):\n";
-      code += "    return " + parser.root_struct_def->name + 
-          "(source, flatbuffers.read_uint(source, 0))\n";
+              "(source):\n"
+              "    buf = source if type(source) is memoryview "
+              "else memoryview(source)\n"
+              "    offset = flatbuffers.read_uoffset(buf, 0)\n"
+              "    return " + parser.root_struct_def->name + 
+              "(buf, offset)\n";
     }
 
     return code;
   }
 
   return std::string();
-}
-
-template <typename T>
-static void GenImports(const SymbolTable<T> &defs, std::ostringstream &imports) {
-  for(const auto& def: defs.vec) {
-    if(def->generated) continue;
-    imports << def->name << ", ";
-  };
 }
 
 static bool SavePackage(const Parser &parser, const std::string &path, 

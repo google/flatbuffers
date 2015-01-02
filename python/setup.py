@@ -4,6 +4,7 @@ setup(
     name="Flatbuffers",
     version="1.0",
     description="Efficent serialization library",
-    install_requires=["enum34"],
-    setup_requires=["nose>=1.0"]
+    license='Apache License 2.0',
+    url="https://github.com/google/flatbuffers",
+    install_requires=["enum34", "future"]
 )

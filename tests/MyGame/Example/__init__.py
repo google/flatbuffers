@@ -39,10 +39,10 @@ def read_Any(view, offset):
 
 
 class Test(flatbuffers.Struct):
-    _format = struct.Struct("hbx")
+    _FORMAT = struct.Struct("hbx")
 
     def __new__(cls, buf, offset):
-        return tuple.__new__(cls, cls._format.unpack_from(buf, offset))
+        return tuple.__new__(cls, cls._FORMAT.unpack_from(buf, offset))
 
     @property
     def a(self):
@@ -54,10 +54,10 @@ class Test(flatbuffers.Struct):
 
 
 class Vec3(flatbuffers.Struct):
-    _format = struct.Struct("fff4xdbxhbx2x")
+    _FORMAT = struct.Struct("fff4xdbxhbx2x")
 
     def __new__(cls, buf, offset):
-        return tuple.__new__(cls, cls._format.unpack_from(buf, offset))
+        return tuple.__new__(cls, cls._FORMAT.unpack_from(buf, offset))
 
     @property
     def x(self):
@@ -87,41 +87,59 @@ class Vec3(flatbuffers.Struct):
 class Stat(flatbuffers.Table):
     @property
     def id(self):
-        return self._read_field(0, flatbuffers.indirect(flatbuffers.read_unicode))
+        offset = self.get_offset(0)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        data_offset += flatbuffers.read_uoffset(self._buf, data_offset)
+        return flatbuffers.read_string(self._buf, data_offset)
 
     @property
     def val(self):
-        return self._read_field(1, flatbuffers.read_long, default=0)
+        return self.read_long_field(1, 0)
 
 
 class Monster(flatbuffers.Table):
     @property
     def pos(self):
-        return self._read_field(0, Vec3)
+        offset = self.get_offset(0)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return Vec3(self._buf, data_offset)
 
     @property
     def mana(self):
-        return self._read_field(1, flatbuffers.read_short, default=150)
+        return self.read_short_field(1, 150)
 
     @property
     def hp(self):
-        return self._read_field(2, flatbuffers.read_short, default=100)
+        return self.read_short_field(2, 100)
 
     @property
     def name(self):
-        return self._read_field(3, flatbuffers.indirect(flatbuffers.read_unicode))
+        offset = self.get_offset(3)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        data_offset += flatbuffers.read_uoffset(self._buf, data_offset)
+        return flatbuffers.read_string(self._buf, data_offset)
 
     @property
     def inventory(self):
-        return self._read_field(5, flatbuffers.indirect(flatbuffers.read_ubyte_vector))
+        offset = self.get_offset(5)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return flatbuffers.read_vector("B", self._buf, data_offset)
 
     @property
     def color(self):
-        return self._read_field(6, read_Color, default=8)
+        return self.read_field(6, read_Color, 8)
 
     @property
     def test_type(self):
-        return self._read_field(7, read_Any, default=0)
+        return self.read_field(7, read_Any, 0)
 
     @property
     def test(self):
@@ -130,15 +148,28 @@ class Monster(flatbuffers.Table):
             return None
         if tpe == Any.Monster:
             target = Monster
-        return self._read_field(8, flatbuffers.indirect(target))
+        offset = self.get_offset(8)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        data_offset += flatbuffers.read_uoffset(self._buf, data_offset)
+        return target(self._buf, data_offset)
 
     @property
     def test4(self):
-        return self._read_field(9, flatbuffers.indirect(flatbuffers.vector(Test, 4)))
+        offset = self.get_offset(9)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return flatbuffers.StructVector(Test, 4, self._buf, data_offset)
 
     @property
     def testarrayofstring(self):
-        return self._read_field(10, flatbuffers.indirect(flatbuffers.vector(flatbuffers.indirect(flatbuffers.read_unicode))))
+        offset = self.get_offset(10)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return flatbuffers.IndirectVector(flatbuffers.read_string, self._buf, data_offset)
 
     @property
     def testarrayoftables(self):
@@ -147,20 +178,40 @@ class Monster(flatbuffers.Table):
          multiline too
         """
 
-        return self._read_field(11, flatbuffers.indirect(flatbuffers.vector(flatbuffers.indirect(Monster))))
+        offset = self.get_offset(11)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return flatbuffers.IndirectVector(Monster, self._buf, data_offset)
 
     @property
     def enemy(self):
-        return self._read_field(12, flatbuffers.indirect(Monster))
+        offset = self.get_offset(12)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        data_offset += flatbuffers.read_uoffset(self._buf, data_offset)
+        return Monster(self._buf, data_offset)
 
     @property
     def testnestedflatbuffer(self):
-        return self._read_field(13, flatbuffers.indirect(flatbuffers.read_ubyte_vector))
+        offset = self.get_offset(13)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        return flatbuffers.read_vector("B", self._buf, data_offset)
 
     @property
     def testempty(self):
-        return self._read_field(14, flatbuffers.indirect(Stat))
+        offset = self.get_offset(14)
+        if offset == 0:
+            return None
+        data_offset = self._offset + offset
+        data_offset += flatbuffers.read_uoffset(self._buf, data_offset)
+        return Stat(self._buf, data_offset)
 
 
 def get_root_as_Monster(source):
-    return Monster(source, flatbuffers.read_uint(source, 0))
+    buf = source if type(source) is memoryview else memoryview(source)
+    offset = flatbuffers.read_uoffset(buf, 0)
+    return Monster(buf, offset)

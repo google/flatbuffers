@@ -1,8 +1,9 @@
-from nose.tools import assert_equal, assert_is_none, assert_is_not_none
-
 import sys
 sys.path.append('../python')
 
+import unittest
+
+import flatbuffers
 from MyGame.Example import Color, Any, get_root_as_Monster
 
 
@@ -17,61 +18,125 @@ def lcg_rand(seed=48271):
         yield x
 
 
-def check_read_buffer(buf):
-    monster = get_root_as_Monster(buf)
+class TestFlatbuffers(unittest.TestCase):
+    def check_read_buffer(self, buf):
+        monster = get_root_as_Monster(buf)
 
-    assert_equal(80, monster.hp)
-    assert_equal(150, monster.mana)
-    assert_equal("MyMonster", monster.name)
+        self.assertEqual(80, monster.hp)
+        self.assertEqual(150, monster.mana)
+        self.assertEqual("MyMonster", monster.name)
 
-    pos = monster.pos
-    assert_is_not_none(pos)
-    assert_equal(1.0, pos.x)
-    assert_equal(2.0, pos.y)
-    assert_equal(3.0, pos.z)
-    assert_equal(3.0, pos.test1)
-    assert_equal(Color.Green, pos.test2)
-    assert_equal((5, 6), pos.test3)
+        pos = monster.pos
+        self.assertIsNotNone(pos)
+        self.assertEqual(1.0, pos.x)
+        self.assertEqual(2.0, pos.y)
+        self.assertEqual(3.0, pos.z)
+        self.assertEqual(3.0, pos.test1)
+        self.assertEqual(Color.Green, pos.test2)
+        self.assertEqual((5, 6), pos.test3)
 
-    assert_is_not_none(monster.inventory)
-    assert_equal(5, len(monster.inventory))
-    assert_equal([0, 1, 2, 3, 4], list(monster.inventory))
+        self.assertIsNotNone(monster.inventory)
+        self.assertEqual(5, len(monster.inventory))
+        self.assertEqual([0, 1, 2, 3, 4], list(monster.inventory))
 
-    assert_equal(Any.Monster, monster.test_type)
-    assert_is_not_none(monster.test)
-    assert_equal("Fred", monster.test.name)
+        self.assertEqual(Any.Monster, monster.test_type)
+        self.assertIsNotNone(monster.test)
+        self.assertEqual("Fred", monster.test.name)
 
-    assert_is_not_none(monster.test4)
-    assert_equal(2, len(monster.test4))
-    assert_equal([(10, 20), (30, 40)], monster.test4)
+        self.assertIsNotNone(monster.test4)
+        self.assertEqual(2, len(monster.test4))
+        for expected, actual in zip([(10, 20), (30, 40)], monster.test4):
+            self.assertEqual(expected, actual)
 
-    assert_equal(["test1", "test2"], monster.testarrayofstring)
+        for expected, actual in zip(["test1", "test2"], monster.testarrayofstring):
+            self.assertEqual(expected, actual)
 
-    assert_is_none(monster.testempty)
+        self.assertIsNone(monster.testempty)
 
+    def test_cppdata(self):
+        with open("monsterdata_test.mon", 'rb') as cppdata:
+            buf = cppdata.read()
+            self.check_read_buffer(buf)
 
-def test_cppdata():
-    with open("monsterdata_test.mon", 'rb') as cppdata:
-        buf = cppdata.read()
-        check_read_buffer(buf)
+    def test_fuzz(self):
+        bool_val = True
+        byte_val = -127  # 0x81
+        ubyte_val = 0xFF
+        short_val = -32222  # 0x8222;
+        ushort_val = 0xFEEE
+        int_val = -2093796557  # 0x83333333
+        uint_val = 0xFDDDDDDD
+        long_val = -8915926302292949948  # 0x8444444444444444
+        ulong_val = 0xFCCCCCCCCCCCCCCC
+        float_val = 3.14159
+        double_val = 3.14159265359
 
+        test_values_max = 11
+        fields_per_object = 4
+        num_fuzz_objects = 10000
 
-def test_fuzz():
-    bool_val = True
-    byte_val = -127  # 0x81
-    ubyte_val = 0xFF
-    short_val = -32222  # 0x8222;
-    ushort_val = 0xFEEE
-    int_val = 0x83333333
-    uint_val = 0xFDDDDDDD
-    long_val = 0x8444444444444444
-    ulong_val = 0xFCCCCCCCCCCCCCCC
-    float_val = 3.14159
-    double_val = 3.14159265359
+        objects = []
+        builder = flatbuffers.Builder()
+        lcg = lcg_rand()
 
-    test_values_max = 11
-    fields_per_object = 4
-    num_fuzz_objects = 10000
+        for _ in range(num_fuzz_objects):
+            start = builder.start_table()
+            for f in range(fields_per_object):
+                choice = next(lcg) % test_values_max
+                if choice == 0:
+                    builder.add_bool(f, bool_val, False)
+                elif choice == 1:
+                    builder.add_byte(f, byte_val, 0)
+                elif choice == 2:
+                    builder.add_ubyte(f, ubyte_val, 0)
+                elif choice == 3:
+                    builder.add_short(f, short_val, 0)
+                elif choice == 4:
+                    builder.add_ushort(f, ushort_val, 0)
+                elif choice == 5:
+                    builder.add_int(f, int_val, 0)
+                elif choice == 6:
+                    builder.add_uint(f, uint_val, 0)
+                elif choice == 7:
+                    builder.add_long(f, long_val, 0)
+                elif choice == 8:
+                    builder.add_ulong(f, ulong_val, 0)
+                elif choice == 9:
+                    builder.add_float(f, float_val, 0.0)
+                elif choice == 10:
+                    builder.add_double(f, double_val, 0.0)
+            objects.append(builder.end_table(start))
 
-import nose
-nose.main()
+        buf = memoryview(builder.data())
+        lcg = lcg_rand()
+
+        for i, off in enumerate(objects):
+            table = flatbuffers.Table(buf, len(buf) - off)
+
+            for f in range(fields_per_object):
+                choice = next(lcg) % test_values_max
+                if choice == 0:
+                    self.assertEqual(bool_val, table.read_bool_field(f, False))
+                elif choice == 1:
+                    self.assertEqual(byte_val, table.read_byte_field(f, 0))
+                elif choice == 2:
+                    self.assertEqual(ubyte_val, table.read_ubyte_field(f, 0))
+                elif choice == 3:
+                    self.assertEqual(short_val, table.read_short_field(f, 0))
+                elif choice == 4:
+                    self.assertEqual(ushort_val, table.read_ushort_field(f, 0))
+                elif choice == 5:
+                    self.assertEqual(int_val, table.read_int_field(f, 0))
+                elif choice == 6:
+                    self.assertEqual(uint_val, table.read_uint_field(f, 0))
+                elif choice == 7:
+                    self.assertEqual(long_val, table.read_long_field(f, 0))
+                elif choice == 8:
+                    self.assertEqual(ulong_val, table.read_ulong_field(f, 0))
+                elif choice == 9:
+                    self.assertAlmostEqual(float_val, table.read_float_field(f, 0.0), places=5)
+                elif choice == 10:
+                    self.assertEqual(double_val, table.read_double_field(f, 0.0))
+
+if __name__ == "__main__":
+    unittest.main()
