@@ -92,6 +92,11 @@ inline bool LoadFile(const char *name, bool binary, std::string *buf) {
   return !ifs.bad();
 }
 
+inline bool FileExists(const char* name) {
+    std::ofstream ofs(name);
+    return ofs.is_open();
+}
+
 // Save data "buf" of length "len" bytes into a file
 // "name" returning true if successful, false otherwise.
 // If "binary" is false data is written using ifstream's

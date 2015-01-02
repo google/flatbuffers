@@ -222,6 +222,10 @@ inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
 
+inline bool IsFixed(const Type &type) {
+  return IsScalar(type.base_type) || IsStruct(type);
+}
+
 inline size_t InlineSize(const Type &type) {
   return IsStruct(type) ? type.struct_def->bytesize : SizeOf(type.base_type);
 }
@@ -414,6 +418,13 @@ extern bool GenerateGo(const Parser &parser,
 // Generate Java files from the definitions in the Parser object.
 // See idl_gen_java.cpp.
 extern bool GenerateJava(const Parser &parser,
+                         const std::string &path,
+                         const std::string &file_name,
+                         const GeneratorOptions &opts);
+
+// Generate Python files from the definitions in the Parser object.
+// See idl_gen_python.cpp.
+extern bool GeneratePython(const Parser &parser,
                          const std::string &path,
                          const std::string &file_name,
                          const GeneratorOptions &opts);

@@ -5,6 +5,7 @@
 *.o.d
 *.class
 *.a
+*.pyc
 *~
 *.vcxproj
 *.vcxproj.filters
@@ -38,3 +39,6 @@ CMakeLists.txt.user
 CMakeScripts/**
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
+python/*.egg
+python/*.egg-info
+.venv
