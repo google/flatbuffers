@@ -42,6 +42,11 @@ correct type below. To create a vector of struct objects (which will
 be stored as contiguous memory in the buffer, use `CreateVectorOfStructs`
 instead.
 
+To create a vector of nested objects (e.g. tables, strings or other vectors)
+collect their offsets in a temporary array/vector, then call `CreateVector`
+on that (see e.g. the array of strings example in `test.cpp`
+`CreateFlatBufferTest`).
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     Vec3 vec(1, 2, 3);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

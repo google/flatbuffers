@@ -73,8 +73,10 @@ code.
 
 ### Tables
 
-These start with an `soffset_t` to a vtable (signed version of
-`uoffset_t`, since vtables may be stored anywhere), followed by all the
+These start with an `soffset_t` to a vtable. This is a signed version of
+`uoffset_t`, since vtables may be stored anywhere relative to the object.
+This offset is substracted (not added) from the object start to arrive at
+the vtable start. This offset is followed by all the
 fields as aligned scalars (or offsets). Unlike structs, not all fields
 need to be present. There is no set order and layout.
 
@@ -83,9 +85,9 @@ through a vtable of offsets. Vtables are shared between any objects that
 happen to have the same vtable values.
 
 The elements of a vtable are all of type `voffset_t`, which is
-a `uint16_t`. The first element is the number of elements of the vtable,
-including this one. The second one is the size of the object, in bytes
-(including the vtable offset). This size is used for streaming, to know
+a `uint16_t`. The first element is the size of the vtable in bytes,
+including the size element. The second one is the size of the object, in bytes
+(including the vtable offset). This size could be used for streaming, to know
 how many bytes to read to be able to access all fields of the object.
 The remaining elements are the N offsets, where N is the amount of fields
 declared in the schema when the code that constructed this buffer was

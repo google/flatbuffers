@@ -65,6 +65,7 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 </div><!-- fragment --><p><code>CreateString</code> and <code>CreateVector</code> serialize these two built-in datatypes, and return offsets into the serialized data indicating where they are stored, such that <code>Monster</code> below can refer to them.</p>
 <p><code>CreateString</code> can also take an <code>std::string</code>, or a <code>const char *</code> with an explicit length, and is suitable for holding UTF-8 and binary data if needed.</p>
 <p><code>CreateVector</code> can also take an <code>std::vector</code>. The offset it returns is typed, i.e. can only be used to set fields of the correct type below. To create a vector of struct objects (which will be stored as contiguous memory in the buffer, use <code>CreateVectorOfStructs</code> instead.</p>
+<p>To create a vector of nested objects (e.g. tables, strings or other vectors) collect their offsets in a temporary array/vector, then call <code>CreateVector</code> on that (see e.g. the array of strings example in <code>test.cpp</code> <code>CreateFlatBufferTest</code>).</p>
 <div class="fragment"><div class="line">Vec3 vec(1, 2, 3);</div>
 </div><!-- fragment --><p><code>Vec3</code> is the first example of code from our generated header. Structs (unlike tables) translate to simple structs in C++, so we can construct them in a familiar way.</p>
 <p>We have now serialized the non-scalar components of of the monster example, so we could create the monster something like this:</p>

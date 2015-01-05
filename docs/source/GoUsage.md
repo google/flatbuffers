@@ -98,7 +98,8 @@ function which calls 'StartVector' with the correct element size of the vector
 type which in this case is 'ubyte' or 1 byte per vector element.
 You pass the number of elements you want to write.
 You write the elements backwards since the buffer
-is being constructed back to front. You then pass `inv` to the corresponding
+is being constructed back to front. Use the correct `Prepend` call for the type,
+or `PrependUOffsetT` for offsets. You then pass `inv` to the corresponding
 `Add` call when you construct the table containing it afterwards.
 
 There are `Prepend` functions for all the scalar types. You use
