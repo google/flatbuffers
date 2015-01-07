@@ -298,6 +298,10 @@ JSON:
     representing flags, you may place multiple inside a string
     separated by spaces to OR them, e.g.
     `field: "EnumVal1 EnumVal2"` or `field: "Enum.EnumVal1 Enum.EnumVal2"`.
+-   Similarly, for unions, these need to specified with two fields much like
+    you do when serializing from code. E.g. for a field `foo`, you must
+    add a field `foo_type: FooOne` right before the `foo` field, where
+    `FooOne` would be the table out of the union you want to use.
 
 When parsing JSON, it recognizes the following escape codes in strings:
 
