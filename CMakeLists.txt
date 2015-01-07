@@ -1,13 +1,26 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(FlatBuffers)
+set(FlatBuffers_VERSION 1.0.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
+option(FLATBUFFERS_USE_CXX03_STDLIB
+  "Use boost classes to enable C++03 stdlib compatibility" OFF)
+
+if(FLATBUFFERS_USE_CXX03_STDLIB)
+  find_package(Boost 1.41.0 REQUIRED)
+  include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+endif()
+
+configure_file(include/flatbuffers/options.in.h
+  "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h")
+include_directories("${PROJECT_BINARY_DIR}/include")
 
 set(FlatBuffers_Compiler_SRCS
+  "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h"
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
@@ -55,10 +68,18 @@ set(FlatBuffers_Sample_Text_SRCS
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
-elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Werror -Wextra")
+  if(NOT FLATBUFFERS_USE_CXX03_STDLIB)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
+elseif(CMAKE_COMPILER_IS_GNUCXX OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
+    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -fno-strict-aliasing")
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
@@ -69,8 +90,6 @@ endif()
 
 include_directories(include)
 
-add_executable(flatc ${FlatBuffers_Compiler_SRCS})
-
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
@@ -79,6 +98,8 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     COMMAND flatc -c -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
+
+add_executable(flatc ${FlatBuffers_Compiler_SRCS})
 
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
@@ -89,17 +110,73 @@ if(FLATBUFFERS_BUILD_TESTS)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
-endif()
 
-if(FLATBUFFERS_INSTALL)
-  install(DIRECTORY include/flatbuffers DESTINATION include)
-  install(TARGETS flatc DESTINATION bin)
-endif()
-
-if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
-
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
        "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
 endif()
+
+
+if(NOT FLATBUFFERS_INSTALL)
+  return()
+endif()
+
+#--------------------------------------------------
+# INSTALL : setup files for projects that find_package(FlatBuffers)
+# FlatBuffersTargets.cmake (any targets we export that another project needs)
+# FlatBuffersConfigVersion.cmake (version info)
+# FlatBuffersConfig.cmake (all the other variables another project needs)
+#
+# Supports three methods of using FlatBuffers
+# find_package(FlatBuffers) - pointing to the INSTALL location
+# find_package(FlatBuffers) - pointing to the BUILD directory
+# add_subdirectory(FlatBuffers) - where the project using
+# FlatBuffers can simply set FlatBuffers_DIR to the build subdirectoy
+# The main difference is that the build dir versions need the source tree
+# include locations instead of the install tree.
+#--------------------------------------------------
+
+set(ConfigPackageLocation share/cmake/FlatBuffers)
+
+install(DIRECTORY include/flatbuffers DESTINATION include)
+install(FILES "${PROJECT_BINARY_DIR}/include/flatbuffers/options.h"
+  DESTINATION include/flatbuffers)
+
+install(TARGETS flatc
+  EXPORT   FlatBuffersTargets
+  LIBRARY  DESTINATION lib
+  ARCHIVE  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  PUBLIC_HEADER DESTINATION include)
+
+install(EXPORT FlatBuffersTargets
+  FILE FlatBuffersTargets.cmake DESTINATION .)
+
+install(EXPORT FlatBuffersTargets
+  FILE FlatBuffersTargets.cmake DESTINATION ${ConfigPackageLocation})
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
+  VERSION ${FlatBuffers_VERSION} COMPATIBILITY AnyNewerVersion)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
+  DESTINATION ${ConfigPackageLocation} COMPONENT dev)
+
+# Setup include files for the BUILD dir and source location
+set(FLATBUFFERS_INCLUDE_DIRS
+  "${PROJECT_BINARY_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlatBuffersConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfig.cmake" @ONLY)
+
+# Setup include files for the INSTALL dir
+set(FLATBUFFERS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlatBuffersConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/FlatBuffersConfig.cmake" @ONLY)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/FlatBuffersConfig.cmake"
+  DESTINATION ${ConfigPackageLocation} COMPONENT dev)

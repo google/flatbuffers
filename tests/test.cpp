@@ -20,7 +20,7 @@
 
 #include "monster_test_generated.h"
 
-#include <random>
+#include <cmath>
 
 using namespace MyGame::Example;
 
@@ -592,4 +592,3 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     return 1;
   }
 }
-
