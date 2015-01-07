@@ -649,11 +649,15 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   // Specialized version for non-copying use cases. Data to be written later.
   // After calling this function, GetBufferPointer() can be cast to the
   // corresponding Vector<> type to write the data (through Data()).
-  template<typename T> Offset<Vector<T>> CreateUninitializedVector(size_t len) {
+  uoffset_t CreateUninitializedVector(size_t len, size_t elemsize) {
     NotNested();
-    StartVector(len, sizeof(T));
-    buf_.make_space(len * sizeof(T));
-    return Offset<Vector<T>>(EndVector(len));
+    StartVector(len, elemsize);
+    buf_.make_space(len * elemsize);
+    return EndVector(len);
+  }
+
+  template<typename T> Offset<Vector<T>> CreateUninitializedVector(size_t len) {
+    return CreateUninitializedVector(len, sizeof(T));
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v){
