@@ -70,6 +70,12 @@ std::string CreateFlatBufferTest() {
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   auto inventory = builder.CreateVector(inv_data, 10);
 
+  // Alternatively, create the vector first, and fill in data later:
+  // unsigned char *inv_buf = nullptr;
+  // auto inventory = builder.CreateUninitializedVector<unsigned char>(
+  //                                                              10, &inv_buf);
+  // memcpy(inv_buf, inv_data, 10);
+
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
