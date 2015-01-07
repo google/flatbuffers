@@ -153,6 +153,7 @@ root_type Monster;
 <ul>
 <li>It accepts field names with and without quotes, like many JSON parsers already do. It outputs them without quotes as well, though can be made to output them using the <code>strict_json</code> flag.</li>
 <li>If a field has an enum type, the parser will recognize symbolic enum values (with or without quotes) instead of numbers, e.g. <code>field: EnumVal</code>. If a field is of integral type, you can still use symbolic names, but values need to be prefixed with their type and need to be quoted, e.g. <code>field: "Enum.EnumVal"</code>. For enums representing flags, you may place multiple inside a string separated by spaces to OR them, e.g. <code>field: "EnumVal1 EnumVal2"</code> or <code>field: "Enum.EnumVal1 Enum.EnumVal2"</code>.</li>
+<li>Similarly, for unions, these need to specified with two fields much like you do when serializing from code. E.g. for a field <code>foo</code>, you must add a field <code>foo_type: FooOne</code> right before the <code>foo</code> field, where <code>FooOne</code> would be the table out of the union you want to use.</li>
 </ul>
 <p>When parsing JSON, it recognizes the following escape codes in strings:</p>
 <ul>
