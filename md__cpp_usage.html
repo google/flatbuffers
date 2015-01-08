@@ -101,7 +101,15 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 <div class="fragment"><div class="line"><span class="keyword">auto</span> inv = monster-&gt;inventory();</div>
 <div class="line">assert(inv);</div>
 <div class="line">assert(inv-&gt;Get(9) == 9);</div>
-</div><!-- fragment --><h3>Direct memory access</h3>
+</div><!-- fragment --><h3>Storing maps / dictionaries in a FlatBuffer</h3>
+<p>FlatBuffers doesn't support maps natively, but there is support to emulate their behavior with vectors and binary search, which means you can have fast lookups directly from a FlatBuffer without having to unpack your data into a <code>std::map</code> or similar.</p>
+<p>To use it:</p><ul>
+<li>Designate one of the fields in a table as they "key" field. You do this by setting the <code>key</code> attribute on this field, e.g. <code>name:string (key)</code>. You may only have one key field, and it must be of string or scalar type.</li>
+<li>Write out tables of this type as usual, collect their offsets in an array or vector.</li>
+<li>Instead of <code>CreateVector</code>, call <code>CreateVectorOfSortedTables</code>, which will first sort all offsets such that the tables they refer to are sorted by the key field, then serialize it.</li>
+<li>Now when you're accessing the FlatBuffer, you can use <code>Vector::LookupByKey</code> instead of just <code>Vector::Get</code> to access elements of the vector, e.g.: <code>myvector-&gt;LookupByKey("Fred")</code>, which returns a pointer to the corresponding table type, or <code>nullptr</code> if not found. <code>LookupByKey</code> performs a binary search, so should have a similar speed to <code>std::map</code>, though may be faster because of better caching. <code>LookupByKey</code> only works if the vector has been sorted, it will likely not find elements if it hasn't been sorted.</li>
+</ul>
+<h3>Direct memory access</h3>
 <p>As you can see from the above examples, all elements in a buffer are accessed through generated accessors. This is because everything is stored in little endian format on all platforms (the accessor performs a swap operation on big endian machines), and also because the layout of things is generally not known to the user.</p>
 <p>For structs, layout is deterministic and guaranteed to be the same accross platforms (scalars are aligned to their own size, and structs themselves to their largest member), and you are allowed to access this memory directly by using <code>sizeof()</code> and <code>memcpy</code> on the pointer to a struct, or even an array of structs.</p>
 <p>To compute offsets to sub-elements of a struct, make sure they are a structs themselves, as then you can use the pointers to figure out the offset without having to hardcode it. This is handy for use of arrays of structs with calls like <code>glVertexAttribPointer</code> in OpenGL or similar APIs.</p>
