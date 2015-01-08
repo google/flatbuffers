@@ -124,7 +124,8 @@ int64_t Parser::ParseHexNum(int nibbles) {
     if (!isxdigit(cursor_[i]))
       Error("escape code must be followed by " + NumToString(nibbles) +
             " hex digits");
-  auto val = StringToInt(cursor_, 16);
+  std::string target(cursor_, cursor_ + nibbles);
+  auto val = StringToInt(target.c_str(), 16);
   cursor_ += nibbles;
   return val;
 }
