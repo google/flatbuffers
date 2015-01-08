@@ -1,4 +1,4 @@
-# Use in Java/C#
+# Use in Java/C-sharp
 
 FlatBuffers supports reading and writing binary FlatBuffers in Java and C#.
 Generate code for Java with the `-j` option to `flatc`, or for C# with `-n`
