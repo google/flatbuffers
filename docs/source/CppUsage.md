@@ -157,6 +157,32 @@ Similarly, we can access elements of the inventory array:
     assert(inv->Get(9) == 9);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+### Storing maps / dictionaries in a FlatBuffer
+
+FlatBuffers doesn't support maps natively, but there is support to
+emulate their behavior with vectors and binary search, which means you
+can have fast lookups directly from a FlatBuffer without having to unpack
+your data into a `std::map` or similar.
+
+To use it:
+-   Designate one of the fields in a table as they "key" field. You do this
+    by setting the `key` attribute on this field, e.g.
+    `name:string (key)`.
+    You may only have one key field, and it must be of string or scalar type.
+-   Write out tables of this type as usual, collect their offsets in an
+    array or vector.
+-   Instead of `CreateVector`, call `CreateVectorOfSortedTables`,
+    which will first sort all offsets such that the tables they refer to
+    are sorted by the key field, then serialize it.
+-   Now when you're accessing the FlatBuffer, you can use `Vector::LookupByKey`
+    instead of just `Vector::Get` to access elements of the vector, e.g.:
+    `myvector->LookupByKey("Fred")`, which returns a pointer to the
+    corresponding table type, or `nullptr` if not found.
+    `LookupByKey` performs a binary search, so should have a similar speed to
+    `std::map`, though may be faster because of better caching. `LookupByKey`
+    only works if the vector has been sorted, it will likely not find elements
+    if it hasn't been sorted.
+
 ### Direct memory access
 
 As you can see from the above examples, all elements in a buffer are

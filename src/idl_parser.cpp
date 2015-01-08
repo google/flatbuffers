@@ -395,6 +395,17 @@ void Parser::ParseField(StructDef &struct_def) {
   if (field.required && (struct_def.fixed ||
                          IsScalar(field.value.type.base_type)))
     Error("only non-scalar fields in tables may be 'required'");
+  field.key = field.attributes.Lookup("key") != nullptr;
+  if (field.key) {
+    if (struct_def.has_key)
+      Error("only one field may be set as 'key'");
+    struct_def.has_key = true;
+    if (!IsScalar(field.value.type.base_type)) {
+      field.required = true;
+      if (field.value.type.base_type != BASE_TYPE_STRING)
+        Error("'key' field must be string or scalar type");
+    }
+  }
   auto nested = field.attributes.Lookup("nested_flatbuffer");
   if (nested) {
     if (nested->type.base_type != BASE_TYPE_STRING)

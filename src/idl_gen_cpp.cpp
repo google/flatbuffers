@@ -245,6 +245,24 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
         code += "_nested_root() { return flatbuffers::GetRoot<";
         code += nested_root->name + ">(" + field.name + "()->Data()); }\n";
       }
+      // Generate a comparison function for this field if it is a key.
+      if (field.key) {
+        code += "  bool KeyCompareLessThan(const " + struct_def.name;
+        code += " *o) const { return ";
+        if (field.value.type.base_type == BASE_TYPE_STRING) code += "*";
+        code += field.name + "() < ";
+        if (field.value.type.base_type == BASE_TYPE_STRING) code += "*";
+        code += "o->" + field.name + "(); }\n";
+        code += "  int KeyCompareWithValue(";
+        if (field.value.type.base_type == BASE_TYPE_STRING) {
+          code += "const char *val) const { return strcmp(" + field.name;
+          code += "()->c_str(), val); }\n";
+        } else {
+          code += GenTypeBasic(parser, field.value.type, false);
+          code += " val) const { return " + field.name + "() < val ? -1 : ";
+          code += field.name + "() > val; }\n";
+        }
+      }
     }
   }
   // Generate a verifier function that can check a buffer from an untrusted

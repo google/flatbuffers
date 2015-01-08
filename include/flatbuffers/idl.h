@@ -186,11 +186,14 @@ struct Definition {
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), required(false), padding(0), used(false) {}
+  FieldDef() : deprecated(false), required(false), key(false), padding(0),
+               used(false) {}
 
   Value value;
-  bool deprecated;
-  bool required;
+  bool deprecated; // Field is allowed to be present in old data, but can't be
+                   // written in new data nor accessed in new code.
+  bool required;   // Field must always be present.
+  bool key;        // Field functions as a key for creating sorted vectors.
   size_t padding;  // Bytes to always pad after this field.
   bool used;       // Used during JSON parsing to check for repeated fields.
 };
@@ -200,6 +203,7 @@ struct StructDef : public Definition {
     : fixed(false),
       predecl(true),
       sortbysize(true),
+      has_key(false),
       minalign(1),
       bytesize(0)
     {}
@@ -214,6 +218,7 @@ struct StructDef : public Definition {
   bool fixed;       // If it's struct, not a table.
   bool predecl;     // If it's used before it was defined.
   bool sortbysize;  // Whether fields come in the declaration or size order.
+  bool has_key;     // It has a key field.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
 };
@@ -271,6 +276,7 @@ class Parser {
     namespaces_.push_back(new Namespace());
     known_attributes_.insert("deprecated");
     known_attributes_.insert("required");
+    known_attributes_.insert("key");
     known_attributes_.insert("id");
     known_attributes_.insert("force_align");
     known_attributes_.insert("bit_flags");

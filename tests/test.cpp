@@ -81,10 +81,19 @@ std::string CreateFlatBufferTest() {
 
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
+  flatbuffers::Offset<Monster> mlocs[3];
   auto fred = builder.CreateString("Fred");
-  MonsterBuilder mb(builder);
-  mb.add_name(fred);
-  auto mloc2 = mb.Finish();
+  auto barney = builder.CreateString("Barney");
+  auto wilma = builder.CreateString("Wilma");
+  MonsterBuilder mb1(builder);
+  mb1.add_name(fred);
+  mlocs[0] = mb1.Finish();
+  MonsterBuilder mb2(builder);
+  mb2.add_name(barney);
+  mlocs[1] = mb2.Finish();
+  MonsterBuilder mb3(builder);
+  mb3.add_name(wilma);
+  mlocs[2] = mb3.Finish();
 
   // Create an array of strings:
   flatbuffers::Offset<flatbuffers::String> strings[2];
@@ -92,12 +101,12 @@ std::string CreateFlatBufferTest() {
   strings[1] = builder.CreateString("fred");
   auto vecofstrings = builder.CreateVector(strings, 2);
 
-  // Create an array of tables:
-  auto vecoftables = builder.CreateVector(&mloc2, 1);
+  // Create an array of sorted tables, can be used with binary search when read:
+  auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
 
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
-                            Any_Monster, mloc2.Union(), // Store a union.
+                            Any_Monster, mlocs[1].Union(), // Store a union.
                             testv, vecofstrings, vecoftables, 0);
 
   FinishMonsterBuffer(builder, mloc);
@@ -163,9 +172,15 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
 
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
-  TEST_EQ(vecoftables->Length(), 1U);
+  TEST_EQ(vecoftables->Length(), 3U);
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
-    TEST_EQ(strcmp(it->name()->c_str(), "Fred"), 0);
+    TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
+  TEST_EQ(strcmp(vecoftables->Get(0)->name()->c_str(), "Barney"), 0);
+  TEST_EQ(strcmp(vecoftables->Get(1)->name()->c_str(), "Fred"), 0);
+  TEST_EQ(strcmp(vecoftables->Get(2)->name()->c_str(), "Wilma"), 0);
+  TEST_NOTNULL(vecoftables->LookupByKey("Barney"));
+  TEST_NOTNULL(vecoftables->LookupByKey("Fred"));
+  TEST_NOTNULL(vecoftables->LookupByKey("Wilma"));
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
