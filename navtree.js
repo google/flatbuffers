@@ -6,7 +6,7 @@ var NAVTREE =
     [ "Writing a schema", "md__schemas.html", null ],
     [ "Use in C++", "md__cpp_usage.html", null ],
     [ "Use in Go", "md__go_usage.html", null ],
-    [ "Use in Java/C", "md__java_usage.html", null ],
+    [ "Use in Java/C-sharp", "md__java_usage.html", null ],
     [ "Benchmarks", "md__benchmarks.html", null ],
     [ "FlatBuffers white paper", "md__white_paper.html", null ],
     [ "FlatBuffer Internals", "md__internals.html", null ],
