@@ -18,7 +18,6 @@ package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 // All tables in the generated code derive from this class, and add their own accessors.
 public class Table {
@@ -45,7 +44,7 @@ public class Table {
   protected String __string(int offset) {
     offset += bb.getInt(offset);
     if (bb.hasArray()) {
-      return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), Charset.forName("UTF-8"));
+      return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), FlatBufferBuilder.utf8charset);
     } else {
       // We can't access .array(), since the ByteBuffer is read-only.
       // We're forced to make an extra copy:
@@ -54,7 +53,7 @@ public class Table {
       bb.position(offset + SIZEOF_INT);
       bb.get(copy);
       bb.position(old_pos);
-      return new String(copy, 0, copy.length, Charset.forName("UTF-8"));
+      return new String(copy, 0, copy.length, FlatBufferBuilder.utf8charset);
     }
   }
 
