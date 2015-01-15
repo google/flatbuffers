@@ -120,18 +120,12 @@ static std::string TokenToString(int t) {
 
 // Parses exactly nibbles worth of hex digits into a number, or error.
 int64_t Parser::ParseHexNum(int nibbles) {
-  char *target = new char[nibbles+1];
-  memset(target, 0, nibbles+1);
-  for (int i = 0; i < nibbles; i++) {
-    if (!isxdigit(cursor_[i])) {
+  for (int i = 0; i < nibbles; i++)
+    if (!isxdigit(cursor_[i]))
       Error("escape code must be followed by " + NumToString(nibbles) +
             " hex digits");
-    } else {
-      target[i] = cursor_[i];
-    }
-  }
-  auto val = StringToInt(target, 16);
-  delete[] target;
+  std::string target(cursor_, cursor_ + nibbles);
+  auto val = StringToInt(target.c_str(), 16);
   cursor_ += nibbles;
   return val;
 }
