@@ -359,9 +359,9 @@ namespace FlatBuffers
         // Utility function for copying a byte array that starts at 0.
         public byte[] SizedByteArray()
         {
-            var newArray = new byte[_bb.Data.Length];
+            var newArray = new byte[_bb.Data.Length - _bb.position()];
             Buffer.BlockCopy(_bb.Data, _bb.position(), newArray, 0,
-                             _bb.Data.Length);
+                             _bb.Data.Length - _bb.position());
             return newArray;
         }
 

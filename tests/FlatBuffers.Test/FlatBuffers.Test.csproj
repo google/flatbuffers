@@ -38,6 +38,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
+      <Link>FlatBuffers\ByteBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\FlatBufferBuilder.cs">
+      <Link>FlatBuffers\FlatBufferBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
+      <Link>FlatBuffers\FlatBufferConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\Struct.cs">
+      <Link>FlatBuffers\Struct.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\Table.cs">
+      <Link>FlatBuffers\Table.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
     </Compile>
@@ -47,6 +62,9 @@
     <Compile Include="..\MyGame\Example\Monster.cs">
       <Link>MyGame\Example\Monster.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\Stat.cs">
+      <Link>MyGame\Example\Stat.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Test.cs">
       <Link>MyGame\Example\Test.cs</Link>
     </Compile>
@@ -55,16 +73,9 @@
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
-    <Compile Include="MyGame\Example\Stat.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FlatBuffersExampleTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\net\FlatBuffers\FlatBuffers.csproj">
-      <Project>{28C00774-1E73-4A75-AD8F-844CD21A064D}</Project>
-      <Name>FlatBuffers</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\monsterdata_test.mon">
