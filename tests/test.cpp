@@ -249,7 +249,7 @@ void ParseProtoTest() {
     "tests/prototest/test.golden", false, &goldenfile), true);
 
   // Parse proto.
-  flatbuffers::Parser parser(true);
+  flatbuffers::Parser parser(false, true);
   TEST_EQ(parser.Parse(protofile.c_str(), nullptr), true);
 
   // Generate fbs.
@@ -493,8 +493,9 @@ void FuzzTest2() {
 }
 
 // Test that parser errors are actually generated.
-void TestError(const char *src, const char *error_substr) {
-  flatbuffers::Parser parser;
+void TestError(const char *src, const char *error_substr,
+               bool strict_json = false) {
+  flatbuffers::Parser parser(strict_json);
   TEST_EQ(parser.Parse(src), false);  // Must signal error
   // Must be the error we're expecting
   TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
@@ -522,6 +523,9 @@ void ErrorTest() {
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y_type: 99, Y: {",
             "type id");
   TestError("table X { Y:int; } root_type X; { Z:", "unknown field");
+  TestError("table X { Y:int; } root_type X; { Y:", "string constant", true);
+  TestError("table X { Y:int; } root_type X; { \"Y\":1, }", "string constant",
+            true);
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
             "{ V:{ Y:1 } }", "incomplete");
   TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",

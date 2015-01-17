@@ -102,7 +102,8 @@ static void Error(const char *err, const char *obj, bool usage,
     printf(
       "  -o PATH         Prefix PATH to all generated files.\n"
       "  -I PATH         Search for includes in the specified path.\n"
-      "  --strict-json   Strict JSON: add quotes to field names.\n"
+      "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
+      "                  no trailing commas in tables/vectors.\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
       "  --gen-includes  Generate include statements for included schemas the\n"
       "                  generated file depends on (C++).\n"
@@ -174,7 +175,7 @@ int main(int argc, const char *argv[]) {
           "specify one of -c -g -j -t -b etc.", true);
 
   // Now process the files:
-  flatbuffers::Parser parser(proto_mode);
+  flatbuffers::Parser parser(opts.strict_json, proto_mode);
   for (auto file_it = filenames.begin();
             file_it != filenames.end();
           ++file_it) {

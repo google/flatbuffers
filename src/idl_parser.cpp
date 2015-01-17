@@ -480,9 +480,11 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
 uoffset_t Parser::ParseTable(const StructDef &struct_def) {
   Expect('{');
   size_t fieldn = 0;
-  if (!IsNext('}')) for (;;) {
+  for (;;) {
+    if ((!strict_json_ || !fieldn) && IsNext('}')) break;
     std::string name = attribute_;
-    if (!IsNext(kTokenStringConstant)) Expect(kTokenIdentifier);
+    if (!IsNext(kTokenStringConstant))
+      Expect(strict_json_ ? kTokenStringConstant : kTokenIdentifier);
     auto field = struct_def.fields.Lookup(name);
     if (!field) Error("unknown field: " + name);
     if (struct_def.fixed && (fieldn >= struct_def.fields.vec.size()
@@ -574,16 +576,16 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
 
 uoffset_t Parser::ParseVector(const Type &type) {
   int count = 0;
-  if (token_ != ']') for (;;) {
+  for (;;) {
+    if ((!strict_json_ || !count) && IsNext(']')) break;
     Value val;
     val.type = type;
     ParseAnyValue(val, NULL);
     field_stack_.push_back(std::make_pair(val, nullptr));
     count++;
-    if (token_ == ']') break;
+    if (IsNext(']')) break;
     Expect(',');
   }
-  Next();
 
   builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
                        InlineAlignment(type));

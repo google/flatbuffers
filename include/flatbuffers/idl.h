@@ -266,12 +266,13 @@ struct EnumDef : public Definition {
 
 class Parser {
  public:
-  Parser(bool proto_mode = false)
+  Parser(bool strict_json = false, bool proto_mode = false)
     : root_struct_def(nullptr),
       source_(nullptr),
       cursor_(nullptr),
       line_(1),
-      proto_mode_(proto_mode) {
+      proto_mode_(proto_mode),
+      strict_json_(strict_json) {
     // Just in case none are declared:
     namespaces_.push_back(new Namespace());
     known_attributes_.insert("deprecated");
@@ -354,6 +355,7 @@ class Parser {
   int line_;  // the current line being parsed
   int token_;
   bool proto_mode_;
+  bool strict_json_;
   std::string attribute_;
   std::vector<std::string> doc_comment_;
 

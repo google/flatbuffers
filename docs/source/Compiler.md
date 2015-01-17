@@ -41,8 +41,9 @@ be generated for each file processed:
     fail (or none are specified) it will try to load relative to the path of
     the schema file being parsed.
 
--   `--strict-json` : Generate strict JSON (field names are enclosed in quotes).
-    By default, no quotes are generated.
+-   `--strict-json` : Require & generate strict JSON (field names are enclosed
+    in quotes, no trailing commas in tables/vectors). By default, no quotes are
+    required/generated, and trailing commas are allowed.
 
 -   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
     type.
