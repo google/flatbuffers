@@ -34,6 +34,7 @@ flatsamplebinary
 flatsampletext
 snapshot.sh
 tests/go_gen
+tests/monsterdata_java_wire.mon
 CMakeLists.txt.user
 CMakeScripts/**
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**

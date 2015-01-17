@@ -80,6 +80,7 @@ class JavaTest {
         Monster.addTest(fbb, mon2);
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
+        Monster.addTestbool(fbb, false);
         int mon = Monster.endMonster(fbb);
 
         Monster.finishMonsterBuffer(fbb, mon);
@@ -166,6 +167,8 @@ class JavaTest {
         TestEq(monster.testarrayofstringLength(), 2);
         TestEq(monster.testarrayofstring(0),"test1");
         TestEq(monster.testarrayofstring(1),"test2");
+
+        TestEq(monster.testbool(), false);
     }
 
     static <T> void TestEq(T a, T b) {

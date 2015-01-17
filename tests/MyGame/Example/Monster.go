@@ -207,7 +207,15 @@ func (rcv *Monster) Testempty(obj *Stat) *Stat {
 	return nil
 }
 
-func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(15) }
+func (rcv *Monster) Testbool() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(34))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(16) }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) { builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0) }
 func MonsterAddMana(builder *flatbuffers.Builder, mana int16) { builder.PrependInt16Slot(1, mana, 150) }
 func MonsterAddHp(builder *flatbuffers.Builder, hp int16) { builder.PrependInt16Slot(2, hp, 100) }
@@ -232,4 +240,5 @@ func MonsterAddTestnestedflatbuffer(builder *flatbuffers.Builder, testnestedflat
 func MonsterStartTestnestedflatbufferVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT { return builder.StartVector(1, numElems, 1)
 }
 func MonsterAddTestempty(builder *flatbuffers.Builder, testempty flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(14, flatbuffers.UOffsetT(testempty), 0) }
+func MonsterAddTestbool(builder *flatbuffers.Builder, testbool byte) { builder.PrependByteSlot(15, testbool, 0) }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

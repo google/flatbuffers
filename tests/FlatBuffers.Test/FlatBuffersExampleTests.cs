@@ -76,6 +76,7 @@ namespace FlatBuffers.Test
             Monster.AddTest(fbb, mon2);
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
+            Monster.AddTestbool(fbb, false);
             var mon = Monster.EndMonster(fbb);
 
             fbb.Finish(mon);
@@ -134,6 +135,8 @@ namespace FlatBuffers.Test
             Assert.AreEqual(2, monster.TestarrayofstringLength());
             Assert.AreEqual("test1", monster.Testarrayofstring(0));
             Assert.AreEqual("test2", monster.Testarrayofstring(1));
+
+            Assert.AreEqual(false, monster.Testbool());
         }
 
         public void CanReadCppGeneratedWireFile()

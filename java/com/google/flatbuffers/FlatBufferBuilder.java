@@ -102,21 +102,23 @@ public class FlatBufferBuilder {
 
     // Add a scalar to the buffer, backwards from the current location.
     // Doesn't align nor check for space.
-    public void putByte  (byte   x) { bb.put      (space -= 1, x); }
-    public void putShort (short  x) { bb.putShort (space -= 2, x); }
-    public void putInt   (int    x) { bb.putInt   (space -= 4, x); }
-    public void putLong  (long   x) { bb.putLong  (space -= 8, x); }
-    public void putFloat (float  x) { bb.putFloat (space -= 4, x); }
-    public void putDouble(double x) { bb.putDouble(space -= 8, x); }
+    public void putBoolean(boolean x) { bb.put      (space -= 1, (byte)(x ? 1 : 0)); }
+    public void putByte   (byte    x) { bb.put      (space -= 1, x); }
+    public void putShort  (short   x) { bb.putShort (space -= 2, x); }
+    public void putInt    (int     x) { bb.putInt   (space -= 4, x); }
+    public void putLong   (long    x) { bb.putLong  (space -= 8, x); }
+    public void putFloat  (float   x) { bb.putFloat (space -= 4, x); }
+    public void putDouble (double  x) { bb.putDouble(space -= 8, x); }
 
     // Adds a scalar to the buffer, properly aligned, and the buffer grown
     // if needed.
-    public void addByte  (byte   x) { prep(1, 0); putByte  (x); }
-    public void addShort (short  x) { prep(2, 0); putShort (x); }
-    public void addInt   (int    x) { prep(4, 0); putInt   (x); }
-    public void addLong  (long   x) { prep(8, 0); putLong  (x); }
-    public void addFloat (float  x) { prep(4, 0); putFloat (x); }
-    public void addDouble(double x) { prep(8, 0); putDouble(x); }
+    public void addBoolean(boolean x) { prep(1, 0); putBoolean(x); }
+    public void addByte   (byte    x) { prep(1, 0); putByte   (x); }
+    public void addShort  (short   x) { prep(2, 0); putShort  (x); }
+    public void addInt    (int     x) { prep(4, 0); putInt    (x); }
+    public void addLong   (long    x) { prep(8, 0); putLong   (x); }
+    public void addFloat  (float   x) { prep(4, 0); putFloat  (x); }
+    public void addDouble (double  x) { prep(8, 0); putDouble (x); }
 
     // Adds on offset, relative to where it will be written.
     public void addOffset(int off) {
@@ -169,13 +171,14 @@ public class FlatBufferBuilder {
     }
 
     // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-    public void addByte  (int o, byte   x, int    d) { if(x != d) { addByte  (x); slot(o); } }
-    public void addShort (int o, short  x, int    d) { if(x != d) { addShort (x); slot(o); } }
-    public void addInt   (int o, int    x, int    d) { if(x != d) { addInt   (x); slot(o); } }
-    public void addLong  (int o, long   x, long   d) { if(x != d) { addLong  (x); slot(o); } }
-    public void addFloat (int o, float  x, double d) { if(x != d) { addFloat (x); slot(o); } }
-    public void addDouble(int o, double x, double d) { if(x != d) { addDouble(x); slot(o); } }
-    public void addOffset(int o, int    x, int    d) { if(x != d) { addOffset(x); slot(o); } }
+    public void addBoolean(int o, boolean x, boolean d) { if(x != d) { addBoolean(x); slot(o); } }
+    public void addByte   (int o, byte    x, int     d) { if(x != d) { addByte   (x); slot(o); } }
+    public void addShort  (int o, short   x, int     d) { if(x != d) { addShort  (x); slot(o); } }
+    public void addInt    (int o, int     x, int     d) { if(x != d) { addInt    (x); slot(o); } }
+    public void addLong   (int o, long    x, long    d) { if(x != d) { addLong   (x); slot(o); } }
+    public void addFloat  (int o, float   x, double  d) { if(x != d) { addFloat  (x); slot(o); } }
+    public void addDouble (int o, double  x, double  d) { if(x != d) { addDouble (x); slot(o); } }
+    public void addOffset (int o, int     x, int     d) { if(x != d) { addOffset (x); slot(o); } }
 
     // Structs are stored inline, so nothing additional is being added. `d` is always 0.
     public void addStruct(int voffset, int x, int d) {

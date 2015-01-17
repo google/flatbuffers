@@ -36,8 +36,9 @@ public class Monster : Table {
   public int TestnestedflatbufferLength() { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; }
   public Stat Testempty() { return Testempty(new Stat()); }
   public Stat Testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public bool Testbool() { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(15); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(16); }
   public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -61,6 +62,7 @@ public class Monster : Table {
   public static int CreateTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.AddOffset(14, testemptyOffset, 0); }
+  public static void AddTestbool(FlatBufferBuilder builder, bool testbool) { builder.AddBool(15, testbool, false); }
   public static int EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

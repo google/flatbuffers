@@ -43,6 +43,7 @@ table Monster {
   test4:[Test] (id: 9);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
   testempty:Stat (id:14);
+  testbool:bool (id:15);
 }
 
 root_type Monster;

@@ -105,6 +105,11 @@ namespace FlatBuffers
             Pad(alignSize);
         }
 
+        public void PutBool(bool x)
+        {
+          _bb.PutByte(_space -= sizeof(byte), (byte)(x ? 1 : 0));
+        }
+
         public void PutSbyte(sbyte x)
         {
           _bb.PutSbyte(_space -= sizeof(sbyte), x);
@@ -157,6 +162,7 @@ namespace FlatBuffers
 
         // Adds a scalar to the buffer, properly aligned, and the buffer grown
         // if needed.
+        public void AddBool(bool x) { Prep(sizeof(byte), 0); PutBool(x); }
         public void AddSbyte(sbyte x) { Prep(sizeof(sbyte), 0); PutSbyte(x); }
         public void AddByte(byte x) { Prep(sizeof(byte), 0); PutByte(x); }
         public void AddShort(short x) { Prep(sizeof(short), 0); PutShort(x); }
@@ -231,6 +237,7 @@ namespace FlatBuffers
         }
 
         // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
+        public void AddBool(int o, bool x, bool d) { if (x != d) { AddBool(x); Slot(o); } }
         public void AddSbyte(int o, sbyte x, sbyte d) { if (x != d) { AddSbyte(x); Slot(o); } }
         public void AddByte(int o, byte x, byte d) { if (x != d) { AddByte(x); Slot(o); } }
         public void AddShort(int o, short x, int d) { if (x != d) { AddShort(x); Slot(o); } }

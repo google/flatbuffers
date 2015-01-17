@@ -214,13 +214,17 @@ static std::string GenGetter(const LanguageParameters &lang,
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "__string";
     case BASE_TYPE_STRUCT: return "__struct";
-    case BASE_TYPE_UNION: return "__union";
+    case BASE_TYPE_UNION:  return "__union";
     case BASE_TYPE_VECTOR: return GenGetter(lang, type.VectorType());
-    default:
-      return "bb." + FunctionStart(lang, 'G') + "et" +
-        (GenTypeBasic(lang, type) != "byte"
-          ? MakeCamel(GenTypeGet(lang, type))
-          : "");
+    default: {
+      std::string getter = "bb." + FunctionStart(lang, 'G') + "et";
+      if (type.base_type == BASE_TYPE_BOOL) {
+        getter = "0!=" + getter;
+      } else if (GenTypeBasic(lang, type) != "byte") {
+        getter += MakeCamel(GenTypeGet(lang, type));
+      }
+      return getter;
+    }
   }
 }
 
@@ -364,7 +368,10 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += "(bb_pos + " + NumToString(field.value.offset) + ")";
       } else {
         code += offset_prefix + getter;
-        code += "(o + bb_pos) : " + default_cast + field.value.constant;
+        code += "(o + bb_pos) : " + default_cast;
+        code += field.value.type.base_type == BASE_TYPE_BOOL
+                ? (field.value.constant == "0" ? "false" : "true")
+                : field.value.constant;
       }
     } else {
       switch (field.value.type.base_type) {
@@ -524,7 +531,12 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += " " + argname + ") { builder." + FunctionStart(lang, 'A') + "dd";
       code += GenMethod(lang, field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      code += argname + ", " + field.value.constant;
+      code += argname + ", ";
+      if (field.value.type.base_type == BASE_TYPE_BOOL) {
+        code += field.value.constant == "0" ? "false" : "true";
+      } else {
+        code += field.value.constant;
+      }
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
