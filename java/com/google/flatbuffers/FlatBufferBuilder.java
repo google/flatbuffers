@@ -22,9 +22,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-// Class that helps you build a FlatBuffer.
-// See the section "Use in Java" in the main FlatBuffers documentation.
-
+/**
+ * Class that helps you build a FlatBuffer.  See the section
+ * <a href="http://google.github.io/flatbuffers/md__java_usage.html">"Use in Java"</a> in the
+ * main FlatBuffers documentation.
+ */
 public class FlatBufferBuilder {
     ByteBuffer bb;       // Where we construct the FlatBuffer.
     int space;           // Remaining space in the ByteBuffer.
@@ -36,14 +38,24 @@ public class FlatBufferBuilder {
     int num_vtables = 0;          // Number of entries in `vtables` in use.
     int vector_num_elems = 0;     // For the current vector being built.
 
-    // Start with a buffer of size `initial_size`, then grow as required.
+   /**
+    * Start with a buffer of size {@code initial_size}, then grow as required.
+    *
+    * @param initial_size The initial size of the internal buffer to use
+    */
     public FlatBufferBuilder(int initial_size) {
         if (initial_size <= 0) initial_size = 1;
         space = initial_size;
         bb = newByteBuffer(initial_size);
     }
 
-    // Alternative constructor allowing reuse of ByteBuffers
+    /**
+     * Alternative constructor allowing reuse of {@link ByteBuffer}s.  The builder
+     * can still grow the buffer as necessary.  User classes should make sure
+     * to call {@link #dataBuffer()} to obtain the resulting encoded message
+     *
+     * @param existing_bb The byte buffer to reuse
+     */
     public FlatBufferBuilder(ByteBuffer existing_bb) {
         bb = existing_bb;
         bb.clear();
@@ -57,8 +69,14 @@ public class FlatBufferBuilder {
         return newbb;
     }
 
-    // Doubles the size of the ByteBuffer, and copies the old data towards the
-    // end of the new buffer (since we build the buffer backwards).
+    /**
+     * Doubles the size of the backing {link ByteBuffer} and copies the old data towards the
+     * end of the new buffer (since we build the buffer backwards).
+     *
+     * @param bb The current buffer with the existing data
+     * @return A new byte buffer with the old data copied copied to it.  The data is
+     * located at the end of the buffer.
+     */
     static ByteBuffer growByteBuffer(ByteBuffer bb) {
         int old_buf_size = bb.capacity();
         if ((old_buf_size & 0xC0000000) != 0)  // Ensure we don't grow beyond what fits in an int.
@@ -71,20 +89,34 @@ public class FlatBufferBuilder {
         return nbb;
     }
 
-    // Offset relative to the end of the buffer.
+   /**
+    * Offset relative to the end of the buffer.
+    *
+    * @return Offset relative to the end of the buffer.
+    */
     public int offset() {
         return bb.capacity() - space;
     }
 
+   /**
+    * Add zero valued bytes to prepare a new entry to be added
+    *
+    * @param byte_size Number of bytes to add.
+    */
     public void pad(int byte_size) {
         for (int i = 0; i < byte_size; i++) bb.put(--space, (byte)0);
     }
 
-    // Prepare to write an element of `size` after `additional_bytes`
-    // have been written, e.g. if you write a string, you need to align such
-    // the int length field is aligned to SIZEOF_INT, and the string data follows it
-    // directly.
-    // If all you need to do is align, `additional_bytes` will be 0.
+   /**
+    * Prepare to write an element of {@code size} after {@code additional_bytes}
+    * have been written, e.g. if you write a string, you need to align such
+    * the int length field is aligned to {@link com.google.flatbuffers.Constants#SIZEOF_INT}, and
+    * the string data follows it directly.  If all you need to do is alignment, {@code additional_bytes}
+    * will be 0.
+    *
+    * @param size This is the of the new element to write
+    * @param additional_bytes The padding size
+    */
     public void prep(int size, int additional_bytes) {
         // Track the biggest thing we've ever aligned to.
         if (size > minalign) minalign = size;
@@ -120,7 +152,11 @@ public class FlatBufferBuilder {
     public void addFloat  (float   x) { prep(4, 0); putFloat  (x); }
     public void addDouble (double  x) { prep(8, 0); putDouble (x); }
 
-    // Adds on offset, relative to where it will be written.
+   /**
+    * Adds on offset, relative to where it will be written.
+    *
+    * @param off The offset to add
+    */
     public void addOffset(int off) {
         prep(SIZEOF_INT, 0);  // Ensure alignment is already done.
         assert off <= offset();
@@ -128,6 +164,48 @@ public class FlatBufferBuilder {
         putInt(off);
     }
 
+   /**
+    * Start a new array/vector of objects.  Users usually will not call
+    * this directly.  The {@code FlatBuffers} compiler will create a start/end
+    * method for vector types in generated code.
+    * <p>
+    * The expected sequence of calls is:
+    * <ol>
+    * <li>Start the array using this method.</li>
+    * <li>Call {@link #addOffset(int)} {@code num_elems} number of times to set
+    * the offset of each element in the array.</li>
+    * <li>Call {@link #endVector()} to retrieve the offset of the array.</li>
+    * </ol>
+    * <p>
+    * For example, to create an array of strings, do:
+    * <pre>{@code
+    * // Need 10 strings
+    * FlatBufferBuilder builder = new FlatBufferBuilder(existingBuffer);
+    * int[] offsets = new int[10];
+    *
+    * for (int i = 0; i < 10; i++) {
+    *   offsets[i] = fbb.createString(" " + i);
+    * }
+    *
+    * // Have the strings in the buffer, but don't have a vector.
+    * // Add a vector that references the newly created strings:
+    * builder.startVector(4, offsets.length, 4);
+    *
+    * // Add each string to the newly created vector
+    * // The strings are added in reverse order since the buffer
+    * // is filled in back to front
+    * for (int i = offsets.length - 1; i >= 0; i--) {
+    *   builder.addOffset(offsets[i]);
+    * }
+    *
+    * // Finish off the vector
+    * int offsetOfTheVector = fbb.endVector();
+    * }</pre>
+    *
+    * @param elem_size The size of each element in the array
+    * @param num_elems The number of elements in the array
+    * @param alignment The alignment of the array
+    */
     public void startVector(int elem_size, int num_elems, int alignment) {
         notNested();
         vector_num_elems = num_elems;
@@ -135,11 +213,24 @@ public class FlatBufferBuilder {
         prep(alignment, elem_size * num_elems); // Just in case alignment > int.
     }
 
+   /**
+    * Finish off the creation of an array and all its elements.  The array
+    * must be created with {@link #startVector(int, int, int)}.
+    *
+    * @return The offset at which the newly created array starts.
+    * @see #startVector(int, int, int)
+    */
     public int endVector() {
         putInt(vector_num_elems);
         return offset();
     }
 
+   /**
+    * Encode the string {@code s} in the buffer using UTF-8.
+    *
+    * @param s The string to encode
+    * @return The offset in the buffer where the encoded string starts
+    */
     public int createString(String s) {
         byte[] utf8 = s.getBytes(utf8charset);
         addByte((byte)0);
@@ -149,21 +240,68 @@ public class FlatBufferBuilder {
         return endVector();
     }
 
+   /**
+    * Should not be creating any other object, string or vector
+    * while an object is being constructed
+    */
     public void notNested() {
-        // You should not be creating any other objects or strings/vectors
-        // while an object is being constructed
         if (vtable != null)
             throw new AssertionError("FlatBuffers: object serialization must not be nested.");
     }
 
+   /**
+    * Structures are always stored inline, they need to be created right
+    * where they're used.  You'll get this assertion failure if you
+    * created it elsewhere.
+    *
+    * @param obj The offset of the created object
+    */
     public void Nested(int obj) {
-        // Structs are always stored inline, so need to be created right
-        // where they are used. You'll get this assert if you created it
-        // elsewhere.
         if (obj != offset())
             throw new AssertionError("FlatBuffers: struct must be serialized inline.");
     }
 
+   /**
+    * Start encoding a new object in the buffer.  Users will not usually need to
+    * call this directly. The {@code FlatBuffers} compiler will generate helper methods
+    * that call this method internally.
+    * <p>
+    * For example, using the "Monster" code found on the
+    * <a href="http://google.github.io/flatbuffers/md__java_usage.html">landing page</a>. An
+    * object of type {@code Monster} can be created using the following code:
+    *
+    * <pre>{@code
+    * int testArrayOfString = Monster.createTestarrayofstringVector(fbb, new int[] {
+    *   fbb.createString("test1"),
+    *   fbb.createString("test2")
+    * });
+    *
+    * Monster.startMonster(fbb);
+    * Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
+    *   Color.Green, (short)5, (byte)6));
+    * Monster.addHp(fbb, (short)80);
+    * Monster.addName(fbb, str);
+    * Monster.addInventory(fbb, inv);
+    * Monster.addTestType(fbb, (byte)Any.Monster);
+    * Monster.addTest(fbb, mon2);
+    * Monster.addTest4(fbb, test4);
+    * Monster.addTestarrayofstring(fbb, testArrayOfString);
+    * int mon = Monster.endMonster(fbb);
+    * }</pre>
+    * <p>
+    * Here:
+    * <ul>
+    * <li>The call to {@code Monster#startMonster(FlatBufferBuilder)} will call this
+    * method with the right number of fields set.</li>
+    * <li>{@code Monster#endMonster(FlatBufferBuilder)} will ensure {@link #endObject()} is called.</li>
+    * </ul>
+    * <p>
+    * It's not recommended to call this method directly.  If it's called manually, you must ensure
+    * to audit all calls to it whenever fields are added or removed from your schema.  This is
+    * automatically done by the code generated by the {@code FlatBuffers} compiler.
+    *
+    * @param numfields The number of fields found in this object.
+    */
     public void startObject(int numfields) {
         notNested();
         vtable = new int[numfields];
@@ -193,6 +331,12 @@ public class FlatBufferBuilder {
         vtable[voffset] = offset();
     }
 
+   /**
+    * Finish off writing the object that is under construction.
+    *
+    * @return The offset to the object inside {@link #dataBuffer()}
+    * @see #startObject(int)
+    */
     public int endObject() {
         assert vtable != null; // calling endObject without a startObject
         addInt(0);
@@ -278,15 +422,28 @@ public class FlatBufferBuilder {
     // not necessarily at 0.
     public ByteBuffer dataBuffer() { return bb; }
 
-    // The FlatBuffer data doesn't start at offset 0 in the ByteBuffer,
-    // but now the ByteBuffer's position is set to that location upon
-    // finish(). This method should not be needed anymore, but is left
-    // here as private for the moment to document this API change.
-    // It will be removed in the future.
+   /**
+    * The FlatBuffer data doesn't start at offset 0 in the {@link ByteBuffer}, but
+    * now the {@code ByteBuffer}'s position is set to that location upon {@link #finish(int)}.
+    *
+    * @return The {@link ByteBuffer#position() position} the data starts in {@link #dataBuffer()}
+    * @deprecated This method should not be needed anymore, but is left
+    * here for the moment to document this API change. It will be removed in the future.
+    */
+    @Deprecated
     private int dataStart() {
         return space;
     }
 
+   /**
+    * Utility function for copying a byte array from {@code start} to
+    * {@code start} + {@code length}
+    *
+    * @param start Start copying at this offset
+    * @param length How many bytes to copy
+    * @return A range copy of the {@link #dataBuffer() data buffer}
+    * @throws IndexOutOfBoundsException If the range of bytes is ouf of bound
+    */
     public byte[] sizedByteArray(int start, int length){
         byte[] array = new byte[length];
         bb.position(start);
@@ -294,7 +451,11 @@ public class FlatBufferBuilder {
         return array;
     }
 
-    // Utility function for copying a byte array that starts at 0.
+   /**
+    * Utility function for copying a byte array that starts at 0.
+    *
+    * @return A full copy of the {@link #dataBuffer() data buffer}
+    */
     public byte[] sizedByteArray() {
         return sizedByteArray(space, bb.capacity() - space);
     }
