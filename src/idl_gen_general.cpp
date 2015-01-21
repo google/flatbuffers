@@ -605,15 +605,14 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   if (!classcode.length()) return true;
 
   std::string namespace_general;
-  std::string namespace_dir = path;
+  std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (namespace_general.length()) {
       namespace_general += ".";
-      namespace_dir += kPathSeparator;
     }
     namespace_general += *it;
-    namespace_dir += *it;
+    namespace_dir += *it + kPathSeparator;
   }
   EnsureDirExists(namespace_dir);
 
@@ -623,8 +622,7 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   if (needs_includes) code += lang.includes;
   code += classcode;
   code += lang.namespace_end;
-  auto filename = namespace_dir + kPathSeparator + def.name +
-                  lang.file_extension;
+  auto filename = namespace_dir + def.name + lang.file_extension;
   return SaveFile(filename.c_str(), code, false);
 }
 
