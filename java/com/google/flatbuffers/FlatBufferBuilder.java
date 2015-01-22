@@ -28,12 +28,13 @@ import java.nio.charset.Charset;
  * main FlatBuffers documentation.
  */
 public class FlatBufferBuilder {
-    ByteBuffer bb;       // Where we construct the FlatBuffer.
-    int space;           // Remaining space in the ByteBuffer.
+    ByteBuffer bb;          // Where we construct the FlatBuffer.
+    int space;              // Remaining space in the ByteBuffer.
     static final Charset utf8charset = Charset.forName("UTF-8");
-    int minalign = 1;    // Minimum alignment encountered so far.
-    int[] vtable = null; // The vtable for the current table, null otherwise.
-    int object_start;    // Starting offset of the current struct/table.
+    int minalign = 1;       // Minimum alignment encountered so far.
+    int[] vtable = null;    // The vtable for the current table.
+    boolean nested = false; // Whether we are currently serializing a table.
+    int object_start;       // Starting offset of the current struct/table.
     int[] vtables = new int[16];  // List of offsets of all vtables.
     int num_vtables = 0;          // Number of entries in `vtables` in use.
     int vector_num_elems = 0;     // For the current vector being built.
@@ -245,7 +246,7 @@ public class FlatBufferBuilder {
     * while an object is being constructed
     */
     public void notNested() {
-        if (vtable != null)
+        if (nested)
             throw new AssertionError("FlatBuffers: object serialization must not be nested.");
     }
 
@@ -304,7 +305,8 @@ public class FlatBufferBuilder {
     */
     public void startObject(int numfields) {
         notNested();
-        vtable = new int[numfields];
+        if (vtable == null || vtable.length < numfields) vtable = new int[numfields];
+        nested = true;
         object_start = offset();
     }
 
@@ -338,7 +340,8 @@ public class FlatBufferBuilder {
     * @see #startObject(int)
     */
     public int endObject() {
-        assert vtable != null; // calling endObject without a startObject
+        if (vtable == null || !nested)
+            throw new AssertionError("FlatBuffers: endObject called without startObject");
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.
@@ -385,7 +388,7 @@ public class FlatBufferBuilder {
             bb.putInt(bb.capacity() - vtableloc, offset() - vtableloc);
         }
 
-        vtable = null;
+        nested = false;
         return vtableloc;
     }
 
