@@ -30,11 +30,13 @@ public class FlatBufferBuilder {
     int space;           // Remaining space in the ByteBuffer.
     static final Charset utf8charset = Charset.forName("UTF-8");
     int minalign = 1;    // Minimum alignment encountered so far.
-    int[] vtable = null; // The vtable for the current table, null otherwise.
+    int[] vtable = null; // Temporary storage used for creating vtables, null if not initialized
+    int vtable_num_fields = 0; // Number of valid fields in the current vtable
     int object_start;    // Starting offset of the current struct/table.
     int[] vtables = new int[16];  // List of offsets of all vtables.
     int num_vtables = 0;          // Number of entries in `vtables` in use.
     int vector_num_elems = 0;     // For the current vector being built.
+    boolean force_defaults = false; // False omits default values from the serialized data
 
     // Start with a buffer of size `initial_size`, then grow as required.
     public FlatBufferBuilder(int initial_size) {
@@ -45,10 +47,19 @@ public class FlatBufferBuilder {
 
     // Alternative constructor allowing reuse of ByteBuffers
     public FlatBufferBuilder(ByteBuffer existing_bb) {
+        init(existing_bb);
+    }
+
+    // Alternative initialization allowing reuse of FlatBufferBuilders
+    public FlatBufferBuilder init(ByteBuffer existing_bb){
         bb = existing_bb;
         bb.clear();
         bb.order(ByteOrder.LITTLE_ENDIAN);
         space = bb.capacity();
+        num_vtables = 0;
+        vector_num_elems = 0;
+        vtable_num_fields = 0;
+        return this;
     }
 
     static ByteBuffer newByteBuffer(int capacity) {
@@ -164,18 +175,23 @@ public class FlatBufferBuilder {
 
     public void startObject(int numfields) {
         notNested();
-        vtable = new int[numfields];
+        vtable_num_fields = numfields;
+        // The buffer for temporary vtables is reused as much as possible
+        // to mitigate unnecessary object allocations.
+        if(vtable == null || vtable.length < numfields)
+            vtable = new int[numfields];
+        else Arrays.fill(vtable, 0, numfields, 0); // start, length, value
         object_start = offset();
     }
 
     // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-    public void addByte  (int o, byte   x, int    d) { if(x != d) { addByte  (x); slot(o); } }
-    public void addShort (int o, short  x, int    d) { if(x != d) { addShort (x); slot(o); } }
-    public void addInt   (int o, int    x, int    d) { if(x != d) { addInt   (x); slot(o); } }
-    public void addLong  (int o, long   x, long   d) { if(x != d) { addLong  (x); slot(o); } }
-    public void addFloat (int o, float  x, double d) { if(x != d) { addFloat (x); slot(o); } }
-    public void addDouble(int o, double x, double d) { if(x != d) { addDouble(x); slot(o); } }
-    public void addOffset(int o, int    x, int    d) { if(x != d) { addOffset(x); slot(o); } }
+    public void addByte  (int o, byte   x, int    d) { if(force_defaults || x != d) { addByte  (x); slot(o); } }
+    public void addShort (int o, short  x, int    d) { if(force_defaults || x != d) { addShort (x); slot(o); } }
+    public void addInt   (int o, int    x, int    d) { if(force_defaults || x != d) { addInt   (x); slot(o); } }
+    public void addLong  (int o, long   x, long   d) { if(force_defaults || x != d) { addLong  (x); slot(o); } }
+    public void addFloat (int o, float  x, double d) { if(force_defaults || x != d) { addFloat (x); slot(o); } }
+    public void addDouble(int o, double x, double d) { if(force_defaults || x != d) { addDouble(x); slot(o); } }
+    public void addOffset(int o, int    x, int    d) { if(force_defaults || x != d) { addOffset(x); slot(o); } }
 
     // Structs are stored inline, so nothing additional is being added. `d` is always 0.
     public void addStruct(int voffset, int x, int d) {
@@ -195,7 +211,7 @@ public class FlatBufferBuilder {
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.
-        for (int i = vtable.length - 1; i >= 0 ; i--) {
+        for (int i = vtable_num_fields - 1; i >= 0 ; i--) {
             // Offset relative to the start of the table.
             short off = (short)(vtable[i] != 0 ? vtableloc - vtable[i] : 0);
             addShort(off);
@@ -203,7 +219,7 @@ public class FlatBufferBuilder {
 
         final int standard_fields = 2; // The fields below:
         addShort((short)(vtableloc - object_start));
-        addShort((short)((vtable.length + standard_fields) * SIZEOF_SHORT));
+        addShort((short)((vtable_num_fields + standard_fields) * SIZEOF_SHORT));
 
         // Search for an existing vtable that matches the current one.
         int existing_vtable = 0;
@@ -268,6 +284,12 @@ public class FlatBufferBuilder {
             addByte((byte)file_identifier.charAt(i));
         }
         finish(root_table);
+    }
+
+    // Enabling forces default values to be set in the buffer
+    public FlatBufferBuilder forceDefaults(boolean forceDefaults){
+        this.force_defaults = forceDefaults;
+        return this;
     }
 
     // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
