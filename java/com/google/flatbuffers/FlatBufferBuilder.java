@@ -36,6 +36,7 @@ public class FlatBufferBuilder {
     int[] vtables = new int[16];  // List of offsets of all vtables.
     int num_vtables = 0;          // Number of entries in `vtables` in use.
     int vector_num_elems = 0;     // For the current vector being built.
+    boolean force_defaults = false; // False omits default values from the serialized data
 
     // Start with a buffer of size `initial_size`, then grow as required.
     public FlatBufferBuilder(int initial_size) {
@@ -184,13 +185,13 @@ public class FlatBufferBuilder {
     }
 
     // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-    public void addByte  (int o, byte   x, int    d) { if(x != d) { addByte  (x); slot(o); } }
-    public void addShort (int o, short  x, int    d) { if(x != d) { addShort (x); slot(o); } }
-    public void addInt   (int o, int    x, int    d) { if(x != d) { addInt   (x); slot(o); } }
-    public void addLong  (int o, long   x, long   d) { if(x != d) { addLong  (x); slot(o); } }
-    public void addFloat (int o, float  x, double d) { if(x != d) { addFloat (x); slot(o); } }
-    public void addDouble(int o, double x, double d) { if(x != d) { addDouble(x); slot(o); } }
-    public void addOffset(int o, int    x, int    d) { if(x != d) { addOffset(x); slot(o); } }
+    public void addByte  (int o, byte   x, int    d) { if(force_defaults || x != d) { addByte  (x); slot(o); } }
+    public void addShort (int o, short  x, int    d) { if(force_defaults || x != d) { addShort (x); slot(o); } }
+    public void addInt   (int o, int    x, int    d) { if(force_defaults || x != d) { addInt   (x); slot(o); } }
+    public void addLong  (int o, long   x, long   d) { if(force_defaults || x != d) { addLong  (x); slot(o); } }
+    public void addFloat (int o, float  x, double d) { if(force_defaults || x != d) { addFloat (x); slot(o); } }
+    public void addDouble(int o, double x, double d) { if(force_defaults || x != d) { addDouble(x); slot(o); } }
+    public void addOffset(int o, int    x, int    d) { if(force_defaults || x != d) { addOffset(x); slot(o); } }
 
     // Structs are stored inline, so nothing additional is being added. `d` is always 0.
     public void addStruct(int voffset, int x, int d) {
@@ -283,6 +284,12 @@ public class FlatBufferBuilder {
             addByte((byte)file_identifier.charAt(i));
         }
         finish(root_table);
+    }
+
+    // Enabling forces default values to be set in the buffer
+    public FlatBufferBuilder forceDefaults(boolean forceDefaults){
+        this.force_defaults = forceDefaults;
+        return this;
     }
 
     // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
