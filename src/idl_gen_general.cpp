@@ -435,6 +435,14 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
                           InlineSize(field.value.type.VectorType()));
       code += "); }\n";
     }
+    
+    // Generate has accessors in tables
+    if(!struct_def.fixed){
+      std::string offset = "__offset(" + NumToString(field.value.offset) + ")";
+      std::string has_name = MakeCamel("has", lang.first_camel_upper) + MakeCamel(field.name, true);
+      code += "  public boolean " + has_name + "() { return " + offset + " != 0; }\n";
+    }
+    
   }
   code += "\n";
   if (struct_def.fixed) {

@@ -263,6 +263,12 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
           code += field.name + "() > val; }\n";
         }
       }
+      
+      // Generate has accessors in tables
+      std::string offset = "GetOptionalFieldOffset(" + NumToString(field.value.offset) + ")";
+      std::string has_name = "has" + MakeCamel(field.name, true);
+      code += "  bool " + has_name + "() { return " + offset + " != 0; }\n";
+      
     }
   }
   // Generate a verifier function that can check a buffer from an untrusted
