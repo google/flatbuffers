@@ -33,6 +33,7 @@ public class FlatBufferBuilder {
     static final Charset utf8charset = Charset.forName("UTF-8");
     int minalign = 1;       // Minimum alignment encountered so far.
     int[] vtable = null;    // The vtable for the current table.
+    int vtable_in_use = 0;  // The amount of fields we're actually using.
     boolean nested = false; // Whether we are currently serializing a table.
     int object_start;       // Starting offset of the current struct/table.
     int[] vtables = new int[16];  // List of offsets of all vtables.
@@ -306,6 +307,8 @@ public class FlatBufferBuilder {
     public void startObject(int numfields) {
         notNested();
         if (vtable == null || vtable.length < numfields) vtable = new int[numfields];
+        vtable_in_use = numfields;
+        Arrays.fill(vtable, 0, vtable_in_use, 0);
         nested = true;
         object_start = offset();
     }
@@ -345,7 +348,7 @@ public class FlatBufferBuilder {
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.
-        for (int i = vtable.length - 1; i >= 0 ; i--) {
+        for (int i = vtable_in_use - 1; i >= 0 ; i--) {
             // Offset relative to the start of the table.
             short off = (short)(vtable[i] != 0 ? vtableloc - vtable[i] : 0);
             addShort(off);
@@ -353,7 +356,7 @@ public class FlatBufferBuilder {
 
         final int standard_fields = 2; // The fields below:
         addShort((short)(vtableloc - object_start));
-        addShort((short)((vtable.length + standard_fields) * SIZEOF_SHORT));
+        addShort((short)((vtable_in_use + standard_fields) * SIZEOF_SHORT));
 
         // Search for an existing vtable that matches the current one.
         int existing_vtable = 0;
