@@ -580,23 +580,21 @@ static bool SaveType(const Parser &parser, const Definition &def,
   if (!classcode.length()) return true;
 
   std::string namespace_name;
-  std::string namespace_dir = path;
+  std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (namespace_name.length()) {
       namespace_name += ".";
-      namespace_dir += PATH_SEPARATOR;
     }
     namespace_name = *it;
-    namespace_dir += *it;
-    mkdir(namespace_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    namespace_dir += *it + kPathSeparator;
   }
-
+  EnsureDirExists(namespace_dir);
 
   std::string code = "";
   BeginFile(namespace_name, needs_imports, &code);
   code += classcode;
-  std::string filename = namespace_dir + PATH_SEPARATOR + def.name + ".go";
+  std::string filename = namespace_dir + def.name + ".go";
   return SaveFile(filename.c_str(), code, false);
 }
 
