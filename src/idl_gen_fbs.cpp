@@ -31,11 +31,12 @@ static std::string GenType(const Type &type) {
   }
 }
 
+#define NEWLINE schema += opts.escape_newlines ? "\\n" : "\n"
 // Generate a flatbuffer schema from the Parser's internal representation.
 std::string GenerateFBS(const Parser &parser, const std::string &file_name,
                         const GeneratorOptions &opts) {
   std::string schema;
-  schema += "// Generated from " + file_name + ".proto\n\n";
+  schema += "// Generated from " + file_name + ".proto"; NEWLINE; NEWLINE;
   if (opts.include_dependence_headers) {
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
@@ -43,11 +44,11 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
       auto basename = flatbuffers::StripPath(
                         flatbuffers::StripExtension(it->first));
       if (basename != file_name) {
-        schema += "include \"" + basename + ".fbs\";\n";
+        schema += "include \"" + basename + ".fbs\";"; NEWLINE;
         num_includes++;
       }
     }
-    if (num_includes) schema += "\n";
+    if (num_includes) NEWLINE;
   }
   schema += "namespace ";
   auto name_space = parser.namespaces_.back();
@@ -56,34 +57,40 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
     if (it != name_space->components.begin()) schema += ".";
     schema += *it;
   }
-  schema += ";\n\n";
+  schema += ";"; NEWLINE; NEWLINE;
   // Generate code for all the enum declarations.
   for (auto it = parser.enums_.vec.begin();
            it != parser.enums_.vec.end(); ++it) {
     EnumDef &enum_def = **it;
     schema += "enum " + enum_def.name + " : ";
-    schema += GenType(enum_def.underlying_type) + " {\n";
+    schema += GenType(enum_def.underlying_type) + " {"; NEWLINE;
     for (auto it = enum_def.vals.vec.begin();
          it != enum_def.vals.vec.end(); ++it) {
       auto &ev = **it;
-      schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
+      schema += "  " + ev.name + " = " + NumToString(ev.value) + ","; NEWLINE;
     }
-    schema += "}\n\n";
+    schema += "}"; NEWLINE; NEWLINE;
   }
   // Generate code for all structs/tables.
   for (auto it = parser.structs_.vec.begin();
            it != parser.structs_.vec.end(); ++it) {
     StructDef &struct_def = **it;
-    schema += "table " + struct_def.name + " {\n";
+    schema += "table " + struct_def.name + " {"; NEWLINE;
     for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       schema += "  " + field.name + ":" + GenType(field.value.type);
       if (field.value.constant != "0") schema += " = " + field.value.constant;
       if (field.required) schema += " (required)";
-      schema += ";\n";
+      schema += ";"; NEWLINE;
     }
-    schema += "}\n\n";
+    schema += "}"; NEWLINE; NEWLINE;
+  }
+  if (parser.root_struct_def)
+  {
+      schema += "root_type ";
+      schema += parser.root_struct_def->name;
+      schema += ";"; NEWLINE;
   }
   return schema;
 }

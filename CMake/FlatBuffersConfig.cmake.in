@@ -18,6 +18,9 @@ set(FlatBuffers_INCLUDE_DIR  @FLATBUFFERS_INCLUDE_DIRS@)
 set(FLATBUFFERS_INCLUDE_DIRS @FLATBUFFERS_INCLUDE_DIRS@)
 set(FLATBUFFERS_INCLUDE_DIR  @FLATBUFFERS_INCLUDE_DIRS@)
 set(FLATBUFFERS_FLATC_EXECUTABLE flatc)
+set(FLATBUFFERS_LIBRARY flatbuffers)
+
+include_directories(${PROJECT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
 # function needed by dependent projects

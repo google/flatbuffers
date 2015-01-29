@@ -375,6 +375,8 @@ struct GeneratorOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool include_dependence_headers;
+  bool base64_byte_array;
+  bool escape_newlines;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kMAX };
@@ -383,8 +385,8 @@ struct GeneratorOptions {
 
   GeneratorOptions() : strict_json(false), indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
-                       include_dependence_headers(false),
-                       lang(GeneratorOptions::kJava) {}
+                       include_dependence_headers(false), base64_byte_array(false),
+                       escape_newlines(false), lang(GeneratorOptions::kJava) {}
 };
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser

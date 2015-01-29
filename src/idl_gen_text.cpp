@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "base64.h"
 
 namespace flatbuffers {
 
@@ -67,6 +68,15 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
 template<typename T> void PrintVector(const Vector<T> &v, Type type,
                                       int indent, const GeneratorOptions &opts,
                                       std::string *_text) {
+  // Specialization: Print base64 encoded string for a byte vector
+  if (opts.base64_byte_array && type.element == BASE_TYPE_UCHAR)
+  {
+    std::string &text = *_text;
+    text += "\"";
+    text += base64_encode(v.Data(), v.Length());
+    text += "\"";
+    return;
+  }
   std::string &text = *_text;
   text += "[";
   text += NewLine(opts);

@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "base64.h"
 
 namespace flatbuffers {
 
@@ -452,8 +453,20 @@ void Parser::ParseAnyValue(Value &val, FieldDef *field) {
       break;
     }
     case BASE_TYPE_VECTOR: {
-      Expect('[');
-      val.constant = NumToString(ParseVector(val.type.VectorType()));
+      // binary vectors in JSON can be base64 encoded aka a string
+      if ('[' != token_ && val.type.element == BASE_TYPE_UCHAR)
+      {
+        auto s = attribute_;
+        Expect(kTokenStringConstant);
+        auto decoded = base64_decode(s);
+        val.constant = NumToString(builder_.CreateVector(decoded.data(), decoded.size()).o);
+        Next();
+      }
+      else
+      {
+        Expect('[');
+        val.constant = NumToString(ParseVector(val.type.VectorType()));
+      }
       break;
     }
     default:
