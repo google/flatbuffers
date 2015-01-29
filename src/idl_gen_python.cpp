@@ -106,7 +106,7 @@ static void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
 
   code += "\n\n"
       "def read_" + enum_def.name + "(view, offset):\n"
-      "    return " + enum_def.name + "(flatbuffers.read_" + type +
+      "    return " + enum_def.name + "(flatbuffers.encode.read_" + type +
       "(view, offset))\n"
       "\n\n";
 }
@@ -136,25 +136,24 @@ static void GenProperty(const FieldDef &field, std::string *code_ptr) {
             type.enum_def->name + ", " + field.value.constant + ")\n\n";
   } else if(type.base_type == BASE_TYPE_STRING) {
     GenFieldOffset(offset, code_ptr);
-    code += "        data_offset += flatbuffers.read_uoffset"
+    code += "        data_offset += flatbuffers.encode.read_uoffset"
             "(self._buf, data_offset)\n"
-            "        return flatbuffers.read_string(self._buf, "
+            "        return flatbuffers.encode.read_string(self._buf, "
             "data_offset)\n\n";
   } else if(type.base_type == BASE_TYPE_VECTOR) {
     GenFieldOffset(offset, code_ptr);
 
     if(IsScalar(type.element)) {
-      code += "        return flatbuffers.read_vector(\"";
+      code += "        return flatbuffers.encode.read_scalar_vector(\"";
       code += GenPyFmtChar(type.VectorType());
       code += "\", self._buf, data_offset)\n\n";
     } else if (IsStruct(type.VectorType())) {
       code += "        return flatbuffers.StructVector(" +
               type.struct_def->name + ", " + 
-              NumToString(type.struct_def->bytesize) + ", " +
               "self._buf, data_offset)\n\n";
     } else if (type.element == BASE_TYPE_STRING) {
       code += "        return flatbuffers.IndirectVector(" 
-              "flatbuffers.read_string, self._buf, data_offset)\n\n";
+              "flatbuffers.encode.read_string, self._buf, data_offset)\n\n";
     } else {
       code += "        return flatbuffers.IndirectVector(" + 
               type.struct_def->name + ", self._buf, data_offset)\n\n";
@@ -162,8 +161,8 @@ static void GenProperty(const FieldDef &field, std::string *code_ptr) {
   } else if (type.base_type == BASE_TYPE_UNION) {
     const auto& enum_def = *type.enum_def;
 
-    code += "        tpe = self." + field.name + "_type\n"
-        "        if tpe == " + enum_def.name + ".NONE:\n"
+    code += "        tpe = self.get_" + field.name + "_type()\n"
+        "        if tpe is None or tpe == " + enum_def.name + ".NONE:\n"
         "            return None\n";
 
     for(std::size_t i=1; i<enum_def.vals.vec.size(); i++) {
@@ -172,13 +171,13 @@ static void GenProperty(const FieldDef &field, std::string *code_ptr) {
               "            target = " + val + "\n";
     }
     GenFieldOffset(offset, code_ptr);
-    code += "        data_offset += flatbuffers.read_uoffset"
+    code += "        data_offset += flatbuffers.encode.read_uoffset"
             "(self._buf, data_offset)\n"
             "        return target(self._buf, data_offset)\n\n";
   } else {
     GenFieldOffset(offset, code_ptr);
     if (!IsStruct(type)) {
-        code += "        data_offset += flatbuffers.read_uoffset"
+        code += "        data_offset += flatbuffers.encode.read_uoffset"
                 "(self._buf, data_offset)\n";
     }
     code += "        return " + type.struct_def->name + "("
@@ -300,8 +299,8 @@ static void GenStruct(StructDef &struct_def,
   code += "    _FORMAT = struct.Struct(\"" + GenStructFormat(struct_def) + 
           "\")\n\n"
           "    @classmethod\n"
-          "    def format():\n"
-          "        return _FORMAT\n\n";
+          "    def format(cls):\n"
+          "        return cls._FORMAT\n\n";
 
   int i = 0;
   for (auto &field: fields) {
@@ -384,7 +383,7 @@ std::string GeneratePython(const Parser &parser,
               "(source):\n"
               "    buf = source if type(source) is memoryview "
               "else memoryview(source)\n"
-              "    offset = flatbuffers.read_uoffset(buf, 0)\n"
+              "    offset = flatbuffers.encode.read_uoffset(buf, 0)\n"
               "    return " + parser.root_struct_def->name + 
               "(buf, offset)\n";
     }

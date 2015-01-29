@@ -22,36 +22,37 @@ class TestFlatbuffers(unittest.TestCase):
     def check_read_buffer(self, buf):
         monster = get_root_as_Monster(buf)
 
-        self.assertEqual(80, monster.hp)
-        self.assertEqual(150, monster.mana)
-        self.assertEqual("MyMonster", monster.name)
+        self.assertEqual(80, monster.get_hp())
+        self.assertEqual(150, monster.get_mana())
+        self.assertEqual("MyMonster", monster.get_name())
 
-        pos = monster.pos
+        pos = monster.get_pos()
         self.assertIsNotNone(pos)
-        self.assertEqual(1.0, pos.x)
-        self.assertEqual(2.0, pos.y)
-        self.assertEqual(3.0, pos.z)
-        self.assertEqual(3.0, pos.test1)
-        self.assertEqual(Color.Green, pos.test2)
-        self.assertEqual((5, 6), pos.test3)
+        self.assertEqual(1.0, pos.get_x())
+        self.assertEqual(2.0, pos.get_y())
+        self.assertEqual(3.0, pos.get_z())
+        self.assertEqual(3.0, pos.get_test1())
+        self.assertEqual(Color.Green, pos.get_test2())
+        self.assertEqual((5, 6), pos.get_test3())
 
-        self.assertIsNotNone(monster.inventory)
-        self.assertEqual(5, len(monster.inventory))
-        self.assertEqual([0, 1, 2, 3, 4], list(monster.inventory))
+        self.assertIsNotNone(monster.get_inventory())
+        self.assertEqual(5, len(monster.get_inventory()))
+        self.assertEqual([0, 1, 2, 3, 4], list(monster.get_inventory()))
 
-        self.assertEqual(Any.Monster, monster.test_type)
-        self.assertIsNotNone(monster.test)
-        self.assertEqual("Fred", monster.test.name)
+        self.assertEqual(Any.Monster, monster.get_test_type())
+        self.assertIsNotNone(monster.get_test())
+        self.assertEqual("Fred", monster.get_test().get_name())
 
-        self.assertIsNotNone(monster.test4)
-        self.assertEqual(2, len(monster.test4))
-        for expected, actual in zip([(10, 20), (30, 40)], monster.test4):
+        self.assertIsNotNone(monster.get_test4())
+        self.assertEqual(2, len(monster.get_test4()))
+        for expected, actual in zip([(10, 20), (30, 40)], monster.get_test4()):
             self.assertEqual(expected, actual)
 
-        for expected, actual in zip(["test1", "test2"], monster.testarrayofstring):
+        arrayofstring = monster.get_testarrayofstring()
+        for expected, actual in zip(["test1", "test2"], arrayofstring):
             self.assertEqual(expected, actual)
 
-        self.assertIsNone(monster.testempty)
+        self.assertIsNone(monster.get_testempty())
 
     def test_cppdata(self):
         with open("monsterdata_test.mon", 'rb') as cppdata:
@@ -80,7 +81,7 @@ class TestFlatbuffers(unittest.TestCase):
         lcg = lcg_rand()
 
         for _ in range(num_fuzz_objects):
-            start = builder.start_table()
+            builder.start_table()
             for f in range(fields_per_object):
                 choice = next(lcg) % test_values_max
                 if choice == 0:
@@ -105,7 +106,7 @@ class TestFlatbuffers(unittest.TestCase):
                     builder.add_float(f, float_val, 0.0)
                 elif choice == 10:
                     builder.add_double(f, double_val, 0.0)
-            objects.append(builder.end_table(start))
+            objects.append(builder.end_table())
 
         buf = memoryview(builder.data())
         lcg = lcg_rand()

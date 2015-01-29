@@ -8,13 +8,6 @@ from . import encode
 from . import numtypes
 
 
-def read_vector(typecode, buf, offset):
-    offset += encode.read_uoffset(buf, offset)
-    size = encode.read_uint(buf, offset)
-    data_offset = offset + numtypes.uoffset_t.size
-    return encode.read_array(typecode, buf, data_offset, size)
-
-
 def read_vtable(buf, offset):
     data_offset = offset - encode.read_soffset(buf, offset)
     size = encode.read_ushort(buf, data_offset)
@@ -24,7 +17,7 @@ def read_vtable(buf, offset):
 
 class StructVector(collections.Sequence):
     def __init__(self, target, buf, offset):
-        assert isinstance(target, Struct)
+        assert issubclass(target, Struct)
         self._target = target
         self._buf = buf
 
@@ -48,7 +41,7 @@ class IndirectVector(collections.Sequence):
         self._buf = buf
 
         self._offset = offset + numtypes.uoffset_t.size
-        self._locs = read_vector('I', buf, offset)
+        self._locs = encode.read_scalar_vector('I', buf, offset)
 
     def __getitem__(self, index):
         if index >= len(self._locs):
@@ -75,9 +68,9 @@ class Struct(tuple):
     def format(cls):
         raise NotImplementedError()
 
-    @property
-    def size(self):
-        return self.format().size
+    @classmethod
+    def size(cls):
+        return cls.format().size
 
 
 class Table(object):
@@ -214,6 +207,7 @@ class Builder(object):
             vt_offset = self._buf.push_array(vtable)
             self._vtables[vtable_data] = vt_offset
         self._vtable = None
+        self._start = None
         return vt_off_loc
 
     def start_vector(self, tpe, size):

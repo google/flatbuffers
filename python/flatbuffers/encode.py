@@ -76,6 +76,13 @@ def read_array(typecode, buf, off, size):
     return arr
 
 
+def read_scalar_vector(typecode, buf, offset):
+    offset += read_uoffset(buf, offset)
+    size = read_uint(buf, offset)
+    data_offset = offset + numtypes.uoffset_t.size
+    return read_array(typecode, buf, data_offset, size)
+
+
 def padding_bytes(size, scalar_size):
     return ((~size) + 1) & (scalar_size - 1)
 
