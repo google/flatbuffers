@@ -59,10 +59,28 @@ public class FlatBufferBuilder {
      * @param existing_bb The byte buffer to reuse
      */
     public FlatBufferBuilder(ByteBuffer existing_bb) {
+        init(existing_bb);
+    }
+
+    /**
+     * Alternative initializer that allows reusing this object on an existing
+     * ByteBuffer. This method resets the builder's internal state, but keeps
+     * objects that have been allocated for temporary storage.
+     *
+     * @param existing_bb The byte buffer to reuse
+     * @return this
+     */
+    public FlatBufferBuilder init(ByteBuffer existing_bb){
         bb = existing_bb;
         bb.clear();
         bb.order(ByteOrder.LITTLE_ENDIAN);
         space = bb.capacity();
+        vtable_in_use = 0;
+        nested = false;
+        object_start = 0;
+        num_vtables = 0;
+        vector_num_elems = 0;
+        return this;
     }
 
     static ByteBuffer newByteBuffer(int capacity) {
