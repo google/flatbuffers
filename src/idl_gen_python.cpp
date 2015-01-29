@@ -125,8 +125,7 @@ static void GenProperty(const FieldDef &field, std::string *code_ptr) {
   const Type &type = field.value.type;
   const auto offset = NumToString((field.value.offset / 2) - 2);
 
-  code += "    @property\n"
-      "    def " + field.name + "(self):\n";
+  code += "    def get_" + field.name + "(self):\n";
   GenDocString(field.doc_comment, code_ptr, "        ");
 
   if(IsScalar(type.base_type) && type.enum_def == nullptr) {
@@ -195,17 +194,52 @@ static void GenTable(StructDef &struct_def, std::string *code_ptr) {
   code += "class " + struct_def.name + "(flatbuffers.Table):\n";
   GenDocString(struct_def.doc_comment, code_ptr, "    ");
 
-  for (auto it = struct_def.fields.vec.begin();
-       it != struct_def.fields.vec.end();
-       ++it) {
-    auto &field = **it;
+  for (auto field_ptr: struct_def.fields.vec) {
+    auto &field = *field_ptr;
 
     if(!field.deprecated) {
       GenProperty(field, code_ptr);
     }
-  }
 
+
+  }
   code += "\n";
+
+  code += "class " + struct_def.name + "Builder(object):\n"
+          "    def __init__(self, fbb, start):\n"
+          "        self._fbb = fbb\n"
+          "        self._start = start\n\n";
+
+  for (auto field_ptr: struct_def.fields.vec) {
+    auto &field = *field_ptr;
+    const Type &type = field.value.type;
+
+    if(field.deprecated || type.base_type == BASE_TYPE_UTYPE) {
+      continue;
+    }
+
+    code += "    def add_" + field.name + "(self, value):\n";
+
+    const auto offset = NumToString((field.value.offset / 2) - 2);
+
+      if(IsScalar(type.base_type) && type.enum_def == nullptr) {
+        code += "        self.add_" + GenTypeBasic(type) + "(" +
+                offset + ", value, " + field.value.constant + ")\n\n";
+      } else if (type.enum_def != nullptr) {
+        code += "        assert type(value) is " + type.enum_def->name + "\n";
+                "        self.add_" + GenTypeBasic(type) + "(" +
+                offset + ", value.value, " + field.value.constant + ")\n\n";
+      } else if (type.base_type == BASE_TYPE_UNION) {
+        code += "        tpe = type(value)\n";
+        for (auto val: type.enum_def->vals.vec) {
+          code += "        if tpe is " + val->name + ":\n";
+        }
+      } else {
+        code += "        assert type(value) is Offset\n"
+                "        self.add_offset(" + offset + ", value, " +
+                field.value.constant + ")\n\n";
+      }
+  }
 }
 
 static int TotalValues(Type &type) {
@@ -264,18 +298,16 @@ static void GenStruct(StructDef &struct_def,
   GenDocString(struct_def.doc_comment, code_ptr, "    ");
 
   code += "    _FORMAT = struct.Struct(\"" + GenStructFormat(struct_def) + 
-          "\")\n\n";
-
-  code += "    def __new__(cls, buf, offset):\n"
-          "        return tuple.__new__(cls, "
-          "cls._FORMAT.unpack_from(buf, offset))\n\n";
+          "\")\n\n"
+          "    @classmethod\n"
+          "    def format():\n"
+          "        return _FORMAT\n\n";
 
   int i = 0;
   for (auto &field: fields) {
     auto &type = field->value.type;
 
-      code += "    @property\n"
-              "    def " + field->name + "(self):\n";
+      code += "    def get_" + field->name + "(self):\n";
       GenDocString(field->doc_comment, code_ptr, "        ");
     if(type.enum_def != nullptr) {
       code += "        return " + type.enum_def->name + "(_getitem(self, " + 
