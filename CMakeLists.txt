@@ -24,6 +24,7 @@ set(FlatBuffers_Compiler_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
+  src/base64.cpp
   src/idl_parser.cpp
   src/idl_gen_cpp.cpp
   src/idl_gen_general.cpp
@@ -37,6 +38,7 @@ set(FlatBuffers_Tests_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
+  src/base64.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/idl_gen_fbs.cpp
@@ -56,6 +58,7 @@ set(FlatBuffers_Sample_Text_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
+  src/base64.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   samples/sample_text.cpp
