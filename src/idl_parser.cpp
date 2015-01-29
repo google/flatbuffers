@@ -460,7 +460,6 @@ void Parser::ParseAnyValue(Value &val, FieldDef *field) {
         Expect(kTokenStringConstant);
         auto decoded = base64_decode(s);
         val.constant = NumToString(builder_.CreateVector(decoded.data(), decoded.size()).o);
-        Next();
       }
       else
       {
