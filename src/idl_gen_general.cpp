@@ -322,13 +322,18 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   if (!struct_def.fixed) {
     // Generate a special accessor for the table that when used as the root
     // of a FlatBuffer
-    code += "  public static " + struct_def.name + " ";
-    code += FunctionStart(lang, 'G') + "etRootAs" + struct_def.name;
-    code += "(ByteBuffer _bb) { ";
+    std::string method_name = FunctionStart(lang, 'G') + "etRootAs" + struct_def.name;
+    std::string method_signature = "  public static " + struct_def.name + " " + method_name;
+      
+    // create convenience method that doesn't require an existing object
+    code += method_signature + "(ByteBuffer _bb) ";
+    code += "{ return " + method_name + "(_bb, new " + struct_def.name+ "()); }\n";
+      
+    // create method that allows object reuse
+    code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
     code += lang.set_bb_byteorder;
-    code += "return (new " + struct_def.name;
-    code += "()).__init(_bb." + FunctionStart(lang, 'G');
-    code += "etInt(_bb.position()) + _bb.position(), _bb); }\n";
+    code += "return (obj.__init(_bb." + FunctionStart(lang, 'G');
+    code += "etInt(_bb.position()) + _bb.position(), _bb)); }\n";
     if (parser.root_struct_def == &struct_def) {
       if (parser.file_identifier_.length()) {
         // Check if a buffer has the identifier.
