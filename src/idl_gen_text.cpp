@@ -69,7 +69,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
                                       int indent, const GeneratorOptions &opts,
                                       std::string *_text) {
   // Specialization: Print base64 encoded string for a byte vector
-  if (opts.base64_byte_array && type.element == BASE_TYPE_UCHAR)
+  if (opts.base64_byte_array && type.base_type == BASE_TYPE_UCHAR)
   {
     std::string &text = *_text;
     text += "\"";
