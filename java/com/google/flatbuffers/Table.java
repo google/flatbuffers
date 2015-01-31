@@ -52,10 +52,8 @@ public class Table {
       ByteBuffer bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
       // We're forced to make an extra copy:
       byte[] copy = new byte[bb.getInt(offset)];
-      int old_pos = bb.position();
       bb.position(offset + SIZEOF_INT);
       bb.get(copy);
-      bb.position(old_pos);
       return new String(copy, 0, copy.length, FlatBufferBuilder.utf8charset);
     }
   }
@@ -83,10 +81,8 @@ public class Table {
     // Can't mutate the satellite data of the buffer and stay
     // thread safe in the presence of multiple readers
     ByteBuffer bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
-    int old_pos = bb.position();
     bb.position(__vector(o));
     ByteBuffer nbb = bb.slice();
-    bb.position(old_pos);
     nbb.limit(__vector_len(o) * elem_size);
     return nbb;
   }
