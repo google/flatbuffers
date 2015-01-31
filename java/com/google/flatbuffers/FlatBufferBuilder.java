@@ -425,7 +425,7 @@ public class FlatBufferBuilder {
     }
 
     /**
-     * In order to safe space, fields that are set to their default value
+     * In order to save space, fields that are set to their default value
      * don't get serialized into the buffer. Forcing defaults provides a
      * way to manually disable this optimization.
      *
