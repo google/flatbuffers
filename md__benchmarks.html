@@ -54,29 +54,30 @@ $(document).ready(function(){initNavTree('md__benchmarks.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>Comparing against other serialization solutions, running on Windows 7 64bit. We use the LITE runtime for Protocol Buffers (less code / lower overhead), Rapid JSON (one of the fastest C++ JSON parsers around), and pugixml, also one of the fastest XML parsers.</p>
+<p>We also compare against code that doesn't use a serialization library at all (the column "Raw structs"), which is what you get if you write hardcoded code that just writes structs. This is the fastest possible, but of course is not cross platform nor has any kind of forwards / backwards compatibility.</p>
 <p>We compare against Flatbuffers with the binary wire format (as intended), and also with JSON as the wire format with the optional JSON parser (which, using a schema, parses JSON into a binary buffer that can then be accessed as before).</p>
 <p>The benchmark object is a set of about 10 objects containing an array, 4 strings, and a large variety of int/float scalar values of all sizes, meant to be representative of game data, e.g. a scene format.</p>
 <table class="doxtable">
 <tr>
-<th></th><th>FlatBuffers (binary) </th><th>Protocol Buffers LITE </th><th>Rapid JSON </th><th>FlatBuffers (JSON) </th><th>pugixml  </th></tr>
+<th></th><th>FlatBuffers (binary) </th><th>Protocol Buffers LITE </th><th>Rapid JSON </th><th>FlatBuffers (JSON) </th><th>pugixml </th><th>Raw structs  </th></tr>
 <tr>
-<td>Decode + Traverse + Dealloc (1 million times, seconds) </td><td>0.08 </td><td>302 </td><td>583 </td><td>105 </td><td>196 </td></tr>
+<td>Decode + Traverse + Dealloc (1 million times, seconds) </td><td>0.08 </td><td>302 </td><td>583 </td><td>105 </td><td>196 </td><td>0.02 </td></tr>
 <tr>
-<td>Decode / Traverse / Dealloc (breakdown) </td><td>0 / 0.08 / 0 </td><td>220 / 0.15 / 81 </td><td>294 / 0.9 / 287 </td><td>70 / 0.08 / 35 </td><td>41 / 3.9 / 150 </td></tr>
+<td>Decode / Traverse / Dealloc (breakdown) </td><td>0 / 0.08 / 0 </td><td>220 / 0.15 / 81 </td><td>294 / 0.9 / 287 </td><td>70 / 0.08 / 35 </td><td>41 / 3.9 / 150 </td><td>0 / 0.02 / 0 </td></tr>
 <tr>
-<td>Encode (1 million times, seconds) </td><td>3.2 </td><td>185 </td><td>650 </td><td>169 </td><td>273 </td></tr>
+<td>Encode (1 million times, seconds) </td><td>3.2 </td><td>185 </td><td>650 </td><td>169 </td><td>273 </td><td>0.15 </td></tr>
 <tr>
-<td>Wire format size (normal / zlib, bytes) </td><td>344 / 220 </td><td>228 / 174 </td><td>1475 / 322 </td><td>1029 / 298 </td><td>1137 / 341 </td></tr>
+<td>Wire format size (normal / zlib, bytes) </td><td>344 / 220 </td><td>228 / 174 </td><td>1475 / 322 </td><td>1029 / 298 </td><td>1137 / 341 </td><td>312 / 187 </td></tr>
 <tr>
-<td>Memory needed to store decoded wire (bytes / blocks) </td><td>0 / 0 </td><td>760 / 20 </td><td>65689 / 4 </td><td>328 / 1 </td><td>34194 / 3 </td></tr>
+<td>Memory needed to store decoded wire (bytes / blocks) </td><td>0 / 0 </td><td>760 / 20 </td><td>65689 / 4 </td><td>328 / 1 </td><td>34194 / 3 </td><td>0 / 0 </td></tr>
 <tr>
-<td>Transient memory allocated during decode (KB) </td><td>0 </td><td>1 </td><td>131 </td><td>4 </td><td>34 </td></tr>
+<td>Transient memory allocated during decode (KB) </td><td>0 </td><td>1 </td><td>131 </td><td>4 </td><td>34 </td><td>0 </td></tr>
 <tr>
-<td>Generated source code size (KB) </td><td>4 </td><td>61 </td><td>0 </td><td>4 </td><td>0 </td></tr>
+<td>Generated source code size (KB) </td><td>4 </td><td>61 </td><td>0 </td><td>4 </td><td>0 </td><td>0 </td></tr>
 <tr>
-<td>Field access in handwritten traversal code </td><td>typed accessors </td><td>typed accessors </td><td>manual error checking </td><td>typed accessors </td><td>manual error checking </td></tr>
+<td>Field access in handwritten traversal code </td><td>typed accessors </td><td>typed accessors </td><td>manual error checking </td><td>typed accessors </td><td>manual error checking </td><td>typed but no safety </td></tr>
 <tr>
-<td>Library source code (KB) </td><td>15 </td><td>some subset of 3800 </td><td>87 </td><td>43 </td><td>327 </td></tr>
+<td>Library source code (KB) </td><td>15 </td><td>some subset of 3800 </td><td>87 </td><td>43 </td><td>327 </td><td>0 </td></tr>
 </table>
 <h3>Some other serialization systems we compared against but did not benchmark (yet), in rough order of applicability:</h3>
 <ul>
