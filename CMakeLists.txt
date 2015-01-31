@@ -74,6 +74,12 @@ if(FLATBUFFERS_CODE_COVERAGE)
       "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
+if(BIICODE)
+  # Execute biicode building
+  include(CMake/biicode.cmake)
+  return()
+endif(BIICODE)
+
 include_directories(include)
 
 if(FLATBUFFERS_BUILD_FLATC)
