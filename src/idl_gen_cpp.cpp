@@ -594,6 +594,7 @@ std::string GenerateCPP(const Parser &parser,
     code += "#define " + include_guard + "\n\n";
 
     code += "#include \"flatbuffers/flatbuffers.h\"\n\n";
+    code += "#include <zeq/vocabulary.h>\n\n";
 
     if (opts.include_dependence_headers) {
       int num_includes = 0;
@@ -653,6 +654,43 @@ std::string GenerateCPP(const Parser &parser,
         code += "BufferHasIdentifier(buf, \"" + parser.file_identifier_;
         code += "\"); }\n\n";
       }
+
+      std::string upperName = parser.root_struct_def->name;
+      std::transform(upperName.begin(), upperName.end(), upperName.begin(), ::toupper);
+
+      code += "static const std::string SCHEMA_";
+      code += upperName;
+      code += " = \"";
+      flatbuffers::GeneratorOptions opts;
+      opts.escape_newlines = true;
+      code += GenerateFBS(parser, "", opts);
+      code += "\";\n\n";
+
+      // ZEQ specific
+      code += "/** @addtogroup Events\n * Supported events by the vocabulary */\n//@{\n";
+      code += "static const ::zeq::uint128_t EVENT_";
+      code += upperName;
+      code += "(::zeq::make_uint128(\"";
+      for (auto it = name_space->components.begin();  it != name_space->components.end(); ++it)
+          code += *it + "::";
+      code += parser.root_struct_def->name;
+      code += "Event\"));\n//@}\n\n";
+
+      code += "namespace {\n";
+      code += "  struct Register";
+      code += parser.root_struct_def->name;
+      code += " {\n";
+      code += "    Register";
+      code += parser.root_struct_def->name;
+      code += "() { ::zeq::vocabulary::registerEvent(EVENT_";
+      code += upperName;
+      code += ", SCHEMA_";
+      code += upperName;
+      code += "); }\n";
+      code += "  } register";
+      code += parser.root_struct_def->name;
+      code += ";\n}\n\n";
+      // ZEQ specific
     }
 
     CloseNestedNameSpaces(name_space, &code);
