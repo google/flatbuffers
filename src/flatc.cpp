@@ -21,38 +21,6 @@
 static void Error(const char *err, const char *obj = nullptr,
                   bool usage = false, bool show_exe_name = true);
 
-namespace flatbuffers {
-
-bool GenerateBinary(const Parser &parser,
-                    const std::string &path,
-                    const std::string &file_name,
-                    const GeneratorOptions & /*opts*/) {
-  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
-  return !parser.builder_.GetSize() ||
-         flatbuffers::SaveFile(
-           (path + file_name + "." + ext).c_str(),
-           reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
-           parser.builder_.GetSize(),
-           true);
-}
-
-bool GenerateTextFile(const Parser &parser,
-                      const std::string &path,
-                      const std::string &file_name,
-                      const GeneratorOptions &opts) {
-  if (!parser.builder_.GetSize()) return true;
-  if (!parser.root_struct_def) Error("root_type not set");
-  std::string text;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts,
-               &text);
-  return flatbuffers::SaveFile((path + file_name + ".json").c_str(),
-                               text,
-                               false);
-
-}
-
-}
-
 // This struct allows us to create a table of all possible output generators
 // for the various programming languages and formats we support.
 struct Generator {
@@ -60,31 +28,42 @@ struct Generator {
                    const std::string &path,
                    const std::string &file_name,
                    const flatbuffers::GeneratorOptions &opts);
-  const char *opt;
-  const char *name;
+  const char *generator_opt;
+  const char *lang_name;
   flatbuffers::GeneratorOptions::Language lang;
-  const char *help;
+  const char *generator_help;
+
+  std::string (*make_rule)(const flatbuffers::Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name,
+                           const flatbuffers::GeneratorOptions &opts);
 };
 
 const Generator generators[] = {
   { flatbuffers::GenerateBinary,   "-b", "binary",
     flatbuffers::GeneratorOptions::kMAX,
-    "Generate wire format binaries for any data definitions" },
+    "Generate wire format binaries for any data definitions",
+    flatbuffers::BinaryMakeRule },
   { flatbuffers::GenerateTextFile, "-t", "text",
     flatbuffers::GeneratorOptions::kMAX,
-    "Generate text output for any data definitions" },
+    "Generate text output for any data definitions",
+    flatbuffers::TextMakeRule },
   { flatbuffers::GenerateCPP,      "-c", "C++",
     flatbuffers::GeneratorOptions::kMAX,
-    "Generate C++ headers for tables/structs" },
+    "Generate C++ headers for tables/structs",
+    flatbuffers::CPPMakeRule },
   { flatbuffers::GenerateGo,       "-g", "Go",
-    flatbuffers::GeneratorOptions::kMAX,
-    "Generate Go files for tables/structs" },
+    flatbuffers::GeneratorOptions::kGo,
+    "Generate Go files for tables/structs",
+    flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateGeneral,  "-j", "Java",
     flatbuffers::GeneratorOptions::kJava,
-    "Generate Java classes for tables/structs" },
+    "Generate Java classes for tables/structs",
+    flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateGeneral,  "-n", "C#",
     flatbuffers::GeneratorOptions::kCSharp,
-    "Generate C# classes for tables/structs" }
+    "Generate C# classes for tables/structs",
+    flatbuffers::GeneralMakeRule },
 };
 
 const char *program_name = NULL;
@@ -98,10 +77,13 @@ static void Error(const char *err, const char *obj, bool usage,
   if (usage) {
     printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
-      printf("  %s             %s.\n", generators[i].opt, generators[i].help);
+      printf("  %s              %s.\n",
+             generators[i].generator_opt,
+             generators[i].generator_help);
     printf(
       "  -o PATH         Prefix PATH to all generated files.\n"
       "  -I PATH         Search for includes in the specified path.\n"
+      "  -M              Print make rules for generated files.\n"
       "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
       "                  no trailing commas in tables/vectors.\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
@@ -110,7 +92,7 @@ static void Error(const char *err, const char *obj, bool usage,
       "  --proto         Input is a .proto, translate to .fbs.\n"
       "FILEs may depend on declarations in earlier files.\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
-      "Output files are named using the base file name of the input,"
+      "Output files are named using the base file name of the input,\n"
       "and written to the current directory or the path given by -o.\n"
       "example: %s -c -b schema1.fbs schema2.fbs data.json\n",
       program_name);
@@ -125,6 +107,7 @@ int main(int argc, const char *argv[]) {
   const size_t num_generators = sizeof(generators) / sizeof(generators[0]);
   bool generator_enabled[num_generators] = { false };
   bool any_generator = false;
+  bool print_make_rules = false;
   bool proto_mode = false;
   std::vector<std::string> filenames;
   std::vector<const char *> include_directories;
@@ -152,9 +135,11 @@ int main(int argc, const char *argv[]) {
       } else if(opt == "--proto") {
         proto_mode = true;
         any_generator = true;
+      } else if(opt == "-M") {
+        print_make_rules = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
-          if(opt == generators[i].opt) {
+          if (opt == generators[i].generator_opt) {
             generator_enabled[i] = true;
             any_generator = true;
             goto found;
@@ -171,8 +156,7 @@ int main(int argc, const char *argv[]) {
   if (!filenames.size()) Error("missing input files", nullptr, true);
 
   if (!any_generator)
-    Error("no options: no output files generated.",
-          "specify one of -c -g -j -t -b etc.", true);
+    Error("no options", "specify one of -c -g -j -t -b etc.", true);
 
   // Now process the files:
   flatbuffers::Parser parser(opts.strict_json, proto_mode);
@@ -205,14 +189,22 @@ int main(int argc, const char *argv[]) {
                                flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
+        opts.lang = generators[i].lang;
         if (generator_enabled[i]) {
-          flatbuffers::EnsureDirExists(output_path);
-          opts.lang = generators[i].lang;
-          if (!generators[i].generate(parser, output_path, filebase, opts)) {
-            Error((std::string("Unable to generate ") +
-                   generators[i].name +
-                   " for " +
-                   filebase).c_str());
+          if (!print_make_rules) {
+            flatbuffers::EnsureDirExists(output_path);
+            if (!generators[i].generate(parser, output_path, filebase, opts)) {
+              Error((std::string("Unable to generate ") +
+                     generators[i].lang_name +
+                     " for " +
+                     filebase).c_str());
+            }
+          } else {
+            std::string make_rule = generators[i].make_rule(
+                parser, output_path, *file_it, opts);
+            if (!make_rule.empty())
+              printf("%s\n", flatbuffers::WordWrap(
+                  make_rule, 80, " ", " \\").c_str());
           }
         }
       }

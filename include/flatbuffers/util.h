@@ -80,6 +80,12 @@ inline int64_t StringToInt(const char *str, int base = 10) {
   #endif
 }
 
+// Check if file "name" exists.
+inline bool FileExists(const char *name) {
+  std::ifstream ifs(name);
+  return ifs.good();
+}
+
 // Load file "name" into "buf" returning true if successful
 // false otherwise.  If "binary" is false data is read
 // using ifstream's text mode, otherwise data is read with
@@ -232,6 +238,33 @@ inline int FromUTF8(const char **in) {
     ucc |= *(*in)++ & 0x3F;  // Grab 6 more bits of the code.
   }
   return ucc;
+}
+
+// Wraps a string to a maximum length, inserting new lines where necessary. Any
+// existing whitespace will be collapsed down to a single space. A prefix or
+// suffix can be provided, which will be inserted before or after a wrapped
+// line, respectively.
+inline std::string WordWrap(const std::string in, size_t max_length,
+                            const std::string wrapped_line_prefix,
+                            const std::string wrapped_line_suffix) {
+  std::istringstream in_stream(in);
+  std::string wrapped, line, word;
+
+  in_stream >> word;
+  line = word;
+
+  while (in_stream >> word) {
+    if ((line.length() + 1 + word.length() + wrapped_line_suffix.length()) <
+        max_length) {
+      line += " " + word;
+    } else {
+      wrapped += line + wrapped_line_suffix + "\n";
+      line = wrapped_line_prefix + word;
+    }
+  }
+  wrapped += line;
+
+  return wrapped;
 }
 
 }  // namespace flatbuffers

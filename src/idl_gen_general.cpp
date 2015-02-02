@@ -98,6 +98,23 @@ LanguageParameters language_parameters[] = {
     "\n}\n",
     "",
     "using FlatBuffers;\n\n",
+  },
+  // TODO: add Go support to the general generator.
+  // WARNING: this is currently only used for generating make rules for Go.
+  {
+    GeneratorOptions::kGo,
+    true,
+    ".go",
+    "string",
+    "bool ",
+    "\n{\n",
+    "const ",
+    "",
+    "package ",
+    "",
+    "",
+    "",
+    "import (\n\tflatbuffers \"github.com/google/flatbuffers/go\"\n)",
   }
 };
 
@@ -116,10 +133,11 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
                                 const Type &type) {
   static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-        #JTYPE, #NTYPE,
+        #JTYPE, #NTYPE, #GTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
+
   return gtypename[type.base_type * GeneratorOptions::kMAX + lang.language];
 }
 
@@ -651,6 +669,93 @@ bool GenerateGeneral(const Parser &parser,
   }
 
   return true;
+}
+
+static std::string ClassFileName(const LanguageParameters &lang,
+                                 const Parser &parser, const Definition &def,
+                                 const std::string &path) {
+  std::string namespace_general;
+  std::string namespace_dir = path;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+    if (namespace_general.length()) {
+      namespace_general += ".";
+      namespace_dir += kPathSeparator;
+    }
+    namespace_general += *it;
+    namespace_dir += *it;
+  }
+
+  return namespace_dir + kPathSeparator + def.name + lang.file_extension;
+}
+
+std::string GeneralMakeRule(const Parser &parser,
+                            const std::string &path,
+                            const std::string &file_name,
+                            const GeneratorOptions &opts) {
+  assert(opts.lang <= GeneratorOptions::kMAX);
+  auto lang = language_parameters[opts.lang];
+
+  std::string make_rule;
+
+  for (auto it = parser.enums_.vec.begin();
+       it != parser.enums_.vec.end(); ++it) {
+    if (make_rule != "")
+      make_rule += " ";
+    make_rule += ClassFileName(lang, parser, **it, path);
+  }
+
+  for (auto it = parser.structs_.vec.begin();
+       it != parser.structs_.vec.end(); ++it) {
+    if (make_rule != "")
+      make_rule += " ";
+    make_rule += ClassFileName(lang, parser, **it, path);
+  }
+
+  make_rule += ": ";
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin();
+       it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
+std::string BinaryFileName(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
+  return path + file_name + "." + ext;
+}
+
+bool GenerateBinary(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name,
+                    const GeneratorOptions & /*opts*/) {
+  return !parser.builder_.GetSize() ||
+         flatbuffers::SaveFile(
+           BinaryFileName(parser, path, file_name).c_str(),
+           reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
+           parser.builder_.GetSize(),
+           true);
+}
+
+std::string BinaryMakeRule(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name,
+                           const GeneratorOptions & /*opts*/) {
+  if (!parser.builder_.GetSize()) return "";
+  std::string filebase = flatbuffers::StripPath(
+      flatbuffers::StripExtension(file_name));
+  std::string make_rule = BinaryFileName(parser, path, filebase) + ": " +
+      file_name;
+  auto included_files = parser.GetIncludedFilesRecursive(
+      parser.root_struct_def->file);
+  for (auto it = included_files.begin();
+       it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
 }
 
 }  // namespace flatbuffers
