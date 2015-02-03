@@ -297,6 +297,8 @@ class Parser {
   // directory.
   // If the source was loaded from a file and isn't an include file,
   // supply its name in source_filename.
+  // For JSON data, ubyte arrays which are base64 encoded will be automatically
+  // decoded.
   bool Parse(const char *_source, const char **include_paths = nullptr,
              const char *source_filename = nullptr);
 
@@ -395,6 +397,7 @@ struct GeneratorOptions {
 // if it is less than 0, no linefeeds will be generated either.
 // See idl_gen_text.cpp.
 // strict_json adds "quotes" around field names if true.
+// base64_byte_array encodes ubyte arrays with base64, default off
 extern void GenerateText(const Parser &parser,
                          const void *flatbuffer,
                          const GeneratorOptions &opts,

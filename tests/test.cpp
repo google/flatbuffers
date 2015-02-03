@@ -181,14 +181,15 @@ void AccessFlatBufferTest(const std::string &flatbuf) {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest() {
+void ParseAndGenerateTextTest(const bool useBase64) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
   TEST_EQ(flatbuffers::LoadFile(
     "tests/monster_test.fbs", false, &schemafile), true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monsterdata_test.golden", false, &jsonfile), true);
+    useBase64 ? "tests/monsterdata_test_base64.golden" :
+             "tests/monsterdata_test.golden", false, &jsonfile), true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
@@ -207,6 +208,7 @@ void ParseAndGenerateTextTest() {
   // and compare the two:
   std::string jsongen;
   flatbuffers::GeneratorOptions opts;
+  opts.base64_byte_array = useBase64;
   GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
 
   if (jsongen != jsonfile) {
@@ -570,7 +572,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   AccessFlatBufferTest(flatbuf);
 
   #ifndef __ANDROID__  // requires file access
-  ParseAndGenerateTextTest();
+  ParseAndGenerateTextTest(true);
+  ParseAndGenerateTextTest(false);
   ParseProtoTest();
   #endif
 

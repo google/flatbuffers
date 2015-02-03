@@ -1,0 +1,34 @@
+{
+  pos: {
+    x: 1,
+    y: 2,
+    z: 3,
+    test1: 3,
+    test2: Green,
+    test3: {
+      a: 5,
+      b: 6
+    }
+  },
+  hp: 80,
+  name: "MyMonster",
+  inventory: "AAECAwQ=",
+  test_type: Monster,
+  test: {
+    name: "Fred"
+  },
+  test4: [
+    {
+      a: 10,
+      b: 20
+    },
+    {
+      a: 30,
+      b: 40
+    }
+  ],
+  testarrayofstring: [
+    "test1",
+    "test2"
+  ]
+}

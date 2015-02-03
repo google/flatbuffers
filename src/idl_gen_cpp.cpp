@@ -506,6 +506,38 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 
 }  // namespace cpp
 
+namespace {
+void _addZeqRegistration(const Parser &parser, std::string &code, Namespace *name_space)
+{
+  std::string upperName = parser.root_struct_def->name;
+  std::transform(upperName.begin(), upperName.end(), upperName.begin(), ::toupper);
+
+  code += "/** @addtogroup Events\n * Supported events by the vocabulary */\n//@{\n";
+  code += "static const ::zeq::uint128_t EVENT_";
+  code += upperName;
+  code += "(::zeq::make_uint128(\"";
+  for (auto it = name_space->components.begin();  it != name_space->components.end(); ++it)
+    code += *it + "::";
+  code += parser.root_struct_def->name;
+  code += "Event\"));\n//@}\n\n";
+
+  code += "namespace {\n";
+  code += "  struct Register";
+  code += parser.root_struct_def->name;
+  code += " {\n";
+  code += "    Register";
+  code += parser.root_struct_def->name;
+  code += "() { ::zeq::vocabulary::registerEvent(EVENT_";
+  code += upperName;
+  code += ", SCHEMA_";
+  code += upperName;
+  code += "); }\n";
+  code += "  } register";
+  code += parser.root_struct_def->name;
+  code += ";\n}\n\n";
+}
+} // anonymous namespace
+
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 std::string GenerateCPP(const Parser &parser,
@@ -666,31 +698,7 @@ std::string GenerateCPP(const Parser &parser,
       code += GenerateFBS(parser, "", opts);
       code += "\";\n\n";
 
-      // ZEQ specific
-      code += "/** @addtogroup Events\n * Supported events by the vocabulary */\n//@{\n";
-      code += "static const ::zeq::uint128_t EVENT_";
-      code += upperName;
-      code += "(::zeq::make_uint128(\"";
-      for (auto it = name_space->components.begin();  it != name_space->components.end(); ++it)
-          code += *it + "::";
-      code += parser.root_struct_def->name;
-      code += "Event\"));\n//@}\n\n";
-
-      code += "namespace {\n";
-      code += "  struct Register";
-      code += parser.root_struct_def->name;
-      code += " {\n";
-      code += "    Register";
-      code += parser.root_struct_def->name;
-      code += "() { ::zeq::vocabulary::registerEvent(EVENT_";
-      code += upperName;
-      code += ", SCHEMA_";
-      code += upperName;
-      code += "); }\n";
-      code += "  } register";
-      code += parser.root_struct_def->name;
-      code += ";\n}\n\n";
-      // ZEQ specific
+      _addZeqRegistration(parser, code, name_space);
     }
 
     CloseNestedNameSpaces(name_space, &code);
