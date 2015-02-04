@@ -50,14 +50,16 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
     }
     if (num_includes) NEWLINE;
   }
-  schema += "namespace ";
   auto name_space = parser.namespaces_.back();
-  for (auto it = name_space->components.begin();
-           it != name_space->components.end(); ++it) {
-    if (it != name_space->components.begin()) schema += ".";
-    schema += *it;
+  if (!name_space->components.empty()) {
+      schema += "namespace ";
+      for (auto it = name_space->components.begin();
+               it != name_space->components.end(); ++it) {
+        if (it != name_space->components.begin()) schema += ".";
+        schema += *it;
+      }
+      schema += ";"; NEWLINE; NEWLINE;
   }
-  schema += ";"; NEWLINE; NEWLINE;
   // Generate code for all the enum declarations.
   for (auto it = parser.enums_.vec.begin();
            it != parser.enums_.vec.end(); ++it) {

@@ -604,7 +604,9 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+  if (!namespaces.empty()) {
+      code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+  }
   code += "\n\n";
   if (needs_includes) code += lang.includes;
   code += classcode;
