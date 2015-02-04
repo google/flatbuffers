@@ -235,8 +235,18 @@ select_android_build_target() {
   local android_build_target=
   for android_target in $(echo "${android_targets_installed}" | \
                           awk -F- '{ print $2 }' | sort -n); do
-    if [[ $((android_target)) -ge \
+    local isNumber='^[0-9]+$'
+    # skip preview API releases e.g. 'android-L'
+    if [[ $android_target =~ $isNumber ]]; then
+      if [[ $((android_target)) -ge \
           $((BUILDAPK_ANDROID_TARGET_MINVERSION)) ]]; then
+        android_build_target="android-${android_target}"
+        break
+      fi
+    else
+      # The API version is a letter
+      # Letters are sorted to the end by 'sort -n'
+      # so we're out of numbered platforms.  Use this one.
       android_build_target="android-${android_target}"
       break
     fi
@@ -415,14 +425,18 @@ main() {
   local build_package=1
   for opt; do
     case ${opt} in
+      # NDK_DEBUG=0 tells ndk-build to build this as debuggable but to not
+      # modify the underlying code whereas NDK_DEBUG=1 also builds as debuggable
+      # but does modify the code
       NDK_DEBUG=1) ant_target=debug ;;
+      NDK_DEBUG=0) ant_target=debug ;;
       ADB_DEVICE*) adb_device="$(\
         echo "${opt}" | sed -E 's/^ADB_DEVICE=([^ ]+)$/-s \1/;t;s/.*//')" ;;
       BUILD=0) disable_build=1 ;;
       DEPLOY=0) disable_deploy=1 ;;
       RUN_DEBUGGER=1) run_debugger=1 ;;
       LAUNCH=0) launch=0 ;;
-      clean) build_package=0 ;;
+      clean) build_package=0 disable_deploy=1 launch=0 ;;
       -h|--help|help) usage ;;
     esac
   done
