@@ -454,6 +454,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     buf_.clear();
     offsetbuf_.clear();
     vtables_.clear();
+    minalign_ = 1;
   }
 
   // The current size of the serialized buffer, counting from the end.
