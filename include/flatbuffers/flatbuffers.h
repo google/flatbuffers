@@ -348,7 +348,7 @@ class vector_downward {
   }
 
   uint8_t *make_space(size_t len) {
-    if (buf_ > cur_ - len) {
+    if (len > size_t(cur_) || buf_ > cur_ - len) {
       auto old_size = size();
       reserved_ += std::max(len, growth_policy(reserved_));
       auto new_buf = allocator_.allocate(reserved_);
