@@ -242,7 +242,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
         auto nested_root = parser.structs_.Lookup(nested->constant);
         assert(nested_root);  // Guaranteed to exist by parser.
         code += "  const " + nested_root->name + " *" + field.name;
-        code += "_nested_root() { return flatbuffers::GetRoot<";
+        code += "_nested_root() const { return flatbuffers::GetRoot<";
         code += nested_root->name + ">(" + field.name + "()->Data()); }\n";
       }
       // Generate a comparison function for this field if it is a key.

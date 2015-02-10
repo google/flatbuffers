@@ -138,7 +138,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(26); }
   const Monster *enemy() const { return GetPointer<const Monster *>(28); }
   const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(30); }
-  const Monster *testnestedflatbuffer_nested_root() { return flatbuffers::GetRoot<Monster>(testnestedflatbuffer()->Data()); }
+  const Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<Monster>(testnestedflatbuffer()->Data()); }
   const Stat *testempty() const { return GetPointer<const Stat *>(32); }
   uint8_t testbool() const { return GetField<uint8_t>(34, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
