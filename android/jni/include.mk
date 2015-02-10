@@ -162,10 +162,12 @@ endef
 #   $(MY_PROJ_SCHEMA_INCLUDE_DIRS),$(LOCAL_SRC_FILES))
 define flatbuffers_header_build_rules
 $(foreach schema,$(1),\
-  $(call flatbuffers_header_build_rule,$(schema),$(2),$(3),$(4)))\
-$(foreach src,$(5),\
+  $(call flatbuffers_header_build_rule,\
+	  $(schema),$(strip $(2)),$(strip $(3)),$(strip $(4))))\
+$(foreach src,$(strip $(5)),\
   $(eval $(LOCAL_PATH)/$$(src): \
-	  $(foreach schema,$(1),$(call flatbuffers_fbs_to_h,$(2),$(3),$(schema)))))
+	  $(foreach schema,$(strip $(1)),\
+		  $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))))
 endef
 
 endif  # FLATBUFFERS_INCLUDE_MK_
