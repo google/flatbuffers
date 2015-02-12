@@ -31,7 +31,6 @@ set(FlatBuffers_Library_SRCS
   src/idl_gen_go.cpp
   src/idl_gen_text.cpp
   src/idl_gen_fbs.cpp
-  src/flatc.cpp
 )
 
 set(FlatBuffers_Compiler_SRCS
@@ -98,7 +97,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
 endfunction()
 
 add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
-add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+add_executable(flatc src/flatc.cpp ${FlatBuffers_Compiler_SRCS})
 target_link_libraries(flatc flatbuffers)
 
 if(FLATBUFFERS_BUILD_TESTS)
