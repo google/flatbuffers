@@ -36,5 +36,13 @@
   testarrayofstring: [
     "test1",
     "test2"
-  ]
+  ],
+  testhashs32_fnv1: -579221183,
+  testhashu32_fnv1: 3715746113,
+  testhashs64_fnv1: 7930699090847568257,
+  testhashu64_fnv1: 7930699090847568257,
+  testhashs32_fnv1a: -1904106383,
+  testhashu32_fnv1a: 2390860913,
+  testhashs64_fnv1a: 4898026182817603057,
+  testhashu64_fnv1a: 4898026182817603057
 }
