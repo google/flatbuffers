@@ -44,6 +44,14 @@ table Monster {
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
   testempty:Stat (id:14);
   testbool:bool (id:15);
+  testhashs32_fnv1:int (id:16, hash:"fnv1_32");
+  testhashu32_fnv1:uint (id:17, hash:"fnv1_32");
+  testhashs64_fnv1:long (id:18, hash:"fnv1_64");
+  testhashu64_fnv1:ulong (id:19, hash:"fnv1_64");
+  testhashs32_fnv1a:int (id:20, hash:"fnv1a_32");
+  testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32");
+  testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
+  testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
 }
 
 root_type Monster;

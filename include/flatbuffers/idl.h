@@ -24,6 +24,7 @@
 #include <functional>
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -280,6 +281,7 @@ class Parser {
     known_attributes_.insert("deprecated");
     known_attributes_.insert("required");
     known_attributes_.insert("key");
+    known_attributes_.insert("hash");
     known_attributes_.insert("id");
     known_attributes_.insert("force_align");
     known_attributes_.insert("bit_flags");
@@ -334,6 +336,7 @@ class Parser {
   uoffset_t ParseVector(const Type &type);
   void ParseMetaData(Definition &def);
   bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
+  void ParseHash(Value &e, FieldDef* field);
   void ParseSingleValue(Value &e);
   int64_t ParseIntegerFromString(Type &type);
   StructDef *LookupCreateStruct(const std::string &name);

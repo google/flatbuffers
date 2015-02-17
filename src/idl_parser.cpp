@@ -18,6 +18,7 @@
 #include <list>
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -392,6 +393,27 @@ void Parser::ParseField(StructDef &struct_def) {
   field.doc_comment = dc;
   ParseMetaData(field);
   field.deprecated = field.attributes.Lookup("deprecated") != nullptr;
+  auto hash_name = field.attributes.Lookup("hash");
+  if (hash_name) {
+    switch (type.base_type) {
+      case BASE_TYPE_INT:
+      case BASE_TYPE_UINT: {
+        if (FindHashFunction32(hash_name->constant.c_str()) == nullptr)
+          Error("Unknown hashing algorithm for 32 bit types: " +
+                hash_name->constant);
+        break;
+      }
+      case BASE_TYPE_LONG:
+      case BASE_TYPE_ULONG: {
+        if (FindHashFunction64(hash_name->constant.c_str()) == nullptr)
+          Error("Unknown hashing algorithm for 64 bit types: " +
+                hash_name->constant);
+        break;
+      }
+      default:
+        Error("only int, uint, long and ulong data types support hashing.");
+    }
+  }
   if (field.deprecated && struct_def.fixed)
     Error("can't deprecate fields in a struct");
   field.required = field.attributes.Lookup("required") != nullptr;
@@ -463,6 +485,18 @@ void Parser::ParseAnyValue(Value &val, FieldDef *field) {
     case BASE_TYPE_VECTOR: {
       Expect('[');
       val.constant = NumToString(ParseVector(val.type.VectorType()));
+      break;
+    }
+    case BASE_TYPE_INT:
+    case BASE_TYPE_UINT:
+    case BASE_TYPE_LONG:
+    case BASE_TYPE_ULONG: {
+      if (field && field->attributes.Lookup("hash") &&
+          (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
+        ParseHash(val, field);
+      } else {
+        ParseSingleValue(val);
+      }
       break;
     }
     default:
@@ -583,7 +617,7 @@ uoffset_t Parser::ParseVector(const Type &type) {
     if ((!strict_json_ || !count) && IsNext(']')) break;
     Value val;
     val.type = type;
-    ParseAnyValue(val, NULL);
+    ParseAnyValue(val, nullptr);
     field_stack_.push_back(std::make_pair(val, nullptr));
     count++;
     if (IsNext(']')) break;
@@ -687,6 +721,31 @@ int64_t Parser::ParseIntegerFromString(Type &type) {
     }
   } while(*next);
   return result;
+}
+
+
+void Parser::ParseHash(Value &e, FieldDef* field) {
+  assert(field);
+  Value *hash_name = field->attributes.Lookup("hash");
+  switch (e.type.base_type) {
+    case BASE_TYPE_INT:
+    case BASE_TYPE_UINT: {
+      auto hash = FindHashFunction32(hash_name->constant.c_str());
+      uint32_t hashed_value = hash(attribute_.c_str());
+      e.constant = NumToString(hashed_value);
+      break;
+    }
+    case BASE_TYPE_LONG:
+    case BASE_TYPE_ULONG: {
+      auto hash = FindHashFunction64(hash_name->constant.c_str());
+      uint64_t hashed_value = hash(attribute_.c_str());
+      e.constant = NumToString(hashed_value);
+      break;
+    }
+    default:
+      assert(0);
+  }
+  Next();
 }
 
 void Parser::ParseSingleValue(Value &e) {
