@@ -32,7 +32,7 @@ namespace FlatBuffers
         protected int __offset(int vtableOffset)
         {
             int vtable = bb_pos - bb.GetInt(bb_pos);
-            return vtableOffset < bb.GetShort(vtable) ? bb.GetShort(vtable + vtableOffset) : 0;
+            return vtableOffset < bb.GetShort(vtable) ? (int)bb.GetShort(vtable + vtableOffset) : 0;
         }
 
         // Retrieve the relative offset stored at "offset"
