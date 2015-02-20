@@ -521,6 +521,22 @@ void _addZeqRegistration(const Parser &parser, std::string &code, Namespace *nam
   code += parser.root_struct_def->name;
   code += "Event\"));\n//@}\n\n";
 
+  code += "/* Event name as a string */\n";
+  code += "static const std::string ";
+  code += upperName;
+  code += " = \"";
+  code += upperName;
+  code += "\";\n\n";
+
+  code += "/* Namespace of the Event as a string */\n";
+  code += "static const std::string ";
+  code += upperName;
+  code += "_NAMESPACE = \"";
+  for (auto it = name_space->components.begin();  it != name_space->components.end(); ++it)
+    code += *it + "::";
+  code += "\";\n\n";
+
+
   code += "namespace {\n";
   code += "  struct Register";
   code += parser.root_struct_def->name;
