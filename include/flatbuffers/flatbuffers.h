@@ -26,6 +26,8 @@
 #include <type_traits>
 #include <vector>
 #include <algorithm>
+#include <functional>
+#include <memory>
 
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
@@ -83,6 +85,10 @@ typedef int32_t soffset_t;
 typedef uint16_t voffset_t;
 
 typedef uintmax_t largest_scalar_t;
+
+// Pointer to relinquished memory.
+typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
+          unique_ptr_t;
 
 // Wrapper for uoffset_t to allow safe template specialization.
 template<typename T> struct Offset {
@@ -358,9 +364,33 @@ class vector_downward {
     assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
-  ~vector_downward() { allocator_.deallocate(buf_); }
+  ~vector_downward() {
+    if (buf_)
+      allocator_.deallocate(buf_);
+  }
 
-  void clear() { cur_ = buf_ + reserved_; }
+  void clear() {
+    if (buf_ == nullptr)
+      buf_ = allocator_.allocate(reserved_);
+
+    cur_ = buf_ + reserved_;
+  }
+
+  // Relinquish the pointer to the caller.
+  unique_ptr_t release() {
+    // Actually deallocate from the start of the allocated memory.
+    std::function<void(uint8_t *)> deleter(
+      std::bind(&simple_allocator::deallocate, allocator_, buf_));
+
+    // Point to the desired offset.
+    unique_ptr_t retval(data(), deleter);
+
+    // Don't deallocate when this instance is destroyed.
+    buf_ = nullptr;
+    cur_ = nullptr;
+
+    return retval;
+  }
 
   size_t growth_policy(size_t bytes) {
     return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
@@ -385,10 +415,14 @@ class vector_downward {
   }
 
   uoffset_t size() const {
+    assert(cur_ != nullptr && buf_ != nullptr);
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
-  uint8_t *data() const { return cur_; }
+  uint8_t *data() const {
+    assert(cur_ != nullptr);
+    return cur_;
+  }
 
   uint8_t *data_at(size_t offset) { return buf_ + reserved_ - offset; }
 
@@ -462,6 +496,10 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
 
   // Get the serialized buffer (after you call Finish()).
   uint8_t *GetBufferPointer() const { return buf_.data(); }
+
+  // Get the released pointer to the serialized buffer.
+  // Don't attempt to use this FlatBufferBuilder afterwards!
+  unique_ptr_t ReleaseBufferPointer() { return buf_.release(); }
 
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
