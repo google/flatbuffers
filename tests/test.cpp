@@ -60,7 +60,7 @@ uint32_t lcg_rand() {
 void lcg_reset() { lcg_seed = 48271; }
 
 // example of how to build up a serialized buffer algorithmically:
-std::string CreateFlatBufferTest() {
+flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
@@ -119,24 +119,24 @@ std::string CreateFlatBufferTest() {
   #endif
 
   // return the buffer for the caller to use.
-  return std::string(reinterpret_cast<const char *>(builder.GetBufferPointer()),
-                     builder.GetSize());
+  auto bufferpointer = reinterpret_cast<const char *>(builder.GetBufferPointer());
+  buffer.assign(bufferpointer, bufferpointer + builder.GetSize());
+
+  return builder.ReleaseBufferPointer();
 }
 
 //  example of accessing a buffer loaded in memory:
-void AccessFlatBufferTest(const std::string &flatbuf) {
+void AccessFlatBufferTest(const uint8_t *flatbuf, const std::size_t length) {
 
   // First, verify the buffers integrity (optional)
-  flatbuffers::Verifier verifier(
-    reinterpret_cast<const uint8_t *>(flatbuf.c_str()),
-    flatbuf.length());
+  flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
-  TEST_EQ(MonsterBufferHasIdentifier(flatbuf.c_str()), true);
+  TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
 
   // Access the buffer from the root.
-  auto monster = GetMonster(flatbuf.c_str());
+  auto monster = GetMonster(flatbuf);
 
   TEST_EQ(monster->hp(), 80);
   TEST_EQ(monster->mana(), 150);  // default
@@ -593,8 +593,10 @@ void UnicodeTest() {
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
-  auto flatbuf = CreateFlatBufferTest();
-  AccessFlatBufferTest(flatbuf);
+  std::string rawbuf;
+  auto flatbuf = CreateFlatBufferTest(rawbuf);
+  AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()), rawbuf.length());
+  AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
 
   #ifndef __ANDROID__  // requires file access
   ParseAndGenerateTextTest();
