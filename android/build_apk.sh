@@ -1,5 +1,5 @@
 #!/bin/bash -eu
-# Copyright (c) 2013 Google, Inc.
+# Copyright (c) 2015 Google, Inc.
 #
 # This software is provided 'as-is', without any express or implied
 # warranty.  In no event will the authors be held liable for any damages
