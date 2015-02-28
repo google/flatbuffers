@@ -324,11 +324,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     // of a FlatBuffer
     std::string method_name = FunctionStart(lang, 'G') + "etRootAs" + struct_def.name;
     std::string method_signature = "  public static " + struct_def.name + " " + method_name;
-      
+
     // create convenience method that doesn't require an existing object
     code += method_signature + "(ByteBuffer _bb) ";
     code += "{ return " + method_name + "(_bb, new " + struct_def.name+ "()); }\n";
-      
+
     // create method that allows object reuse
     code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
     code += lang.set_bb_byteorder;
