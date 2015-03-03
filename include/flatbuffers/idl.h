@@ -413,6 +413,12 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &file_name,
                         const GeneratorOptions &opts);
 
+// Generate a C++ header with type definitions and registration for ZEQ.
+extern bool GenerateZEQ(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name,
+                        const GeneratorOptions &opts);
+
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser,
