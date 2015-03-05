@@ -12,6 +12,7 @@ endif ()
 #-----------------------------------------------------------------------------
 set(FlatBuffers_INCLUDE_DIRS @FLATBUFFERS_INCLUDE_DIRS@)
 set(FlatBuffers_FOUND 1)
+set(FLATBUFFERS_FOUND 1) # Added for compatibility
 
 # these are for compatibility with older cmake scripts
 set(FlatBuffers_INCLUDE_DIR  @FLATBUFFERS_INCLUDE_DIRS@)
