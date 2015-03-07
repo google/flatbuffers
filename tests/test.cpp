@@ -366,6 +366,8 @@ void FuzzTest2() {
   const int num_struct_definitions = 5;  // Subset of num_definitions.
   const int fields_per_definition = 15;
   const int instances_per_definition = 5;
+  const int deprecation_rate = 10;        // 1 in deprecation_rate fields will
+                                          // be deprecated.
 
   std::string schema = "namespace test;\n\n";
 
@@ -404,24 +406,41 @@ void FuzzTest2() {
       "{\n");
 
     for (int field = 0; field < fields_per_definition; field++) {
+      const bool is_last_field = field == fields_per_definition - 1;
+
+      // Deprecate 1 in deprecation_rate fields. Only table fields can be
+      // deprecated.
+      // Don't deprecate the last field to avoid dangling commas in JSON.
+      const bool deprecated = !is_struct &&
+                              !is_last_field &&
+                              (lcg_rand() % deprecation_rate == 0);
+
       std::string field_name = "f" + flatbuffers::NumToString(field);
       AddToSchemaAndInstances(("  " + field_name + ":").c_str(),
-                              (field_name + ": ").c_str());
+                              deprecated ? "" : (field_name + ": ").c_str());
       // Pick random type:
       int base_type = lcg_rand() % (flatbuffers::BASE_TYPE_UNION + 1);
       switch (base_type) {
         case flatbuffers::BASE_TYPE_STRING:
           if (is_struct) {
-            Dummy();  // No strings in structs,
+            Dummy();  // No strings in structs.
           } else {
-            AddToSchemaAndInstances("string", "\"hi\"");
+            AddToSchemaAndInstances("string", deprecated ? "" : "\"hi\"");
+          }
+          break;
+        case flatbuffers::BASE_TYPE_VECTOR:
+          if (is_struct) {
+            Dummy();  // No vectors in structs.
+          }
+          else {
+            AddToSchemaAndInstances("[ubyte]",
+                                    deprecated ? "" : "[\n0,\n1,\n255\n]");
           }
           break;
         case flatbuffers::BASE_TYPE_NONE:
         case flatbuffers::BASE_TYPE_UTYPE:
         case flatbuffers::BASE_TYPE_STRUCT:
         case flatbuffers::BASE_TYPE_UNION:
-        case flatbuffers::BASE_TYPE_VECTOR:
           if (definition) {
             // Pick a random previous definition and random data instance of
             // that definition.
@@ -429,7 +448,9 @@ void FuzzTest2() {
             int instance = lcg_rand() % instances_per_definition;
             AddToSchemaAndInstances(
               ("D" + flatbuffers::NumToString(defref)).c_str(),
-              definitions[defref].instances[instance].c_str());
+              deprecated
+                ? ""
+                : definitions[defref].instances[instance].c_str());
           } else {
             // If this is the first definition, we have no definition we can
             // refer to.
@@ -438,13 +459,18 @@ void FuzzTest2() {
           break;
         default:
           // All the scalar types.
-          AddToSchemaAndInstances(
-            flatbuffers::kTypeNames[base_type],
-            flatbuffers::NumToString(lcg_rand() % 128).c_str());
+          schema += flatbuffers::kTypeNames[base_type];
+
+          if (!deprecated) {
+            // We want each instance to use its own random value.
+            for (int inst = 0; inst < instances_per_definition; inst++)
+              definitions[definition].instances[inst] +=
+              flatbuffers::NumToString(lcg_rand() % 128).c_str();
+          }
       }
       AddToSchemaAndInstances(
-        ";\n",
-        field == fields_per_definition - 1 ? "\n" : ",\n");
+        deprecated ? "(deprecated);\n" : ";\n",
+        deprecated ? "" : is_last_field ? "\n" : ",\n");
     }
     AddToSchemaAndInstances("}\n\n", "}");
   }
@@ -596,7 +622,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   std::string rawbuf;
   auto flatbuf = CreateFlatBufferTest(rawbuf);
-  AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()), rawbuf.length());
+  AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
+                       rawbuf.length());
   AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
 
   #ifndef __ANDROID__  // requires file access
