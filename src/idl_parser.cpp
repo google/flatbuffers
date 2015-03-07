@@ -787,17 +787,17 @@ StructDef *Parser::LookupCreateStruct(const std::string &name) {
 }
 
 void Parser::ParseEnum(bool is_union) {
-  std::vector<std::string> dc = doc_comment_;
+  std::vector<std::string> enum_comment = doc_comment_;
   Next();
-  std::string name = attribute_;
+  std::string enum_name = attribute_;
   Expect(kTokenIdentifier);
   auto &enum_def = *new EnumDef();
-  enum_def.name = name;
+  enum_def.name = enum_name;
   if (!files_being_parsed_.empty()) enum_def.file = files_being_parsed_.top();
-  enum_def.doc_comment = dc;
+  enum_def.doc_comment = enum_comment;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = namespaces_.back();
-  if (enums_.Add(name, &enum_def)) Error("enum already exists: " + name);
+  if (enums_.Add(enum_name, &enum_def)) Error("enum already exists: " + enum_name);
   if (is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
     enum_def.underlying_type.enum_def = &enum_def;
@@ -821,19 +821,19 @@ void Parser::ParseEnum(bool is_union) {
   Expect('{');
   if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
   do {
-    std::string name = attribute_;
-    std::vector<std::string> dc = doc_comment_;
+    std::string value_name = attribute_;
+    std::vector<std::string> value_comment = doc_comment_;
     Expect(kTokenIdentifier);
     auto prevsize = enum_def.vals.vec.size();
     auto value = enum_def.vals.vec.size()
       ? enum_def.vals.vec.back()->value + 1
       : 0;
-    auto &ev = *new EnumVal(name, value);
-    if (enum_def.vals.Add(name, &ev))
-      Error("enum value already exists: " + name);
-    ev.doc_comment = dc;
+    auto &ev = *new EnumVal(value_name, value);
+    if (enum_def.vals.Add(value_name, &ev))
+      Error("enum value already exists: " + value_name);
+    ev.doc_comment = value_comment;
     if (is_union) {
-      ev.struct_def = LookupCreateStruct(name);
+      ev.struct_def = LookupCreateStruct(value_name);
     }
     if (IsNext('=')) {
       ev.value = atoi(attribute_.c_str());
@@ -1198,10 +1198,10 @@ bool Parser::Parse(const char *source, const char **include_paths,
     for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
       auto &enum_def = **it;
       if (enum_def.is_union) {
-        for (auto it = enum_def.vals.vec.begin();
-             it != enum_def.vals.vec.end();
-             ++it) {
-          auto &val = **it;
+        for (auto val_it = enum_def.vals.vec.begin();
+             val_it != enum_def.vals.vec.end();
+             ++val_it) {
+          auto &val = **val_it;
           if (val.struct_def && val.struct_def->fixed)
             Error("only tables can be union elements: " + val.name);
         }
