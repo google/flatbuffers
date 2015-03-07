@@ -58,9 +58,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
   }
   schema += ";\n\n";
   // Generate code for all the enum declarations.
-  for (auto it = parser.enums_.vec.begin();
-           it != parser.enums_.vec.end(); ++it) {
-    EnumDef &enum_def = **it;
+  for (auto enum_def_it = parser.enums_.vec.begin();
+           enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
+    EnumDef &enum_def = **enum_def_it;
     schema += "enum " + enum_def.name + " : ";
     schema += GenType(enum_def.underlying_type) + " {\n";
     for (auto it = enum_def.vals.vec.begin();
@@ -75,9 +75,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
            it != parser.structs_.vec.end(); ++it) {
     StructDef &struct_def = **it;
     schema += "table " + struct_def.name + " {\n";
-    for (auto it = struct_def.fields.vec.begin();
-             it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+    for (auto field_it = struct_def.fields.vec.begin();
+             field_it != struct_def.fields.vec.end(); ++field_it) {
+      auto &field = **field_it;
       schema += "  " + field.name + ":" + GenType(field.value.type);
       if (field.value.constant != "0") schema += " = " + field.value.constant;
       if (field.required) schema += " (required)";
