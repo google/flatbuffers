@@ -259,6 +259,18 @@ func (b *Builder) CreateString(s string) UOffsetT {
 	return b.EndVector(len(x))
 }
 
+// CreateByteVector writes a ubyte vector
+func (b *Builder) CreateByteVector(v []byte) UOffsetT {
+	b.Prep(int(SizeUOffsetT), len(v)*SizeByte)
+
+	l := UOffsetT(len(v))
+
+	b.head -= l
+	copy(b.Bytes[b.head:b.head+l], v)
+
+	return b.EndVector(len(v))
+}
+
 func (b *Builder) notNested() {
 	// Check that no other objects are being built while making this
 	// object. If not, panic:
