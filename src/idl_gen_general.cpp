@@ -167,6 +167,12 @@ static std::string GenTypeGet(const LanguageParameters &lang,
     : GenTypePointer(lang, type);
 }
 
+static std::string GenDefaultValue(const Value &value) {
+  return value.type.base_type == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+}
+
 static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
                     std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -392,9 +398,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       } else {
         code += offset_prefix + getter;
         code += "(o + bb_pos) : " + default_cast;
-        code += field.value.type.base_type == BASE_TYPE_BOOL
-                ? (field.value.constant == "0" ? "false" : "true")
-                : field.value.constant;
+        code += GenDefaultValue(field.value);
       }
     } else {
       switch (field.value.type.base_type) {
@@ -506,8 +510,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += field.name;
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
-        if (lang.language != GeneratorOptions::kJava)
-          code += " = " + field.value.constant;
+        if (lang.language != GeneratorOptions::kJava) {
+          code += " = " + GenDefaultValue(field.value);
+        }
       }
       code += ") {\n    builder.";
       code += FunctionStart(lang, 'S') + "tartObject(";
@@ -554,12 +559,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += " " + argname + ") { builder." + FunctionStart(lang, 'A') + "dd";
       code += GenMethod(lang, field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      code += argname + ", ";
-      if (field.value.type.base_type == BASE_TYPE_BOOL) {
-        code += field.value.constant == "0" ? "false" : "true";
-      } else {
-        code += field.value.constant;
-      }
+      code += argname + ", " + GenDefaultValue(field.value);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
