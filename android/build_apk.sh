@@ -243,12 +243,8 @@ select_android_build_target() {
         android_build_target="android-${android_target}"
         break
       fi
-    else
-      # The API version is a letter
-      # Letters are sorted to the end by 'sort -n'
-      # so we're out of numbered platforms.  Use this one.
-      android_build_target="android-${android_target}"
-      break
+    # else
+      # The API version is a letter, so skip it.
     fi
   done
   if [[ "${android_build_target}" == "" ]]; then
