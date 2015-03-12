@@ -506,8 +506,18 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += field.name;
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
-        if (lang.language != GeneratorOptions::kJava)
-          code += " = " + field.value.constant;
+          if (lang.language != GeneratorOptions::kJava)
+	  {
+	    //CSharp must use 'false' or 'true' not '0' or '1'
+	    if (lang.language == GeneratorOptions::kCSharp)
+	    {
+	      code += field.value.type.base_type == BASE_TYPE_BOOL
+	              ? (field.value.constant == "0" ? " = false" : " = true")
+	              : " = " + field.value.constant;
+	    }
+	    else
+	      code += " = " + field.value.constant;
+           }
       }
       code += ") {\n    builder.";
       code += FunctionStart(lang, 'S') + "tartObject(";
