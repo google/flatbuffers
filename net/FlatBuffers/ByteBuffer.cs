@@ -44,6 +44,12 @@ namespace FlatBuffers
 
         public int position() { return _pos; }
 
+        // Pre-allocated helper arrays for convertion.
+        private float[] floathelper = new[] { 0.0f };
+        private int[] inthelper = new[] { 0 };
+        private double[] doublehelper = new[] { 0.0 };
+        private ulong[] ulonghelper = new[] { 0UL };
+
         // Helper functions for the unsafe version.
         static public ushort ReverseBytes(ushort input)
         {
@@ -71,24 +77,44 @@ namespace FlatBuffers
 
 #if !UNSAFE_BYTEBUFFER
         // Helper functions for the safe (but slower) version.
-        protected void WriteLittleEndian(int offset, byte[] data)
+        protected void WriteLittleEndian(int offset, int count, ulong data)
         {
-            if (!BitConverter.IsLittleEndian)
+            if (BitConverter.IsLittleEndian)
             {
-                Array.Reverse(data, 0, data.Length);
+                for (int i = 0; i < count; i++)
+                {
+                    _buffer[offset + i] = (byte)(data >> i * 8);
+                }
             }
-            Buffer.BlockCopy(data, 0, _buffer, offset, data.Length);
+            else
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    _buffer[offset + count - 1 - i] = (byte)(data >> i * 8);
+                }
+            }
             _pos = offset;
         }
 
-        protected byte[] ReadLittleEndian(int offset, int count)
+        protected ulong ReadLittleEndian(int offset, int count)
         {
             AssertOffsetAndLength(offset, count);
-            var tmp = new byte[count];
-            Buffer.BlockCopy(_buffer, offset, tmp, 0, count);
-            return (BitConverter.IsLittleEndian)
-              ? tmp
-              : tmp.Reverse().ToArray();
+            ulong r = 0;
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                  r |= (ulong)_buffer[offset + i] << i * 8;
+                }
+            }
+            else
+            {
+              for (int i = 0; i < count; i++)
+              {
+                r |= (ulong)_buffer[offset + count - 1 - i] << i * 8;
+              }
+            }
+            return r;
         }
 #endif // !UNSAFE_BYTEBUFFER
 
@@ -207,49 +233,53 @@ namespace FlatBuffers
         public void PutShort(int offset, short value)
         {
             AssertOffsetAndLength(offset, sizeof(short));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(short), (ulong)value);
         }
 
         public void PutUshort(int offset, ushort value)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(ushort), (ulong)value);
         }
 
         public void PutInt(int offset, int value)
         {
             AssertOffsetAndLength(offset, sizeof(int));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(int), (ulong)value);
         }
 
         public void PutUint(int offset, uint value)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(uint), (ulong)value);
         }
 
         public void PutLong(int offset, long value)
         {
             AssertOffsetAndLength(offset, sizeof(long));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(long), (ulong)value);
         }
 
         public void PutUlong(int offset, ulong value)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            WriteLittleEndian(offset, sizeof(ulong), value);
         }
 
         public void PutFloat(int offset, float value)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            floathelper[0] = value;
+            Buffer.BlockCopy(floathelper, 0, inthelper, 0, sizeof(float));
+            WriteLittleEndian(offset, sizeof(float), (ulong)inthelper[0]);
         }
 
         public void PutDouble(int offset, double value)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            WriteLittleEndian(offset, BitConverter.GetBytes(value));
+            doublehelper[0] = value;
+            Buffer.BlockCopy(doublehelper, 0, ulonghelper, 0, sizeof(double));
+            WriteLittleEndian(offset, sizeof(double), ulonghelper[0]);
         }
 
 #endif // UNSAFE_BYTEBUFFER
@@ -353,58 +383,49 @@ namespace FlatBuffers
         // Slower versions of Get* for when unsafe code is not allowed.
         public short GetShort(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(short));
-            var value = BitConverter.ToInt16(tmp, 0);
-            return value;
+            return (short)ReadLittleEndian(index, sizeof(short));
         }
 
         public ushort GetUshort(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(ushort));
-            var value = BitConverter.ToUInt16(tmp, 0);
-            return value;
+            return (ushort)ReadLittleEndian(index, sizeof(ushort));
         }
 
         public int GetInt(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(int));
-            var value = BitConverter.ToInt32(tmp, 0);
-            return value;
+            return (int)ReadLittleEndian(index, sizeof(int));
         }
 
         public uint GetUint(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(uint));
-            var value = BitConverter.ToUInt32(tmp, 0);
-            return value;
+            return (uint)ReadLittleEndian(index, sizeof(uint));
         }
 
         public long GetLong(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(long));
-            var value = BitConverter.ToInt64(tmp, 0);
-            return value;
+           return (long)ReadLittleEndian(index, sizeof(long));
         }
 
         public ulong GetUlong(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(ulong));
-            var value = BitConverter.ToUInt64(tmp, 0);
-            return value;
+            return ReadLittleEndian(index, sizeof(ulong));
         }
 
         public float GetFloat(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(float));
-            var value = BitConverter.ToSingle(tmp, 0);
-            return value;
+            int i = (int)ReadLittleEndian(index, sizeof(float));
+            inthelper[0] = i;
+            Buffer.BlockCopy(inthelper, 0, floathelper, 0, sizeof(float));
+            return floathelper[0];
         }
 
         public double GetDouble(int index)
         {
-            var tmp = ReadLittleEndian(index, sizeof(double));
-            var value = BitConverter.ToDouble(tmp, 0);
-            return value;
+            ulong i = ReadLittleEndian(index, sizeof(double));
+            // There's Int64BitsToDouble but it uses unsafe code internally.
+            ulonghelper[0] = i;
+            Buffer.BlockCopy(ulonghelper, 0, doublehelper, 0, sizeof(double));
+            return doublehelper[0];
         }
 #endif // UNSAFE_BYTEBUFFER
     }
