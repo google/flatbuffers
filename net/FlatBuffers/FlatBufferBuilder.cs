@@ -170,7 +170,7 @@ namespace FlatBuffers
         public void AddInt(int x) { Prep(sizeof(int), 0); PutInt(x); }
         public void AddUint(uint x) { Prep(sizeof(uint), 0); PutUint(x); }
         public void AddLong(long x) { Prep(sizeof(long), 0); PutLong(x); }
-        public void AddULong(ulong x) { Prep(sizeof(ulong), 0); PutUlong(x); }
+        public void AddUlong(ulong x) { Prep(sizeof(ulong), 0); PutUlong(x); }
         public void AddFloat(float x) { Prep(sizeof(float), 0); PutFloat(x); }
         public void AddDouble(double x) { Prep(sizeof(double), 0);
                                           PutDouble(x); }
@@ -245,7 +245,7 @@ namespace FlatBuffers
         public void AddInt(int o, int x, int d) { if (x != d) { AddInt(x); Slot(o); } }
         public void AddUint(int o, uint x, uint d) { if (x != d) { AddUint(x); Slot(o); } }
         public void AddLong(int o, long x, long d) { if (x != d) { AddLong(x); Slot(o); } }
-        public void AddULong(int o, ulong x, ulong d) { if (x != d) { AddULong(x); Slot(o); } }
+        public void AddUlong(int o, ulong x, ulong d) { if (x != d) { AddUlong(x); Slot(o); } }
         public void AddFloat(int o, float x, double d) { if (x != d) { AddFloat(x); Slot(o); } }
         public void AddDouble(int o, double x, double d) { if (x != d) { AddDouble(x); Slot(o); } }
         public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }

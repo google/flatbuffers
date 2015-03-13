@@ -38,8 +38,16 @@ public class Monster : Table {
   public Stat Testempty() { return Testempty(new Stat()); }
   public Stat Testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public bool Testbool() { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; }
+  public int Testhashs32Fnv1() { int o = __offset(36); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; }
+  public uint Testhashu32Fnv1() { int o = __offset(38); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; }
+  public long Testhashs64Fnv1() { int o = __offset(40); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; }
+  public ulong Testhashu64Fnv1() { int o = __offset(42); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; }
+  public int Testhashs32Fnv1a() { int o = __offset(44); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; }
+  public uint Testhashu32Fnv1a() { int o = __offset(46); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; }
+  public long Testhashs64Fnv1a() { int o = __offset(48); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; }
+  public ulong Testhashu64Fnv1a() { int o = __offset(50); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(16); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(24); }
   public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -64,6 +72,14 @@ public class Monster : Table {
   public static void StartTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.AddOffset(14, testemptyOffset, 0); }
   public static void AddTestbool(FlatBufferBuilder builder, bool testbool) { builder.AddBool(15, testbool, false); }
+  public static void AddTesthashs32Fnv1(FlatBufferBuilder builder, int testhashs32Fnv1) { builder.AddInt(16, testhashs32Fnv1, 0); }
+  public static void AddTesthashu32Fnv1(FlatBufferBuilder builder, uint testhashu32Fnv1) { builder.AddUint(17, testhashu32Fnv1, 0); }
+  public static void AddTesthashs64Fnv1(FlatBufferBuilder builder, long testhashs64Fnv1) { builder.AddLong(18, testhashs64Fnv1, 0); }
+  public static void AddTesthashu64Fnv1(FlatBufferBuilder builder, ulong testhashu64Fnv1) { builder.AddUlong(19, testhashu64Fnv1, 0); }
+  public static void AddTesthashs32Fnv1a(FlatBufferBuilder builder, int testhashs32Fnv1a) { builder.AddInt(20, testhashs32Fnv1a, 0); }
+  public static void AddTesthashu32Fnv1a(FlatBufferBuilder builder, uint testhashu32Fnv1a) { builder.AddUint(21, testhashu32Fnv1a, 0); }
+  public static void AddTesthashs64Fnv1a(FlatBufferBuilder builder, long testhashs64Fnv1a) { builder.AddLong(22, testhashs64Fnv1a, 0); }
+  public static void AddTesthashu64Fnv1a(FlatBufferBuilder builder, ulong testhashu64Fnv1a) { builder.AddUlong(23, testhashu64Fnv1a, 0); }
   public static int EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name
