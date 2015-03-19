@@ -24,6 +24,7 @@ struct Vec3 (force_align: 16) {
 table Stat {
   id:string;
   val:long;
+  count:ushort;
 }
 
 table Monster {

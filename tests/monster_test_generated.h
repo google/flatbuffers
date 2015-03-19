@@ -89,11 +89,13 @@ STRUCT_END(Vec3, 32);
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(4); }
   int64_t val() const { return GetField<int64_t>(6, 0); }
+  uint16_t count() const { return GetField<uint16_t>(8, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 4 /* id */) &&
            verifier.Verify(id()) &&
            VerifyField<int64_t>(verifier, 6 /* val */) &&
+           VerifyField<uint16_t>(verifier, 8 /* count */) &&
            verifier.EndTable();
   }
 };
@@ -103,20 +105,23 @@ struct StatBuilder {
   flatbuffers::uoffset_t start_;
   void add_id(flatbuffers::Offset<flatbuffers::String> id) { fbb_.AddOffset(4, id); }
   void add_val(int64_t val) { fbb_.AddElement<int64_t>(6, val, 0); }
+  void add_count(uint16_t count) { fbb_.AddElement<uint16_t>(8, count, 0); }
   StatBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   StatBuilder &operator=(const StatBuilder &);
   flatbuffers::Offset<Stat> Finish() {
-    auto o = flatbuffers::Offset<Stat>(fbb_.EndTable(start_, 2));
+    auto o = flatbuffers::Offset<Stat>(fbb_.EndTable(start_, 3));
     return o;
   }
 };
 
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb,
    flatbuffers::Offset<flatbuffers::String> id = 0,
-   int64_t val = 0) {
+   int64_t val = 0,
+   uint16_t count = 0) {
   StatBuilder builder_(_fbb);
   builder_.add_val(val);
   builder_.add_id(id);
+  builder_.add_count(count);
   return builder_.Finish();
 }
 
