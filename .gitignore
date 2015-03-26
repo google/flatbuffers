@@ -39,8 +39,10 @@ tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
 CMakeLists.txt.user
 CMakeScripts/**
+CTestTestfile.cmake
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
+FlatBuffers.xcodeproj/
 java/.idea
 java/*.iml
 java/target
