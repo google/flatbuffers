@@ -251,7 +251,9 @@ reading, the actual overhead may be even lower than expected.
 In specialized cases where a denial of service attack is possible,
 the verifier has two additional constructor arguments that allow
 you to limit the nesting depth and total amount of tables the
-verifier may encounter before declaring the buffer malformed.
+verifier may encounter before declaring the buffer malformed. The default is
+`Verifier(buf, len, 64 /* max depth */, 1000000, /* max tables */)` which
+should be sufficient for most uses.
 
 ## Text & schema parsing
 
