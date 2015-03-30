@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 <p>Regardless of whether you used <code>CreateMonster</code> or <code>MonsterBuilder</code>, you now have an offset to the root of your data, and you can finish the buffer using:</p>
 <div class="fragment"><div class="line">FinishMonsterBuffer(fbb, mloc);</div>
 </div><!-- fragment --><p>The buffer is now ready to be stored somewhere, sent over the network, be compressed, or whatever you'd like to do with it. You can access the start of the buffer with <code>fbb.GetBufferPointer()</code>, and it's size from <code>fbb.GetSize()</code>.</p>
+<p>Calling code may take ownership of the buffer with <code>fbb.ReleaseBufferPointer()</code>. Should you do it, the <code>FlatBufferBuilder</code> will be in an invalid state, and <em>must</em> be cleared before it can be used again. However, it also means you are able to destroy the builder while keeping the buffer in your application.</p>
 <p><code>samples/sample_binary.cpp</code> is a complete code sample similar to the code above, that also includes the reading code below.</p>
 <h3>Reading in C++</h3>
 <p>If you've received a buffer from somewhere (disk, network, etc.) you can directly start traversing it using:</p>
@@ -123,7 +124,7 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 </div><!-- fragment --><p>if <code>ok</code> is true, the buffer is safe to read.</p>
 <p>Besides untrusted data, this function may be useful to call in debug mode, as extra insurance against data being corrupted somewhere along the way.</p>
 <p>While verifying a buffer isn't "free", it is typically faster than a full traversal (since any scalar data is not actually touched), and since it may cause the buffer to be brought into cache before reading, the actual overhead may be even lower than expected.</p>
-<p>In specialized cases where a denial of service attack is possible, the verifier has two additional constructor arguments that allow you to limit the nesting depth and total amount of tables the verifier may encounter before declaring the buffer malformed.</p>
+<p>In specialized cases where a denial of service attack is possible, the verifier has two additional constructor arguments that allow you to limit the nesting depth and total amount of tables the verifier may encounter before declaring the buffer malformed. The default is <code>Verifier(buf, len, 64 /* max depth */, 1000000, /* max tables */)</code> which should be sufficient for most uses.</p>
 <h2>Text &amp; schema parsing</h2>
 <p>Using binary buffers with the generated header provides a super low overhead use of FlatBuffer data. There are, however, times when you want to use text formats, for example because it interacts better with source control, or you want to give your users easy access to data.</p>
 <p>Another reason might be that you already have a lot of data in JSON format, or a tool that generates JSON, and if you can write a schema for it, this will provide you an easy way to use that data directly.</p>
