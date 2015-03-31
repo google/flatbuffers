@@ -124,13 +124,13 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
   std::string &code_post = *code_ptr_post;
-  GenComment(enum_def.doc_comment, code_ptr);
+  GenComment(enum_def.doc_comment, code_ptr, nullptr);
   code += "enum " + enum_def.name + " {\n";
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
-    GenComment(ev.doc_comment, code_ptr, "  ");
+    GenComment(ev.doc_comment, code_ptr, nullptr, "  ");
     code += "  " + GenEnumVal(enum_def, ev, opts) + " = ";
     code += NumToString(ev.value);
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
@@ -212,7 +212,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
 
   // Generate an accessor struct, with methods of the form:
   // type name() const { return GetField<type>(offset, defaultval); }
-  GenComment(struct_def.doc_comment, code_ptr);
+  GenComment(struct_def.doc_comment, code_ptr, nullptr);
   code += "struct " + struct_def.name;
   code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
   code += " {\n";
@@ -221,7 +221,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
        ++it) {
     auto &field = **it;
     if (!field.deprecated) {  // Deprecated fields won't be accessible.
-      GenComment(field.doc_comment, code_ptr, "  ");
+      GenComment(field.doc_comment, code_ptr, nullptr, "  ");
       code += "  " + GenTypeGet(parser, field.value.type, " ", "const ", " *",
                                 true);
       code += field.name + "() const { return ";
@@ -436,7 +436,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
   // Generates manual padding and alignment.
   // Variables are private because they contain little endian data on all
   // platforms.
-  GenComment(struct_def.doc_comment, code_ptr);
+  GenComment(struct_def.doc_comment, code_ptr, nullptr);
   code += "MANUALLY_ALIGNED_STRUCT(" + NumToString(struct_def.minalign) + ") ";
   code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n private:\n";
   int padding_id = 0;
@@ -501,7 +501,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
        it != struct_def.fields.vec.end();
        ++it) {
     auto &field = **it;
-    GenComment(field.doc_comment, code_ptr, "  ");
+    GenComment(field.doc_comment, code_ptr, nullptr, "  ");
     code += "  " + GenTypeGet(parser, field.value.type, " ", "const ", " &",
                               true);
     code += field.name + "() const { return ";
