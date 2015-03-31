@@ -37,14 +37,34 @@ std::string MakeCamel(const std::string &in, bool first) {
   return s;
 }
 
+struct CommentConfig {
+  const char *first_line;
+  const char *content_line_prefix;
+  const char *last_line;
+};
+
 // Generate a documentation comment, if available.
 void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
-                const char *prefix) {
+                const CommentConfig *config, const char *prefix) {
+  if (dc.begin() == dc.end()) {
+    // Don't output empty comment blocks with 0 lines of comment content.
+    return;
+  }
+  
   std::string &code = *code_ptr;
+  if (config != nullptr && config->first_line != nullptr) {
+    code += std::string(prefix) + std::string(config->first_line) + "\n";
+  }
+  std::string line_prefix = std::string(prefix) +
+      ((config != nullptr && config->content_line_prefix != nullptr) ?
+       config->content_line_prefix : "///");
   for (auto it = dc.begin();
        it != dc.end();
        ++it) {
-    code += std::string(prefix) + "///" + *it + "\n";
+    code += line_prefix + *it + "\n";
+  }
+  if (config != nullptr && config->last_line != nullptr) {
+    code += std::string(prefix) + std::string(config->last_line) + "\n";
   }
 }
 
@@ -65,6 +85,7 @@ struct LanguageParameters {
   const char *namespace_end;
   const char *set_bb_byteorder;
   const char *includes;
+  CommentConfig comment_config;
 };
 
 LanguageParameters language_parameters[] = {
@@ -83,6 +104,11 @@ LanguageParameters language_parameters[] = {
     "_bb.order(ByteOrder.LITTLE_ENDIAN); ",
     "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n"
       "import com.google.flatbuffers.*;\n\n",
+    {
+      "/**",
+      " *",
+      " */",
+    },
   },
   {
     GeneratorOptions::kCSharp,
@@ -98,6 +124,11 @@ LanguageParameters language_parameters[] = {
     "\n}\n",
     "",
     "using FlatBuffers;\n\n",
+    {
+      nullptr,
+      "///",
+      nullptr,
+    },
   },
   // TODO: add Go support to the general generator.
   // WARNING: this is currently only used for generating make rules for Go.
@@ -115,6 +146,11 @@ LanguageParameters language_parameters[] = {
     "",
     "",
     "import (\n\tflatbuffers \"github.com/google/flatbuffers/go\"\n)",
+    {
+      nullptr,
+      "///",
+      nullptr,
+    },
   }
 };
 
@@ -228,13 +264,13 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
   // In Java, we use ints rather than the Enum feature, because we want them
   // to map directly to how they're used in C/C++ and file formats.
   // That, and Java Enums are expensive, and not universally liked.
-  GenComment(enum_def.doc_comment, code_ptr);
+  GenComment(enum_def.doc_comment, code_ptr, &lang.comment_config);
   code += "public class " + enum_def.name + lang.open_curly;
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
-    GenComment(ev.doc_comment, code_ptr, "  ");
+    GenComment(ev.doc_comment, code_ptr, &lang.comment_config, "  ");
     code += "  public static";
     code += lang.const_decl;
     code += GenTypeBasic(lang, enum_def.underlying_type);
@@ -378,7 +414,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   // public type name() {
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
-  GenComment(struct_def.doc_comment, code_ptr);
+  GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
   code += "public class " + struct_def.name + lang.inheritance_marker;
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
@@ -418,7 +454,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
        ++it) {
     auto &field = **it;
     if (field.deprecated) continue;
-    GenComment(field.doc_comment, code_ptr, "  ");
+    GenComment(field.doc_comment, code_ptr, &lang.comment_config, "  ");
     std::string type_name = GenTypeGet(lang, field.value.type);
     std::string type_name_dest =
       GenTypeGet(lang, DestinationType(lang, field.value.type, true));

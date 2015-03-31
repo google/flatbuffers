@@ -380,8 +380,12 @@ class Parser {
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
+
+struct CommentConfig;
+
 extern void GenComment(const std::vector<std::string> &dc,
                        std::string *code_ptr,
+                       const CommentConfig *config,
                        const char *prefix = "");
 
 // Container of options that may apply to any of the source/text generators.
