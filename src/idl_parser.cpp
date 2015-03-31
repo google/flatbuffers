@@ -991,10 +991,13 @@ void Parser::ParseProtoDecl() {
     // These are identical in syntax to FlatBuffer's namespace decl.
     ParseNamespace();
   } else if (attribute_ == "message") {
+    std::vector<std::string> struct_comment = doc_comment_;
     Next();
     auto &struct_def = StartStruct();
+    struct_def.doc_comment = struct_comment;
     Expect('{');
     while (token_ != '}') {
+      std::vector<std::string> field_comment = doc_comment_;
       // Parse the qualifier.
       bool required = false;
       bool repeated = false;
@@ -1021,6 +1024,7 @@ void Parser::ParseProtoDecl() {
       Expect('=');
       Expect(kTokenIntegerConstant);
       auto &field = AddField(struct_def, name, type);
+      field.doc_comment = field_comment;
       field.required = required;
       // See if there's a default specified.
       if (IsNext('[')) {

@@ -40,6 +40,7 @@ set(FlatBuffers_Tests_SRCS
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
   src/idl_parser.cpp
+  src/idl_gen_general.cpp
   src/idl_gen_text.cpp
   src/idl_gen_fbs.cpp
   tests/test.cpp
