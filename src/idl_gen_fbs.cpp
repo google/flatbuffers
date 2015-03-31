@@ -61,13 +61,13 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
   for (auto enum_def_it = parser.enums_.vec.begin();
            enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
-    GenComment(enum_def.doc_comment, &schema);
+    GenComment(enum_def.doc_comment, &schema, nullptr);
     schema += "enum " + enum_def.name + " : ";
     schema += GenType(enum_def.underlying_type) + " {\n";
     for (auto it = enum_def.vals.vec.begin();
          it != enum_def.vals.vec.end(); ++it) {
       auto &ev = **it;
-      GenComment(ev.doc_comment, &schema, "  ");
+      GenComment(ev.doc_comment, &schema, nullptr, "  ");
       schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
     }
     schema += "}\n\n";
@@ -76,12 +76,12 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
   for (auto it = parser.structs_.vec.begin();
            it != parser.structs_.vec.end(); ++it) {
     StructDef &struct_def = **it;
-    GenComment(struct_def.doc_comment, &schema);
+    GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
     for (auto field_it = struct_def.fields.vec.begin();
              field_it != struct_def.fields.vec.end(); ++field_it) {
       auto &field = **field_it;
-      GenComment(field.doc_comment, &schema, "  ");
+      GenComment(field.doc_comment, &schema, nullptr, "  ");
       schema += "  " + field.name + ":" + GenType(field.value.type);
       if (field.value.constant != "0") schema += " = " + field.value.constant;
       if (field.required) schema += " (required)";
