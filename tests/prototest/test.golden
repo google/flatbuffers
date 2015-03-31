@@ -2,28 +2,37 @@
 
 namespace proto.test;
 
+/// Enum doc comment.
 enum ProtoEnum : short {
   FOO = 1,
+  /// Enum 2nd value doc comment misaligned.
   BAR = 5,
 }
 
 table OtherMessage {
   a:double;
+  /// doc comment for b.
   b:float = 3.14149;
 }
 
+/// 2nd table doc comment with
+/// many lines.
 table ProtoMessage {
   c:int = 16;
   d:long;
   p:uint;
   e:ulong;
+  /// doc comment for f.
   f:int = -1;
   g:long;
   h:uint;
   q:ulong;
   i:int;
   j:long;
+  /// doc comment for k.
   k:bool;
+  /// doc comment for l on 2
+  /// lines
   l:string (required);
   m:string;
   n:OtherMessage;
