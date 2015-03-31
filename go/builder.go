@@ -198,7 +198,7 @@ func (b *Builder) Prep(size, additionalBytes int) {
 	alignSize &= (size - 1)
 
 	// Reallocate the buffer if needed:
-	for int(b.head) < alignSize+size+additionalBytes {
+	for int(b.head) <= alignSize+size+additionalBytes {
 		oldBufSize := len(b.Bytes)
 		b.growByteBuffer()
 		b.head += UOffsetT(len(b.Bytes) - oldBufSize)

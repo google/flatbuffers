@@ -21,12 +21,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	flatbuffers "github.com/google/flatbuffers/go"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"sort"
 	"testing"
+
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 var (
@@ -478,6 +479,20 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	check([]byte{2, 1, 0, 0})
 	b.EndVector(2)
 	check([]byte{2, 0, 0, 0, 2, 1, 0, 0}) // padding
+
+	// test 3b: 11xbyte vector matches builder size
+
+	b = flatbuffers.NewBuilder(12)
+	b.StartVector(flatbuffers.SizeByte, 8, 1)
+	start := []byte{}
+	check(start)
+	for i := 1; i < 12; i++ {
+		b.PrependByte(byte(i))
+		start = append([]byte{byte(i)}, start...)
+		check(start)
+	}
+	b.EndVector(8)
+	check(append([]byte{8, 0, 0, 0}, start...))
 
 	// test 4: 1xuint16 vector
 
