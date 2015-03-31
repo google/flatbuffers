@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1963D7D2A57344A3B1C1713F /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5AC48C391ACA9A0A008132C5 /* idl_gen_general.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */; };
 		61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		61FF3C34FBEC4819A1C30F92 /* sample_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECCEBFFA6977404F858F9739 /* sample_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */; };
@@ -344,6 +345,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5AC48C391ACA9A0A008132C5 /* idl_gen_general.cpp in Sources */,
 				8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */,
 				E0680D6B5BFD484BA9D88EE8 /* idl_gen_text.cpp in Sources */,
 				61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */,
