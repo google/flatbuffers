@@ -443,7 +443,7 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
 static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
                               std::string *code_ptr) {
-  GenComment(field.doc_comment, code_ptr, "");
+  GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
       GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -510,7 +510,7 @@ static void GenStruct(const StructDef &struct_def,
                       StructDef *root_struct_def) {
   if (struct_def.generated) return;
 
-  GenComment(struct_def.doc_comment, code_ptr);
+  GenComment(struct_def.doc_comment, code_ptr, nullptr);
   BeginClass(struct_def, code_ptr);
   if (&struct_def == root_struct_def) {
     // Generate a special accessor for the table that has been declared as
@@ -542,13 +542,13 @@ static void GenStruct(const StructDef &struct_def,
 static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
-  GenComment(enum_def.doc_comment, code_ptr);
+  GenComment(enum_def.doc_comment, code_ptr, nullptr);
   BeginEnum(code_ptr);
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
-    GenComment(ev.doc_comment, code_ptr, "\t");
+    GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
     EnumMember(enum_def, ev, code_ptr);
   }
   EndEnum(code_ptr);
