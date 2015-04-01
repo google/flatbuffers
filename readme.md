@@ -2,6 +2,12 @@ FlatBuffers Version 1.1.0
 
 # Welcome to FlatBuffers!
 
+## Build Status
+
+- Travis: [![Build Status](https://travis-ci.org/google/flatbuffers.svg?branch=master)](https://travis-ci.org/google/flatbuffers)
+
+----
+
 FlatBuffers is a serialization library for games and other memory constrained
 apps. Go to our [landing page][] to browse our documentation.
 
