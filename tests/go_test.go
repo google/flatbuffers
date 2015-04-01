@@ -213,6 +213,11 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("monster2.Name()", "Fred", got))
 	}
 
+	inventorySlice := monster.InventoryBytes()
+	if len(inventorySlice) != monster.InventoryLength() {
+		fail(FailString("len(monster.InventoryBytes) != monster.InventoryLength", len(inventorySlice), monster.InventoryLength()))
+	}
+
 	if got := monster.InventoryLength(); 5 != got {
 		fail(FailString("monster.InventoryLength", 5, got))
 	}
@@ -221,6 +226,9 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 	l := monster.InventoryLength()
 	for i := 0; i < l; i++ {
 		v := monster.Inventory(i)
+		if v != inventorySlice[i] {
+			fail(FailString("monster inventory slice[i] != Inventory(i)", v, inventorySlice[i]))
+		}
 		invsum += int(v)
 	}
 	if invsum != 10 {
