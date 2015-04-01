@@ -85,10 +85,9 @@ if(FLATBUFFERS_CODE_COVERAGE)
 endif()
 
 if(BIICODE)
-  # Execute biicode building
-  include(CMake/biicode.cmake)
+  include(biicode/cmake/biicode.cmake)
   return()
-endif(BIICODE)
+endif()
 
 include_directories(include)
 
