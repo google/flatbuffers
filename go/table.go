@@ -26,10 +26,15 @@ func (t *Table) Indirect(off UOffsetT) UOffsetT {
 
 // String gets a string from data stored inside the flatbuffer.
 func (t *Table) String(off UOffsetT) string {
+	return string(t.ByteVector(off))
+}
+
+// ByteVector gets a byte slice from data stored inside the flatbuffer.
+func (t *Table) ByteVector(off UOffsetT) []byte {
 	off += GetUOffsetT(t.Bytes[off:])
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])
-	return string(t.Bytes[start : start+length])
+	return t.Bytes[start : start+length]
 }
 
 // VectorLen retrieves the length of the vector whose offset is stored at

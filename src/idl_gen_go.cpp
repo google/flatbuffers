@@ -144,6 +144,19 @@ static void GetVectorLen(const StructDef &struct_def,
   code += "\treturn 0\n}\n\n";
 }
 
+// Get a [ubyte] vector as a byte slice.
+static void GetUByteSlice(const StructDef &struct_def,
+                          const FieldDef &field,
+                          std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  GenReceiver(struct_def, code_ptr);
+  code += " " + MakeCamel(field.name) + "Bytes(";
+  code += ") []byte " + OffsetPrefix(field);
+  code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos)\n\t}\n";
+  code += "\treturn nil\n}\n\n";
+}
+
 // Get the value of a struct's scalar.
 static void GetScalarFieldOfStruct(const StructDef &struct_def,
                                    const FieldDef &field,
@@ -480,6 +493,9 @@ static void GenStructAccessor(const StructDef &struct_def,
   }
   if (field.value.type.base_type == BASE_TYPE_VECTOR) {
     GetVectorLen(struct_def, field, code_ptr);
+    if (field.value.type.element == BASE_TYPE_UCHAR) {
+      GetUByteSlice(struct_def, field, code_ptr);
+    }
   }
 }
 
