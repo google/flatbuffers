@@ -39,7 +39,7 @@ meant to be representative of game data, e.g. a scene format.
     optional fields to allow deprecating fields or serializing with missing
     fields for which defaults exist).
     It currently also isn't fully cross-platform portable (lack of VS support).
--   msgpack: has very minimal forwards/backwards compatability support when used
+-   msgpack: has very minimal forwards/backwards compatibility support when used
     with the typed C++ interface. Also lacks VS2010 support.
 -   Thrift: very similar to Protocol Buffers, but appears to be less efficient,
     and have more dependencies.
