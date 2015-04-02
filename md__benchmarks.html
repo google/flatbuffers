@@ -82,7 +82,7 @@ $(document).ready(function(){initNavTree('md__benchmarks.html','');});
 <h3>Some other serialization systems we compared against but did not benchmark (yet), in rough order of applicability:</h3>
 <ul>
 <li>Cap'n'Proto promises to reduce Protocol Buffers much like FlatBuffers does, though with a more complicated binary encoding and less flexibility (no optional fields to allow deprecating fields or serializing with missing fields for which defaults exist). It currently also isn't fully cross-platform portable (lack of VS support).</li>
-<li>msgpack: has very minimal forwards/backwards compatability support when used with the typed C++ interface. Also lacks VS2010 support.</li>
+<li>msgpack: has very minimal forwards/backwards compatibility support when used with the typed C++ interface. Also lacks VS2010 support.</li>
 <li>Thrift: very similar to Protocol Buffers, but appears to be less efficient, and have more dependencies.</li>
 <li>YAML: a superset of JSON and otherwise very similar. Used by e.g. Unity.</li>
 <li>C# comes with built-in serialization functionality, as used by Unity also. Being tied to the language, and having no automatic versioning support limits its applicability.</li>
