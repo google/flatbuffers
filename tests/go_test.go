@@ -131,7 +131,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("mana", 150, got))
 	}
 
-	if got := monster.Name(); "MyMonster" != got {
+	if got := monster.Name(); !bytes.Equal([]byte("MyMonster"), got) {
 		fail(FailString("name", "MyMonster", got))
 	}
 
@@ -209,7 +209,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 	var monster2 example.Monster
 	monster2.Init(table2.Bytes, table2.Pos)
 
-	if got := monster2.Name(); "Fred" != got {
+	if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
 		fail(FailString("monster2.Name()", "Fred", got))
 	}
 
@@ -267,11 +267,11 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("Testarrayofstring length", 2, got))
 	}
 
-	if got := monster.Testarrayofstring(0); "test1" != got {
+	if got := monster.Testarrayofstring(0); !bytes.Equal([]byte("test1"), got) {
 		fail(FailString("Testarrayofstring(0)", "test1", got))
 	}
 
-	if got := monster.Testarrayofstring(1); "test2" != got {
+	if got := monster.Testarrayofstring(1); !bytes.Equal([]byte("test2"), got) {
 		fail(FailString("Testarrayofstring(1)", "test2", got))
 	}
 }
