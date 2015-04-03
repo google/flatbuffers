@@ -518,6 +518,15 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	check([]byte{4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, // 0-terminated, 3-byte pad
 		3, 0, 0, 0, 'f', 'o', 'o', 0})
 
+	// test 6b: CreateByteString
+
+	b = flatbuffers.NewBuilder(0)
+	b.CreateByteString([]byte("foo"))
+	check([]byte{3, 0, 0, 0, 'f', 'o', 'o', 0}) // 0-terminated, no pad
+	b.CreateByteString([]byte("moop"))
+	check([]byte{4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, // 0-terminated, 3-byte pad
+		3, 0, 0, 0, 'f', 'o', 'o', 0})
+
 	// test 7: empty vtable
 	b = flatbuffers.NewBuilder(0)
 	b.StartObject(0)
@@ -1239,19 +1248,19 @@ func BenchmarkBuildGold(b *testing.B) {
 	buf, offset := CheckGeneratedBuild(b.Fatalf)
 	bytes_length := int64(len(buf[offset:]))
 
-	reuse_str := "MyMonster"
-	reuse_test1 := "test1"
-	reuse_test2 := "test2"
-	reuse_fred := "Fred"
+	reuse_str := []byte("MyMonster")
+	reuse_test1 := []byte("test1")
+	reuse_test2 := []byte("test2")
+	reuse_fred := []byte("Fred")
 
 	b.SetBytes(bytes_length)
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		bldr := flatbuffers.NewBuilder(0)
-		str := bldr.CreateString(reuse_str)
-		test1 := bldr.CreateString(reuse_test1)
-		test2 := bldr.CreateString(reuse_test2)
-		fred := bldr.CreateString(reuse_fred)
+		str := bldr.CreateByteString(reuse_str)
+		test1 := bldr.CreateByteString(reuse_test1)
+		test2 := bldr.CreateByteString(reuse_test2)
+		fred := bldr.CreateByteString(reuse_fred)
 
 		example.MonsterStartInventoryVector(bldr, 5)
 		bldr.PrependByte(4)

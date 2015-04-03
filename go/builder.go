@@ -247,16 +247,20 @@ func (b *Builder) EndVector(vectorNumElems int) UOffsetT {
 
 // CreateString writes a null-terminated string as a vector.
 func (b *Builder) CreateString(s string) UOffsetT {
+	return b.CreateByteString([]byte(s))
+}
+
+// CreateByteString writes a null-terminated byteslice as a vector.
+func (b *Builder) CreateByteString(s []byte) UOffsetT {
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
 
-	x := []byte(s)
-	l := UOffsetT(len(x))
+	l := UOffsetT(len(s))
 
 	b.head -= l
-	copy(b.Bytes[b.head:b.head+l], x)
+	copy(b.Bytes[b.head:b.head+l], s)
 
-	return b.EndVector(len(x))
+	return b.EndVector(len(s))
 }
 
 // CreateByteVector writes a ubyte vector
