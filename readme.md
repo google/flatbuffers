@@ -1,4 +1,4 @@
-FlatBuffers Version 1.0
+FlatBuffers Version 1.1.0
 
 # Welcome to FlatBuffers!
 
