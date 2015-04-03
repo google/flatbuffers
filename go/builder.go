@@ -31,6 +31,15 @@ func NewBuilder(initialSize int) *Builder {
 	return b
 }
 
+// Reset truncates the underlying Builder buffer, facilitating alloc-free
+// reuse of a Builder.
+func (b *Builder) Reset() {
+	b.Bytes = b.Bytes[:0]
+	b.head = UOffsetT(0)
+	b.minalign = 1
+	b.vtables = b.vtables[:0]
+}
+
 // StartObject initializes bookkeeping for writing a new object.
 func (b *Builder) StartObject(numfields int) {
 	b.notNested()
@@ -155,13 +164,23 @@ func (b *Builder) growByteBuffer() {
 	if (int64(len(b.Bytes)) & int64(0xC0000000)) != 0 {
 		panic("cannot grow buffer beyond 2 gigabytes")
 	}
-	newSize := len(b.Bytes) * 2
-	if newSize == 0 {
-		newSize = 1
+	newLen := len(b.Bytes) * 2
+	if newLen == 0 {
+		newLen = 1
 	}
-	bytes2 := make([]byte, newSize)
-	copy(bytes2[newSize-len(b.Bytes):], b.Bytes)
-	b.Bytes = bytes2
+
+	if cap(b.Bytes) >= newLen {
+		b.Bytes = b.Bytes[:newLen]
+	} else {
+		extension := make([]byte, newLen-len(b.Bytes))
+		b.Bytes = append(b.Bytes, extension...)
+	}
+
+	middle := newLen / 2
+	copy(b.Bytes[middle:], b.Bytes[:middle])
+	for i := 0 ; i < middle; i++ {
+		b.Bytes[i] = 0
+	}
 }
 
 // Head gives the start of useful data in the underlying byte buffer.
