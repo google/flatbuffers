@@ -5,7 +5,7 @@ namespace MyGame.Example
 
 using FlatBuffers;
 
-public class Test : Struct {
+public sealed class Test : Struct {
   public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public short A() { return bb.GetShort(bb_pos + 0); }

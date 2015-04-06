@@ -3,8 +3,9 @@
 namespace MyGame.Example
 {
 
-public class Any
+public sealed class Any
 {
+  private Any() { }
   public static readonly byte NONE = 0;
   public static readonly byte Monster = 1;
 

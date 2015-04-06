@@ -5,7 +5,7 @@ namespace MyGame.Example
 
 using FlatBuffers;
 
-public class Vec3 : Struct {
+public sealed class Vec3 : Struct {
   public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public float X() { return bb.GetFloat(bb_pos + 0); }

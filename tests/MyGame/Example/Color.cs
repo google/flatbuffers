@@ -3,8 +3,9 @@
 namespace MyGame.Example
 {
 
-public class Color
+public sealed class Color
 {
+  private Color() { }
   public static readonly sbyte Red = 1;
   public static readonly sbyte Green = 2;
   public static readonly sbyte Blue = 8;
