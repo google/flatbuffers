@@ -50,7 +50,7 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
     // Don't output empty comment blocks with 0 lines of comment content.
     return;
   }
-  
+
   std::string &code = *code_ptr;
   if (config != nullptr && config->first_line != nullptr) {
     code += std::string(prefix) + std::string(config->first_line) + "\n";
@@ -79,6 +79,7 @@ struct LanguageParameters {
   const char *bool_type;
   const char *open_curly;
   const char *const_decl;
+  const char *unsubclassable_decl;
   const char *inheritance_marker;
   const char *namespace_ident;
   const char *namespace_begin;
@@ -97,6 +98,7 @@ LanguageParameters language_parameters[] = {
     "boolean ",
     " {\n",
     " final ",
+    "final ",
     " extends ",
     "package ",
     ";",
@@ -118,6 +120,7 @@ LanguageParameters language_parameters[] = {
     "bool ",
     "\n{\n",
     " readonly ",
+    "sealed ",
     " : ",
     "namespace ",
     "\n{",
@@ -140,6 +143,7 @@ LanguageParameters language_parameters[] = {
     "bool ",
     "\n{\n",
     "const ",
+    " ",
     "",
     "package ",
     "",
@@ -265,7 +269,9 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
   // to map directly to how they're used in C/C++ and file formats.
   // That, and Java Enums are expensive, and not universally liked.
   GenComment(enum_def.doc_comment, code_ptr, &lang.comment_config);
-  code += "public class " + enum_def.name + lang.open_curly;
+  code += std::string("public ") + lang.unsubclassable_decl;
+  code += "class " + enum_def.name + lang.open_curly;
+  code += "  private " + enum_def.name + "() { }\n";
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
@@ -415,7 +421,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
-  code += "public class " + struct_def.name + lang.inheritance_marker;
+  code += std::string("public ") + lang.unsubclassable_decl;
+  code += "class " + struct_def.name + lang.inheritance_marker;
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
   if (!struct_def.fixed) {

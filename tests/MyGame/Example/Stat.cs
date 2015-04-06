@@ -5,7 +5,7 @@ namespace MyGame.Example
 
 using FlatBuffers;
 
-public class Stat : Table {
+public sealed class Stat : Table {
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
   public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__init(_bb.GetInt(_bb.position()) + _bb.position(), _bb)); }
   public Stat __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
