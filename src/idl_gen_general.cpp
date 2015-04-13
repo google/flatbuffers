@@ -80,6 +80,8 @@ struct LanguageParameters {
   const char *open_curly;
   const char *const_decl;
   const char *unsubclassable_decl;
+  const char *enum_decl;
+  const char *enum_separator;
   const char *inheritance_marker;
   const char *namespace_ident;
   const char *namespace_begin;
@@ -99,6 +101,8 @@ LanguageParameters language_parameters[] = {
     " {\n",
     " final ",
     "final ",
+    "final class ",
+    ";\n",
     " extends ",
     "package ",
     ";",
@@ -121,6 +125,8 @@ LanguageParameters language_parameters[] = {
     "\n{\n",
     " readonly ",
     "sealed ",
+    "enum ",
+    ",\n",
     " : ",
     "namespace ",
     "\n{",
@@ -144,6 +150,8 @@ LanguageParameters language_parameters[] = {
     "\n{\n",
     "const ",
     " ",
+    "class ",
+    ";\n",
     "",
     "package ",
     "",
@@ -179,6 +187,16 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
   };
 
   return gtypename[type.base_type * GeneratorOptions::kMAX + lang.language];
+}
+
+// Generate type to be used in user-facing API
+static std::string GenTypeForUser(const LanguageParameters &lang,
+                                  const Type &type) {
+  if (lang.language == GeneratorOptions::kCSharp) {
+    if (type.enum_def != nullptr &&
+          type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+  }
+  return GenTypeBasic(lang, type);
 }
 
 static std::string GenTypeGet(const LanguageParameters &lang,
@@ -240,17 +258,44 @@ static std::string DestinationMask(const LanguageParameters &lang,
   }
 }
 
-// Cast necessary to correctly read serialized unsigned values.
+// Casts necessary to correctly read serialized data
 static std::string DestinationCast(const LanguageParameters &lang,
                                    const Type &type) {
-  if (lang.language == GeneratorOptions::kJava &&
-      (type.base_type == BASE_TYPE_UINT ||
-       (type.base_type == BASE_TYPE_VECTOR &&
-        type.element == BASE_TYPE_UINT))) return "(long)";
+  switch (lang.language) {
+    case GeneratorOptions::kJava:
+      // Cast necessary to correctly read serialized unsigned values.
+      if (type.base_type == BASE_TYPE_UINT ||
+          (type.base_type == BASE_TYPE_VECTOR &&
+           type.element == BASE_TYPE_UINT)) return "(long)";
+      break;
+
+    case GeneratorOptions::kCSharp:
+      // Cast from raw integral types to enum
+      if (type.enum_def != nullptr &&
+        type.base_type != BASE_TYPE_UNION) return "(" + type.enum_def->name + ")";
+        break;
+
+    default:
+      break;
+  }
   return "";
 }
 
-
+// Read value and possibly process it to get proper value
+static std::string DestinationValue(const LanguageParameters &lang,
+  const std::string &name,
+  const Type &type) {
+  std::string type_mask = DestinationMask(lang, type, false);
+  // is a typecast needed? (for C# enums and unsigned values in Java)
+  if (type_mask.length() ||
+    (lang.language == GeneratorOptions::kCSharp &&
+    type.enum_def != nullptr &&
+    type.base_type != BASE_TYPE_UNION)) {
+    return "(" + GenTypeBasic(lang, type) + ")(" + name + type_mask + ")";
+  } else {
+    return name;
+  }
+}
 
 static std::string GenDefaultValue(const Value &value) {
   return value.type.base_type == BASE_TYPE_BOOL
@@ -269,50 +314,61 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
   // to map directly to how they're used in C/C++ and file formats.
   // That, and Java Enums are expensive, and not universally liked.
   GenComment(enum_def.doc_comment, code_ptr, &lang.comment_config);
-  code += std::string("public ") + lang.unsubclassable_decl;
-  code += "class " + enum_def.name + lang.open_curly;
-  code += "  private " + enum_def.name + "() { }\n";
+  code += std::string("public ") + lang.enum_decl + enum_def.name;
+  if (lang.language == GeneratorOptions::kCSharp) {
+    code += lang.inheritance_marker + GenTypeBasic(lang, enum_def.underlying_type);
+  }
+  code += lang.open_curly;
+  if (lang.language == GeneratorOptions::kJava) {
+    code += "  private " + enum_def.name + "() { }\n";
+  }
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, &lang.comment_config, "  ");
-    code += "  public static";
-    code += lang.const_decl;
-    code += GenTypeBasic(lang, enum_def.underlying_type);
+    if (lang.language != GeneratorOptions::kCSharp) {
+      code += "  public static";
+      code += lang.const_decl;
+      code += GenTypeBasic(lang, enum_def.underlying_type);
+    }
     code += " " + ev.name + " = ";
-    code += NumToString(ev.value) + ";\n";
+    code += NumToString(ev.value);
+    code += lang.enum_separator;
   }
 
   // Generate a generate string table for enum values.
-  // Problem is, if values are very sparse that could generate really big
-  // tables. Ideally in that case we generate a map lookup instead, but for
-  // the moment we simply don't output a table at all.
-  auto range = enum_def.vals.vec.back()->value -
-               enum_def.vals.vec.front()->value + 1;
-  // Average distance between values above which we consider a table
-  // "too sparse". Change at will.
-  static const int kMaxSparseness = 5;
-  if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
-    code += "\n  private static";
-    code += lang.const_decl;
-    code += lang.string_type;
-    code += "[] names = { ";
-    auto val = enum_def.vals.vec.front()->value;
-    for (auto it = enum_def.vals.vec.begin();
-         it != enum_def.vals.vec.end();
-         ++it) {
-      while (val++ != (*it)->value) code += "\"\", ";
-      code += "\"" + (*it)->name + "\", ";
+  // We do not do that for C# where this functionality is native.
+  if (lang.language != GeneratorOptions::kCSharp) {
+    // Problem is, if values are very sparse that could generate really big
+    // tables. Ideally in that case we generate a map lookup instead, but for
+    // the moment we simply don't output a table at all.
+    auto range = enum_def.vals.vec.back()->value -
+      enum_def.vals.vec.front()->value + 1;
+    // Average distance between values above which we consider a table
+    // "too sparse". Change at will.
+    static const int kMaxSparseness = 5;
+    if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
+      code += "\n  private static";
+      code += lang.const_decl;
+      code += lang.string_type;
+      code += "[] names = { ";
+      auto val = enum_def.vals.vec.front()->value;
+      for (auto it = enum_def.vals.vec.begin();
+        it != enum_def.vals.vec.end();
+        ++it) {
+        while (val++ != (*it)->value) code += "\"\", ";
+        code += "\"" + (*it)->name + "\", ";
+      }
+      code += "};\n\n";
+      code += "  public static ";
+      code += lang.string_type;
+      code += " " + MakeCamel("name", lang.first_camel_upper);
+      code += "(int e) { return names[e";
+      if (enum_def.vals.vec.front()->value)
+        code += " - " + enum_def.vals.vec.front()->name;
+      code += "]; }\n";
     }
-    code += "};\n\n";
-    code += "  public static ";
-    code += lang.string_type;
-    code += " " + MakeCamel("name", lang.first_camel_upper);
-    code += "(int e) { return names[e";
-    if (enum_def.vals.vec.front()->value)
-      code += " - " + enum_def.vals.vec.front()->name;
-    code += "]; }\n";
   }
 
   // Close the class
@@ -364,8 +420,8 @@ static void GenStructArgs(const LanguageParameters &lang,
                     (field.value.type.struct_def->name + "_").c_str());
     } else {
       code += ", ";
-      code += GenTypeBasic(lang,
-                           DestinationType(lang, field.value.type, false));
+      code += GenTypeForUser(lang,
+                             DestinationType(lang, field.value.type, false));
       code += " ";
       code += nameprefix;
       code += MakeCamel(field.name, lang.first_camel_upper);
@@ -397,13 +453,7 @@ static void GenStructBody(const LanguageParameters &lang,
       code += "    builder." + FunctionStart(lang, 'P') + "ut";
       code += GenMethod(lang, field.value.type) + "(";
       auto argname = nameprefix + MakeCamel(field.name, lang.first_camel_upper);
-      std::string type_mask = DestinationMask(lang, field.value.type, false);
-      if (type_mask.length()) {
-        code += "(" + GenTypeBasic(lang, field.value.type) + ")";
-        code += "(" + argname + type_mask + ")";
-      } else {
-        code += argname;
-      }
+      code += DestinationValue(lang, argname, field.value.type);
       code += ");\n";
     }
   }
@@ -464,7 +514,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     GenComment(field.doc_comment, code_ptr, &lang.comment_config, "  ");
     std::string type_name = GenTypeGet(lang, field.value.type);
     std::string type_name_dest =
-      GenTypeGet(lang, DestinationType(lang, field.value.type, true));
+      lang.language == GeneratorOptions::kCSharp &&
+        field.value.type.enum_def != nullptr &&
+        field.value.type.base_type != BASE_TYPE_UNION
+          ? field.value.type.enum_def->name
+          : GenTypeGet(lang, DestinationType(lang, field.value.type, true));
     std::string dest_mask = DestinationMask(lang, field.value.type, true);
     std::string dest_cast = DestinationCast(lang, field.value.type);
     std::string method_start = "  public " + type_name_dest + " " +
@@ -612,8 +666,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         auto &field = **it;
         if (field.deprecated) continue;
         code += ",\n      ";
-        code += GenTypeBasic(lang,
-                             DestinationType(lang, field.value.type, false));
+        code += GenTypeForUser(lang,
+                               DestinationType(lang, field.value.type, false));
         code += " ";
         code += field.name;
         // Java doesn't have defaults, which means this method must always
@@ -661,20 +715,14 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "  public static void " + FunctionStart(lang, 'A') + "dd";
       code += MakeCamel(field.name);
       code += "(FlatBufferBuilder builder, ";
-      code += GenTypeBasic(lang,
-                           DestinationType(lang, field.value.type, false));
+      code += GenTypeForUser(lang,
+                             DestinationType(lang, field.value.type, false));
       auto argname = MakeCamel(field.name, false);
       if (!IsScalar(field.value.type.base_type)) argname += "Offset";
       code += " " + argname + ") { builder." + FunctionStart(lang, 'A') + "dd";
       code += GenMethod(lang, field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      std::string type_mask = DestinationMask(lang, field.value.type, false);
-      if (type_mask.length()) {
-        code += "(" + GenTypeBasic(lang, field.value.type) + ")";
-        code += "(" + argname + type_mask + ")";
-      } else {
-        code += argname;
-      }
+      code += DestinationValue(lang, argname, field.value.type);
       code += ", " + GenDefaultValue(field.value);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {

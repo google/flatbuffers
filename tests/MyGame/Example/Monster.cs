@@ -18,8 +18,8 @@ public sealed class Monster : Table {
   public string Name() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
   public byte Inventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
-  public sbyte Color() { int o = __offset(16); return o != 0 ? bb.GetSbyte(o + bb_pos) : (sbyte)8; }
-  public byte TestType() { int o = __offset(18); return o != 0 ? bb.Get(o + bb_pos) : (byte)0; }
+  public Color Color() { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; }
+  public Any TestType() { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; }
   public Table Test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test Test4(int j) { return Test4(new Test(), j); }
   public Test Test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
@@ -55,8 +55,8 @@ public sealed class Monster : Table {
   public static void AddInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.AddOffset(5, inventoryOffset, 0); }
   public static int CreateInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartInventoryVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
-  public static void AddColor(FlatBufferBuilder builder, sbyte color) { builder.AddSbyte(6, color, 8); }
-  public static void AddTestType(FlatBufferBuilder builder, byte testType) { builder.AddByte(7, testType, 0); }
+  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(6, (sbyte)(color), 8); }
+  public static void AddTestType(FlatBufferBuilder builder, Any testType) { builder.AddByte(7, (byte)(testType), 0); }
   public static void AddTest(FlatBufferBuilder builder, int testOffset) { builder.AddOffset(8, testOffset, 0); }
   public static void AddTest4(FlatBufferBuilder builder, int test4Offset) { builder.AddOffset(9, test4Offset, 0); }
   public static void StartTest4Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 2); }
