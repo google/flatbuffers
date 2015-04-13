@@ -3,15 +3,10 @@
 namespace MyGame.Example
 {
 
-public sealed class Any
+public enum Any : byte
 {
-  private Any() { }
-  public static readonly byte NONE = 0;
-  public static readonly byte Monster = 1;
-
-  private static readonly string[] names = { "NONE", "Monster", };
-
-  public static string Name(int e) { return names[e]; }
+ NONE = 0,
+ Monster = 1,
 };
 
 
