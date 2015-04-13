@@ -3,16 +3,11 @@
 namespace MyGame.Example
 {
 
-public sealed class Color
+public enum Color : sbyte
 {
-  private Color() { }
-  public static readonly sbyte Red = 1;
-  public static readonly sbyte Green = 2;
-  public static readonly sbyte Blue = 8;
-
-  private static readonly string[] names = { "Red", "Green", "", "", "", "", "", "Blue", };
-
-  public static string Name(int e) { return names[e - Red]; }
+ Red = 1,
+ Green = 2,
+ Blue = 8,
 };
 
 

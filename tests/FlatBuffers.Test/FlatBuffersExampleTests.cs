@@ -72,7 +72,7 @@ namespace FlatBuffers.Test
             Monster.AddHp(fbb, (short)80);
             Monster.AddName(fbb, str);
             Monster.AddInventory(fbb, inv);
-            Monster.AddTestType(fbb, (byte)1);
+            Monster.AddTestType(fbb, Any.Monster);
             Monster.AddTest(fbb, mon2);
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
@@ -111,7 +111,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual((short)5, t.A());
             Assert.AreEqual((sbyte)6, t.B());
 
-            Assert.AreEqual((byte)Any.Monster, monster.TestType());
+            Assert.AreEqual(Any.Monster, monster.TestType());
 
             var monster2 = new Monster();
             Assert.IsTrue(monster.Test(monster2) != null);
@@ -148,10 +148,10 @@ namespace FlatBuffers.Test
 
         public void TestEnums()
         {
-            Assert.AreEqual(Color.Name(Color.Red), "Red");
-            Assert.AreEqual(Color.Name(Color.Blue), "Blue");
-            Assert.AreEqual(Any.Name(Any.NONE), "NONE");
-            Assert.AreEqual(Any.Name(Any.Monster), "Monster");
+            Assert.AreEqual("Red", Color.Red.ToString());
+            Assert.AreEqual("Blue", Color.Blue.ToString());
+            Assert.AreEqual("NONE", Any.NONE.ToString());
+            Assert.AreEqual("Monster", Any.Monster.ToString());
         }
     }
 }
