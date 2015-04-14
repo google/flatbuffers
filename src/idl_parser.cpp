@@ -186,7 +186,7 @@ void Parser::Next() {
       case '/':
         if (*cursor_ == '/') {
           const char *start = ++cursor_;
-          while (*cursor_ && *cursor_ != '\n') cursor_++;
+          while (*cursor_ && *cursor_ != '\n' && *cursor_ != '\r') cursor_++;
           if (*start == '/') {  // documentation comment
             if (cursor_ != source_ && !seen_newline)
               Error("a documentation comment should be on a line on its own");
