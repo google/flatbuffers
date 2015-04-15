@@ -20,7 +20,7 @@ public sealed class Monster : Table {
   public int InventoryLength { get { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; } }
   public Color Color { get { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; } }
   public Any TestType { get { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; } }
-  public Table GetTest(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
+  public TTable GetTest<TTable>(TTable obj) where TTable : Table { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test GetTest4(int j) { return GetTest4(new Test(), j); }
   public Test GetTest4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
   public int Test4Length { get { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; } }
