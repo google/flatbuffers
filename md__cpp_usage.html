@@ -102,7 +102,21 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 <div class="fragment"><div class="line"><span class="keyword">auto</span> inv = monster-&gt;inventory();</div>
 <div class="line">assert(inv);</div>
 <div class="line">assert(inv-&gt;Get(9) == 9);</div>
-</div><!-- fragment --><h3>Storing maps / dictionaries in a FlatBuffer</h3>
+</div><!-- fragment --><h3>Mutating FlatBuffers</h3>
+<p>As you saw above, typically once you have created a FlatBuffer, it is read-only from that moment on. There are however cases where you have just received a FlatBuffer, and you'd like to modify something about it before sending it on to another recipient. With the above functionality, you'd have to generate an entirely new FlatBuffer, while tracking what you modify in your own data structures. This is inconvenient.</p>
+<p>For this reason FlatBuffers can also be mutated in-place. While this is great for making small fixes to an existing buffer, you generally want to create buffers from scratch whenever possible, since it is much more efficient and the API is much more general purpose.</p>
+<p>To get non-const accessors, invoke <code>flatc</code> with <code>--gen-mutable</code>.</p>
+<p>Similar to the reading API above, you now can:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> monster = GetMutableMonster(buffer_pointer);  <span class="comment">// non-const</span></div>
+<div class="line">monster-&gt;mutate_hp(10);                      <span class="comment">// Set table field.</span></div>
+<div class="line">monster-&gt;mutable_pos()-&gt;mutate_z(4);         <span class="comment">// Set struct field.</span></div>
+<div class="line">monster-&gt;mutable_inventory()-&gt;Mutate(0, 1);  <span class="comment">// Set vector element.</span></div>
+</div><!-- fragment --><p>We use the somewhat verbose term <code>mutate</code> instead of <code>set</code> to indicate that this is a special use case, not to be confused with the default way of constructing FlatBuffer data.</p>
+<p>After the above mutations, you can send on the FlatBuffer to a new recipient without any further work!</p>
+<p>Note that any <code>mutate_</code> functions on tables return a bool, which is false if the field we're trying to set isn't present in the buffer. Fields are not present if they weren't set, or even if they happen to be equal to the default value. For example, in the creation code above we set the <code>mana</code> field to <code>150</code>, which is the default value, so it was never stored in the buffer. Trying to call mutate_mana() on such data will return false, and the value won't actually be modified!</p>
+<p>There's two ways around this. First, you can call <code>ForceDefaults()</code> on a <code>FlatBufferBuilder</code> to force all fields you set to actually be written. This of course increases the size of the buffer somewhat, but this may be acceptable for a mutable buffer.</p>
+<p>Alternatively, you can use mutation functions that are able to insert fields and change the size of things. These functions are expensive however, since they need to resize the buffer and create new data.</p>
+<h3>Storing maps / dictionaries in a FlatBuffer</h3>
 <p>FlatBuffers doesn't support maps natively, but there is support to emulate their behavior with vectors and binary search, which means you can have fast lookups directly from a FlatBuffer without having to unpack your data into a <code>std::map</code> or similar.</p>
 <p>To use it:</p><ul>
 <li>Designate one of the fields in a table as they "key" field. You do this by setting the <code>key</code> attribute on this field, e.g. <code>name:string (key)</code>. You may only have one key field, and it must be of string or scalar type.</li>
