@@ -395,6 +395,7 @@ struct GeneratorOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool include_dependence_headers;
+  bool mutable_buffer;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
@@ -404,6 +405,7 @@ struct GeneratorOptions {
   GeneratorOptions() : strict_json(false), indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
                        include_dependence_headers(false),
+                       mutable_buffer(false),
                        lang(GeneratorOptions::kJava) {}
 };
 

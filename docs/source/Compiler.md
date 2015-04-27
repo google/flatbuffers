@@ -51,6 +51,9 @@ be generated for each file processed:
 -   `--gen-includes` : Generate include statements for included schemas the
     generated file depends on (C++).
 
+-   `--gen-mutable` : Generate additional non-const accessors for mutating
+    FlatBuffers in-place.
+
 -   `--proto`: Expect input files to be .proto files (protocol buffers).
     Output the corresponding .fbs file.
     Currently supports: `package`, `message`, `enum`.

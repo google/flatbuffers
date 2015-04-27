@@ -89,6 +89,7 @@ static void Error(const char *err, const char *obj, bool usage,
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
       "  --gen-includes  Generate include statements for included schemas the\n"
       "                  generated file depends on (C++).\n"
+      "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
       "  --proto         Input is a .proto, translate to .fbs.\n"
       "FILEs may depend on declarations in earlier files.\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
@@ -128,6 +129,8 @@ int main(int argc, const char *argv[]) {
         opts.strict_json = true;
       } else if(opt == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if(opt == "--gen-mutable") {
+        opts.mutable_buffer = true;
       } else if(opt == "--gen-includes") {
         opts.include_dependence_headers = true;
       } else if(opt == "--") {  // Separator between text and binary inputs.
