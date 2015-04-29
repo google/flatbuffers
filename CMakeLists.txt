@@ -95,7 +95,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
 endif()
 
-if(FLATBUFFERS_BUILD_FLATC)
+if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
 endif()
 
