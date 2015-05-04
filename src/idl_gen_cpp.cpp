@@ -717,6 +717,13 @@ std::string GenerateCPP(const Parser &parser,
         code += name + "Identifier()); }\n\n";
       }
 
+      if (parser.file_extension_.length()) {
+        // Return the extension
+        code += "inline const char *" + name;
+        code += "Extension() { return \"" + parser.file_extension_;
+        code += "\"; }\n\n";
+      }
+
       // Finish a buffer with a given root object:
       code += "inline void Finish" + name;
       code += "Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<";
