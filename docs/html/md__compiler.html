@@ -71,6 +71,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>
 <li><code>--gen-includes</code> : Generate include statements for included schemas the generated file depends on (C++).</li>
 <li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
+<li><code>--raw-binary</code> : Allow binaries without a file_indentifier to be read. This may crash flatc given a mismatched schema.</li>
 <li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>. Does not support, but will skip without error: <code>import</code>, <code>option</code>. Does not support, will generate error: <code>service</code>, <code>extend</code>, <code>extensions</code>, <code>oneof</code>, <code>group</code>, custom options, nested declarations. </li>
 </ul>
 </div></div><!-- contents -->

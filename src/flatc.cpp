@@ -18,8 +18,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-static void Error(const char *err, const char *obj = nullptr,
-                  bool usage = false, bool show_exe_name = true);
+static void Error(const std::string &err, bool usage = false,
+                  bool show_exe_name = true);
 
 // This struct allows us to create a table of all possible output generators
 // for the various programming languages and formats we support.
@@ -68,12 +68,9 @@ const Generator generators[] = {
 
 const char *program_name = NULL;
 
-static void Error(const char *err, const char *obj, bool usage,
-                  bool show_exe_name) {
+static void Error(const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) printf("%s: ", program_name);
-  printf("%s", err);
-  if (obj) printf(": %s", obj);
-  printf("\n");
+  printf("%s\n", err.c_str());
   if (usage) {
     printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
@@ -90,6 +87,8 @@ static void Error(const char *err, const char *obj, bool usage,
       "  --gen-includes  Generate include statements for included schemas the\n"
       "                  generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
+      "  --raw-binary    Allow binaries without file_indentifier to be read.\n"
+      "                  This may crash flatc given a mismatched schema."
       "  --proto         Input is a .proto, translate to .fbs.\n"
       "FILEs may depend on declarations in earlier files.\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
@@ -110,45 +109,47 @@ int main(int argc, const char *argv[]) {
   bool any_generator = false;
   bool print_make_rules = false;
   bool proto_mode = false;
+  bool raw_binary = false;
   std::vector<std::string> filenames;
   std::vector<const char *> include_directories;
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   for (int argi = 1; argi < argc; argi++) {
-    const char *arg = argv[argi];
+    std::string arg = argv[argi];
     if (arg[0] == '-') {
       if (filenames.size() && arg[1] != '-')
-        Error("invalid option location", arg, true);
-      std::string opt = arg;
-      if (opt == "-o") {
-        if (++argi >= argc) Error("missing path following", arg, true);
+        Error("invalid option location: " + arg, true);
+      if (arg == "-o") {
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         output_path = flatbuffers::ConCatPathFileName(argv[argi], "");
-      } else if(opt == "-I") {
-        if (++argi >= argc) Error("missing path following", arg, true);
+      } else if(arg == "-I") {
+        if (++argi >= argc) Error("missing path following" + arg, true);
         include_directories.push_back(argv[argi]);
-      } else if(opt == "--strict-json") {
+      } else if(arg == "--strict-json") {
         opts.strict_json = true;
-      } else if(opt == "--no-prefix") {
+      } else if(arg == "--no-prefix") {
         opts.prefixed_enums = false;
-      } else if(opt == "--gen-mutable") {
+      } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
-      } else if(opt == "--gen-includes") {
+      } else if(arg == "--gen-includes") {
         opts.include_dependence_headers = true;
-      } else if(opt == "--") {  // Separator between text and binary inputs.
+      } else if(arg == "--raw-binary") {
+        raw_binary = true;
+      } else if(arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
-      } else if(opt == "--proto") {
+      } else if(arg == "--proto") {
         proto_mode = true;
         any_generator = true;
-      } else if(opt == "-M") {
+      } else if(arg == "-M") {
         print_make_rules = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
-          if (opt == generators[i].generator_opt) {
+          if (arg == generators[i].generator_opt) {
             generator_enabled[i] = true;
             any_generator = true;
             goto found;
           }
         }
-        Error("unknown commandline argument", arg, true);
+        Error("unknown commandline argument" + arg, true);
         found:;
       }
     } else {
@@ -159,7 +160,7 @@ int main(int argc, const char *argv[]) {
   if (!filenames.size()) Error("missing input files", nullptr, true);
 
   if (!any_generator)
-    Error("no options", "specify one of -c -g -j -t -b etc.", true);
+    Error("no options: specify one of -c -g -j -t -b etc.", true);
 
   // Now process the files:
   flatbuffers::Parser parser(opts.strict_json, proto_mode);
@@ -168,7 +169,7 @@ int main(int argc, const char *argv[]) {
           ++file_it) {
       std::string contents;
       if (!flatbuffers::LoadFile(file_it->c_str(), true, &contents))
-        Error("unable to load file", file_it->c_str());
+        Error("unable to load file" + *file_it);
 
       bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
                        binary_files_from;
@@ -177,13 +178,33 @@ int main(int argc, const char *argv[]) {
         parser.builder_.PushBytes(
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
+        if (!raw_binary) {
+          // Generally reading binaries that do not correspond to the schema
+          // will crash, and sadly there's no way around that when the binary
+          // does not contain a file identifier.
+          // We'd expect that typically any binary used as a file would have
+          // such an identifier, so by default we require them to match.
+          if (!parser.file_identifier_.length()) {
+            Error("current schema has no file_identifier: cannot test if \"" +
+                 *file_it +
+                 "\" matches the schema, use --raw-binary to read this file"
+                 " anyway.");
+          } else if (!flatbuffers::BufferHasIdentifier(contents.c_str(),
+                                             parser.file_identifier_.c_str())) {
+            Error("binary \"" +
+                 *file_it +
+                 "\" does not have expected file_identifier \"" +
+                 parser.file_identifier_ +
+                 "\", use --raw-binary to read this file anyway.");
+          }
+        }
       } else {
         auto local_include_directory = flatbuffers::StripFileName(*file_it);
         include_directories.push_back(local_include_directory.c_str());
         include_directories.push_back(nullptr);
         if (!parser.Parse(contents.c_str(), &include_directories[0],
                           file_it->c_str()))
-          Error(parser.error_.c_str(), nullptr, false, false);
+          Error(parser.error_, false, false);
         include_directories.pop_back();
         include_directories.pop_back();
       }
@@ -197,10 +218,10 @@ int main(int argc, const char *argv[]) {
           if (!print_make_rules) {
             flatbuffers::EnsureDirExists(output_path);
             if (!generators[i].generate(parser, output_path, filebase, opts)) {
-              Error((std::string("Unable to generate ") +
-                     generators[i].lang_name +
-                     " for " +
-                     filebase).c_str());
+              Error(std::string("Unable to generate ") +
+                    generators[i].lang_name +
+                    " for " +
+                    filebase);
             }
           } else {
             std::string make_rule = generators[i].make_rule(

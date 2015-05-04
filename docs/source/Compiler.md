@@ -54,6 +54,9 @@ be generated for each file processed:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+-   `--raw-binary` : Allow binaries without a file_indentifier to be read.
+    This may crash flatc given a mismatched schema.
+
 -   `--proto`: Expect input files to be .proto files (protocol buffers).
     Output the corresponding .fbs file.
     Currently supports: `package`, `message`, `enum`.
