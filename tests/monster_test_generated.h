@@ -332,6 +332,8 @@ inline const char *MonsterIdentifier() { return "MONS"; }
 
 inline bool MonsterBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, MonsterIdentifier()); }
 
+inline const char *MonsterExtension() { return "mon"; }
+
 inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Monster> root) { fbb.Finish(root, MonsterIdentifier()); }
 
 }  // namespace Example

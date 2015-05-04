@@ -135,6 +135,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
+  TEST_EQ(strcmp(MonsterExtension(), "mon"), 0);
 
   // Access the buffer from the root.
   auto monster = GetMonster(flatbuf);
