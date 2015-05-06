@@ -17,7 +17,6 @@
 //#define UNSAFE_BYTEBUFFER  // uncomment this line to use faster ByteBuffer
 
 using System;
-using System.Linq;
 
 namespace FlatBuffers
 {
@@ -42,7 +41,7 @@ namespace FlatBuffers
             _pos = 0;
         }
 
-        public int position() { return _pos; }
+        public int Position { get { return _pos; } }
 
         // Pre-allocated helper arrays for convertion.
         private float[] floathelper = new[] { 0.0f };

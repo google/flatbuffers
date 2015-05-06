@@ -82,61 +82,61 @@ namespace FlatBuffers.Test
             fbb.Finish(mon);
 
             // Dump to output directory so we can inspect later, if needed
-            using (var ms = new MemoryStream(fbb.DataBuffer().Data, fbb.DataBuffer().position(), fbb.Offset()))
+            using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
                 File.WriteAllBytes(@"Resources/monsterdata_cstest.mon",data);
             }
 
             // Now assert the buffer
-            TestBuffer(fbb.DataBuffer());
+            TestBuffer(fbb.DataBuffer);
         }
 
         private void TestBuffer(ByteBuffer bb)
         {
             var monster = Monster.GetRootAsMonster(bb);
 
-            Assert.AreEqual(80, monster.Hp());
-            Assert.AreEqual(150, monster.Mana());
-            Assert.AreEqual("MyMonster", monster.Name());
+            Assert.AreEqual(80, monster.Hp);
+            Assert.AreEqual(150, monster.Mana);
+            Assert.AreEqual("MyMonster", monster.Name);
 
-            var pos = monster.Pos();
-            Assert.AreEqual(1.0f, pos.X());
-            Assert.AreEqual(2.0f, pos.Y());
-            Assert.AreEqual(3.0f, pos.Z());
+            var pos = monster.Pos;
+            Assert.AreEqual(1.0f, pos.X);
+            Assert.AreEqual(2.0f, pos.Y);
+            Assert.AreEqual(3.0f, pos.Z);
 
-            Assert.AreEqual(3.0f, pos.Test1());
-            Assert.AreEqual(Color.Green, pos.Test2());
-            var t = pos.Test3();
-            Assert.AreEqual((short)5, t.A());
-            Assert.AreEqual((sbyte)6, t.B());
+            Assert.AreEqual(3.0f, pos.Test1);
+            Assert.AreEqual(Color.Green, pos.Test2);
+            var t = pos.Test3;
+            Assert.AreEqual((short)5, t.A);
+            Assert.AreEqual((sbyte)6, t.B);
 
-            Assert.AreEqual(Any.Monster, monster.TestType());
+            Assert.AreEqual(Any.Monster, monster.TestType);
 
             var monster2 = new Monster();
-            Assert.IsTrue(monster.Test(monster2) != null);
-            Assert.AreEqual("Fred", monster2.Name());
+            Assert.IsTrue(monster.GetTest(monster2) != null);
+            Assert.AreEqual("Fred", monster2.Name);
 
 
-            Assert.AreEqual(5, monster.InventoryLength());
+            Assert.AreEqual(5, monster.InventoryLength);
             var invsum = 0;
-            for (var i = 0; i < monster.InventoryLength(); i++)
+            for (var i = 0; i < monster.InventoryLength; i++)
             {
-                invsum += monster.Inventory(i);
+                invsum += monster.GetInventory(i);
             }
             Assert.AreEqual(10, invsum);
 
-            var test0 = monster.Test4(0);
-            var test1 = monster.Test4(1);
-            Assert.AreEqual(2, monster.Test4Length());
+            var test0 = monster.GetTest4(0);
+            var test1 = monster.GetTest4(1);
+            Assert.AreEqual(2, monster.Test4Length);
 
-            Assert.AreEqual(100, test0.A() + test0.B() + test1.A() + test1.B());
+            Assert.AreEqual(100, test0.A + test0.B + test1.A + test1.B);
 
-            Assert.AreEqual(2, monster.TestarrayofstringLength());
-            Assert.AreEqual("test1", monster.Testarrayofstring(0));
-            Assert.AreEqual("test2", monster.Testarrayofstring(1));
+            Assert.AreEqual(2, monster.TestarrayofstringLength);
+            Assert.AreEqual("test1", monster.GetTestarrayofstring(0));
+            Assert.AreEqual("test2", monster.GetTestarrayofstring(1));
 
-            Assert.AreEqual(false, monster.Testbool());
+            Assert.AreEqual(false, monster.Testbool);
         }
 
         public void CanReadCppGeneratedWireFile()

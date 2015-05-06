@@ -7,12 +7,12 @@ using FlatBuffers;
 
 public sealed class Stat : Table {
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
-  public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__init(_bb.GetInt(_bb.position()) + _bb.position(), _bb)); }
+  public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public Stat __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
-  public string Id() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
-  public long Val() { int o = __offset(6); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; }
-  public ushort Count() { int o = __offset(8); return o != 0 ? bb.GetUshort(o + bb_pos) : (ushort)0; }
+  public string Id { get { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; } }
+  public long Val { get { int o = __offset(6); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
+  public ushort Count { get { int o = __offset(8); return o != 0 ? bb.GetUshort(o + bb_pos) : (ushort)0; } }
 
   public static int CreateStat(FlatBufferBuilder builder,
       int id = 0,

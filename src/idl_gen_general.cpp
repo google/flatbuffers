@@ -82,11 +82,15 @@ struct LanguageParameters {
   const char *unsubclassable_decl;
   const char *enum_decl;
   const char *enum_separator;
+  const char *getter_prefix;
+  const char *getter_suffix;
   const char *inheritance_marker;
   const char *namespace_ident;
   const char *namespace_begin;
   const char *namespace_end;
   const char *set_bb_byteorder;
+  const char *get_bb_position;
+  const char *get_fbb_offset;
   const char *includes;
   CommentConfig comment_config;
 };
@@ -103,11 +107,15 @@ LanguageParameters language_parameters[] = {
     "final ",
     "final class ",
     ";\n",
+    "()",
+    "",
     " extends ",
     "package ",
     ";",
     "",
     "_bb.order(ByteOrder.LITTLE_ENDIAN); ",
+    "position()",
+    "offset()",
     "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n"
       "import com.google.flatbuffers.*;\n\n",
     {
@@ -127,11 +135,15 @@ LanguageParameters language_parameters[] = {
     "sealed ",
     "enum ",
     ",\n",
+    " { get",
+    "} ",
     " : ",
     "namespace ",
     "\n{",
     "\n}\n",
     "",
+    "Position",
+    "Offset",
     "using FlatBuffers;\n\n",
     {
       nullptr,
@@ -152,11 +164,15 @@ LanguageParameters language_parameters[] = {
     " ",
     "class ",
     ";\n",
+    "()",
+    "",
     "",
     "package ",
     "",
     "",
     "",
+    "position()",
+    "offset()",
     "import (\n\tflatbuffers \"github.com/google/flatbuffers/go\"\n)",
     {
       nullptr,
@@ -489,7 +505,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
     code += lang.set_bb_byteorder;
     code += "return (obj.__init(_bb." + FunctionStart(lang, 'G');
-    code += "etInt(_bb.position()) + _bb.position(), _bb)); }\n";
+    code += "etInt(_bb.";
+    code += lang.get_bb_position;
+    code += ") + _bb.";
+    code += lang.get_bb_position;
+    code += ", _bb)); }\n";
     if (parser.root_struct_def == &struct_def) {
       if (parser.file_identifier_.length()) {
         // Check if a buffer has the identifier.
@@ -526,32 +546,54 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     // Generate the accessors that don't do object reuse.
     if (field.value.type.base_type == BASE_TYPE_STRUCT) {
       // Calls the accessor that takes an accessor object with a new object.
-      code += method_start + "() { return ";
-      code += MakeCamel(field.name, lang.first_camel_upper);
-      code += "(new ";
-      code += type_name + "()); }\n";
+      if (lang.language == GeneratorOptions::kCSharp) {
+        code += method_start + " { get { return Get";
+        code += MakeCamel(field.name, lang.first_camel_upper);
+        code += "(new ";
+        code += type_name + "()); } }\n";
+        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
+      }
+      else {
+        code += method_start + "() { return ";
+        code += MakeCamel(field.name, lang.first_camel_upper);
+        code += "(new ";
+        code += type_name + "()); }\n";
+      }
     } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
                field.value.type.element == BASE_TYPE_STRUCT) {
       // Accessors for vectors of structs also take accessor objects, this
       // generates a variant without that argument.
-      code += method_start + "(int j) { return ";
+      if (lang.language == GeneratorOptions::kCSharp) {
+        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
+        code += method_start + "(int j) { return Get";
+      } else {
+        code += method_start + "(int j) { return ";
+      }
       code += MakeCamel(field.name, lang.first_camel_upper);
       code += "(new ";
       code += type_name + "(), j); }\n";
+    } else if (field.value.type.base_type == BASE_TYPE_UNION ||
+               field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (lang.language == GeneratorOptions::kCSharp) {
+        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
+      }
     }
     std::string getter = dest_cast + GenGetter(lang, field.value.type);
-    code += method_start + "(";
+    code += method_start;
     // Most field accessors need to retrieve and test the field offset first,
     // this is the prefix code for that:
-    auto offset_prefix = ") { int o = __offset(" +
+    auto offset_prefix = " { int o = __offset(" +
                          NumToString(field.value.offset) +
                          "); return o != 0 ? ";
     std::string default_cast = "";
     if (lang.language == GeneratorOptions::kCSharp)
       default_cast = "(" + type_name_dest + ")";
+    std::string member_suffix = "";
     if (IsScalar(field.value.type.base_type)) {
+      code += lang.getter_prefix;
+      member_suffix = lang.getter_suffix;
       if (struct_def.fixed) {
-        code += ") { return " + getter;
+        code += " { return " + getter;
         code += "(bb_pos + " + NumToString(field.value.offset) + ")";
         code += dest_mask;
       } else {
@@ -562,11 +604,12 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     } else {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT:
-          code += type_name + " obj";
+          code += "(" + type_name + " obj";
           if (struct_def.fixed) {
             code += ") { return obj.__init(bb_pos + ";
             code += NumToString(field.value.offset) + ", bb)";
           } else {
+            code += ")";
             code += offset_prefix;
             code += "obj.__init(";
             code += field.value.type.struct_def->fixed
@@ -576,15 +619,18 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           }
           break;
         case BASE_TYPE_STRING:
-          code += offset_prefix + getter +"(o + bb_pos) : null";
+          code += lang.getter_prefix;
+          member_suffix = lang.getter_suffix;
+          code += offset_prefix + getter + "(o + bb_pos) : null";
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
+          code += "(";
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             code += type_name + " obj, ";
             getter = "obj.__init";
           }
-          code += "int j" + offset_prefix + getter +"(";
+          code += "int j)" + offset_prefix + getter +"(";
           auto index = "__vector(o) + j * " +
                        NumToString(InlineSize(vectortype));
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -602,18 +648,24 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           break;
         }
         case BASE_TYPE_UNION:
-          code += type_name + " obj" + offset_prefix + getter;
+          code += "(" + type_name + " obj)" + offset_prefix + getter;
           code += "(obj, o) : null";
           break;
         default:
           assert(0);
       }
     }
-    code += "; }\n";
+    code += "; ";
+    code += member_suffix;
+    code += "}\n";
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       code += "  public int " + MakeCamel(field.name, lang.first_camel_upper);
-      code += "Length(" + offset_prefix;
-      code += "__vector_len(o) : 0; }\n";
+      code += "Length";
+      code += lang.getter_prefix;
+      code += offset_prefix;
+      code += "__vector_len(o) : 0; ";
+      code += lang.getter_suffix;
+      code += "}\n";
     }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
     if (((field.value.type.base_type == BASE_TYPE_VECTOR &&
@@ -638,7 +690,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     code += ") {\n";
     GenStructBody(lang, struct_def, code_ptr, "");
     code += "    return builder.";
-    code += FunctionStart(lang, 'O') + "ffset();\n  }\n";
+    code += lang.get_fbb_offset;
+    code += ";\n  }\n";
   } else {
     // Generate a method that creates a table in one go. This is only possible
     // when the table has no struct fields, since those have to be created

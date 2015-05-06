@@ -7,45 +7,45 @@ using FlatBuffers;
 
 public sealed class Monster : Table {
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
-  public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__init(_bb.GetInt(_bb.position()) + _bb.position(), _bb)); }
+  public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONS"); }
   public Monster __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
-  public Vec3 Pos() { return Pos(new Vec3()); }
-  public Vec3 Pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
-  public short Mana() { int o = __offset(6); return o != 0 ? bb.GetShort(o + bb_pos) : (short)150; }
-  public short Hp() { int o = __offset(8); return o != 0 ? bb.GetShort(o + bb_pos) : (short)100; }
-  public string Name() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
-  public byte Inventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
-  public int InventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
-  public Color Color() { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; }
-  public Any TestType() { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; }
-  public Table Test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
-  public Test Test4(int j) { return Test4(new Test(), j); }
-  public Test Test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
-  public int Test4Length() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
-  public string Testarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
-  public int TestarrayofstringLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public Vec3 Pos { get { return GetPos(new Vec3()); } }
+  public Vec3 GetPos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
+  public short Mana { get { int o = __offset(6); return o != 0 ? bb.GetShort(o + bb_pos) : (short)150; } }
+  public short Hp { get { int o = __offset(8); return o != 0 ? bb.GetShort(o + bb_pos) : (short)100; } }
+  public string Name { get { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; } }
+  public byte GetInventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
+  public int InventoryLength { get { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; } }
+  public Color Color { get { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; } }
+  public Any TestType { get { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; } }
+  public Table GetTest(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
+  public Test GetTest4(int j) { return GetTest4(new Test(), j); }
+  public Test GetTest4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
+  public int Test4Length { get { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; } }
+  public string GetTestarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int TestarrayofstringLength { get { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; } }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
-  public Monster Testarrayoftables(int j) { return Testarrayoftables(new Monster(), j); }
-  public Monster Testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int TestarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
-  public Monster Enemy() { return Enemy(new Monster()); }
-  public Monster Enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
-  public byte Testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
-  public int TestnestedflatbufferLength() { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; }
-  public Stat Testempty() { return Testempty(new Stat()); }
-  public Stat Testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
-  public bool Testbool() { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; }
-  public int Testhashs32Fnv1() { int o = __offset(36); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; }
-  public uint Testhashu32Fnv1() { int o = __offset(38); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; }
-  public long Testhashs64Fnv1() { int o = __offset(40); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; }
-  public ulong Testhashu64Fnv1() { int o = __offset(42); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; }
-  public int Testhashs32Fnv1a() { int o = __offset(44); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; }
-  public uint Testhashu32Fnv1a() { int o = __offset(46); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; }
-  public long Testhashs64Fnv1a() { int o = __offset(48); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; }
-  public ulong Testhashu64Fnv1a() { int o = __offset(50); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; }
+  public Monster GetTestarrayoftables(int j) { return GetTestarrayoftables(new Monster(), j); }
+  public Monster GetTestarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int TestarrayoftablesLength { get { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; } }
+  public Monster Enemy { get { return GetEnemy(new Monster()); } }
+  public Monster GetEnemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public byte GetTestnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
+  public int TestnestedflatbufferLength { get { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; } }
+  public Stat Testempty { get { return GetTestempty(new Stat()); } }
+  public Stat GetTestempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public bool Testbool { get { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; } }
+  public int Testhashs32Fnv1 { get { int o = __offset(36); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; } }
+  public uint Testhashu32Fnv1 { get { int o = __offset(38); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; } }
+  public long Testhashs64Fnv1 { get { int o = __offset(40); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
+  public ulong Testhashu64Fnv1 { get { int o = __offset(42); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; } }
+  public int Testhashs32Fnv1a { get { int o = __offset(44); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; } }
+  public uint Testhashu32Fnv1a { get { int o = __offset(46); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; } }
+  public long Testhashs64Fnv1a { get { int o = __offset(48); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
+  public ulong Testhashu64Fnv1a { get { int o = __offset(50); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(24); }
   public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }
