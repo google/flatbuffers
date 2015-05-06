@@ -313,6 +313,12 @@ class Parser {
   // Mark all definitions as already having code generated.
   void MarkGenerated();
 
+  // Given a (potentally unqualified) name, return the "fully qualified" name
+  // which has a full namespaced descriptor. If the parser has no current
+  // namespace context, or if the name passed is partially qualified the input
+  // is simply returned.
+  std::string GetFullyQualifiedName(const std::string &name) const;
+
   // Get the files recursively included by the given file. The returned
   // container will have at least the given file.
   std::set<std::string> GetIncludedFilesRecursive(
