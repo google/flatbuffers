@@ -81,7 +81,7 @@ namespace FlatBuffers
 
             for (var i = 0; i < FlatBufferConstants.FileIdentifierLength; i++)
             {
-                if (ident[i] != (char)bb.Get(bb.position() + sizeof(int) + i)) return false;
+                if (ident[i] != (char)bb.Get(bb.Position + sizeof(int) + i)) return false;
             }
 
             return true;
