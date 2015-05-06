@@ -263,6 +263,21 @@ public class FlatBufferBuilder {
     }
 
    /**
+    * Encode the string {@code s} in the buffer using UTF-8.
+    *
+    * @param s An already encoded UTF-8 string
+    * @return The offset in the buffer where the encoded string starts
+    */
+    public int createString(ByteBuffer s) {
+        int length = s.remaining();
+        addByte((byte)0);
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(s);
+        return endVector();
+    }
+
+   /**
     * Should not be creating any other object, string or vector
     * while an object is being constructed
     */
