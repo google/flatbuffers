@@ -181,7 +181,7 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += "() " + TypeName(field) + " ";
   code += OffsetPrefix(field) + "\t\treturn " + getter;
   code += "(o + rcv._tab.Pos)\n\t}\n";
-  code += "\treturn " + field.value.constant + "\n";
+  code += "\treturn " + field.value.string + "\n";
   code += "}\n\n";
 }
 
@@ -416,7 +416,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   } else {
     code += MakeCamel(field.name, false);
   }
-  code += ", " + field.value.constant;
+  code += ", " + field.value.string;
   code += ") }\n";
 }
 

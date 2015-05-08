@@ -134,10 +134,17 @@ struct Type {
 
 // Represents a parsed scalar value, it's type, and field offset.
 struct Value {
-  Value() : constant("0"), offset(static_cast<voffset_t>(
-                                ~(static_cast<voffset_t>(0U)))) {}
+  Value() : string("0"), offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
-  std::string constant;
+
+  union {
+    uoffset_t POINTER = 0;
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) CTYPE ENUM;
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+  } scalars;
+
+  std::string string;
   voffset_t offset;
 };
 

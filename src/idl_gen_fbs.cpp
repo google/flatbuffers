@@ -83,7 +83,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
       auto &field = **field_it;
       GenComment(field.doc_comment, &schema, nullptr, "  ");
       schema += "  " + field.name + ":" + GenType(field.value.type);
-      if (field.value.constant != "0") schema += " = " + field.value.constant;
+      if (field.value.scalars.POINTER != 0 || field.value.string != "0") schema += " = " + field.value.string;
       if (field.required) schema += " (required)";
       schema += ";\n";
     }

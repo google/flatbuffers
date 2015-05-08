@@ -299,8 +299,8 @@ static std::string DestinationValue(const LanguageParameters &lang,
 
 static std::string GenDefaultValue(const Value &value) {
   return value.type.base_type == BASE_TYPE_BOOL
-           ? (value.constant == "0" ? "false" : "true")
-           : value.constant;
+           ? (value.scalars.POINTER == 0 ? "false" : "true")
+           : value.string;
 }
 
 static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,

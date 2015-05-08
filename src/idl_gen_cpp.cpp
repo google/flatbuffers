@@ -237,7 +237,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
           ">(" + offsetstr;
       // Default value as second arg for non-pointer types.
       if (IsScalar(field.value.type.base_type))
-        call += ", " + field.value.constant;
+        call += ", " + field.value.string;
       call += ")";
       code += GenUnderlyingCast(parser, field, true, call);
       code += "; }\n";
@@ -258,7 +258,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       }
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
-        auto nested_root = parser.structs_.Lookup(nested->constant);
+        auto nested_root = parser.structs_.Lookup(nested->string);
         assert(nested_root);  // Guaranteed to exist by parser.
         code += "  const " + nested_root->name + " *" + field.name;
         code += "_nested_root() const { return flatbuffers::GetRoot<";
@@ -365,7 +365,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += "(" + NumToString(field.value.offset) + ", ";
       code += GenUnderlyingCast(parser, field, false, field.name);
       if (IsScalar(field.value.type.base_type))
-        code += ", " + field.value.constant;
+        code += ", " + field.value.string;
       code += "); }\n";
     }
   }
@@ -402,18 +402,17 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += ",\n   " + GenTypeWire(parser, field.value.type, " ", true);
       code += field.name + " = ";
       if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-        auto ev = field.value.type.enum_def->ReverseLookup(
-           static_cast<int>(StringToInt(field.value.constant.c_str())), false);
+        auto ev = field.value.type.enum_def->ReverseLookup(field.value.scalars.INT, false);
         if (ev) {
           code += WrapInNameSpace(parser,
                                   field.value.type.enum_def->defined_namespace,
                                   GenEnumVal(*field.value.type.enum_def, *ev,
                                              opts));
         } else {
-          code += GenUnderlyingCast(parser, field, true, field.value.constant);
+          code += GenUnderlyingCast(parser, field, true, field.value.string);
         }
       } else {
-        code += field.value.constant;
+        code += field.value.string;
       }
     }
   }
