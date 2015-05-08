@@ -5,8 +5,8 @@ Generate code for Java with the `-j` option to `flatc`, or for C# with `-n`
 (think .Net).
 
 Note that this document is from the perspective of Java. Code for both languages
-is generated in the same way, with only very subtle differences, for example
-any `camelCase` Java call will be `CamelCase` in C#.
+is generated in the same way, with only minor differences. These differences
+are [explained in a section below](#differences-in-c-sharp).
 
 See `javaTest.java` for an example. Essentially, you read a FlatBuffer binary
 file into a `byte[]`, which you then turn into a `ByteBuffer`, which you pass to
@@ -151,7 +151,27 @@ not start from offset 0 in this buffer, but from `fbb.dataBuffer().position()`
 It ends at `fbb.capacity()`.
 
 
-## Text Parsing
+## Differences in C-sharp
+
+C# code works almost identically to Java, with only a few minor differences.
+You can see an example of C# code in `tests/FlatBuffers.Test/FlatBuffersExampleTests.cs`.
+
+First of all, naming follows standard C# style with `PascalCasing` identifiers,
+e.g. `GetRootAsMyRootType`. Also, values (except vectors and unions) are available
+as properties instead of parameterless accessor methods as in Java. The
+performance-enhancing methods to which you can pass an already created object
+are prefixed with `Get`, e.g.:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
+    // property
+    var pos = monster.Pos;
+    // method filling a preconstructed object
+    var preconstructedPos = new Vec3();
+    monster.GetPos(preconstructedPos);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+## Text parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly
 from Java, though you could use the C++ parser through JNI. Please see the
