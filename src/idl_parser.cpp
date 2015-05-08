@@ -773,12 +773,13 @@ void Parser::ParseSingleValue(Value &e) {
 }
 
 StructDef *Parser::LookupCreateStruct(const std::string &name) {
-  auto struct_def = structs_.Lookup(name);
+  std::string qualified_name = GetFullyQualifiedName(name);
+  auto struct_def = structs_.Lookup(qualified_name);
   if (!struct_def) {
     // Rather than failing, we create a "pre declared" StructDef, due to
     // circular references, and check for errors at the end of parsing.
     struct_def = new StructDef();
-    structs_.Add(name, struct_def);
+    structs_.Add(qualified_name, struct_def);
     struct_def->name = name;
     struct_def->predecl = true;
     struct_def->defined_namespace = namespaces_.back();
@@ -951,8 +952,28 @@ void Parser::ParseDecl() {
 }
 
 bool Parser::SetRootType(const char *name) {
-  root_struct_def = structs_.Lookup(name);
+  root_struct_def = structs_.Lookup(GetFullyQualifiedName(name));
   return root_struct_def != nullptr;
+}
+
+std::string Parser::GetFullyQualifiedName(const std::string &name) const {
+  Namespace *ns = namespaces_.back();
+
+  // Early exit if we don't have a defined namespace, or if the name is already
+  // partially qualified
+  if (ns->components.size() == 0 || name.find(".") != std::string::npos) {
+    return name;
+  }
+  std::stringstream stream;
+  for (size_t i = 0; i != ns->components.size(); ++i) {
+    if (i != 0) {
+      stream << ".";
+    }
+    stream << ns->components[i];
+  }
+
+  stream << "." << name;
+  return stream.str();
 }
 
 void Parser::MarkGenerated() {
