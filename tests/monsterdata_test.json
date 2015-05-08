@@ -47,21 +47,21 @@
   testhashu64_fnv1a: "This string is being hashed!",
   testarrayofsortedsctruct: [
     {
+      locale: "fr",
+      text: "Bonjour a tous."
+    },
+    {
       locale: "de",
       text: "Hallo wereld."
     },
     {
       locale: "en",
       text: "Hello world."
-    },
-    {
-      locale: "fr",
-      text: "Bonjour a tous."
     }
   ],
   greetings: {
+    "fr": "Bonjour a tous."
     "de": "Hallo wereld.",
     "en": "Hello world.",
-    "fr": "Bonjour a tous."
   }
 }

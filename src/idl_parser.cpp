@@ -635,6 +635,23 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
   }
 }
 
+int Parser::compareMapKeys(FieldDef &key_field, Value v1, Value v2) {
+  switch (key_field.value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      case BASE_TYPE_ ## ENUM: { \
+        return v1.scalars.ENUM - v2.scalars.ENUM; \
+      }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+    case BASE_TYPE_STRING: {
+      return v1.string.compare(v2.string);
+    }
+    default:
+      assert(0); // Unauthorized key type, only scalars or string
+  }
+  return 0;
+}
+
 uoffset_t Parser::ParseMap(const Type &type) {
   Expect('{');
 
@@ -644,7 +661,7 @@ uoffset_t Parser::ParseMap(const Type &type) {
   FieldDef* key_field = fields[key_index];
   FieldDef* val_field = fields[1 - key_index];
 
-  std::vector<Offset<void>> entries;
+  std::vector<std::pair<Value, Offset<void>>> entries;
   for (;;) {
     if ((!strict_json_ || entries.empty()) && IsNext('}')) break;
 
@@ -658,23 +675,51 @@ uoffset_t Parser::ParseMap(const Type &type) {
     builder_.Pad(key_field->padding);
     SerializeField(*struct_def, key, key_field);
     SerializeField(*struct_def, val, val_field);
-    entries.emplace_back(builder_.EndTable(start, 2));
+    entries.emplace_back(key, builder_.EndTable(start, 2));
 
     if (IsNext('}')) break;
     Expect(',');
   }
 
-  // FIXME Sort entries by key
+  std::sort(entries.begin(), entries.end(), [this, key_field](
+      const std::pair<Value, Offset<void>> &v1, const std::pair<Value, Offset<void>> &v2){
+    return compareMapKeys(*key_field, v1.first, v2.first);
+  });
 
   const size_t count = entries.size();
   builder_.StartVector(count * InlineSize(type) / InlineAlignment(type), InlineAlignment(type));
   for (size_t i = 0; i < count; i++) {
-    builder_.PushElement(entries.back());
+    builder_.PushElement(entries.back().second);
     entries.pop_back();
   }
 
   builder_.ClearOffsets();
   return builder_.EndVector(count);
+}
+
+int Parser::compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2) {
+  uint8_t *buffer = builder_.GetBufferPointer();
+  const Table* t1 = reinterpret_cast<const Table*>(buffer + v1.scalars.POINTER);
+  const Table* t2 = reinterpret_cast<const Table*>(buffer + v2.scalars.POINTER);
+
+  switch (key_field.value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      case BASE_TYPE_ ## ENUM: {\
+        CTYPE k1 = t1->GetField<CTYPE>(key_field.value.offset, 0); \
+        CTYPE k2 = t2->GetField<CTYPE>(key_field.value.offset, 0); \
+        return k1 - k2; \
+      }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+    case BASE_TYPE_STRING: {
+      const char *k1 = t1->GetField<const char*>(key_field.value.offset, 0);
+      const char *k2 = t2->GetField<const char*>(key_field.value.offset, 0);
+      return strcmp(k1, k2);
+    }
+    default:
+      assert(0); // Unauthorized key type
+  }
+  return 0;
 }
 
 uoffset_t Parser::ParseVector(const Type &type) {
@@ -690,10 +735,20 @@ uoffset_t Parser::ParseVector(const Type &type) {
     Expect(',');
   }
 
-  // FIXME sorted tables aren't sorted before serialisation
-  /*if(IsStruct(type) && !type.struct_def->fixed && type.struct_def->has_key) {
-    std::sort(elements.begin(), elements.end(), [](Value v1, Value v2){
-      return 0;
+  /*if(type.base_type == BASE_TYPE_STRUCT && type.struct_def->has_key) {
+    auto struct_def = type.struct_def;
+    auto& fields = struct_def->fields.vec;
+    FieldDef* key_field;
+    for(size_t i = 0; i < fields.size(); i++) {
+      if(fields[i]->key) {
+        key_field = fields[i];
+        break;
+      }
+    }
+
+    std::sort(field_stack_.end() - count, field_stack_.end(), [this, key_field](
+      const std::pair<Value, FieldDef*> &v1, const std::pair<Value, FieldDef*> &v2){
+      return compareSortedVectorKeys(*key_field, v1.first, v2.first);
     });
   }*/
 

@@ -47,21 +47,21 @@
   testhashu64_fnv1a: 4898026182817603057,
   testarrayofsortedsctruct: [
     {
+      locale: "fr",
+      text: "Bonjour a tous."
+    },
+    {
       locale: "de",
       text: "Hallo wereld."
     },
     {
       locale: "en",
       text: "Hello world."
-    },
-    {
-      locale: "fr",
-      text: "Bonjour a tous."
     }
   ],
   greetings: {
+    "fr": "Bonjour a tous.",
     "de": "Hallo wereld.",
-    "en": "Hello world.",
-    "fr": "Bonjour a tous."
+    "en": "Hello world."
   }
 }
