@@ -294,6 +294,7 @@ class Parser {
     known_attributes_.insert("bit_flags");
     known_attributes_.insert("original_order");
     known_attributes_.insert("nested_flatbuffer");
+    known_attributes_.insert("map_entry");
   }
 
   ~Parser() {
@@ -339,8 +340,11 @@ class Parser {
   void ParseAnyValue(Value &val, FieldDef *field);
   uoffset_t ParseTable(const StructDef &struct_def);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
+  void SerializeAnyValue(const Value &val);
+  void SerializeField(const StructDef &struct_def, const Value &value, const FieldDef *field);
   void AddVector(bool sortbysize, int count);
   uoffset_t ParseVector(const Type &type);
+  uoffset_t ParseMap(const Type &type);
   void ParseMetaData(Definition &def);
   bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
   void ParseHash(Value &e, FieldDef* field);

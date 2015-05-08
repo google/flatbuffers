@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <list>
+#include <flatbuffers/idl.h>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
@@ -476,14 +477,19 @@ void Parser::ParseAnyValue(Value &val, FieldDef *field) {
       break;
     case BASE_TYPE_STRING: {
       auto s = attribute_;
-      Expect(kTokenStringConstant);
+      if (!IsNext(kTokenStringConstant))
+        Expect(strict_json_ ? kTokenStringConstant : kTokenIdentifier);
       val.scalars.POINTER = builder_.CreateString(s).o;
       val.string = attribute_;
       break;
     }
     case BASE_TYPE_VECTOR: {
-      Expect('[');
-      val.scalars.POINTER = ParseVector(val.type.VectorType());
+      if(val.type.element == BASE_TYPE_STRUCT && val.type.struct_def->attributes.Lookup("map_entry")) {
+        val.scalars.POINTER = ParseMap(val.type);
+      } else {
+        Expect('[');
+        val.scalars.POINTER = ParseVector(val.type.VectorType());
+      }
       break;
     }
     case BASE_TYPE_INT:
@@ -511,6 +517,51 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
   builder_.PushBytes(&struct_stack_[off], struct_def.bytesize);
   struct_stack_.resize(struct_stack_.size() - struct_def.bytesize);
   builder_.AddStructOffset(val.offset, builder_.GetSize());
+}
+
+void Parser::SerializeAnyValue(const Value &val) {
+  switch (val.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+        case BASE_TYPE_ ## ENUM: \
+          builder_.PushElement(val.scalars.ENUM); \
+          break;
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+        case BASE_TYPE_ ## ENUM: \
+          if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
+          else builder_.PushElement(Offset<void>(val.scalars.POINTER)); \
+          break;
+    FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+  }
+}
+
+void Parser::SerializeField(const StructDef &struct_def, const Value &value, const FieldDef *field) {
+  switch (value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      case BASE_TYPE_ ## ENUM: \
+        builder_.Pad(field->padding); \
+        if (struct_def.fixed) { \
+          builder_.PushElement(value.scalars.ENUM); \
+        } else { \
+          builder_.AddElement(value.offset, value.scalars.ENUM, field->value.scalars.ENUM); \
+        } \
+        break;
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+#undef FLATBUFFERS_TD
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
+      case BASE_TYPE_ ## ENUM: \
+        builder_.Pad(field->padding); \
+        if (IsStruct(field->value.type)) { \
+          SerializeStruct(*field->value.type.struct_def, value); \
+        } else { \
+          builder_.AddOffset(value.offset, Offset<void>(value.scalars.POINTER)); \
+        } \
+        break;
+    FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
+#undef FLATBUFFERS_TD
+  }
 }
 
 uoffset_t Parser::ParseTable(const StructDef &struct_def) {
@@ -560,30 +611,7 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
       auto &value = it->first;
       auto field = it->second;
       if (!struct_def.sortbysize || size == SizeOf(value.type.base_type)) {
-        switch (value.type.base_type) {
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-            case BASE_TYPE_ ## ENUM: \
-              builder_.Pad(field->padding); \
-              if (struct_def.fixed) { \
-                builder_.PushElement(value.scalars.ENUM); \
-              } else { \
-                builder_.AddElement(value.offset, value.scalars.ENUM, field->value.scalars.ENUM); \
-              } \
-              break;
-            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
-          #undef FLATBUFFERS_TD
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-            case BASE_TYPE_ ## ENUM: \
-              builder_.Pad(field->padding); \
-              if (IsStruct(field->value.type)) { \
-                SerializeStruct(*field->value.type.struct_def, value); \
-              } else { \
-                builder_.AddOffset(value.offset, Offset<void>(value.scalars.POINTER)); \
-              } \
-              break;
-            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
-          #undef FLATBUFFERS_TD
-        }
+        SerializeField(struct_def, value, field);
       }
     }
   }
@@ -607,6 +635,48 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
   }
 }
 
+uoffset_t Parser::ParseMap(const Type &type) {
+  Expect('{');
+
+  auto struct_def = type.struct_def;
+  auto& fields = struct_def->fields.vec;
+  const int key_index = fields[0]->key ? 0 : 1;
+  FieldDef* key_field = fields[key_index];
+  FieldDef* val_field = fields[1 - key_index];
+
+  std::vector<Offset<void>> entries;
+  for (;;) {
+    if ((!strict_json_ || entries.empty()) && IsNext('}')) break;
+
+    Value key = key_field->value;
+    ParseAnyValue(key, key_field);
+    Expect(':');
+    Value val = val_field->value;
+    ParseAnyValue(val, val_field);
+
+    auto start = builder_.StartTable();
+    builder_.Pad(key_field->padding);
+    SerializeField(*struct_def, key, key_field);
+    SerializeField(*struct_def, val, val_field);
+    entries.emplace_back(builder_.EndTable(start, 2));
+
+    if (IsNext('}')) break;
+    Expect(',');
+  }
+
+  // FIXME Sort entries by key
+
+  const size_t count = entries.size();
+  builder_.StartVector(count * InlineSize(type) / InlineAlignment(type), InlineAlignment(type));
+  for (size_t i = 0; i < count; i++) {
+    builder_.PushElement(entries.back());
+    entries.pop_back();
+  }
+
+  builder_.ClearOffsets();
+  return builder_.EndVector(count);
+}
+
 uoffset_t Parser::ParseVector(const Type &type) {
   int count = 0;
   for (;;) {
@@ -620,26 +690,19 @@ uoffset_t Parser::ParseVector(const Type &type) {
     Expect(',');
   }
 
+  // FIXME sorted tables aren't sorted before serialisation
+  /*if(IsStruct(type) && !type.struct_def->fixed && type.struct_def->has_key) {
+    std::sort(elements.begin(), elements.end(), [](Value v1, Value v2){
+      return 0;
+    });
+  }*/
+
   builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
                        InlineAlignment(type));
   for (int i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
-    switch (val.type.base_type) {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-        case BASE_TYPE_ ## ENUM: \
-          builder_.PushElement(val.scalars.ENUM); \
-          break;
-        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-      #undef FLATBUFFERS_TD
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-        case BASE_TYPE_ ## ENUM: \
-          if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
-          else builder_.PushElement(Offset<void>(val.scalars.POINTER)); \
-          break;
-      FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
-      #undef FLATBUFFERS_TD
-    }
+    SerializeAnyValue(val);
     field_stack_.pop_back();
   }
 
@@ -964,6 +1027,26 @@ void Parser::ParseDecl() {
   CheckClash("Type", BASE_TYPE_UNION);
   CheckClash("_length", BASE_TYPE_VECTOR);
   CheckClash("Length", BASE_TYPE_VECTOR);
+
+  // Checks if it's a map_entry table, and if it met the requirements.
+  if (struct_def.attributes.Lookup("map_entry")) {
+    if(struct_def.fields.vec.size() != 2)
+      Error("map_entry must have exactly two fields");
+    if(!struct_def.has_key)
+      Error("map_entry must have a key field");
+    const std::vector<FieldDef*> fields = struct_def.fields.vec;
+    for(size_t i = 0; i < fields.size(); i++) {
+      const FieldDef& field = *fields[i];
+      if(field.key && field.value.type.base_type != BASE_TYPE_STRING) //FIXME Would be better to enforce string key only in strict JSON
+        Error("map_entry's key must be a string");
+      if(!field.key && field.value.type.base_type != BASE_TYPE_STRING
+            && (field.value.type.base_type != BASE_TYPE_STRUCT
+            || field.value.type.struct_def->fixed))
+        Error("map_entry's value must be ");
+      else break;
+    }
+  }
+
   Expect('}');
 }
 

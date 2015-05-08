@@ -44,5 +44,24 @@
   testhashs32_fnv1a: -1904106383,
   testhashu32_fnv1a: 2390860913,
   testhashs64_fnv1a: 4898026182817603057,
-  testhashu64_fnv1a: 4898026182817603057
+  testhashu64_fnv1a: 4898026182817603057,
+  testarrayofsortedsctruct: [
+    {
+      locale: "de",
+      text: "Hallo wereld."
+    },
+    {
+      locale: "en",
+      text: "Hello world."
+    },
+    {
+      locale: "fr",
+      text: "Bonjour a tous."
+    }
+  ],
+  greetings: {
+    "de": "Hallo wereld.",
+    "en": "Hello world.",
+    "fr": "Bonjour a tous."
+  }
 }

@@ -27,6 +27,16 @@ table Stat {
   count:ushort;
 }
 
+table SortedTable {
+  locale: string (key);
+  text: string;
+}
+
+table Greeting (map_entry) {
+  locale: string (key);
+  text: string;
+}
+
 table Monster {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
@@ -53,6 +63,8 @@ table Monster {
   testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32");
   testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
+  testarrayofsortedsctruct: [SortedTable] (id:24);
+  greetings: [Greeting] (id:25);
 }
 
 root_type Monster;

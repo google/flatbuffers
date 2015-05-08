@@ -590,6 +590,12 @@ void ErrorTest() {
             true);
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
             "{ V:{ Y:1 } }", "incomplete");
+  TestError("table X (map_entry) { K:string (key); } root_type X; ",
+            "have exactly two fields");
+  TestError("table X (map_entry) { K:string; V:string; } root_type X;",
+            "have a key");
+  TestError("table X (map_entry) { K:int (key); V:string; } root_type X;",
+            "key must be a string");
   TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
             "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");

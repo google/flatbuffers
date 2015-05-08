@@ -45,4 +45,23 @@
   testhashu32_fnv1a: "This string is being hashed!",
   testhashs64_fnv1a: "This string is being hashed!",
   testhashu64_fnv1a: "This string is being hashed!",
+  testarrayofsortedsctruct: [
+    {
+      locale: "de",
+      text: "Hallo wereld."
+    },
+    {
+      locale: "en",
+      text: "Hello world."
+    },
+    {
+      locale: "fr",
+      text: "Bonjour a tous."
+    }
+  ],
+  greetings: {
+    "de": "Hallo wereld.",
+    "en": "Hello world.",
+    "fr": "Bonjour a tous."
+  }
 }
