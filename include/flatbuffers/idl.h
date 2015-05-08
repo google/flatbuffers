@@ -329,6 +329,8 @@ class Parser {
   void Next();
   bool IsNext(int t);
   void Expect(int t);
+  EnumDef *LookupEnum(const std::string &id);
+  void ParseNamespacing(std::string *id, std::string *last);
   void ParseTypeIdent(Type &type);
   void ParseType(Type &type);
   FieldDef &AddField(StructDef &struct_def,
