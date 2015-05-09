@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#include <limits>
+#include <string>
+#include <vector>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -121,25 +125,25 @@ int main(int argc, const char *argv[]) {
       if (arg == "-o") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         output_path = flatbuffers::ConCatPathFileName(argv[argi], "");
-      } else if(arg == "-I") {
+      } else if (arg == "-I") {
         if (++argi >= argc) Error("missing path following" + arg, true);
         include_directories.push_back(argv[argi]);
-      } else if(arg == "--strict-json") {
+      } else if (arg == "--strict-json") {
         opts.strict_json = true;
-      } else if(arg == "--no-prefix") {
+      } else if (arg == "--no-prefix") {
         opts.prefixed_enums = false;
-      } else if(arg == "--gen-mutable") {
+      } else if (arg == "--gen-mutable") {
         opts.mutable_buffer = true;
-      } else if(arg == "--gen-includes") {
+      } else if (arg == "--gen-includes") {
         opts.include_dependence_headers = true;
-      } else if(arg == "--raw-binary") {
+      } else if (arg == "--raw-binary") {
         raw_binary = true;
-      } else if(arg == "--") {  // Separator between text and binary inputs.
+      } else if (arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
-      } else if(arg == "--proto") {
+      } else if (arg == "--proto") {
         proto_mode = true;
         any_generator = true;
-      } else if(arg == "-M") {
+      } else if (arg == "-M") {
         print_make_rules = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
@@ -150,7 +154,7 @@ int main(int argc, const char *argv[]) {
           }
         }
         Error("unknown commandline argument" + arg, true);
-        found:;
+        found: {}
       }
     } else {
       filenames.push_back(argv[argi]);

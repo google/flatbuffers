@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_HASH_H_
-#define FLATBUFFERS_HASH_H_
+#ifndef INCLUDE_FLATBUFFERS_HASH_H_
+#define INCLUDE_FLATBUFFERS_HASH_H_
 
 #include <cstdint>
 #include <cstring>
@@ -102,4 +102,4 @@ inline NamedHashFunction<uint64_t>::HashFunction FindHashFunction64(
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_HASH_H_
+#endif  // INCLUDE_FLATBUFFERS_HASH_H_

@@ -16,6 +16,9 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <string>
+#include <algorithm>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -28,7 +31,8 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
 
 static void GenValue(const StructDef &struct_def, const Table *table,
                      int indent, const GeneratorOptions &opts,
-                     std::string *_text, FieldDef &fd, StructDef *&union_sd);
+                     std::string *_text, const FieldDef &fd,
+                     StructDef **union_sd);
 
 // If indentation is less than 0, that indicates we don't want any newlines
 // either.
@@ -81,7 +85,8 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
     }
     text.append(indent + Indent(opts), ' ');
     if (IsStruct(type))
-      Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type, indent + Indent(opts), nullptr, opts, _text);
+      Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type,
+            indent + Indent(opts), nullptr, opts, _text);
     else
       Print(v.Get(i), type, indent + Indent(opts), nullptr,
             opts, _text);
@@ -115,9 +120,11 @@ template<typename T> void PrintMap(const Vector<T> &v, Type type,
 
     const Table* table = reinterpret_cast<const Table*>(v.Get(i));
 
-    GenValue(*struct_def, table, content_indent, opts, _text, *key_field, union_sd);
+    GenValue(*struct_def, table, content_indent, opts,
+             _text, *key_field, &union_sd);
     text += ": ";
-    GenValue(*struct_def, table, content_indent, opts, _text, *val_field, union_sd);
+    GenValue(*struct_def, table, content_indent, opts,
+             _text, *val_field, &union_sd);
   }
   text += NewLine(opts);
   text.append(indent, ' ');
@@ -165,8 +172,9 @@ static void EscapeString(const String &s, std::string *_text) {
 
 // Specialization of Print above for pointer types.
 template<>
-void Print<const void *>(const void *val, Type type, int indent, StructDef *union_sd, const GeneratorOptions &opts,
-           std::string *_text) {
+void Print<const void *>(const void *val, Type type, int indent,
+                         StructDef *union_sd, const GeneratorOptions &opts,
+                         std::string *_text) {
   switch (type.base_type) {
     case BASE_TYPE_UNION:
       // If this assert hits, you have an corrupt buffer, a union type field
@@ -192,7 +200,8 @@ void Print<const void *>(const void *val, Type type, int indent, StructDef *unio
     case BASE_TYPE_VECTOR:
       type = type.VectorType();
 
-      if(type.base_type == BASE_TYPE_STRUCT && type.struct_def->attributes.Lookup("map_entry")) {
+      if (type.base_type == BASE_TYPE_STRUCT
+         && type.struct_def->attributes.Lookup("map_entry")) {
         // Call PrintVector above specifically for each element type:
         switch (type.base_type) {
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
@@ -254,7 +263,8 @@ static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
 
 static void GenValue(const StructDef &struct_def, const Table *table,
                      int indent, const GeneratorOptions &opts,
-                     std::string *_text, FieldDef &fd, StructDef *&union_sd) {
+                     std::string *_text, const FieldDef &fd,
+                     StructDef **union_sd) {
   switch (fd.value.type.base_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
       case BASE_TYPE_ ## ENUM: \
@@ -269,14 +279,14 @@ static void GenValue(const StructDef &struct_def, const Table *table,
     FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
       GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
-                     union_sd, opts, _text);
+                     *union_sd, opts, _text);
       break;
   }
   if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
     auto enum_val = fd.value.type.enum_def->ReverseLookup(
         table->GetField<uint8_t>(fd.value.offset, 0));
     assert(enum_val);
-    union_sd = enum_val->struct_def;
+    *union_sd = enum_val->struct_def;
   }
 }
 
@@ -302,7 +312,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       text.append(indent + Indent(opts), ' ');
       OutputIdentifier(fd.name, opts, _text);
       text += ": ";
-      GenValue(struct_def, table, indent, opts, _text, fd, union_sd);
+      GenValue(struct_def, table, indent, opts, _text, fd, &union_sd);
     }
   }
   text += NewLine(opts);

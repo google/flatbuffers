@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_IDL_H_
-#define FLATBUFFERS_IDL_H_
+#ifndef INCLUDE_FLATBUFFERS_IDL_H_
+#define INCLUDE_FLATBUFFERS_IDL_H_
 
 #include <map>
 #include <set>
 #include <stack>
 #include <memory>
 #include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
@@ -134,7 +137,8 @@ struct Type {
 
 // Represents a parsed scalar value, it's type, and field offset.
 struct Value {
-  Value() : string("0"), offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
+  Value() : string("0"),
+            offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
 
   union {
@@ -200,12 +204,12 @@ struct FieldDef : public Definition {
                used(false) {}
 
   Value value;
-  bool deprecated; // Field is allowed to be present in old data, but can't be
-                   // written in new data nor accessed in new code.
-  bool required;   // Field must always be present.
-  bool key;        // Field functions as a key for creating sorted vectors.
-  size_t padding;  // Bytes to always pad after this field.
-  bool used;       // Used during JSON parsing to check for repeated fields.
+  bool deprecated;  // Field is allowed to be present in old data, but can't be
+                    // written in new data nor accessed in new code.
+  bool required;    // Field must always be present.
+  bool key;         // Field functions as a key for creating sorted vectors.
+  size_t padding;   // Bytes to always pad after this field.
+  bool used;        // Used during JSON parsing to check for repeated fields.
 };
 
 struct StructDef : public Definition {
@@ -276,7 +280,7 @@ struct EnumDef : public Definition {
 
 class Parser {
  public:
-  Parser(bool strict_json = false, bool proto_mode = false)
+  explicit Parser(bool strict_json = false, bool proto_mode = false)
     : root_struct_def(nullptr),
       source_(nullptr),
       cursor_(nullptr),
@@ -339,26 +343,27 @@ class Parser {
   void Expect(int t);
   EnumDef *LookupEnum(const std::string &id);
   void ParseNamespacing(std::string *id, std::string *last);
-  bool compareKeys(FieldDef &key_field, Value v1, Value v2);
-  void ParseTypeIdent(Type &type);
-  void ParseType(Type &type);
-  FieldDef &AddField(StructDef &struct_def,
+  bool compareKeys(const FieldDef &key_field, const Value &v1, const Value &v2);
+  void ParseTypeIdent(Type *type);
+  void ParseType(Type *type);
+  FieldDef &AddField(StructDef *struct_def,
                      const std::string &name,
                      const Type &type);
-  void ParseField(StructDef &struct_def);
-  void ParseAnyValue(Value &val, FieldDef *field, Value *key = nullptr);
+  void ParseField(StructDef *struct_def);
+  void ParseAnyValue(Value *val, FieldDef *field, Value *key = nullptr);
   uoffset_t ParseTable(const StructDef &struct_def, Value *key = nullptr);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void SerializeAnyValue(const Value &val);
-  void SerializeField(const StructDef &struct_def, const Value &value, const FieldDef *field);
+  void SerializeField(const StructDef &struct_def, const Value &value,
+                      const FieldDef *field);
   void AddVector(bool sortbysize, int count);
   uoffset_t ParseVector(const Type &type);
   uoffset_t ParseMap(const Type &type);
-  void ParseMetaData(Definition &def);
-  bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
-  void ParseHash(Value &e, FieldDef* field);
-  void ParseSingleValue(Value &e);
-  int64_t ParseIntegerFromString(Type &type);
+  void ParseMetaData(Definition *def);
+  bool TryTypedValue(int dtoken, bool check, Value *e, BaseType req);
+  void ParseHash(Value *e, FieldDef* field);
+  void ParseSingleValue(Value *e);
+  int64_t ParseIntegerFromString(const Type &type);
   StructDef *LookupCreateStruct(const std::string &name);
   void ParseEnum(bool is_union);
   void ParseNamespace();
@@ -530,5 +535,4 @@ extern std::string BinaryMakeRule(const Parser &parser,
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_IDL_H_
-
+#endif  // INCLUDE_FLATBUFFERS_IDL_H_

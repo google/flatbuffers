@@ -73,7 +73,8 @@ int main(int argc, char* argv[]) {
       else if (opt == "-0x") output_format = kHexadecimal0x;
       else if (opt == "-c")  annotate = true;
       else if (opt == "--")  escape_dash = true;
-      else printf("Unrecognized argument: \"%s\"\n", arg);
+      else
+        printf("Unrecognized argument: \"%s\"\n", arg);
     } else {
       std::stringstream ss;
       if (output_format == kDecimal) {
