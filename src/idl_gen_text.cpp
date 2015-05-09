@@ -54,7 +54,6 @@ void OutputIdentifier(const std::string &name, const GeneratorOptions &opts,
 // The general case for scalars:
 template<typename T> void Print(T val, Type type, int /*indent*/,
                                 StructDef * /*union_sd*/,
-                                bool /*key*/,
                                 const GeneratorOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
@@ -82,10 +81,9 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
     }
     text.append(indent + Indent(opts), ' ');
     if (IsStruct(type))
-      Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type, indent + Indent(opts), nullptr, false, opts,
-            _text);
+      Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type, indent + Indent(opts), nullptr, opts, _text);
     else
-      Print(v.Get(i), type, indent + Indent(opts), nullptr, false,
+      Print(v.Get(i), type, indent + Indent(opts), nullptr,
             opts, _text);
   }
   text += NewLine(opts);
@@ -167,7 +165,7 @@ static void EscapeString(const String &s, std::string *_text) {
 
 // Specialization of Print above for pointer types.
 template<>
-void Print<const void *>(const void *val, Type type, int indent, StructDef *union_sd, bool key, const GeneratorOptions &opts,
+void Print<const void *>(const void *val, Type type, int indent, StructDef *union_sd, const GeneratorOptions &opts,
            std::string *_text) {
   switch (type.base_type) {
     case BASE_TYPE_UNION:
@@ -233,7 +231,7 @@ template<typename T> static void GenField(const FieldDef &fd,
   Print(fixed ?
     reinterpret_cast<const Struct *>(table)->GetField<T>(fd.value.offset) :
     table->GetField<T>(fd.value.offset, 0), fd.value.type, indent, nullptr,
-                                            false, opts, _text);
+                                            opts, _text);
 }
 
 // Generate text for non-scalar field.
@@ -251,7 +249,7 @@ static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
       ? table->GetStruct<const void *>(fd.value.offset)
       : table->GetPointer<const void *>(fd.value.offset);
   }
-  Print(val, fd.value.type, indent, union_sd, false, opts, _text);
+  Print(val, fd.value.type, indent, union_sd, opts, _text);
 }
 
 static void GenValue(const StructDef &struct_def, const Table *table,
