@@ -65,6 +65,7 @@
     "fr": "Bonjour a tous."
   },
   binds: {
+    Left: "ARROW_LEFT",
     Jump: "SPACE",
     Sprint: "SHIFT"
   }

@@ -37,7 +37,7 @@ table Greeting (map_entry) {
   text: string;
 }
 
-enum Action : byte { Left, Right, Jump, Sprint }
+enum Action : byte { Left = 0, Right, Jump, Sprint }
 
 table Bind (map_entry) {
   action: Action (key);

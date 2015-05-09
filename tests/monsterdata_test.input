@@ -61,11 +61,12 @@
   ],
   greetings: {
     fr: "Bonjour a tous.",
-    de: "Hallo wereld.",
+    "de": "Hallo wereld.",
     en: "Hello world."
   },
   binds: {
     Sprint: "SHIFT",
-    Jump: "SPACE"
+    "Jump": "SPACE",
+    0: "ARROW_LEFT"
   }
 }
