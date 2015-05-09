@@ -17,6 +17,8 @@ namespace Example {
 struct Test;
 struct Vec3;
 struct Stat;
+struct SortedTable;
+struct Greeting;
 struct Monster;
 
 enum Color {
@@ -136,6 +138,86 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
+struct SortedTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  const flatbuffers::String *locale() const { return GetPointer<const flatbuffers::String *>(4); }
+  flatbuffers::String *mutable_locale() { return GetPointer<flatbuffers::String *>(4); }
+  bool KeyCompareLessThan(const SortedTable *o) const { return *locale() < *o->locale(); }
+  int KeyCompareWithValue(const char *val) const { return strcmp(locale()->c_str(), val); }
+  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(6); }
+  flatbuffers::String *mutable_text() { return GetPointer<flatbuffers::String *>(6); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, 4 /* locale */) &&
+           verifier.Verify(locale()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 6 /* text */) &&
+           verifier.Verify(text()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SortedTableBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_locale(flatbuffers::Offset<flatbuffers::String> locale) { fbb_.AddOffset(4, locale); }
+  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(6, text); }
+  SortedTableBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  SortedTableBuilder &operator=(const SortedTableBuilder &);
+  flatbuffers::Offset<SortedTable> Finish() {
+    auto o = flatbuffers::Offset<SortedTable>(fbb_.EndTable(start_, 2));
+    fbb_.Required(o, 4);  // locale
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SortedTable> CreateSortedTable(flatbuffers::FlatBufferBuilder &_fbb,
+   flatbuffers::Offset<flatbuffers::String> locale = 0,
+   flatbuffers::Offset<flatbuffers::String> text = 0) {
+  SortedTableBuilder builder_(_fbb);
+  builder_.add_text(text);
+  builder_.add_locale(locale);
+  return builder_.Finish();
+}
+
+struct Greeting FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  const flatbuffers::String *locale() const { return GetPointer<const flatbuffers::String *>(4); }
+  flatbuffers::String *mutable_locale() { return GetPointer<flatbuffers::String *>(4); }
+  bool KeyCompareLessThan(const Greeting *o) const { return *locale() < *o->locale(); }
+  int KeyCompareWithValue(const char *val) const { return strcmp(locale()->c_str(), val); }
+  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(6); }
+  flatbuffers::String *mutable_text() { return GetPointer<flatbuffers::String *>(6); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, 4 /* locale */) &&
+           verifier.Verify(locale()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 6 /* text */) &&
+           verifier.Verify(text()) &&
+           verifier.EndTable();
+  }
+};
+
+struct GreetingBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_locale(flatbuffers::Offset<flatbuffers::String> locale) { fbb_.AddOffset(4, locale); }
+  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(6, text); }
+  GreetingBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  GreetingBuilder &operator=(const GreetingBuilder &);
+  flatbuffers::Offset<Greeting> Finish() {
+    auto o = flatbuffers::Offset<Greeting>(fbb_.EndTable(start_, 2));
+    fbb_.Required(o, 4);  // locale
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Greeting> CreateGreeting(flatbuffers::FlatBufferBuilder &_fbb,
+   flatbuffers::Offset<flatbuffers::String> locale = 0,
+   flatbuffers::Offset<flatbuffers::String> text = 0) {
+  GreetingBuilder builder_(_fbb);
+  builder_.add_text(text);
+  builder_.add_locale(locale);
+  return builder_.Finish();
+}
+
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(4); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(4); }
@@ -188,6 +270,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { return SetField(48, testhashs64_fnv1a); }
   uint64_t testhashu64_fnv1a() const { return GetField<uint64_t>(50, 0); }
   bool mutate_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { return SetField(50, testhashu64_fnv1a); }
+  const flatbuffers::Vector<flatbuffers::Offset<SortedTable>> *testarrayofsortedsctruct() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SortedTable>> *>(52); }
+  flatbuffers::Vector<flatbuffers::Offset<SortedTable>> *mutable_testarrayofsortedsctruct() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<SortedTable>> *>(52); }
+  const flatbuffers::Vector<flatbuffers::Offset<Greeting>> *greetings() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Greeting>> *>(54); }
+  flatbuffers::Vector<flatbuffers::Offset<Greeting>> *mutable_greetings() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Greeting>> *>(54); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
@@ -224,6 +310,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, 46 /* testhashu32_fnv1a */) &&
            VerifyField<int64_t>(verifier, 48 /* testhashs64_fnv1a */) &&
            VerifyField<uint64_t>(verifier, 50 /* testhashu64_fnv1a */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 52 /* testarrayofsortedsctruct */) &&
+           verifier.Verify(testarrayofsortedsctruct()) &&
+           verifier.VerifyVectorOfTables(testarrayofsortedsctruct()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, 54 /* greetings */) &&
+           verifier.Verify(greetings()) &&
+           verifier.VerifyVectorOfTables(greetings()) &&
            verifier.EndTable();
   }
 };
@@ -254,10 +346,12 @@ struct MonsterBuilder {
   void add_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) { fbb_.AddElement<uint32_t>(46, testhashu32_fnv1a, 0); }
   void add_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { fbb_.AddElement<int64_t>(48, testhashs64_fnv1a, 0); }
   void add_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { fbb_.AddElement<uint64_t>(50, testhashu64_fnv1a, 0); }
+  void add_testarrayofsortedsctruct(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SortedTable>>> testarrayofsortedsctruct) { fbb_.AddOffset(52, testarrayofsortedsctruct); }
+  void add_greetings(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Greeting>>> greetings) { fbb_.AddOffset(54, greetings); }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 24));
+    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 26));
     fbb_.Required(o, 10);  // name
     return o;
   }
@@ -286,12 +380,16 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    int32_t testhashs32_fnv1a = 0,
    uint32_t testhashu32_fnv1a = 0,
    int64_t testhashs64_fnv1a = 0,
-   uint64_t testhashu64_fnv1a = 0) {
+   uint64_t testhashu64_fnv1a = 0,
+   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SortedTable>>> testarrayofsortedsctruct = 0,
+   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Greeting>>> greetings = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_testhashu64_fnv1a(testhashu64_fnv1a);
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_greetings(greetings);
+  builder_.add_testarrayofsortedsctruct(testarrayofsortedsctruct);
   builder_.add_testhashu32_fnv1a(testhashu32_fnv1a);
   builder_.add_testhashs32_fnv1a(testhashs32_fnv1a);
   builder_.add_testhashu32_fnv1(testhashu32_fnv1);

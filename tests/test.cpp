@@ -243,17 +243,17 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 void ParseAndGenerateTextTest() {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
-  std::string jsonfile;
+  std::string input;
   TEST_EQ(flatbuffers::LoadFile(
     "tests/monster_test.fbs", false, &schemafile), true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monsterdata_test.golden", false, &jsonfile), true);
+    "tests/monsterdata_test.input", false, &input), true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
   const char *include_directories[] = { "tests", nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
-  TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
+  TEST_EQ(parser.Parse(input.c_str(), include_directories), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
 
@@ -263,13 +263,18 @@ void ParseAndGenerateTextTest() {
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
   // to ensure it is correct, we now generate text back from the binary,
-  // and compare the two:
+  // and compare to the expected ouput:
   std::string jsongen;
   flatbuffers::GeneratorOptions opts;
   GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
 
-  if (jsongen != jsonfile) {
-    printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
+  std::string expected;
+  TEST_EQ(flatbuffers::LoadFile(
+      "tests/monsterdata_test.expected", false, &expected), true);
+  TEST_EQ(parser.Parse(expected.c_str(), include_directories), true);
+
+  if (jsongen != expected) {
+    printf("%s----------------\n%s", jsongen.c_str(), expected.c_str());
     TEST_NOTNULL(NULL);
   }
 }
