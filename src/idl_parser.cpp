@@ -286,14 +286,33 @@ void Parser::Expect(int t) {
   Next();
 }
 
+void Parser::ParseNamespacing(std::string *id, std::string *last) {
+  while (IsNext('.')) {
+    *id += ".";
+    *id += attribute_;
+    if (last) *last = attribute_;
+    Expect(kTokenIdentifier);
+  }
+}
+
+EnumDef *Parser::LookupEnum(const std::string &id) {
+  auto ed = enums_.Lookup(GetFullyQualifiedName(id));
+  // id may simply not have a namespace at all, so check that too.
+  if (!ed) ed = enums_.Lookup(id);
+  return ed;
+}
+
 void Parser::ParseTypeIdent(Type &type) {
-  auto enum_def = enums_.Lookup(attribute_);
+  std::string id = attribute_;
+  Expect(kTokenIdentifier);
+  ParseNamespacing(&id, nullptr);
+  auto enum_def = LookupEnum(id);
   if (enum_def) {
     type = enum_def->underlying_type;
     if (enum_def->is_union) type.base_type = BASE_TYPE_UNION;
   } else {
     type.base_type = BASE_TYPE_STRUCT;
-    type.struct_def = LookupCreateStruct(attribute_);
+    type.struct_def = LookupCreateStruct(id);
   }
 }
 
@@ -301,6 +320,7 @@ void Parser::ParseTypeIdent(Type &type) {
 void Parser::ParseType(Type &type) {
   if (token_ >= kTokenBOOL && token_ <= kTokenSTRING) {
     type.base_type = static_cast<BaseType>(token_ - kTokenNONE);
+    Next();
   } else {
     if (token_ == kTokenIdentifier) {
       ParseTypeIdent(type);
@@ -321,12 +341,10 @@ void Parser::ParseType(Type &type) {
       type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
       type.element = subtype.base_type;
       Expect(']');
-      return;
     } else {
       Error("illegal type syntax");
     }
   }
-  Next();
 }
 
 FieldDef &Parser::AddField(StructDef &struct_def,
@@ -819,11 +837,11 @@ int64_t Parser::ParseIntegerFromString(Type &type) {
       if (!IsInteger(type.base_type))
         Error("not a valid value for this field: " + word);
       // TODO: could check if its a valid number constant here.
-      const char *dot = strchr(word.c_str(), '.');
+      const char *dot = strrchr(word.c_str(), '.');
       if (!dot) Error("enum values need to be qualified by an enum type");
       std::string enum_def_str(word.c_str(), dot);
       std::string enum_val_str(dot + 1, word.c_str() + word.length());
-      auto enum_def = enums_.Lookup(enum_def_str);
+      auto enum_def = LookupEnum(enum_def_str);
       if (!enum_def) Error("unknown enum: " + enum_def_str);
       auto enum_val = enum_def->vals.Lookup(enum_val_str);
       if (!enum_val) Error("unknown enum value: " + enum_val_str);
@@ -886,12 +904,15 @@ void Parser::ParseSingleValue(Value &e) {
 }
 
 StructDef *Parser::LookupCreateStruct(const std::string &name) {
-  auto struct_def = structs_.Lookup(name);
+  std::string qualified_name = GetFullyQualifiedName(name);
+  auto struct_def = structs_.Lookup(qualified_name);
+  // Unqualified names may simply have no namespace at all, so try that too.
+  if (!struct_def) struct_def = structs_.Lookup(name);
   if (!struct_def) {
     // Rather than failing, we create a "pre declared" StructDef, due to
     // circular references, and check for errors at the end of parsing.
     struct_def = new StructDef();
-    structs_.Add(name, struct_def);
+    structs_.Add(qualified_name, struct_def);
     struct_def->name = name;
     struct_def->predecl = true;
     struct_def->defined_namespace = namespaces_.back();
@@ -910,7 +931,8 @@ void Parser::ParseEnum(bool is_union) {
   enum_def.doc_comment = enum_comment;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = namespaces_.back();
-  if (enums_.Add(enum_name, &enum_def)) Error("enum already exists: " + enum_name);
+  if (enums_.Add(GetFullyQualifiedName(enum_name), &enum_def))
+    Error("enum already exists: " + enum_name);
   if (is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
     enum_def.underlying_type.enum_def = &enum_def;
@@ -934,9 +956,11 @@ void Parser::ParseEnum(bool is_union) {
   Expect('{');
   if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
   do {
-    std::string value_name = attribute_;
+    auto value_name = attribute_;
+    auto full_name = value_name;
     std::vector<std::string> value_comment = doc_comment_;
     Expect(kTokenIdentifier);
+    if (is_union) ParseNamespacing(&full_name, &value_name);
     auto prevsize = enum_def.vals.vec.size();
     auto value = enum_def.vals.vec.size()
       ? enum_def.vals.vec.back()->value + 1
@@ -946,7 +970,7 @@ void Parser::ParseEnum(bool is_union) {
       Error("enum value already exists: " + value_name);
     ev.doc_comment = value_comment;
     if (is_union) {
-      ev.struct_def = LookupCreateStruct(value_name);
+      ev.struct_def = LookupCreateStruct(full_name);
     }
     if (IsNext('=')) {
       ev.value = atoi(attribute_.c_str());
@@ -1084,8 +1108,28 @@ void Parser::ParseDecl() {
 }
 
 bool Parser::SetRootType(const char *name) {
-  root_struct_def = structs_.Lookup(name);
+  root_struct_def = structs_.Lookup(GetFullyQualifiedName(name));
   return root_struct_def != nullptr;
+}
+
+std::string Parser::GetFullyQualifiedName(const std::string &name) const {
+  Namespace *ns = namespaces_.back();
+
+  // Early exit if we don't have a defined namespace, or if the name is already
+  // partially qualified
+  if (ns->components.size() == 0 || name.find(".") != std::string::npos) {
+    return name;
+  }
+  std::stringstream stream;
+  for (size_t i = 0; i != ns->components.size(); ++i) {
+    if (i != 0) {
+      stream << ".";
+    }
+    stream << ns->components[i];
+  }
+
+  stream << "." << name;
+  return stream.str();
 }
 
 void Parser::MarkGenerated() {
@@ -1216,7 +1260,6 @@ Type Parser::ParseTypeFromProtoType() {
     }
   }
   ParseTypeIdent(type);
-  Expect(kTokenIdentifier);
   return type;
 }
 

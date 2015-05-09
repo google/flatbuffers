@@ -19,7 +19,9 @@
 **/*.dir/**
 **/CMakeFiles/**
 **/cmake_install.cmake
+**/install_manifest.txt
 **/CMakeCache.txt
+**/CMakeTestfile.cmake
 **/Debug/**
 **/Release/**
 build.xml

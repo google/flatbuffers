@@ -44,6 +44,18 @@ static std::string WrapInNameSpace(const Parser &parser,
   return WrapInNameSpace(parser, def.defined_namespace, def.name);
 }
 
+// Translates a qualified name in flatbuffer text format to the same name in
+// the equivalent C++ namepsace.
+static std::string TranslateNameSpace(const std::string &qualified_name) {
+  std::string cpp_qualified_name = qualified_name;
+  size_t start_pos = 0;
+  while((start_pos = cpp_qualified_name.find(".", start_pos)) !=
+         std::string::npos) {
+    cpp_qualified_name.replace(start_pos, 1, "::");
+  }
+  return cpp_qualified_name;
+}
+
 
 // Return a C++ type from the table in idl.h
 static std::string GenTypeBasic(const Parser &parser, const Type &type,
@@ -258,11 +270,15 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       }
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
-        auto nested_root = parser.structs_.Lookup(nested->string);
+        std::string qualified_name = parser.GetFullyQualifiedName(
+            nested->string);
+        auto nested_root = parser.structs_.Lookup(qualified_name);
         assert(nested_root);  // Guaranteed to exist by parser.
-        code += "  const " + nested_root->name + " *" + field.name;
+        std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
+
+        code += "  const " + cpp_qualified_name + " *" + field.name;
         code += "_nested_root() const { return flatbuffers::GetRoot<";
-        code += nested_root->name + ">(" + field.name + "()->Data()); }\n";
+        code += cpp_qualified_name + ">(" + field.name + "()->Data()); }\n";
       }
       // Generate a comparison function for this field if it is a key.
       if (field.key) {
@@ -684,11 +700,14 @@ std::string GenerateCPP(const Parser &parser,
     // Generate convenient global helper functions:
     if (parser.root_struct_def) {
       auto &name = parser.root_struct_def->name;
+      std::string qualified_name = parser.GetFullyQualifiedName(name);
+      std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
+
       // The root datatype accessor:
-      code += "inline const " + name + " *Get";
+      code += "inline const " + cpp_qualified_name + " *Get";
       code += name;
       code += "(const void *buf) { return flatbuffers::GetRoot<";
-      code += name + ">(buf); }\n\n";
+      code += cpp_qualified_name + ">(buf); }\n\n";
       if (opts.mutable_buffer) {
         code += "inline " + name + " *GetMutable";
         code += name;
@@ -701,7 +720,7 @@ std::string GenerateCPP(const Parser &parser,
       code += name;
       code += "Buffer(flatbuffers::Verifier &verifier) { "
               "return verifier.VerifyBuffer<";
-      code += name + ">(); }\n\n";
+      code += cpp_qualified_name + ">(); }\n\n";
 
       if (parser.file_identifier_.length()) {
         // Return the identifier
@@ -726,7 +745,7 @@ std::string GenerateCPP(const Parser &parser,
       // Finish a buffer with a given root object:
       code += "inline void Finish" + name;
       code += "Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<";
-      code += name + "> root) { fbb.Finish(root";
+      code += cpp_qualified_name + "> root) { fbb.Finish(root";
       if (parser.file_identifier_.length())
         code += ", " + name + "Identifier()";
       code += "); }\n\n";

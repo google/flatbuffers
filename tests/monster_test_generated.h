@@ -167,7 +167,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Monster *mutable_enemy() { return GetPointer<Monster *>(28); }
   const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(30); }
   flatbuffers::Vector<uint8_t> *mutable_testnestedflatbuffer() { return GetPointer<flatbuffers::Vector<uint8_t> *>(30); }
-  const Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<Monster>(testnestedflatbuffer()->Data()); }
+  const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data()); }
   const Stat *testempty() const { return GetPointer<const Stat *>(32); }
   Stat *mutable_testempty() { return GetPointer<Stat *>(32); }
   uint8_t testbool() const { return GetField<uint8_t>(34, 0); }
@@ -322,11 +322,11 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, An
   }
 }
 
-inline const Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<Monster>(buf); }
+inline const MyGame::Example::Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<MyGame::Example::Monster>(buf); }
 
 inline Monster *GetMutableMonster(void *buf) { return flatbuffers::GetMutableRoot<Monster>(buf); }
 
-inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Monster>(); }
+inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Example::Monster>(); }
 
 inline const char *MonsterIdentifier() { return "MONS"; }
 
@@ -334,7 +334,7 @@ inline bool MonsterBufferHasIdentifier(const void *buf) { return flatbuffers::Bu
 
 inline const char *MonsterExtension() { return "mon"; }
 
-inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Monster> root) { fbb.Finish(root, MonsterIdentifier()); }
+inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<MyGame::Example::Monster> root) { fbb.Finish(root, MonsterIdentifier()); }
 
 }  // namespace Example
 }  // namespace MyGame

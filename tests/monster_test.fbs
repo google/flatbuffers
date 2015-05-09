@@ -49,7 +49,7 @@ table Monster {
   /// multiline too
   testarrayoftables:[Monster] (id: 11);
   testarrayofstring:[string] (id: 10);
-  enemy:Monster (id:12);
+  enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
   test4:[Test] (id: 9);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
