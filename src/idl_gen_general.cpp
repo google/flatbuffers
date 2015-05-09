@@ -26,7 +26,7 @@
 namespace flatbuffers {
 
 // Convert an underscore_based_indentifier in to camelCase.
-// Alsgo uppercases the first character if first is true.
+// Also uppercases the first character if first is true.
 std::string MakeCamel(const std::string &in, bool first) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
@@ -317,7 +317,7 @@ static std::string DestinationValue(const LanguageParameters &lang,
 
 static std::string GenDefaultValue(const Value &value) {
   return value.type.base_type == BASE_TYPE_BOOL
-           ? (value.scalars.POINTER == 0 ? "false" : "true")
+           ? (value.scalars.BOOL == 0 ? "false" : "true")
            : value.string;
 }
 
@@ -367,8 +367,8 @@ static void GenEnum(const LanguageParameters &lang, const EnumDef &enum_def,
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
     static const int kMaxSparseness = 5;
-    if (range / static_cast<int64_t>(enum_def.vals.vec.size()) <
-        kMaxSparseness) {
+    if (range / static_cast<int64_t>(enum_def.vals.vec.size())
+        < kMaxSparseness) {
       code += "\n  private static";
       code += lang.const_decl;
       code += lang.string_type;

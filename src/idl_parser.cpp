@@ -428,7 +428,7 @@ void Parser::ParseField(StructDef *struct_def) {
       case BASE_TYPE_ULONG: {
         if (FindHashFunction64(hash_name->string.c_str()) == nullptr)
           Error("Unknown hashing algorithm for 64 bit types: " +
-                  hash_name->string);
+                hash_name->string);
         break;
       }
       default:

@@ -142,7 +142,7 @@ struct Value {
   Type type;
 
   union {
-    uint64_t __init = 0;
+    uint64_t raw = 0;
     uoffset_t POINTER;
 #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) CTYPE ENUM;
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)

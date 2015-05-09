@@ -278,9 +278,9 @@ Current understood attributes:
 -   `key` (on a field): this field is meant to be used as a key when sorting
     a vector of the type of table it sits in. Can be used for in-place
     binary search.
--   `map_entry` (on a table): The table must have a string field annotated with
-    the key attribute.enable vectors of this table to be parsed as a JSON
-    object instead of an array of object. 
+-   `map_entry` (on a table): The table must have two fields, one of which
+    having the `key` attribute. Enable vectors of this table to be parsed as a
+    JSON object instead of an array of object.
 
 ## JSON Parsing
 
