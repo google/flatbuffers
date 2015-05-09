@@ -63,5 +63,9 @@
     "de": "Hallo wereld.",
     "en": "Hello world.",
     "fr": "Bonjour a tous."
+  },
+  binds: {
+    Jump: "SPACE",
+    Sprint: "SHIFT"
   }
 }

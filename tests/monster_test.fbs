@@ -37,6 +37,13 @@ table Greeting (map_entry) {
   text: string;
 }
 
+enum Action : byte { Left, Right, Jump, Sprint }
+
+table Bind (map_entry) {
+  action: Action (key);
+  value: string;
+}
+
 table Monster {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
@@ -65,6 +72,7 @@ table Monster {
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
   testarrayofsortedsctruct: [SortedTable] (id:24);
   greetings: [Greeting] (id:25);
+  binds: [Bind] (id:26);
 }
 
 root_type Monster;
