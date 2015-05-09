@@ -34,11 +34,8 @@ func NewBuilder(initialSize int) *Builder {
 // Reset truncates the underlying Builder buffer, facilitating alloc-free
 // reuse of a Builder.
 func (b *Builder) Reset() {
-	b.head = UOffsetT(0)
-	b.minalign = 1
-
 	if b.Bytes != nil {
-		b.Bytes = b.Bytes[:0]
+		b.Bytes = b.Bytes[:cap(b.Bytes)]
 	}
 
 	if b.vtables != nil {
@@ -48,6 +45,9 @@ func (b *Builder) Reset() {
 	if b.vtable != nil {
 		b.vtable = b.vtable[:0]
 	}
+
+	b.head = UOffsetT(len(b.Bytes))
+	b.minalign = 1
 }
 
 // StartObject initializes bookkeeping for writing a new object.
@@ -196,9 +196,6 @@ func (b *Builder) growByteBuffer() {
 
 	middle := newLen / 2
 	copy(b.Bytes[middle:], b.Bytes[:middle])
-	for i := 0; i < middle; i++ {
-		b.Bytes[i] = 0
-	}
 }
 
 // Head gives the start of useful data in the underlying byte buffer.
