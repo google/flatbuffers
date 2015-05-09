@@ -1254,7 +1254,8 @@ func BenchmarkBuildGold(b *testing.B) {
 	reuse_fred := []byte("Fred")
 
 	b.SetBytes(bytes_length)
-	bldr := flatbuffers.NewBuilder(512)
+	bldr := flatbuffers.NewBuilder(0)
+	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		bldr.Reset()

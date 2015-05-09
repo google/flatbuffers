@@ -34,17 +34,35 @@ func NewBuilder(initialSize int) *Builder {
 // Reset truncates the underlying Builder buffer, facilitating alloc-free
 // reuse of a Builder.
 func (b *Builder) Reset() {
-	b.Bytes = b.Bytes[:0]
 	b.head = UOffsetT(0)
 	b.minalign = 1
-	b.vtables = b.vtables[:0]
+
+	if b.Bytes != nil {
+		b.Bytes = b.Bytes[:0]
+	}
+
+	if b.vtables != nil {
+		b.vtables = b.vtables[:0]
+	}
+
+	if b.vtable != nil {
+		b.vtable = b.vtable[:0]
+	}
 }
 
 // StartObject initializes bookkeeping for writing a new object.
 func (b *Builder) StartObject(numfields int) {
 	b.notNested()
 	// use 32-bit offsets so that arithmetic doesn't overflow.
-	b.vtable = make([]UOffsetT, numfields)
+	if cap(b.vtable) < numfields || b.vtable == nil {
+		b.vtable = make([]UOffsetT, numfields)
+	} else {
+		b.vtable = b.vtable[:numfields]
+		for i := 0 ; i < len(b.vtable) ; i++ {
+			b.vtable[i] = 0
+		}
+	}
+
 	b.objectEnd = b.Offset()
 	b.minalign = 1
 }
@@ -146,7 +164,7 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 			SOffsetT(existingVtable)-SOffsetT(objectOffset))
 	}
 
-	b.vtable = nil
+	b.vtable = b.vtable[:0]
 	return objectOffset
 }
 
@@ -269,7 +287,7 @@ func (b *Builder) CreateString(s string) UOffsetT {
 	return b.CreateByteString([]byte(s))
 }
 
-// CreateByteString writes a null-terminated byteslice as a vector.
+// CreateByteString writes a byte slice as a string (null-terminated).
 func (b *Builder) CreateByteString(s []byte) UOffsetT {
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
@@ -297,7 +315,7 @@ func (b *Builder) CreateByteVector(v []byte) UOffsetT {
 func (b *Builder) notNested() {
 	// Check that no other objects are being built while making this
 	// object. If not, panic:
-	if b.vtable != nil {
+	if len(b.vtable) > 0 {
 		panic("non-inline data write inside of object")
 	}
 }
