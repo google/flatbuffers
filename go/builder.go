@@ -58,7 +58,7 @@ func (b *Builder) StartObject(numfields int) {
 		b.vtable = make([]UOffsetT, numfields)
 	} else {
 		b.vtable = b.vtable[:numfields]
-		for i := 0 ; i < len(b.vtable) ; i++ {
+		for i := 0; i < len(b.vtable); i++ {
 			b.vtable[i] = 0
 		}
 	}
@@ -196,7 +196,7 @@ func (b *Builder) growByteBuffer() {
 
 	middle := newLen / 2
 	copy(b.Bytes[middle:], b.Bytes[:middle])
-	for i := 0 ; i < middle; i++ {
+	for i := 0; i < middle; i++ {
 		b.Bytes[i] = 0
 	}
 }
