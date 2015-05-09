@@ -712,8 +712,12 @@ int Parser::compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2) {
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
     case BASE_TYPE_STRING: {
-      const char *k1 = t1->GetField<const char*>(key_field.value.offset, 0);
-      const char *k2 = t2->GetField<const char*>(key_field.value.offset, 0);
+      // Retreive strings offsets in the map entry
+      uoffset_t p1 = t1->GetField<uoffset_t>(key_field.value.offset, 0);
+      uoffset_t p2 = t2->GetField<uoffset_t>(key_field.value.offset, 0);
+      // Get pointer to them in current builder
+      const char* k1 = reinterpret_cast<const char*>(buffer + p1);
+      const char* k2 = reinterpret_cast<const char*>(buffer + p2);
       return strcmp(k1, k2);
     }
     default:
