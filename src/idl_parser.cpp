@@ -637,7 +637,7 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def, Value *key) {
   }
 }
 
-bool Parser::compareMapKeys(FieldDef &key_field, Value v1, Value v2) {
+bool Parser::compareKeys(FieldDef &key_field, Value v1, Value v2) {
   switch (key_field.value.type.base_type) {
 #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
       case BASE_TYPE_ ## ENUM: { \
@@ -685,7 +685,7 @@ uoffset_t Parser::ParseMap(const Type &type) {
 
   std::sort(entries.begin(), entries.end(), [this, key_field](
       const std::pair<Value, Offset<void>> &v1, const std::pair<Value, Offset<void>> &v2){
-    return compareMapKeys(*key_field, v1.first, v2.first);
+    return compareKeys(*key_field, v1.first, v2.first);
   });
 
   const size_t count = entries.size();
@@ -697,35 +697,6 @@ uoffset_t Parser::ParseMap(const Type &type) {
 
   builder_.ClearOffsets();
   return builder_.EndVector(count);
-}
-
-bool Parser::compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2) {
-  uint8_t *buffer = builder_.GetBufferPointer();
-  const Table* t1 = reinterpret_cast<const Table*>(buffer + v1.scalars.POINTER);
-  const Table* t2 = reinterpret_cast<const Table*>(buffer + v2.scalars.POINTER);
-
-  switch (key_field.value.type.base_type) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE) \
-      case BASE_TYPE_ ## ENUM: {\
-        CTYPE k1 = t1->GetField<CTYPE>(key_field.value.offset, 0); \
-        CTYPE k2 = t2->GetField<CTYPE>(key_field.value.offset, 0); \
-        return k1 < k2; \
-      }
-    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
-    case BASE_TYPE_STRING: {
-      // Retreive strings offsets in the map entry
-      uoffset_t p1 = t1->GetField<uoffset_t>(key_field.value.offset, 0);
-      uoffset_t p2 = t2->GetField<uoffset_t>(key_field.value.offset, 0);
-      // Get pointer to them in current builder
-      const char* k1 = reinterpret_cast<const char*>(buffer + p1);
-      const char* k2 = reinterpret_cast<const char*>(buffer + p2);
-      return strcmp(k1, k2) < 0;
-    }
-    default:
-      assert(0); // Unauthorized key type
-  }
-  return 0;
 }
 
 uoffset_t Parser::ParseVector(const Type &type) {
@@ -754,7 +725,7 @@ uoffset_t Parser::ParseVector(const Type &type) {
 
     std::sort(elements.begin(), elements.end(), [this, key_field](
       const std::pair<Value, Value> &v1, const std::pair<Value, Value> &v2){
-      return compareMapKeys(*key_field, v1.second, v2.second);
+      return compareKeys(*key_field, v1.second, v2.second);
     });
   }
 

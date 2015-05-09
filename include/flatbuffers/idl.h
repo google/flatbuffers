@@ -331,8 +331,7 @@ class Parser {
   void Next();
   bool IsNext(int t);
   void Expect(int t);
-  bool compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2);
-  bool compareMapKeys(FieldDef &key_field, Value v1, Value v2);
+  bool compareKeys(FieldDef &key_field, Value v1, Value v2);
   void ParseTypeIdent(Type &type);
   void ParseType(Type &type);
   FieldDef &AddField(StructDef &struct_def,
