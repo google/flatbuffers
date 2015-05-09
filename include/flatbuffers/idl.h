@@ -331,16 +331,16 @@ class Parser {
   void Next();
   bool IsNext(int t);
   void Expect(int t);
-  int compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2);
-  int compareMapKeys(FieldDef &key_field, Value v1, Value v2);
+  bool compareSortedVectorKeys(FieldDef &key_field, Value v1, Value v2);
+  bool compareMapKeys(FieldDef &key_field, Value v1, Value v2);
   void ParseTypeIdent(Type &type);
   void ParseType(Type &type);
   FieldDef &AddField(StructDef &struct_def,
                      const std::string &name,
                      const Type &type);
   void ParseField(StructDef &struct_def);
-  void ParseAnyValue(Value &val, FieldDef *field);
-  uoffset_t ParseTable(const StructDef &struct_def);
+  void ParseAnyValue(Value &val, FieldDef *field, Value *key = nullptr);
+  uoffset_t ParseTable(const StructDef &struct_def, Value *key = nullptr);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void SerializeAnyValue(const Value &val);
   void SerializeField(const StructDef &struct_def, const Value &value, const FieldDef *field);
