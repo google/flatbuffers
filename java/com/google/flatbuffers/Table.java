@@ -45,7 +45,7 @@ public class Table {
   protected String __string(int offset) {
     offset += bb.getInt(offset);
     if (bb.hasArray()) {
-      return new String(bb.array(), offset + SIZEOF_INT, bb.getInt(offset), FlatBufferBuilder.utf8charset);
+      return new String(bb.array(), bb.arrayOffset() + offset + SIZEOF_INT, bb.getInt(offset), FlatBufferBuilder.utf8charset);
     } else {
       // We can't access .array(), since the ByteBuffer is read-only,
       // off-heap or a memory map
