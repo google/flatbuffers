@@ -1185,6 +1185,8 @@ bool Parser::Parse(const char *source, const char **include_paths,
       }
       Expect(';');
     }
+    // Start with a blank namespace just in case this file doesn't have one.
+    namespaces_.push_back(new Namespace());
     // Now parse all other kinds of declarations:
     while (token_ != kTokenEof) {
       if (proto_mode_) {
