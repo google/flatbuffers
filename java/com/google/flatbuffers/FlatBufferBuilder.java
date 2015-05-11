@@ -52,6 +52,13 @@ public class FlatBufferBuilder {
         bb = newByteBuffer(initial_size);
     }
 
+   /**
+    * Start with a buffer of 1KiB, then grow as required.
+    */
+    public FlatBufferBuilder() {
+        this(1024);
+    }
+
     /**
      * Alternative constructor allowing reuse of {@link ByteBuffer}s.  The builder
      * can still grow the buffer as necessary.  User classes should make sure
