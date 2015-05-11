@@ -2,7 +2,7 @@
   pos: {
     x: 1,
     y: 2,
-    z: 3,
+    z: 3.14159,
     test1: 3,
     test2: Green,
     test3: {
@@ -44,5 +44,29 @@
   testhashs32_fnv1a: -1904106383,
   testhashu32_fnv1a: 2390860913,
   testhashs64_fnv1a: 4898026182817603057,
-  testhashu64_fnv1a: 4898026182817603057
+  testhashu64_fnv1a: 4898026182817603057,
+  testarrayofsortedsctruct: [
+    {
+      locale: "de",
+      text: "Hallo wereld."
+    },
+    {
+      locale: "en",
+      text: "Hello world."
+    },
+    {
+      locale: "fr",
+      text: "Bonjour a tous."
+    }
+  ],
+  greetings: {
+    "de": "Hallo wereld.",
+    "en": "Hello world.",
+    "fr": "Bonjour a tous."
+  },
+  binds: {
+    Left: "ARROW_LEFT",
+    Jump: "SPACE",
+    Sprint: "SHIFT"
+  }
 }

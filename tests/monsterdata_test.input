@@ -1,8 +1,8 @@
 {
   pos: {
     x: 1,
-    y: 2,
-    z: 3,
+    y: 2.0,
+    z: 3.14159,
     test1: 3,
     test2: Green,
     test3: {
@@ -45,4 +45,28 @@
   testhashu32_fnv1a: "This string is being hashed!",
   testhashs64_fnv1a: "This string is being hashed!",
   testhashu64_fnv1a: "This string is being hashed!",
+  testarrayofsortedsctruct: [
+    {
+      locale: "fr",
+      text: "Bonjour a tous."
+    },
+    {
+      locale: "de",
+      text: "Hallo wereld."
+    },
+    {
+      locale: "en",
+      text: "Hello world."
+    }
+  ],
+  greetings: {
+    fr: "Bonjour a tous.",
+    "de": "Hallo wereld.",
+    en: "Hello world."
+  },
+  binds: {
+    Sprint: "SHIFT",
+    "Jump": "SPACE",
+    0: "ARROW_LEFT"
+  }
 }

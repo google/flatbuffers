@@ -16,6 +16,9 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <string>
+#include <algorithm>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -49,7 +52,7 @@ static std::string WrapInNameSpace(const Parser &parser,
 static std::string TranslateNameSpace(const std::string &qualified_name) {
   std::string cpp_qualified_name = qualified_name;
   size_t start_pos = 0;
-  while((start_pos = cpp_qualified_name.find(".", start_pos)) !=
+  while ((start_pos = cpp_qualified_name.find(".", start_pos)) !=
          std::string::npos) {
     cpp_qualified_name.replace(start_pos, 1, "::");
   }
@@ -130,7 +133,7 @@ static std::string GenEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
 }
 
 // Generate an enum declaration and an enum string lookup table.
-static void GenEnum(const Parser &parser, EnumDef &enum_def,
+static void GenEnum(const Parser &parser, const EnumDef &enum_def,
                     std::string *code_ptr, std::string *code_ptr_post,
                     const GeneratorOptions &opts) {
   if (enum_def.generated) return;
@@ -170,7 +173,8 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
     }
     code += "nullptr };\n  return names;\n}\n\n";
     code += "inline const char *EnumName" + enum_def.name;
-    code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name + "()[e";
+    code += "(" + enum_def.name + " e) { return EnumNames";
+    code += enum_def.name + "()[e";
     if (enum_def.vals.vec.front()->value)
       code += " - " + GenEnumVal(enum_def, *enum_def.vals.vec.front(), opts);
     code += "]; }\n\n";
@@ -217,7 +221,7 @@ std::string GenUnderlyingCast(const Parser &parser, const FieldDef &field,
 }
 
 // Generate an accessor struct, builder structs & function for a table.
-static void GenTable(const Parser &parser, StructDef &struct_def,
+static void GenTable(const Parser &parser, const StructDef &struct_def,
                      const GeneratorOptions &opts, std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
@@ -249,7 +253,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
           ">(" + offsetstr;
       // Default value as second arg for non-pointer types.
       if (IsScalar(field.value.type.base_type))
-        call += ", " + field.value.constant;
+        call += ", " + field.value.string;
       call += ")";
       code += GenUnderlyingCast(parser, field, true, call);
       code += "; }\n";
@@ -271,7 +275,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
         std::string qualified_name = parser.GetFullyQualifiedName(
-            nested->constant);
+            nested->string);
         auto nested_root = parser.structs_.Lookup(qualified_name);
         assert(nested_root);  // Guaranteed to exist by parser.
         std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
@@ -381,7 +385,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += "(" + NumToString(field.value.offset) + ", ";
       code += GenUnderlyingCast(parser, field, false, field.name);
       if (IsScalar(field.value.type.base_type))
-        code += ", " + field.value.constant;
+        code += ", " + field.value.string;
       code += "); }\n";
     }
   }
@@ -419,17 +423,17 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += field.name + " = ";
       if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
         auto ev = field.value.type.enum_def->ReverseLookup(
-           static_cast<int>(StringToInt(field.value.constant.c_str())), false);
+            field.value.scalars.INT, false);
         if (ev) {
           code += WrapInNameSpace(parser,
                                   field.value.type.enum_def->defined_namespace,
                                   GenEnumVal(*field.value.type.enum_def, *ev,
                                              opts));
         } else {
-          code += GenUnderlyingCast(parser, field, true, field.value.constant);
+          code += GenUnderlyingCast(parser, field, true, field.value.string);
         }
       } else {
-        code += field.value.constant;
+        code += field.value.string;
       }
     }
   }
@@ -452,7 +456,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
 }
 
 static void GenPadding(const FieldDef &field,
-                       const std::function<void (int bits)> &f) {
+                       const std::function<void(int bits)> &f) {
   if (field.padding) {
     for (int i = 0; i < 4; i++)
       if (static_cast<int>(field.padding) & (1 << i))
@@ -462,7 +466,7 @@ static void GenPadding(const FieldDef &field,
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
-static void GenStruct(const Parser &parser, StructDef &struct_def,
+static void GenStruct(const Parser &parser, const StructDef &struct_def,
                       const GeneratorOptions &opts,  std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
@@ -586,7 +590,12 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 std::string GenerateCPP(const Parser &parser,
                         const std::string &file_name,
                         const GeneratorOptions &opts) {
-  using namespace cpp;
+  using cpp::GenEnum;
+  using cpp::CloseNestedNameSpaces;
+  using cpp::GenerateNestedNameSpaces;
+  using cpp::GenStruct;
+  using cpp::GenTable;
+  using cpp::TranslateNameSpace;
 
   // Generate code for all the enum declarations.
   std::string enum_code, enum_code_post;
@@ -609,7 +618,7 @@ std::string GenerateCPP(const Parser &parser,
     } else {
       // Wrap this decl in the correct namespace. Only open a namespace if
       // the adjacent one is different.
-      // TODO: this could be done more intelligently, by sorting to
+      // TODO(gwvo): this could be done more intelligently, by sorting to
       // namespace path and only opening/closing what is necessary, but that's
       // quite a bit more complexity.
       if (cur_name_space != struct_def.defined_namespace) {
@@ -745,12 +754,12 @@ std::string GenerateCPP(const Parser &parser,
 
       // Finish a buffer with a given root object:
       code += "inline void Finish" + name;
-      code += "Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<";
+      code += "Buffer(flatbuffers::FlatBufferBuilder &fbb, "
+          "flatbuffers::Offset<";
       code += cpp_qualified_name + "> root) { fbb.Finish(root";
       if (parser.file_identifier_.length())
         code += ", " + name + "Identifier()";
       code += "); }\n\n";
-
     }
 
     CloseNestedNameSpaces(name_space, &code);

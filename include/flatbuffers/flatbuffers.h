@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_H_
-#define FLATBUFFERS_H_
+#ifndef INCLUDE_FLATBUFFERS_FLATBUFFERS_H_
+#define INCLUDE_FLATBUFFERS_FLATBUFFERS_H_
 
 #include <assert.h>
 
@@ -45,7 +45,7 @@
       #define FLATBUFFERS_LITTLEENDIAN 0
     #else
       #define FLATBUFFERS_LITTLEENDIAN 1
-    #endif // __BIG_ENDIAN__
+    #endif  // __BIG_ENDIAN__
   #elif defined(_MSC_VER)
     #if defined(_M_PPC)
       #define FLATBUFFERS_LITTLEENDIAN 0
@@ -55,7 +55,7 @@
   #else
     #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
   #endif
-#endif // !defined(FLATBUFFERS_LITTLEENDIAN)
+#endif  // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 0
@@ -192,19 +192,18 @@ template<typename T> struct IndirectHelper<const T *> {
 // calling Get() for every element.
 template<typename T, bool bConst>
 struct VectorIterator : public
-  std::iterator < std::input_iterator_tag,
-  typename std::conditional < bConst,
-  const typename IndirectHelper<T>::return_type,
-  typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
-
+    std::iterator < std::input_iterator_tag,
+    typename std::conditional < bConst,
+    const typename IndirectHelper<T>::return_type,
+    typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
   typedef std::iterator<std::input_iterator_tag,
     typename std::conditional<bConst,
     const typename IndirectHelper<T>::return_type,
     typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
 
-public:
+ public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
-      data_(data + IndirectHelper<T>::element_stride * i) {};
+      data_(data + IndirectHelper<T>::element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
   VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
 
@@ -249,14 +248,14 @@ public:
     return temp;
   }
 
-private:
+ private:
   const uint8_t *data_;
 };
 
 // This is used as a helper type for accessing vectors.
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
-public:
+ public:
   typedef VectorIterator<T, false> iterator;
   typedef VectorIterator<T, true> const_iterator;
 
@@ -329,7 +328,7 @@ public:
     return nullptr;  // Key not found.
   }
 
-protected:
+ protected:
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   Vector();
@@ -748,8 +747,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
         auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
         auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
         return table_a->KeyCompareLessThan(table_b);
-      }
-    );
+      });
     return CreateVector(v, len);
   }
 
@@ -1121,4 +1119,4 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_H_
+#endif  // INCLUDE_FLATBUFFERS_FLATBUFFERS_H_

@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <string>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -83,7 +85,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
       auto &field = **field_it;
       GenComment(field.doc_comment, &schema, nullptr, "  ");
       schema += "  " + field.name + ":" + GenType(field.value.type);
-      if (field.value.constant != "0") schema += " = " + field.value.constant;
+      if (field.value.scalars.raw != 0 || field.value.string != "0")
+        schema += " = " + field.value.string;
       if (field.required) schema += " (required)";
       schema += ";\n";
     }

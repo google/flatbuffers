@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+#include <random>
+#include <string>
+#include <algorithm>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include "monster_test_generated.h"
-
-#include <random>
+#include "./monster_test_generated.h"
 
 using namespace MyGame::Example;
 
@@ -106,7 +108,7 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
 
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
-                            Any_Monster, mlocs[1].Union(), // Store a union.
+                            Any_Monster, mlocs[1].Union(),  // Store a union.
                             testv, vecofstrings, vecoftables, 0);
 
   FinishMonsterBuffer(builder, mloc);
@@ -128,7 +130,6 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
 
 //  example of accessing a buffer loaded in memory:
 void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
-
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
@@ -243,17 +244,17 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 void ParseAndGenerateTextTest() {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
-  std::string jsonfile;
+  std::string input;
   TEST_EQ(flatbuffers::LoadFile(
     "tests/monster_test.fbs", false, &schemafile), true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monsterdata_test.golden", false, &jsonfile), true);
+    "tests/monsterdata_test.input", false, &input), true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
   const char *include_directories[] = { "tests", nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
-  TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
+  TEST_EQ(parser.Parse(input.c_str(), include_directories), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
 
@@ -263,13 +264,18 @@ void ParseAndGenerateTextTest() {
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
   // to ensure it is correct, we now generate text back from the binary,
-  // and compare the two:
+  // and compare to the expected ouput:
   std::string jsongen;
   flatbuffers::GeneratorOptions opts;
   GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
 
-  if (jsongen != jsonfile) {
-    printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
+  std::string expected;
+  TEST_EQ(flatbuffers::LoadFile(
+      "tests/monsterdata_test.expected", false, &expected), true);
+  TEST_EQ(parser.Parse(expected.c_str(), include_directories), true);
+
+  if (jsongen != expected) {
+    printf("%s----------------\n%s", jsongen.c_str(), expected.c_str());
     TEST_NOTNULL(NULL);
   }
 }
@@ -312,13 +318,12 @@ template<typename T> void CompareTableFieldValue(flatbuffers::Table *table,
 // Low level stress/fuzz test: serialize/deserialize a variety of
 // different kinds of data in different combinations
 void FuzzTest1() {
-
   // Values we're testing against: chosen to ensure no bits get chopped
   // off anywhere, and also be different from eachother.
   const uint8_t  bool_val   = true;
   const int8_t   char_val   = -127;  // 0x81
   const uint8_t  uchar_val  = 0xFF;
-  const int16_t  short_val  = -32222; // 0x8222;
+  const int16_t  short_val  = -32222;  // 0x8222;
   const uint16_t ushort_val = 0xFEEE;
   const int32_t  int_val    = 0x83333333;
   const uint32_t uint_val   = 0xFDDDDDDD;
@@ -329,17 +334,17 @@ void FuzzTest1() {
 
   const int test_values_max = 11;
   const flatbuffers::voffset_t fields_per_object = 4;
-  const int num_fuzz_objects = 10000;  // The higher, the more thorough :)
+  const int kNumFuzzObjects = 10000;  // The higher, the more thorough :)
 
   flatbuffers::FlatBufferBuilder builder;
 
   lcg_reset();  // Keep it deterministic.
 
-  flatbuffers::uoffset_t objects[num_fuzz_objects];
+  flatbuffers::uoffset_t objects[kNumFuzzObjects];
 
-  // Generate num_fuzz_objects random objects each consisting of
+  // Generate kNumFuzzObjects random objects each consisting of
   // fields_per_object fields, each of a random type.
-  for (int i = 0; i < num_fuzz_objects; i++) {
+  for (int i = 0; i < kNumFuzzObjects; i++) {
     auto start = builder.StartTable();
     for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
       int choice = lcg_rand() % test_values_max;
@@ -369,22 +374,22 @@ void FuzzTest1() {
   // Test that all objects we generated are readable and return the
   // expected values. We generate random objects in the same order
   // so this is deterministic.
-  for (int i = 0; i < num_fuzz_objects; i++) {
+  for (int i = 0; i < kNumFuzzObjects; i++) {
     auto table = reinterpret_cast<flatbuffers::Table *>(eob - objects[i]);
     for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
       int choice = lcg_rand() % test_values_max;
       flatbuffers::voffset_t off = flatbuffers::FieldIndexToOffset(f);
       switch (choice) {
-        case 0:  CompareTableFieldValue(table, off, bool_val  ); break;
-        case 1:  CompareTableFieldValue(table, off, char_val  ); break;
-        case 2:  CompareTableFieldValue(table, off, uchar_val ); break;
-        case 3:  CompareTableFieldValue(table, off, short_val ); break;
+        case 0:  CompareTableFieldValue(table, off, bool_val); break;
+        case 1:  CompareTableFieldValue(table, off, char_val); break;
+        case 2:  CompareTableFieldValue(table, off, uchar_val); break;
+        case 3:  CompareTableFieldValue(table, off, short_val); break;
         case 4:  CompareTableFieldValue(table, off, ushort_val); break;
-        case 5:  CompareTableFieldValue(table, off, int_val   ); break;
-        case 6:  CompareTableFieldValue(table, off, uint_val  ); break;
-        case 7:  CompareTableFieldValue(table, off, long_val  ); break;
-        case 8:  CompareTableFieldValue(table, off, ulong_val ); break;
-        case 9:  CompareTableFieldValue(table, off, float_val ); break;
+        case 5:  CompareTableFieldValue(table, off, int_val); break;
+        case 6:  CompareTableFieldValue(table, off, uint_val); break;
+        case 7:  CompareTableFieldValue(table, off, long_val); break;
+        case 8:  CompareTableFieldValue(table, off, ulong_val); break;
+        case 9:  CompareTableFieldValue(table, off, float_val); break;
         case 10: CompareTableFieldValue(table, off, double_val); break;
       }
     }
@@ -397,36 +402,36 @@ void FuzzTest1() {
 void FuzzTest2() {
   lcg_reset();  // Keep it deterministic.
 
-  const int num_definitions = 30;
-  const int num_struct_definitions = 5;  // Subset of num_definitions.
-  const int fields_per_definition = 15;
-  const int instances_per_definition = 5;
+  const int kNumDefinitions = 30;
+  const int kNumStructDefinitions = 5;  // Subset of kNumDefinitions.
+  const int kFieldsPerDefinition = 15;
+  const int kInstancesPerDefinition = 5;
   const int deprecation_rate = 10;        // 1 in deprecation_rate fields will
                                           // be deprecated.
 
   std::string schema = "namespace test;\n\n";
 
   struct RndDef {
-    std::string instances[instances_per_definition];
+    std::string instances[kInstancesPerDefinition];
   };
 
-  RndDef definitions[num_definitions];
+  RndDef definitions[kNumDefinitions];
 
-  // We are going to generate num_definitions, the first
-  // num_struct_definitions will be structs, the rest tables. For each
+  // We are going to generate kNumDefinitions, the first
+  // kNumStructDefinitions will be structs, the rest tables. For each
   // generate random fields, some of which may be struct/table types
   // referring to previously generated structs/tables.
-  // Simultanenously, we generate instances_per_definition JSON data
+  // Simultanenously, we generate kInstancesPerDefinition JSON data
   // definitions, which will have identical structure to the schema
   // being generated. We generate multiple instances such that when creating
   // hierarchy, we get some variety by picking one randomly.
-  for (int definition = 0; definition < num_definitions; definition++) {
+  for (int definition = 0; definition < kNumDefinitions; definition++) {
     // Since we're generating schema & and corresponding data in tandem,
     // this convenience function adds strings to both at once.
     auto AddToSchemaAndInstances = [&](const char *schema_add,
                                        const char *instance_add) {
       schema += schema_add;
-      for (int i = 0; i < instances_per_definition; i++)
+      for (int i = 0; i < kInstancesPerDefinition; i++)
         definitions[definition].instances[i] += instance_add;
     };
     // Generate a default type if we can't generate something else.
@@ -434,14 +439,14 @@ void FuzzTest2() {
 
     std::string definition_name = "D" + flatbuffers::NumToString(definition);
 
-    bool is_struct = definition < num_struct_definitions;
+    bool is_struct = definition < kNumStructDefinitions;
 
     AddToSchemaAndInstances(
       ((is_struct ? "struct " : "table ") + definition_name + " {\n").c_str(),
       "{\n");
 
-    for (int field = 0; field < fields_per_definition; field++) {
-      const bool is_last_field = field == fields_per_definition - 1;
+    for (int field = 0; field < kFieldsPerDefinition; field++) {
+      const bool is_last_field = field == kFieldsPerDefinition - 1;
 
       // Deprecate 1 in deprecation_rate fields. Only table fields can be
       // deprecated.
@@ -466,8 +471,7 @@ void FuzzTest2() {
         case flatbuffers::BASE_TYPE_VECTOR:
           if (is_struct) {
             Dummy();  // No vectors in structs.
-          }
-          else {
+          } else {
             AddToSchemaAndInstances("[ubyte]",
                                     deprecated ? "" : "[\n0,\n1,\n255\n]");
           }
@@ -480,7 +484,7 @@ void FuzzTest2() {
             // Pick a random previous definition and random data instance of
             // that definition.
             int defref = lcg_rand() % definition;
-            int instance = lcg_rand() % instances_per_definition;
+            int instance = lcg_rand() % kInstancesPerDefinition;
             AddToSchemaAndInstances(
               ("D" + flatbuffers::NumToString(defref)).c_str(),
               deprecated
@@ -498,7 +502,7 @@ void FuzzTest2() {
 
           if (!deprecated) {
             // We want each instance to use its own random value.
-            for (int inst = 0; inst < instances_per_definition; inst++)
+            for (int inst = 0; inst < kInstancesPerDefinition; inst++)
               definitions[definition].instances[inst] +=
               flatbuffers::NumToString(lcg_rand() % 128).c_str();
           }
@@ -510,7 +514,7 @@ void FuzzTest2() {
     AddToSchemaAndInstances("}\n\n", "}");
   }
 
-  schema += "root_type D" + flatbuffers::NumToString(num_definitions - 1);
+  schema += "root_type D" + flatbuffers::NumToString(kNumDefinitions - 1);
   schema += ";\n";
 
   flatbuffers::Parser parser;
@@ -523,7 +527,7 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(schema.c_str()), true);
 
   const std::string &json =
-    definitions[num_definitions - 1].instances[0] + "\n";
+    definitions[kNumDefinitions - 1].instances[0] + "\n";
 
   TEST_EQ(parser.Parse(json.c_str()), true);
 
@@ -538,7 +542,7 @@ void FuzzTest2() {
     size_t len = std::min(json.length(), jsongen.length());
     for (size_t i = 0; i < len; i++) {
       if (json[i] != jsongen[i]) {
-        i -= std::min(static_cast<size_t>(10), i); // show some context;
+        i -= std::min(static_cast<size_t>(10), i);  // show some context;
         size_t end = std::min(len, i + 20);
         for (; i < end; i++)
           printf("at %d: found \"%c\", expected \"%c\"\n",
@@ -590,6 +594,10 @@ void ErrorTest() {
             true);
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
             "{ V:{ Y:1 } }", "incomplete");
+  TestError("table X (map_entry) { K:string (key); } root_type X; ",
+            "have exactly two fields");
+  TestError("table X (map_entry) { K:string; V:string; } root_type X;",
+            "have a key");
   TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
             "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");

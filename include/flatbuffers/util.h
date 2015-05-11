@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_UTIL_H_
-#define FLATBUFFERS_UTIL_H_
+#ifndef INCLUDE_FLATBUFFERS_UTIL_H_
+#define INCLUDE_FLATBUFFERS_UTIL_H_
 
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <sstream>
 #include <stdlib.h>
 #include <assert.h>
+
+#include <iomanip>
+#include <fstream>
+#include <string>
+#include <sstream>
+
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
   #define WIN32_LEAN_AND_MEAN
@@ -128,7 +130,7 @@ static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
 #else
 static const char kPathSeparator = kPosixPathSeparator;
 static const char *PathSeparatorSet = "/";
-#endif // _WIN32
+#endif  // _WIN32
 
 // Returns the path with the extension, if any, removed.
 inline std::string StripExtension(const std::string &filepath) {
@@ -269,4 +271,4 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_UTIL_H_
+#endif  // INCLUDE_FLATBUFFERS_UTIL_H_
