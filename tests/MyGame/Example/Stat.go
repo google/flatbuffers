@@ -14,12 +14,12 @@ func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
-func (rcv *Stat) Id() string {
+func (rcv *Stat) Id() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.String(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
 	}
-	return ""
+	return nil
 }
 
 func (rcv *Stat) Val() int64 {

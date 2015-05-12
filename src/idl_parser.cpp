@@ -971,6 +971,8 @@ void Parser::ParseDecl() {
   CheckClash("Type", BASE_TYPE_UNION);
   CheckClash("_length", BASE_TYPE_VECTOR);
   CheckClash("Length", BASE_TYPE_VECTOR);
+  CheckClash("_byte_vector", BASE_TYPE_STRING);
+  CheckClash("ByteVector", BASE_TYPE_STRING);
   Expect('}');
 }
 

@@ -132,7 +132,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("mana", 150, got))
 	}
 
-	if got := monster.Name(); "MyMonster" != got {
+	if got := monster.Name(); !bytes.Equal([]byte("MyMonster"), got) {
 		fail(FailString("name", "MyMonster", got))
 	}
 
@@ -210,7 +210,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 	var monster2 example.Monster
 	monster2.Init(table2.Bytes, table2.Pos)
 
-	if got := monster2.Name(); "Fred" != got {
+	if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
 		fail(FailString("monster2.Name()", "Fred", got))
 	}
 
@@ -268,11 +268,11 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("Testarrayofstring length", 2, got))
 	}
 
-	if got := monster.Testarrayofstring(0); "test1" != got {
+	if got := monster.Testarrayofstring(0); !bytes.Equal([]byte("test1"), got) {
 		fail(FailString("Testarrayofstring(0)", "test1", got))
 	}
 
-	if got := monster.Testarrayofstring(1); "test2" != got {
+	if got := monster.Testarrayofstring(1); !bytes.Equal([]byte("test2"), got) {
 		fail(FailString("Testarrayofstring(1)", "test2", got))
 	}
 }
@@ -530,6 +530,15 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	b.CreateString("foo")
 	check([]byte{3, 0, 0, 0, 'f', 'o', 'o', 0}) // 0-terminated, no pad
 	b.CreateString("moop")
+	check([]byte{4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, // 0-terminated, 3-byte pad
+		3, 0, 0, 0, 'f', 'o', 'o', 0})
+
+	// test 6b: CreateByteString
+
+	b = flatbuffers.NewBuilder(0)
+	b.CreateByteString([]byte("foo"))
+	check([]byte{3, 0, 0, 0, 'f', 'o', 'o', 0}) // 0-terminated, no pad
+	b.CreateByteString([]byte("moop"))
 	check([]byte{4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, // 0-terminated, 3-byte pad
 		3, 0, 0, 0, 'f', 'o', 'o', 0})
 
@@ -1183,5 +1192,130 @@ func BenchmarkVtableDeduplication(b *testing.B) {
 			builder.PrependInt16Slot(j, int16(j), 0)
 		}
 		builder.EndObject()
+	}
+}
+
+// BenchmarkParseGold measures the speed of parsing the 'gold' data
+// used throughout this test suite.
+func BenchmarkParseGold(b *testing.B) {
+	buf, offset := CheckGeneratedBuild(b.Fatalf)
+	monster := example.GetRootAsMonster(buf, offset)
+
+	// use these to prevent allocations:
+	reuse_pos := example.Vec3{}
+	reuse_test3 := example.Test{}
+	reuse_table2 := flatbuffers.Table{}
+	reuse_monster2 := example.Monster{}
+	reuse_test4_0 := example.Test{}
+	reuse_test4_1 := example.Test{}
+
+	b.SetBytes(int64(len(buf[offset:])))
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		monster.Hp()
+		monster.Mana()
+		name := monster.Name()
+		_ = name[0]
+		_ = name[len(name)-1]
+
+		monster.Pos(&reuse_pos)
+		reuse_pos.X()
+		reuse_pos.Y()
+		reuse_pos.Z()
+		reuse_pos.Test1()
+		reuse_pos.Test2()
+		reuse_pos.Test3(&reuse_test3)
+		reuse_test3.A()
+		reuse_test3.B()
+		monster.TestType()
+		monster.Test(&reuse_table2)
+		reuse_monster2.Init(reuse_table2.Bytes, reuse_table2.Pos)
+		name2 := reuse_monster2.Name()
+		_ = name2[0]
+		_ = name2[len(name2)-1]
+		monster.InventoryLength()
+		l := monster.InventoryLength()
+		for i := 0; i < l; i++ {
+			monster.Inventory(i)
+		}
+		monster.Test4Length()
+		monster.Test4(&reuse_test4_0, 0)
+		monster.Test4(&reuse_test4_1, 1)
+
+		reuse_test4_0.A()
+		reuse_test4_0.B()
+		reuse_test4_1.A()
+		reuse_test4_1.B()
+
+		monster.TestarrayofstringLength()
+		str0 := monster.Testarrayofstring(0)
+		_ = str0[0]
+		_ = str0[len(str0)-1]
+		str1 := monster.Testarrayofstring(1)
+		_ = str1[0]
+		_ = str1[len(str1)-1]
+	}
+}
+
+// BenchmarkBuildGold uses generated code to build the example Monster.
+func BenchmarkBuildGold(b *testing.B) {
+	buf, offset := CheckGeneratedBuild(b.Fatalf)
+	bytes_length := int64(len(buf[offset:]))
+
+	reuse_str := []byte("MyMonster")
+	reuse_test1 := []byte("test1")
+	reuse_test2 := []byte("test2")
+	reuse_fred := []byte("Fred")
+
+	b.SetBytes(bytes_length)
+	bldr := flatbuffers.NewBuilder(0)
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		bldr.Reset()
+
+		str := bldr.CreateByteString(reuse_str)
+		test1 := bldr.CreateByteString(reuse_test1)
+		test2 := bldr.CreateByteString(reuse_test2)
+		fred := bldr.CreateByteString(reuse_fred)
+
+		example.MonsterStartInventoryVector(bldr, 5)
+		bldr.PrependByte(4)
+		bldr.PrependByte(3)
+		bldr.PrependByte(2)
+		bldr.PrependByte(1)
+		bldr.PrependByte(0)
+		inv := bldr.EndVector(5)
+
+		example.MonsterStart(bldr)
+		example.MonsterAddName(bldr, fred)
+		mon2 := example.MonsterEnd(bldr)
+
+		example.MonsterStartTest4Vector(bldr, 2)
+		example.CreateTest(bldr, 10, 20)
+		example.CreateTest(bldr, 30, 40)
+		test4 := bldr.EndVector(2)
+
+		example.MonsterStartTestarrayofstringVector(bldr, 2)
+		bldr.PrependUOffsetT(test2)
+		bldr.PrependUOffsetT(test1)
+		testArrayOfString := bldr.EndVector(2)
+
+		example.MonsterStart(bldr)
+
+		pos := example.CreateVec3(bldr, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+		example.MonsterAddPos(bldr, pos)
+
+		example.MonsterAddHp(bldr, 80)
+		example.MonsterAddName(bldr, str)
+		example.MonsterAddInventory(bldr, inv)
+		example.MonsterAddTestType(bldr, 1)
+		example.MonsterAddTest(bldr, mon2)
+		example.MonsterAddTest4(bldr, test4)
+		example.MonsterAddTestarrayofstring(bldr, testArrayOfString)
+		mon := example.MonsterEnd(bldr)
+
+		bldr.Finish(mon)
 	}
 }

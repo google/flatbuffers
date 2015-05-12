@@ -50,12 +50,12 @@ func (rcv *Monster) Hp() int16 {
 	return 100
 }
 
-func (rcv *Monster) Name() string {
+func (rcv *Monster) Name() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
-		return rcv._tab.String(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
 	}
-	return ""
+	return nil
 }
 
 func (rcv *Monster) Inventory(j int) byte {
@@ -130,13 +130,13 @@ func (rcv *Monster) Test4Length() int {
 	return 0
 }
 
-func (rcv *Monster) Testarrayofstring(j int) string {
+func (rcv *Monster) Testarrayofstring(j int) []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.String(a + flatbuffers.UOffsetT(j * 4))
+		return rcv._tab.ByteVector(a + flatbuffers.UOffsetT(j * 4))
 	}
-	return ""
+	return nil
 }
 
 func (rcv *Monster) TestarrayofstringLength() int {
