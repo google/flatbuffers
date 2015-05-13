@@ -1290,13 +1290,13 @@ def main():
     import os
     import sys
     if not len(sys.argv) == 4:
-       sys.stderr.write(('Usage: %s <benchmark vtable count>')
-                        ('<benchmark read count> <benchmark build count>')
-                        ('\n' % sys.argv[0]))
-       sys.stderr.write(('       Provide COMPARE_GENERATED_TO_GO=1   to check')
-                        ('for bytewise comparison to Go data.\n'))
-       sys.stderr.write(('       Provide COMPARE_GENERATED_TO_JAVA=1 to check')
-                        ('for bytewise comparison to Java data.\n'))
+       sys.stderr.write('Usage: %s <benchmark vtable count>'
+                        '<benchmark read count> <benchmark build count>\n'
+                        % sys.argv[0])
+       sys.stderr.write('       Provide COMPARE_GENERATED_TO_GO=1   to check'
+                        'for bytewise comparison to Go data.\n')
+       sys.stderr.write('       Provide COMPARE_GENERATED_TO_JAVA=1 to check'
+                        'for bytewise comparison to Java data.\n')
        sys.stderr.flush()
        sys.exit(1)
 
