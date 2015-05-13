@@ -37,7 +37,7 @@ int testing_fails = 0;
 
 template<typename T, typename U>
 void TestEq(T expval, U val, const char *exp, const char *file, int line) {
-  if (expval != val) {
+  if (U(expval) != val) {
     auto expval_str = flatbuffers::NumToString(expval);
     auto val_str = flatbuffers::NumToString(val);
     TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s (%s) != %s", file, line,

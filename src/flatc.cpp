@@ -64,6 +64,10 @@ const Generator generators[] = {
     flatbuffers::GeneratorOptions::kCSharp,
     "Generate C# classes for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GeneratePython,   "-p", "Python",
+    flatbuffers::GeneratorOptions::kMAX,
+    "Generate Python files for tables/structs",
+    flatbuffers::GeneralMakeRule },
 };
 
 const char *program_name = NULL;
