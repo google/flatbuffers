@@ -574,7 +574,7 @@ static bool SaveType(const Parser &parser, const Definition &def,
     }
     namespace_name = *it;
     namespace_dir += *it;
-    mkdir(namespace_dir.c_str(), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    EnsureDirExists(namespace_dir.c_str());
 
     std::string init_py_filename = namespace_dir + "/__init__.py";
     SaveFile(init_py_filename.c_str(), "", false);
