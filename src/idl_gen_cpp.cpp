@@ -275,6 +275,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
             nested->constant);
         auto nested_root = parser.structs_.Lookup(qualified_name);
         assert(nested_root);  // Guaranteed to exist by parser.
+        (void)nested_root;
         std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
 
         code += "  const " + cpp_qualified_name + " *" + field.name;
