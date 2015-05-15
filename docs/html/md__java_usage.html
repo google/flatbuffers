@@ -54,7 +54,7 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>FlatBuffers supports reading and writing binary FlatBuffers in Java and C#. Generate code for Java with the <code>-j</code> option to <code>flatc</code>, or for C# with <code>-n</code> (think .Net).</p>
-<p>Note that this document is from the perspective of Java. Code for both languages is generated in the same way, with only very subtle differences, for example any <code>camelCase</code> Java call will be <code>CamelCase</code> in C#.</p>
+<p>Note that this document is from the perspective of Java. Code for both languages is generated in the same way, with only minor differences. These differences are <a href="#differences-in-c-sharp">explained in a section below</a>.</p>
 <p>See <code>javaTest.java</code> for an example. Essentially, you read a FlatBuffer binary file into a <code>byte[]</code>, which you then turn into a <code>ByteBuffer</code>, which you pass to the <code>getRootAsMyRootType</code> function:</p>
 <div class="fragment"><div class="line">ByteBuffer bb = ByteBuffer.wrap(data);</div>
 <div class="line">Monster monster = Monster.getRootAsMonster(bb);</div>
@@ -100,7 +100,15 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 <p>To finish the buffer, call:</p>
 <div class="fragment"><div class="line">Monster.finishMonsterBuffer(fbb, mon);</div>
 </div><!-- fragment --><p>The buffer is now ready to be transmitted. It is contained in the <code>ByteBuffer</code> which you can obtain from <code>fbb.dataBuffer()</code>. Importantly, the valid data does not start from offset 0 in this buffer, but from <code>fbb.dataBuffer().position()</code> (this is because the data was built backwards in memory). It ends at <code>fbb.capacity()</code>.</p>
-<h2>Text Parsing</h2>
+<h2>Differences in C-sharp</h2>
+<p>C# code works almost identically to Java, with only a few minor differences. You can see an example of C# code in <code>tests/FlatBuffers.Test/FlatBuffersExampleTests.cs</code>.</p>
+<p>First of all, naming follows standard C# style with <code>PascalCasing</code> identifiers, e.g. <code>GetRootAsMyRootType</code>. Also, values (except vectors and unions) are available as properties instead of parameterless accessor methods as in Java. The performance-enhancing methods to which you can pass an already created object are prefixed with <code>Get</code>, e.g.:</p>
+<div class="fragment"><div class="line"><span class="comment">// property</span></div>
+<div class="line">var pos = monster.Pos;</div>
+<div class="line"><span class="comment">// method filling a preconstructed object</span></div>
+<div class="line">var preconstructedPos = <span class="keyword">new</span> Vec3();</div>
+<div class="line">monster.GetPos(preconstructedPos);</div>
+</div><!-- fragment --><h2>Text parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Java, though you could use the C++ parser through JNI. Please see the C++ documentation for more on text parsing. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
