@@ -305,28 +305,17 @@ public:
   }
 
   template<typename K> return_type LookupByKey(K key) const {
-    auto span = size();
-    uoffset_t start = 0;
-    // Perform binary search for key.
-    while (span) {
-      // Compare against middle element of current span.
-      auto middle = span / 2;
-      auto table = Get(start + middle);
-      auto comp = table->KeyCompareWithValue(key);
-      if (comp > 0) {
-        // Greater than. Adjust span and try again.
-        span = middle;
-      } else if (comp < 0) {
-        // Less than. Adjust span and try again.
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        // Found element.
-        return table;
-      }
+    std::size_t count = size();
+    void *search_result = std::bsearch(&key, Data(), count,
+        IndirectHelper<T>::element_stride, KeyCompare<K>);
+
+    if (!search_result) {
+      return nullptr;  // Key not found.
     }
-    return nullptr;  // Key not found.
+
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(search_result);
+
+    return IndirectHelper<T>::Read(data, 0);
   }
 
 protected:
@@ -335,6 +324,17 @@ protected:
   Vector();
 
   uoffset_t length_;
+
+private:
+  template<typename K> static int KeyCompare(const void *ap, const void *bp) {
+    const K *key = reinterpret_cast<const K *>(ap);
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(bp);
+    auto table = IndirectHelper<T>::Read(data, 0);
+
+    // std::bsearch compares with the operands transposed, so we negate the
+    // result here.
+    return -table->KeyCompareWithValue(*key);
+  }
 };
 
 // Convenient helper function to get the length of any vector, regardless
