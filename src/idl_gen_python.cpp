@@ -25,10 +25,14 @@
 namespace flatbuffers {
 namespace python {
 
+static std::string GenProperty(const Type &type,
+                               const std::string& prefix="");
 static std::string GenGetter(const Type &type);
 static std::string GenMethod(const FieldDef &field);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
+static void GenStructDumpBuilder(const StructDef &struct_def,
+                                 std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
@@ -37,15 +41,18 @@ static std::string TypeName(const FieldDef &field);
 
 // Hardcode spaces per indentation.
 const std::string Indent = "    ";
+const std::string IndentX2 = Indent + Indent;
+const std::string IndentX3 = IndentX2 + Indent;
+const std::string IndentX4 = IndentX3 + Indent;
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
 std::string OffsetPrefix(const FieldDef &field) {
-  return "\n" + Indent + Indent +
-         "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
+  return "\n" + IndentX2 +
+         "o = flatbuffers.UOffsetTFlags.py_type" +
          "(self._tab.Offset(" +
          NumToString(field.value.offset) +
-         "))\n" + Indent + Indent + "if o != 0:\n";
+         "))\n" + IndentX2 + "if o != 0:\n";
 }
 
 // Begin by declaring namespace and imports.
@@ -56,7 +63,7 @@ static void BeginFile(const std::string name_space_name,
   code += "# automatically generated, do not modify\n\n";
   code += "# namespace: " + name_space_name + "\n\n";
   if (needs_imports) {
-    code += "import flatbuffers\n\n";
+    code += "import flatbuffers\n\n\n";
   }
 }
 
@@ -65,6 +72,12 @@ static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "class " + struct_def.name + "(object):\n";
   code += Indent + "__slots__ = ['_tab']";
+  code += "\n\n";
+}
+
+// End a class declaration.
+static void EndClass(std::string *code_ptr) {
+  std::string &code = *code_ptr;
   code += "\n\n";
 }
 
@@ -94,18 +107,14 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
 
+  (void)struct_def;
   code += Indent + "@classmethod\n";
-  code += Indent + "def GetRootAs";
-  code += struct_def.name;
-  code += "(cls, buf, offset):";
+  code += Indent + "def GetRoot(cls, buf, offset):\n";
+  code += IndentX2 + "n = flatbuffers.GetUOffset(buf, offset)\n";
+  code += IndentX2 + "x = cls()\n";
+  code += IndentX2 + "x.Init(buf, n + offset)\n";
+  code += IndentX2 + "return x\n";
   code += "\n";
-  code += Indent + Indent;
-  code += "n = flatbuffers.encode.Get";
-  code += "(flatbuffers.packer.uoffset, buf, offset)\n";
-  code += Indent + Indent + "x = " + struct_def.name + "()\n";
-  code += Indent + Indent + "x.Init(buf, n + offset)\n";
-  code += Indent + Indent + "return x\n";
-  code += "\n\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
@@ -115,7 +124,7 @@ static void InitializeExisting(const StructDef &struct_def,
 
   GenReceiver(struct_def, code_ptr);
   code += "Init(self, buf, pos):\n";
-  code += Indent + Indent + "self._tab = flatbuffers.table.Table(buf, pos)\n";
+  code += IndentX2 + "self._tab = flatbuffers.Table(buf, pos)\n";
   code += "\n";
 }
 
@@ -124,12 +133,11 @@ static void GetVectorLen(const StructDef &struct_def,
                          const FieldDef &field,
                          std::string *code_ptr) {
   std::string &code = *code_ptr;
+  std::string property = "flatbuffers.VectorLengthProperty(";
 
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name) + "Length(self";
-  code += "):" + OffsetPrefix(field);
-  code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
-  code += Indent + Indent + "return 0\n\n";
+  (void)struct_def;
+  code += Indent + field.name + "_length = ";
+  code += property + NumToString(field.value.offset) + ")\n";
 }
 
 // Get the value of a struct's scalar.
@@ -137,12 +145,11 @@ static void GetScalarFieldOfStruct(const StructDef &struct_def,
                                    const FieldDef &field,
                                    std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = GenGetter(field.value.type);
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self): return " + getter;
-  code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
-  code += NumToString(field.value.offset) + "))\n";
+  std::string property = GenProperty(field.value.type, "Struct");
+
+  (void)struct_def;
+  code += Indent + field.name + " = ";
+  code += property + NumToString(field.value.offset) + ")\n";
 }
 
 // Get the value of a table's scalar.
@@ -150,14 +157,12 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
                                   const FieldDef &field,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = GenGetter(field.value.type);
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self):";
-  code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "return " + getter;
-  code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return " + field.value.constant + "\n\n";
+  std::string property = GenProperty(field.value.type);
+
+  (void)struct_def;
+  code += Indent + field.name + " = ";
+  code += property + NumToString(field.value.offset);
+  code += ", default=" + field.value.constant + ")\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -166,12 +171,12 @@ static void GetStructFieldOfStruct(const StructDef &struct_def,
                                    const FieldDef &field,
                                    std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self, obj):\n";
-  code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
-  code += NumToString(field.value.offset) + ")";
-  code += "\n" + Indent + Indent + "return obj\n\n";
+  std::string property = GenProperty(field.value.type, "Struct");
+
+  (void)struct_def;
+  code += Indent + field.name + " = ";
+  code += property + "'" + TypeName(field) + "'";
+  code += ", __package__, " + NumToString(field.value.offset) + ")\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -180,22 +185,17 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
                                   const FieldDef &field,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self):";
-  code += OffsetPrefix(field);
+  std::string property = GenProperty(field.value.type);
+
+  (void)struct_def;
+  code += Indent + field.name + " = ";
+  code += property + "'" + TypeName(field) + "'";
+  code += ", __package__, " + NumToString(field.value.offset);
   if (field.value.type.struct_def->fixed) {
-    code += Indent + Indent + Indent + "x = o + self._tab.Pos\n";
+    code += ", True)\n";
   } else {
-    code += Indent + Indent + Indent;
-    code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
+    code += ", False)\n";
   }
-  code += Indent + Indent + Indent;
-  code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
-  code += Indent + Indent + Indent + "return obj\n";
-  code += Indent + Indent + "return None\n\n";
 }
 
 // Get the value of a string.
@@ -203,13 +203,11 @@ static void GetStringField(const StructDef &struct_def,
                            const FieldDef &field,
                            std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self):";
-  code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
-  code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return \"\"\n\n";
+  std::string property = GenProperty(field.value.type);
+
+  (void)struct_def;
+  code += Indent + field.name + " = " + property;
+  code += NumToString(field.value.offset) + ")\n";
 }
 
 // Get the value of a union from an object.
@@ -217,22 +215,11 @@ static void GetUnionField(const StructDef &struct_def,
                           const FieldDef &field,
                           std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name) + "(self):";
-  code += OffsetPrefix(field);
+  std::string property = GenProperty(field.value.type);
 
-  // TODO(rw): this works and is not the good way to it:
-  bool is_native_table = TypeName(field) == "*flatbuffers.Table";
-  if (is_native_table) {
-    code += Indent + Indent + Indent + "from flatbuffers.table import Table\n";
-  } else {
-    code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  }
-  code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
-  code += Indent + Indent + Indent + GenGetter(field.value.type);
-  code += "obj, o)\n" + Indent + Indent + Indent + "return obj\n";
-  code += Indent + Indent + "return None\n\n";
+  (void)struct_def;
+  code += Indent + field.name + " = " + property;
+  code += NumToString(field.value.offset) + ")\n";
 }
 
 // Get the value of a vector's struct member.
@@ -240,24 +227,18 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
                                       const FieldDef &field,
                                       std::string *code_ptr) {
   std::string &code = *code_ptr;
+  std::string property = GenProperty(field.value.type);
   auto vectortype = field.value.type.VectorType();
 
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self, j):" + OffsetPrefix(field);
-  code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
-  code += Indent + Indent + Indent;
-  code += "x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * ";
-  code += NumToString(InlineSize(vectortype)) + "\n";
-  if (!(vectortype.struct_def->fixed)) {
-    code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
+  (void)struct_def;
+  code += Indent + field.name + " = " + property;
+  code += +"'" + TypeName(field) + "'";
+  code += ", __package__, " + NumToString(field.value.offset);
+  if (vectortype.struct_def->fixed) {
+    code += ", True)\n";
+  } else {
+    code += ", False)\n";
   }
-  code += Indent + Indent + Indent;
-  code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
-  code += Indent + Indent + Indent + "return obj\n";
-  code += Indent + Indent + "return None\n\n";
 }
 
 // Get the value of a vector's non-struct member. Uses a named return
@@ -266,23 +247,11 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
                                          const FieldDef &field,
                                          std::string *code_ptr) {
   std::string &code = *code_ptr;
-  auto vectortype = field.value.type.VectorType();
+  std::string property = GenProperty(field.value.type);
 
-  GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
-  code += "(self, j):";
-  code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
-  code += Indent + Indent + Indent;
-  code += "return " + GenGetter(field.value.type);
-  code += "a + flatbuffers.number_types.UOffsetTFlags.py_type(j * ";
-  code += NumToString(InlineSize(vectortype)) + "))\n";
-  if (vectortype.base_type == BASE_TYPE_STRING) {
-    code += Indent + Indent + "return \"\"\n";
-  } else {
-    code += Indent + Indent + "return 0\n";
-  }
-  code += "\n";
+  (void)struct_def;
+  code += Indent + field.name + " = " + property;
+  code += NumToString(field.value.offset) + ")\n";
 }
 
 // Begin the creator function signature.
@@ -290,7 +259,6 @@ static void BeginBuilderArgs(const StructDef &struct_def,
                              std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  code += "\n";
   code += "def Create" + struct_def.name;
   code += "(builder";
 }
@@ -309,7 +277,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
       // don't clash, and to make it obvious these arguments are constructing
       // a nested struct, prefix the name with the struct name.
       StructBuilderArgs(*field.value.type.struct_def,
-                        (field.value.type.struct_def->name + "_").c_str(),
+                        (field.name + "_").c_str(),
                         code_ptr);
     } else {
       std::string &code = *code_ptr;
@@ -331,28 +299,29 @@ static void StructBuilderBody(const StructDef &struct_def,
                               const char *nameprefix,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+  code += Indent + "builder.Prep(" + NumToString(struct_def.minalign) + ", ";
   code += NumToString(struct_def.bytesize) + ")\n";
   for (auto it = struct_def.fields.vec.rbegin();
        it != struct_def.fields.vec.rend();
        ++it) {
     auto &field = **it;
     if (field.padding)
-      code += "    builder.Pad(" + NumToString(field.padding) + ")\n";
+      code += Indent + "builder.Pad(" + NumToString(field.padding) + ")\n";
     if (IsStruct(field.value.type)) {
       StructBuilderBody(*field.value.type.struct_def,
-                        (field.value.type.struct_def->name + "_").c_str(),
+                        (field.name + "_").c_str(),
                         code_ptr);
     } else {
-      code += "    builder.Prepend" + GenMethod(field) + "(";
+      code += Indent + "builder.Prepend" + GenMethod(field) + "(";
       code += nameprefix + MakeCamel(field.name, false) + ")\n";
     }
   }
 }
 
+// End the creator function.
 static void EndBuilderBody(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "    return builder.Offset()\n";
+  code += Indent + "return builder.Offset()\n";
 }
 
 // Get the value of a table's starting offset.
@@ -379,13 +348,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   code += "builder.Prepend";
   code += GenMethod(field) + "Slot(";
   code += NumToString(offset) + ", ";
-  if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "flatbuffers.number_types.UOffsetTFlags.py_type";
-    code += "(";
-    code += MakeCamel(field.name, false) + ")";
-  } else {
-    code += MakeCamel(field.name, false);
-  }
+  code += MakeCamel(field.name, false);
   code += ", " + field.value.constant;
   code += ")\n";
 }
@@ -413,6 +376,165 @@ static void GetEndOffsetOnTable(const StructDef &struct_def,
   code += "def " + struct_def.name + "End";
   code += "(builder): ";
   code += "return builder.EndObject()\n";
+}
+
+// Begin the dump creator function.
+static void BeginDumpBuilderOfStruct(const StructDef &struct_def,
+                                          std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  code += "\n";
+  code += Indent + "@classmethod\n";
+  code += Indent + "def CreateObject(cls, builder, d):\n";
+}
+
+// Recursively generate struct construction statements and instert manual
+// padding.
+static void StructDumpBuilderBody(const StructDef &struct_def,
+                              const char *nameprefix,
+                              std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += IndentX2 + "builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+  code += NumToString(struct_def.bytesize) + ")\n";
+  for (auto it = struct_def.fields.vec.rbegin();
+       it != struct_def.fields.vec.rend();
+       ++it) {
+    auto &field = **it;
+    if (field.padding)
+      code += IndentX2 + "builder.Pad(" + NumToString(field.padding) + ")\n";
+    if (IsStruct(field.value.type)) {
+      StructDumpBuilderBody(
+        *field.value.type.struct_def,
+        (nameprefix + field.name + "']['").c_str(),
+        code_ptr);
+    } else {
+      code += IndentX2 + "builder.Prepend" + GenMethod(field) + "(d['";
+      code += nameprefix + field.name + "'])\n";
+    }
+  }
+}
+
+// End the dump creator function.
+static void EndDumpBuilderOfStruct(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += IndentX2 + "return builder.Offset()\n";
+}
+
+// Begin the dump creator function of table.
+static void BeginDumpBuilderOfTable(const StructDef &struct_def,
+                            std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  code += "\n";
+  code += Indent + "@classmethod\n";
+  code += Indent + "def CreateObject(cls, builder, d, finished=True):\n";
+  code += IndentX2 + "d_get = d.get\n";
+}
+
+// Get the value of a table's starting offset.
+static void GetStartOffsetOnTable(const StructDef &struct_def,
+                                  std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += IndentX2 + "builder.StartObject(";
+  code += NumToString(struct_def.fields.vec.size());
+  code += ")\n";
+}
+
+// Set the value of a table's field.
+static void DumpFieldOfTable(const StructDef &struct_def,
+                              const FieldDef &field,
+                              const size_t offset,
+                              std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  code += IndentX2 + "v = d_get('" + field.name + "', None)\n";
+  code += IndentX2 + "if v is not None:\n";
+  if (field.value.type.base_type == BASE_TYPE_STRING) {
+    code += IndentX3 + "v = builder.CreateString(v)\n";
+  }
+  code += IndentX3 + "builder.Prepend";
+  code += GenMethod(field) + "Slot(" + NumToString(offset) + ", v, ";
+  code += field.value.constant + ")\n";
+}
+
+// Create the value of one of the members of a table's struct.
+static void CreateStructOfTable(const StructDef &struct_def,
+                                const FieldDef &field,
+                                std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  if (!field.value.type.struct_def->fixed) {
+    code += IndentX2 + "v = d_get('" + field.name + "', None)\n";
+    code += IndentX2 + "o_" + field.name + " = None if v is None else ";
+    code += "cls." + field.name + ".build(builder, v, 0)\n";
+  }
+}
+
+// Set the value of one of the members of a table's struct.
+static void DumpStructOfTable(const StructDef &struct_def,
+                               const FieldDef &field,
+                               const size_t offset,
+                               std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  if (!field.value.type.struct_def->fixed) {
+    code += IndentX2 + "if o_" + field.name + " is not None:\n";
+    code += IndentX3 + "builder.Prepend";
+    code += GenMethod(field) + "Slot(" + NumToString(offset) + ", ";
+    code += "o_" + field.name + ", " + field.value.constant + ")\n";
+  } else {
+    code += IndentX2 + "v = d_get('" + field.name + "', None)\n";
+    code += IndentX2 + "if v is not None:\n";
+    code += IndentX3 + "v = cls." + field.name + ".build(builder, v, 0)\n";
+    code += IndentX3 + "builder.Prepend";
+    code += GenMethod(field) + "Slot(" + NumToString(offset) + ", v, ";
+    code += field.value.constant + ")\n";
+  }
+}
+
+// Create the value of one of the members of a table's vector.
+static void CreateVectorOfTable(const StructDef &struct_def,
+                                const FieldDef &field,
+                                std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  auto vector_type = field.value.type.VectorType();
+  auto alignment = InlineAlignment(vector_type);
+
+  (void)struct_def;
+  code += IndentX2 + "v = d_get('" + field.name + "', None)\n";
+  code += IndentX2 + "o_" + field.name + " = None if v is None else ";
+  code += "cls." + field.name + ".build(builder, v, ";
+  code += NumToString(alignment) + ")\n";
+}
+
+// Set the value of one of the members of a table's vector.
+static void DumpVectorOfTable(const StructDef &struct_def,
+                               const FieldDef &field,
+                               const size_t offset,
+                               std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  (void)struct_def;
+  code += IndentX2 + "if o_" + field.name + " is not None:\n";
+  code += IndentX3 + "builder.Prepend" + GenMethod(field) + "Slot(";
+  code += NumToString(offset) + ", o_" + field.name + ", ";
+  code += field.value.constant + ")\n";
+}
+
+// End the dump creator function of table.
+static void EndDumpBuilderOfTable(const StructDef &struct_def,
+                                std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  (void)struct_def;
+  code += IndentX2 + "o = builder.EndObject()\n";
+  code += IndentX2 + "if finished:\n";
+  code += IndentX3 + "builder.Finish(o)\n";
+  code += IndentX2 + "return o\n";
 }
 
 // Generate the receiver for function signatures.
@@ -487,6 +609,52 @@ static void GenTableBuilders(const StructDef &struct_def,
   GetEndOffsetOnTable(struct_def, code_ptr);
 }
 
+// Create a struct with a dump builder.
+static void GenTableDumpBuilder(const StructDef &struct_def,
+                                std::string *code_ptr) {
+  BeginDumpBuilderOfTable(struct_def, code_ptr);
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (field.deprecated) continue;
+
+    switch (field.value.type.base_type) {
+      case BASE_TYPE_STRUCT:
+        CreateStructOfTable(struct_def, field, code_ptr);
+        break;
+      case BASE_TYPE_VECTOR:
+        CreateVectorOfTable(struct_def, field, code_ptr);
+        break;
+      default:
+        break;
+    }
+  }
+
+  GetStartOffsetOnTable(struct_def, code_ptr);
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (field.deprecated) continue;
+
+    auto offset = it - struct_def.fields.vec.begin();
+    switch (field.value.type.base_type) {
+      case BASE_TYPE_STRUCT:
+        DumpStructOfTable(struct_def, field, offset, code_ptr);
+        break;
+      case BASE_TYPE_VECTOR:
+        DumpVectorOfTable(struct_def, field, offset, code_ptr);
+        break;
+      default:
+        DumpFieldOfTable(struct_def, field, offset, code_ptr);
+        break;
+    }
+  }
+
+  EndDumpBuilderOfTable(struct_def, code_ptr);
+}
+
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
                       std::string *code_ptr,
@@ -511,6 +679,14 @@ static void GenStruct(const StructDef &struct_def,
 
     GenStructAccessor(struct_def, field, code_ptr);
   }
+
+  // create a dump constructor function.
+  if (struct_def.fixed) {
+    GenStructDumpBuilder(struct_def, code_ptr);
+  } else {
+    GenTableDumpBuilder(struct_def, code_ptr);
+  }
+  EndClass(code_ptr);
 
   if (struct_def.fixed) {
     // create a struct constructor function
@@ -547,6 +723,20 @@ static std::string GenGetter(const Type &type) {
       return "self._tab.Get(flatbuffers.number_types." + \
              MakeCamel(GenTypeGet(type)) + \
              "Flags, ";
+  }
+}
+
+// Returns the property name that is able to read a value of the given type.
+static std::string GenProperty(const Type &type,
+                               const std::string& prefix) {
+  switch (type.base_type) {
+    case BASE_TYPE_STRING: return "flatbuffers." + prefix + "StringProperty(";
+    case BASE_TYPE_STRUCT: return "flatbuffers." + prefix + "StructProperty(";
+    case BASE_TYPE_UNION: return "flatbuffers." + prefix + "UnionProperty(";
+    case BASE_TYPE_VECTOR: return GenProperty(type.VectorType(), "Vector");
+    default:
+      return "flatbuffers." + \
+             prefix + MakeCamel(GenTypeGet(type)) + "Property(";
   }
 }
 
@@ -632,6 +822,14 @@ static void GenStructBuilder(const StructDef &struct_def,
 
   StructBuilderBody(struct_def, "", code_ptr);
   EndBuilderBody(code_ptr);
+}
+
+// Create a struct with a dump builder.
+static void GenStructDumpBuilder(const StructDef &struct_def,
+                             std::string *code_ptr) {
+  BeginDumpBuilderOfStruct(struct_def, code_ptr);
+  StructDumpBuilderBody(struct_def, "", code_ptr);
+  EndDumpBuilderOfStruct(code_ptr);
 }
 
 }  // namespace python

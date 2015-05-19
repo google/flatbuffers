@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ctypes
-
-from . import number_types as N
-from . import packer
 from .compat import memoryview_type
+from .packer import uoffset
 
 
 def Get(packer_type, buf, head):
     """ Get decodes a value at buf[head:] using `packer_type`. """
     return packer_type.unpack_from(memoryview_type(buf), head)[0]
+
+
+def GetUOffset(buf, head):
+    """ Get decodes a value at buf[head:] using `uoffset`. """
+    return uoffset.unpack_from(memoryview_type(buf), head)[0]
 
 
 def Write(packer_type, buf, head, n):
