@@ -287,8 +287,8 @@ public:
   iterator begin() { return iterator(Data(), 0); }
   const_iterator begin() const { return const_iterator(Data(), 0); }
 
-  iterator end() { return iterator(Data(), EndianScalar(length_)); }
-  const_iterator end() const { return const_iterator(Data(), EndianScalar(length_)); }
+  iterator end() { return iterator(Data(), size()); }
+  const_iterator end() const { return const_iterator(Data(), size()); }
 
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, T val) {
@@ -306,8 +306,7 @@ public:
   }
 
   template<typename K> return_type LookupByKey(K key) const {
-    std::size_t count = size();
-    void *search_result = std::bsearch(&key, Data(), count,
+    void *search_result = std::bsearch(&key, Data(), size(),
         IndirectHelper<T>::element_stride, KeyCompare<K>);
 
     if (!search_result) {
