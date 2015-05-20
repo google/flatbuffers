@@ -533,7 +533,18 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	check([]byte{4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, // 0-terminated, 3-byte pad
 		3, 0, 0, 0, 'f', 'o', 'o', 0})
 
-	// test 6b: CreateByteString
+	// test 6b: CreateString unicode
+
+	b = flatbuffers.NewBuilder(0)
+	// These characters are chinese from blog.golang.org/strings
+	// We use escape codes here so that editors without unicode support
+	// aren't bothered:
+	uni_str := "\u65e5\u672c\u8a9e"
+	b.CreateString(uni_str)  
+	check([]byte{9, 0, 0, 0, 230, 151, 165, 230, 156, 172, 232, 170, 158, 0, //  null-terminated, 2-byte pad
+		0, 0})
+
+	// test 6c: CreateByteString
 
 	b = flatbuffers.NewBuilder(0)
 	b.CreateByteString([]byte("foo"))
@@ -1263,10 +1274,10 @@ func BenchmarkBuildGold(b *testing.B) {
 	buf, offset := CheckGeneratedBuild(b.Fatalf)
 	bytes_length := int64(len(buf[offset:]))
 
-	reuse_str := []byte("MyMonster")
-	reuse_test1 := []byte("test1")
-	reuse_test2 := []byte("test2")
-	reuse_fred := []byte("Fred")
+	reuse_str := "MyMonster"
+	reuse_test1 := "test1"
+	reuse_test2 := "test2"
+	reuse_fred := "Fred"
 
 	b.SetBytes(bytes_length)
 	bldr := flatbuffers.NewBuilder(0)
@@ -1275,10 +1286,10 @@ func BenchmarkBuildGold(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		bldr.Reset()
 
-		str := bldr.CreateByteString(reuse_str)
-		test1 := bldr.CreateByteString(reuse_test1)
-		test2 := bldr.CreateByteString(reuse_test2)
-		fred := bldr.CreateByteString(reuse_fred)
+		str := bldr.CreateString(reuse_str)
+		test1 := bldr.CreateString(reuse_test1)
+		test2 := bldr.CreateString(reuse_test2)
+		fred := bldr.CreateString(reuse_fred)
 
 		example.MonsterStartInventoryVector(bldr, 5)
 		bldr.PrependByte(4)
