@@ -536,7 +536,11 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	// test 6b: CreateString unicode
 
 	b = flatbuffers.NewBuilder(0)
-	b.CreateString("\u65e5\u672c\u8a9e")  // chinese from blog.golang.org/strings
+	// These characters are chinese from blog.golang.org/strings
+	// We use escape codes here so that editors without unicode support
+	// aren't bothered:
+	uni_str := "\u65e5\u672c\u8a9e"
+	b.CreateString(uni_str)  
 	check([]byte{9, 0, 0, 0, 230, 151, 165, 230, 156, 172, 232, 170, 158, 0, //  null-terminated, 2-byte pad
 		0, 0})
 
