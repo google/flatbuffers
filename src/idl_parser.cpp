@@ -893,8 +893,7 @@ StructDef &Parser::StartStruct() {
   if (!files_being_parsed_.empty()) struct_def.file = files_being_parsed_.top();
   // Move this struct to the back of the vector just in case it was predeclared,
   // to preserve declaration order.
-  remove(structs_.vec.begin(), structs_.vec.end(), &struct_def);
-  structs_.vec.back() = &struct_def;
+  *remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
   return struct_def;
 }
 
