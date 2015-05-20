@@ -286,8 +286,8 @@ public:
   iterator begin() { return iterator(Data(), 0); }
   const_iterator begin() const { return const_iterator(Data(), 0); }
 
-  iterator end() { return iterator(Data(), length_); }
-  const_iterator end() const { return const_iterator(Data(), length_); }
+  iterator end() { return iterator(Data(), EndianScalar(length_)); }
+  const_iterator end() const { return const_iterator(Data(), EndianScalar(length_)); }
 
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, T val) {
