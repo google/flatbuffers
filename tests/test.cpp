@@ -28,6 +28,7 @@ using namespace MyGame::Example;
   #include <android/log.h>
   #define TEST_OUTPUT_LINE(...) \
     __android_log_print(ANDROID_LOG_INFO, "FlatBuffers", __VA_ARGS__)
+  #define FLATBUFFERS_NO_FILE_TESTS
 #else
   #define TEST_OUTPUT_LINE(...) \
     { printf(__VA_ARGS__); printf("\n"); }
@@ -663,7 +664,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
 
-  #ifndef __ANDROID__  // requires file access
+  #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
   ParseProtoTest();
   #endif
