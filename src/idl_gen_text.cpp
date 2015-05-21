@@ -270,9 +270,9 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
 void GenerateText(const Parser &parser, const void *flatbuffer,
                   const GeneratorOptions &opts, std::string *_text) {
   std::string &text = *_text;
-  assert(parser.root_struct_def);  // call SetRootType()
+  assert(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);   // Reduce amount of inevitable reallocs.
-  GenStruct(*parser.root_struct_def,
+  GenStruct(*parser.root_struct_def_,
             GetRoot<Table>(flatbuffer),
             0,
             opts,
@@ -289,7 +289,7 @@ bool GenerateTextFile(const Parser &parser,
                       const std::string &path,
                       const std::string &file_name,
                       const GeneratorOptions &opts) {
-  if (!parser.builder_.GetSize() || !parser.root_struct_def) return true;
+  if (!parser.builder_.GetSize() || !parser.root_struct_def_) return true;
   std::string text;
   GenerateText(parser, parser.builder_.GetBufferPointer(), opts,
                &text);
@@ -302,12 +302,12 @@ std::string TextMakeRule(const Parser &parser,
                          const std::string &path,
                          const std::string &file_name,
                          const GeneratorOptions & /*opts*/) {
-  if (!parser.builder_.GetSize() || !parser.root_struct_def) return "";
+  if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));
   std::string make_rule = TextFileName(path, filebase) + ": " + file_name;
   auto included_files = parser.GetIncludedFilesRecursive(
-      parser.root_struct_def->file);
+      parser.root_struct_def_->file);
   for (auto it = included_files.begin();
        it != included_files.end(); ++it) {
     make_rule += " " + *it;

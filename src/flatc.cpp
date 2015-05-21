@@ -97,6 +97,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --raw-binary    Allow binaries without file_indentifier to be read.\n"
       "                  This may crash flatc given a mismatched schema.\n"
       "  --proto         Input is a .proto, translate to .fbs.\n"
+      "  --schema        Serialize schemas instead of JSON (use with -b)\n"
       "FILEs may depend on declarations in earlier files.\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -117,6 +118,7 @@ int main(int argc, const char *argv[]) {
   bool print_make_rules = false;
   bool proto_mode = false;
   bool raw_binary = false;
+  bool schema_binary = false;
   std::vector<std::string> filenames;
   std::vector<const char *> include_directories;
   size_t binary_files_from = std::numeric_limits<size_t>::max();
@@ -151,6 +153,8 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--proto") {
         proto_mode = true;
         any_generator = true;
+      } else if(arg == "--schema") {
+        schema_binary = true;
       } else if(arg == "-M") {
         print_make_rules = true;
       } else {
@@ -217,6 +221,10 @@ int main(int argc, const char *argv[]) {
         if (!parser.Parse(contents.c_str(), &include_directories[0],
                           file_it->c_str()))
           Error(parser.error_, false, false);
+        if (schema_binary) {
+          parser.Serialize();
+          parser.file_extension_ = reflection::SchemaExtension();
+        }
         include_directories.pop_back();
         include_directories.pop_back();
       }

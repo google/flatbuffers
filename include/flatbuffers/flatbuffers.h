@@ -754,7 +754,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
-                                                            std::vector<T> *v) {
+                                                    std::vector<Offset<T>> *v) {
     return CreateVectorOfSortedTables(v->data(), v->size());
   }
 
@@ -1016,6 +1016,8 @@ class Table {
     WriteScalar(data_ + field_offset, val);
     return true;
   }
+
+  uint8_t *GetVTable() { return data_ - ReadScalar<soffset_t>(data_); }
 
   bool CheckField(voffset_t field) const {
     return GetOptionalFieldOffset(field) != 0;

@@ -68,12 +68,14 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
 <li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
 <li><code>--strict-json</code> : Require &amp; generate strict JSON (field names are enclosed in quotes, no trailing commas in tables/vectors). By default, no quotes are required/generated, and trailing commas are allowed.</li>
+<li><code>--defaults-json</code> : Output fields whose value is equal to the default value when writing JSON text.</li>
 <li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>
 <li><code>--gen-includes</code> : (deprecated), instead use:</li>
 <li><code>--no-includes</code> : Don't generate include statements for included schemas the generated file depends on (C++).</li>
 <li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
 <li><code>--raw-binary</code> : Allow binaries without a file_indentifier to be read. This may crash flatc given a mismatched schema.</li>
-<li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>. Does not support, but will skip without error: <code>import</code>, <code>option</code>. Does not support, will generate error: <code>service</code>, <code>extend</code>, <code>extensions</code>, <code>oneof</code>, <code>group</code>, custom options, nested declarations. </li>
+<li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>. Does not support, but will skip without error: <code>import</code>, <code>option</code>. Does not support, will generate error: <code>service</code>, <code>extend</code>, <code>extensions</code>, <code>oneof</code>, <code>group</code>, custom options, nested declarations.</li>
+<li><code>--schema</code>: Serialize schemas instead of JSON (use with -b). This will output a binary version of the specified schema that itself corresponds to the reflection/reflection.fbs schema. Loading this binary file is the basis for reflection functionality. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

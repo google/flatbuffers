@@ -36,20 +36,33 @@ using namespace MyGame::Example;
 
 int testing_fails = 0;
 
+void TestFail(const char *expval, const char *val, const char *exp,
+              const char *file, int line) {
+  TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s (%s) != %s", file, line,
+                   exp, expval, val);
+  assert(0);
+  testing_fails++;
+}
+
+void TestEqStr(const char *expval, const char *val, const char *exp,
+               const char *file, int line) {
+  if (strcmp(expval, val) != 0) {
+    TestFail(expval, val, exp, file, line);
+  }
+}
+
 template<typename T, typename U>
 void TestEq(T expval, U val, const char *exp, const char *file, int line) {
   if (U(expval) != val) {
-    auto expval_str = flatbuffers::NumToString(expval);
-    auto val_str = flatbuffers::NumToString(val);
-    TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s (%s) != %s", file, line,
-                     exp, expval_str.c_str(), val_str.c_str());
-    assert(0);
-    testing_fails++;
+    TestFail(flatbuffers::NumToString(expval).c_str(),
+             flatbuffers::NumToString(val).c_str(),
+             exp, file, line);
   }
 }
 
 #define TEST_EQ(exp, val) TestEq(exp,         val,   #exp, __FILE__, __LINE__)
 #define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
+#define TEST_EQ_STR(exp, val) TestEqStr(exp,  val,   #exp, __FILE__, __LINE__)
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
@@ -143,7 +156,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
 
   TEST_EQ(monster->hp(), 80);
   TEST_EQ(monster->mana(), 150);  // default
-  TEST_EQ(strcmp(monster->name()->c_str(), "MyMonster"), 0);
+  TEST_EQ_STR(monster->name()->c_str(), "MyMonster");
   // Can't access the following field, it is deprecated in the schema,
   // which means accessors are not generated:
   // monster.friendly()
@@ -167,22 +180,22 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   TEST_EQ(monster->test_type(), Any_Monster);  // First make sure which it is.
   auto monster2 = reinterpret_cast<const Monster *>(monster->test());
   TEST_NOTNULL(monster2);
-  TEST_EQ(strcmp(monster2->name()->c_str(), "Fred"), 0);
+  TEST_EQ_STR(monster2->name()->c_str(), "Fred");
 
   // Example of accessing a vector of strings:
   auto vecofstrings = monster->testarrayofstring();
   TEST_EQ(vecofstrings->Length(), 2U);
-  TEST_EQ(strcmp(vecofstrings->Get(0)->c_str(), "bob"), 0);
-  TEST_EQ(strcmp(vecofstrings->Get(1)->c_str(), "fred"), 0);
+  TEST_EQ_STR(vecofstrings->Get(0)->c_str(), "bob");
+  TEST_EQ_STR(vecofstrings->Get(1)->c_str(), "fred");
 
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->Length(), 3U);
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
     TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
-  TEST_EQ(strcmp(vecoftables->Get(0)->name()->c_str(), "Barney"), 0);
-  TEST_EQ(strcmp(vecoftables->Get(1)->name()->c_str(), "Fred"), 0);
-  TEST_EQ(strcmp(vecoftables->Get(2)->name()->c_str(), "Wilma"), 0);
+  TEST_EQ_STR(vecoftables->Get(0)->name()->c_str(), "Barney");
+  TEST_EQ_STR(vecoftables->Get(1)->name()->c_str(), "Fred");
+  TEST_EQ_STR(vecoftables->Get(2)->name()->c_str(), "Wilma");
   TEST_NOTNULL(vecoftables->LookupByKey("Barney"));
   TEST_NOTNULL(vecoftables->LookupByKey("Fred"));
   TEST_NOTNULL(vecoftables->LookupByKey("Wilma"));
@@ -273,6 +286,81 @@ void ParseAndGenerateTextTest() {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
     TEST_NOTNULL(NULL);
   }
+}
+
+void ReflectionTest(uint8_t *flatbuf, size_t length) {
+  // Load a binary schema.
+  std::string bfbsfile;
+  TEST_EQ(flatbuffers::LoadFile(
+    "tests/monster_test.bfbs", false, &bfbsfile), true);
+
+  // Make sure the schema is what we expect it to be.
+  auto schema = reflection::GetSchema(bfbsfile.c_str());
+  auto root_table = schema->root_table();
+  TEST_EQ_STR(root_table->name()->c_str(), "Monster");
+  auto fields = root_table->fields();
+  auto hp_field = fields->LookupByKey("hp");
+  TEST_NOTNULL(hp_field);
+  TEST_EQ_STR(hp_field->name()->c_str(), "hp");
+  TEST_EQ(hp_field->id(), 2);
+  TEST_EQ(hp_field->type()->base_type(), reflection::Short);
+
+  // Now use it to dynamically access a buffer.
+  auto root = flatbuffers::GetAnyRoot(flatbuf);
+  auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
+  TEST_EQ(hp, 80);
+
+  // Rather than needing to know the type, we can also get the value of
+  // any field as an int64_t/double/string, regardless of what it actually is.
+  auto hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
+  TEST_EQ(hp_int64, 80);
+  auto hp_double = flatbuffers::GetAnyFieldF(root, hp_field);
+  TEST_EQ(hp_double, 80.0);
+  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field);
+  TEST_EQ_STR(hp_string.c_str(), "80");
+
+  // We can also modify it.
+  flatbuffers::SetField<uint16_t>(root, hp_field, 200);
+  hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
+  TEST_EQ(hp, 200);
+
+  // We can also set fields generically:
+  flatbuffers::SetAnyFieldI(root, hp_field, 300);
+  hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
+  TEST_EQ(hp_int64, 300);
+  flatbuffers::SetAnyFieldF(root, hp_field, 300.5);
+  hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
+  TEST_EQ(hp_int64, 300);
+  flatbuffers::SetAnyFieldS(root, hp_field, "300");
+  hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
+  TEST_EQ(hp_int64, 300);
+
+  // Reset it, for further tests.
+  flatbuffers::SetField<uint16_t>(root, hp_field, 80);
+
+  // More advanced functionality: changing the size of items in-line!
+  // First we put the FlatBuffer inside an std::vector.
+  std::vector<uint8_t> resizingbuf(flatbuf, flatbuf + length);
+  // Find the field we want to modify.
+  auto name_field = fields->LookupByKey("name");
+  // Get the root.
+  // This time we wrap the result from GetAnyRoot in a smartpointer that
+  // will keep rroot valid as resizingbuf resizes.
+  auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
+                                resizingbuf);
+  SetString(*schema, "totally new string", GetFieldS(*rroot, name_field),
+            &resizingbuf);
+  // Here resizingbuf has changed, but rroot is still valid.
+  TEST_EQ_STR(GetFieldS(*rroot, name_field)->c_str(), "totally new string");
+  // Now lets extend a vector by 100 elements (10 -> 110).
+  auto inventory_field = fields->LookupByKey("inventory");
+  auto rinventory = flatbuffers::piv(
+                     flatbuffers::GetFieldV<uint8_t>(*rroot, inventory_field),
+                     resizingbuf);
+  flatbuffers::ResizeVector<uint8_t>(*schema, 110, 50, *rinventory,
+                                     &resizingbuf);
+  // rinventory still valid, so lets read from it.
+  TEST_EQ(rinventory->Get(10), 50);
 }
 
 // Parse a .proto schema, output as .fbs
@@ -667,6 +755,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
+  ReflectionTest(flatbuf.get(), rawbuf.length());
   ParseProtoTest();
   #endif
 

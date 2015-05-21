@@ -42,6 +42,7 @@ tests/monsterdata_go_wire.mon
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
+FlatBuffers.cbp
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
 FlatBuffers.xcodeproj/
