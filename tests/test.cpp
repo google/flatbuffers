@@ -28,6 +28,7 @@ using namespace MyGame::Example;
   #include <android/log.h>
   #define TEST_OUTPUT_LINE(...) \
     __android_log_print(ANDROID_LOG_INFO, "FlatBuffers", __VA_ARGS__)
+  #define FLATBUFFERS_NO_FILE_TESTS
 #else
   #define TEST_OUTPUT_LINE(...) \
     { printf(__VA_ARGS__); printf("\n"); }
@@ -236,6 +237,22 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
   AccessFlatBufferTest(flatbuf, length);
+}
+
+void ReflectionTest(uint8_t *flatbuf, std::size_t length) {
+  // Dynamically iterate through a buffer, and read/modify fields
+
+  // We'll need the schema for this.
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile(
+    "tests/monster_test.fbs", false, &schemafile), true);
+  flatbuffers::Parser parser;
+  const char *include_directories[] = { "tests", nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(flatbuf);
+  auto hp_field = parser.root_struct_def->fields.Lookup("hp");
+
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -663,7 +680,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
 
-  #ifndef __ANDROID__  // requires file access
+  #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
   ParseProtoTest();
   #endif
