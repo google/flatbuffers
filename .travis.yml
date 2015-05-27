@@ -2,6 +2,11 @@ language: cpp
 
 os:
 - linux
+- osx
+
+compiler:
+  - gcc
+  #- clang
 
 env:
   matrix:
