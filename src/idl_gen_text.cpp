@@ -216,8 +216,11 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
        it != struct_def.fields.vec.end();
        ++it) {
     FieldDef &fd = **it;
-    if (struct_def.fixed || table->CheckField(fd.value.offset)) {
-      // The field is present.
+    auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
+    auto output_anyway = opts.output_default_scalars_in_json &&
+                         IsScalar(fd.value.type.base_type) &&
+                         !fd.deprecated;
+    if (is_present || output_anyway) {
       if (fieldout++) {
         text += ",";
       }
@@ -225,30 +228,36 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
       text.append(indent + Indent(opts), ' ');
       OutputIdentifier(fd.name, opts, _text);
       text += ": ";
-      switch (fd.value.type.base_type) {
-         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-           PTYPE) \
-           case BASE_TYPE_ ## ENUM: \
-              GenField<CTYPE>(fd, table, struct_def.fixed, \
-                              opts, indent + Indent(opts), _text); \
+      if (is_present) {
+        switch (fd.value.type.base_type) {
+           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
+             PTYPE) \
+             case BASE_TYPE_ ## ENUM: \
+                GenField<CTYPE>(fd, table, struct_def.fixed, \
+                                opts, indent + Indent(opts), _text); \
+                break;
+            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+          #undef FLATBUFFERS_TD
+          // Generate drop-thru case statements for all pointer types:
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
+            PTYPE) \
+            case BASE_TYPE_ ## ENUM:
+            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+          #undef FLATBUFFERS_TD
+              GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
+                             union_sd, opts, _text);
               break;
-          FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-        // Generate drop-thru case statements for all pointer types:
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-          PTYPE) \
-          case BASE_TYPE_ ## ENUM:
-          FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-            GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
-                           union_sd, opts, _text);
-            break;
+        }
+        if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
+          auto enum_val = fd.value.type.enum_def->ReverseLookup(
+                                  table->GetField<uint8_t>(fd.value.offset, 0));
+          assert(enum_val);
+          union_sd = enum_val->struct_def;
+        }
       }
-      if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
-        auto enum_val = fd.value.type.enum_def->ReverseLookup(
-                                 table->GetField<uint8_t>(fd.value.offset, 0));
-        assert(enum_val);
-        union_sd = enum_val->struct_def;
+      else
+      {
+        text += fd.value.constant;
       }
     }
   }

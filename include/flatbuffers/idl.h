@@ -400,6 +400,7 @@ extern void GenComment(const std::vector<std::string> &dc,
 // Container of options that may apply to any of the source/text generators.
 struct GeneratorOptions {
   bool strict_json;
+  bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
   bool prefixed_enums;
@@ -411,7 +412,9 @@ struct GeneratorOptions {
 
   Language lang;
 
-  GeneratorOptions() : strict_json(false), indent_step(2),
+  GeneratorOptions() : strict_json(false),
+                       output_default_scalars_in_json(false),
+                       indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
                        include_dependence_headers(false),
                        mutable_buffer(false),

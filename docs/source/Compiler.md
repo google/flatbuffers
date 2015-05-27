@@ -45,6 +45,9 @@ be generated for each file processed:
     in quotes, no trailing commas in tables/vectors). By default, no quotes are
     required/generated, and trailing commas are allowed.
 
+-   `--defaults-json` : Output fields whose value is equal to the default value
+    when writing JSON text.
+
 -   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
     type.
 

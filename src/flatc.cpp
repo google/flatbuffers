@@ -87,6 +87,8 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  -M              Print make rules for generated files.\n"
       "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
       "                  no trailing commas in tables/vectors.\n"
+      "  --defaults-json Output fields whose value is the default when\n"
+      "                  writing JSON\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
       "  --gen-includes  Generate include statements for included schemas the\n"
       "                  generated file depends on (C++).\n"
@@ -130,6 +132,8 @@ int main(int argc, const char *argv[]) {
         include_directories.push_back(argv[argi]);
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
+      } else if(arg == "--defaults-json") {
+        opts.output_default_scalars_in_json = true;
       } else if(arg == "--no-prefix") {
         opts.prefixed_enums = false;
       } else if(arg == "--gen-mutable") {
