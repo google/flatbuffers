@@ -409,7 +409,7 @@ class vector_downward {
   uint8_t *make_space(size_t len) {
     if (len > static_cast<size_t>(cur_ - buf_)) {
       auto old_size = size();
-      reserved_ += std::max(len, growth_policy(reserved_));
+      reserved_ += (std::max)(len, growth_policy(reserved_));
       auto new_buf = allocator_.allocate(reserved_);
       auto new_cur = new_buf + reserved_ - old_size;
       memcpy(new_cur, cur_, old_size);
