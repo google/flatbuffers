@@ -239,7 +239,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   AccessFlatBufferTest(flatbuf, length);
 }
 
-void ReflectionTest(uint8_t *flatbuf, std::size_t length) {
+void ReflectionTest(uint8_t *flatbuf, std::size_t ) {
   // Dynamically iterate through a buffer, and read/modify fields
 
   // We'll need the schema for this.
@@ -250,8 +250,8 @@ void ReflectionTest(uint8_t *flatbuf, std::size_t length) {
   const char *include_directories[] = { "tests", nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
 
-  auto root = flatbuffers::GetRoot<flatbuffers::Table>(flatbuf);
-  auto hp_field = parser.root_struct_def->fields.Lookup("hp");
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(flatbuf); root;
+  auto hp_field = parser.root_struct_def->fields.Lookup("hp"); hp_field;
 
 }
 
