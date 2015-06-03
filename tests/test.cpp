@@ -239,6 +239,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   AccessFlatBufferTest(flatbuf, length);
 }
 
+
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest() {

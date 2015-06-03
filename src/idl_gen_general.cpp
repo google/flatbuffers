@@ -858,8 +858,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
 // Save out the generated code for a single class while adding
 // declaration boilerplate.
 static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
-                      const Definition &def, const std::string &classcode,
-                      const std::string &path, bool needs_includes) {
+                      const std::string &defname, const std::string &classcode,
+                      const std::string &path, bool needs_includes, bool onefile) {
   if (!classcode.length()) return true;
 
   std::string namespace_general;
@@ -870,7 +870,11 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
       namespace_general += ".";
     }
     namespace_general += *it;
-    namespace_dir += *it + kPathSeparator;
+	if (!onefile)
+	{
+		namespace_dir += *it + kPathSeparator;
+	}
+    
   }
   EnsureDirExists(namespace_dir);
 
@@ -880,34 +884,53 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   if (needs_includes) code += lang.includes;
   code += classcode;
   code += lang.namespace_end;
-  auto filename = namespace_dir + def.name + lang.file_extension;
+  auto filename = namespace_dir + defname + lang.file_extension;
   return SaveFile(filename.c_str(), code, false);
 }
 
 bool GenerateGeneral(const Parser &parser,
                      const std::string &path,
-                     const std::string & /*file_name*/,
+                     const std::string & file_name,
                      const GeneratorOptions &opts) {
 
   assert(opts.lang <= GeneratorOptions::kMAX);
   auto lang = language_parameters[opts.lang];
+  std::string one_file_code;
 
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
     GenEnum(lang, **it, &enumcode);
-    if (!SaveClass(lang, parser, **it, enumcode, path, false))
-      return false;
+	if (opts.one_file)
+	{
+		one_file_code = enumcode;
+	}
+	else
+	{
+		if (!SaveClass(lang, parser, (**it).name, enumcode, path, false, false))
+			return false;
+	}
   }
 
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
     GenStruct(lang, parser, **it, &declcode);
-    if (!SaveClass(lang, parser, **it, declcode, path, true))
-      return false;
+	if (opts.one_file)
+	{
+		one_file_code += declcode;
+	}
+	else
+	{
+		if (!SaveClass(lang, parser, (**it).name, declcode, path, true, false))
+			return false;
+	}
   }
 
+  if (opts.one_file)
+  {
+	  return SaveClass(lang, parser, file_name, one_file_code,path, true, true);
+  }
   return true;
 }
 

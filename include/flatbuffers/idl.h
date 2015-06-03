@@ -406,6 +406,7 @@ struct GeneratorOptions {
   bool prefixed_enums;
   bool include_dependence_headers;
   bool mutable_buffer;
+  bool one_file;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
