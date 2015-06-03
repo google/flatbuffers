@@ -905,8 +905,11 @@ bool GenerateGeneral(const Parser &parser,
 	{
 		one_file_code = enumcode;
 	}
-    if (!SaveClass(lang, parser, (**it).name, enumcode, path, false,false))
-      return false;
+	else
+	{
+		if (!SaveClass(lang, parser, (**it).name, enumcode, path, false, false))
+			return false;
+	}
   }
 
   for (auto it = parser.structs_.vec.begin();
@@ -917,8 +920,11 @@ bool GenerateGeneral(const Parser &parser,
 	{
 		one_file_code += declcode;
 	}
-    if (!SaveClass(lang, parser, (**it).name, declcode, path, true,false))
-      return false;
+	else
+	{
+		if (!SaveClass(lang, parser, (**it).name, declcode, path, true, false))
+			return false;
+	}
   }
 
   if (opts.one_file)

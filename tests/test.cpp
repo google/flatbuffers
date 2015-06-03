@@ -24,6 +24,10 @@
 
 using namespace MyGame::Example;
 
+#if _MSC_VER
+#pragma warning(disable:4189) // local variable initialized but not referenced
+#endif
+
 #ifdef __ANDROID__
   #include <android/log.h>
   #define TEST_OUTPUT_LINE(...) \
@@ -250,8 +254,8 @@ void ReflectionTest(uint8_t *flatbuf, std::size_t ) {
   const char *include_directories[] = { "tests", nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
 
-  auto root = flatbuffers::GetRoot<flatbuffers::Table>(flatbuf); root;
-  auto hp_field = parser.root_struct_def->fields.Lookup("hp"); hp_field;
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(flatbuf);
+  auto hp_field = parser.root_struct_def->fields.Lookup("hp");
 
 }
 
