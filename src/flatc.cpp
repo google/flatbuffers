@@ -141,9 +141,9 @@ int main(int argc, const char *argv[]) {
         opts.mutable_buffer = true;
       } else if(arg == "--gen-includes") {
         opts.include_dependence_headers = true;
-      }else if (arg == "--gen-onefile") {
+      } else if (arg == "--gen-onefile") {
         opts.one_file = true;
-      }else if (arg == "--raw-binary") {
+      } else if (arg == "--raw-binary") {
         raw_binary = true;
       } else if(arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();

@@ -901,7 +901,7 @@ bool GenerateGeneral(const Parser &parser,
     std::string enumcode;
     GenEnum(lang, **it, &enumcode);
     if (opts.one_file) {
-      one_file_code = enumcode;
+      one_file_code += enumcode;
     }
     else {
       if (!SaveClass(lang, parser, (**it).name, enumcode, path, false, false))
