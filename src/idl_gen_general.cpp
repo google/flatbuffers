@@ -876,8 +876,8 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
 
   std::string code = "// automatically generated, do not modify\n\n";
   if (!namespace_general.empty()) {
-	  code += lang.namespace_ident + namespace_general + lang.namespace_begin;
-	  code += "\n\n";
+	code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+	code += "\n\n";
   }
   if (needs_includes) code += lang.includes;
   code += classcode;
