@@ -875,11 +875,13 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += lang.namespace_ident + namespace_general + lang.namespace_begin;
-  code += "\n\n";
+  if (!namespace_general.empty()) {
+	  code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+	  code += "\n\n";
+  }
   if (needs_includes) code += lang.includes;
   code += classcode;
-  code += lang.namespace_end;
+  if (!namespace_general.empty()) code += lang.namespace_end;
   auto filename = namespace_dir + def.name + lang.file_extension;
   return SaveFile(filename.c_str(), code, false);
 }
