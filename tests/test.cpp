@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -292,7 +294,12 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Load a binary schema.
   std::string bfbsfile;
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monster_test.bfbs", false, &bfbsfile), true);
+    "tests/monster_test.bfbs", true, &bfbsfile), true);
+
+  // Verify it, just in case:
+  flatbuffers::Verifier verifier(
+    reinterpret_cast<const uint8_t *>(bfbsfile.c_str()), bfbsfile.length());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
 
   // Make sure the schema is what we expect it to be.
   auto schema = reflection::GetSchema(bfbsfile.c_str());

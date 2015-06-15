@@ -48,14 +48,16 @@ inline const Table *GetAnyRoot(const uint8_t *flatbuf) {
 template<typename T> T GetFieldI(const Table *table,
                                  const reflection::Field *field) {
   assert(sizeof(T) == GetTypeSize(field->type()->base_type()));
-  return table->GetField<T>(field->offset(), field->default_integer());
+  return table->GetField<T>(field->offset(),
+                            static_cast<T>(field->default_integer()));
 }
 
 // Get a field, if you know it's floating point and its exact type.
 template<typename T> T GetFieldF(const Table *table,
                                  const reflection::Field *field) {
   assert(sizeof(T) == GetTypeSize(field->type()->base_type()));
-  return table->GetField<T>(field->offset(), field->default_real());
+  return table->GetField<T>(field->offset(),
+                            static_cast<T>(field->default_real()));
 }
 
 // Get a field, if you know it's a string.
@@ -106,7 +108,7 @@ inline double GetAnyFieldF(const Table *table,
     case reflection::Double: return GetFieldF<double>(table, field);
     case reflection::String: return strtod(GetFieldS(table, field)->c_str(),
                                            nullptr);
-    default: return GetAnyFieldI(table, field);
+    default: return static_cast<double>(GetAnyFieldI(table, field));
   }
 }
 
@@ -191,6 +193,7 @@ template<typename T, typename U> class pointer_inside_vector {
   const T *operator->() const {
     return operator*();
   }
+  void operator=(const pointer_inside_vector &piv);
  private:
   size_t offset_;
   const std::vector<U> &vec_;
@@ -220,7 +223,7 @@ class ResizeContext {
     if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
-    Straddle<uoffset_t>(buf_.data(), root, buf_.data());
+    Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
     ResizeTable(schema.root_table(), root);
     // We can now add or remove bytes at start.
     if (delta_ > 0) buf_.insert(buf_.begin() + start, delta_, 0);
@@ -230,8 +233,8 @@ class ResizeContext {
   // Check if the range between first (lower address) and second straddles
   // the insertion point. If it does, change the offset at offsetloc (of
   // type T, with direction D).
-  template<typename T, int D = 1> void Straddle(void *first, void *second,
-                                                void *offsetloc) {
+  template<typename T, int D> void Straddle(void *first, void *second,
+                                            void *offsetloc) {
     if (first <= startptr_ && second >= startptr_) {
       WriteScalar<T>(offsetloc, ReadScalar<T>(offsetloc) + delta_ * D);
       DagCheck(offsetloc) = true;
@@ -283,7 +286,7 @@ class ResizeContext {
       if (DagCheck(offsetloc))
         continue;  // This offset already visited.
       auto ref = offsetloc + ReadScalar<uoffset_t>(offsetloc);
-      Straddle<uoffset_t>(offsetloc, ref, offsetloc);
+      Straddle<uoffset_t, 1>(offsetloc, ref, offsetloc);
       // Recurse.
       switch (base_type) {
         case reflection::Obj: {
@@ -301,7 +304,7 @@ class ResizeContext {
             if (DagCheck(loc))
               continue;  // This offset already visited.
             auto dest = loc + vec->Get(i);
-            Straddle<uoffset_t>(loc, dest ,loc);
+            Straddle<uoffset_t, 1>(loc, dest ,loc);
             ResizeTable(elemobjectdef, reinterpret_cast<Table *>(dest));
           }
           break;
@@ -324,6 +327,8 @@ class ResizeContext {
       }
     }
   }
+
+  void operator=(const ResizeContext &rc);
 
  private:
   const reflection::Schema &schema_;
@@ -361,7 +366,7 @@ template<typename T> void ResizeVector(const reflection::Schema &schema,
                                        uoffset_t newsize, T val,
                                        const Vector<T> *vec,
                                        std::vector<uint8_t> *flatbuf) {
-  auto delta_elem = newsize - static_cast<int>(vec->size());
+  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(vec->size());
   auto delta_bytes = delta_elem * static_cast<int>(sizeof(T));
   auto vec_start = reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
   auto start = static_cast<uoffset_t>(vec_start + sizeof(uoffset_t) +
@@ -372,7 +377,8 @@ template<typename T> void ResizeVector(const reflection::Schema &schema,
     // Set new elements to "val".
     for (int i = 0; i < delta_elem; i++) {
       auto loc = flatbuf->data() + start + i * sizeof(T);
-      if (std::is_scalar<T>::value) {
+      auto is_scalar = std::is_scalar<T>::value;
+      if (is_scalar) {
         WriteScalar(loc, val);
       } else {  // struct
         *reinterpret_cast<T *>(loc) = val;

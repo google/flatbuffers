@@ -40,7 +40,7 @@ const char kTypeSizes[] = {
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
 static_assert(BASE_TYPE_UNION ==
-              static_cast<BaseType>(reflection::BaseType::Union),
+              static_cast<BaseType>(reflection::Union),
               "enums don't match");
 
 static void Error(const std::string &msg) {
@@ -1346,7 +1346,9 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder)
                                                                          const {
   std::vector<Offset<reflection::Field>> field_offsets;
   for (auto it = fields.vec.begin(); it != fields.vec.end(); ++it) {
-    field_offsets.push_back((*it)->Serialize(builder, it - fields.vec.begin()));
+    field_offsets.push_back(
+      (*it)->Serialize(builder,
+                       static_cast<uint16_t>(it - fields.vec.begin())));
   }
   return reflection::CreateObject(*builder,
                                   builder->CreateString(name),
