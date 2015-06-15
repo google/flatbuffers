@@ -212,7 +212,7 @@ class ResizeContext {
  public:
   ResizeContext(const reflection::Schema &schema, uoffset_t start, int delta,
                 std::vector<uint8_t> *flatbuf)
-     : schema_(schema), start_(start), startptr_(flatbuf->data() + start),
+     : schema_(schema), startptr_(flatbuf->data() + start),
        delta_(delta), buf_(*flatbuf),
        dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
     auto mask = sizeof(largest_scalar_t) - 1;
@@ -327,7 +327,6 @@ class ResizeContext {
 
  private:
   const reflection::Schema &schema_;
-  uoffset_t start_;
   uint8_t *startptr_;
   int delta_;
   std::vector<uint8_t> &buf_;
