@@ -198,7 +198,7 @@ void Parser::Next() {
         }
         // fall thru
       default:
-        if (isalpha(static_cast<unsigned char>(c))) {
+        if (isalpha(static_cast<unsigned char>(c)) || c == '_') {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (isalnum(static_cast<unsigned char>(*cursor_)) ||
