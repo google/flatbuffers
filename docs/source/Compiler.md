@@ -51,7 +51,8 @@ be generated for each file processed:
 -   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
     type.
 
--   `--gen-includes` : Generate include statements for included schemas the
+-   `--gen-includes` : (deprecated), instead use:
+-   `--no-includes` : Don't generate include statements for included schemas the
     generated file depends on (C++).
 
 -   `--gen-mutable` : Generate additional non-const accessors for mutating

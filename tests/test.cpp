@@ -291,6 +291,7 @@ void ParseProtoTest() {
 
   // Generate fbs.
   flatbuffers::GeneratorOptions opts;
+  opts.include_dependence_headers = false;
   auto fbs = flatbuffers::GenerateFBS(parser, "test", opts);
 
   // Ensure generated file is parsable.

@@ -90,8 +90,9 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --defaults-json Output fields whose value is the default when\n"
       "                  writing JSON\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
-      "  --gen-includes  Generate include statements for included schemas the\n"
-      "                  generated file depends on (C++).\n"
+      "  --gen-includes  (deprecated), instead use:\n"
+      "  --no-includes   Don\'t generate include statements for included\n"
+      "                  schemas the generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
       "  --raw-binary    Allow binaries without file_indentifier to be read.\n"
       "                  This may crash flatc given a mismatched schema.\n"
@@ -139,7 +140,10 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
       } else if(arg == "--gen-includes") {
-        opts.include_dependence_headers = true;
+        // Deprecated, remove this option some time in the future.
+        printf("warning: --gen-includes is deprecated (it is now default)\n");
+      } else if(arg == "--no-includes") {
+        opts.include_dependence_headers = false;
       } else if(arg == "--raw-binary") {
         raw_binary = true;
       } else if(arg == "--") {  // Separator between text and binary inputs.

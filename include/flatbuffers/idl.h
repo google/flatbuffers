@@ -416,7 +416,7 @@ struct GeneratorOptions {
                        output_default_scalars_in_json(false),
                        indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
-                       include_dependence_headers(false),
+                       include_dependence_headers(true),
                        mutable_buffer(false),
                        lang(GeneratorOptions::kJava) {}
 };
