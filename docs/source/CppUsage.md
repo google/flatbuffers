@@ -203,14 +203,34 @@ to `150`, which is the default value, so it was never stored in the buffer.
 Trying to call mutate_mana() on such data will return false, and the value won't
 actually be modified!
 
-There's two ways around this. First, you can call `ForceDefaults()` on a
+One way to solve this is to call `ForceDefaults()` on a
 `FlatBufferBuilder` to force all fields you set to actually be written. This
 of course increases the size of the buffer somewhat, but this may be
 acceptable for a mutable buffer.
 
-Alternatively, you can use mutation functions that are able to insert fields
-and change the size of things. These functions are expensive however, since
-they need to resize the buffer and create new data.
+Alternatively, you can use the more powerful reflection functionality:
+
+### Reflection (& Resizing)
+
+If the above ways of accessing a buffer are still too static for you, there is
+experimental support for reflection in FlatBuffers, allowing you to read and
+write data even if you don't know the exact format of a buffer, and even allows
+you to change sizes of strings and vectors in-place.
+
+The way this works is very elegant, there is actually a FlatBuffer schema that
+describes schemas (!) which you can find in `reflection/reflection.fbs`.
+The compiler `flatc` can write out any schemas it has just parsed as a binary
+FlatBuffer, corresponding to this meta-schema.
+
+Loading in one of these binary schemas at runtime allows you traverse any
+FlatBuffer data that corresponds to it without knowing the exact format. You
+can query what fields are present, and then read/write them after.
+
+For convenient field manipulation, you can include the header
+`flatbuffers/reflection.h` which includes both the generated code from the meta
+schema, as well as a lot of helper functions.
+
+And example of usage for the moment you can find in `test.cpp/ReflectionTest()`.
 
 ### Storing maps / dictionaries in a FlatBuffer
 

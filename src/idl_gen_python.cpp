@@ -651,7 +651,7 @@ bool GeneratePython(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    python::GenStruct(**it, &declcode, parser.root_struct_def);
+    python::GenStruct(**it, &declcode, parser.root_struct_def_);
     if (!python::SaveType(parser, **it, declcode, path, true))
       return false;
   }

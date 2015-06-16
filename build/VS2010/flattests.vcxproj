@@ -265,6 +265,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\flatbuffers\flatbuffers.h" />
     <ClInclude Include="..\..\include\flatbuffers\idl.h" />
+    <ClInclude Include="..\..\include\flatbuffers\reflection.h" />
     <ClInclude Include="..\..\include\flatbuffers\util.h" />
     <ClInclude Include="..\..\tests\monster_test_generated.h" />
     <ClCompile Include="..\..\src\idl_gen_fbs.cpp" />

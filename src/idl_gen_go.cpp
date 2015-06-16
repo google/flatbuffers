@@ -677,7 +677,7 @@ bool GenerateGo(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    go::GenStruct(**it, &declcode, parser.root_struct_def);
+    go::GenStruct(**it, &declcode, parser.root_struct_def_);
     if (!go::SaveType(parser, **it, declcode, path, true))
       return false;
   }

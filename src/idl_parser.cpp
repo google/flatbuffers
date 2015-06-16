@@ -17,8 +17,6 @@
 #include <algorithm>
 #include <list>
 
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -38,6 +36,12 @@ const char kTypeSizes[] = {
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
+
+// The enums in the reflection schema should match the ones we use internally.
+// Compare the last element to check if these go out of sync.
+static_assert(BASE_TYPE_UNION ==
+              static_cast<BaseType>(reflection::Union),
+              "enums don't match");
 
 static void Error(const std::string &msg) {
   throw msg;
@@ -198,7 +202,7 @@ void Parser::Next() {
         }
         // fall thru
       default:
-        if (isalpha(static_cast<unsigned char>(c))) {
+        if (isalpha(static_cast<unsigned char>(c)) || c == '_') {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (isalnum(static_cast<unsigned char>(*cursor_)) ||
@@ -981,8 +985,8 @@ void Parser::ParseDecl() {
 }
 
 bool Parser::SetRootType(const char *name) {
-  root_struct_def = structs_.Lookup(GetFullyQualifiedName(name));
-  return root_struct_def != nullptr;
+  root_struct_def_ = structs_.Lookup(GetFullyQualifiedName(name));
+  return root_struct_def_ != nullptr;
 }
 
 std::string Parser::GetFullyQualifiedName(const std::string &name) const {
@@ -1200,11 +1204,11 @@ bool Parser::Parse(const char *source, const char **include_paths,
       } else if (token_ == kTokenNameSpace) {
         ParseNamespace();
       } else if (token_ == '{') {
-        if (!root_struct_def) Error("no root type set to parse json with");
+        if (!root_struct_def_) Error("no root type set to parse json with");
         if (builder_.GetSize()) {
           Error("cannot have more than one json object in a file");
         }
-        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def)),
+        builder_.Finish(Offset<Table>(ParseTable(*root_struct_def_)),
           file_identifier_.length() ? file_identifier_.c_str() : nullptr);
       } else if (token_ == kTokenEnum) {
         ParseEnum(false);
@@ -1216,7 +1220,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
         Expect(kTokenIdentifier);
         if (!SetRootType(root_type.c_str()))
           Error("unknown root type: " + root_type);
-        if (root_struct_def->fixed)
+        if (root_struct_def_->fixed)
           Error("root type must be a table");
         Expect(';');
       } else if (token_ == kTokenFileIdentifier) {
@@ -1300,6 +1304,107 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
   }
 
   return included_files;
+}
+
+// Schema serialization functionality:
+
+template<typename T> void AssignIndices(const std::vector<T *> &defvec) {
+  // Pre-sort these vectors, such that we can set the correct indices for them.
+  auto vec = defvec;
+  std::sort(vec.begin(), vec.end(),
+            [](const T *a, const T *b) { return a->name < b->name; });
+  for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
+}
+
+void Parser::Serialize() {
+  builder_.Clear();
+  AssignIndices(structs_.vec);
+  AssignIndices(enums_.vec);
+  std::vector<Offset<reflection::Object>> object_offsets;
+  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
+    auto offset = (*it)->Serialize(&builder_);
+    object_offsets.push_back(offset);
+    (*it)->serialized_location = offset.o;
+  }
+  std::vector<Offset<reflection::Enum>> enum_offsets;
+  for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
+    auto offset = (*it)->Serialize(&builder_);
+    enum_offsets.push_back(offset);
+    (*it)->serialized_location = offset.o;
+  }
+  auto schema_offset = reflection::CreateSchema(
+                         builder_,
+                         builder_.CreateVectorOfSortedTables(&object_offsets),
+                         builder_.CreateVectorOfSortedTables(&enum_offsets),
+                         builder_.CreateString(file_identifier_),
+                         builder_.CreateString(file_extension_),
+                         root_struct_def_->serialized_location);
+  builder_.Finish(schema_offset, reflection::SchemaIdentifier());
+}
+
+Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder)
+                                                                         const {
+  std::vector<Offset<reflection::Field>> field_offsets;
+  for (auto it = fields.vec.begin(); it != fields.vec.end(); ++it) {
+    field_offsets.push_back(
+      (*it)->Serialize(builder,
+                       static_cast<uint16_t>(it - fields.vec.begin())));
+  }
+  return reflection::CreateObject(*builder,
+                                  builder->CreateString(name),
+                                  builder->CreateVectorOfSortedTables(
+                                    &field_offsets),
+                                  fixed);
+}
+
+Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
+                                              uint16_t id) const {
+  return reflection::CreateField(*builder,
+                                 builder->CreateString(name),
+                                 value.type.Serialize(builder),
+                                 id,
+                                 value.offset,
+                                 IsInteger(value.type.base_type)
+                                   ? StringToInt(value.constant.c_str())
+                                   : 0,
+                                 IsFloat(value.type.base_type)
+                                   ? strtod(value.constant.c_str(), nullptr)
+                                   : 0.0,
+                                 deprecated,
+                                 required,
+                                 key);
+  // TODO: value.constant is almost always "0", we could save quite a bit of
+  // space by sharing it. Same for common values of value.type.
+}
+
+Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder) const {
+  std::vector<Offset<reflection::EnumVal>> enumval_offsets;
+  for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
+    enumval_offsets.push_back((*it)->Serialize(builder));
+  }
+  return reflection::CreateEnum(*builder,
+                                builder->CreateString(name),
+                                builder->CreateVector(enumval_offsets),
+                                is_union,
+                                underlying_type.Serialize(builder));
+}
+
+Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder) const
+                                                                               {
+  return reflection::CreateEnumVal(*builder,
+                                   builder->CreateString(name),
+                                   value,
+                                   struct_def
+                                     ? struct_def->serialized_location
+                                     : 0);
+}
+
+Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
+  return reflection::CreateType(*builder,
+                                static_cast<reflection::BaseType>(base_type),
+                                static_cast<reflection::BaseType>(element),
+                                struct_def ? struct_def->index :
+                                             (enum_def ? enum_def->index : -1));
 }
 
 }  // namespace flatbuffers

@@ -25,6 +25,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
+#include "flatbuffers/reflection.h"
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -126,6 +127,8 @@ struct Type {
 
   Type VectorType() const { return Type(element, struct_def, enum_def); }
 
+  Offset<reflection::Type> Serialize(FlatBufferBuilder *builder) const;
+
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
@@ -179,7 +182,8 @@ struct Namespace {
 
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
-  Definition() : generated(false), defined_namespace(nullptr) {}
+  Definition() : generated(false), defined_namespace(nullptr),
+                 serialized_location(0), index(-1) {}
 
   std::string name;
   std::string file;
@@ -187,11 +191,18 @@ struct Definition {
   SymbolTable<Value> attributes;
   bool generated;  // did we already output code for this definition?
   Namespace *defined_namespace;  // Where it was defined.
+
+  // For use with Serialize()
+  uoffset_t serialized_location;
+  int index;  // Inside the vector it is stored.
 };
 
 struct FieldDef : public Definition {
   FieldDef() : deprecated(false), required(false), key(false), padding(0),
                used(false) {}
+
+  Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id)
+                                                                          const;
 
   Value value;
   bool deprecated; // Field is allowed to be present in old data, but can't be
@@ -218,6 +229,8 @@ struct StructDef : public Definition {
     if (fields.vec.size()) fields.vec.back()->padding = padding;
   }
 
+  Offset<reflection::Object> Serialize(FlatBufferBuilder *builder) const;
+
   SymbolTable<FieldDef> fields;
   bool fixed;       // If it's struct, not a table.
   bool predecl;     // If it's used before it was defined.
@@ -243,6 +256,8 @@ struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val)
     : name(_name), value(_val), struct_def(nullptr) {}
 
+  Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder) const;
+
   std::string name;
   std::vector<std::string> doc_comment;
   int64_t value;
@@ -263,6 +278,8 @@ struct EnumDef : public Definition {
     return nullptr;
   }
 
+  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder) const;
+
   SymbolTable<EnumVal> vals;
   bool is_union;
   Type underlying_type;
@@ -271,7 +288,7 @@ struct EnumDef : public Definition {
 class Parser {
  public:
   Parser(bool strict_json = false, bool proto_mode = false)
-    : root_struct_def(nullptr),
+    : root_struct_def_(nullptr),
       source_(nullptr),
       cursor_(nullptr),
       line_(1),
@@ -325,6 +342,10 @@ class Parser {
   std::set<std::string> GetIncludedFilesRecursive(
       const std::string &file_name) const;
 
+  // Fills builder_ with a binary version of the schema parsed.
+  // See reflection/reflection.fbs
+  void Serialize();
+
  private:
   int64_t ParseHexNum(int nibbles);
   void Next();
@@ -363,7 +384,7 @@ class Parser {
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file
-  StructDef *root_struct_def;
+  StructDef *root_struct_def_;
   std::string file_identifier_;
   std::string file_extension_;
 
@@ -417,7 +438,7 @@ struct GeneratorOptions {
                        output_default_scalars_in_json(false),
                        indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true),
-                       include_dependence_headers(false),
+                       include_dependence_headers(true),
                        mutable_buffer(false),
                        one_file(false),
                        lang(GeneratorOptions::kJava) {}

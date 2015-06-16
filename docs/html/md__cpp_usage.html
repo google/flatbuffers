@@ -114,8 +114,14 @@ $(document).ready(function(){initNavTree('md__cpp_usage.html','');});
 </div><!-- fragment --><p>We use the somewhat verbose term <code>mutate</code> instead of <code>set</code> to indicate that this is a special use case, not to be confused with the default way of constructing FlatBuffer data.</p>
 <p>After the above mutations, you can send on the FlatBuffer to a new recipient without any further work!</p>
 <p>Note that any <code>mutate_</code> functions on tables return a bool, which is false if the field we're trying to set isn't present in the buffer. Fields are not present if they weren't set, or even if they happen to be equal to the default value. For example, in the creation code above we set the <code>mana</code> field to <code>150</code>, which is the default value, so it was never stored in the buffer. Trying to call mutate_mana() on such data will return false, and the value won't actually be modified!</p>
-<p>There's two ways around this. First, you can call <code>ForceDefaults()</code> on a <code>FlatBufferBuilder</code> to force all fields you set to actually be written. This of course increases the size of the buffer somewhat, but this may be acceptable for a mutable buffer.</p>
-<p>Alternatively, you can use mutation functions that are able to insert fields and change the size of things. These functions are expensive however, since they need to resize the buffer and create new data.</p>
+<p>One way to solve this is to call <code>ForceDefaults()</code> on a <code>FlatBufferBuilder</code> to force all fields you set to actually be written. This of course increases the size of the buffer somewhat, but this may be acceptable for a mutable buffer.</p>
+<p>Alternatively, you can use the more powerful reflection functionality:</p>
+<h3>Reflection (&amp; Resizing)</h3>
+<p>If the above ways of accessing a buffer are still too static for you, there is experimental support for reflection in FlatBuffers, allowing you to read and write data even if you don't know the exact format of a buffer, and even allows you to change sizes of strings and vectors in-place.</p>
+<p>The way this works is very elegant, there is actually a FlatBuffer schema that describes schemas (!) which you can find in <code>reflection/reflection.fbs</code>. The compiler <code>flatc</code> can write out any schemas it has just parsed as a binary FlatBuffer, corresponding to this meta-schema.</p>
+<p>Loading in one of these binary schemas at runtime allows you traverse any FlatBuffer data that corresponds to it without knowing the exact format. You can query what fields are present, and then read/write them after.</p>
+<p>For convenient field manipulation, you can include the header <code>flatbuffers/reflection.h</code> which includes both the generated code from the meta schema, as well as a lot of helper functions.</p>
+<p>And example of usage for the moment you can find in <code>test.cpp/ReflectionTest()</code>.</p>
 <h3>Storing maps / dictionaries in a FlatBuffer</h3>
 <p>FlatBuffers doesn't support maps natively, but there is support to emulate their behavior with vectors and binary search, which means you can have fast lookups directly from a FlatBuffer without having to unpack your data into a <code>std::map</code> or similar.</p>
 <p>To use it:</p><ul>
