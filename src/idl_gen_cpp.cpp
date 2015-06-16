@@ -701,8 +701,8 @@ std::string GenerateCPP(const Parser &parser,
     code += enum_code_post;
 
     // Generate convenient global helper functions:
-    if (parser.root_struct_def) {
-      auto &name = parser.root_struct_def->name;
+    if (parser.root_struct_def_) {
+      auto &name = parser.root_struct_def_->name;
       std::string qualified_name = parser.GetFullyQualifiedName(name);
       std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
 

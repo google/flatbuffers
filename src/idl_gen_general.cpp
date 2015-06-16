@@ -527,7 +527,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     code += ") + _bb.";
     code += lang.get_bb_position;
     code += ", _bb)); }\n";
-    if (parser.root_struct_def == &struct_def) {
+    if (parser.root_struct_def_ == &struct_def) {
       if (parser.file_identifier_.length()) {
         // Check if a buffer has the identifier.
         code += "  public static ";
@@ -842,7 +842,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       }
     }
     code += "    return o;\n  }\n";
-    if (parser.root_struct_def == &struct_def) {
+    if (parser.root_struct_def_ == &struct_def) {
       code += "  public static void ";
       code += FunctionStart(lang, 'F') + "inish" + struct_def.name;
       code += "Buffer(FlatBufferBuilder builder, int offset) { ";
@@ -878,11 +878,13 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   EnsureDirExists(namespace_dir);
 
   std::string code = "// automatically generated, do not modify\n\n";
-  code += lang.namespace_ident + namespace_general + lang.namespace_begin;
-  code += "\n\n";
+  if (!namespace_general.empty()) {
+	code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+	code += "\n\n";
+  }
   if (needs_includes) code += lang.includes;
   code += classcode;
-  code += lang.namespace_end;
+  if (!namespace_general.empty()) code += lang.namespace_end;
   auto filename = namespace_dir + defname + lang.file_extension;
   return SaveFile(filename.c_str(), code, false);
 }
@@ -1007,7 +1009,7 @@ std::string BinaryMakeRule(const Parser &parser,
   std::string make_rule = BinaryFileName(parser, path, filebase) + ": " +
       file_name;
   auto included_files = parser.GetIncludedFilesRecursive(
-      parser.root_struct_def->file);
+      parser.root_struct_def_->file);
   for (auto it = included_files.begin();
        it != included_files.end(); ++it) {
     make_rule += " " + *it;
