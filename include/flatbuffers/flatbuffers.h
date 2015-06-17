@@ -273,6 +273,8 @@ public:
     return IndirectHelper<T>::Read(Data(), i);
   }
 
+  return_type operator[](uoffset_t i) const { return Get(i); }
+
   // If this is a Vector of enums, T will be its storage type, not the enum
   // type. This function makes it convenient to retrieve value with enum
   // type E.
@@ -293,7 +295,7 @@ public:
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, T val) {
     assert(i < size());
-    WriteScalar(Data() + i * sizeof(T), val);
+    WriteScalar(data() + i, val);
   }
 
   // The raw data in little endian format. Use with care.
@@ -304,6 +306,10 @@ public:
   uint8_t *Data() {
     return reinterpret_cast<uint8_t *>(&length_ + 1);
   }
+
+  // Similarly, but typed, much like std::vector::data
+  const T *data() const { return reinterpret_cast<const T *>(Data()); }
+  T *data() { return reinterpret_cast<T *>(Data()); }
 
   template<typename K> return_type LookupByKey(K key) const {
     void *search_result = std::bsearch(&key, Data(), size(),
@@ -345,6 +351,7 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
+  std::string str() const { return c_str(); }
 
   bool operator <(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
@@ -509,6 +516,10 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
 
   // Get the released pointer to the serialized buffer.
   // Don't attempt to use this FlatBufferBuilder afterwards!
+  // The unique_ptr returned has a special allocator that knows how to
+  // deallocate this pointer (since it points to the middle of an allocation).
+  // Thus, do not mix this pointer with other unique_ptr's, or call release() /
+  // reset() on it.
   unique_ptr_t ReleaseBufferPointer() { return buf_.release(); }
 
   void ForceDefaults(bool fd) { force_defaults_ = fd; }

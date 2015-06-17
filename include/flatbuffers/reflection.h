@@ -313,7 +313,7 @@ class ResizeContext {
           auto enumdef = schema_.enums()->Get(fielddef->type()->index());
           // TODO: this is clumsy and slow, but no other way to find it?
           auto type_field = fielddefs->LookupByKey(
-                    (fielddef->name()->c_str() + std::string("_type")).c_str());
+                    (fielddef->name()->str() + "_type").c_str());
           assert(type_field);
           auto union_type = GetFieldI<uint8_t>(table, type_field);
           auto enumval = enumdef->values()->LookupByKey(union_type);

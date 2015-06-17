@@ -80,7 +80,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
       Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type,
             indent + Indent(opts), nullptr, opts, _text);
     else
-      Print(v.Get(i), type, indent + Indent(opts), nullptr,
+      Print(v[i], type, indent + Indent(opts), nullptr,
             opts, _text);
   }
   text += NewLine(opts);
@@ -92,7 +92,7 @@ static void EscapeString(const String &s, std::string *_text) {
   std::string &text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < s.size(); i++) {
-    char c = s.Get(i);
+    char c = s[i];
     switch (c) {
       case '\n': text += "\\n"; break;
       case '\t': text += "\\t"; break;

@@ -49,7 +49,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   assert(monster->hp() == 80);
   assert(monster->mana() == 150);  // default
-  assert(!strcmp(monster->name()->c_str(), "MyMonster"));
+  assert(monster->name()->str() == "MyMonster");
 
   auto pos = monster->pos();
   assert(pos);
