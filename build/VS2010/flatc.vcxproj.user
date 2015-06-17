@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>..\..\tests</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-j -c -n -g -b -t monster_test.fbs monsterdata_test.golden</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-j -c -n -g --no-includes --gen-mutable monster_test.fbs</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>..\..</LocalDebuggerWorkingDirectory>
