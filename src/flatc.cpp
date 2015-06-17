@@ -94,6 +94,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --no-includes   Don\'t generate include statements for included\n"
       "                  schemas the generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
+      "  --gen-onefile   Generate single output file for C#\n"
       "  --raw-binary    Allow binaries without file_indentifier to be read.\n"
       "                  This may crash flatc given a mismatched schema.\n"
       "  --proto         Input is a .proto, translate to .fbs.\n"
@@ -146,7 +147,9 @@ int main(int argc, const char *argv[]) {
         printf("warning: --gen-includes is deprecated (it is now default)\n");
       } else if(arg == "--no-includes") {
         opts.include_dependence_headers = false;
-      } else if(arg == "--raw-binary") {
+      } else if (arg == "--gen-onefile") {
+        opts.one_file = true;
+      } else if (arg == "--raw-binary") {
         raw_binary = true;
       } else if(arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();

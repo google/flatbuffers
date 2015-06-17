@@ -58,6 +58,8 @@ be generated for each file processed:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+-   `--gen-onefile` :  Generate single output file (useful for C#)
+
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 
