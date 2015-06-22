@@ -1149,7 +1149,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
     files_being_parsed_.push(source_filename);
   }
   if (!include_paths) {
-    const char *current_directory[] = { "", nullptr };
+    static const char *current_directory[] = { "", nullptr };
     include_paths = current_directory;
   }
   source_ = cursor_ = source;
