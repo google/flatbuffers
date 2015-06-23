@@ -302,18 +302,19 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
 
   // Make sure the schema is what we expect it to be.
-  auto schema = reflection::GetSchema(bfbsfile.c_str());
-  auto root_table = schema->root_table();
+  auto &schema = *reflection::GetSchema(bfbsfile.c_str());
+  auto root_table = schema.root_table();
   TEST_EQ_STR(root_table->name()->c_str(), "Monster");
   auto fields = root_table->fields();
-  auto hp_field = fields->LookupByKey("hp");
-  TEST_NOTNULL(hp_field);
-  TEST_EQ_STR(hp_field->name()->c_str(), "hp");
-  TEST_EQ(hp_field->id(), 2);
-  TEST_EQ(hp_field->type()->base_type(), reflection::Short);
+  auto hp_field_ptr = fields->LookupByKey("hp");
+  TEST_NOTNULL(hp_field_ptr);
+  auto &hp_field = *hp_field_ptr;
+  TEST_EQ_STR(hp_field.name()->c_str(), "hp");
+  TEST_EQ(hp_field.id(), 2);
+  TEST_EQ(hp_field.type()->base_type(), reflection::Short);
 
   // Now use it to dynamically access a buffer.
-  auto root = flatbuffers::GetAnyRoot(flatbuf);
+  auto &root = *flatbuffers::GetAnyRoot(flatbuf);
   auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 80);
 
@@ -323,51 +324,60 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(hp_int64, 80);
   auto hp_double = flatbuffers::GetAnyFieldF(root, hp_field);
   TEST_EQ(hp_double, 80.0);
-  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field);
+  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, schema);
   TEST_EQ_STR(hp_string.c_str(), "80");
 
   // We can also modify it.
-  flatbuffers::SetField<uint16_t>(root, hp_field, 200);
+  flatbuffers::SetField<uint16_t>(&root, hp_field, 200);
   hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 200);
 
   // We can also set fields generically:
-  flatbuffers::SetAnyFieldI(root, hp_field, 300);
+  flatbuffers::SetAnyFieldI(&root, hp_field, 300);
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
-  flatbuffers::SetAnyFieldF(root, hp_field, 300.5);
+  flatbuffers::SetAnyFieldF(&root, hp_field, 300.5);
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
-  flatbuffers::SetAnyFieldS(root, hp_field, "300");
+  flatbuffers::SetAnyFieldS(&root, hp_field, "300");
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
 
   // Reset it, for further tests.
-  flatbuffers::SetField<uint16_t>(root, hp_field, 80);
+  flatbuffers::SetField<uint16_t>(&root, hp_field, 80);
 
   // More advanced functionality: changing the size of items in-line!
   // First we put the FlatBuffer inside an std::vector.
   std::vector<uint8_t> resizingbuf(flatbuf, flatbuf + length);
   // Find the field we want to modify.
-  auto name_field = fields->LookupByKey("name");
+  auto &name_field = *fields->LookupByKey("name");
   // Get the root.
   // This time we wrap the result from GetAnyRoot in a smartpointer that
   // will keep rroot valid as resizingbuf resizes.
   auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
                                 resizingbuf);
-  SetString(*schema, "totally new string", GetFieldS(*rroot, name_field),
+  SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
   // Here resizingbuf has changed, but rroot is still valid.
-  TEST_EQ_STR(GetFieldS(*rroot, name_field)->c_str(), "totally new string");
+  TEST_EQ_STR(GetFieldS(**rroot, name_field)->c_str(), "totally new string");
   // Now lets extend a vector by 100 elements (10 -> 110).
-  auto inventory_field = fields->LookupByKey("inventory");
+  auto &inventory_field = *fields->LookupByKey("inventory");
   auto rinventory = flatbuffers::piv(
-                     flatbuffers::GetFieldV<uint8_t>(*rroot, inventory_field),
+                     flatbuffers::GetFieldV<uint8_t>(**rroot, inventory_field),
                      resizingbuf);
-  flatbuffers::ResizeVector<uint8_t>(*schema, 110, 50, *rinventory,
+  flatbuffers::ResizeVector<uint8_t>(schema, 110, 50, *rinventory,
                                      &resizingbuf);
   // rinventory still valid, so lets read from it.
   TEST_EQ(rinventory->Get(10), 50);
+
+  // Using reflection, we can also copy tables and other things out of
+  // other FlatBuffers into a new one, either part or whole.
+  flatbuffers::FlatBufferBuilder fbb;
+  auto root_offset = flatbuffers::CopyTable(fbb, schema, *root_table,
+                                            *flatbuffers::GetAnyRoot(flatbuf));
+  fbb.Finish(root_offset, MonsterIdentifier());
+  // Test that it was copied correctly:
+  AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
 }
 
 // Parse a .proto schema, output as .fbs

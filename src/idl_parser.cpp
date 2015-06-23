@@ -1354,7 +1354,9 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder)
                                   builder->CreateString(name),
                                   builder->CreateVectorOfSortedTables(
                                     &field_offsets),
-                                  fixed);
+                                  fixed,
+                                  static_cast<int>(minalign),
+                                  static_cast<int>(bytesize));
 }
 
 Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,

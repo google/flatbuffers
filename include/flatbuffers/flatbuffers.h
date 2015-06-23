@@ -713,6 +713,10 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     return CreateString(str.c_str(), str.length());
   }
 
+  Offset<String> CreateString(const String *str) {
+    return CreateString(str->c_str(), str->Length());
+  }
+
   uoffset_t EndVector(size_t len) {
     return PushElement(static_cast<uoffset_t>(len));
   }
