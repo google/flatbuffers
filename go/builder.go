@@ -8,11 +8,12 @@ package flatbuffers
 type Builder struct {
 	Bytes []byte
 
-	minalign  int
-	vtable    []UOffsetT
-	objectEnd UOffsetT
-	vtables   []UOffsetT
-	head      UOffsetT
+	minalign     int
+	vtable       []UOffsetT
+	objectEnd    UOffsetT
+	insideObject bool
+	vtables      []UOffsetT
+	head         UOffsetT
 }
 
 // NewBuilder initializes a Builder of size `initial_size`.
@@ -53,6 +54,8 @@ func (b *Builder) Reset() {
 // StartObject initializes bookkeeping for writing a new object.
 func (b *Builder) StartObject(numfields int) {
 	b.notNested()
+	b.insideObject = true
+
 	// use 32-bit offsets so that arithmetic doesn't overflow.
 	if cap(b.vtable) < numfields || b.vtable == nil {
 		b.vtable = make([]UOffsetT, numfields)
@@ -170,10 +173,12 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 
 // EndObject writes data necessary to finish object construction.
 func (b *Builder) EndObject() UOffsetT {
-	if b.vtable == nil {
+	if !b.insideObject {
 		panic("not in object")
 	}
-	return b.WriteVtable()
+	n := b.WriteVtable()
+	b.insideObject = false
+	return n
 }
 
 // Doubles the size of the byteslice, and copies the old data towards the
@@ -281,6 +286,8 @@ func (b *Builder) EndVector(vectorNumElems int) UOffsetT {
 
 // CreateString writes a null-terminated string as a vector.
 func (b *Builder) CreateString(s string) UOffsetT {
+	b.notNested()
+
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
 
@@ -294,6 +301,8 @@ func (b *Builder) CreateString(s string) UOffsetT {
 
 // CreateByteString writes a byte slice as a string (null-terminated).
 func (b *Builder) CreateByteString(s []byte) UOffsetT {
+	b.notNested()
+
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
 
@@ -320,7 +329,7 @@ func (b *Builder) CreateByteVector(v []byte) UOffsetT {
 func (b *Builder) notNested() {
 	// Check that no other objects are being built while making this
 	// object. If not, panic:
-	if len(b.vtable) > 0 {
+	if b.insideObject {
 		panic("non-inline data write inside of object")
 	}
 }
