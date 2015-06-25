@@ -109,7 +109,7 @@ Structs do have convenient methods that even have arguments for nested structs.
 
 As you can see, references to other objects (e.g. the string above) are simple
 ints, and thus do not have the type-safety of the Offset type in C++. Extra
-case must thus be taken that you set the right offset on the right field.
+care must thus be taken that you set the right offset on the right field.
 
 Vectors can be created from the corresponding Java array like so:
 
@@ -174,5 +174,6 @@ are prefixed with `Get`, e.g.:
 ## Text parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly
-from Java, though you could use the C++ parser through JNI. Please see the
+from Java or C#, though you could use the C++ parser through native call
+interfaces available to each language. Please see the
 C++ documentation for more on text parsing.
