@@ -1338,7 +1338,9 @@ void Parser::Serialize() {
                          builder_.CreateVectorOfSortedTables(&enum_offsets),
                          builder_.CreateString(file_identifier_),
                          builder_.CreateString(file_extension_),
-                         root_struct_def_->serialized_location);
+                         root_struct_def_
+                           ? root_struct_def_->serialized_location
+                           : 0);
   builder_.Finish(schema_offset, reflection::SchemaIdentifier());
 }
 
