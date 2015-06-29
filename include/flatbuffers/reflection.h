@@ -278,7 +278,7 @@ class ResizeContext {
      : schema_(schema), startptr_(flatbuf->data() + start),
        delta_(delta), buf_(*flatbuf),
        dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
-    auto mask = sizeof(largest_scalar_t) - 1;
+    auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
     delta_ = (delta_ + mask) & ~mask;
     if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
     // Now change all the offsets by delta_.
