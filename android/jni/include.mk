@@ -66,6 +66,8 @@ FLATBUFFERS_FLATC_PATH?=$(FLATBUFFERS_CMAKELISTS_DIR)
 FLATBUFFERS_FLATC := $(FLATBUFFERS_FLATC_PATH)/Debug/flatc
 endif
 
+FLATBUFFERS_FLATC_ARGS?=--gen-includes
+
 # Search for cmake.
 CMAKE_ROOT := $(realpath $(LOCAL_PATH)/../../../../../../prebuilts/cmake)
 ifeq (,$(CMAKE))
@@ -149,7 +151,7 @@ $(eval \
   $(call flatbuffers_fbs_to_h,$(2),$(3),$(1)): $(1) $(flatc_target)
 	$(call host-echo-build-step,generic,Generate) \
 		$(subst $(LOCAL_PATH)/,,$(call flatbuffers_fbs_to_h,$(2),$(3),$(1)))
-	$(hide) $$(FLATBUFFERS_FLATC) --gen-includes \
+	$(hide) $$(FLATBUFFERS_FLATC) $(FLATBUFFERS_FLATC_ARGS) \
 	  $(foreach include,$(4),-I $(include)) -o $$(dir $$@) -c $$<)
 endef
 
