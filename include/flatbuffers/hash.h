@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <stdio.h>
 
 namespace flatbuffers {
 
