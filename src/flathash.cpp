@@ -18,6 +18,7 @@
 #include <sstream>
 #include <string>
 #include "flatbuffers/hash.h"
+#include <stdio.h>
 
 enum OutputFormat {
   kDecimal,
