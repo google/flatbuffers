@@ -108,7 +108,8 @@ root_type Monster;
 </ul>
 <p>You can't change types of fields once they're used, with the exception of same-size data where a <code>reinterpret_cast</code> would give you a desirable result, e.g. you could change a <code>uint</code> to an <code>int</code> if no values in current data use the high bit yet.</p>
 <h3>(Default) Values</h3>
-<p>Values are a sequence of digits, optionally followed by a <code>.</code> and more digits for float constants, and optionally prefixed by a <code>-</code>. Non-scalar defaults are currently not supported (always NULL).</p>
+<p>Values are a sequence of digits, optionally followed by a <code>.</code> and more digits for float constants, and optionally prefixed by a <code>-</code>. Floats may end with an <code>e</code> or <code>E</code>, followed by a <code>+</code> or <code>-</code> and more digits (scientific notation).</p>
+<p>Only scalar values can have defaults, non-scalar (string/vector/table) fields default to NULL when not present.</p>
 <p>You generally do not want to change default values after they're initially defined. Fields that have the default value are not actually stored in the serialized data but are generated in code, so when you change the default, you'd now get a different value than from code generated from an older version of the schema. There are situations however where this may be desirable, especially if you can ensure a simultaneous rebuild of all code.</p>
 <h3>Enums</h3>
 <p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type.</p>

@@ -2,6 +2,7 @@
 
 schema = include*
          ( namespace\_decl | type\_decl | enum\_decl | root\_decl |
+           file_extension_decl | file_identifier_decl |
            attribute\_decl | object )*
 
 include = `include` string\_constant `;`
@@ -34,3 +35,8 @@ object = { commasep( ident `:` value ) }
 value = scalar | object | string\_constant | `[` commasep( value ) `]`
 
 commasep(x) = [ x ( `,` x )\* ]
+
+file_extension_decl = `file_extension` string\_constant `;`
+
+file_identifier_decl = `file_identifier` string\_constant `;`
+

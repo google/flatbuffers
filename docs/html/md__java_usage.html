@@ -88,7 +88,7 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 </div><!-- fragment --><p>For some simpler types, you can use a convenient <code>create</code> function call that allows you to construct tables in one function call. This example definition however contains an inline struct field, so we have to create the table manually. This is to create the buffer without using temporary object allocation.</p>
 <p>It's important to understand that fields that are structs are inline (like <code>Vec3</code> above), and MUST thus be created between the start and end calls of a table. Everything else (other tables, strings, vectors) MUST be created before the start of the table they are referenced in.</p>
 <p>Structs do have convenient methods that even have arguments for nested structs.</p>
-<p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra case must thus be taken that you set the right offset on the right field.</p>
+<p>As you can see, references to other objects (e.g. the string above) are simple ints, and thus do not have the type-safety of the Offset type in C++. Extra care must thus be taken that you set the right offset on the right field.</p>
 <p>Vectors can be created from the corresponding Java array like so:</p>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> inv = Monster.createInventoryVector(fbb, <span class="keyword">new</span> byte[] { 0, 1, 2, 3, 4 });</div>
 </div><!-- fragment --><p>This works for arrays of scalars and (int) offsets to strings/tables, but not structs. If you want to write structs, or what you want to write does not sit in an array, you can also use the start/end pattern:</p>
@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('md__java_usage.html','');});
 <div class="line">var preconstructedPos = <span class="keyword">new</span> Vec3();</div>
 <div class="line">monster.GetPos(preconstructedPos);</div>
 </div><!-- fragment --><h2>Text parsing</h2>
-<p>There currently is no support for parsing text (Schema's and JSON) directly from Java, though you could use the C++ parser through JNI. Please see the C++ documentation for more on text parsing. </p>
+<p>There currently is no support for parsing text (Schema's and JSON) directly from Java or C#, though you could use the C++ parser through native call interfaces available to each language. Please see the C++ documentation for more on text parsing. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->
