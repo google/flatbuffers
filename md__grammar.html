@@ -53,7 +53,7 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <div class="title">Formal Grammar of the schema language </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>schema = include* ( namespace_decl | type_decl | enum_decl | root_decl | attribute_decl | object )*</p>
+<div class="textblock"><p>schema = include* ( namespace_decl | type_decl | enum_decl | root_decl | file_extension_decl | file_identifier_decl | attribute_decl | object )*</p>
 <p>include = <code>include</code> string_constant <code>;</code></p>
 <p>namespace_decl = <code>namespace</code> ident ( <code>.</code> ident )* <code>;</code></p>
 <p>attribute_decl = <code>attribute</code> string_constant <code>;</code></p>
@@ -67,7 +67,9 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <p>scalar = integer_constant | float_constant | <code>true</code> | <code>false</code></p>
 <p>object = { commasep( ident <code>:</code> value ) }</p>
 <p>value = scalar | object | string_constant | <code>[</code> commasep( value ) <code>]</code></p>
-<p>commasep(x) = [ x ( <code>,</code> x )* ] </p>
+<p>commasep(x) = [ x ( <code>,</code> x )* ]</p>
+<p>file_extension_decl = <code>file_extension</code> string_constant <code>;</code></p>
+<p>file_identifier_decl = <code>file_identifier</code> string_constant <code>;</code> </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->
