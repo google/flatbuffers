@@ -60,7 +60,7 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <p>type_decl = ( <code>table</code> | <code>struct</code> ) ident metadata <code>{</code> field_decl+ <code>}</code></p>
 <p>enum_decl = ( <code>enum</code> | <code>union</code> ) ident [ <code>:</code> type ] metadata <code>{</code> commasep( enumval_decl ) <code>}</code></p>
 <p>root_decl = <code>root_type</code> ident <code>;</code></p>
-<p>field_decl = type <code>:</code> ident [ <code>=</code> scalar ] metadata <code>;</code></p>
+<p>field_decl = ident <code>:</code> type [ <code>=</code> scalar ] metadata <code>;</code></p>
 <p>type = <code>bool</code> | <code>byte</code> | <code>ubyte</code> | <code>short</code> | <code>ushort</code> | <code>int</code> | <code>uint</code> | <code>float</code> | <code>long</code> | <code>ulong</code> | <code>double</code> | <code>string</code> | <code>[</code> type <code>]</code> | ident</p>
 <p>enumval_decl = ident [ <code>=</code> integer_constant ]</p>
 <p>metadata = [ <code>(</code> commasep( ident [ <code>:</code> scalar ] ) <code>)</code> ]</p>

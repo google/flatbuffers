@@ -18,7 +18,7 @@ enumval\_decl ) `}`
 
 root\_decl = `root_type` ident `;`
 
-field\_decl = type `:` ident [ `=` scalar ] metadata `;`
+field\_decl = ident `:` type [ `=` scalar ] metadata `;`
 
 type = `bool` | `byte` | `ubyte` | `short` | `ushort` | `int` | `uint` |
 `float` | `long` | `ulong` | `double`
