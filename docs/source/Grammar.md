@@ -13,12 +13,12 @@ attribute\_decl = `attribute` string\_constant `;`
 
 type\_decl = ( `table` | `struct` ) ident metadata `{` field\_decl+ `}`
 
-enum\_decl = ( `enum` | `union` ) ident [ `:` type ] metadata `{` commasep(
+enum\_decl = ( `enum` | `union` ) ident `:` type metadata `{` commasep(
 enumval\_decl ) `}`
 
 root\_decl = `root_type` ident `;`
 
-field\_decl = type `:` ident [ `=` scalar ] metadata `;`
+field\_decl = ident `:` type [ `=` scalar ] metadata `;`
 
 type = `bool` | `byte` | `ubyte` | `short` | `ushort` | `int` | `uint` |
 `float` | `long` | `ulong` | `double`
