@@ -4,17 +4,25 @@
 
 import flatbuffers
 
+
 class Test(object):
     __slots__ = ['_tab']
 
     # Test
     def Init(self, buf, pos):
-        self._tab = flatbuffers.table.Table(buf, pos)
+        self._tab = flatbuffers.Table(buf, pos)
 
-    # Test
-    def A(self): return self._tab.Get(flatbuffers.number_types.Int16Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
-    # Test
-    def B(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(2))
+    a = flatbuffers.StructInt16Property(0)
+    b = flatbuffers.StructInt8Property(2)
+
+    @classmethod
+    def CreateObject(cls, builder, d):
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(d['b'])
+        builder.PrependInt16(d['a'])
+        return builder.Offset()
+
 
 def CreateTest(builder, a, b):
     builder.Prep(2, 4)

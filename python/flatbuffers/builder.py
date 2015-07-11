@@ -20,7 +20,6 @@ from . import packer
 
 from . import compat
 from .compat import range_func
-from .compat import memoryview_type
 
 
 class OffsetArithmeticError(RuntimeError):

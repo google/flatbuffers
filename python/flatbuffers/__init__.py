@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .builder import Builder
+from .encode import *
+from .properties import *
 from .table import Table
-from .compat import range_func as compat_range
+from .builder import Builder

@@ -4,36 +4,40 @@
 
 import flatbuffers
 
+
 class Stat(object):
     __slots__ = ['_tab']
 
     # Stat
     def Init(self, buf, pos):
-        self._tab = flatbuffers.table.Table(buf, pos)
+        self._tab = flatbuffers.Table(buf, pos)
 
-    # Stat
-    def Id(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return ""
+    id = flatbuffers.StringProperty(4)
+    val = flatbuffers.Int64Property(6, default=0)
+    count = flatbuffers.Uint16Property(8, default=0)
 
-    # Stat
-    def Val(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int64Flags, o + self._tab.Pos)
-        return 0
+    @classmethod
+    def CreateObject(cls, builder, d, finished=True):
+        d_get = d.get
+        builder.StartObject(3)
+        v = d_get('id', None)
+        if v is not None:
+            v = builder.CreateString(v)
+            builder.PrependUOffsetTRelativeSlot(0, v, 0)
+        v = d_get('val', None)
+        if v is not None:
+            builder.PrependInt64Slot(1, v, 0)
+        v = d_get('count', None)
+        if v is not None:
+            builder.PrependUint16Slot(2, v, 0)
+        o = builder.EndObject()
+        if finished:
+            builder.Finish(o)
+        return o
 
-    # Stat
-    def Count(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
-        return 0
 
 def StatStart(builder): builder.StartObject(3)
-def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, id, 0)
 def StatAddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
 def StatAddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
 def StatEnd(builder): return builder.EndObject()
