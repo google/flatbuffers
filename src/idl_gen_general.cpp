@@ -448,7 +448,7 @@ static void GenStructArgs(const LanguageParameters &lang,
     if (IsStruct(field.value.type)) {
       // Generate arguments for a struct inside a struct. To ensure names
       // don't clash, and to make it obvious these arguments are constructing
-      // a nested struct, prefix the name with the struct name.
+      // a nested struct, prefix the name with the field name.
       GenStructArgs(lang, *field.value.type.struct_def, code_ptr,
                     (nameprefix + (field.name + "_")).c_str());
     } else {
