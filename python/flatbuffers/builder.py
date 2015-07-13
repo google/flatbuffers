@@ -93,7 +93,7 @@ class Builder(object):
         The internal buffer is grown as needed.
         """
 
-        if not (0 <= initialSize < (2**UOffsetTFlags.bytewidth - 1)):
+        if not (0 <= initialSize <= self.MaxBufferSize()):
             msg = "flatbuffers: Cannot create Builder larger than 2 gigabytes."
             raise BuilderSizeError(msg)
 
@@ -103,6 +103,12 @@ class Builder(object):
         self.minalign = 1
         self.objectEnd = None
         self.vtables = []
+
+    def MaxBufferSize(self):
+        """
+        Maximum buffer size is 2Gb.
+        """
+        return 2**31
 
     def Output(self):
         """
@@ -238,7 +244,7 @@ class Builder(object):
     def growByteBuffer(self):
         """Doubles the size of the byteslice, and copies the old data towards
            the end of the new buffer (since we build the buffer backwards)."""
-        if not len(self.Bytes) <= 2**20:
+        if not len(self.Bytes) <= self.MaxBufferSize():
             msg = "flatbuffers: cannot grow buffer beyond 2 gigabytes"
             raise BuilderSizeError(msg)
 
