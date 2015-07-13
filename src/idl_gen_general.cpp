@@ -481,7 +481,7 @@ static void GenStructBody(const LanguageParameters &lang,
     }
     if (IsStruct(field.value.type)) {
       GenStructBody(lang, *field.value.type.struct_def, code_ptr,
-                    (field.value.type.struct_def->name + "_").c_str());
+                    (nameprefix + (field.name + "_")).c_str());
     } else {
       code += "    builder." + FunctionStart(lang, 'P') + "ut";
       code += GenMethod(lang, field.value.type) + "(";
