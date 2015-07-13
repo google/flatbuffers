@@ -16,13 +16,13 @@ public sealed class Vec3 : Struct {
   public Test Test3 { get { return GetTest3(new Test()); } }
   public Test GetTest3(Test obj) { return obj.__init(bb_pos + 26, bb); }
 
-  public static int CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short Test_A, sbyte Test_B) {
+  public static int CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
     builder.Prep(16, 32);
     builder.Pad(2);
     builder.Prep(2, 4);
     builder.Pad(1);
-    builder.PutSbyte(Test_B);
-    builder.PutShort(Test_A);
+    builder.PutSbyte(test3_B);
+    builder.PutShort(test3_A);
     builder.Pad(1);
     builder.PutSbyte((sbyte)(Test2));
     builder.PutDouble(Test1);
