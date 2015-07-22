@@ -354,18 +354,22 @@ class ResizeContext {
           break;
         }
         case reflection::Vector: {
-          if (fielddef.type()->element() != reflection::Obj) break;
+          auto elem_type = fielddef.type()->element();
+          if (elem_type != reflection::Obj && elem_type != reflection::String)
+            break;
           auto vec = reinterpret_cast<Vector<uoffset_t> *>(ref);
-          auto elemobjectdef =
-            schema_.objects()->Get(fielddef.type()->index());
-          if (elemobjectdef->is_struct()) break;
+          auto elemobjectdef = elem_type == reflection::Obj
+            ? schema_.objects()->Get(fielddef.type()->index())
+            : nullptr;
+          if (elemobjectdef && elemobjectdef->is_struct()) break;
           for (uoffset_t i = 0; i < vec->size(); i++) {
             auto loc = vec->Data() + i * sizeof(uoffset_t);
             if (DagCheck(loc))
               continue;  // This offset already visited.
             auto dest = loc + vec->Get(i);
             Straddle<uoffset_t, 1>(loc, dest ,loc);
-            ResizeTable(*elemobjectdef, reinterpret_cast<Table *>(dest));
+            if (elemobjectdef)
+              ResizeTable(*elemobjectdef, reinterpret_cast<Table *>(dest));
           }
           break;
         }
