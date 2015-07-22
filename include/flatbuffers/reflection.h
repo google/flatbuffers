@@ -277,7 +277,7 @@ class ResizeContext {
  public:
   ResizeContext(const reflection::Schema &schema, uoffset_t start, int delta,
                 std::vector<uint8_t> *flatbuf,
-                const reflection::Object* root_table = nullptr)
+                const reflection::Object *root_table = nullptr)
      : schema_(schema), startptr_(flatbuf->data() + start),
        delta_(delta), buf_(*flatbuf),
        dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
@@ -402,7 +402,7 @@ class ResizeContext {
 // pass in your root_table type as well.
 inline void SetString(const reflection::Schema &schema, const std::string &val,
                       const String *str, std::vector<uint8_t> *flatbuf,
-                      const reflection::Object* root_table = nullptr) {
+                      const reflection::Object *root_table = nullptr) {
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
   auto start = static_cast<uoffset_t>(reinterpret_cast<const uint8_t *>(str) -
                                       flatbuf->data() +
