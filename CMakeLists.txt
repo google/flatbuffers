@@ -6,6 +6,7 @@ project(FlatBuffers)
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
+option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library" ON)
 option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler" ON)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 
@@ -15,7 +16,7 @@ if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     set(FLATBUFFERS_BUILD_TESTS OFF)
 endif()
 
-set(FlatBuffers_Compiler_SRCS
+set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
@@ -23,11 +24,15 @@ set(FlatBuffers_Compiler_SRCS
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
   src/idl_parser.cpp
+  src/idl_gen_text.cpp
+)
+
+set(FlatBuffers_Compiler_SRCS
+  ${FlatBuffers_Library_SRCS}
   src/idl_gen_cpp.cpp
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
   src/idl_gen_python.cpp
-  src/idl_gen_text.cpp
   src/idl_gen_fbs.cpp
   src/flatc.cpp
 )
@@ -97,6 +102,10 @@ endif()
 
 include_directories(include)
 
+if(FLATBUFFERS_BUILD_FLATLIB)
+add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+endif()
+
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
 endif()
@@ -136,6 +145,9 @@ endif()
 
 if(FLATBUFFERS_INSTALL)
   install(DIRECTORY include/flatbuffers DESTINATION include)
+  if(FLATBUFFERS_BUILD_FLATLIB)
+    install(TARGETS flatbuffers DESTINATION lib)
+  endif()
   if(FLATBUFFERS_BUILD_FLATC)
     install(TARGETS flatc DESTINATION bin)
   endif()
