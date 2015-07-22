@@ -23,7 +23,7 @@
 enum OutputFormat {
   kDecimal,
   kHexadecimal,
-  kHexadecimal0x,
+  kHexadecimal0x
 };
 
 int main(int argc, char* argv[]) {
