@@ -271,10 +271,13 @@ inline const reflection::Object &GetUnionType(
 // "delta" may be negative (shrinking).
 // Unless "delta" is a multiple of the largest alignment, you'll create a small
 // amount of garbage space in the buffer (usually 0..7 bytes).
+// If your FlatBuffer's root table is not the schema's root table, you should
+// pass in your root_table type as well.
 class ResizeContext {
  public:
   ResizeContext(const reflection::Schema &schema, uoffset_t start, int delta,
-                std::vector<uint8_t> *flatbuf)
+                std::vector<uint8_t> *flatbuf,
+                const reflection::Object *root_table = nullptr)
      : schema_(schema), startptr_(flatbuf->data() + start),
        delta_(delta), buf_(*flatbuf),
        dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
@@ -284,7 +287,7 @@ class ResizeContext {
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
     Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
-    ResizeTable(*schema.root_table(), root);
+    ResizeTable(root_table ? *root_table : *schema.root_table(), root);
     // We can now add or remove bytes at start.
     if (delta_ > 0) buf_.insert(buf_.begin() + start, delta_, 0);
     else buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
@@ -399,15 +402,18 @@ class ResizeContext {
 // Changes the contents of a string inside a FlatBuffer. FlatBuffer must
 // live inside a std::vector so we can resize the buffer if needed.
 // "str" must live inside "flatbuf" and may be invalidated after this call.
+// If your FlatBuffer's root table is not the schema's root table, you should
+// pass in your root_table type as well.
 inline void SetString(const reflection::Schema &schema, const std::string &val,
-                      const String *str, std::vector<uint8_t> *flatbuf) {
+                      const String *str, std::vector<uint8_t> *flatbuf,
+                      const reflection::Object *root_table = nullptr) {
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
   auto start = static_cast<uoffset_t>(reinterpret_cast<const uint8_t *>(str) -
                                       flatbuf->data() +
                                       sizeof(uoffset_t));
   if (delta) {
     // Different size, we must expand (or contract).
-    ResizeContext(schema, start, delta, flatbuf);
+    ResizeContext(schema, start, delta, flatbuf, root_table);
     if (delta < 0) {
       // Clear the old string, since we don't want parts of it remaining.
       memset(flatbuf->data() + start, 0, str->Length());
@@ -420,17 +426,19 @@ inline void SetString(const reflection::Schema &schema, const std::string &val,
 // Resizes a flatbuffers::Vector inside a FlatBuffer. FlatBuffer must
 // live inside a std::vector so we can resize the buffer if needed.
 // "vec" must live inside "flatbuf" and may be invalidated after this call.
-template<typename T> void ResizeVector(const reflection::Schema &schema,
-                                       uoffset_t newsize, T val,
-                                       const Vector<T> *vec,
-                                       std::vector<uint8_t> *flatbuf) {
+// If your FlatBuffer's root table is not the schema's root table, you should
+// pass in your root_table type as well.
+template <typename T>
+void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
+                  const Vector<T> *vec, std::vector<uint8_t> *flatbuf,
+                  const reflection::Object *root_table = nullptr) {
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(vec->size());
   auto delta_bytes = delta_elem * static_cast<int>(sizeof(T));
   auto vec_start = reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
   auto start = static_cast<uoffset_t>(vec_start + sizeof(uoffset_t) +
                                       sizeof(T) * vec->size());
   if (delta_bytes) {
-    ResizeContext(schema, start, delta_bytes, flatbuf);
+    ResizeContext(schema, start, delta_bytes, flatbuf, root_table);
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to "val".
     for (int i = 0; i < delta_elem; i++) {
