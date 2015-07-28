@@ -48,29 +48,29 @@ public sealed class Monster : Table {
   public ulong Testhashu64Fnv1a { get { int o = __offset(50); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(24); }
-  public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }
+  public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
-  public static void AddName(FlatBufferBuilder builder, int nameOffset) { builder.AddOffset(3, nameOffset, 0); }
-  public static void AddInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.AddOffset(5, inventoryOffset, 0); }
-  public static int CreateInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
+  public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(3, nameOffset.Value, 0); }
+  public static void AddInventory(FlatBufferBuilder builder, VectorOffset inventoryOffset) { builder.AddOffset(5, inventoryOffset.Value, 0); }
+  public static VectorOffset CreateInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartInventoryVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(6, (sbyte)(color), 8); }
   public static void AddTestType(FlatBufferBuilder builder, Any testType) { builder.AddByte(7, (byte)(testType), 0); }
   public static void AddTest(FlatBufferBuilder builder, int testOffset) { builder.AddOffset(8, testOffset, 0); }
-  public static void AddTest4(FlatBufferBuilder builder, int test4Offset) { builder.AddOffset(9, test4Offset, 0); }
+  public static void AddTest4(FlatBufferBuilder builder, VectorOffset test4Offset) { builder.AddOffset(9, test4Offset.Value, 0); }
   public static void StartTest4Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 2); }
-  public static void AddTestarrayofstring(FlatBufferBuilder builder, int testarrayofstringOffset) { builder.AddOffset(10, testarrayofstringOffset, 0); }
-  public static int CreateTestarrayofstringVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i]); return builder.EndVector(); }
+  public static void AddTestarrayofstring(FlatBufferBuilder builder, VectorOffset testarrayofstringOffset) { builder.AddOffset(10, testarrayofstringOffset.Value, 0); }
+  public static VectorOffset CreateTestarrayofstringVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static void StartTestarrayofstringVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddTestarrayoftables(FlatBufferBuilder builder, int testarrayoftablesOffset) { builder.AddOffset(11, testarrayoftablesOffset, 0); }
-  public static int CreateTestarrayoftablesVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i]); return builder.EndVector(); }
+  public static void AddTestarrayoftables(FlatBufferBuilder builder, VectorOffset testarrayoftablesOffset) { builder.AddOffset(11, testarrayoftablesOffset.Value, 0); }
+  public static VectorOffset CreateTestarrayoftablesVector(FlatBufferBuilder builder, Offset<Monster>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static void StartTestarrayoftablesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddEnemy(FlatBufferBuilder builder, int enemyOffset) { builder.AddOffset(12, enemyOffset, 0); }
-  public static void AddTestnestedflatbuffer(FlatBufferBuilder builder, int testnestedflatbufferOffset) { builder.AddOffset(13, testnestedflatbufferOffset, 0); }
-  public static int CreateTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
+  public static void AddEnemy(FlatBufferBuilder builder, Offset<Monster> enemyOffset) { builder.AddOffset(12, enemyOffset.Value, 0); }
+  public static void AddTestnestedflatbuffer(FlatBufferBuilder builder, VectorOffset testnestedflatbufferOffset) { builder.AddOffset(13, testnestedflatbufferOffset.Value, 0); }
+  public static VectorOffset CreateTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
-  public static void AddTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.AddOffset(14, testemptyOffset, 0); }
+  public static void AddTestempty(FlatBufferBuilder builder, Offset<Stat> testemptyOffset) { builder.AddOffset(14, testemptyOffset.Value, 0); }
   public static void AddTestbool(FlatBufferBuilder builder, bool testbool) { builder.AddBool(15, testbool, false); }
   public static void AddTesthashs32Fnv1(FlatBufferBuilder builder, int testhashs32Fnv1) { builder.AddInt(16, testhashs32Fnv1, 0); }
   public static void AddTesthashu32Fnv1(FlatBufferBuilder builder, uint testhashu32Fnv1) { builder.AddUint(17, testhashu32Fnv1, 0); }
@@ -80,12 +80,12 @@ public sealed class Monster : Table {
   public static void AddTesthashu32Fnv1a(FlatBufferBuilder builder, uint testhashu32Fnv1a) { builder.AddUint(21, testhashu32Fnv1a, 0); }
   public static void AddTesthashs64Fnv1a(FlatBufferBuilder builder, long testhashs64Fnv1a) { builder.AddLong(22, testhashs64Fnv1a, 0); }
   public static void AddTesthashu64Fnv1a(FlatBufferBuilder builder, ulong testhashu64Fnv1a) { builder.AddUlong(23, testhashu64Fnv1a, 0); }
-  public static int EndMonster(FlatBufferBuilder builder) {
+  public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name
-    return o;
+    return new Offset<Monster>(o);
   }
-  public static void FinishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.Finish(offset, "MONS"); }
+  public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }
 };
 
 
