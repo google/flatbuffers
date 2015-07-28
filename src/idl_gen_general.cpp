@@ -370,6 +370,8 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Value &
         return "default(Offset<" + value.type.struct_def->name + ">)";
       case BASE_TYPE_VECTOR:
         return "default(VectorOffset)";
+      default:
+        break;
     }
   }
 
