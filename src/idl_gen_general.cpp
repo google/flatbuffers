@@ -272,19 +272,6 @@ static std::string GenOffsetType(const LanguageParameters &lang, const StructDef
 }
 
 static std::string GenOffsetConstruct(const LanguageParameters &lang,
-                                      const Type &type,
-                                      const std::string &variable_name)
-{
-  if(lang.language == GeneratorOptions::kCSharp) {
-    switch(type.base_type) {
-      case BASE_TYPE_VECTOR: return "new VectorOffset(" + variable_name + ")";
-      case BASE_TYPE_STRING: return "new StringOffset(" + variable_name + ")";
-    }
-  }
-  return variable_name;
-}
-
-static std::string GenOffsetConstruct(const LanguageParameters &lang,
                                       const StructDef &struct_def,
                                       const std::string &variable_name)
 {
