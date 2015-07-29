@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include <algorithm>
 
 namespace flatbuffers {
 
@@ -202,6 +203,10 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
     #undef FLATBUFFERS_TD
   };
 
+  if(lang.language == GeneratorOptions::kCSharp && type.base_type == BASE_TYPE_STRUCT) {
+    return "Offset<" + type.struct_def->name + ">";
+  }
+
   return gtypename[type.base_type * GeneratorOptions::kMAX + lang.language];
 }
 
@@ -255,6 +260,32 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
         return DestinationType(lang, type.VectorType(), vectorelem);
       // else fall thru:
     default: return type;
+  }
+}
+
+static std::string GenOffsetType(const LanguageParameters &lang, const StructDef &struct_def) {
+  if(lang.language == GeneratorOptions::kCSharp) {
+    return "Offset<" + struct_def.name + ">";
+  } else {
+    return "int";
+  }
+}
+
+static std::string GenOffsetConstruct(const LanguageParameters &lang,
+                                      const StructDef &struct_def,
+                                      const std::string &variable_name)
+{
+  if(lang.language == GeneratorOptions::kCSharp) {
+    return "new Offset<" + struct_def.name + ">(" + variable_name + ")";
+  }
+  return variable_name;
+}
+
+static std::string GenVectorOffsetType(const LanguageParameters &lang) {
+  if(lang.language == GeneratorOptions::kCSharp) {
+    return "VectorOffset";
+  } else {
+    return "int";
   }
 }
 
@@ -330,7 +361,20 @@ static std::string DestinationValue(const LanguageParameters &lang,
   }
 }
 
-static std::string GenDefaultValue(const Value &value) {
+static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
+  if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
+    switch(value.type.base_type) {
+      case BASE_TYPE_STRING:
+        return "default(StringOffset)";
+      case BASE_TYPE_STRUCT:
+        return "default(Offset<" + value.type.struct_def->name + ">)";
+      case BASE_TYPE_VECTOR:
+        return "default(VectorOffset)";
+      default:
+        break;
+    }
+  }
+
   return value.type.base_type == BASE_TYPE_BOOL
            ? (value.constant == "0" ? "false" : "true")
            : value.constant;
@@ -617,7 +661,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       } else {
         code += offset_prefix + getter;
         code += "(o + bb_pos)" + dest_mask + " : " + default_cast;
-        code += GenDefaultValue(field.value);
+        code += GenDefaultValue(lang, field.value, false);
       }
     } else {
       switch (field.value.type.base_type) {
@@ -702,13 +746,14 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   code += "\n";
   if (struct_def.fixed) {
     // create a struct constructor function
-    code += "  public static int " + FunctionStart(lang, 'C') + "reate";
+    code += "  public static " + GenOffsetType(lang, struct_def) + " ";
+    code += FunctionStart(lang, 'C') + "reate";
     code += struct_def.name + "(FlatBufferBuilder builder";
     GenStructArgs(lang, struct_def, code_ptr, "");
     code += ") {\n";
     GenStructBody(lang, struct_def, code_ptr, "");
-    code += "    return builder.";
-    code += lang.get_fbb_offset;
+    code += "    return ";
+    code += GenOffsetConstruct(lang, struct_def, "builder." + std::string(lang.get_fbb_offset));
     code += ";\n  }\n";
   } else {
     // Generate a method that creates a table in one go. This is only possible
@@ -728,9 +773,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     }
     if (has_no_struct_fields && num_fields) {
       // Generate a table constructor of the form:
-      // public static void createName(FlatBufferBuilder builder, args...)
-      code += "  public static int " + FunctionStart(lang, 'C') + "reate";
-      code += struct_def.name;
+      // public static int createName(FlatBufferBuilder builder, args...)
+      code += "  public static " + GenOffsetType(lang, struct_def) + " ";
+      code += FunctionStart(lang, 'C') + "reate" + struct_def.name;
       code += "(FlatBufferBuilder builder";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
@@ -744,7 +789,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
         if (lang.language != GeneratorOptions::kJava) {
-          code += " = " + GenDefaultValue(field.value);
+          code += " = " + GenDefaultValue(lang, field.value, false);
         }
       }
       code += ") {\n    builder.";
@@ -794,7 +839,10 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += GenMethod(lang, field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
       code += DestinationValue(lang, argname, field.value.type);
-      code += ", " + GenDefaultValue(field.value);
+      if(!IsScalar(field.value.type.base_type) && field.value.type.base_type != BASE_TYPE_UNION && lang.language == GeneratorOptions::kCSharp) {
+        code += ".Value";
+      }
+      code += ", " + GenDefaultValue(lang, field.value, true);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
@@ -802,7 +850,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         auto elem_size = InlineSize(vector_type);
         if (!IsStruct(vector_type)) {
           // Generate a method to create a vector from a Java array.
-          code += "  public static int " + FunctionStart(lang, 'C') + "reate";
+          code += "  public static " + GenVectorOffsetType(lang) + " " + FunctionStart(lang, 'C') + "reate";
           code += MakeCamel(field.name);
           code += "Vector(FlatBufferBuilder builder, ";
           code += GenTypeBasic(lang, vector_type) + "[] data) ";
@@ -814,8 +862,12 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           code += FunctionStart(lang, 'L') + "ength - 1; i >= 0; i--) builder.";
           code += FunctionStart(lang, 'A') + "dd";
           code += GenMethod(lang, vector_type);
-          code += "(data[i]); return builder.";
-          code += FunctionStart(lang, 'E') + "ndVector(); }\n";
+          code += "(data[i]";
+          if(lang.language == GeneratorOptions::kCSharp &&
+              (vector_type.base_type == BASE_TYPE_STRUCT || vector_type.base_type == BASE_TYPE_STRING))
+              code += ".Value";
+          code += "); return ";
+          code += "builder." + FunctionStart(lang, 'E') + "ndVector(); }\n";
         }
         // Generate a method to start a vector, data to be added manually after.
         code += "  public static void " + FunctionStart(lang, 'S') + "tart";
@@ -827,7 +879,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += "); }\n";
       }
     }
-    code += "  public static int ";
+    code += "  public static " + GenOffsetType(lang, struct_def) + " ";
     code += FunctionStart(lang, 'E') + "nd" + struct_def.name;
     code += "(FlatBufferBuilder builder) {\n    int o = builder.";
     code += FunctionStart(lang, 'E') + "ndObject();\n";
@@ -841,12 +893,16 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += ");  // " + field.name + "\n";
       }
     }
-    code += "    return o;\n  }\n";
+    code += "    return " + GenOffsetConstruct(lang, struct_def, "o") + ";\n  }\n";
     if (parser.root_struct_def_ == &struct_def) {
       code += "  public static void ";
       code += FunctionStart(lang, 'F') + "inish" + struct_def.name;
-      code += "Buffer(FlatBufferBuilder builder, int offset) { ";
-      code += "builder." + FunctionStart(lang, 'F') + "inish(offset";
+      code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType(lang, struct_def) + " offset) {";
+      code += " builder." + FunctionStart(lang, 'F') + "inish(offset";
+      if (lang.language == GeneratorOptions::kCSharp) {
+        code += ".Value";
+      }
+
       if (parser.file_identifier_.length())
         code += ", \"" + parser.file_identifier_ + "\"";
       code += "); }\n";

@@ -61,8 +61,8 @@ namespace FlatBuffers.Test
             var test4 = fbb.EndVector();
 
             Monster.StartTestarrayofstringVector(fbb, 2);
-            fbb.AddOffset(test2);
-            fbb.AddOffset(test1);
+            fbb.AddOffset(test2.Value);
+            fbb.AddOffset(test1.Value);
             var testArrayOfString = fbb.EndVector();
 
 
@@ -73,13 +73,13 @@ namespace FlatBuffers.Test
             Monster.AddName(fbb, str);
             Monster.AddInventory(fbb, inv);
             Monster.AddTestType(fbb, Any.Monster);
-            Monster.AddTest(fbb, mon2);
+            Monster.AddTest(fbb, mon2.Value);
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
             Monster.AddTestbool(fbb, false);
             var mon = Monster.EndMonster(fbb);
 
-            fbb.Finish(mon);
+            fbb.Finish(mon.Value);
 
             // Dump to output directory so we can inspect later, if needed
             using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))

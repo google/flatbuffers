@@ -41,6 +41,11 @@ namespace FlatBuffers
             _pos = 0;
         }
 
+        public void Reset()
+        {
+            _pos = 0;
+        }
+
         public int Position { get { return _pos; } }
 
         // Pre-allocated helper arrays for convertion.

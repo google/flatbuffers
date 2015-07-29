@@ -16,7 +16,7 @@ public sealed class Vec3 : Struct {
   public Test Test3 { get { return GetTest3(new Test()); } }
   public Test GetTest3(Test obj) { return obj.__init(bb_pos + 26, bb); }
 
-  public static int CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
+  public static Offset<Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
     builder.Prep(16, 32);
     builder.Pad(2);
     builder.Prep(2, 4);
@@ -30,7 +30,7 @@ public sealed class Vec3 : Struct {
     builder.PutFloat(Z);
     builder.PutFloat(Y);
     builder.PutFloat(X);
-    return builder.Offset;
+    return new Offset<Vec3>(builder.Offset);
   }
 };
 
