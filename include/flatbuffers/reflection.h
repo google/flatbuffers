@@ -68,19 +68,19 @@ inline const String *GetFieldS(const Table &table,
 }
 
 // Get a field, if you know it's a vector.
-template<typename T> const Vector<T> *GetFieldV(const Table &table,
-                                               const reflection::Field &field) {
+template<typename T> Vector<T> *GetFieldV(const Table &table,
+                                          const reflection::Field &field) {
   assert(field.type()->base_type() == reflection::Vector &&
          sizeof(T) == GetTypeSize(field.type()->element()));
-  return table.GetPointer<const Vector<T> *>(field.offset());
+  return table.GetPointer<Vector<T> *>(field.offset());
 }
 
 // Get a field, if you know it's a table.
-inline const Table *GetFieldT(const Table &table,
-                              const reflection::Field &field) {
+inline Table *GetFieldT(const Table &table,
+                        const reflection::Field &field) {
   assert(field.type()->base_type() == reflection::Obj ||
          field.type()->base_type() == reflection::Union);
-  return table.GetPointer<const Table *>(field.offset());
+  return table.GetPointer<Table *>(field.offset());
 }
 
 // Get any field as a 64bit int, regardless of what it is (bool/int/float/str).
@@ -227,27 +227,27 @@ inline void SetAnyFieldS(Table *table, const reflection::Field &field,
 // a vector into a relative offset, such that it is not affected by resizes.
 template<typename T, typename U> class pointer_inside_vector {
  public:
-  pointer_inside_vector(const T *ptr, const std::vector<U> &vec)
-    : offset_(reinterpret_cast<const uint8_t *>(ptr) -
-              reinterpret_cast<const uint8_t *>(vec.data())),
+  pointer_inside_vector(T *ptr, std::vector<U> &vec)
+    : offset_(reinterpret_cast<uint8_t *>(ptr) -
+              reinterpret_cast<uint8_t *>(vec.data())),
       vec_(vec) {}
 
-  const T *operator*() const {
-    return reinterpret_cast<const T *>(
-             reinterpret_cast<const uint8_t *>(vec_.data()) + offset_);
+  T *operator*() const {
+    return reinterpret_cast<T *>(
+             reinterpret_cast<uint8_t *>(vec_.data()) + offset_);
   }
-  const T *operator->() const {
+  T *operator->() const {
     return operator*();
   }
   void operator=(const pointer_inside_vector &piv);
  private:
   size_t offset_;
-  const std::vector<U> &vec_;
+  std::vector<U> &vec_;
 };
 
 // Helper to create the above easily without specifying template args.
-template<typename T, typename U> pointer_inside_vector<T, U> piv(
-    const T *ptr, const std::vector<U> &vec) {
+template<typename T, typename U> pointer_inside_vector<T, U> piv(T *ptr,
+                                                          std::vector<U> &vec) {
   return pointer_inside_vector<T, U>(ptr, vec);
 }
 
@@ -412,12 +412,10 @@ inline void SetString(const reflection::Schema &schema, const std::string &val,
                                       flatbuf->data() +
                                       sizeof(uoffset_t));
   if (delta) {
+    // Clear the old string, since we don't want parts of it remaining.
+    memset(flatbuf->data() + start, 0, str->Length());
     // Different size, we must expand (or contract).
     ResizeContext(schema, start, delta, flatbuf, root_table);
-    if (delta < 0) {
-      // Clear the old string, since we don't want parts of it remaining.
-      memset(flatbuf->data() + start, 0, str->Length());
-    }
   }
   // Copy new data. Safe because we created the right amount of space.
   memcpy(flatbuf->data() + start, val.c_str(), val.size() + 1);
@@ -438,6 +436,12 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
   auto start = static_cast<uoffset_t>(vec_start + sizeof(uoffset_t) +
                                       sizeof(T) * vec->size());
   if (delta_bytes) {
+    if (delta_elem < 0) {
+      // Clear elements we're throwing away, since some might remain in the
+      // buffer.
+      memset(flatbuf->data() + start + delta_elem * sizeof(T), 0,
+             -delta_elem * sizeof(T));
+    }
     ResizeContext(schema, start, delta_bytes, flatbuf, root_table);
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to "val".
@@ -451,6 +455,36 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
       }
     }
   }
+}
+
+// Adds any new data (in the form of a new FlatBuffer) to an existing
+// FlatBuffer. This can be used when any of the above methods are not
+// sufficient, in particular for adding new tables and new fields.
+// This is potentially slightly less efficient than a FlatBuffer constructed
+// in one piece, since the new FlatBuffer doesn't share any vtables with the
+// existing one.
+// The return value can now be set using Vector::MutateOffset or SetFieldT
+// below.
+inline const uint8_t *AddFlatBuffer(std::vector<uint8_t> &flatbuf,
+                                    const uint8_t *newbuf, size_t newlen) {
+  // Align to sizeof(uoffset_t) past sizeof(largest_scalar_t) since we're
+  // going to chop off the root offset.
+  while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
+         !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
+    flatbuf.push_back(0);
+  }
+  auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
+  // Insert the entire FlatBuffer minus the root pointer.
+  flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t),
+                 newbuf + newlen - sizeof(uoffset_t));
+  auto root_offset = ReadScalar<uoffset_t>(newbuf) - sizeof(uoffset_t);
+  return flatbuf.data() + insertion_point + root_offset;
+}
+
+inline bool SetFieldT(Table *table, const reflection::Field &field,
+                      const uint8_t *val) {
+  assert(sizeof(uoffset_t) == GetTypeSize(field.type()->base_type()));
+  return table->SetPointer(field.offset(), val);
 }
 
 // Generic copying of tables from a FlatBuffer into a FlatBuffer builder.

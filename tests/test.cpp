@@ -370,8 +370,44 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // rinventory still valid, so lets read from it.
   TEST_EQ(rinventory->Get(10), 50);
 
-  // Using reflection, we can also copy tables and other things out of
-  // other FlatBuffers into a new one, either part or whole.
+  // For reflection uses not covered already, there is a more powerful way:
+  // we can simply generate whatever object we want to add/modify in a
+  // FlatBuffer of its own, then add that to an existing FlatBuffer:
+  // As an example, let's add a string to an array of strings.
+  // First, find our field:
+  auto &testarrayofstring_field = *fields->LookupByKey("testarrayofstring");
+  // Find the vector value:
+  auto rtestarrayofstring = flatbuffers::piv(
+         flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::String>>(
+           **rroot, testarrayofstring_field),
+         resizingbuf);
+  // It's a vector of 2 strings, to which we add one more, initialized to
+  // offset 0.
+  flatbuffers::ResizeVector<flatbuffers::Offset<flatbuffers::String>>(
+        schema, 3, 0, *rtestarrayofstring, &resizingbuf);
+  // Here we just create a buffer that contans a single string, but this
+  // could also be any complex set of tables and other values.
+  flatbuffers::FlatBufferBuilder stringfbb;
+  stringfbb.Finish(stringfbb.CreateString("hank"));
+  // Add the contents of it to our existing FlatBuffer.
+  // We do this last, so the pointer doesn't get invalidated (since it is
+  // at the end of the buffer):
+  auto string_ptr = flatbuffers::AddFlatBuffer(resizingbuf,
+                                                  stringfbb.GetBufferPointer(),
+                                                  stringfbb.GetSize());
+  // Finally, set the new value in the vector.
+  rtestarrayofstring->MutateOffset(2, string_ptr);
+  TEST_EQ_STR(rtestarrayofstring->Get(0)->c_str(), "bob");
+  TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
+  // As an additional test, also set it on the name field.
+  // Note: unlike the name change above, this just overwrites the offset,
+  // rather than changing the string in-place.
+  SetFieldT(*rroot, name_field, string_ptr);
+  TEST_EQ_STR(GetFieldS(**rroot, name_field)->c_str(), "hank");
+
+  // Using reflection, rather than mutating binary FlatBuffers, we can also copy
+  // tables and other things out of other FlatBuffers into a FlatBufferBuilder,
+  // either part or whole.
   flatbuffers::FlatBufferBuilder fbb;
   auto root_offset = flatbuffers::CopyTable(fbb, schema, *root_table,
                                             *flatbuffers::GetAnyRoot(flatbuf));
