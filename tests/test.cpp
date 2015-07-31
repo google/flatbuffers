@@ -324,7 +324,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(hp_int64, 80);
   auto hp_double = flatbuffers::GetAnyFieldF(root, hp_field);
   TEST_EQ(hp_double, 80.0);
-  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, schema);
+  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, &schema);
   TEST_EQ_STR(hp_string.c_str(), "80");
 
   // We can also modify it.

@@ -31,7 +31,9 @@ LOCAL_SRC_FILES := main.cpp \
                    ../../tests/test.cpp \
                    ../../src/idl_parser.cpp \
                    ../../src/idl_gen_text.cpp \
-                   ../../src/idl_gen_fbs.cpp
+                   ../../src/idl_gen_fbs.cpp \
+                   ../../src/idl_gen_general.cpp \
+                   ../../src/reflection.cpp
 LOCAL_LDLIBS := -llog -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers
 LOCAL_ARM_MODE := arm

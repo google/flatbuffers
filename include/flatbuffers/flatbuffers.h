@@ -353,6 +353,24 @@ private:
   }
 };
 
+// Represent a vector much like the template above, but in this case we
+// don't know what the element types are (used with reflection.h).
+class VectorOfAny {
+public:
+  uoffset_t size() const { return EndianScalar(length_); }
+
+  const uint8_t *Data() const {
+    return reinterpret_cast<const uint8_t *>(&length_ + 1);
+  }
+  uint8_t *Data() {
+    return reinterpret_cast<uint8_t *>(&length_ + 1);
+  }
+protected:
+  VectorOfAny();
+
+  uoffset_t length_;
+};
+
 // Convenient helper function to get the length of any vector, regardless
 // of wether it is null or not (the field is not set).
 template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
@@ -995,6 +1013,9 @@ class Struct FLATBUFFERS_FINAL_CLASS {
     return reinterpret_cast<T>(&data_[o]);
   }
 
+  const uint8_t *GetAddressOf(uoffset_t o) const { return &data_[o]; }
+  uint8_t *GetAddressOf(uoffset_t o) { return &data_[o]; }
+
  private:
   uint8_t data_[1];
 };
@@ -1027,7 +1048,6 @@ class Table {
       ? reinterpret_cast<P>(p + ReadScalar<uoffset_t>(p))
       : nullptr;
   }
-
   template<typename P> P GetPointer(voffset_t field) const {
     return const_cast<Table *>(this)->GetPointer<P>(field);
   }
@@ -1050,6 +1070,14 @@ class Table {
     if (!field_offset) return false;
     WriteScalar(data_ + field_offset, val - (data_ + field_offset));
     return true;
+  }
+
+  uint8_t *GetAddressOf(voffset_t field) {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return field_offset ? data_ + field_offset : nullptr;
+  }
+  const uint8_t *GetAddressOf(voffset_t field) const {
+    return const_cast<Table *>(this)->GetAddressOf(field);
   }
 
   uint8_t *GetVTable() { return data_ - ReadScalar<soffset_t>(data_); }
