@@ -16,14 +16,18 @@ public final class Monster extends Table {
   public Vec3 pos() { return pos(new Vec3()); }
   public Vec3 pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
   public short mana() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) : 150; }
+  public boolean mutateMana(short mana) { int o = __offset(6); if (o != 0) { bb.putShort(o + bb_pos); return true } else { return false } }
   public short hp() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) : 100; }
+  public boolean mutateHp(short hp) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos); return true } else { return false } }
   public String name() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(10, 1); }
   public int inventory(int j) { int o = __offset(14); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int inventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer inventoryAsByteBuffer() { return __vector_as_bytebuffer(14, 1); }
   public byte color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 8; }
+  public boolean mutateColor(byte color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos); return true } else { return false } }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public boolean mutateTestType(byte test_type) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos); return true } else { return false } }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test test4(int j) { return test4(new Test(), j); }
   public Test test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
@@ -45,14 +49,23 @@ public final class Monster extends Table {
   public Stat testempty() { return testempty(new Stat()); }
   public Stat testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public boolean testbool() { int o = __offset(34); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateTestbool(boolean testbool) { int o = __offset(34); if (o != 0) { bb.putBoolean(o + bb_pos); return true } else { return false } }
   public int testhashs32Fnv1() { int o = __offset(36); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateTesthashs32Fnv1(int testhashs32_fnv1) { int o = __offset(36); if (o != 0) { bb.putInt(o + bb_pos); return true } else { return false } }
   public long testhashu32Fnv1() { int o = __offset(38); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0; }
+  public boolean mutateTesthashu32Fnv1(int testhashu32_fnv1) { int o = __offset(38); if (o != 0) { bb.putInt(o + bb_pos); return true } else { return false } }
   public long testhashs64Fnv1() { int o = __offset(40); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateTesthashs64Fnv1(long testhashs64_fnv1) { int o = __offset(40); if (o != 0) { bb.putLong(o + bb_pos); return true } else { return false } }
   public long testhashu64Fnv1() { int o = __offset(42); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateTesthashu64Fnv1(long testhashu64_fnv1) { int o = __offset(42); if (o != 0) { bb.putLong(o + bb_pos); return true } else { return false } }
   public int testhashs32Fnv1a() { int o = __offset(44); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateTesthashs32Fnv1a(int testhashs32_fnv1a) { int o = __offset(44); if (o != 0) { bb.putInt(o + bb_pos); return true } else { return false } }
   public long testhashu32Fnv1a() { int o = __offset(46); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0; }
+  public boolean mutateTesthashu32Fnv1a(int testhashu32_fnv1a) { int o = __offset(46); if (o != 0) { bb.putInt(o + bb_pos); return true } else { return false } }
   public long testhashs64Fnv1a() { int o = __offset(48); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateTesthashs64Fnv1a(long testhashs64_fnv1a) { int o = __offset(48); if (o != 0) { bb.putLong(o + bb_pos); return true } else { return false } }
   public long testhashu64Fnv1a() { int o = __offset(50); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateTesthashu64Fnv1a(long testhashu64_fnv1a) { int o = __offset(50); if (o != 0) { bb.putLong(o + bb_pos); return true } else { return false } }
 
   public static void startMonster(FlatBufferBuilder builder) { builder.startObject(24); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }

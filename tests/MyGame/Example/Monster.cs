@@ -14,12 +14,16 @@ public sealed class Monster : Table {
   public Vec3 Pos { get { return GetPos(new Vec3()); } }
   public Vec3 GetPos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
   public short Mana { get { int o = __offset(6); return o != 0 ? bb.GetShort(o + bb_pos) : (short)150; } }
+  public bool MutateMana(short mana) { int o = __offset(6); if (o != 0) { bb.PutShort(o + bb_pos); return true } else { return false } }
   public short Hp { get { int o = __offset(8); return o != 0 ? bb.GetShort(o + bb_pos) : (short)100; } }
+  public bool MutateHp(short hp) { int o = __offset(8); if (o != 0) { bb.PutShort(o + bb_pos); return true } else { return false } }
   public string Name { get { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; } }
   public byte GetInventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; } }
   public Color Color { get { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; } }
+  public bool MutateColor(sbyte color) { int o = __offset(16); if (o != 0) { bb.PutSbyte(o + bb_pos); return true } else { return false } }
   public Any TestType { get { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; } }
+  public bool MutateTestType(byte test_type) { int o = __offset(18); if (o != 0) { bb.Put(o + bb_pos); return true } else { return false } }
   public TTable GetTest<TTable>(TTable obj) where TTable : Table { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test GetTest4(int j) { return GetTest4(new Test(), j); }
   public Test GetTest4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
@@ -38,14 +42,23 @@ public sealed class Monster : Table {
   public Stat Testempty { get { return GetTestempty(new Stat()); } }
   public Stat GetTestempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public bool Testbool { get { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; } }
+  public bool MutateTestbool(bool testbool) { int o = __offset(34); if (o != 0) { bb.PutBool(o + bb_pos); return true } else { return false } }
   public int Testhashs32Fnv1 { get { int o = __offset(36); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; } }
+  public bool MutateTesthashs32Fnv1(int testhashs32_fnv1) { int o = __offset(36); if (o != 0) { bb.PutInt(o + bb_pos); return true } else { return false } }
   public uint Testhashu32Fnv1 { get { int o = __offset(38); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; } }
+  public bool MutateTesthashu32Fnv1(uint testhashu32_fnv1) { int o = __offset(38); if (o != 0) { bb.PutUint(o + bb_pos); return true } else { return false } }
   public long Testhashs64Fnv1 { get { int o = __offset(40); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
+  public bool MutateTesthashs64Fnv1(long testhashs64_fnv1) { int o = __offset(40); if (o != 0) { bb.PutLong(o + bb_pos); return true } else { return false } }
   public ulong Testhashu64Fnv1 { get { int o = __offset(42); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; } }
+  public bool MutateTesthashu64Fnv1(ulong testhashu64_fnv1) { int o = __offset(42); if (o != 0) { bb.PutUlong(o + bb_pos); return true } else { return false } }
   public int Testhashs32Fnv1a { get { int o = __offset(44); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; } }
+  public bool MutateTesthashs32Fnv1a(int testhashs32_fnv1a) { int o = __offset(44); if (o != 0) { bb.PutInt(o + bb_pos); return true } else { return false } }
   public uint Testhashu32Fnv1a { get { int o = __offset(46); return o != 0 ? bb.GetUint(o + bb_pos) : (uint)0; } }
+  public bool MutateTesthashu32Fnv1a(uint testhashu32_fnv1a) { int o = __offset(46); if (o != 0) { bb.PutUint(o + bb_pos); return true } else { return false } }
   public long Testhashs64Fnv1a { get { int o = __offset(48); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
+  public bool MutateTesthashs64Fnv1a(long testhashs64_fnv1a) { int o = __offset(48); if (o != 0) { bb.PutLong(o + bb_pos); return true } else { return false } }
   public ulong Testhashu64Fnv1a { get { int o = __offset(50); return o != 0 ? bb.GetUlong(o + bb_pos) : (ulong)0; } }
+  public bool MutateTesthashu64Fnv1a(ulong testhashu64_fnv1a) { int o = __offset(50); if (o != 0) { bb.PutUlong(o + bb_pos); return true } else { return false } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(24); }
   public static void AddPos(FlatBufferBuilder builder, int posOffset) { builder.AddStruct(0, posOffset, 0); }

@@ -428,6 +428,20 @@ static std::string GenGetter(const LanguageParameters &lang,
   }
 }
 
+static std::string GenSetter(const LanguageParameters &lang,
+                             const Type &type) {
+  switch (type.base_type) {
+    case BASE_TYPE_STRUCT: return "";
+    default: {
+      std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
+      if (GenTypeBasic(lang, type) != "byte") {
+        setter += MakeCamel(GenTypeGet(lang, type));
+      }
+      return setter;
+    }
+  }
+}
+
 // Returns the method name for use with add/put calls.
 static std::string GenMethod(const LanguageParameters &lang, const Type &type) {
   return IsScalar(type.base_type)
@@ -493,7 +507,8 @@ static void GenStructBody(const LanguageParameters &lang,
 }
 
 static void GenStruct(const LanguageParameters &lang, const Parser &parser,
-                      StructDef &struct_def, std::string *code_ptr) {
+                      StructDef &struct_def, const GeneratorOptions &opts,
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -697,6 +712,26 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
                           InlineSize(field.value.type.VectorType()));
       code += "); }\n";
+    }
+
+    // generate mutators for scalar fields
+    if (opts.mutable_buffer) {
+      std::string mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
+      if (IsScalar(field.value.type.base_type)) {
+        code += "  public ";
+        code += struct_def.fixed ? "void " : lang.bool_type;
+        code += mutator_prefix + MakeCamel(field.name, true) + "(";
+        code += GenTypeBasic(lang, field.value.type);
+        code += " " + field.name + ") { ";
+        if (struct_def.fixed) {
+          code += GenSetter(lang, field.value.type) + "(bb_pos + ";
+          code += NumToString(field.value.offset) + "); }\n";
+        } else {
+          code += "int o = __offset(" + NumToString(field.value.offset) + ");";
+          code += " if (o != 0) { " + GenSetter(lang, field.value.type);
+          code += "(o + bb_pos); return true } else { return false } }\n";
+        }
+      }
     }
   }
   code += "\n";
@@ -914,7 +949,7 @@ bool GenerateGeneral(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(lang, parser, **it, &declcode);
+    GenStruct(lang, parser, **it, opts, &declcode);
     if (opts.one_file) {
       one_file_code += declcode;
     }

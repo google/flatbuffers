@@ -11,10 +11,15 @@ public final class Vec3 extends Struct {
   public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public float x() { return bb.getFloat(bb_pos + 0); }
+  public void mutateX(float x) { bb.putFloat(bb_pos + 0); }
   public float y() { return bb.getFloat(bb_pos + 4); }
+  public void mutateY(float y) { bb.putFloat(bb_pos + 4); }
   public float z() { return bb.getFloat(bb_pos + 8); }
+  public void mutateZ(float z) { bb.putFloat(bb_pos + 8); }
   public double test1() { return bb.getDouble(bb_pos + 16); }
+  public void mutateTest1(double test1) { bb.putDouble(bb_pos + 16); }
   public byte test2() { return bb.get(bb_pos + 24); }
+  public void mutateTest2(byte test2) { bb.put(bb_pos + 24); }
   public Test test3() { return test3(new Test()); }
   public Test test3(Test obj) { return obj.__init(bb_pos + 26, bb); }
 
