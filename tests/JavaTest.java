@@ -134,7 +134,9 @@ class JavaTest {
         TestEq(pos.x(), 55.0f);
         pos.mutateX(1.0f);
         TestEq(pos.x(), 1.0f);
-        
+
+        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
