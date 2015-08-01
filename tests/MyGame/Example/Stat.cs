@@ -12,9 +12,9 @@ public sealed class Stat : Table {
 
   public string Id { get { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; } }
   public long Val { get { int o = __offset(6); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
-  public bool MutateVal(long val) { int o = __offset(6); if (o != 0) { bb.PutLong(o + bb_pos); return true } else { return false } }
+  public bool MutateVal(long val) { int o = __offset(6); if (o != 0) { bb.PutLong(o + bb_pos, val); return true; } else { return false; } }
   public ushort Count { get { int o = __offset(8); return o != 0 ? bb.GetUshort(o + bb_pos) : (ushort)0; } }
-  public bool MutateCount(ushort count) { int o = __offset(8); if (o != 0) { bb.PutUshort(o + bb_pos); return true } else { return false } }
+  public bool MutateCount(ushort count) { int o = __offset(8); if (o != 0) { bb.PutUshort(o + bb_pos, count); return true; } else { return false; } }
 
   public static int CreateStat(FlatBufferBuilder builder,
       int id = 0,

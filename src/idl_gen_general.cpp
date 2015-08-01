@@ -434,7 +434,8 @@ static std::string GenSetter(const LanguageParameters &lang,
     case BASE_TYPE_STRUCT: return "";
     default: {
       std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
-      if (GenTypeBasic(lang, type) != "byte") {
+      if (GenTypeBasic(lang, type) != "byte" && 
+          type.base_type != BASE_TYPE_BOOL) {
         setter += MakeCamel(GenTypeGet(lang, type));
       }
       return setter;
@@ -716,6 +717,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
 
     // generate mutators for scalar fields
     if (opts.mutable_buffer) {
+      // boolean parameters have to be explicitly converted to byte representation
+      std::string setter_parameter = field.value.type.base_type == BASE_TYPE_BOOL ? "(byte)(" + field.name + " ? 1 : 0)" : field.name;
       std::string mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
       if (IsScalar(field.value.type.base_type)) {
         code += "  public ";
@@ -725,11 +728,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += " " + field.name + ") { ";
         if (struct_def.fixed) {
           code += GenSetter(lang, field.value.type) + "(bb_pos + ";
-          code += NumToString(field.value.offset) + "); }\n";
+          code += NumToString(field.value.offset) + ", " + setter_parameter + "); }\n";
         } else {
           code += "int o = __offset(" + NumToString(field.value.offset) + ");";
           code += " if (o != 0) { " + GenSetter(lang, field.value.type);
-          code += "(o + bb_pos); return true } else { return false } }\n";
+          code += "(o + bb_pos, " + setter_parameter + "); return true; } else { return false; } }\n";
         }
       }
     }

@@ -139,6 +139,12 @@ namespace FlatBuffers
             _pos = offset;
         }
 
+        // this method exists in order to conform with Java ByteBuffer standards
+        public void Put(int offset, byte value)
+        {
+            PutByte(offset, value);
+        }
+
 #if UNSAFE_BYTEBUFFER
         // Unsafe but more efficient versions of Put*.
         public void PutShort(int offset, short value)

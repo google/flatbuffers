@@ -110,6 +110,31 @@ class JavaTest {
 
         TestEnums();
 
+        //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
+        // revert to original values after testing
+        Monster monster = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        // mana is optional and does not exist in the buffer so the mutation should fail
+        // it should retain its default value
+        TestEq(monster.mutateMana((short)10), false);
+        TestEq(monster.mana(), (short)150);
+
+        // testType is an existing field and mutating it should succeed
+        TestEq(monster.testType(), (byte)Any.Monster);
+        TestEq(monster.mutateTestType(Any.NONE), true);
+        TestEq(monster.testType(), (byte)Any.NONE);
+        TestEq(monster.mutateTestType(Any.Monster), true);
+        TestEq(monster.testType(), (byte)Any.Monster);
+
+        // get a struct field and edit one of its fields
+        // 
+        Vec3 pos = monster.pos();
+        TestEq(pos.x(), 1.0f);
+        pos.mutateX(55.0f);
+        TestEq(pos.x(), 55.0f);
+        pos.mutateX(1.0f);
+        TestEq(pos.x(), 1.0f);
+        
         System.out.println("FlatBuffers test: completed successfully");
     }
 
