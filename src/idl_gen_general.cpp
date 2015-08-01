@@ -428,18 +428,19 @@ static std::string GenGetter(const LanguageParameters &lang,
   }
 }
 
+// Direct mutation is only allowed for scalar fields.
+// Hence a setter method will only be generated for such fields.
 static std::string GenSetter(const LanguageParameters &lang,
                              const Type &type) {
-  switch (type.base_type) {
-    case BASE_TYPE_STRUCT: return "";
-    default: {
-      std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
-      if (GenTypeBasic(lang, type) != "byte" && 
-          type.base_type != BASE_TYPE_BOOL) {
-        setter += MakeCamel(GenTypeGet(lang, type));
-      }
-      return setter;
+  if (IsScalar(type.base_type)) {
+    std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
+    if (GenTypeBasic(lang, type) != "byte" && 
+        type.base_type != BASE_TYPE_BOOL) {
+      setter += MakeCamel(GenTypeGet(lang, type));
     }
+    return setter;
+  } else {
+    return "";
   }
 }
 
