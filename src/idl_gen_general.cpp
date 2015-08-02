@@ -145,9 +145,7 @@ LanguageParameters language_parameters[] = {
     "",
     "Position",
     "Offset",
-    "using FlatBuffers;\n"
-    "using System.Collections.Generic;\n"
-    "\n",
+    "using FlatBuffers;\n\n",
     {
       nullptr,
       "///",
@@ -226,7 +224,7 @@ static std::string GenTypeArrayParam(const LanguageParameters &lang,
                                      const Type &type) {
   std::string type_string = GenTypeBasic(lang, type);
   if (lang.language == GeneratorOptions::kCSharp) {
-    return "IList<" + type_string + ">";
+    return "System.Collections.Generic.IList<" + type_string + ">";
   }
   return type_string + "[]";
 }
