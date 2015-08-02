@@ -4,6 +4,7 @@ namespace MyGame.Example
 {
 
 using FlatBuffers;
+using System.Collections.Generic;
 
 public sealed class Stat : Table {
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
