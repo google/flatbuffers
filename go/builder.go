@@ -277,6 +277,16 @@ func (b *Builder) StartVector(elemSize, numElems, alignment int) UOffsetT {
 	return b.Offset()
 }
 
+// PrependVector prepends a slice of bytes to the Builder buffer.
+// It should only be used after starting the vector. Internally it
+// calls EndVector and returns the offset.
+func (b *Builder) PrependVector(buf []byte) UOffsetT {
+	for i := len(buf) - 1; i >= 0; i-- {
+		b.PrependByte(buf[i])
+	}
+	return b.EndVector(len(buf))
+}
+
 // EndVector writes data necessary to finish vector construction.
 func (b *Builder) EndVector(vectorNumElems int) UOffsetT {
 	// we already made space for this, so write without PrependUint32
@@ -519,6 +529,14 @@ func vtableEqual(a []UOffsetT, objectStart UOffsetT, b []byte) bool {
 		}
 	}
 	return true
+}
+
+// ConvertBool simply converts a boolean to a byte.
+func ConvertBool(b bool) byte {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // PrependBool prepends a bool to the Builder buffer.

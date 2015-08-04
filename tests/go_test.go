@@ -98,6 +98,9 @@ func TestAll(t *testing.T) {
 	// some sanity checks:
 	CheckDocExample(generated, off, t.Fatalf)
 
+	// Make sure PrependVector works properly.
+	CheckPrependVector(t.Fatalf)
+
 	// Check Builder.CreateByteVector
 	CheckCreateByteVector(t.Fatalf)
 
@@ -1218,6 +1221,28 @@ func CheckCreateByteVector(fail func(string, ...interface{})) {
 		}
 		b1.EndVector(size)
 		b2.CreateByteVector(raw[:size])
+		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
+	}
+}
+
+func CheckPrependVector(fail func(string, ...interface{})) {
+	raw := [30]byte{}
+	for i := 0; i < len(raw); i++ {
+		raw[i] = byte(i)
+	}
+
+	for size := 0; size < len(raw); size++ {
+		b1 := flatbuffers.NewBuilder(0)
+		b1.StartVector(1, size, 1)
+		for i := size - 1; i >= 0; i-- {
+			b1.PrependByte(raw[i])
+		}
+		b1.EndVector(size)
+
+		b2 := flatbuffers.NewBuilder(0)
+		b2.StartVector(1, size, 1)
+		b2.PrependVector(raw[:size])
+
 		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
 	}
 }
