@@ -66,7 +66,7 @@ FLATBUFFERS_FLATC_PATH?=$(FLATBUFFERS_CMAKELISTS_DIR)
 FLATBUFFERS_FLATC := $(FLATBUFFERS_FLATC_PATH)/Debug/flatc
 endif
 
-FLATBUFFERS_FLATC_ARGS?=--gen-includes
+FLATBUFFERS_FLATC_ARGS?=
 
 # Search for cmake.
 CMAKE_ROOT := $(realpath $(LOCAL_PATH)/../../../../../../prebuilts/cmake)
