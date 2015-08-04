@@ -334,8 +334,7 @@ const uint8_t *AddFlatBuffer(std::vector<uint8_t> &flatbuf,
   }
   auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
   // Insert the entire FlatBuffer minus the root pointer.
-  flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t),
-                 newbuf + newlen - sizeof(uoffset_t));
+  flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t), newbuf + newlen);
   auto root_offset = ReadScalar<uoffset_t>(newbuf) - sizeof(uoffset_t);
   return flatbuf.data() + insertion_point + root_offset;
 }

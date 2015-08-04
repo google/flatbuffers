@@ -393,8 +393,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // We do this last, so the pointer doesn't get invalidated (since it is
   // at the end of the buffer):
   auto string_ptr = flatbuffers::AddFlatBuffer(resizingbuf,
-                                                  stringfbb.GetBufferPointer(),
-                                                  stringfbb.GetSize());
+                                               stringfbb.GetBufferPointer(),
+                                               stringfbb.GetSize());
   // Finally, set the new value in the vector.
   rtestarrayofstring->MutateOffset(2, string_ptr);
   TEST_EQ_STR(rtestarrayofstring->Get(0)->c_str(), "bob");
