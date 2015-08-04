@@ -101,6 +101,9 @@ func TestAll(t *testing.T) {
 	// Make sure PrependVector works properly.
 	CheckPrependVector(t.Fatalf)
 
+	// Check for cosmic ray bit flips and stuff.
+	CheckConvertBool(t.Fail.f)
+
 	// Check Builder.CreateByteVector
 	CheckCreateByteVector(t.Fatalf)
 
@@ -1244,6 +1247,18 @@ func CheckPrependVector(fail func(string, ...interface{})) {
 		b2.PrependVector(raw[:size])
 
 		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
+	}
+}
+
+func CheckConvertBool(fail func(string, ...interface{})) {
+	b := true
+	if ConvertBool(b) != 1 {
+		fail("ConvertBool(true) returned something other than 1")
+	}
+
+	f := false
+	if ConvertBool(f) != 0 {
+		fail("ConvertBool(false) returned something other than 0")
 	}
 }
 
