@@ -75,7 +75,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>--strict-json</code> : Require &amp; generate strict JSON (field names are enclosed in quotes, no trailing commas in tables/vectors). By default, no quotes are required/generated, and trailing commas are allowed.</li>
 <li><code>--defaults-json</code> : Output fields whose value is equal to the default value when writing JSON text.</li>
 <li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>
-<li><code>--gen-includes</code> : (deprecated), instead use:</li>
+<li><code>--gen-includes</code> : (deprecated), this is the default behavior. If the original behavior is required (no include statements) use <code>--no-includes.</code></li>
 <li><code>--no-includes</code> : Don't generate include statements for included schemas the generated file depends on (C++).</li>
 <li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
 <li><code>--gen-onefile</code> : Generate single output file (useful for C#)</li>
