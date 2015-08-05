@@ -141,7 +141,9 @@ void SetAnyValueF(reflection::BaseType type, uint8_t *data, double val) {
 void SetAnyValueS(reflection::BaseType type, uint8_t *data, const char *val) {
   switch (type) {
     case reflection::Float:
-    case reflection::Double: SetAnyValueF(type, data, strtod(val, nullptr));
+    case reflection::Double:
+      SetAnyValueF(type, data, strtod(val, nullptr));
+      break;
     // TODO: support strings.
     default: SetAnyValueI(type, data, StringToInt(val)); break;
   }
