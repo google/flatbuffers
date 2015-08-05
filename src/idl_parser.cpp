@@ -918,10 +918,10 @@ void Parser::ParseDecl() {
     auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
     if (force_align->type.base_type != BASE_TYPE_INT ||
         align < struct_def.minalign ||
-        align > 256 ||
+        align > 16 ||
         align & (align - 1))
       Error("force_align must be a power of two integer ranging from the"
-            "struct\'s natural alignment to 256");
+            "struct\'s natural alignment to 16");
     struct_def.minalign = align;
   }
   struct_def.PadLastField(struct_def.minalign);
