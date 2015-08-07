@@ -75,8 +75,8 @@ namespace FlatBuffers
 
             Buffer.BlockCopy(oldBuf, 0, newBuf, newBufSize - oldBufSize,
                              oldBufSize);
-
-            _bb = new ByteBuffer(newBuf);
+            _bb = new ByteBuffer(newBuf, newBufSize);
+            System.Diagnostics.Debug.WriteLine(_bb.Position);
         }
 
         // Prepare to write an element of `size` after `additional_bytes`
@@ -359,6 +359,7 @@ namespace FlatBuffers
         {
             Prep(_minAlign, sizeof(int));
             AddOffset(rootTable);
+            _bb.Position = _space;
         }
 
         public ByteBuffer DataBuffer { get { return _bb; } }
@@ -387,7 +388,7 @@ namespace FlatBuffers
              {
                 AddByte((byte)fileIdentifier[i]);
              }
-             AddOffset(rootTable);
+             Finish(rootTable);
         }
 
 
