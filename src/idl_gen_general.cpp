@@ -330,6 +330,25 @@ static std::string DestinationValue(const LanguageParameters &lang,
   }
 }
 
+static std::string SourceCast(const LanguageParameters &lang,
+                              const Type &type) {
+  switch (lang.language) {
+    case GeneratorOptions::kJava:
+      if (type.base_type == BASE_TYPE_UINT) return "(int)";
+      else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
+      else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+      break;
+    case GeneratorOptions::kCSharp:
+      if (type.enum_def != nullptr && 
+          type.base_type != BASE_TYPE_UNION) 
+        return "(" + GenTypeGet(lang, type) + ")";
+      break;
+    default:
+      break;
+  }
+  return "";
+}
+
 static std::string GenDefaultValue(const Value &value) {
   return value.type.base_type == BASE_TYPE_BOOL
            ? (value.constant == "0" ? "false" : "true")
@@ -570,6 +589,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     std::string type_name_dest = GenTypeNameDest(lang, field.value.type);
     std::string dest_mask = DestinationMask(lang, field.value.type, true);
     std::string dest_cast = DestinationCast(lang, field.value.type);
+    std::string src_cast = SourceCast(lang, field.value.type);
     std::string method_start = "  public " + type_name_dest + " " +
                                MakeCamel(field.name, lang.first_camel_upper);
     // Most field accessors need to retrieve and test the field offset first,
@@ -725,15 +745,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += "  public ";
         code += struct_def.fixed ? "void " : lang.bool_type;
         code += mutator_prefix + MakeCamel(field.name, true) + "(";
-        code += GenTypeBasic(lang, field.value.type);
+        code += GenTypeNameDest(lang, field.value.type);
         code += " " + field.name + ") { ";
         if (struct_def.fixed) {
           code += GenSetter(lang, field.value.type) + "(bb_pos + ";
-          code += NumToString(field.value.offset) + ", " + setter_parameter + "); }\n";
+          code += NumToString(field.value.offset) + ", " + src_cast + setter_parameter + "); }\n";
         } else {
           code += "int o = __offset(" + NumToString(field.value.offset) + ");";
           code += " if (o != 0) { " + GenSetter(lang, field.value.type);
-          code += "(o + bb_pos, " + setter_parameter + "); return true; } else { return false; } }\n";
+          code += "(o + bb_pos, " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
         }
       }
     }

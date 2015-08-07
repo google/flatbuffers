@@ -17,7 +17,7 @@ public final class Stat extends Table {
   public long val() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
   public boolean mutateVal(long val) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, val); return true; } else { return false; } }
   public int count() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateCount(short count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, count); return true; } else { return false; } }
+  public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)count); return true; } else { return false; } }
 
   public static int createStat(FlatBufferBuilder builder,
       int id,

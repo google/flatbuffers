@@ -81,6 +81,7 @@ class JavaTest {
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
         Monster.addTestbool(fbb, false);
+        Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
         int mon = Monster.endMonster(fbb);
 
         Monster.finishMonsterBuffer(fbb, mon);
@@ -101,12 +102,12 @@ class JavaTest {
         }
 
         // Test it:
-        TestBuffer(fbb.dataBuffer());
+        TestExtendedBuffer(fbb.dataBuffer());
 
         // Make sure it also works with read only ByteBuffers. This is slower,
         // since creating strings incurs an additional copy
         // (see Table.__string).
-        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
+        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
         TestEnums();
 
@@ -115,7 +116,7 @@ class JavaTest {
         Monster monster = Monster.getRootAsMonster(fbb.dataBuffer());
 
         // mana is optional and does not exist in the buffer so the mutation should fail
-        // it should retain its default value
+        // the mana field should retain its default value
         TestEq(monster.mutateMana((short)10), false);
         TestEq(monster.mana(), (short)150);
 
@@ -127,7 +128,6 @@ class JavaTest {
         TestEq(monster.testType(), (byte)Any.Monster);
 
         // get a struct field and edit one of its fields
-        // 
         Vec3 pos = monster.pos();
         TestEq(pos.x(), 1.0f);
         pos.mutateX(55.0f);
@@ -135,7 +135,7 @@ class JavaTest {
         pos.mutateX(1.0f);
         TestEq(pos.x(), 1.0f);
 
-        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
+        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -149,7 +149,7 @@ class JavaTest {
 
     static void TestBuffer(ByteBuffer bb) {
         TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
-
+        
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
@@ -196,6 +196,16 @@ class JavaTest {
         TestEq(monster.testarrayofstring(1),"test2");
 
         TestEq(monster.testbool(), false);
+    }
+
+    // this method checks additional fields not present in the binary buffer read from file
+    // these new tests are performed on top of the regular tests
+    static void TestExtendedBuffer(ByteBuffer bb) {
+        TestBuffer(bb);
+
+        Monster monster = Monster.getRootAsMonster(bb);
+
+        TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
     }
 
     static <T> void TestEq(T a, T b) {
