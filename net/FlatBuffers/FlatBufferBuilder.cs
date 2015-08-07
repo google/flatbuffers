@@ -76,7 +76,6 @@ namespace FlatBuffers
             Buffer.BlockCopy(oldBuf, 0, newBuf, newBufSize - oldBufSize,
                              oldBufSize);
             _bb = new ByteBuffer(newBuf, newBufSize);
-            System.Diagnostics.Debug.WriteLine(_bb.Position);
         }
 
         // Prepare to write an element of `size` after `additional_bytes`
