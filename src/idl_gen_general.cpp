@@ -330,6 +330,10 @@ static std::string DestinationValue(const LanguageParameters &lang,
   }
 }
 
+// Cast statements for mutator method parameters.
+// In Java, parameters representing unsigned numbers need to be cast down to their respective type.
+// For example, a long holding an unsigned int value would be cast down to int before being put onto the buffer.
+// In C#, one cast directly cast an Enum to its underlying type, which is essential before putting it onto the buffer.
 static std::string SourceCast(const LanguageParameters &lang,
                               const Type &type) {
   switch (lang.language) {
