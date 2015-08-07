@@ -13,12 +13,12 @@ public sealed class Test : Struct {
   public sbyte B { get { return bb.GetSbyte(bb_pos + 2); } }
   public void MutateB(sbyte b) { bb.PutSbyte(bb_pos + 2, b); }
 
-  public static int CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
+  public static Offset<Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
     builder.Prep(2, 4);
     builder.Pad(1);
     builder.PutSbyte(B);
     builder.PutShort(A);
-    return builder.Offset;
+    return new Offset<Test>(builder.Offset);
   }
 };
 

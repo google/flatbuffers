@@ -272,6 +272,7 @@
     <ClCompile Include="..\..\src\idl_gen_general.cpp" />
     <ClCompile Include="..\..\src\idl_parser.cpp" />
     <ClCompile Include="..\..\src\idl_gen_text.cpp" />
+    <ClCompile Include="..\..\src\reflection.cpp" />
     <ClCompile Include="..\..\tests\test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

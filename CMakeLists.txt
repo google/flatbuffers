@@ -25,6 +25,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/reflection_generated.h
   src/idl_parser.cpp
   src/idl_gen_text.cpp
+  src/reflection.cpp
 )
 
 set(FlatBuffers_Compiler_SRCS
@@ -43,14 +44,9 @@ set(FlatHash_SRCS
 )
 
 set(FlatBuffers_Tests_SRCS
-  include/flatbuffers/flatbuffers.h
-  include/flatbuffers/hash.h
-  include/flatbuffers/idl.h
-  include/flatbuffers/util.h
-  src/idl_parser.cpp
-  src/idl_gen_general.cpp
-  src/idl_gen_text.cpp
+  ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  src/idl_gen_general.cpp
   tests/test.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h

@@ -48,6 +48,11 @@ namespace FlatBuffers
             set { _pos = value; }
         }
 
+        public void Reset()
+        {
+            _pos = 0;
+        }
+
         // Pre-allocated helper arrays for convertion.
         private float[] floathelper = new[] { 0.0f };
         private int[] inthelper = new[] { 0 };

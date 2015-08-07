@@ -50,8 +50,8 @@ namespace flatbuffers {
   TD(FLOAT,  "float",  float,    float,  float32, float,  float32) /* begin float */ \
   TD(DOUBLE, "double", double,   double, float64, double, float64) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int, int, int) \
-  TD(VECTOR, "",       Offset<void>, int, int, int, int) \
+  TD(STRING, "string", Offset<void>, int, int, StringOffset, int) \
+  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int) \
   TD(STRUCT, "",       Offset<void>, int, int, int, int) \
   TD(UNION,  "",       Offset<void>, int, int, int, int)
 

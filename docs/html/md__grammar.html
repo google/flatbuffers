@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>FlatBuffers: Formal Grammar of the schema language</title>
+<title>FlatBuffers: Grammar of the schema language</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -21,7 +21,7 @@
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
@@ -30,6 +30,9 @@
   </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -55,7 +58,7 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">Formal Grammar of the schema language </div>  </div>
+<div class="title">Grammar of the schema language </div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>schema = include* ( namespace_decl | type_decl | enum_decl | root_decl | file_extension_decl | file_identifier_decl | attribute_decl | object )*</p>
@@ -68,13 +71,16 @@ $(document).ready(function(){initNavTree('md__grammar.html','');});
 <p>field_decl = ident <code>:</code> type [ <code>=</code> scalar ] metadata <code>;</code></p>
 <p>type = <code>bool</code> | <code>byte</code> | <code>ubyte</code> | <code>short</code> | <code>ushort</code> | <code>int</code> | <code>uint</code> | <code>float</code> | <code>long</code> | <code>ulong</code> | <code>double</code> | <code>string</code> | <code>[</code> type <code>]</code> | ident</p>
 <p>enumval_decl = ident [ <code>=</code> integer_constant ]</p>
-<p>metadata = [ <code>(</code> commasep( ident [ <code>:</code> scalar ] ) <code>)</code> ]</p>
-<p>scalar = integer_constant | float_constant | <code>true</code> | <code>false</code></p>
+<p>metadata = [ <code>(</code> commasep( ident [ <code>:</code> single_value ] ) <code>)</code> ]</p>
+<p>scalar = integer_constant | float_constant</p>
 <p>object = { commasep( ident <code>:</code> value ) }</p>
-<p>value = scalar | object | string_constant | <code>[</code> commasep( value ) <code>]</code></p>
+<p>single_value = scalar | string_constant</p>
+<p>value = single_value | object | <code>[</code> commasep( value ) <code>]</code></p>
 <p>commasep(x) = [ x ( <code>,</code> x )* ]</p>
 <p>file_extension_decl = <code>file_extension</code> string_constant <code>;</code></p>
-<p>file_identifier_decl = <code>file_identifier</code> string_constant <code>;</code> </p>
+<p>file_identifier_decl = <code>file_identifier</code> string_constant <code>;</code></p>
+<p>integer_constant = -?[0-9]+ | <code>true</code> | <code>false</code></p>
+<p>float_constant = -?[0-9]+.[0-9]+((e|E)(+|-)?[0-9]+)? </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

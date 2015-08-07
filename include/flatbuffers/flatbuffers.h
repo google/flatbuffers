@@ -293,9 +293,19 @@ public:
   const_iterator end() const { return const_iterator(Data(), size()); }
 
   // Change elements if you have a non-const pointer to this object.
+  // Scalars only. See reflection.h, and the documentation.
   void Mutate(uoffset_t i, T val) {
     assert(i < size());
     WriteScalar(data() + i, val);
+  }
+
+  // Change an element of a vector of tables (or strings).
+  // "val" points to the new table/string, as you can obtain from
+  // e.g. reflection::AddFlatBuffer().
+  void MutateOffset(uoffset_t i, const uint8_t *val) {
+    assert(i < size());
+    assert(sizeof(T) == sizeof(uoffset_t));
+    WriteScalar(data() + i, val - (Data() + i * sizeof(uoffset_t)));
   }
 
   // The raw data in little endian format. Use with care.
@@ -341,6 +351,24 @@ private:
     // result here.
     return -table->KeyCompareWithValue(*key);
   }
+};
+
+// Represent a vector much like the template above, but in this case we
+// don't know what the element types are (used with reflection.h).
+class VectorOfAny {
+public:
+  uoffset_t size() const { return EndianScalar(length_); }
+
+  const uint8_t *Data() const {
+    return reinterpret_cast<const uint8_t *>(&length_ + 1);
+  }
+  uint8_t *Data() {
+    return reinterpret_cast<uint8_t *>(&length_ + 1);
+  }
+protected:
+  VectorOfAny();
+
+  uoffset_t length_;
 };
 
 // Convenient helper function to get the length of any vector, regardless
@@ -985,6 +1013,9 @@ class Struct FLATBUFFERS_FINAL_CLASS {
     return reinterpret_cast<T>(&data_[o]);
   }
 
+  const uint8_t *GetAddressOf(uoffset_t o) const { return &data_[o]; }
+  uint8_t *GetAddressOf(uoffset_t o) { return &data_[o]; }
+
  private:
   uint8_t data_[1];
 };
@@ -1017,7 +1048,6 @@ class Table {
       ? reinterpret_cast<P>(p + ReadScalar<uoffset_t>(p))
       : nullptr;
   }
-
   template<typename P> P GetPointer(voffset_t field) const {
     return const_cast<Table *>(this)->GetPointer<P>(field);
   }
@@ -1033,6 +1063,21 @@ class Table {
     if (!field_offset) return false;
     WriteScalar(data_ + field_offset, val);
     return true;
+  }
+
+  bool SetPointer(voffset_t field, const uint8_t *val) {
+    auto field_offset = GetOptionalFieldOffset(field);
+    if (!field_offset) return false;
+    WriteScalar(data_ + field_offset, val - (data_ + field_offset));
+    return true;
+  }
+
+  uint8_t *GetAddressOf(voffset_t field) {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return field_offset ? data_ + field_offset : nullptr;
+  }
+  const uint8_t *GetAddressOf(voffset_t field) const {
+    return const_cast<Table *>(this)->GetAddressOf(field);
   }
 
   uint8_t *GetVTable() { return data_ - ReadScalar<soffset_t>(data_); }
