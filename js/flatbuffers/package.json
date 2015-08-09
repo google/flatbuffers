@@ -1,0 +1,6 @@
+{ "name" : "flatbuffers",
+  "version": "1.1.0",
+  "description": "Flatbuffers",
+  "author": "Google Inc",
+  "main" : "lib/flatbuffers.js"  
+ }
