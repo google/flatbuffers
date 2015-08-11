@@ -71,6 +71,9 @@
     <Compile Include="..\MyGame\Example\Test.cs">
       <Link>MyGame\Example\Test.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum.cs">
+      <Link>MyGame\Example\TestSimpleTableWithEnum.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>
     </Compile>

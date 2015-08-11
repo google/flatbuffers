@@ -15,6 +15,7 @@ namespace MyGame {
 namespace Example {
 
 struct Test;
+struct TestSimpleTableWithEnum;
 struct Vec3;
 struct Stat;
 struct Monster;
@@ -34,11 +35,12 @@ inline const char *EnumNameColor(Color e) { return EnumNamesColor()[e - Color_Re
 
 enum Any {
   Any_NONE = 0,
-  Any_Monster = 1
+  Any_Monster = 1,
+  Any_TestSimpleTableWithEnum = 2
 };
 
 inline const char **EnumNamesAny() {
-  static const char *names[] = { "NONE", "Monster", nullptr };
+  static const char *names[] = { "NONE", "Monster", "TestSimpleTableWithEnum", nullptr };
   return names;
 }
 
@@ -93,6 +95,35 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   Test &mutable_test3() { return test3_; }
 };
 STRUCT_END(Vec3, 32);
+
+struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  Color color() const { return static_cast<Color>(GetField<int8_t>(4, 2)); }
+  bool mutate_color(Color color) { return SetField(4, static_cast<int8_t>(color)); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int8_t>(verifier, 4 /* color */) &&
+           verifier.EndTable();
+  }
+};
+
+struct TestSimpleTableWithEnumBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_color(Color color) { fbb_.AddElement<int8_t>(4, static_cast<int8_t>(color), 2); }
+  TestSimpleTableWithEnumBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  TestSimpleTableWithEnumBuilder &operator=(const TestSimpleTableWithEnumBuilder &);
+  flatbuffers::Offset<TestSimpleTableWithEnum> Finish() {
+    auto o = flatbuffers::Offset<TestSimpleTableWithEnum>(fbb_.EndTable(start_, 1));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb,
+   Color color = Color_Green) {
+  TestSimpleTableWithEnumBuilder builder_(_fbb);
+  builder_.add_color(color);
+  return builder_.Finish();
+}
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(4); }
@@ -318,6 +349,7 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, An
   switch (type) {
     case Any_NONE: return true;
     case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));
+    case Any_TestSimpleTableWithEnum: return verifier.VerifyTable(reinterpret_cast<const TestSimpleTableWithEnum *>(union_obj));
     default: return false;
   }
 }
