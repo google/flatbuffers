@@ -751,6 +751,7 @@ INPUT = "FlatBuffers.md" \
         "GoUsage.md" \
         "JavaUsage.md" \
         "PythonUsage.md" \
+        "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
         "Internals.md" \

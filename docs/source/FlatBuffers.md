@@ -115,6 +115,7 @@ sections provide a more in-depth usage guide.
     programs.
 -   How to [use the generated Go code](md__go_usage.html) in your own
     programs.
+-   [Support matrix](md__support.html) for platforms/languages/features.
 -   Some [benchmarks](md__benchmarks.html) showing the advantage of using
     FlatBuffers.
 -   A [white paper](md__white_paper.html) explaining the "why" of FlatBuffers.
