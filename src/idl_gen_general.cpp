@@ -789,7 +789,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
         if (lang.language != GeneratorOptions::kJava) {
-          code += " = " + GenDefaultValue(lang, field.value, false);
+          code += " = ";
+          // in C#, enum values have their own type, so we need to cast the
+          // numeric value to the proper type
+          if (lang.language == GeneratorOptions::kCSharp &&
+            field.value.type.enum_def != nullptr &&
+            field.value.type.base_type != BASE_TYPE_UNION) {
+            code += "(" + field.value.type.enum_def->name + ")";
+          }
+          code += GenDefaultValue(lang, field.value, false);
         }
       }
       code += ") {\n    builder.";
