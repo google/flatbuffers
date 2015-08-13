@@ -245,11 +245,11 @@ class Builder(object):
     def growByteBuffer(self):
         """Doubles the size of the byteslice, and copies the old data towards
            the end of the new buffer (since we build the buffer backwards)."""
-        if not len(self.Bytes) <= Builder.MAX_BUFFER_SIZE:
+        if len(self.Bytes) == Builder.MAX_BUFFER_SIZE:
             msg = "flatbuffers: cannot grow buffer beyond 2 gigabytes"
             raise BuilderSizeError(msg)
 
-        newSize = min( len(self.Bytes) * 2, Builder.MAX_BUFFER_SIZE )
+        newSize = min(len(self.Bytes) * 2, Builder.MAX_BUFFER_SIZE)
         if newSize == 0:
             newSize = 1
         bytes2 = bytearray(newSize)
