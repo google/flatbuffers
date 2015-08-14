@@ -33,5 +33,7 @@ Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?
 Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?
 Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?
 Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?
+Primary authors (github)       | wvo    | wvo    | (ev/js)| rw     | rw     | (ev)
 
-
+  * ev = evolutional
+  * js = jonsimantov
