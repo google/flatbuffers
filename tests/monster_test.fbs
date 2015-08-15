@@ -8,9 +8,13 @@ attribute "priority";
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
-union Any { Monster }  // TODO: add more elements
+union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements
 
 struct Test { a:short; b:byte; }
+
+table TestSimpleTableWithEnum {
+  color: Color = Green;
+}
 
 struct Vec3 (force_align: 16) {
   x:float;
