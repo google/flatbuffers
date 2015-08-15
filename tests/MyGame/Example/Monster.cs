@@ -20,6 +20,7 @@ public sealed class Monster : Table {
   public string Name { get { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; } }
   public byte GetInventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; } }
+  public bool MutateInventory(int j, byte inventory) { int o = __offset(14); if (o != 0) { bb.Put(__vector(o) + j * 1, inventory); return true; } else { return false; } }
   public Color Color { get { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)8; } }
   public bool MutateColor(Color color) { int o = __offset(16); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
   public Any TestType { get { int o = __offset(18); return o != 0 ? (Any)bb.Get(o + bb_pos) : (Any)0; } }
@@ -39,6 +40,7 @@ public sealed class Monster : Table {
   public Monster GetEnemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public byte GetTestnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; } }
+  public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __offset(30); if (o != 0) { bb.Put(__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public Stat Testempty { get { return GetTestempty(new Stat()); } }
   public Stat GetTestempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public bool Testbool { get { int o = __offset(34); return o != 0 ? 0!=bb.Get(o + bb_pos) : (bool)false; } }

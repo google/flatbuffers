@@ -252,7 +252,7 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
   if (lang.language != GeneratorOptions::kJava) return type;
   switch (type.base_type) {
-    case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT);
+    case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT); //intentionally returns int to avoid unnecessary casting in Java
     case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
     case BASE_TYPE_UINT:   return Type(BASE_TYPE_LONG);
     case BASE_TYPE_VECTOR:
@@ -367,21 +367,25 @@ static std::string DestinationValue(const LanguageParameters &lang,
 // In C#, one cast directly cast an Enum to its underlying type, which is essential before putting it onto the buffer.
 static std::string SourceCast(const LanguageParameters &lang,
                               const Type &type) {
-  switch (lang.language) {
-    case GeneratorOptions::kJava:
-      if (type.base_type == BASE_TYPE_UINT) return "(int)";
-      else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
-      else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
-      break;
-    case GeneratorOptions::kCSharp:
-      if (type.enum_def != nullptr && 
-          type.base_type != BASE_TYPE_UNION) 
-        return "(" + GenTypeGet(lang, type) + ")";
-      break;
-    default:
-      break;
+  if (type.base_type == BASE_TYPE_VECTOR) {
+    return SourceCast(lang, type.VectorType());
+  } else {
+    switch (lang.language) {
+      case GeneratorOptions::kJava:
+        if (type.base_type == BASE_TYPE_UINT) return "(int)";
+        else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
+        else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+        break;
+      case GeneratorOptions::kCSharp:
+        if (type.enum_def != nullptr && 
+            type.base_type != BASE_TYPE_UNION) 
+          return "(" + GenTypeGet(lang, type) + ")";
+        break;
+      default:
+        break;
+    }
+    return "";
   }
-  return "";
 }
 
 static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
@@ -640,6 +644,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     std::string src_cast = SourceCast(lang, field.value.type);
     std::string method_start = "  public " + type_name_dest + " " +
                                MakeCamel(field.name, lang.first_camel_upper);
+
     // Most field accessors need to retrieve and test the field offset first,
     // this is the prefix code for that:
     auto offset_prefix = " { int o = __offset(" +
@@ -784,24 +789,37 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "); }\n";
     }
 
-    // generate mutators for scalar fields
+    // generate mutators for scalar fields or vectors of scalars
     if (opts.mutable_buffer) {
+      auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR
+                    ? field.value.type.VectorType()
+                    : field.value.type;
       // boolean parameters have to be explicitly converted to byte representation
-      std::string setter_parameter = field.value.type.base_type == BASE_TYPE_BOOL ? "(byte)(" + field.name + " ? 1 : 0)" : field.name;
-      std::string mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
-      if (IsScalar(field.value.type.base_type)) {
+      auto setter_parameter = underlying_type.base_type == BASE_TYPE_BOOL ? "(byte)(" + field.name + " ? 1 : 0)" : field.name;
+      auto mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
+      //a vector mutator also needs the index of the vector element it should mutate
+      auto mutator_params = (field.value.type.base_type == BASE_TYPE_VECTOR ? "(int j, " : "(") +
+                            GenTypeNameDest(lang, underlying_type) + " " + 
+                            field.name + ") { ";
+      auto setter_index = field.value.type.base_type == BASE_TYPE_VECTOR
+                    ? "__vector(o) + j * " + NumToString(InlineSize(underlying_type))
+                    : (struct_def.fixed ? "bb_pos + " + NumToString(field.value.offset) : "o + bb_pos");
+      
+
+      if (IsScalar(field.value.type.base_type) || 
+          (field.value.type.base_type == BASE_TYPE_VECTOR &&
+          IsScalar(field.value.type.VectorType().base_type))) {
         code += "  public ";
         code += struct_def.fixed ? "void " : lang.bool_type;
-        code += mutator_prefix + MakeCamel(field.name, true) + "(";
-        code += GenTypeNameDest(lang, field.value.type);
-        code += " " + field.name + ") { ";
+        code += mutator_prefix + MakeCamel(field.name, true);
+        code += mutator_params;
         if (struct_def.fixed) {
-          code += GenSetter(lang, field.value.type) + "(bb_pos + ";
-          code += NumToString(field.value.offset) + ", " + src_cast + setter_parameter + "); }\n";
+          code += GenSetter(lang, underlying_type) + "(" + setter_index + ", ";
+          code += src_cast + setter_parameter + "); }\n";
         } else {
           code += "int o = __offset(" + NumToString(field.value.offset) + ");";
-          code += " if (o != 0) { " + GenSetter(lang, field.value.type);
-          code += "(o + bb_pos, " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
+          code += " if (o != 0) { " + GenSetter(lang, underlying_type);
+          code += "(" + setter_index + ", " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
         }
       }
     }

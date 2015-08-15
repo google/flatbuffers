@@ -107,6 +107,25 @@ namespace FlatBuffers.Test
             Assert.AreEqual(monster.MutateTestType(Any.Monster), true);
             Assert.AreEqual(monster.TestType, Any.Monster);
 
+            //mutate the inventory vector
+            Assert.AreEqual(monster.MutateInventory(0, 1), true);
+            Assert.AreEqual(monster.MutateInventory(1, 2), true);
+            Assert.AreEqual(monster.MutateInventory(2, 3), true);
+            Assert.AreEqual(monster.MutateInventory(3, 4), true);
+            Assert.AreEqual(monster.MutateInventory(4, 5), true);
+
+            for (int i = 0; i < monster.InventoryLength; i++)
+            {
+                Assert.AreEqual(monster.GetInventory(i), i + 1);
+            }
+
+            //reverse mutation
+            Assert.AreEqual(monster.MutateInventory(0, 0), true);
+            Assert.AreEqual(monster.MutateInventory(1, 1), true);
+            Assert.AreEqual(monster.MutateInventory(2, 2), true);
+            Assert.AreEqual(monster.MutateInventory(3, 3), true);
+            Assert.AreEqual(monster.MutateInventory(4, 4), true);
+
             // get a struct field and edit one of its fields
             Vec3 pos = monster.Pos;
             Assert.AreEqual(pos.X, 1.0f);

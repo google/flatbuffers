@@ -127,6 +127,24 @@ class JavaTest {
         TestEq(monster.mutateTestType(Any.Monster), true);
         TestEq(monster.testType(), (byte)Any.Monster);
 
+        //mutate the inventory vector
+        TestEq(monster.mutateInventory(0, 1), true);
+        TestEq(monster.mutateInventory(1, 2), true);
+        TestEq(monster.mutateInventory(2, 3), true);
+        TestEq(monster.mutateInventory(3, 4), true);
+        TestEq(monster.mutateInventory(4, 5), true);
+
+        for (int i = 0; i < monster.inventoryLength(); i++) {
+            TestEq(monster.inventory(i), i + 1);
+        }
+
+        //reverse mutation
+        TestEq(monster.mutateInventory(0, 0), true);
+        TestEq(monster.mutateInventory(1, 1), true);
+        TestEq(monster.mutateInventory(2, 2), true);
+        TestEq(monster.mutateInventory(3, 3), true);
+        TestEq(monster.mutateInventory(4, 4), true);
+
         // get a struct field and edit one of its fields
         Vec3 pos = monster.pos();
         TestEq(pos.x(), 1.0f);
