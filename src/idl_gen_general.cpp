@@ -752,9 +752,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
             code += index;
           }
           code += ")" + dest_mask + " : ";
-          code += IsScalar(field.value.type.element)
-                  ? default_cast + "0"
-                  : "null";
+
+          code += field.value.type.element == BASE_TYPE_BOOL ? "false" :
+            (IsScalar(field.value.type.element) ? default_cast + "0" : "null");
           break;
         }
         case BASE_TYPE_UNION:

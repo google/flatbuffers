@@ -11,6 +11,7 @@ public sealed class TestSimpleTableWithEnum : Table {
   public TestSimpleTableWithEnum __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public Color Color { get { int o = __offset(4); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : (Color)2; } }
+  public bool MutateColor(Color color) { int o = __offset(4); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
       Color color = (Color)2) {

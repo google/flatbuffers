@@ -13,6 +13,7 @@ public final class TestSimpleTableWithEnum extends Table {
   public TestSimpleTableWithEnum __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public byte color() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 2; }
+  public boolean mutateColor(byte color) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, color); return true; } else { return false; } }
 
   public static int createTestSimpleTableWithEnum(FlatBufferBuilder builder,
       byte color) {
