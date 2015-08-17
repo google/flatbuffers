@@ -449,6 +449,7 @@ extern void GenComment(const std::vector<std::string> &dc,
 // Container of options that may apply to any of the source/text generators.
 struct GeneratorOptions {
   bool strict_json;
+  bool skip_js_exports;
   bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
@@ -464,6 +465,7 @@ struct GeneratorOptions {
   Language lang;
 
   GeneratorOptions() : strict_json(false),
+                       skip_js_exports(false),
                        output_default_scalars_in_json(false),
                        indent_step(2),
                        output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
@@ -505,6 +507,15 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,
                         const GeneratorOptions &opts);
+
+// Generate JavaScript code from the definitions in the Parser object.
+// See idl_gen_js.
+extern std::string GenerateJS(const Parser &parser,
+                              const GeneratorOptions &opts);
+extern bool GenerateJS(const Parser &parser,
+                       const std::string &path,
+                       const std::string &file_name,
+                       const GeneratorOptions &opts);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
@@ -550,6 +561,13 @@ extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name,
                         const GeneratorOptions &opts);
+
+// Generate a make rule for the generated JavaScript code.
+// See idl_gen_js.cpp.
+extern std::string JSMakeRule(const Parser &parser,
+                              const std::string &path,
+                              const std::string &file_name,
+                              const GeneratorOptions &opts);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
