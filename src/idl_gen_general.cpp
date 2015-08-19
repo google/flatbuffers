@@ -220,6 +220,22 @@ static std::string GenTypeForUser(const LanguageParameters &lang,
   return GenTypeBasic(lang, type);
 }
 
+static std::string GenTypeArrayParam(const LanguageParameters &lang,
+                                     const Type &type) {
+  std::string type_string = GenTypeBasic(lang, type);
+  if (lang.language == GeneratorOptions::kCSharp) {
+    return "System.Collections.Generic.IList<" + type_string + ">";
+  }
+  return type_string + "[]";
+}
+
+static std::string GetArrayParamLength(const LanguageParameters &lang) {
+  if (lang.language == GeneratorOptions::kCSharp) {
+    return FunctionStart(lang, 'C') + "ount";
+  }
+  return FunctionStart(lang, 'L') + "ength";
+}
+
 static std::string GenTypeGet(const LanguageParameters &lang,
                               const Type &type);
 
@@ -944,13 +960,13 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           code += "  public static " + GenVectorOffsetType(lang) + " " + FunctionStart(lang, 'C') + "reate";
           code += MakeCamel(field.name);
           code += "Vector(FlatBufferBuilder builder, ";
-          code += GenTypeBasic(lang, vector_type) + "[] data) ";
+          code += GenTypeArrayParam(lang, vector_type) + " data) ";
           code += "{ builder." + FunctionStart(lang, 'S') + "tartVector(";
           code += NumToString(elem_size);
-          code += ", data." + FunctionStart(lang, 'L') + "ength, ";
+          code += ", data." + GetArrayParamLength(lang) + ", ";
           code += NumToString(alignment);
           code += "); for (int i = data.";
-          code += FunctionStart(lang, 'L') + "ength - 1; i >= 0; i--) builder.";
+          code += GetArrayParamLength(lang) + " - 1; i >= 0; i--) builder.";
           code += FunctionStart(lang, 'A') + "dd";
           code += GenMethod(lang, vector_type);
           code += "(data[i]";
