@@ -56,6 +56,7 @@ namespace FlatBuffers.Test
 
             }
 
+            Console.WriteLine("FlatBuffers test: completed successfully");
             return 0;
         }
     }

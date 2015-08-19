@@ -65,7 +65,6 @@ namespace FlatBuffers.Test
             fbb.AddOffset(test1.Value);
             var testArrayOfString = fbb.EndVector();
 
-
             Monster.StartMonster(fbb);
             Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
                                                      Color.Green, (short)5, (sbyte)6));
@@ -79,7 +78,8 @@ namespace FlatBuffers.Test
             Monster.AddTestbool(fbb, false);
             var mon = Monster.EndMonster(fbb);
 
-            fbb.Finish(mon.Value);
+            Monster.FinishMonsterBuffer(fbb, mon);
+
 
             // Dump to output directory so we can inspect later, if needed
             using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))
@@ -89,6 +89,51 @@ namespace FlatBuffers.Test
             }
 
             // Now assert the buffer
+            TestBuffer(fbb.DataBuffer);
+
+            //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
+            // revert to original values after testing
+            Monster monster = Monster.GetRootAsMonster(fbb.DataBuffer);
+
+            // mana is optional and does not exist in the buffer so the mutation should fail
+            // the mana field should retain its default value
+            Assert.AreEqual(monster.MutateMana((short)10), false);
+            Assert.AreEqual(monster.Mana, (short)150);
+
+            // testType is an existing field and mutating it should succeed
+            Assert.AreEqual(monster.TestType, Any.Monster);
+            Assert.AreEqual(monster.MutateTestType(Any.NONE), true);
+            Assert.AreEqual(monster.TestType, Any.NONE);
+            Assert.AreEqual(monster.MutateTestType(Any.Monster), true);
+            Assert.AreEqual(monster.TestType, Any.Monster);
+
+            //mutate the inventory vector
+            Assert.AreEqual(monster.MutateInventory(0, 1), true);
+            Assert.AreEqual(monster.MutateInventory(1, 2), true);
+            Assert.AreEqual(monster.MutateInventory(2, 3), true);
+            Assert.AreEqual(monster.MutateInventory(3, 4), true);
+            Assert.AreEqual(monster.MutateInventory(4, 5), true);
+
+            for (int i = 0; i < monster.InventoryLength; i++)
+            {
+                Assert.AreEqual(monster.GetInventory(i), i + 1);
+            }
+
+            //reverse mutation
+            Assert.AreEqual(monster.MutateInventory(0, 0), true);
+            Assert.AreEqual(monster.MutateInventory(1, 1), true);
+            Assert.AreEqual(monster.MutateInventory(2, 2), true);
+            Assert.AreEqual(monster.MutateInventory(3, 3), true);
+            Assert.AreEqual(monster.MutateInventory(4, 4), true);
+
+            // get a struct field and edit one of its fields
+            Vec3 pos = monster.Pos;
+            Assert.AreEqual(pos.X, 1.0f);
+            pos.MutateX(55.0f);
+            Assert.AreEqual(pos.X, 55.0f);
+            pos.MutateX(1.0f);
+            Assert.AreEqual(pos.X, 1.0f);
+
             TestBuffer(fbb.DataBuffer);
         }
 

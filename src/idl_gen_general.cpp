@@ -363,6 +363,33 @@ static std::string DestinationValue(const LanguageParameters &lang,
   }
 }
 
+// Cast statements for mutator method parameters.
+// In Java, parameters representing unsigned numbers need to be cast down to their respective type.
+// For example, a long holding an unsigned int value would be cast down to int before being put onto the buffer.
+// In C#, one cast directly cast an Enum to its underlying type, which is essential before putting it onto the buffer.
+static std::string SourceCast(const LanguageParameters &lang,
+                              const Type &type) {
+  if (type.base_type == BASE_TYPE_VECTOR) {
+    return SourceCast(lang, type.VectorType());
+  } else {
+    switch (lang.language) {
+      case GeneratorOptions::kJava:
+        if (type.base_type == BASE_TYPE_UINT) return "(int)";
+        else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
+        else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+        break;
+      case GeneratorOptions::kCSharp:
+        if (type.enum_def != nullptr && 
+            type.base_type != BASE_TYPE_UNION) 
+          return "(" + GenTypeGet(lang, type) + ")";
+        break;
+      default:
+        break;
+    }
+    return "";
+  }
+}
+
 static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
   if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
     switch(value.type.base_type) {
@@ -474,6 +501,22 @@ static std::string GenGetter(const LanguageParameters &lang,
   }
 }
 
+// Direct mutation is only allowed for scalar fields.
+// Hence a setter method will only be generated for such fields.
+static std::string GenSetter(const LanguageParameters &lang,
+                             const Type &type) {
+  if (IsScalar(type.base_type)) {
+    std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
+    if (GenTypeBasic(lang, type) != "byte" && 
+        type.base_type != BASE_TYPE_BOOL) {
+      setter += MakeCamel(GenTypeGet(lang, type));
+    }
+    return setter;
+  } else {
+    return "";
+  }
+}
+
 // Returns the method name for use with add/put calls.
 static std::string GenMethod(const LanguageParameters &lang, const Type &type) {
   return IsScalar(type.base_type)
@@ -539,7 +582,8 @@ static void GenStructBody(const LanguageParameters &lang,
 }
 
 static void GenStruct(const LanguageParameters &lang, const Parser &parser,
-                      StructDef &struct_def, std::string *code_ptr) {
+                      StructDef &struct_def, const GeneratorOptions &opts,
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -599,8 +643,10 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     std::string type_name_dest = GenTypeNameDest(lang, field.value.type);
     std::string dest_mask = DestinationMask(lang, field.value.type, true);
     std::string dest_cast = DestinationCast(lang, field.value.type);
+    std::string src_cast = SourceCast(lang, field.value.type);
     std::string method_start = "  public " + type_name_dest + " " +
                                MakeCamel(field.name, lang.first_camel_upper);
+
     // Most field accessors need to retrieve and test the field offset first,
     // this is the prefix code for that:
     auto offset_prefix = " { int o = __offset(" +
@@ -743,6 +789,41 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
                           InlineSize(field.value.type.VectorType()));
       code += "); }\n";
+    }
+
+    // generate mutators for scalar fields or vectors of scalars
+    if (opts.mutable_buffer) {
+      auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR
+                    ? field.value.type.VectorType()
+                    : field.value.type;
+      // boolean parameters have to be explicitly converted to byte representation
+      auto setter_parameter = underlying_type.base_type == BASE_TYPE_BOOL ? "(byte)(" + field.name + " ? 1 : 0)" : field.name;
+      auto mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
+      //a vector mutator also needs the index of the vector element it should mutate
+      auto mutator_params = (field.value.type.base_type == BASE_TYPE_VECTOR ? "(int j, " : "(") +
+                            GenTypeNameDest(lang, underlying_type) + " " + 
+                            field.name + ") { ";
+      auto setter_index = field.value.type.base_type == BASE_TYPE_VECTOR
+                    ? "__vector(o) + j * " + NumToString(InlineSize(underlying_type))
+                    : (struct_def.fixed ? "bb_pos + " + NumToString(field.value.offset) : "o + bb_pos");
+      
+
+      if (IsScalar(field.value.type.base_type) || 
+          (field.value.type.base_type == BASE_TYPE_VECTOR &&
+          IsScalar(field.value.type.VectorType().base_type))) {
+        code += "  public ";
+        code += struct_def.fixed ? "void " : lang.bool_type;
+        code += mutator_prefix + MakeCamel(field.name, true);
+        code += mutator_params;
+        if (struct_def.fixed) {
+          code += GenSetter(lang, underlying_type) + "(" + setter_index + ", ";
+          code += src_cast + setter_parameter + "); }\n";
+        } else {
+          code += "int o = __offset(" + NumToString(field.value.offset) + ");";
+          code += " if (o != 0) { " + GenSetter(lang, underlying_type);
+          code += "(" + setter_index + ", " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
+        }
+      }
     }
   }
   code += "\n";
@@ -980,7 +1061,7 @@ bool GenerateGeneral(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(lang, parser, **it, &declcode);
+    GenStruct(lang, parser, **it, opts, &declcode);
     if (opts.one_file) {
       one_file_code += declcode;
     }
