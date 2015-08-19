@@ -87,13 +87,20 @@ class Builder(object):
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
                  "vtables")
 
+    """
+    Maximum buffer size constant, in bytes.
+    Builder will never allow it's buffer grow over this size.
+    Currently equals 2Gb.
+    """
+    MAX_BUFFER_SIZE = 2**31
+
     def __init__(self, initialSize):
         """
         Initializes a Builder of size `initial_size`.
         The internal buffer is grown as needed.
         """
 
-        if not (0 <= initialSize < (2**UOffsetTFlags.bytewidth - 1)):
+        if not (0 <= initialSize <= Builder.MAX_BUFFER_SIZE):
             msg = "flatbuffers: Cannot create Builder larger than 2 gigabytes."
             raise BuilderSizeError(msg)
 
@@ -238,11 +245,11 @@ class Builder(object):
     def growByteBuffer(self):
         """Doubles the size of the byteslice, and copies the old data towards
            the end of the new buffer (since we build the buffer backwards)."""
-        if not len(self.Bytes) <= 2**20:
+        if len(self.Bytes) == Builder.MAX_BUFFER_SIZE:
             msg = "flatbuffers: cannot grow buffer beyond 2 gigabytes"
             raise BuilderSizeError(msg)
 
-        newSize = len(self.Bytes) * 2
+        newSize = min(len(self.Bytes) * 2, Builder.MAX_BUFFER_SIZE)
         if newSize == 0:
             newSize = 1
         bytes2 = bytearray(newSize)
