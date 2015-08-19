@@ -252,7 +252,9 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
   if (lang.language != GeneratorOptions::kJava) return type;
   switch (type.base_type) {
-    case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT); //intentionally returns int to avoid unnecessary casting in Java
+    // We use int for both uchar/ushort, since that generally means less casting
+    // than using short for uchar.
+    case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT);
     case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
     case BASE_TYPE_UINT:   return Type(BASE_TYPE_LONG);
     case BASE_TYPE_VECTOR:
@@ -1024,8 +1026,8 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
 
   std::string code = "// automatically generated, do not modify\n\n";
   if (!namespace_general.empty()) {
-	code += lang.namespace_ident + namespace_general + lang.namespace_begin;
-	code += "\n\n";
+    code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+    code += "\n\n";
   }
   if (needs_includes) code += lang.includes;
   code += classcode;
