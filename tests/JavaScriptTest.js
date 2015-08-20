@@ -1,3 +1,4 @@
+// Run this using JavaScriptTest.sh
 var assert = require('assert');
 var fs = require('fs');
 
@@ -66,6 +67,8 @@ function main() {
   // Test it:
   testBuffer(fbb.dataBuffer());
 
+  testUnicode();
+
   console.log('FlatBuffers test: completed successfully');
 }
 
@@ -111,6 +114,31 @@ function testBuffer(bb) {
   assert.strictEqual(monster.testarrayofstring(1), 'test2');
 
   assert.strictEqual(monster.testbool(), false);
+}
+
+function testUnicode() {
+  var correct = fs.readFileSync('unicode_test.mon');
+  var json = JSON.parse(fs.readFileSync('unicode_test.json', 'utf8'));
+
+  // Test reading
+  var bb = new flatbuffers.ByteBuffer(new Uint8Array(correct));
+  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+  assert.strictEqual(monster.name(), json.name);
+  assert.strictEqual(monster.testarrayofstringLength(), json.testarrayofstring.length);
+  json.testarrayofstring.forEach(function(string, i) {
+    assert.strictEqual(monster.testarrayofstring(i), string);
+  });
+
+  // Test writing
+  var fbb = new flatbuffers.Builder();
+  var name = fbb.createString(json.name);
+  var testarrayofstringOffset = MyGame.Example.Monster.createTestarrayofstringVector(fbb,
+    json.testarrayofstring.map(function(string) { return fbb.createString(string); }));
+  MyGame.Example.Monster.startMonster(fbb);
+  MyGame.Example.Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
+  MyGame.Example.Monster.addName(fbb, name);
+  MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
+  assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
 }
 
 main();
