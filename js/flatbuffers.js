@@ -864,8 +864,8 @@ flatbuffers.ByteBuffer.prototype.writeInt32 = function(offset, value) {
  * @param {flatbuffers.Long} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt64 = function(offset, value) {
-  this.view_.setInt32(offset, value.low);
-  this.view_.setInt32(offset + 4, value.high);
+  this.writeInt32(offset, value.low);
+  this.writeInt32(offset + 4, value.high);
 };
 
 /**
