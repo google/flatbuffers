@@ -68,6 +68,7 @@ function main() {
   testBuffer(fbb.dataBuffer());
 
   testUnicode();
+  fuzzTest1();
 
   console.log('FlatBuffers test: completed successfully');
 }
@@ -139,6 +140,120 @@ function testUnicode() {
   MyGame.Example.Monster.addName(fbb, name);
   MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
   assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
+}
+
+var __imul = Math.imul ? Math.imul : function(a, b) {
+  var ah = a >> 16 & 65535;
+  var bh = b >> 16 & 65535;
+  var al = a & 65535;
+  var bl = b & 65535;
+  return al * bl + (ah * bl + al * bh << 16) | 0;
+};
+
+// Include simple random number generator to ensure results will be the
+// same cross platform.
+// http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
+var lcg_seed = 48271;
+
+function lcg_rand() {
+  return lcg_seed = (__imul(lcg_seed, 279470273) >>> 0) % 4294967291;
+}
+
+function lcg_reset() {
+  lcg_seed = 48271;
+}
+
+// Converts a Field ID to a virtual table offset.
+function fieldIndexToOffset(field_id) {
+  // Should correspond to what EndTable() below builds up.
+  var fixed_fields = 2;  // Vtable size and Object Size.
+  return (field_id + fixed_fields) * 2;
+}
+
+// Low level stress/fuzz test: serialize/deserialize a variety of
+// different kinds of data in different combinations
+function fuzzTest1() {
+
+  // Values we're testing against: chosen to ensure no bits get chopped
+  // off anywhere, and also be different from eachother.
+  var bool_val   = true;
+  var char_val   = -127;  // 0x81
+  var uchar_val  = 0xFF;
+  var short_val  = -32222; // 0x8222;
+  var ushort_val = 0xFEEE;
+  var int_val    = 0x83333333 | 0;
+  var uint_val   = 0xFDDDDDDD;
+  var long_val   = new flatbuffers.Long(0x44444444, 0x84444444);
+  var ulong_val  = new flatbuffers.Long(0xCCCCCCCC, 0xFCCCCCCC);
+  var float_val  = new Float32Array([3.14159])[0];
+  var double_val = 3.14159265359;
+
+  var test_values_max = 11;
+  var fields_per_object = 4;
+  var num_fuzz_objects = 10000;  // The higher, the more thorough :)
+
+  var builder = new flatbuffers.Builder();
+
+  lcg_reset();  // Keep it deterministic.
+
+  var objects = [];
+
+  // Generate num_fuzz_objects random objects each consisting of
+  // fields_per_object fields, each of a random type.
+  for (var i = 0; i < num_fuzz_objects; i++) {
+    builder.startObject(fields_per_object);
+    for (var f = 0; f < fields_per_object; f++) {
+      var choice = lcg_rand() % test_values_max;
+      switch (choice) {
+        case 0:  builder.addFieldInt8(f, bool_val,   0); break;
+        case 1:  builder.addFieldInt8(f, char_val,   0); break;
+        case 2:  builder.addFieldInt8(f, uchar_val,  0); break;
+        case 3:  builder.addFieldInt16(f, short_val,  0); break;
+        case 4:  builder.addFieldInt16(f, ushort_val, 0); break;
+        case 5:  builder.addFieldInt32(f, int_val,    0); break;
+        case 6:  builder.addFieldInt32(f, uint_val,   0); break;
+        case 7:  builder.addFieldInt64(f, long_val,   flatbuffers.Long.ZERO); break;
+        case 8:  builder.addFieldInt64(f, ulong_val,  flatbuffers.Long.ZERO); break;
+        case 9:  builder.addFieldFloat32(f, float_val,  0); break;
+        case 10: builder.addFieldFloat64(f, double_val, 0); break;
+      }
+    }
+    objects.push(builder.endObject());
+  }
+  builder.prep(8, 0);  // Align whole buffer.
+
+  lcg_reset();  // Reset.
+
+  builder.finish(objects[objects.length - 1]);
+  var bytes = new Uint8Array(builder.asUint8Array());
+  var view = new DataView(bytes.buffer);
+
+  // Test that all objects we generated are readable and return the
+  // expected values. We generate random objects in the same order
+  // so this is deterministic.
+  for (var i = 0; i < num_fuzz_objects; i++) {
+    var offset = bytes.length - objects[i];
+    for (var f = 0; f < fields_per_object; f++) {
+      var choice = lcg_rand() % test_values_max;
+      var vtable_offset = fieldIndexToOffset(f);
+      var vtable = offset - view.getInt32(offset, true);
+      assert.ok(vtable_offset < view.getInt16(vtable, true));
+      var field_offset = offset + view.getInt16(vtable + vtable_offset, true);
+      switch (choice) {
+        case 0:  assert.strictEqual(!!view.getInt8(field_offset), bool_val); break;
+        case 1:  assert.strictEqual(view.getInt8(field_offset), char_val); break;
+        case 2:  assert.strictEqual(view.getUint8(field_offset), uchar_val); break;
+        case 3:  assert.strictEqual(view.getInt16(field_offset, true), short_val); break;
+        case 4:  assert.strictEqual(view.getUint16(field_offset, true), ushort_val); break;
+        case 5:  assert.strictEqual(view.getInt32(field_offset, true), int_val); break;
+        case 6:  assert.strictEqual(view.getUint32(field_offset, true), uint_val); break;
+        case 7:  assert.strictEqual(view.getInt32(field_offset, true), long_val.low); assert.strictEqual(view.getInt32(field_offset + 4, true), long_val.high); break;
+        case 8:  assert.strictEqual(view.getInt32(field_offset, true), ulong_val.low); assert.strictEqual(view.getInt32(field_offset + 4, true), ulong_val.high); break;
+        case 9:  assert.strictEqual(view.getFloat32(field_offset, true), float_val); break;
+        case 10: assert.strictEqual(view.getFloat64(field_offset, true), double_val); break;
+      }
+    }
+  }
 }
 
 main();
