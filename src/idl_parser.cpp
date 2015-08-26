@@ -49,7 +49,8 @@ static void Error(const std::string &msg) {
 
 // Ensure that integer values we parse fit inside the declared integer type.
 static void CheckBitsFit(int64_t val, size_t bits) {
-  auto mask = (1ll << bits) - 1;  // Bits we allow to be used.
+  // Bits we allow to be used.
+  auto mask = static_cast<int64_t>((1ull << bits) - 1);
   if (bits < 64 &&
       (val & ~mask) != 0 &&  // Positive or unsigned.
       (val |  mask) != -1)   // Negative.
