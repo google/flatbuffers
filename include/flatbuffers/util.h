@@ -42,10 +42,8 @@ namespace flatbuffers {
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
-// converted to a string of digits.
+// converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
-  // to_string() prints different numbers of digits for floats depending on
-  // platform and isn't available on Android, so we use stringstream
   std::stringstream ss;
   ss << t;
   return ss.str();
@@ -56,6 +54,26 @@ template<> inline std::string NumToString<signed char>(signed char t) {
 }
 template<> inline std::string NumToString<unsigned char>(unsigned char t) {
   return NumToString(static_cast<int>(t));
+}
+
+// Special versions for floats/doubles.
+template<> inline std::string NumToString<double>(double t) {
+  // to_string() prints different numbers of digits for floats depending on
+  // platform and isn't available on Android, so we use stringstream
+  std::stringstream ss;
+  // Use std::fixed to surpress scientific notation.
+  ss << std::fixed << t;
+  auto s = ss.str();
+  // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
+  auto p = s.find_last_not_of('0');
+  if (p != std::string::npos) {
+    s.resize(p + 1);  // Strip trailing zeroes.
+    if (s.back() == '.') s.pop_back();  // Strip '.' if a whole number.
+  }
+  return s;
+}
+template<> inline std::string NumToString<float>(float t) {
+  return NumToString(static_cast<double>(t));
 }
 
 // Convert an integer value to a hexadecimal string.
