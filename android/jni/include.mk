@@ -86,6 +86,14 @@ ifeq (,$(CMAKE))
 CMAKE := cmake
 endif
 
+# Windows friendly portable local path.
+# GNU-make doesn't like : in paths, must use relative paths on Windows.
+ifeq (Windows,$(PROJECT_OS))
+PORTABLE_LOCAL_PATH =
+else
+PORTABLE_LOCAL_PATH = $(LOCAL_PATH)/
+endif
+
 # Generate a host build rule for the flatbuffers compiler.
 ifeq (Windows,$(PROJECT_OS))
 define build_flatc_recipe
@@ -170,7 +178,7 @@ $(foreach schema,$(1),\
   $(call flatbuffers_header_build_rule,\
 	  $(schema),$(strip $(2)),$(strip $(3)),$(strip $(4))))\
 $(foreach src,$(strip $(5)),\
-  $(eval $(LOCAL_PATH)/$$(src): \
+  $(eval $(PORTABLE_LOCAL_PATH)$$(src): \
 	  $(foreach schema,$(strip $(1)),\
 		  $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))))
 endef
