@@ -60,7 +60,12 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
       return;
     }
   }
-  text += NumToString(val);
+
+  if (type.base_type == BASE_TYPE_BOOL) {
+    text += val ? "true" : "false";
+  } else {
+    text += NumToString(val);
+  }
 }
 
 // Print a vector a sequence of JSON values, comma separated, wrapped in "[]".

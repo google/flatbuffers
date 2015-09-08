@@ -635,6 +635,11 @@ void FuzzTest2() {
             Dummy();
           }
           break;
+        case flatbuffers::BASE_TYPE_BOOL:
+          AddToSchemaAndInstances("bool", deprecated
+                                  ? ""
+                                  : (lcg_rand() % 2 ? "true" : "false"));
+          break;
         default:
           // All the scalar types.
           schema += flatbuffers::kTypeNames[base_type];
