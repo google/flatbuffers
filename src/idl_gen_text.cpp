@@ -60,7 +60,12 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
       return;
     }
   }
-  text += NumToString(val);
+
+  if (IsBoolean(type.base_type)) {
+    text += BoolToString(val);
+  } else {
+    text += NumToString(val);
+  }
 }
 
 // Print a vector a sequence of JSON values, comma separated, wrapped in "[]".
@@ -316,4 +321,3 @@ std::string TextMakeRule(const Parser &parser,
 }
 
 }  // namespace flatbuffers
-

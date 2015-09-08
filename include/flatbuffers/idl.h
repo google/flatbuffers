@@ -103,6 +103,7 @@ inline bool IsInteger(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_ULONG; }
 inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||
                                            t == BASE_TYPE_DOUBLE; }
+inline bool IsBoolean(BaseType t) { return t == BASE_TYPE_BOOL; }
 
 extern const char *const kTypeNames[];
 extern const char kTypeSizes[];
@@ -553,4 +554,3 @@ extern std::string BinaryMakeRule(const Parser &parser,
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
-

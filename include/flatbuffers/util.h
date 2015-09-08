@@ -76,6 +76,10 @@ template<> inline std::string NumToString<float>(float t) {
   return NumToString(static_cast<double>(t));
 }
 
+inline std::string BoolToString(unsigned char t) {
+  return t ? "true" : "false";
+}
+
 // Convert an integer value to a hexadecimal string.
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
