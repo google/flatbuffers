@@ -553,3 +553,4 @@ extern std::string BinaryMakeRule(const Parser &parser,
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
+
