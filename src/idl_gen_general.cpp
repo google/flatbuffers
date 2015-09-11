@@ -118,7 +118,7 @@ LanguageParameters language_parameters[] = {
     "position()",
     "offset()",
     "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n"
-      "import com.google.flatbuffers.*;\n\n",
+      "import com.google.flatbuffers.*;\n\n@SuppressWarnings(\"unused\")\n",
     {
       "/**",
       " *",
