@@ -112,7 +112,7 @@ inline bool LoadFile(const char *name, bool binary, std::string *buf) {
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
   ifs.seekg(0, std::ios::end);
-  (*buf).resize(ifs.tellg());
+  (*buf).resize(static_cast<size_t>(ifs.tellg()));
   ifs.seekg(0, std::ios::beg);
   ifs.read(&(*buf)[0], (*buf).size());
   return !ifs.bad();
