@@ -51,6 +51,9 @@ be generated for each file processed:
 -   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
     type.
 
+-   `--scoped-enums` : Use C++11 style scoped and strongly typed enums in
+    generated C++. This also implies `--no-prefix`.
+
 -   `--gen-includes` : (deprecated), this is the default behavior.
                        If the original behavior is required (no include
 	                   statements) use `--no-includes.`
