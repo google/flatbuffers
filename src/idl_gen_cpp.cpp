@@ -124,10 +124,26 @@ static std::string GenTypeGet(const Parser &parser, const Type &type,
     : beforeptr + GenTypePointer(parser, type) + afterptr;
 }
 
+static std::string GenEnumDecl(const EnumDef &enum_def,
+                               const GeneratorOptions &opts) {
+  return (opts.scoped_enums ? "enum class " : "enum ") + enum_def.name;
+}
+
 static std::string GenEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
                               const GeneratorOptions &opts) {
   return opts.prefixed_enums ? enum_def.name + "_" + enum_val.name
                              : enum_val.name;
+}
+
+static std::string GetEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
+                              const GeneratorOptions &opts) {
+  if (opts.scoped_enums) {
+      return enum_def.name + "::" + enum_val.name;
+  } else if (opts.prefixed_enums) {
+      return enum_def.name + "_" + enum_val.name;
+  } else {
+      return enum_val.name;
+  }
 }
 
 // Generate an enum declaration and an enum string lookup table.
@@ -138,7 +154,7 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   std::string &code = *code_ptr;
   std::string &code_post = *code_ptr_post;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
-  code += "enum " + enum_def.name + " {\n";
+  code += GenEnumDecl(enum_def, opts) + " {\n";
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
@@ -171,9 +187,9 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
     }
     code += "nullptr };\n  return names;\n}\n\n";
     code += "inline const char *EnumName" + enum_def.name;
-    code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name + "()[e";
+    code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name + "()[static_cast<int>(e)";
     if (enum_def.vals.vec.front()->value)
-      code += " - " + GenEnumVal(enum_def, *enum_def.vals.vec.front(), opts);
+      code += " - static_cast<int>(" + GetEnumVal(enum_def, *enum_def.vals.vec.front(), opts) +")";
     code += "]; }\n\n";
   }
 
@@ -192,7 +208,7 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
          it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
-      code_post += "    case " + GenEnumVal(enum_def, ev, opts);
+      code_post += "    case " + GetEnumVal(enum_def, ev, opts);
       if (!ev.value) {
         code_post += ": return true;\n";  // "NONE" enum value.
       } else {
@@ -425,7 +441,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
         if (ev) {
           code += WrapInNameSpace(parser,
                                   field.value.type.enum_def->defined_namespace,
-                                  GenEnumVal(*field.value.type.enum_def, *ev,
+                                  GetEnumVal(*field.value.type.enum_def, *ev,
                                              opts));
         } else {
           code += GenUnderlyingCast(parser, field, true, field.value.constant);

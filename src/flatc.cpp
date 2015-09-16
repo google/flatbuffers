@@ -90,6 +90,8 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --defaults-json Output fields whose value is the default when\n"
       "                  writing JSON\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
+      "  --scoped-enums  Use C++11 style scoped and strongly typed enums.\n"
+      "                  also implies --no-prefix.\n"
       "  --gen-includes  (deprecated), this is the default behavior.\n"
       "                  If the original behavior is required (no include\n"
 	  "                  statements) use --no-includes.\n"
@@ -142,6 +144,9 @@ int main(int argc, const char *argv[]) {
         opts.output_default_scalars_in_json = true;
       } else if(arg == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if(arg == "--scoped-enums") {
+        opts.prefixed_enums = false;
+        opts.scoped_enums = true;
       } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
       } else if(arg == "--gen-includes") {

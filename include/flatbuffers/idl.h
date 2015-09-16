@@ -425,6 +425,7 @@ struct GeneratorOptions {
   int indent_step;
   bool output_enum_identifiers;
   bool prefixed_enums;
+  bool scoped_enums;
   bool include_dependence_headers;
   bool mutable_buffer;
   bool one_file;
@@ -437,7 +438,7 @@ struct GeneratorOptions {
   GeneratorOptions() : strict_json(false),
                        output_default_scalars_in_json(false),
                        indent_step(2),
-                       output_enum_identifiers(true), prefixed_enums(true),
+                       output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
                        include_dependence_headers(true),
                        mutable_buffer(false),
                        one_file(false),
