@@ -203,10 +203,6 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		fail(FailString("monster.TestType()", example.AnyMonster, got))
 	}
 
-	if unionType := monster.TestType(); unionType != example.AnyMonster {
-		fail("monster.TestType()")
-	}
-
 	// initialize a Table from a union field Test(...)
 	var table2 flatbuffers.Table
 	if ok := monster.Test(&table2); !ok {
