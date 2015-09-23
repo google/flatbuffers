@@ -898,7 +898,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
-    return Check(elem >= buf_ && elem <= end_ - elem_len);
+    return Check(elem_len <= (size_t) (end_ - buf_) && elem >= buf_ && elem <= end_ - elem_len);
   }
 
   // Verify a range indicated by sizeof(T).
