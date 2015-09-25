@@ -368,7 +368,7 @@ func checkFuzz(fuzzFields, fuzzObjects int, fail func(string, ...interface{})) {
 
 		for j := 0; j < fuzzFields; j++ {
 			f := flatbuffers.VOffsetT((flatbuffers.VtableMetadataFields + j) * flatbuffers.SizeVOffsetT)
-			choice := int(l.Next()) % testValuesMax
+			choice := l.Next() % uint32(testValuesMax)
 
 			switch choice {
 			case 0:
