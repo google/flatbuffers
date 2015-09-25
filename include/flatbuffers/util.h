@@ -68,7 +68,8 @@ template<> inline std::string NumToString<double>(double t) {
   auto p = s.find_last_not_of('0');
   if (p != std::string::npos) {
     s.resize(p + 1);  // Strip trailing zeroes.
-    if (s.back() == '.') s.pop_back();  // Strip '.' if a whole number.
+    if (s.back() == '.')
+      s.erase(s.size() - 1, 1);  // Strip '.' if a whole number.
   }
   return s;
 }
