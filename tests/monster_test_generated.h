@@ -31,7 +31,7 @@ inline const char **EnumNamesColor() {
   return names;
 }
 
-inline const char *EnumNameColor(Color e) { return EnumNamesColor()[e - Color_Red]; }
+inline const char *EnumNameColor(Color e) { return EnumNamesColor()[static_cast<int>(e) - static_cast<int>(Color_Red)]; }
 
 enum Any {
   Any_NONE = 0,
@@ -44,7 +44,7 @@ inline const char **EnumNamesAny() {
   return names;
 }
 
-inline const char *EnumNameAny(Any e) { return EnumNamesAny()[e]; }
+inline const char *EnumNameAny(Any e) { return EnumNamesAny()[static_cast<int>(e)]; }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type);
 

@@ -1080,7 +1080,7 @@ void Parser::ParseProtoDecl() {
       Expect(kTokenIntegerConstant);
       auto &field = AddField(struct_def, name, type);
       field.doc_comment = field_comment;
-      field.required = required;
+      if (!IsScalar(type.base_type)) field.required = required;
       // See if there's a default specified.
       if (IsNext('[')) {
         if (attribute_ != "default") Error("\'default\' expected");
