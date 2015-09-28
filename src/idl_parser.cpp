@@ -1052,45 +1052,50 @@ void Parser::ParseProtoDecl() {
     struct_def.doc_comment = struct_comment;
     Expect('{');
     while (token_ != '}') {
-      std::vector<std::string> field_comment = doc_comment_;
-      // Parse the qualifier.
-      bool required = false;
-      bool repeated = false;
-      if (attribute_ == "optional") {
-        // This is the default.
-      } else if (attribute_ == "required") {
-        required = true;
-      } else if (attribute_ == "repeated") {
-        repeated = true;
+      if (attribute_ == "message" || attribute_ == "enum") {
+        // Nested declarations.
+        ParseProtoDecl();
       } else {
-        Error("expecting optional/required/repeated, got: " + attribute_);
-      }
-      Type type = ParseTypeFromProtoType();
-      // Repeated elements get mapped to a vector.
-      if (repeated) {
-        type.element = type.base_type;
-        type.base_type = BASE_TYPE_VECTOR;
-      }
-      std::string name = attribute_;
-      Expect(kTokenIdentifier);
-      // Parse the field id. Since we're just translating schemas, not
-      // any kind of binary compatibility, we can safely ignore these, and
-      // assign our own.
-      Expect('=');
-      Expect(kTokenIntegerConstant);
-      auto &field = AddField(struct_def, name, type);
-      field.doc_comment = field_comment;
-      if (!IsScalar(type.base_type)) field.required = required;
-      // See if there's a default specified.
-      if (IsNext('[')) {
-        if (attribute_ != "default") Error("\'default\' expected");
-        Next();
+        std::vector<std::string> field_comment = doc_comment_;
+        // Parse the qualifier.
+        bool required = false;
+        bool repeated = false;
+        if (attribute_ == "optional") {
+          // This is the default.
+        } else if (attribute_ == "required") {
+          required = true;
+        } else if (attribute_ == "repeated") {
+          repeated = true;
+        } else {
+          Error("expecting optional/required/repeated, got: " + attribute_);
+        }
+        Type type = ParseTypeFromProtoType();
+        // Repeated elements get mapped to a vector.
+        if (repeated) {
+          type.element = type.base_type;
+          type.base_type = BASE_TYPE_VECTOR;
+        }
+        std::string name = attribute_;
+        Expect(kTokenIdentifier);
+        // Parse the field id. Since we're just translating schemas, not
+        // any kind of binary compatibility, we can safely ignore these, and
+        // assign our own.
         Expect('=');
-        field.value.constant = attribute_;
-        Next();
-        Expect(']');
+        Expect(kTokenIntegerConstant);
+        auto &field = AddField(struct_def, name, type);
+        field.doc_comment = field_comment;
+        if (!IsScalar(type.base_type)) field.required = required;
+        // See if there's a default specified.
+        if (IsNext('[')) {
+          if (attribute_ != "default") Error("\'default\' expected");
+          Next();
+          Expect('=');
+          field.value.constant = attribute_;
+          Next();
+          Expect(']');
+        }
+        Expect(';');
       }
-      Expect(';');
     }
     Next();
   } else if (attribute_ == "enum") {

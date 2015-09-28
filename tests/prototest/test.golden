@@ -9,12 +9,6 @@ enum ProtoEnum : short {
   BAR = 5,
 }
 
-table OtherMessage {
-  a:double;
-  /// doc comment for b.
-  b:float = 3.14149;
-}
-
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
@@ -37,5 +31,11 @@ table ProtoMessage {
   m:string;
   n:OtherMessage;
   o:[string];
+}
+
+table OtherMessage {
+  a:double;
+  /// doc comment for b.
+  b:float = 3.14149;
 }
 
