@@ -112,10 +112,18 @@ inline bool FileExists(const char *name) {
 inline bool LoadFile(const char *name, bool binary, std::string *buf) {
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
-  ifs.seekg(0, std::ios::end);
-  (*buf).resize(static_cast<size_t>(ifs.tellg()));
-  ifs.seekg(0, std::ios::beg);
-  ifs.read(&(*buf)[0], (*buf).size());
+  if (binary) {
+    // The fastest way to read a file into a string.
+    ifs.seekg(0, std::ios::end);
+    (*buf).resize(static_cast<size_t>(ifs.tellg()));
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(&(*buf)[0], (*buf).size());
+  } else {
+    // This is slower, but works correctly on all platforms for text files.
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    *buf = oss.str();
+  }
   return !ifs.bad();
 }
 
