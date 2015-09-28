@@ -5,6 +5,7 @@ namespace MyGame.Example
 
 using FlatBuffers;
 
+/// an example documentation comment: monster object
 public sealed class Monster : Table {
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
