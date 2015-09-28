@@ -167,6 +167,7 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
+/// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(4); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(4); }

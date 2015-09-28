@@ -29,8 +29,8 @@
       b: 20
     },
     {
-      a: 30,
-      b: 40
+      b: 40,
+      a: 30
     }
   ],
   testarrayofstring: [

@@ -738,7 +738,7 @@ void ErrorTest() {
   TestError("table X { Y:int; } root_type X; { \"Y\":1, }", "string constant",
             true);
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
-            "{ V:{ Y:1 } }", "incomplete");
+            "{ V:{ Y:1 } }", "wrong number");
   TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
             "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");
