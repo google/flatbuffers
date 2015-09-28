@@ -76,6 +76,17 @@ little to no information ahead of time about what data needs to be stored.
 Read more about the "why" of FlatBuffers in the
 [white paper](md__white_paper.html).
 
+### Who uses FlatBuffers?
+-   [Cocos2d-x](http://www.cocos2d-x.org/), the #1 open source mobile game
+    engine, uses it to serialize all their
+    [game data](http://www.cocos2d-x.org/reference/native-cpp/V3.5/d7/d2d/namespaceflatbuffers.html).
+-   [Facebook](http://facebook.com/) uses it for client-server communication in
+    their Android app. They have a nice
+    [article](https://code.facebook.com/posts/872547912839369/improving-facebook-s-performance-on-android-with-flatbuffers/)
+    explaining how it speeds up loading their posts.
+-   [Fun Propulsion Labs](https://developers.google.com/games/#Tools)
+    at Google uses it extensively in all their libraries and games.
+
 ## Usage in brief
 
 This section is a quick rundown of how to use this system. Subsequent
@@ -89,8 +100,8 @@ sections provide a more in-depth usage guide.
     present for every object instance.
 
 -   Use `flatc` (the FlatBuffer compiler) to generate a C++ header (or
-    Java/C#/Go classes) with helper classes to access and construct serialized
-    data. This header (say `mydata_generated.h`) only depends on
+    Java/C#/Go/Python.. classes) with helper classes to access and construct
+    serialized data. This header (say `mydata_generated.h`) only depends on
     `flatbuffers.h`, which defines the core functionality.
 
 -   Use the `FlatBufferBuilder` class to construct a flat binary buffer.
@@ -128,3 +139,11 @@ sections provide a more in-depth usage guide.
 -   [Landing page](http://google.github.io/flatbuffers)
 -   [FlatBuffers Google Group](http://group.google.com/group/flatbuffers)
 -   [FlatBuffers Issues Tracker](http://github.com/google/flatbuffers/issues)
+-   Videos:
+    - Colt's [DevByte](https://www.youtube.com/watch?v=iQTxMkSJ1dQ).
+    - GDC 2015 [Lightning Talk](https://www.youtube.com/watch?v=olmL1fUnQAQ).
+    - FlatBuffers for [Go](https://www.youtube.com/watch?v=-BPVId_lA5w).
+    - Evolution of FlatBuffers
+      [visualization](https://www.youtube.com/watch?v=a0QE0xS8rKM).
+-   Useful documentation created by others:
+    - [Using FlatBuffers in Unity](http://exiin.com/blog/flatbuffers-for-unity-sample-code/)

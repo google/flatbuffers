@@ -80,11 +80,17 @@ $(document).ready(function(){initNavTree('index.html','');});
 <h3>But all the cool kids use JSON!</h3>
 <p>JSON is very readable (which is why we use it as our optional text format) and very convenient when used together with dynamically typed languages (such as JavaScript). When serializing data from statically typed languages, however, JSON not only has the obvious drawback of runtime inefficiency, but also forces you to write <em>more</em> code to access data (counterintuitively) due to its dynamic-typing serialization system. In this context, it is only a better choice for systems that have very little to no information ahead of time about what data needs to be stored.</p>
 <p>Read more about the "why" of FlatBuffers in the <a href="md__white_paper.html">white paper</a>.</p>
+<h3>Who uses FlatBuffers?</h3>
+<ul>
+<li><a href="http://www.cocos2d-x.org/">Cocos2d-x</a>, the #1 open source mobile game engine, uses it to serialize all their <a href="http://www.cocos2d-x.org/reference/native-cpp/V3.5/d7/d2d/namespaceflatbuffers.html">game data</a>.</li>
+<li><a href="http://facebook.com/">Facebook</a> uses it for client-server communication in their Android app. They have a nice <a href="https://code.facebook.com/posts/872547912839369/improving-facebook-s-performance-on-android-with-flatbuffers/">article</a> explaining how it speeds up loading their posts.</li>
+<li><a href="https://developers.google.com/games/#Tools">Fun Propulsion Labs</a> at Google uses it extensively in all their libraries and games.</li>
+</ul>
 <h2>Usage in brief</h2>
 <p>This section is a quick rundown of how to use this system. Subsequent sections provide a more in-depth usage guide.</p>
 <ul>
 <li>Write a schema file that allows you to define the data structures you may want to serialize. Fields can have a scalar type (ints/floats of all sizes), or they can be a: string; array of any type; reference to yet another object; or, a set of possible objects (unions). Fields are optional and have defaults, so they don't need to be present for every object instance.</li>
-<li>Use <code>flatc</code> (the FlatBuffer compiler) to generate a C++ header (or Java/C#/Go classes) with helper classes to access and construct serialized data. This header (say <code>mydata_generated.h</code>) only depends on <code>flatbuffers.h</code>, which defines the core functionality.</li>
+<li>Use <code>flatc</code> (the FlatBuffer compiler) to generate a C++ header (or Java/C#/Go/Python.. classes) with helper classes to access and construct serialized data. This header (say <code>mydata_generated.h</code>) only depends on <code>flatbuffers.h</code>, which defines the core functionality.</li>
 <li>Use the <code>FlatBufferBuilder</code> class to construct a flat binary buffer. The generated functions allow you to add objects to this buffer recursively, often as simply as making a single function call.</li>
 <li>Store or send your buffer somewhere!</li>
 <li>When reading it back, you can obtain the pointer to the root object from the binary buffer, and from there traverse it conveniently in-place with <code>object-&gt;field()</code>.</li>
@@ -108,7 +114,18 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li><a href="http://github.com/google/flatbuffers">GitHub repository</a></li>
 <li><a href="http://google.github.io/flatbuffers">Landing page</a></li>
 <li><a href="http://group.google.com/group/flatbuffers">FlatBuffers Google Group</a></li>
-<li><a href="http://github.com/google/flatbuffers/issues">FlatBuffers Issues Tracker</a> </li>
+<li><a href="http://github.com/google/flatbuffers/issues">FlatBuffers Issues Tracker</a></li>
+<li>Videos:<ul>
+<li>Colt's <a href="https://www.youtube.com/watch?v=iQTxMkSJ1dQ">DevByte</a>.</li>
+<li>GDC 2015 <a href="https://www.youtube.com/watch?v=olmL1fUnQAQ">Lightning Talk</a>.</li>
+<li>FlatBuffers for <a href="https://www.youtube.com/watch?v=-BPVId_lA5w">Go</a>.</li>
+<li>Evolution of FlatBuffers <a href="https://www.youtube.com/watch?v=a0QE0xS8rKM">visualization</a>.</li>
+</ul>
+</li>
+<li>Useful documentation created by others:<ul>
+<li><a href="http://exiin.com/blog/flatbuffers-for-unity-sample-code/">Using FlatBuffers in Unity</a> </li>
+</ul>
+</li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
