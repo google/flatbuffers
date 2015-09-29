@@ -1130,6 +1130,13 @@ class TestExceptions(unittest.TestCase):
         assertRaises(self, lambda: b.PrependUOffsetTRelative(1),
                      flatbuffers.builder.OffsetArithmeticError)
 
+    def test_create_string_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = 'test1'
+        assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.ObjectIsNestedError)
+
 
 def CheckAgainstGoldDataGo():
     try:
