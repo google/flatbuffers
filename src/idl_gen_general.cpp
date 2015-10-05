@@ -145,7 +145,7 @@ LanguageParameters language_parameters[] = {
     "",
     "Position",
     "Offset",
-    "using FlatBuffers;\n\n",
+    "using System;\nusing FlatBuffers;\n\n",
     {
       nullptr,
       "///",
@@ -823,17 +823,29 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "}\n";
     }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
-    if (((field.value.type.base_type == BASE_TYPE_VECTOR &&
-          IsScalar(field.value.type.VectorType().base_type)) ||
-         field.value.type.base_type == BASE_TYPE_STRING) &&
-        lang.language == IDLOptions::kJava) {
-      code += "  public ByteBuffer ";
-      code += MakeCamel(field.name, lang.first_camel_upper);
-      code += "AsByteBuffer() { return __vector_as_bytebuffer(";
-      code += NumToString(field.value.offset) + ", ";
-      code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
-                          InlineSize(field.value.type.VectorType()));
-      code += "); }\n";
+    if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
+         IsScalar(field.value.type.VectorType().base_type)) ||
+         field.value.type.base_type == BASE_TYPE_STRING) {
+      switch (lang.language) {
+        case IDLOptions::kJava:
+          code += "  public ByteBuffer ";
+          code += MakeCamel(field.name, lang.first_camel_upper);
+          code += "AsByteBuffer() { return __vector_as_bytebuffer(";
+          code += NumToString(field.value.offset) + ", ";
+          code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
+                              InlineSize(field.value.type.VectorType()));
+          code += "); }\n";
+          break;
+        case IDLOptions::kCSharp:
+          code += "  public ArraySegment<byte>? Get";
+          code += MakeCamel(field.name, lang.first_camel_upper);
+          code += "Bytes() { return __vector_as_arraysegment(";
+          code += NumToString(field.value.offset);
+          code += "); }\n";
+          break;
+        default:
+          break;
+      }
     }
 
     // generate mutators for scalar fields or vectors of scalars

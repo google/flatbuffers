@@ -15,6 +15,7 @@
  */
 
 using System.IO;
+using System.Text;
 using MyGame.Example;
 
 namespace FlatBuffers.Test
@@ -184,6 +185,18 @@ namespace FlatBuffers.Test
             Assert.AreEqual("test2", monster.GetTestarrayofstring(1));
 
             Assert.AreEqual(false, monster.Testbool);
+
+            var nameBytes = monster.GetNameBytes().Value;
+            Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
+
+            if (0 == monster.TestarrayofboolsLength)
+            {
+                Assert.IsFalse(monster.GetTestarrayofboolsBytes().HasValue);
+            }
+            else
+            {
+                Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
+            }
         }
 
         [FlatBuffersTestMethod]
