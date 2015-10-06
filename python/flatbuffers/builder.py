@@ -20,48 +20,12 @@ from . import packer
 
 from . import compat
 from .compat import range_func
-from .compat import memoryview_type
-
-
-class OffsetArithmeticError(RuntimeError):
-    """
-    Error caused by an Offset arithmetic error. Probably caused by bad
-    writing of fields. This is considered an unreachable situation in
-    normal circumstances.
-    """
-    pass
-
-
-class NotInObjectError(RuntimeError):
-    """
-    Error caused by using a Builder to write Object data when not inside
-    an Object.
-    """
-    pass
-
-
-class ObjectIsNestedError(RuntimeError):
-    """
-    Error caused by using a Builder to begin an Object when an Object is
-    already being built.
-    """
-    pass
-
-
-class StructIsNotInlineError(RuntimeError):
-    """
-    Error caused by using a Builder to write a Struct at a location that
-    is not the current Offset.
-    """
-    pass
-
-
-class BuilderSizeError(RuntimeError):
-    """
-    Error caused by causing a Builder to exceed the hardcoded limit of 2
-    gigabytes.
-    """
-    pass
+from .exceptions import (
+    OffsetArithmeticError,
+    NotInObjectError,
+    ObjectIsNestedError,
+    StructIsNotInlineError,
+    BuilderSizeError)
 
 
 # VtableMetadataFields is the count of metadata fields in each vtable.
@@ -117,7 +81,7 @@ class Builder(object):
         writing data.
         """
 
-        return self.Bytes[self.Head():]
+        return bytes(self.Bytes[self.Head():])
 
     def StartObject(self, numfields):
         """StartObject initializes bookkeeping for writing a new object."""
@@ -172,7 +136,7 @@ class Builder(object):
             vt2Start = len(self.Bytes) - vt2Offset
             vt2Len = encode.Get(packer.voffset, self.Bytes, vt2Start)
 
-            metadata = VtableMetadataFields * N.VOffsetTFlags.bytewidth
+            metadata = VtableMetadataFields * VOffsetTFlags.bytewidth
             vt2End = vt2Start + vt2Len
             vt2 = self.Bytes[vt2Start+metadata:vt2End]
 
@@ -208,7 +172,7 @@ class Builder(object):
 
             # Second, store the vtable bytesize:
             vBytes = len(self.current_vtable) + VtableMetadataFields
-            vBytes *= N.VOffsetTFlags.bytewidth
+            vBytes *= VOffsetTFlags.bytewidth
             self.PrependVOffsetT(VOffsetTFlags.py_type(vBytes))
 
             # Next, write the offset to the new vtable in the
@@ -305,11 +269,11 @@ class Builder(object):
         """
 
         # Ensure alignment is already done:
-        self.Prep(N.SOffsetTFlags.bytewidth, 0)
+        self.Prep(SOffsetTFlags.bytewidth, 0)
         if not (off <= self.Offset()):
             msg = "flatbuffers: Offset arithmetic error."
             raise OffsetArithmeticError(msg)
-        off2 = self.Offset() - off + N.SOffsetTFlags.bytewidth
+        off2 = self.Offset() - off + SOffsetTFlags.bytewidth
         self.PlaceSOffsetT(off2)
 
     def PrependUOffsetTRelative(self, off):
@@ -319,11 +283,11 @@ class Builder(object):
         """
 
         # Ensure alignment is already done:
-        self.Prep(N.UOffsetTFlags.bytewidth, 0)
+        self.Prep(UOffsetTFlags.bytewidth, 0)
         if not (off <= self.Offset()):
             msg = "flatbuffers: Offset arithmetic error."
             raise OffsetArithmeticError(msg)
-        off2 = self.Offset() - off + N.UOffsetTFlags.bytewidth
+        off2 = self.Offset() - off + UOffsetTFlags.bytewidth
         self.PlaceUOffsetT(off2)
 
     def StartVector(self, elemSize, numElems, alignment):
@@ -359,7 +323,7 @@ class Builder(object):
         else:
             raise TypeError("non-string passed to CreateString")
 
-        self.Prep(N.UOffsetTFlags.bytewidth, (len(x)+1)*N.Uint8Flags.bytewidth)
+        self.Prep(UOffsetTFlags.bytewidth, (len(x)+1)*N.Uint8Flags.bytewidth)
         self.Place(0, N.Uint8Flags)
 
         l = UOffsetTFlags.py_type(len(s))
@@ -387,7 +351,7 @@ class Builder(object):
         elsewhere.
         """
 
-        N.enforce_number(obj, N.UOffsetTFlags)
+        N.enforce_number(obj, UOffsetTFlags)
         if obj != self.Offset():
             msg = ("flatbuffers: Tried to write a Struct at an Offset that "
                    "is different from the current Offset of the Builder.")
@@ -408,8 +372,8 @@ class Builder(object):
 
     def Finish(self, rootTable):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        N.enforce_number(rootTable, N.UOffsetTFlags)
-        self.Prep(self.minalign, N.UOffsetTFlags.bytewidth)
+        N.enforce_number(rootTable, UOffsetTFlags)
+        self.Prep(self.minalign, UOffsetTFlags.bytewidth)
         self.PrependUOffsetTRelative(rootTable)
         return self.Head()
 
@@ -457,6 +421,8 @@ class Builder(object):
         be set to zero and no other data will be written.
         """
 
+        x = UOffsetTFlags.py_type(x)
+        N.enforce_number(x, UOffsetTFlags)
         if x != d:
             self.PrependUOffsetTRelative(x)
             self.Slot(o)
@@ -468,7 +434,9 @@ class Builder(object):
         In generated code, `d` is always 0.
         """
 
-        N.enforce_number(d, N.UOffsetTFlags)
+        x = UOffsetTFlags.py_type(x)
+        N.enforce_number(x, UOffsetTFlags)
+        N.enforce_number(d, UOffsetTFlags)
         if x != d:
             self.assertNested(x)
             self.Slot(v)
@@ -514,8 +482,8 @@ class Builder(object):
         PlaceVOffsetT prepends a VOffsetT to the Builder, without checking for
         space.
         """
-        N.enforce_number(x, N.VOffsetTFlags)
-        self.head = self.head - N.VOffsetTFlags.bytewidth
+        N.enforce_number(x, VOffsetTFlags)
+        self.head = self.head - VOffsetTFlags.bytewidth
         encode.Write(packer.voffset, self.Bytes, self.Head(), x)
 
     def PlaceSOffsetT(self, x):
@@ -523,8 +491,8 @@ class Builder(object):
         PlaceSOffsetT prepends a SOffsetT to the Builder, without checking for
         space.
         """
-        N.enforce_number(x, N.SOffsetTFlags)
-        self.head = self.head - N.SOffsetTFlags.bytewidth
+        N.enforce_number(x, SOffsetTFlags)
+        self.head = self.head - SOffsetTFlags.bytewidth
         encode.Write(packer.soffset, self.Bytes, self.Head(), x)
 
     def PlaceUOffsetT(self, x):
@@ -532,21 +500,21 @@ class Builder(object):
         PlaceUOffsetT prepends a UOffsetT to the Builder, without checking for
         space.
         """
-        N.enforce_number(x, N.UOffsetTFlags)
-        self.head = self.head - N.UOffsetTFlags.bytewidth
+        N.enforce_number(x, UOffsetTFlags)
+        self.head = self.head - UOffsetTFlags.bytewidth
         encode.Write(packer.uoffset, self.Bytes, self.Head(), x)
 
 
 def vtableEqual(a, objectStart, b):
     """vtableEqual compares an unwritten vtable to a written vtable."""
 
-    N.enforce_number(objectStart, N.UOffsetTFlags)
+    N.enforce_number(objectStart, UOffsetTFlags)
 
-    if len(a) * N.VOffsetTFlags.bytewidth != len(b):
+    if len(a) * VOffsetTFlags.bytewidth != len(b):
         return False
 
     for i, elem in enumerate(a):
-        x = encode.Get(packer.voffset, b, i * N.VOffsetTFlags.bytewidth)
+        x = encode.Get(packer.voffset, b, i * VOffsetTFlags.bytewidth)
 
         # Skip vtable entries that indicate a default value.
         if x == 0 and elem == 0:

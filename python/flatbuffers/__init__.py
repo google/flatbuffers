@@ -12,6 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .builder import Builder
-from .table import Table
-from .compat import range_func as compat_range
+__all__ = [
+    'Table',
+    'Builder',
+    'implementation',
+    'force_implementation',
+]
+
+
+def force_implementation(implname):
+    """Forces flatbuffers to use a specific implementation if it's available"""
+    global Table, Builder, implementation
+
+    if implname == 'python':
+        from . import table, builder
+        Table, Builder = table.Table, builder.Builder
+        implementation = 'python'
+    elif implname == 'cython':
+        from . import fastcodec
+        Table, Builder = fastcodec.FastTable, fastcodec.FastBuilder
+        implementation = 'cython'
+    else:
+        raise ImportError("No implementation named: %r" % implname)
+
+
+try:
+    force_implementation('cython')
+except ImportError:
+    force_implementation('python')
