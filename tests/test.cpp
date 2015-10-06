@@ -428,7 +428,8 @@ void ParseProtoTest() {
 
   // Parse proto.
   flatbuffers::Parser parser(false, true);
-  TEST_EQ(parser.Parse(protofile.c_str(), nullptr), true);
+  const char *include_directories[] = { "tests/prototest", nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
 
   // Generate fbs.
   flatbuffers::GeneratorOptions opts;

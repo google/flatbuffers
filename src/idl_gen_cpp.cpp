@@ -287,8 +287,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       }
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
-        std::string qualified_name = parser.GetFullyQualifiedName(
-            nested->constant);
+        std::string qualified_name =
+            parser.namespaces_.back()->GetFullyQualifiedName(nested->constant);
         auto nested_root = parser.structs_.Lookup(qualified_name);
         assert(nested_root);  // Guaranteed to exist by parser.
         (void)nested_root;
@@ -719,7 +719,8 @@ std::string GenerateCPP(const Parser &parser,
     // Generate convenient global helper functions:
     if (parser.root_struct_def_) {
       auto &name = parser.root_struct_def_->name;
-      std::string qualified_name = parser.GetFullyQualifiedName(name);
+      std::string qualified_name =
+          parser.namespaces_.back()->GetFullyQualifiedName(name);
       std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
 
       // The root datatype accessor:

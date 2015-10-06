@@ -1,9 +1,9 @@
 // Sample .proto file that we can translate to the corresponding .fbs.
 
-package proto.test;
-
 option some_option = is_ignored;
-import "some_other_schema.proto";
+import "imported.proto";
+
+package proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum {
@@ -41,4 +41,5 @@ message ProtoMessage {
   optional bytes m = 11;
   optional OtherMessage n = 12;
   repeated string o = 14;
+  optional ImportedMessage z = 16;
 }

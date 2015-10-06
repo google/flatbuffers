@@ -71,10 +71,10 @@ be generated for each file processed:
 
 -   `--proto`: Expect input files to be .proto files (protocol buffers).
     Output the corresponding .fbs file.
-    Currently supports: `package`, `message`, `enum`, nested declarations.
-    Does not support, but will skip without error: `import`, `option`.
-    Does not support, will generate error: `service`, `extend`, `extensions`,
-    `oneof`, `group`, custom options.
+    Currently supports: `package`, `message`, `enum`, nested declarations,
+    `import` (use `-I` for paths), `extend`, `oneof`, `group`.
+    Does not support, but will skip without error: `option`, `service`,
+    `extensions`, and most everything else.
 
 -   `--schema`: Serialize schemas instead of JSON (use with -b). This will
     output a binary version of the specified schema that itself corresponds
