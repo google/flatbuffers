@@ -350,6 +350,8 @@ class Builder(object):
     def CreateString(self, s):
         """CreateString writes a null-terminated byte string as a vector."""
 
+        self.assertNotNested()
+
         if isinstance(s, compat.string_types):
             x = s.encode()
         elif isinstance(s, compat.binary_type):
