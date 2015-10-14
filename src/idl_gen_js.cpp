@@ -624,7 +624,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
         "@param {flatbuffers.Offset} offset");
       code += object_name + ".finish" + struct_def.name + "Buffer";
       code += " = function(builder, offset) {\n";
-      code += "  return builder.finish(offset";
+      code += "  builder.finish(offset";
       if (!parser.file_identifier_.empty()) {
         code += ", '" + parser.file_identifier_ + "'";
       }
