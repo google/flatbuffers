@@ -31,6 +31,30 @@ flatbuffers.SIZEOF_INT = 4;
  */
 flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 
+/**
+ * @type {Int32Array}
+ * @const
+ */
+flatbuffers.int32 = new Int32Array(2);
+
+/**
+ * @type {Float32Array}
+ * @const
+ */
+flatbuffers.float32 = new Float32Array(flatbuffers.int32.buffer);
+
+/**
+ * @type {Float64Array}
+ * @const
+ */
+flatbuffers.float64 = new Float64Array(flatbuffers.int32.buffer);
+
+/**
+ * @type {boolean}
+ * @const
+ */
+flatbuffers.isLittleEndian = new Uint16Array(new Uint8Array([1, 0]).buffer)[0] === 1;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -707,12 +731,6 @@ flatbuffers.ByteBuffer = function(bytes) {
   this.bytes_ = bytes;
 
   /**
-   * @type {DataView}
-   * @private
-   */
-  this.view_ = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-
-  /**
    * @type {number}
    * @private
    */
@@ -760,7 +778,7 @@ flatbuffers.ByteBuffer.prototype.capacity = function() {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readInt8 = function(offset) {
-  return this.view_.getInt8(offset);
+  return this.readUint8(offset) << 24 >> 24;
 };
 
 /**
@@ -768,7 +786,7 @@ flatbuffers.ByteBuffer.prototype.readInt8 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readUint8 = function(offset) {
-  return this.view_.getUint8(offset);
+  return this.bytes_[offset];
 };
 
 /**
@@ -776,7 +794,7 @@ flatbuffers.ByteBuffer.prototype.readUint8 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readInt16 = function(offset) {
-  return this.view_.getInt16(offset, true);
+  return this.readUint16(offset) << 16 >> 16;
 };
 
 /**
@@ -784,7 +802,7 @@ flatbuffers.ByteBuffer.prototype.readInt16 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readUint16 = function(offset) {
-  return this.view_.getUint16(offset, true);
+  return this.bytes_[offset] | this.bytes_[offset + 1] << 8;
 };
 
 /**
@@ -792,7 +810,7 @@ flatbuffers.ByteBuffer.prototype.readUint16 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readInt32 = function(offset) {
-  return this.view_.getInt32(offset, true);
+  return this.bytes_[offset] | this.bytes_[offset + 1] << 8 | this.bytes_[offset + 2] << 16 | this.bytes_[offset + 3] << 24;
 };
 
 /**
@@ -800,7 +818,7 @@ flatbuffers.ByteBuffer.prototype.readInt32 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readUint32 = function(offset) {
-  return this.view_.getUint32(offset, true);
+  return this.readInt32(offset) >>> 0;
 };
 
 /**
@@ -816,7 +834,7 @@ flatbuffers.ByteBuffer.prototype.readInt64 = function(offset) {
  * @returns {flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.readUint64 = function(offset) {
-  return new flatbuffers.Long(this.readInt32(offset), this.readInt32(offset + 4));
+  return new flatbuffers.Long(this.readUint32(offset), this.readUint32(offset + 4));
 };
 
 /**
@@ -824,7 +842,8 @@ flatbuffers.ByteBuffer.prototype.readUint64 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readFloat32 = function(offset) {
-  return this.view_.getFloat32(offset, true);
+  flatbuffers.int32[0] = this.readInt32(offset);
+  return flatbuffers.float32[0];
 };
 
 /**
@@ -832,7 +851,9 @@ flatbuffers.ByteBuffer.prototype.readFloat32 = function(offset) {
  * @returns {number}
  */
 flatbuffers.ByteBuffer.prototype.readFloat64 = function(offset) {
-  return this.view_.getFloat64(offset, true);
+  flatbuffers.int32[flatbuffers.isLittleEndian ? 0 : 1] = this.readInt32(offset);
+  flatbuffers.int32[flatbuffers.isLittleEndian ? 1 : 0] = this.readInt32(offset + 4);
+  return flatbuffers.float64[0];
 };
 
 /**
@@ -840,7 +861,7 @@ flatbuffers.ByteBuffer.prototype.readFloat64 = function(offset) {
  * @param {number} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt8 = function(offset, value) {
-  this.view_.setInt8(offset, value);
+  this.bytes_[offset] = value;
 };
 
 /**
@@ -848,7 +869,8 @@ flatbuffers.ByteBuffer.prototype.writeInt8 = function(offset, value) {
  * @param {number} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt16 = function(offset, value) {
-  this.view_.setInt16(offset, value, true);
+  this.bytes_[offset] = value;
+  this.bytes_[offset + 1] = value >> 8;
 };
 
 /**
@@ -856,7 +878,10 @@ flatbuffers.ByteBuffer.prototype.writeInt16 = function(offset, value) {
  * @param {number} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt32 = function(offset, value) {
-  this.view_.setInt32(offset, value, true);
+  this.bytes_[offset] = value;
+  this.bytes_[offset + 1] = value >> 8;
+  this.bytes_[offset + 2] = value >> 16;
+  this.bytes_[offset + 3] = value >> 24;
 };
 
 /**
@@ -873,7 +898,8 @@ flatbuffers.ByteBuffer.prototype.writeInt64 = function(offset, value) {
  * @param {number} value
  */
 flatbuffers.ByteBuffer.prototype.writeFloat32 = function(offset, value) {
-  this.view_.setFloat32(offset, value, true);
+  flatbuffers.float32[0] = value;
+  this.writeInt32(offset, flatbuffers.int32[0]);
 };
 
 /**
@@ -881,7 +907,9 @@ flatbuffers.ByteBuffer.prototype.writeFloat32 = function(offset, value) {
  * @param {number} value
  */
 flatbuffers.ByteBuffer.prototype.writeFloat64 = function(offset, value) {
-  this.view_.setFloat64(offset, value, true);
+  flatbuffers.float64[0] = value;
+  this.writeInt32(offset, flatbuffers.int32[flatbuffers.isLittleEndian ? 0 : 1]);
+  this.writeInt32(offset + 4, flatbuffers.int32[flatbuffers.isLittleEndian ? 1 : 0]);
 };
 
 /**
