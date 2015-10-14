@@ -929,7 +929,7 @@ MyGame.Example.Monster.endMonster = function(builder) {
  * @param {flatbuffers.Offset} offset
  */
 MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
-  return builder.finish(offset, 'MONS');
+  builder.finish(offset, 'MONS');
 };
 
 // Exports for Node.js and RequireJS
