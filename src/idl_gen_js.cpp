@@ -579,8 +579,11 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", data.length, " + NumToString(alignment) + ");\n";
           code += "  for (var i = data.length - 1; i >= 0; i--) {\n";
-          code += "    builder.add" + GenWriteMethod(vector_type);
-          code += "(data[i]);\n";
+          code += "    builder.add" + GenWriteMethod(vector_type) + "(";
+          if (vector_type.base_type == BASE_TYPE_BOOL) {
+            code += "+";
+          }
+          code += "data[i]);\n";
           code += "  }\n";
           code += "  return builder.endVector();\n";
           code += "};\n\n";

@@ -632,10 +632,27 @@ MyGame.Example.Monster.prototype.testhashu64Fnv1a = function() {
 };
 
 /**
+ * @param {number} index
+ * @returns {boolean}
+ */
+MyGame.Example.Monster.prototype.testarrayofbools = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 52);
+  return offset ? !!this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : false;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testarrayofboolsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 52);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(24);
+  builder.startObject(25);
 };
 
 /**
@@ -912,6 +929,35 @@ MyGame.Example.Monster.addTesthashs64Fnv1a = function(builder, testhashs64Fnv1a)
  */
 MyGame.Example.Monster.addTesthashu64Fnv1a = function(builder, testhashu64Fnv1a) {
   builder.addFieldInt64(23, testhashu64Fnv1a, flatbuffers.Long.ZERO);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testarrayofboolsOffset
+ */
+MyGame.Example.Monster.addTestarrayofbools = function(builder, testarrayofboolsOffset) {
+  builder.addFieldOffset(24, testarrayofboolsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<boolean>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createTestarrayofboolsVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(+data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestarrayofboolsVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**
