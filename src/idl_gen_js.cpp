@@ -226,7 +226,7 @@ enum struct InOut {
 static std::string GenTypeName(const Type &type, InOut inOut) {
   if (inOut == InOut::OUT) {
     if (type.base_type == BASE_TYPE_STRING) {
-      return "?string";
+      return "string|Uint8Array";
     }
     if (type.base_type == BASE_TYPE_STRUCT) {
       return WrapInNameSpace(*type.struct_def);
@@ -404,15 +404,25 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     if (IsScalar(field.value.type.base_type) ||
         field.value.type.base_type == BASE_TYPE_STRING) {
       GenDocComment(field.doc_comment, code_ptr,
+        std::string(field.value.type.base_type == BASE_TYPE_STRING ?
+          "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
         "@returns {" + GenTypeName(field.value.type, InOut::OUT) + "}");
       code += object_name + ".prototype." + MakeCamel(field.name, false);
-      code += " = function() {\n";
+      code += " = function(";
+      if (field.value.type.base_type == BASE_TYPE_STRING) {
+        code += "optionalEncoding";
+      }
+      code += ") {\n";
       if (struct_def.fixed) {
         code += "  return " + GenGetter(field.value.type, "(this.bb_pos" +
           MaybeAdd(field.value.offset) + ")") + ";\n";
       } else {
+        std::string index = "this.bb_pos + offset";
+        if (field.value.type.base_type == BASE_TYPE_STRING) {
+          index += ", optionalEncoding";
+        }
         code += offset_prefix + GenGetter(field.value.type,
-          "(this.bb_pos + offset)") + " : " + GenDefaultValue(field.value);
+          "(" + index + ")") + " : " + GenDefaultValue(field.value);
         code += ";\n";
       }
     }
@@ -446,16 +456,20 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
           auto inline_size = InlineSize(vectortype);
           auto index = "this.bb.__vector(this.bb_pos + offset) + index" +
                        MaybeScale(inline_size);
-          GenDocComment(field.doc_comment, code_ptr,
-                        "@param {number} index\n" +
-                        std::string(vectortype.base_type == BASE_TYPE_STRUCT ?
-                                    "@param {" + vectortypename + "=} obj\n" :
-                                    "") +
-                        "@returns {" + vectortypename + "}");
+          std::string args = "@param {number} index\n";
+          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            args += "@param {" + vectortypename + "=} obj\n";
+          } else if (vectortype.base_type == BASE_TYPE_STRING) {
+            args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
+          }
+          GenDocComment(field.doc_comment, code_ptr, args +
+            "@returns {" + vectortypename + "}");
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += " = function(index";
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             code += ", obj";
+          } else if (vectortype.base_type == BASE_TYPE_STRING) {
+            code += ", optionalEncoding";
           }
           code += ") {\n";
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -466,6 +480,9 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
               : "this.bb.__indirect(" + index + ")";
             code += ", this.bb)";
           } else {
+            if (vectortype.base_type == BASE_TYPE_STRING) {
+              index += ", optionalEncoding";
+            }
             code += offset_prefix + GenGetter(vectortype, "(" + index + ")");
           }
           code += " : ";

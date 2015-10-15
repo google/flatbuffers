@@ -32,6 +32,14 @@ flatbuffers.SIZEOF_INT = 4;
 flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 
 /**
+ * @enum {number}
+ */
+flatbuffers.Encoding = {
+  UTF8_BYTES: 1,
+  UTF16_STRING: 2
+};
+
+/**
  * @type {Int32Array}
  * @const
  */
@@ -667,44 +675,49 @@ flatbuffers.Builder.prototype.endVector = function() {
 };
 
 /**
- * Encode the string `s` in the buffer using UTF-8.
+ * Encode the string `s` in the buffer using UTF-8. If a Uint8Array is passed
+ * instead of a string, it is assumed to contain valid UTF-8 encoded data.
  *
- * @param {string} s The string to encode
+ * @param {string|Uint8Array} s The string to encode
  * @return {flatbuffers.Offset} The offset in the buffer where the encoded string starts
  */
 flatbuffers.Builder.prototype.createString = function(s) {
-  var utf8 = [];
-  var i = 0;
+  if (s instanceof Uint8Array) {
+    var utf8 = s;
+  } else {
+    var utf8 = [];
+    var i = 0;
 
-  while (i < s.length) {
-    var codePoint;
+    while (i < s.length) {
+      var codePoint;
 
-    // Decode UTF-16
-    var a = s.charCodeAt(i++);
-    if (a < 0xD800 || a >= 0xDC00) {
-      codePoint = a;
-    } else {
-      var b = s.charCodeAt(i++);
-      codePoint = (a << 10) + b + (0x10000 - (0xD800 << 10) - 0xDC00);
-    }
-
-    // Encode UTF-8
-    if (codePoint < 0x80) {
-      utf8.push(codePoint);
-    } else {
-      if (codePoint < 0x800) {
-        utf8.push(((codePoint >> 6) & 0x1F) | 0xC0);
+      // Decode UTF-16
+      var a = s.charCodeAt(i++);
+      if (a < 0xD800 || a >= 0xDC00) {
+        codePoint = a;
       } else {
-        if (codePoint < 0x10000) {
-          utf8.push(((codePoint >> 12) & 0x0F) | 0xE0);
-        } else {
-          utf8.push(
-            ((codePoint >> 18) & 0x07) | 0xF0,
-            ((codePoint >> 12) & 0x3F) | 0x80);
-        }
-        utf8.push(((codePoint >> 6) & 0x3F) | 0x80);
+        var b = s.charCodeAt(i++);
+        codePoint = (a << 10) + b + (0x10000 - (0xD800 << 10) - 0xDC00);
       }
-      utf8.push((codePoint & 0x3F) | 0x80);
+
+      // Encode UTF-8
+      if (codePoint < 0x80) {
+        utf8.push(codePoint);
+      } else {
+        if (codePoint < 0x800) {
+          utf8.push(((codePoint >> 6) & 0x1F) | 0xC0);
+        } else {
+          if (codePoint < 0x10000) {
+            utf8.push(((codePoint >> 12) & 0x0F) | 0xE0);
+          } else {
+            utf8.push(
+              ((codePoint >> 18) & 0x07) | 0xF0,
+              ((codePoint >> 12) & 0x3F) | 0x80);
+          }
+          utf8.push(((codePoint >> 6) & 0x3F) | 0x80);
+        }
+        utf8.push((codePoint & 0x3F) | 0x80);
+      }
     }
   }
 
@@ -939,13 +952,19 @@ flatbuffers.ByteBuffer.prototype.__union = function(t, offset) {
 };
 
 /**
- * Create a JavaScript string from UTF-8 data stored inside the flatbuffer.
+ * Create a JavaScript string from UTF-8 data stored inside the FlatBuffer.
  * This allocates a new string and converts to wide chars upon each access.
  *
+ * To avoid the conversion to UTF-16, pass flatbuffers.Encoding.UTF8_BYTES as
+ * the "optionalEncoding" argument. This is useful for avoiding conversion to
+ * and from UTF-16 when the data will just be packaged back up in another
+ * FlatBuffer later on.
+ *
  * @param {number} offset
- * @returns {string}
+ * @param {flatbuffers.Encoding=} optionalEncoding Defaults to UTF16_STRING
+ * @returns {string|Uint8Array}
  */
-flatbuffers.ByteBuffer.prototype.__string = function(offset) {
+flatbuffers.ByteBuffer.prototype.__string = function(offset, optionalEncoding) {
   offset += this.readInt32(offset);
 
   var length = this.readInt32(offset);
@@ -953,6 +972,10 @@ flatbuffers.ByteBuffer.prototype.__string = function(offset) {
   var i = 0;
 
   offset += flatbuffers.SIZEOF_INT;
+
+  if (optionalEncoding === flatbuffers.Encoding.UTF8_BYTES) {
+    return this.bytes_.subarray(offset, offset + length);
+  }
 
   while (i < length) {
     var codePoint;
