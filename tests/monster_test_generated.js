@@ -287,11 +287,12 @@ MyGame.Example.Stat.getRootAsStat = function(bb, obj) {
 };
 
 /**
- * @returns {?string}
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
  */
-MyGame.Example.Stat.prototype.id = function() {
+MyGame.Example.Stat.prototype.id = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.__string(this.bb_pos + offset) : null;
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
@@ -419,11 +420,12 @@ MyGame.Example.Monster.prototype.hp = function() {
 };
 
 /**
- * @returns {?string}
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
  */
-MyGame.Example.Monster.prototype.name = function() {
+MyGame.Example.Monster.prototype.name = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 10);
-  return offset ? this.bb.__string(this.bb_pos + offset) : null;
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
@@ -488,11 +490,12 @@ MyGame.Example.Monster.prototype.test4Length = function() {
 
 /**
  * @param {number} index
- * @returns {?string}
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
  */
-MyGame.Example.Monster.prototype.testarrayofstring = function(index) {
+MyGame.Example.Monster.prototype.testarrayofstring = function(index, optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4) : null;
+  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 };
 
 /**

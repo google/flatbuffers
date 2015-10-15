@@ -125,18 +125,35 @@ function testUnicode() {
   var bb = new flatbuffers.ByteBuffer(new Uint8Array(correct));
   var monster = MyGame.Example.Monster.getRootAsMonster(bb);
   assert.strictEqual(monster.name(), json.name);
+  assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
+  assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
+  json.testarrayoftables.forEach(function(table, i) {
+    var value = monster.testarrayoftables(i);
+    assert.strictEqual(value.name(), table.name);
+    assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
+  });
   assert.strictEqual(monster.testarrayofstringLength(), json.testarrayofstring.length);
   json.testarrayofstring.forEach(function(string, i) {
     assert.strictEqual(monster.testarrayofstring(i), string);
+    assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
   });
 
   // Test writing
   var fbb = new flatbuffers.Builder();
   var name = fbb.createString(json.name);
+  var testarrayoftablesOffsets = json.testarrayoftables.map(function(table) {
+    var name = fbb.createString(new Uint8Array(new Buffer(table.name)));
+    MyGame.Example.Monster.startMonster(fbb);
+    MyGame.Example.Monster.addName(fbb, name);
+    return MyGame.Example.Monster.endMonster(fbb);
+  });
+  var testarrayoftablesOffset = MyGame.Example.Monster.createTestarrayoftablesVector(fbb,
+    testarrayoftablesOffsets);
   var testarrayofstringOffset = MyGame.Example.Monster.createTestarrayofstringVector(fbb,
     json.testarrayofstring.map(function(string) { return fbb.createString(string); }));
   MyGame.Example.Monster.startMonster(fbb);
   MyGame.Example.Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
+  MyGame.Example.Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
   MyGame.Example.Monster.addName(fbb, name);
   MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
   assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
