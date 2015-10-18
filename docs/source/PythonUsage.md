@@ -36,7 +36,7 @@ You can also construct these buffers in Python using the functions found
 in the generated code, and the FlatBufferBuilder class:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    builder = flatbuffers.NewBuilder(0)
+    builder = flatbuffers.Builder(0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create strings:
@@ -58,7 +58,7 @@ Create a table with a struct contained therein:
     example.MonsterAddTest4(builder, test4s)
     mon = example.MonsterEnd(builder)
 
-    final_flatbuffer = bulder.Output()
+    final_flatbuffer = builder.Output()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Unlike C++, Python does not support table creation functions like 'createMonster()'.
