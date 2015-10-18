@@ -19,6 +19,7 @@ using MyGame.Example;
 
 namespace FlatBuffers.Test
 {
+    [FlatBuffersTestClass]
     public class FlatBuffersExampleTests
     {
         public void RunTests()
@@ -28,6 +29,7 @@ namespace FlatBuffers.Test
             TestEnums();
         }
 
+        [FlatBuffersTestMethod]
         public void CanCreateNewFlatBufferFromScratch()
         {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
@@ -184,6 +186,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(false, monster.Testbool);
         }
 
+        [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
@@ -191,6 +194,7 @@ namespace FlatBuffers.Test
             TestBuffer(bb);
         }
 
+        [FlatBuffersTestMethod]
         public void TestEnums()
         {
             Assert.AreEqual("Red", Color.Red.ToString());
