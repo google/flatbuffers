@@ -101,7 +101,7 @@ static void GenDocComment(const std::vector<std::string> &dc,
     }
     if (indent) code += indent;
     std::string::size_type start = 0;
-    while (true) {
+    for (;;) {
       auto end = extra_lines.find('\n', start);
       if (end != std::string::npos) {
         code += " * " + extra_lines.substr(start, end - start) + "\n";
@@ -207,7 +207,7 @@ static std::string GenDefaultValue(const Value &value) {
     case BASE_TYPE_LONG:
     case BASE_TYPE_ULONG:
       if (value.constant != "0") {
-        int64_t constant = std::atoll(value.constant.c_str());
+        int64_t constant = StringToInt(value.constant.c_str());
         return "new flatbuffers.Long(" + NumToString((int32_t)constant) +
           ", " + NumToString((int32_t)(constant >> 32)) + ")";
       }
@@ -218,13 +218,8 @@ static std::string GenDefaultValue(const Value &value) {
   }
 }
 
-enum struct InOut {
-  IN,
-  OUT,
-};
-
-static std::string GenTypeName(const Type &type, InOut inOut) {
-  if (inOut == InOut::OUT) {
+static std::string GenTypeName(const Type &type, bool input) {
+  if (!input) {
     if (type.base_type == BASE_TYPE_STRING) {
       return "string|Uint8Array";
     }
@@ -289,7 +284,7 @@ static void GenStructArgs(const StructDef &struct_def,
       GenStructArgs(*field.value.type.struct_def, annotations, arguments,
                     nameprefix + field.name + "_");
     } else {
-      *annotations += "@param {" + GenTypeName(field.value.type, InOut::IN);
+      *annotations += "@param {" + GenTypeName(field.value.type, true);
       *annotations += "} " + nameprefix + field.name + "\n";
       *arguments += ", " + nameprefix + field.name;
     }
@@ -406,7 +401,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       GenDocComment(field.doc_comment, code_ptr,
         std::string(field.value.type.base_type == BASE_TYPE_STRING ?
           "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
-        "@returns {" + GenTypeName(field.value.type, InOut::OUT) + "}");
+        "@returns {" + GenTypeName(field.value.type, false) + "}");
       code += object_name + ".prototype." + MakeCamel(field.name, false);
       code += " = function(";
       if (field.value.type.base_type == BASE_TYPE_STRING) {
@@ -452,7 +447,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
 
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
-          auto vectortypename = GenTypeName(vectortype, InOut::OUT);
+          auto vectortypename = GenTypeName(vectortype, false);
           auto inline_size = InlineSize(vectortype);
           auto index = "this.bb.__vector(this.bb_pos + offset) + index" +
                        MaybeScale(inline_size);
@@ -559,7 +554,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       // Generate the field insertion method
       GenDocComment(code_ptr,
         "@param {flatbuffers.Builder} builder\n"
-        "@param {" + GenTypeName(field.value.type, InOut::IN) + "} " +
+        "@param {" + GenTypeName(field.value.type, true) + "} " +
         argname);
       code += object_name + ".add" + MakeCamel(field.name);
       code += " = function(builder, " + argname + ") {\n";
@@ -588,7 +583,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
         if (!IsStruct(vector_type)) {
           GenDocComment(code_ptr,
             "@param {flatbuffers.Builder} builder\n"
-            "@param {Array.<" + GenTypeName(vector_type, InOut::IN) +
+            "@param {Array.<" + GenTypeName(vector_type, true) +
             ">} data\n"
             "@returns {flatbuffers.Offset}");
           code += object_name + ".create" + MakeCamel(field.name);

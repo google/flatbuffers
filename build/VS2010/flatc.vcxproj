@@ -271,6 +271,7 @@
     <ClCompile Include="..\..\src\idl_gen_go.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level4</WarningLevel>
     </ClCompile>
+    <ClCompile Include="..\..\src\idl_gen_js.cpp" />
     <ClCompile Include="..\..\src\idl_gen_python.cpp" />
     <ClCompile Include="..\..\src\idl_parser.cpp" />
     <ClCompile Include="..\..\src\idl_gen_cpp.cpp" />

@@ -159,7 +159,7 @@ int64_t Parser::ParseHexNum(int nibbles) {
       Error("escape code must be followed by " + NumToString(nibbles) +
             " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
-  auto val = StringToInt(target.c_str(), 16);
+  auto val = StringToUInt(target.c_str(), 16);
   cursor_ += nibbles;
   return val;
 }
@@ -288,7 +288,7 @@ void Parser::Next() {
               cursor_++;
               while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
               attribute_.append(start + 2, cursor_);
-              attribute_ = NumToString(StringToInt(attribute_.c_str(), 16));
+              attribute_ = NumToString(StringToUInt(attribute_.c_str(), 16));
               token_ = kTokenIntegerConstant;
               return;
           }
