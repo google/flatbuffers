@@ -13,6 +13,7 @@
 		61FF3C34FBEC4819A1C30F92 /* sample_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECCEBFFA6977404F858F9739 /* sample_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */; };
 		8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
+		8C78573E1BD5AE2C00C53C34 /* idl_gen_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */; };
 		8C8774631B703D4800E693F5 /* reflection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C8774621B703D4800E693F5 /* reflection.cpp */; };
 		8C8774641B703E1200E693F5 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
 		8CA854B31B04244A00040A06 /* idl_gen_python.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CA854B21B04244A00040A06 /* idl_gen_python.cpp */; };
@@ -38,6 +39,7 @@
 		6AD24EEB3D024825A37741FF /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = test.cpp; path = tests/test.cpp; sourceTree = SOURCE_ROOT; };
 		8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_go.cpp; path = src/idl_gen_go.cpp; sourceTree = "<group>"; };
 		8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_fbs.cpp; path = src/idl_gen_fbs.cpp; sourceTree = "<group>"; };
+		8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_js.cpp; path = src/idl_gen_js.cpp; sourceTree = "<group>"; };
 		8C8774621B703D4800E693F5 /* reflection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = reflection.cpp; path = src/reflection.cpp; sourceTree = "<group>"; };
 		8CA854B21B04244A00040A06 /* idl_gen_python.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_python.cpp; path = src/idl_gen_python.cpp; sourceTree = "<group>"; };
 		8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_general.cpp; path = src/idl_gen_general.cpp; sourceTree = "<group>"; };
@@ -54,6 +56,7 @@
 		28237E300FE042DEADA302D3 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */,
 				8CA854B21B04244A00040A06 /* idl_gen_python.cpp */,
 				8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */,
 				8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */,
@@ -263,6 +266,7 @@
 				A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */,
 				8CA854B31B04244A00040A06 /* idl_gen_python.cpp in Sources */,
 				8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */,
+				8C78573E1BD5AE2C00C53C34 /* idl_gen_js.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

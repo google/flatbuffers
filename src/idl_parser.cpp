@@ -1046,14 +1046,14 @@ void Parser::ParseDecl() {
                                            BaseType basetype) {
     auto len = strlen(suffix);
     for (auto it = fields.begin(); it != fields.end(); ++it) {
-      auto &name = (*it)->name;
-      if (name.length() > len &&
-          name.compare(name.length() - len, len, suffix) == 0 &&
+      auto &fname = (*it)->name;
+      if (fname.length() > len &&
+          fname.compare(fname.length() - len, len, suffix) == 0 &&
           (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
         auto field = struct_def.fields.Lookup(
-                       name.substr(0, name.length() - len));
+                       fname.substr(0, fname.length() - len));
         if (field && field->value.type.base_type == basetype)
-          Error("Field " + name +
+          Error("Field " + fname +
                 " would clash with generated functions for field " +
                 field->name);
       }
