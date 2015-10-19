@@ -919,6 +919,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
                         &end);
   }
 
+  // Verify a pointer (may be NULL) of a vector to struct.
+  template<typename T> bool Verify(const Vector<const T *> *vec) const {
+    return Verify(reinterpret_cast<const Vector<T> *>(vec));
+  }
+
   // Verify a pointer (may be NULL) to string.
   bool Verify(const String *str) const {
     const uint8_t *end;
