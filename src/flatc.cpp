@@ -60,6 +60,10 @@ const Generator generators[] = {
     flatbuffers::GeneratorOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GenerateJS,       "-s", "JavaScript",
+    flatbuffers::GeneratorOptions::kMAX,
+    "Generate JavaScript code for tables/structs",
+    flatbuffers::JSMakeRule },
   { flatbuffers::GenerateGeneral,  "-n", "C#",
     flatbuffers::GeneratorOptions::kCSharp,
     "Generate C# classes for tables/structs",
@@ -140,6 +144,8 @@ int main(int argc, const char *argv[]) {
         include_directories.push_back(argv[argi]);
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
+      } else if(arg == "--no-js-exports") {
+        opts.skip_js_exports = true;
       } else if(arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if(arg == "--no-prefix") {
