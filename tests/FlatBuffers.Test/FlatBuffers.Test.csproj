@@ -41,9 +41,9 @@
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
       <Link>FlatBuffers\ByteBuffer.cs</Link>
     </Compile>
-	<Compile Include="..\..\net\FlatBuffers\Offset.cs">
-	  <Link>FlatBuffers\Offset.cs</Link>
-	</Compile>
+    <Compile Include="..\..\net\FlatBuffers\Offset.cs">
+      <Link>FlatBuffers\Offset.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\FlatBufferBuilder.cs">
       <Link>FlatBuffers\FlatBufferBuilder.cs</Link>
     </Compile>
@@ -79,9 +79,15 @@
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
+    <Compile Include="FlatBuffersFuzzTests.cs" />
+    <Compile Include="FlatBuffersTestClassAttribute.cs" />
+    <Compile Include="FlatBuffersTestMethodAttribute.cs" />
+    <Compile Include="FuzzTestData.cs" />
+    <Compile Include="Lcg.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FlatBuffersExampleTests.cs" />
+    <Compile Include="TestTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\monsterdata_test.mon">
