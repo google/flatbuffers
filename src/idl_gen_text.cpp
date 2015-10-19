@@ -62,7 +62,7 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
   }
 
   if (type.base_type == BASE_TYPE_BOOL) {
-    text += val ? "true" : "false";
+    text += val != 0 ? "true" : "false";
   } else {
     text += NumToString(val);
   }
