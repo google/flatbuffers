@@ -625,8 +625,10 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   // This function converts them to be relative to the current location
   // in the buffer (when stored here), pointing upwards.
   uoffset_t ReferTo(uoffset_t off) {
-    Align(sizeof(uoffset_t));  // To ensure GetSize() below is correct.
-    assert(off <= GetSize());  // Must refer to something already in buffer.
+    // Align to ensure GetSize() below is correct.
+    Align(sizeof(uoffset_t));
+    // Offset must refer to something already in buffer.
+    assert(off && off <= GetSize());
     return GetSize() - off + sizeof(uoffset_t);
   }
 
