@@ -75,6 +75,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
 <li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
 <li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
+<li><code>-M</code> : Print make rules for generated files.</li>
 <li><code>--strict-json</code> : Require &amp; generate strict JSON (field names are enclosed in quotes, no trailing commas in tables/vectors). By default, no quotes are required/generated, and trailing commas are allowed.</li>
 <li><code>--defaults-json</code> : Output fields whose value is equal to the default value when writing JSON text.</li>
 <li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>

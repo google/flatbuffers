@@ -41,6 +41,8 @@ be generated for each file processed:
     fail (or none are specified) it will try to load relative to the path of
     the schema file being parsed.
 
+-   `-M` : Print make rules for generated files.
+
 -   `--strict-json` : Require & generate strict JSON (field names are enclosed
     in quotes, no trailing commas in tables/vectors). By default, no quotes are
     required/generated, and trailing commas are allowed.
