@@ -489,9 +489,8 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
-  // You shouldn't really be copying instances of this class.
-  vector_downward(const vector_downward &);
-  vector_downward &operator=(const vector_downward &);
+  vector_downward(const vector_downward &) = delete;
+  vector_downward &operator=(const vector_downward &) = delete;
 
   size_t reserved_;
   uint8_t *buf_;
@@ -841,9 +840,8 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   }
 
  private:
-  // You shouldn't really be copying instances of this class.
-  FlatBufferBuilder(const FlatBufferBuilder &);
-  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+  FlatBufferBuilder(const FlatBufferBuilder &) = delete;
+  FlatBufferBuilder &operator=(const FlatBufferBuilder &) = delete;
 
   struct FieldLoc {
     uoffset_t off;
