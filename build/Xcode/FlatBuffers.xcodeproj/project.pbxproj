@@ -214,7 +214,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0700;
 			};
 			buildConfigurationList = 6428BEB363AA4E03A282AA8C /* Build configuration list for PBXProject "FlatBuffers" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -291,7 +291,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = RelWithDebInfo;
@@ -807,8 +807,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
+				ENABLE_TESTABILITY = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Debug;
@@ -818,7 +819,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Release;
@@ -978,7 +979,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = MinSizeRel;
