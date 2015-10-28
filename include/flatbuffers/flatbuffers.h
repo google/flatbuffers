@@ -524,7 +524,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
                              const simple_allocator *allocator = nullptr)
       : buf_(initial_size, allocator ? *allocator : default_allocator),
-        minalign_(1), force_defaults_(false) {
+        nested(false), finished(false), minalign_(1), force_defaults_(false) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -535,6 +535,8 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   void Clear() {
     buf_.clear();
     offsetbuf_.clear();
+    nested = false;
+    finished = false;
     vtables_.clear();
     minalign_ = 1;
   }
@@ -543,7 +545,13 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   uoffset_t GetSize() const { return buf_.size(); }
 
   // Get the serialized buffer (after you call Finish()).
-  uint8_t *GetBufferPointer() const { return buf_.data(); }
+  uint8_t *GetBufferPointer() const {
+    Finished();
+    return buf_.data();
+  }
+
+  // Get a pointer to an unfinished buffer.
+  uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
   // Get the released pointer to the serialized buffer.
   // Don't attempt to use this FlatBufferBuilder afterwards!
@@ -551,7 +559,19 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   // deallocate this pointer (since it points to the middle of an allocation).
   // Thus, do not mix this pointer with other unique_ptr's, or call release() /
   // reset() on it.
-  unique_ptr_t ReleaseBufferPointer() { return buf_.release(); }
+  unique_ptr_t ReleaseBufferPointer() {
+    Finished();
+    return buf_.release();
+  }
+
+  void Finished() const {
+    // If you get this assert, you're attempting to get access a buffer
+    // which hasn't been finished yet. Be sure to call
+    // FlatBufferBuilder::Finish with your root table.
+    // If you really need to access an unfinished buffer, call
+    // GetCurrentBufferPointer instead.
+    assert(finished);
+  }
 
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
@@ -633,15 +653,22 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   }
 
   void NotNested() {
-    // If you hit this, you're trying to construct an object when another
-    // hasn't finished yet.
-    assert(!offsetbuf_.size());
+    // If you hit this, you're trying to construct a Table/Vector/String
+    // during the construction of its parent table (between the MyTableBuilder
+    // and table.Finish().
+    // Move the creation of these sub-objects to above the MyTableBuilder to
+    // not get this assert.
+    // Ignoring this assert may appear to work in simple cases, but the reason
+    // it is here is that storing objects in-line may cause vtable offsets
+    // to not fit anymore. It also leads to vtable duplication.
+    assert(!nested);
   }
 
   // From generated code (or from the parser), we call StartTable/EndTable
   // with a sequence of AddElement calls in between.
   uoffset_t StartTable() {
     NotNested();
+    nested = true;
     return GetSize();
   }
 
@@ -649,6 +676,8 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   // table, comparing it against existing vtables, and writing the
   // resulting vtable offset.
   uoffset_t EndTable(uoffset_t start, voffset_t numfields) {
+    // If you get this assert, a corresponding StartTable wasn't called.
+    assert(nested);
     // Write the vtable offset, which is the start of any Table.
     // We fill it's value later.
     auto vtableoffsetloc = PushElement<soffset_t>(0);
@@ -695,6 +724,8 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     WriteScalar(buf_.data_at(vtableoffsetloc),
                 static_cast<soffset_t>(vt_use) -
                   static_cast<soffset_t>(vtableoffsetloc));
+
+    nested = false;
     return vtableoffsetloc;
   }
 
@@ -751,10 +782,14 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   }
 
   uoffset_t EndVector(size_t len) {
+    assert(nested);  // Hit if no corresponding StartVector.
+    nested = false;
     return PushElement(static_cast<uoffset_t>(len));
   }
 
   void StartVector(size_t len, size_t elemsize) {
+    NotNested();
+    nested = true;
     PreAlign<uoffset_t>(len * elemsize);
     PreAlign(len * elemsize, elemsize);  // Just in case elemsize > uoffset_t.
   }
@@ -764,7 +799,6 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
-    NotNested();
     StartVector(len, sizeof(T));
     for (auto i = len; i > 0; ) {
       PushElement(v[--i]);
@@ -778,7 +812,6 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
 
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
                                                        const T *v, size_t len) {
-    NotNested();
     StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
     PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     return Offset<Vector<const T *>>(EndVector(len));
@@ -829,6 +862,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
   // FlatBuffers file header.
   template<typename T> void Finish(Offset<T> root,
                                    const char *file_identifier = nullptr) {
+    NotNested();
     // This will cause the whole buffer to be aligned.
     PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
              minalign_);
@@ -838,6 +872,7 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
                 kFileIdentifierLength);
     }
     PushElement(ReferTo(root.o));  // Location of root.
+    finished = true;
   }
 
  private:
@@ -856,6 +891,12 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
 
   // Accumulating offsets of table members while it is being built.
   std::vector<FieldLoc> offsetbuf_;
+
+  // Ensure objects are not nested.
+  bool nested;
+
+  // Ensure the buffer is finished before it is being accessed.
+  bool finished;
 
   std::vector<uoffset_t> vtables_;  // todo: Could make this into a map?
 
