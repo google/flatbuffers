@@ -674,8 +674,9 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def) {
     // be stored in-line later in the parent object.
     auto off = struct_stack_.size();
     struct_stack_.insert(struct_stack_.end(),
-                         builder_.GetBufferPointer(),
-                         builder_.GetBufferPointer() + struct_def.bytesize);
+                         builder_.GetCurrentBufferPointer(),
+                         builder_.GetCurrentBufferPointer() +
+                           struct_def.bytesize);
     builder_.PopBytes(struct_def.bytesize);
     return static_cast<uoffset_t>(off);
   } else {

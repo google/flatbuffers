@@ -508,7 +508,7 @@ void FuzzTest1() {
 
   lcg_reset();  // Reset.
 
-  uint8_t *eob = builder.GetBufferPointer() + builder.GetSize();
+  uint8_t *eob = builder.GetCurrentBufferPointer() + builder.GetSize();
 
   // Test that all objects we generated are readable and return the
   // expected values. We generate random objects in the same order
