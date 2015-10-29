@@ -10,10 +10,15 @@ compiler:
 
 env:
   matrix:
-    - BUILD_TYPE=Debug BIICODE=false
-    - BUILD_TYPE=Release BIICODE=false
-    - BUILD_TYPE=Release BIICODE=true
-    - BUILD_TYPE=Debug BIICODE=true
+    build_type:
+      - env: BUILD_TYPE=Release
+    biicode:
+      - env: BIICODE=false
+    go:
+      - 1.5
+    python:
+      - 2.7
+    c++:
   global:
     - GCC_VERSION="4.9"
 
@@ -28,3 +33,5 @@ before_install:
 script:
 - if [ "$BIICODE" == "false" ]; then cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test; fi
 - if [ "$BIICODE" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then ./biicode/support/bii-travis.sh $BUILD_TYPE; fi
+- if [ -n "$TRAVIS_GO_VERSION" ]; then cd tests && ./GoTest.sh; fi
+- if [ -n "$TRAVIS_PYTHON_VERSION" ]; then cd tests && ./PythonTest.sh; fi
