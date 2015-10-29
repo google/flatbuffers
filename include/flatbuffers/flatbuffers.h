@@ -582,6 +582,11 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     buf_.fill(PaddingBytes(buf_.size(), elem_size));
   }
 
+  void PushFlatBuffer(const uint8_t *bytes, size_t size) {
+    PushBytes(bytes, size);
+    finished = true;
+  }
+
   void PushBytes(const uint8_t *bytes, size_t size) {
     buf_.push(bytes, size);
   }
