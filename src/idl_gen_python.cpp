@@ -95,7 +95,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   code += Indent + "@classmethod\n";
-  code += Indent + "def GetRootAs";
+  code += Indent + "def get_root_as_";
   code += struct_def.name;
   code += "(cls, buf, offset):";
   code += "\n";
@@ -126,7 +126,7 @@ static void GetVectorLen(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name) + "Length(self";
+  code += field.name + "_length(self";
   code += "):" + OffsetPrefix(field);
   code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
   code += Indent + Indent + "return 0\n\n";
@@ -139,7 +139,7 @@ static void GetScalarFieldOfStruct(const StructDef &struct_def,
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self): return " + getter;
   code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
   code += NumToString(field.value.offset) + "))\n";
@@ -152,7 +152,7 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self):";
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + getter;
@@ -167,7 +167,7 @@ static void GetStructFieldOfStruct(const StructDef &struct_def,
                                    std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self, obj):\n";
   code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
   code += NumToString(field.value.offset) + ")";
@@ -181,7 +181,7 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self):";
   code += OffsetPrefix(field);
   if (field.value.type.struct_def->fixed) {
@@ -204,7 +204,7 @@ static void GetStringField(const StructDef &struct_def,
                            std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self):";
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
@@ -218,7 +218,7 @@ static void GetUnionField(const StructDef &struct_def,
                           std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name) + "(self):";
+  code += field.name + "(self):";
   code += OffsetPrefix(field);
 
   // TODO(rw): this works and is not the good way to it:
@@ -243,7 +243,7 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
   auto vectortype = field.value.type.VectorType();
 
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self, j):" + OffsetPrefix(field);
   code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
   code += Indent + Indent + Indent;
@@ -269,7 +269,7 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   auto vectortype = field.value.type.VectorType();
 
   GenReceiver(struct_def, code_ptr);
-  code += MakeCamel(field.name);
+  code += field.name;
   code += "(self, j):";
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
@@ -314,7 +314,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
     } else {
       std::string &code = *code_ptr;
       code += (std::string)", " + nameprefix;
-      code += MakeCamel(field.name, false);
+      code += field.name;
     }
   }
 }
@@ -345,7 +345,7 @@ static void StructBuilderBody(const StructDef &struct_def,
                         code_ptr);
     } else {
       code += "    builder.Prepend" + GenMethod(field) + "(";
-      code += nameprefix + MakeCamel(field.name, false) + ")\n";
+      code += nameprefix + field.name + ")\n";
     }
   }
 }
@@ -359,9 +359,9 @@ static void EndBuilderBody(std::string *code_ptr) {
 static void GetStartOfTable(const StructDef &struct_def,
                             std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "Start";
-  code += "(builder): ";
-  code += "builder.StartObject(";
+  code += "def " + struct_def.name + "_start";
+  code += "(builder):\n";
+  code += Indent + "builder.StartObject(";
   code += NumToString(struct_def.fields.vec.size());
   code += ")\n";
 }
@@ -372,19 +372,18 @@ static void BuildFieldOfTable(const StructDef &struct_def,
                               const size_t offset,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "Add" + MakeCamel(field.name);
+  code += "def " + struct_def.name + "_add_" + field.name;
   code += "(builder, ";
-  code += MakeCamel(field.name, false);
-  code += "): ";
-  code += "builder.Prepend";
+  code += field.name;
+  code += "):\n";
+  code += Indent + "builder.Prepend";
   code += GenMethod(field) + "Slot(";
   code += NumToString(offset) + ", ";
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "flatbuffers.number_types.UOffsetTFlags.py_type";
-    code += "(";
-    code += MakeCamel(field.name, false) + ")";
+    code += "flatbuffers.number_types.UOffsetTFlags.py_type(";
+    code += field.name + ")";
   } else {
-    code += MakeCamel(field.name, false);
+    code += field.name;
   }
   code += ", " + field.value.constant;
   code += ")\n";
@@ -395,9 +394,10 @@ static void BuildVectorOfTable(const StructDef &struct_def,
                                const FieldDef &field,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "Start";
-  code += MakeCamel(field.name);
-  code += "Vector(builder, numElems): return builder.StartVector(";
+  code += "def " + struct_def.name + "_start_";
+  code += field.name;
+  code += "_vector(builder, numElems):\n";
+  code += Indent + "return builder.StartVector(";
   auto vector_type = field.value.type.VectorType();
   auto alignment = InlineAlignment(vector_type);
   auto elem_size = InlineSize(vector_type);
@@ -410,15 +410,14 @@ static void BuildVectorOfTable(const StructDef &struct_def,
 static void GetEndOffsetOnTable(const StructDef &struct_def,
                                 std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "End";
-  code += "(builder): ";
-  code += "return builder.EndObject()\n";
+  code += "def " + struct_def.name + "_end";
+  code += "(builder):\n";
+  code += Indent + "return builder.EndObject()\n";
 }
 
 // Generate the receiver for function signatures.
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += Indent + "# " + struct_def.name + "\n";
   code += Indent + "def ";
 }
 
