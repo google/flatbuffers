@@ -7,7 +7,7 @@ import flatbuffers
 class Stat(object):
     __slots__ = ['_tab']
 
-    def Init(self, buf, pos):
+    def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     def id(self):
@@ -28,13 +28,13 @@ class Stat(object):
             return self._tab.get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
 
-def Stat_start(builder):
+def start(builder):
     builder.start_object(3)
-def Stat_add_id(builder, id):
+def add_id(builder, id):
     builder.prepend_UOffsetT_relative_slot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
-def Stat_add_val(builder, val):
+def add_val(builder, val):
     builder.prepend_Int64_slot(1, val, 0)
-def Stat_add_count(builder, count):
+def add_count(builder, count):
     builder.prepend_Uint16_slot(2, count, 0)
-def Stat_end(builder):
+def end(builder):
     return builder.end_object()

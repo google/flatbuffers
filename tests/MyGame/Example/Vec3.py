@@ -7,7 +7,7 @@ import flatbuffers
 class Vec3(object):
     __slots__ = ['_tab']
 
-    def Init(self, buf, pos):
+    def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     def x(self): return self._tab.get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
@@ -16,11 +16,11 @@ class Vec3(object):
     def test1(self): return self._tab.get(flatbuffers.number_types.Float64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16))
     def test2(self): return self._tab.get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(24))
     def test3(self, obj):
-        obj.Init(self._tab.Bytes, self._tab.Pos + 26)
+        obj.init(self._tab.Bytes, self._tab.Pos + 26)
         return obj
 
 
-def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
+def create_Vec3(builder, x, y, z, test1, test2, test3_a, test3_b):
     builder.prep(16, 32)
     builder.pad(2)
     builder.prep(2, 4)

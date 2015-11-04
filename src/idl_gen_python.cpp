@@ -103,7 +103,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += "n = flatbuffers.encode.get";
   code += "(flatbuffers.packer.uoffset, buf, offset)\n";
   code += Indent + Indent + "x = " + struct_def.name + "()\n";
-  code += Indent + Indent + "x.Init(buf, n + offset)\n";
+  code += Indent + Indent + "x.init(buf, n + offset)\n";
   code += Indent + Indent + "return x\n";
   code += "\n\n";
 }
@@ -114,7 +114,7 @@ static void InitializeExisting(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
-  code += "Init(self, buf, pos):\n";
+  code += "init(self, buf, pos):\n";
   code += Indent + Indent + "self._tab = flatbuffers.table.Table(buf, pos)\n";
   code += "\n";
 }
@@ -169,7 +169,7 @@ static void GetStructFieldOfStruct(const StructDef &struct_def,
   GenReceiver(struct_def, code_ptr);
   code += field.name;
   code += "(self, obj):\n";
-  code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
+  code += Indent + Indent + "obj.init(self._tab.Bytes, self._tab.Pos + ";
   code += NumToString(field.value.offset) + ")";
   code += "\n" + Indent + Indent + "return obj\n\n";
 }
@@ -193,7 +193,7 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
   code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
+  code += Indent + Indent + Indent + "obj.init(self._tab.Bytes, x)\n";
   code += Indent + Indent + Indent + "return obj\n";
   code += Indent + Indent + "return None\n\n";
 }
@@ -255,7 +255,7 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
   code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
+  code += Indent + Indent + Indent + "obj.init(self._tab.Bytes, x)\n";
   code += Indent + Indent + Indent + "return obj\n";
   code += Indent + Indent + "return None\n\n";
 }
@@ -291,7 +291,7 @@ static void BeginBuilderArgs(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   code += "\n";
-  code += "def Create" + struct_def.name;
+  code += "def create_" + struct_def.name;
   code += "(builder";
 }
 
@@ -359,8 +359,7 @@ static void EndBuilderBody(std::string *code_ptr) {
 static void GetStartOfTable(const StructDef &struct_def,
                             std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "_start";
-  code += "(builder):\n";
+  code += "def start(builder):\n";
   code += Indent + "builder.start_object(";
   code += NumToString(struct_def.fields.vec.size());
   code += ")\n";
@@ -372,7 +371,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
                               const size_t offset,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "_add_" + field.name;
+  code += "def add_" + field.name;
   code += "(builder, ";
   code += field.name;
   code += "):\n";
@@ -394,7 +393,7 @@ static void BuildVectorOfTable(const StructDef &struct_def,
                                const FieldDef &field,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "_start_";
+  code += "def start_";
   code += field.name;
   code += "_vector(builder, numElems):\n";
   code += Indent + "return builder.start_vector(";
@@ -410,8 +409,7 @@ static void BuildVectorOfTable(const StructDef &struct_def,
 static void GetEndOffsetOnTable(const StructDef &struct_def,
                                 std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "def " + struct_def.name + "_end";
-  code += "(builder):\n";
+  code += "def end(builder):\n";
   code += Indent + "return builder.end_object()\n";
 }
 
@@ -499,7 +497,7 @@ static void GenStruct(const StructDef &struct_def,
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
   }
-  // Generate the Init method that sets the field in a pre-existing
+  // Generate the init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
   for (auto it = struct_def.fields.vec.begin();

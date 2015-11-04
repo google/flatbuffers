@@ -116,7 +116,7 @@ def CheckReadBuffer(buf, offset):
 
     # initialize a Monster from the Table from the union
     monster2 = MyGame.Example.Monster.Monster()
-    monster2.Init(table2.Bytes, table2.Pos)
+    monster2.init(table2.Bytes, table2.Pos)
 
     asserter(monster2.name() == b"Fred")
 
@@ -759,7 +759,7 @@ def make_monster_from_generated_code():
     test2 = b.create_string("test2")
     fred = b.create_string("Fred")
 
-    MyGame.Example.Monster.Monster_start_inventory_vector(b, 5)
+    MyGame.Example.Monster.start_inventory_vector(b, 5)
     b.prepend_Byte(4)
     b.prepend_Byte(3)
     b.prepend_Byte(2)
@@ -767,33 +767,33 @@ def make_monster_from_generated_code():
     b.prepend_Byte(0)
     inv = b.end_vector(5)
 
-    MyGame.Example.Monster.Monster_start(b)
-    MyGame.Example.Monster.Monster_add_name(b, fred)
-    mon2 = MyGame.Example.Monster.Monster_end(b)
+    MyGame.Example.Monster.start(b)
+    MyGame.Example.Monster.add_name(b, fred)
+    mon2 = MyGame.Example.Monster.end(b)
 
-    MyGame.Example.Monster.Monster_start_test4_vector(b, 2)
-    MyGame.Example.Test.CreateTest(b, 10, 20)
-    MyGame.Example.Test.CreateTest(b, 30, 40)
+    MyGame.Example.Monster.start_test4_vector(b, 2)
+    MyGame.Example.Test.create_Test(b, 10, 20)
+    MyGame.Example.Test.create_Test(b, 30, 40)
     test4 = b.end_vector(2)
 
-    MyGame.Example.Monster.Monster_start_testarrayofstring_vector(b, 2)
+    MyGame.Example.Monster.start_testarrayofstring_vector(b, 2)
     b.prepend_UOffsetT_relative(test2)
     b.prepend_UOffsetT_relative(test1)
     testArrayOfString = b.end_vector(2)
 
-    MyGame.Example.Monster.Monster_start(b)
+    MyGame.Example.Monster.start(b)
 
-    pos = MyGame.Example.Vec3.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
-    MyGame.Example.Monster.Monster_add_pos(b, pos)
+    pos = MyGame.Example.Vec3.create_Vec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+    MyGame.Example.Monster.add_pos(b, pos)
 
-    MyGame.Example.Monster.Monster_add_hp(b, 80)
-    MyGame.Example.Monster.Monster_add_name(b, string)
-    MyGame.Example.Monster.Monster_add_inventory(b, inv)
-    MyGame.Example.Monster.Monster_add_test_type(b, 1)
-    MyGame.Example.Monster.Monster_add_test(b, mon2)
-    MyGame.Example.Monster.Monster_add_test4(b, test4)
-    MyGame.Example.Monster.Monster_add_testarrayofstring(b, testArrayOfString)
-    mon = MyGame.Example.Monster.Monster_end(b)
+    MyGame.Example.Monster.add_hp(b, 80)
+    MyGame.Example.Monster.add_name(b, string)
+    MyGame.Example.Monster.add_inventory(b, inv)
+    MyGame.Example.Monster.add_test_type(b, 1)
+    MyGame.Example.Monster.add_test(b, mon2)
+    MyGame.Example.Monster.add_test4(b, test4)
+    MyGame.Example.Monster.add_testarrayofstring(b, testArrayOfString)
+    mon = MyGame.Example.Monster.end(b)
 
     b.finish(mon)
 
@@ -805,8 +805,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         super(TestAllCodePathsOfExampleSchema, self).setUp(*args, **kwargs)
 
         b = flatbuffers.Builder(0)
-        MyGame.Example.Monster.Monster_start(b)
-        gen_mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        gen_mon = MyGame.Example.Monster.end(b)
         b.finish(gen_mon)
 
         self.mon = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
@@ -817,9 +817,9 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
 
     def test_nondefault_monster_mana(self):
         b = flatbuffers.Builder(0)
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_mana(b, 50)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_mana(b, 50)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         got_mon = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
@@ -844,9 +844,9 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_nondefault_monster_color(self):
         b = flatbuffers.Builder(0)
         color = MyGame.Example.Color.Color.Red
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_color(b, color)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_color(b, color)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
@@ -878,19 +878,19 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b = flatbuffers.Builder(0)
 
         # make a child Monster within a vector of Monsters:
-        MyGame.Example.Monster.Monster_start_testarrayoftables_vector(b, 1)
+        MyGame.Example.Monster.start_testarrayoftables_vector(b, 1)
 
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_hp(b, 99)
-        sub_monster = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_hp(b, 99)
+        sub_monster = MyGame.Example.Monster.end(b)
         b.finish(sub_monster)
 
         tables = b.end_vector(1)
 
         # make the parent monster and include the vector of Monster:
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_testarrayoftables(b, tables)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_testarrayoftables(b, tables)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
@@ -906,15 +906,15 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b = flatbuffers.Builder(0)
 
         # make an Enemy object:
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_hp(b, 88)
-        enemy = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_hp(b, 88)
+        enemy = MyGame.Example.Monster.end(b)
         b.finish(enemy)
 
         # make the parent monster and include the vector of Monster:
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_enemy(b, enemy)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_enemy(b, enemy)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
@@ -931,16 +931,16 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_nondefault_monster_testnestedflatbuffer(self):
         b = flatbuffers.Builder(0)
 
-        MyGame.Example.Monster.Monster_start_testnestedflatbuffer_vector(b, 3)
+        MyGame.Example.Monster.start_testnestedflatbuffer_vector(b, 3)
         b.prepend_Byte(4)
         b.prepend_Byte(2)
         b.prepend_Byte(0)
         sub_buf = b.end_vector(3)
 
         # make the parent monster and include the vector of Monster:
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_testnestedflatbuffer(b, sub_buf)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_testnestedflatbuffer(b, sub_buf)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
@@ -955,15 +955,15 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b = flatbuffers.Builder(0)
 
         # make a Stat object:
-        MyGame.Example.Stat.Stat_start(b)
-        MyGame.Example.Stat.Stat_add_val(b, 123)
-        my_stat = MyGame.Example.Stat.Stat_end(b)
+        MyGame.Example.Stat.start(b)
+        MyGame.Example.Stat.add_val(b, 123)
+        my_stat = MyGame.Example.Stat.end(b)
         b.finish(my_stat)
 
         # include the stat object in a monster:
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_testempty(b, my_stat)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_testempty(b, my_stat)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
@@ -976,9 +976,9 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
 
     def test_nondefault_monster_testbool(self):
         b = flatbuffers.Builder(0)
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_testbool(b, True)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_testbool(b, True)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
@@ -998,16 +998,16 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
 
     def test_nondefault_monster_testhashes(self):
         b = flatbuffers.Builder(0)
-        MyGame.Example.Monster.Monster_start(b)
-        MyGame.Example.Monster.Monster_add_testhashs32_fnv1(b, 1)
-        MyGame.Example.Monster.Monster_add_testhashu32_fnv1(b, 2)
-        MyGame.Example.Monster.Monster_add_testhashs64_fnv1(b, 3)
-        MyGame.Example.Monster.Monster_add_testhashu64_fnv1(b, 4)
-        MyGame.Example.Monster.Monster_add_testhashs32_fnv1a(b, 5)
-        MyGame.Example.Monster.Monster_add_testhashu32_fnv1a(b, 6)
-        MyGame.Example.Monster.Monster_add_testhashs64_fnv1a(b, 7)
-        MyGame.Example.Monster.Monster_add_testhashu64_fnv1a(b, 8)
-        mon = MyGame.Example.Monster.Monster_end(b)
+        MyGame.Example.Monster.start(b)
+        MyGame.Example.Monster.add_testhashs32_fnv1(b, 1)
+        MyGame.Example.Monster.add_testhashu32_fnv1(b, 2)
+        MyGame.Example.Monster.add_testhashs64_fnv1(b, 3)
+        MyGame.Example.Monster.add_testhashu64_fnv1(b, 4)
+        MyGame.Example.Monster.add_testhashs32_fnv1a(b, 5)
+        MyGame.Example.Monster.add_testhashu32_fnv1a(b, 6)
+        MyGame.Example.Monster.add_testhashs64_fnv1a(b, 7)
+        MyGame.Example.Monster.add_testhashu64_fnv1a(b, 8)
+        mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
         # inspect the resulting data:
