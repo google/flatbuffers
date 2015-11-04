@@ -80,7 +80,7 @@ def CheckReadBuffer(buf, offset):
         if not stmt:
             raise AssertionError('CheckReadBuffer case failed')
 
-    monster = MyGame.Example.Monster.Monster.get_root_as_Monster(buf, offset)
+    monster = MyGame.Example.Monster.get_root_as_Monster(buf, offset)
 
     asserter(monster.hp() == 80)
     asserter(monster.mana() == 150)
@@ -809,8 +809,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         gen_mon = MyGame.Example.Monster.end(b)
         b.finish(gen_mon)
 
-        self.mon = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                                   b.head)
+        self.mon = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                              b.head)
 
     def test_default_monster_pos(self):
         self.assertTrue(self.mon.pos() is None)
@@ -822,8 +822,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
-        got_mon = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                                  b.head)
+        got_mon = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                             b.head)
         self.assertEqual(50, got_mon.mana())
 
     def test_default_monster_hp(self):
@@ -849,8 +849,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         mon = MyGame.Example.Monster.end(b)
         b.finish(mon)
 
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(MyGame.Example.Color.Color.Red, mon2.color())
 
     def test_default_monster_testtype(self):
@@ -894,8 +894,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(99, mon2.testarrayoftables(0).hp())
         self.assertEqual(1, mon2.testarrayoftables_length())
 
@@ -918,8 +918,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(88, mon2.enemy().hp())
 
     def test_default_monster_testnestedflatbuffer(self):
@@ -944,8 +944,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(3, mon2.testnestedflatbuffer_length())
         self.assertEqual(0, mon2.testnestedflatbuffer(0))
         self.assertEqual(2, mon2.testnestedflatbuffer(1))
@@ -967,8 +967,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(123, mon2.testempty().val())
 
     def test_default_monster_testbool(self):
@@ -982,8 +982,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertTrue(mon2.testbool())
 
     def test_default_monster_testhashes(self):
@@ -1011,8 +1011,8 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.get_root_as_Monster(b.Bytes,
-                                                               b.head)
+        mon2 = MyGame.Example.Monster.get_root_as_Monster(b.Bytes,
+                                                          b.head)
         self.assertEqual(1, mon2.testhashs32_fnv1())
         self.assertEqual(2, mon2.testhashu32_fnv1())
         self.assertEqual(3, mon2.testhashs64_fnv1())

@@ -94,17 +94,16 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  code += Indent + "@classmethod\n";
-  code += Indent + "def get_root_as_";
+  code += "def get_root_as_";
   code += struct_def.name;
-  code += "(cls, buf, offset):";
+  code += "(buf, offset):";
   code += "\n";
-  code += Indent + Indent;
+  code += Indent;
   code += "n = flatbuffers.encode.get";
   code += "(flatbuffers.packer.uoffset, buf, offset)\n";
-  code += Indent + Indent + "x = " + struct_def.name + "()\n";
-  code += Indent + Indent + "x.init(buf, n + offset)\n";
-  code += Indent + Indent + "return x\n";
+  code += Indent + "x = " + struct_def.name + "()\n";
+  code += Indent + "x.init(buf, n + offset)\n";
+  code += Indent + "return x\n";
   code += "\n\n";
 }
 
@@ -492,11 +491,6 @@ static void GenStruct(const StructDef &struct_def,
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
   BeginClass(struct_def, code_ptr);
-  if (&struct_def == root_struct_def) {
-    // Generate a special accessor for the table that has been declared as
-    // the root type.
-    NewRootTypeFromBuffer(struct_def, code_ptr);
-  }
   // Generate the init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
@@ -515,6 +509,11 @@ static void GenStruct(const StructDef &struct_def,
   } else {
     // Create a set of functions that allow table construction.
     GenTableBuilders(struct_def, code_ptr);
+  }
+  if (&struct_def == root_struct_def) {
+    // Generate a special accessor for the table that has been declared as
+    // the root type.
+    NewRootTypeFromBuffer(struct_def, code_ptr);
   }
 }
 
