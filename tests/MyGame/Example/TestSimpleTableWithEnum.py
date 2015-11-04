@@ -11,14 +11,14 @@ class TestSimpleTableWithEnum(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     def color(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.offset(4))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
+            return self._tab.get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 2
 
 def TestSimpleTableWithEnum_start(builder):
-    builder.StartObject(1)
+    builder.start_object(1)
 def TestSimpleTableWithEnum_add_color(builder, color):
-    builder.PrependInt8Slot(0, color, 2)
+    builder.prepend_Int8_slot(0, color, 2)
 def TestSimpleTableWithEnum_end(builder):
-    return builder.EndObject()
+    return builder.end_object()
