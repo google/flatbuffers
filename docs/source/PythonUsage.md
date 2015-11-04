@@ -48,7 +48,7 @@ Create strings:
 Create a table with a struct contained therein:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    Monster_start(builder)
+    Monster.start(builder)
     Monster.add_pos(builder, Vec3.create_Vec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
     Monster.add_hp(builder, 80)
     Monster.add_name(builder, str)
