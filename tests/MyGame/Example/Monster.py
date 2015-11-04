@@ -12,11 +12,11 @@ class Monster(object):
     def get_root_as_Monster(cls, buf, offset):
         n = flatbuffers.encode.get(flatbuffers.packer.uoffset, buf, offset)
         x = Monster()
-        x.Init(buf, n + offset)
+        x.init(buf, n + offset)
         return x
 
 
-    def Init(self, buf, pos):
+    def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     def pos(self):
@@ -25,7 +25,7 @@ class Monster(object):
             x = o + self._tab.Pos
             from .Vec3 import Vec3
             obj = Vec3()
-            obj.Init(self._tab.Bytes, x)
+            obj.init(self._tab.Bytes, x)
             return obj
         return None
 
@@ -88,7 +88,7 @@ class Monster(object):
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             from .Test import Test
             obj = Test()
-            obj.Init(self._tab.Bytes, x)
+            obj.init(self._tab.Bytes, x)
             return obj
         return None
 
@@ -121,7 +121,7 @@ class Monster(object):
             x = self._tab.indirect(x)
             from .Monster import Monster
             obj = Monster()
-            obj.Init(self._tab.Bytes, x)
+            obj.init(self._tab.Bytes, x)
             return obj
         return None
 
@@ -137,7 +137,7 @@ class Monster(object):
             x = self._tab.indirect(o + self._tab.Pos)
             from .Monster import Monster
             obj = Monster()
-            obj.Init(self._tab.Bytes, x)
+            obj.init(self._tab.Bytes, x)
             return obj
         return None
 
@@ -160,7 +160,7 @@ class Monster(object):
             x = self._tab.indirect(o + self._tab.Pos)
             from .Stat import Stat
             obj = Stat()
-            obj.Init(self._tab.Bytes, x)
+            obj.init(self._tab.Bytes, x)
             return obj
         return None
 
@@ -231,67 +231,67 @@ class Monster(object):
             return self._tab.vector_len(o)
         return 0
 
-def Monster_start(builder):
+def start(builder):
     builder.start_object(25)
-def Monster_add_pos(builder, pos):
+def add_pos(builder, pos):
     builder.prepend_Struct_slot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
-def Monster_add_mana(builder, mana):
+def add_mana(builder, mana):
     builder.prepend_Int16_slot(1, mana, 150)
-def Monster_add_hp(builder, hp):
+def add_hp(builder, hp):
     builder.prepend_Int16_slot(2, hp, 100)
-def Monster_add_name(builder, name):
+def add_name(builder, name):
     builder.prepend_UOffsetT_relative_slot(3, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def Monster_add_inventory(builder, inventory):
+def add_inventory(builder, inventory):
     builder.prepend_UOffsetT_relative_slot(5, flatbuffers.number_types.UOffsetTFlags.py_type(inventory), 0)
-def Monster_start_inventory_vector(builder, numElems):
+def start_inventory_vector(builder, numElems):
     return builder.start_vector(1, numElems, 1)
-def Monster_add_color(builder, color):
+def add_color(builder, color):
     builder.prepend_Int8_slot(6, color, 8)
-def Monster_add_test_type(builder, test_type):
+def add_test_type(builder, test_type):
     builder.prepend_Uint8_slot(7, test_type, 0)
-def Monster_add_test(builder, test):
+def add_test(builder, test):
     builder.prepend_UOffsetT_relative_slot(8, flatbuffers.number_types.UOffsetTFlags.py_type(test), 0)
-def Monster_add_test4(builder, test4):
+def add_test4(builder, test4):
     builder.prepend_UOffsetT_relative_slot(9, flatbuffers.number_types.UOffsetTFlags.py_type(test4), 0)
-def Monster_start_test4_vector(builder, numElems):
+def start_test4_vector(builder, numElems):
     return builder.start_vector(4, numElems, 2)
-def Monster_add_testarrayofstring(builder, testarrayofstring):
+def add_testarrayofstring(builder, testarrayofstring):
     builder.prepend_UOffsetT_relative_slot(10, flatbuffers.number_types.UOffsetTFlags.py_type(testarrayofstring), 0)
-def Monster_start_testarrayofstring_vector(builder, numElems):
+def start_testarrayofstring_vector(builder, numElems):
     return builder.start_vector(4, numElems, 4)
-def Monster_add_testarrayoftables(builder, testarrayoftables):
+def add_testarrayoftables(builder, testarrayoftables):
     builder.prepend_UOffsetT_relative_slot(11, flatbuffers.number_types.UOffsetTFlags.py_type(testarrayoftables), 0)
-def Monster_start_testarrayoftables_vector(builder, numElems):
+def start_testarrayoftables_vector(builder, numElems):
     return builder.start_vector(4, numElems, 4)
-def Monster_add_enemy(builder, enemy):
+def add_enemy(builder, enemy):
     builder.prepend_UOffsetT_relative_slot(12, flatbuffers.number_types.UOffsetTFlags.py_type(enemy), 0)
-def Monster_add_testnestedflatbuffer(builder, testnestedflatbuffer):
+def add_testnestedflatbuffer(builder, testnestedflatbuffer):
     builder.prepend_UOffsetT_relative_slot(13, flatbuffers.number_types.UOffsetTFlags.py_type(testnestedflatbuffer), 0)
-def Monster_start_testnestedflatbuffer_vector(builder, numElems):
+def start_testnestedflatbuffer_vector(builder, numElems):
     return builder.start_vector(1, numElems, 1)
-def Monster_add_testempty(builder, testempty):
+def add_testempty(builder, testempty):
     builder.prepend_UOffsetT_relative_slot(14, flatbuffers.number_types.UOffsetTFlags.py_type(testempty), 0)
-def Monster_add_testbool(builder, testbool):
+def add_testbool(builder, testbool):
     builder.prepend_Bool_slot(15, testbool, 0)
-def Monster_add_testhashs32_fnv1(builder, testhashs32_fnv1):
+def add_testhashs32_fnv1(builder, testhashs32_fnv1):
     builder.prepend_Int32_slot(16, testhashs32_fnv1, 0)
-def Monster_add_testhashu32_fnv1(builder, testhashu32_fnv1):
+def add_testhashu32_fnv1(builder, testhashu32_fnv1):
     builder.prepend_Uint32_slot(17, testhashu32_fnv1, 0)
-def Monster_add_testhashs64_fnv1(builder, testhashs64_fnv1):
+def add_testhashs64_fnv1(builder, testhashs64_fnv1):
     builder.prepend_Int64_slot(18, testhashs64_fnv1, 0)
-def Monster_add_testhashu64_fnv1(builder, testhashu64_fnv1):
+def add_testhashu64_fnv1(builder, testhashu64_fnv1):
     builder.prepend_Uint64_slot(19, testhashu64_fnv1, 0)
-def Monster_add_testhashs32_fnv1a(builder, testhashs32_fnv1a):
+def add_testhashs32_fnv1a(builder, testhashs32_fnv1a):
     builder.prepend_Int32_slot(20, testhashs32_fnv1a, 0)
-def Monster_add_testhashu32_fnv1a(builder, testhashu32_fnv1a):
+def add_testhashu32_fnv1a(builder, testhashu32_fnv1a):
     builder.prepend_Uint32_slot(21, testhashu32_fnv1a, 0)
-def Monster_add_testhashs64_fnv1a(builder, testhashs64_fnv1a):
+def add_testhashs64_fnv1a(builder, testhashs64_fnv1a):
     builder.prepend_Int64_slot(22, testhashs64_fnv1a, 0)
-def Monster_add_testhashu64_fnv1a(builder, testhashu64_fnv1a):
+def add_testhashu64_fnv1a(builder, testhashu64_fnv1a):
     builder.prepend_Uint64_slot(23, testhashu64_fnv1a, 0)
-def Monster_add_testarrayofbools(builder, testarrayofbools):
+def add_testarrayofbools(builder, testarrayofbools):
     builder.prepend_UOffsetT_relative_slot(24, flatbuffers.number_types.UOffsetTFlags.py_type(testarrayofbools), 0)
-def Monster_start_testarrayofbools_vector(builder, numElems):
+def start_testarrayofbools_vector(builder, numElems):
     return builder.start_vector(1, numElems, 1)
-def Monster_end(builder):
+def end(builder):
     return builder.end_object()

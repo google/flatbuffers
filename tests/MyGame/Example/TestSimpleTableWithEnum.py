@@ -7,7 +7,7 @@ import flatbuffers
 class TestSimpleTableWithEnum(object):
     __slots__ = ['_tab']
 
-    def Init(self, buf, pos):
+    def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     def color(self):
@@ -16,9 +16,9 @@ class TestSimpleTableWithEnum(object):
             return self._tab.get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 2
 
-def TestSimpleTableWithEnum_start(builder):
+def start(builder):
     builder.start_object(1)
-def TestSimpleTableWithEnum_add_color(builder, color):
+def add_color(builder, color):
     builder.prepend_Int8_slot(0, color, 2)
-def TestSimpleTableWithEnum_end(builder):
+def end(builder):
     return builder.end_object()

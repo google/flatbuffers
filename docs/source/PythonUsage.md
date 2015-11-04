@@ -8,12 +8,12 @@ FlatBuffer binary file into a `bytearray`, which you pass to the
 `get_root_as_Monster` function:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    import MyGame.Example as example
+    from MyGame.Example import Monster, Vec3
     import flatbuffers
 
     buf = open('monster.dat', 'rb').read()
     buf = bytearray(buf)
-    monster = example.get_root_as_Monster(buf, 0)
+    monster = Monster.get_root_as_Monster(buf, 0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you can access values like this:
@@ -48,15 +48,15 @@ Create strings:
 Create a table with a struct contained therein:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    example.Monster_start(builder)
-    example.Monster_add_pos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
-    example.Monster_add_hp(builder, 80)
-    example.Monster_add_name(builder, str)
-    example.Monster_add_inventory(builder, inv)
-    example.Monster_add_test_Type(builder, 1)
-    example.Monster_add_Test(builder, mon2)
-    example.Monster_add_Test4(builder, test4s)
-    mon = example.Monster_end(builder)
+    Monster_start(builder)
+    Monster.add_pos(builder, Vec3.create_Vec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
+    Monster.add_hp(builder, 80)
+    Monster.add_name(builder, str)
+    Monster.add_inventory(builder, inv)
+    Monster.add_test_Type(builder, 1)
+    Monster.add_Test(builder, mon2)
+    Monster.add_Test4(builder, test4s)
+    mon = Monster.end(builder)
 
     final_flatbuffer = builder.output()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +76,7 @@ Vectors also use this start/end pattern to allow vectors of both scalar types
 and structs:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    example.Monster_start_inventory_vector(builder, 5)
+    Monster.start_inventory_vector(builder, 5)
     i = 4
     while i >= 0:
         builder.prepend_Byte(byte(i))
