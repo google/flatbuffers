@@ -19,11 +19,11 @@ from . import packer
 from .compat import memoryview_type
 
 
-def Get(packer_type, buf, head):
+def get(packer_type, buf, head):
     """ Get decodes a value at buf[head:] using `packer_type`. """
     return packer_type.unpack_from(memoryview_type(buf), head)[0]
 
 
-def Write(packer_type, buf, head, n):
+def write(packer_type, buf, head, n):
     """ Write encodes `n` at buf[head:] using `packer_type`. """
     packer_type.pack_into(buf, head, n)

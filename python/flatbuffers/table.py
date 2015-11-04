@@ -29,81 +29,81 @@ class Table(object):
         self.Bytes = buf
         self.Pos = pos
 
-    def Offset(self, vtableOffset):
-        """Offset provides access into the Table's vtable.
+    def offset(self, vtableOffset):
+        """offset provides access into the Table's vtable.
 
         Deprecated fields are ignored by checking the vtable's length."""
 
-        vtable = self.Pos - self.Get(N.SOffsetTFlags, self.Pos)
-        vtableEnd = self.Get(N.VOffsetTFlags, vtable)
+        vtable = self.Pos - self.get(N.SOffsetTFlags, self.Pos)
+        vtableEnd = self.get(N.VOffsetTFlags, vtable)
         if vtableOffset < vtableEnd:
-            return self.Get(N.VOffsetTFlags, vtable + vtableOffset)
+            return self.get(N.VOffsetTFlags, vtable + vtableOffset)
         return 0
 
-    def Indirect(self, off):
-        """Indirect retrieves the relative offset stored at `offset`."""
+    def indirect(self, off):
+        """indirect retrieves the relative offset stored at `offset`."""
         N.enforce_number(off, N.UOffsetTFlags)
-        return off + encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+        return off + encode.get(N.UOffsetTFlags.packer_type, self.Bytes, off)
 
-    def String(self, off):
-        """String gets a string from data stored inside the flatbuffer."""
+    def string(self, off):
+        """string gets a string from data stored inside the flatbuffer."""
         N.enforce_number(off, N.UOffsetTFlags)
-        off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+        off += encode.get(N.UOffsetTFlags.packer_type, self.Bytes, off)
         start = off + N.UOffsetTFlags.bytewidth
-        length = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+        length = encode.get(N.UOffsetTFlags.packer_type, self.Bytes, off)
         return bytes(self.Bytes[start:start+length])
 
-    def VectorLen(self, off):
-        """VectorLen retrieves the length of the vector whose offset is stored
+    def vector_len(self, off):
+        """vector_len retrieves the length of the vector whose offset is stored
            at "off" in this object."""
         N.enforce_number(off, N.UOffsetTFlags)
 
         off += self.Pos
-        off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
-        ret = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+        off += encode.get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+        ret = encode.get(N.UOffsetTFlags.packer_type, self.Bytes, off)
         return ret
 
-    def Vector(self, off):
-        """Vector retrieves the start of data of the vector whose offset is
+    def vector(self, off):
+        """vector retrieves the start of data of the vector whose offset is
            stored at "off" in this object."""
         N.enforce_number(off, N.UOffsetTFlags)
 
         off += self.Pos
-        x = off + self.Get(N.UOffsetTFlags, off)
+        x = off + self.get(N.UOffsetTFlags, off)
         # data starts after metadata containing the vector length
         x += N.UOffsetTFlags.bytewidth
         return x
 
-    def Union(self, t2, off):
-        """Union initializes any Table-derived type to point to the union at
+    def union(self, t2, off):
+        """union initializes any Table-derived type to point to the union at
            the given offset."""
         assert type(t2) is Table
         N.enforce_number(off, N.UOffsetTFlags)
 
         off += self.Pos
-        t2.Pos = off + self.Get(N.UOffsetTFlags, off)
+        t2.Pos = off + self.get(N.UOffsetTFlags, off)
         t2.Bytes = self.Bytes
 
-    def Get(self, flags, off):
+    def get(self, flags, off):
         """
-        Get retrieves a value of the type specified by `flags`  at the
+        get retrieves a value of the type specified by `flags`  at the
         given offset.
         """
         N.enforce_number(off, N.UOffsetTFlags)
-        return flags.py_type(encode.Get(flags.packer_type, self.Bytes, off))
+        return flags.py_type(encode.get(flags.packer_type, self.Bytes, off))
 
-    def GetSlot(self, slot, d, validator_flags):
+    def get_slot(self, slot, d, validator_flags):
         N.enforce_number(slot, N.VOffsetTFlags)
         if validator_flags is not None:
             N.enforce_number(d, validator_flags)
-        off = self.Offset(slot)
+        off = self.offset(slot)
         if off == 0:
             return d
-        return self.Get(validator_flags, self.Pos + off)
+        return self.get(validator_flags, self.Pos + off)
 
-    def GetVOffsetTSlot(self, slot, d):
+    def get_VOffsetT_slot(self, slot, d):
         """
-        GetVOffsetTSlot retrieves the VOffsetT that the given vtable location
+        get_VOffsetT_slot retrieves the VOffsetT that the given vtable location
         points to. If the vtable value is zero, the default value `d`
         will be returned.
         """
@@ -111,7 +111,7 @@ class Table(object):
         N.enforce_number(slot, N.VOffsetTFlags)
         N.enforce_number(d, N.VOffsetTFlags)
 
-        off = self.Offset(slot)
+        off = self.offset(slot)
         if off == 0:
                 return d
         return off

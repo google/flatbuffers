@@ -5,7 +5,7 @@ code for Python with the `-p` option to `flatc`.
 
 See `py_test.py` for an example. You import the generated code, read a
 FlatBuffer binary file into a `bytearray`, which you pass to the
-`GetRootAsMonster` function:
+`get_root_as_Monster` function:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
     import MyGame.Example as example
@@ -13,7 +13,7 @@ FlatBuffer binary file into a `bytearray`, which you pass to the
 
     buf = open('monster.dat', 'rb').read()
     buf = bytearray(buf)
-    monster = example.get_root_as_monster(buf, 0)
+    monster = example.get_root_as_Monster(buf, 0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you can access values like this:
@@ -25,7 +25,7 @@ Now you can access values like this:
 
 To access vectors you pass an extra index to the
 vector field accessor. Then a second method with the same name suffixed
-by `Length` let's you know the number of elements you can access:
+by `_length` let's you know the number of elements you can access:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
     for i in xrange(monster.inventory_length()):
@@ -33,7 +33,7 @@ by `Length` let's you know the number of elements you can access:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also construct these buffers in Python using the functions found
-in the generated code, and the FlatBufferBuilder class:
+in the generated code, and the Builder class:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
     builder = flatbuffers.Builder(0)
@@ -42,7 +42,7 @@ in the generated code, and the FlatBufferBuilder class:
 Create strings:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
-    s = builder.CreateString("MyMonster")
+    s = builder.create_string("MyMonster")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a table with a struct contained therein:
@@ -58,7 +58,7 @@ Create a table with a struct contained therein:
     example.Monster_add_Test4(builder, test4s)
     mon = example.Monster_end(builder)
 
-    final_flatbuffer = builder.Output()
+    final_flatbuffer = builder.output()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Unlike C++, Python does not support table creation functions like 'createMonster()'.
@@ -79,33 +79,33 @@ and structs:
     example.Monster_start_inventory_vector(builder, 5)
     i = 4
     while i >= 0:
-        builder.PrependByte(byte(i))
+        builder.prepend_Byte(byte(i))
         i -= 1
 
-    inv = builder.EndVector(5)
+    inv = builder.end_vector(5)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The generated method 'start_inventory_vector' is provided as a convenience
-function which calls 'StartVector' with the correct element size of the vector
+function which calls 'start_vector' with the correct element size of the vector
 type which in this case is 'ubyte' or 1 byte per vector element.
 You pass the number of elements you want to write.
 You write the elements backwards since the buffer
-is being constructed back to front. Use the correct `Prepend` call for the type,
-or `PrependUOffsetT` for offsets. You then pass `inv` to the corresponding
-`Add` call when you construct the table containing it afterwards.
+is being constructed back to front. Use the correct `prepend` call for the type,
+or `prepend_UOffsetT` for offsets. You then pass `inv` to the corresponding
+`add` call when you construct the table containing it afterwards.
 
-There are `Prepend` functions for all the scalar types. You use
-`PrependUOffset` for any previously constructed objects (such as other tables,
+There are `Builder.prepend` functions for all the scalar types. You use
+`prepend_UOffset` for any previously constructed objects (such as other tables,
 strings, vectors). For structs, you use the appropriate `create` function
 in-line, as shown above in the `Monster` example.
 
-Once you're done constructing a buffer, you call `Finish` with the root object
+Once you're done constructing a buffer, you call `Builder.finish()` with the root object
 offset (`mon` in the example above). Your data now resides in Builder.Bytes.
-Important to note is that the real data starts at the index indicated by Head(),
-for Offset() bytes (this is because the buffer is constructed backwards).
+Important to note is that the real data starts at the index indicated by `Builder.head`,
+for offset() bytes (this is because the buffer is constructed backwards).
 If you wanted to read the buffer right after creating it (using
 `get_root_as_monster` above), the second argument, instead of `0` would thus
-also be `Head()`.
+also be `Builder.head`.
 
 ## Text Parsing
 

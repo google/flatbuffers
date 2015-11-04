@@ -43,7 +43,7 @@ const std::string Indent = "    ";
 std::string OffsetPrefix(const FieldDef &field) {
   return "\n" + Indent + Indent +
          "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
-         "(self._tab.Offset(" +
+         "(self._tab.offset(" +
          NumToString(field.value.offset) +
          "))\n" + Indent + Indent + "if o != 0:\n";
 }
@@ -100,7 +100,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += "(cls, buf, offset):";
   code += "\n";
   code += Indent + Indent;
-  code += "n = flatbuffers.encode.Get";
+  code += "n = flatbuffers.encode.get";
   code += "(flatbuffers.packer.uoffset, buf, offset)\n";
   code += Indent + Indent + "x = " + struct_def.name + "()\n";
   code += Indent + Indent + "x.Init(buf, n + offset)\n";
@@ -128,7 +128,7 @@ static void GetVectorLen(const StructDef &struct_def,
   GenReceiver(struct_def, code_ptr);
   code += field.name + "_length(self";
   code += "):" + OffsetPrefix(field);
-  code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
+  code += Indent + Indent + Indent + "return self._tab.vector_len(o)\n";
   code += Indent + Indent + "return 0\n\n";
 }
 
@@ -188,7 +188,7 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
     code += Indent + Indent + Indent + "x = o + self._tab.Pos\n";
   } else {
     code += Indent + Indent + Indent;
-    code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
+    code += "x = self._tab.indirect(o + self._tab.Pos)\n";
   }
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
@@ -245,12 +245,12 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
   GenReceiver(struct_def, code_ptr);
   code += field.name;
   code += "(self, j):" + OffsetPrefix(field);
-  code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
+  code += Indent + Indent + Indent + "x = self._tab.vector(o)\n";
   code += Indent + Indent + Indent;
   code += "x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * ";
   code += NumToString(InlineSize(vectortype)) + "\n";
   if (!(vectortype.struct_def->fixed)) {
-    code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
+    code += Indent + Indent + Indent + "x = self._tab.indirect(x)\n";
   }
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
@@ -272,7 +272,7 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   code += field.name;
   code += "(self, j):";
   code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
+  code += Indent + Indent + Indent + "a = self._tab.vector(o)\n";
   code += Indent + Indent + Indent;
   code += "return " + GenGetter(field.value.type);
   code += "a + flatbuffers.number_types.UOffsetTFlags.py_type(j * ";
@@ -331,20 +331,20 @@ static void StructBuilderBody(const StructDef &struct_def,
                               const char *nameprefix,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+  code += "    builder.prep(" + NumToString(struct_def.minalign) + ", ";
   code += NumToString(struct_def.bytesize) + ")\n";
   for (auto it = struct_def.fields.vec.rbegin();
        it != struct_def.fields.vec.rend();
        ++it) {
     auto &field = **it;
     if (field.padding)
-      code += "    builder.Pad(" + NumToString(field.padding) + ")\n";
+      code += "    builder.pad(" + NumToString(field.padding) + ")\n";
     if (IsStruct(field.value.type)) {
       StructBuilderBody(*field.value.type.struct_def,
                         (nameprefix + (field.name + "_")).c_str(),
                         code_ptr);
     } else {
-      code += "    builder.Prepend" + GenMethod(field) + "(";
+      code += "    builder.prepend_" + GenMethod(field) + "(";
       code += nameprefix + field.name + ")\n";
     }
   }
@@ -352,7 +352,7 @@ static void StructBuilderBody(const StructDef &struct_def,
 
 static void EndBuilderBody(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "    return builder.Offset()\n";
+  code += "    return builder.offset()\n";
 }
 
 // Get the value of a table's starting offset.
@@ -361,7 +361,7 @@ static void GetStartOfTable(const StructDef &struct_def,
   std::string &code = *code_ptr;
   code += "def " + struct_def.name + "_start";
   code += "(builder):\n";
-  code += Indent + "builder.StartObject(";
+  code += Indent + "builder.start_object(";
   code += NumToString(struct_def.fields.vec.size());
   code += ")\n";
 }
@@ -376,8 +376,8 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   code += "(builder, ";
   code += field.name;
   code += "):\n";
-  code += Indent + "builder.Prepend";
-  code += GenMethod(field) + "Slot(";
+  code += Indent + "builder.prepend_";
+  code += GenMethod(field) + "_slot(";
   code += NumToString(offset) + ", ";
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "flatbuffers.number_types.UOffsetTFlags.py_type(";
@@ -397,7 +397,7 @@ static void BuildVectorOfTable(const StructDef &struct_def,
   code += "def " + struct_def.name + "_start_";
   code += field.name;
   code += "_vector(builder, numElems):\n";
-  code += Indent + "return builder.StartVector(";
+  code += Indent + "return builder.start_vector(";
   auto vector_type = field.value.type.VectorType();
   auto alignment = InlineAlignment(vector_type);
   auto elem_size = InlineSize(vector_type);
@@ -412,7 +412,7 @@ static void GetEndOffsetOnTable(const StructDef &struct_def,
   std::string &code = *code_ptr;
   code += "def " + struct_def.name + "_end";
   code += "(builder):\n";
-  code += Indent + "return builder.EndObject()\n";
+  code += Indent + "return builder.end_object()\n";
 }
 
 // Generate the receiver for function signatures.
@@ -539,11 +539,11 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
 // Returns the function name that is able to read a value of the given type.
 static std::string GenGetter(const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING: return "self._tab.String(";
-    case BASE_TYPE_UNION: return "self._tab.Union(";
+    case BASE_TYPE_STRING: return "self._tab.string(";
+    case BASE_TYPE_UNION: return "self._tab.union(";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default:
-      return "self._tab.Get(flatbuffers.number_types." + \
+      return "self._tab.get(flatbuffers.number_types." + \
              MakeCamel(GenTypeGet(type)) + \
              "Flags, ";
   }
@@ -553,7 +553,7 @@ static std::string GenGetter(const Type &type) {
 static std::string GenMethod(const FieldDef &field) {
   return IsScalar(field.value.type.base_type)
     ? MakeCamel(GenTypeBasic(field.value.type))
-    : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
+    : (IsStruct(field.value.type) ? "Struct" : "UOffsetT_relative");
 }
 
 
