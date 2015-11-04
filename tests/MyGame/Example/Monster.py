@@ -8,14 +8,6 @@ import flatbuffers
 class Monster(object):
     __slots__ = ['_tab']
 
-    @classmethod
-    def get_root_as_Monster(cls, buf, offset):
-        n = flatbuffers.encode.get(flatbuffers.packer.uoffset, buf, offset)
-        x = Monster()
-        x.init(buf, n + offset)
-        return x
-
-
     def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
@@ -295,3 +287,10 @@ def start_testarrayofbools_vector(builder, numElems):
     return builder.start_vector(1, numElems, 1)
 def end(builder):
     return builder.end_object()
+def get_root_as_Monster(buf, offset):
+    n = flatbuffers.encode.get(flatbuffers.packer.uoffset, buf, offset)
+    x = Monster()
+    x.init(buf, n + offset)
+    return x
+
+
