@@ -409,6 +409,24 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Value &
            : value.constant;
 }
 
+static std::string GenEnumDefaultValue(const FieldDef &field) {
+  auto enum_def = field.value.type.enum_def;
+  auto vec = enum_def->vals.vec;
+  auto default_value = StringToInt(field.value.constant.c_str());
+
+  auto result = field.value.constant;
+  for (auto it = vec.begin(); it != vec.end(); ++it) {
+    auto enum_val = **it;
+    if (enum_val.value == default_value) {
+      result = enum_def->name + "." + enum_val.name;
+      break;
+    }
+  }
+
+  return result;
+}
+
+
 static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
                     std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -873,14 +891,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         // supply all arguments, and thus won't compile when fields are added.
         if (lang.language != GeneratorOptions::kJava) {
           code += " = ";
-          // in C#, enum values have their own type, so we need to cast the
-          // numeric value to the proper type
+          // in C#, enum values have their own type, but Unity (specifically .Net 3.5) can't
+          // cast enum type from numeric value.
           if (lang.language == GeneratorOptions::kCSharp &&
             field.value.type.enum_def != nullptr &&
             field.value.type.base_type != BASE_TYPE_UNION) {
-            code += "(" + field.value.type.enum_def->name + ")";
+            code += GenEnumDefaultValue(field);
+          } else {
+            code += GenDefaultValue(lang, field.value, false);
           }
-          code += GenDefaultValue(lang, field.value, false);
         }
       }
       code += ") {\n    builder.";
