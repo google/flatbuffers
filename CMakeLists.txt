@@ -34,6 +34,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
   src/idl_gen_js.cpp
+  src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_fbs.cpp
   src/flatc.cpp

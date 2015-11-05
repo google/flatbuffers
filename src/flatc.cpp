@@ -72,6 +72,10 @@ const Generator generators[] = {
     flatbuffers::GeneratorOptions::kMAX,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
+    { flatbuffers::GeneratePhp,   "--php", "PHP",
+    flatbuffers::GeneratorOptions::kMAX,
+    "Generate Php files for tables/structs",
+    flatbuffers::GeneralMakeRule },
 };
 
 const char *program_name = NULL;
