@@ -146,4 +146,7 @@ sections provide a more in-depth usage guide.
     - Evolution of FlatBuffers
       [visualization](https://www.youtube.com/watch?v=a0QE0xS8rKM).
 -   Useful documentation created by others:
-    - [Using FlatBuffers in Unity](http://exiin.com/blog/flatbuffers-for-unity-sample-code/)
+    - [FlatBuffers in Go](https://rwinslow.com/tags/flatbuffers/)
+    - [FlatBuffers in Android](http://frogermcs.github.io/flatbuffers-in-android-introdution/)
+    - [Parsing JSON to FlatBuffers in Java](http://frogermcs.github.io/json-parsing-with-flatbuffers-in-android/)
+    - [FlatBuffers in Unity](http://exiin.com/blog/flatbuffers-for-unity-sample-code/)
