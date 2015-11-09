@@ -625,19 +625,19 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def, std::string *value) {
     // Go through elements in reverse, since we're building the data backwards.
     for (auto it = field_stack_.rbegin();
              it != field_stack_.rbegin() + fieldn; ++it) {
-      auto &value = it->first;
+      auto &field_value = it->first;
       auto field = it->second;
-      if (!struct_def.sortbysize || size == SizeOf(value.type.base_type)) {
-        switch (value.type.base_type) {
+      if (!struct_def.sortbysize || size == SizeOf(field_value.type.base_type)) {
+        switch (field_value.type.base_type) {
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
             PTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
-                builder_.PushElement(atot<CTYPE>(value.constant.c_str())); \
+                builder_.PushElement(atot<CTYPE>(field_value.constant.c_str())); \
               } else { \
-                builder_.AddElement(value.offset, \
-                             atot<CTYPE>(       value.constant.c_str()), \
+                builder_.AddElement(field_value.offset, \
+                             atot<CTYPE>(       field_value.constant.c_str()), \
                              atot<CTYPE>(field->value.constant.c_str())); \
               } \
               break;
@@ -648,10 +648,10 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def, std::string *value) {
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
-                SerializeStruct(*field->value.type.struct_def, value); \
+                SerializeStruct(*field->value.type.struct_def, field_value); \
               } else { \
-                builder_.AddOffset(value.offset, \
-                  atot<CTYPE>(value.constant.c_str())); \
+                builder_.AddOffset(field_value.offset, \
+                  atot<CTYPE>(field_value.constant.c_str())); \
               } \
               break;
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
