@@ -27,6 +27,8 @@ namespace FlatBuffers
         protected int bb_pos;
         protected ByteBuffer bb;
 
+        public ByteBuffer ByteBuffer { get { return bb; } }
+
         // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
         // present.
         protected int __offset(int vtableOffset)
