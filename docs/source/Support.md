@@ -17,23 +17,25 @@ In general:
 
 NOTE: this table is a start, it needs to be extended.
 
-Feature                        | C++    | Java   | C#     | Go     | Python | JS
------------------------------- | ------ | ------ | ------ | ------ | ------ | ------
-Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | WIP
-JSON parsing                   | Yes    | No     | No     | No     | No     | No
-Simple mutation                | Yes    | WIP    | WIP    | No     | No     | No
-Reflection                     | Yes    | No     | No     | No     | No     | No
-Buffer verifier                | Yes    | No     | No     | No     | No     | No
-Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | WIP
-Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No
-Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?
-Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?
-Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?
-Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?
-Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?
-Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?
-Primary authors (github)       | wvo    | wvo    | (ev/js)| rw     | rw     | (ev)
+Feature                        | C++    | Java   | C#     | Go     | Python | JS        | C    | PHP | Ruby
+------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | ---- | --- | ----
+Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | WiP  | WiP | WiP
+JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No   | No  | No
+Simple mutation                | Yes    | WIP    | WIP    | No     | No     | No        | No   | No  | No
+Reflection                     | Yes    | No     | No     | No     | No     | No        | No   | No  | No
+Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No   | No  | No
+Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | ?    | ?   | ?
+Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | ?    | ?   | ?
+Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         |Superb| ?   | ?
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | ?    | ?   | ?
+Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | ?    | ?   | ?
+Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | ?    | ?   | ?
+Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?    | ?   | ?
+Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?    | ?   | ?
+Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?    | ?   | ?
+Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | evanw/ev* | mik* | ch* | rw
 
   * ev = evolutional
   * js = jonsimantov
+  * mik = mikkelfj
+  * ch = chobie
