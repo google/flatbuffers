@@ -61,19 +61,19 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="title">FlatBuffers Documentation</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>FlatBuffers is an efficient cross platform serialization library for C++, with support for Java, C# and Go. It was created at Google specifically for game development and other performance-critical applications.</p>
+<div class="textblock"><p>FlatBuffers is an efficient cross platform serialization library for C++, Java, C#, Go, Python and JavaScript (C, PHP &amp; Ruby in progress). It was originally created at Google for game development and other performance-critical applications.</p>
 <p>It is available as Open Source on <a href="http://github.com/google/flatbuffers">GitHub</a> under the Apache license, v2 (see LICENSE.txt).</p>
 <h2>Why use FlatBuffers?</h2>
 <ul>
 <li><b>Access to serialized data without parsing/unpacking</b> - What sets FlatBuffers apart is that it represents hierarchical data in a flat binary buffer in such a way that it can still be accessed directly without parsing/unpacking, while also still supporting data structure evolution (forwards/backwards compatibility).</li>
-<li><b>Memory efficiency and speed</b> - The only memory needed to access your data is that of the buffer. It requires 0 additional allocations. FlatBuffers is also very suitable for use with mmap (or streaming), requiring only part of the buffer to be in memory. Access is close to the speed of raw struct access with only one extra indirection (a kind of vtable) to allow for format evolution and optional fields. It is aimed at projects where spending time and space (many memory allocations) to be able to access or construct serialized data is undesirable, such as in games or any other performance sensitive applications. See the <a href="md__benchmarks.html">benchmarks</a> for details.</li>
+<li><b>Memory efficiency and speed</b> - The only memory needed to access your data is that of the buffer. It requires 0 additional allocations (in C++, other languages may vary). FlatBuffers is also very suitable for use with mmap (or streaming), requiring only part of the buffer to be in memory. Access is close to the speed of raw struct access with only one extra indirection (a kind of vtable) to allow for format evolution and optional fields. It is aimed at projects where spending time and space (many memory allocations) to be able to access or construct serialized data is undesirable, such as in games or any other performance sensitive applications. See the <a href="md__benchmarks.html">benchmarks</a> for details.</li>
 <li><b>Flexible</b> - Optional fields means not only do you get great forwards and backwards compatibility (increasingly important for long-lived games: don't have to update all data with each new version!). It also means you have a lot of choice in what data you write and what data you don't, and how you design data structures.</li>
 <li><b>Tiny code footprint</b> - Small amounts of generated code, and just a single small header as the minimum dependency, which is very easy to integrate. Again, see the benchmark section for details.</li>
 <li><b>Strongly typed</b> - Errors happen at compile time rather than manually having to write repetitive and error prone run-time checks. Useful code can be generated for you.</li>
 <li><p class="startli"><b>Convenient to use</b> - Generated C++ code allows for terse access &amp; construction code. Then there's optional functionality for parsing schemas and JSON-like text representations at runtime efficiently if needed (faster and more memory efficient than other JSON parsers).</p>
-<p class="startli">Java and Go code supports object-reuse.</p>
+<p class="startli">Java and Go code supports object-reuse. C# has efficient struct based accessors.</p>
 </li>
-<li><b>Cross platform C++11/Java/C#/Go code with no dependencies</b> - will work with any recent gcc/clang and VS2010. Comes with build files for the tests &amp; samples (Android .mk files, and cmake for all other platforms).</li>
+<li><b>Cross platform code with no dependencies</b> - C++ code will work with any recent gcc/clang and VS2010. Comes with build files for the tests &amp; samples (Android .mk files, and cmake for all other platforms).</li>
 </ul>
 <h3>Why not use Protocol Buffers, or .. ?</h3>
 <p>Protocol Buffers is indeed relatively similar to FlatBuffers, with the primary difference being that FlatBuffers does not need a parsing/ unpacking step to a secondary representation before you can access data, often coupled with per-object memory allocation. The code is an order of magnitude bigger, too. Protocol Buffers has neither optional text import/export nor schema language features like unions.</p>
@@ -115,6 +115,10 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li><a href="http://google.github.io/flatbuffers">Landing page</a></li>
 <li><a href="http://group.google.com/group/flatbuffers">FlatBuffers Google Group</a></li>
 <li><a href="http://github.com/google/flatbuffers/issues">FlatBuffers Issues Tracker</a></li>
+<li>Independent implementations &amp; tools:<ul>
+<li><a href="https://github.com/dvidelabs/flatcc">FlatCC</a> Alternative FlatBuffers parser, code generator and runtime all in C.</li>
+</ul>
+</li>
 <li>Videos:<ul>
 <li>Colt's <a href="https://www.youtube.com/watch?v=iQTxMkSJ1dQ">DevByte</a>.</li>
 <li>GDC 2015 <a href="https://www.youtube.com/watch?v=olmL1fUnQAQ">Lightning Talk</a>.</li>
