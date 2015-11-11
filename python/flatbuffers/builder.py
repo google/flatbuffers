@@ -81,6 +81,7 @@ class Builder(object):
     It holds the following internal state:
         Bytes: an array of bytes.
         current_vtable: a list of integers.
+        head: the start of useful data in the underlying byte buffer.
         vtables: a list of vtable entries (i.e. a list of list of integers).
     """
 
@@ -111,27 +112,27 @@ class Builder(object):
         self.objectEnd = None
         self.vtables = []
 
-    def Output(self):
+    def output(self):
         """
-        Output returns the portion of the buffer that has been used for
+        output returns the portion of the buffer that has been used for
         writing data.
         """
 
-        return self.Bytes[self.Head():]
+        return self.Bytes[self.head:]
 
-    def StartObject(self, numfields):
-        """StartObject initializes bookkeeping for writing a new object."""
+    def start_object(self, numfields):
+        """start_object initializes bookkeeping for writing a new object."""
 
-        self.assertNotNested()
+        self.assert_not_nested()
 
         # use 32-bit offsets so that arithmetic doesn't overflow.
         self.current_vtable = [0 for _ in range_func(numfields)]
-        self.objectEnd = self.Offset()
+        self.objectEnd = self.offset()
         self.minalign = 1
 
-    def WriteVtable(self):
+    def write_vtable(self):
         """
-        WriteVtable serializes the vtable for the current object, if needed.
+        write_vtable serializes the vtable for the current object, if needed.
 
         Before writing out the vtable, this checks pre-existing vtables for
         equality to this one. If an equal vtable is found, point the object to
@@ -154,9 +155,9 @@ class Builder(object):
 
         # Prepend a zero scalar to the object. Later in this function we'll
         # write an offset here that points to the object's vtable:
-        self.PrependSOffsetTRelative(0)
+        self.prepend_SOffsetT_relative(0)
 
-        objectOffset = self.Offset()
+        objectOffset = self.offset()
         existingVtable = None
 
         # Search backwards through existing vtables, because similar vtables
@@ -170,7 +171,7 @@ class Builder(object):
             # Find the other vtable, which is associated with `i`:
             vt2Offset = self.vtables[i]
             vt2Start = len(self.Bytes) - vt2Offset
-            vt2Len = encode.Get(packer.voffset, self.Bytes, vt2Start)
+            vt2Len = encode.get(packer.voffset, self.Bytes, vt2Start)
 
             metadata = VtableMetadataFields * N.VOffsetTFlags.bytewidth
             vt2End = vt2Start + vt2Len
@@ -178,7 +179,7 @@ class Builder(object):
 
             # Compare the other vtable to the one under consideration.
             # If they are equal, store the offset and break:
-            if vtableEqual(self.current_vtable, objectOffset, vt2):
+            if vtable_equal(self.current_vtable, objectOffset, vt2):
                 existingVtable = vt2Offset
                 break
 
@@ -197,29 +198,29 @@ class Builder(object):
                     # use 32bit number to ensure no overflow:
                     off = objectOffset - self.current_vtable[i]
 
-                self.PrependVOffsetT(off)
+                self.prepend_VOffsetT(off)
                 i -= 1
 
             # The two metadata fields are written last.
 
             # First, store the object bytesize:
             objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
-            self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
+            self.prepend_VOffsetT(VOffsetTFlags.py_type(objectSize))
 
             # Second, store the vtable bytesize:
             vBytes = len(self.current_vtable) + VtableMetadataFields
             vBytes *= N.VOffsetTFlags.bytewidth
-            self.PrependVOffsetT(VOffsetTFlags.py_type(vBytes))
+            self.prepend_VOffsetT(VOffsetTFlags.py_type(vBytes))
 
             # Next, write the offset to the new vtable in the
             # already-allocated SOffsetT at the beginning of this object:
             objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
-            encode.Write(packer.soffset, self.Bytes, objectStart,
-                         SOffsetTFlags.py_type(self.Offset() - objectOffset))
+            encode.write(packer.soffset, self.Bytes, objectStart,
+                         SOffsetTFlags.py_type(self.offset() - objectOffset))
 
             # Finally, store this vtable in memory for future
             # deduplication:
-            self.vtables.append(self.Offset())
+            self.vtables.append(self.offset())
         else:
             # Found a duplicate vtable.
 
@@ -228,21 +229,21 @@ class Builder(object):
 
             # Write the offset to the found vtable in the
             # already-allocated SOffsetT at the beginning of this object:
-            encode.Write(packer.soffset, self.Bytes, self.Head(),
+            encode.write(packer.soffset, self.Bytes, self.head,
                          SOffsetTFlags.py_type(existingVtable - objectOffset))
 
         self.current_vtable = None
         return objectOffset
 
-    def EndObject(self):
-        """EndObject writes data necessary to finish object construction."""
+    def end_object(self):
+        """end_object writes data necessary to finish object construction."""
         if self.current_vtable is None:
             msg = ("flatbuffers: Tried to write the end of an Object when "
                    "the Builder was not currently writing an Object.")
             raise NotInObjectError(msg)
-        return self.WriteVtable()
+        return self.write_vtable()
 
-    def growByteBuffer(self):
+    def grow_bytebuffer(self):
         """Doubles the size of the byteslice, and copies the old data towards
            the end of the new buffer (since we build the buffer backwards)."""
         if len(self.Bytes) == Builder.MAX_BUFFER_SIZE:
@@ -256,25 +257,18 @@ class Builder(object):
         bytes2[newSize-len(self.Bytes):] = self.Bytes
         self.Bytes = bytes2
 
-    def Head(self):
-        """
-        Head gives the start of useful data in the underlying byte buffer.
-        Note: unlike other functions, this value is interpreted as from the left.
-        """
-        return self.head
+    def offset(self):
+        """offset relative to the end of the buffer."""
+        return UOffsetTFlags.py_type(len(self.Bytes) - self.head)
 
-    def Offset(self):
-        """Offset relative to the end of the buffer."""
-        return UOffsetTFlags.py_type(len(self.Bytes) - self.Head())
-
-    def Pad(self, n):
-        """Pad places zeros at the current offset."""
+    def pad(self, n):
+        """pad places zeros at the current offset."""
         for i in range_func(n):
-            self.Place(0, N.Uint8Flags)
+            self.place(0, N.Uint8Flags)
 
-    def Prep(self, size, additionalBytes):
+    def prep(self, size, additionalBytes):
         """
-        Prep prepares to write an element of `size` after `additional_bytes`
+        prep prepares to write an element of `size` after `additional_bytes`
         have been written, e.g. if you write a string, you need to align
         such the int length field is aligned to SizeInt32, and the string
         data follows it directly.
@@ -287,89 +281,89 @@ class Builder(object):
 
         # Find the amount of alignment needed such that `size` is properly
         # aligned after `additionalBytes`:
-        alignSize = (~(len(self.Bytes) - self.Head() + additionalBytes)) + 1
+        alignSize = (~(len(self.Bytes) - self.head + additionalBytes)) + 1
         alignSize &= (size - 1)
 
         # Reallocate the buffer if needed:
-        while self.Head() < alignSize+size+additionalBytes:
+        while self.head < alignSize+size+additionalBytes:
             oldBufSize = len(self.Bytes)
-            self.growByteBuffer()
+            self.grow_bytebuffer()
             updated_head = self.head + len(self.Bytes) - oldBufSize
             self.head = UOffsetTFlags.py_type(updated_head)
-        self.Pad(alignSize)
+        self.pad(alignSize)
 
-    def PrependSOffsetTRelative(self, off):
+    def prepend_SOffsetT_relative(self, off):
         """
-        PrependSOffsetTRelative prepends an SOffsetT, relative to where it
+        prepend_SOffsetT_relative prepends an SOffsetT, relative to where it
         will be written.
         """
 
         # Ensure alignment is already done:
-        self.Prep(N.SOffsetTFlags.bytewidth, 0)
-        if not (off <= self.Offset()):
+        self.prep(N.SOffsetTFlags.bytewidth, 0)
+        if not (off <= self.offset()):
             msg = "flatbuffers: Offset arithmetic error."
             raise OffsetArithmeticError(msg)
-        off2 = self.Offset() - off + N.SOffsetTFlags.bytewidth
-        self.PlaceSOffsetT(off2)
+        off2 = self.offset() - off + N.SOffsetTFlags.bytewidth
+        self.place_SOffsetT(off2)
 
-    def PrependUOffsetTRelative(self, off):
+    def prepend_UOffsetT_relative(self, off):
         """
-        PrependUOffsetTRelative prepends an UOffsetT, relative to where it
+        prepend_UOffsetT_relative prepends an UOffsetT, relative to where it
         will be written.
         """
 
         # Ensure alignment is already done:
-        self.Prep(N.UOffsetTFlags.bytewidth, 0)
-        if not (off <= self.Offset()):
+        self.prep(N.UOffsetTFlags.bytewidth, 0)
+        if not (off <= self.offset()):
             msg = "flatbuffers: Offset arithmetic error."
             raise OffsetArithmeticError(msg)
-        off2 = self.Offset() - off + N.UOffsetTFlags.bytewidth
-        self.PlaceUOffsetT(off2)
+        off2 = self.offset() - off + N.UOffsetTFlags.bytewidth
+        self.place_UOffsetT(off2)
 
-    def StartVector(self, elemSize, numElems, alignment):
+    def start_vector(self, elemSize, numElems, alignment):
         """
-        StartVector initializes bookkeeping for writing a new vector.
+        start_vector initializes bookkeeping for writing a new vector.
 
         A vector has the following format:
           <UOffsetT: number of elements in this vector>
           <T: data>+, where T is the type of elements of this vector.
         """
 
-        self.assertNotNested()
-        self.Prep(N.Uint32Flags.bytewidth, elemSize*numElems)
-        self.Prep(alignment, elemSize*numElems)  # In case alignment > int.
-        return self.Offset()
+        self.assert_not_nested()
+        self.prep(N.Uint32Flags.bytewidth, elemSize*numElems)
+        self.prep(alignment, elemSize*numElems)  # In case alignment > int.
+        return self.offset()
 
-    def EndVector(self, vectorNumElems):
-        """EndVector writes data necessary to finish vector construction."""
+    def end_vector(self, vectorNumElems):
+        """end_vector writes data necessary to finish vector construction."""
 
-        # we already made space for this, so write without PrependUint32
-        self.PlaceUOffsetT(vectorNumElems)
-        return self.Offset()
+        # we already made space for this, so write without prepend_Uint32
+        self.place_UOffsetT(vectorNumElems)
+        return self.offset()
 
-    def CreateString(self, s):
-        """CreateString writes a null-terminated byte string as a vector."""
+    def create_string(self, s):
+        """create_string writes a null-terminated byte string as a vector."""
 
-        self.assertNotNested()
+        self.assert_not_nested()
 
         if isinstance(s, compat.string_types):
             x = s.encode()
         elif isinstance(s, compat.binary_type):
             x = s
         else:
-            raise TypeError("non-string passed to CreateString")
+            raise TypeError("non-string passed to create_string")
 
-        self.Prep(N.UOffsetTFlags.bytewidth, (len(x)+1)*N.Uint8Flags.bytewidth)
-        self.Place(0, N.Uint8Flags)
+        self.prep(N.UOffsetTFlags.bytewidth, (len(x)+1)*N.Uint8Flags.bytewidth)
+        self.place(0, N.Uint8Flags)
 
         l = UOffsetTFlags.py_type(len(s))
 
-        self.head = UOffsetTFlags.py_type(self.Head() - l)
-        self.Bytes[self.Head():self.Head()+l] = x
+        self.head = UOffsetTFlags.py_type(self.head - l)
+        self.Bytes[self.head:self.head+l] = x
 
-        return self.EndVector(len(x))
+        return self.end_vector(len(x))
 
-    def assertNotNested(self):
+    def assert_not_nested(self):
         """
         Check that no other objects are being built while making this
         object. If not, raise an exception.
@@ -380,7 +374,7 @@ class Builder(object):
                    "Builder was already writing an Object.")
             raise ObjectIsNestedError(msg)
 
-    def assertNested(self, obj):
+    def assert_nested(self, obj):
         """
         Structs are always stored inline, so need to be created right
         where they are used. You'll get this error if you created it
@@ -388,12 +382,12 @@ class Builder(object):
         """
 
         N.enforce_number(obj, N.UOffsetTFlags)
-        if obj != self.Offset():
+        if obj != self.offset():
             msg = ("flatbuffers: Tried to write a Struct at an Offset that "
                    "is different from the current Offset of the Builder.")
             raise StructIsNotInlineError(msg)
 
-    def Slot(self, slotnum):
+    def slot(self, slotnum):
         """
         Slot sets the vtable key `voffset` to the current location in the
         buffer.
@@ -404,141 +398,141 @@ class Builder(object):
                    "the Builder was not currently writing an Object.")
             raise NotInObjectError(msg)
 
-        self.current_vtable[slotnum] = self.Offset()
+        self.current_vtable[slotnum] = self.offset()
 
-    def Finish(self, rootTable):
-        """Finish finalizes a buffer, pointing to the given `rootTable`."""
+    def finish(self, rootTable):
+        """finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
-        self.Prep(self.minalign, N.UOffsetTFlags.bytewidth)
-        self.PrependUOffsetTRelative(rootTable)
-        return self.Head()
+        self.prep(self.minalign, N.UOffsetTFlags.bytewidth)
+        self.prepend_UOffsetT_relative(rootTable)
+        return self.head
 
-    def Prepend(self, flags, off):
-        self.Prep(flags.bytewidth, 0)
-        self.Place(off, flags)
+    def prepend(self, flags, off):
+        self.prep(flags.bytewidth, 0)
+        self.place(off, flags)
 
-    def PrependSlot(self, flags, o, x, d):
+    def prepend_slot(self, flags, o, x, d):
         N.enforce_number(x, flags)
         N.enforce_number(d, flags)
         if x != d:
-            self.Prepend(flags, x)
-            self.Slot(o)
+            self.prepend(flags, x)
+            self.slot(o)
 
-    def PrependBoolSlot(self, *args): self.PrependSlot(N.BoolFlags, *args)
+    def prepend_Bool_slot(self, *args): self.prepend_slot(N.BoolFlags, *args)
 
-    def PrependByteSlot(self, *args): self.PrependSlot(N.Uint8Flags, *args)
+    def prepend_Byte_slot(self, *args): self.prepend_slot(N.Uint8Flags, *args)
 
-    def PrependUint8Slot(self, *args): self.PrependSlot(N.Uint8Flags, *args)
+    def prepend_Uint8_slot(self, *args): self.prepend_slot(N.Uint8Flags, *args)
 
-    def PrependUint16Slot(self, *args): self.PrependSlot(N.Uint16Flags, *args)
+    def prepend_Uint16_slot(self, *args): self.prepend_slot(N.Uint16Flags, *args)
 
-    def PrependUint32Slot(self, *args): self.PrependSlot(N.Uint32Flags, *args)
+    def prepend_Uint32_slot(self, *args): self.prepend_slot(N.Uint32Flags, *args)
 
-    def PrependUint64Slot(self, *args): self.PrependSlot(N.Uint64Flags, *args)
+    def prepend_Uint64_slot(self, *args): self.prepend_slot(N.Uint64Flags, *args)
 
-    def PrependInt8Slot(self, *args): self.PrependSlot(N.Int8Flags, *args)
+    def prepend_Int8_slot(self, *args): self.prepend_slot(N.Int8Flags, *args)
 
-    def PrependInt16Slot(self, *args): self.PrependSlot(N.Int16Flags, *args)
+    def prepend_Int16_slot(self, *args): self.prepend_slot(N.Int16Flags, *args)
 
-    def PrependInt32Slot(self, *args): self.PrependSlot(N.Int32Flags, *args)
+    def prepend_Int32_slot(self, *args): self.prepend_slot(N.Int32Flags, *args)
 
-    def PrependInt64Slot(self, *args): self.PrependSlot(N.Int64Flags, *args)
+    def prepend_Int64_slot(self, *args): self.prepend_slot(N.Int64Flags, *args)
 
-    def PrependFloat32Slot(self, *args): self.PrependSlot(N.Float32Flags,
+    def prepend_Float32_slot(self, *args): self.prepend_slot(N.Float32Flags,
                                                           *args)
 
-    def PrependFloat64Slot(self, *args): self.PrependSlot(N.Float64Flags,
+    def prepend_Float64_slot(self, *args): self.prepend_slot(N.Float64Flags,
                                                           *args)
 
-    def PrependUOffsetTRelativeSlot(self, o, x, d):
+    def prepend_UOffsetT_relative_slot(self, o, x, d):
         """
-        PrependUOffsetTRelativeSlot prepends an UOffsetT onto the object at
+        prepend_UOffsetT_relative_slot prepends an UOffsetT onto the object at
         vtable slot `o`. If value `x` equals default `d`, then the slot will
         be set to zero and no other data will be written.
         """
 
         if x != d:
-            self.PrependUOffsetTRelative(x)
-            self.Slot(o)
+            self.prepend_UOffsetT_relative(x)
+            self.slot(o)
 
-    def PrependStructSlot(self, v, x, d):
+    def prepend_Struct_slot(self, v, x, d):
         """
-        PrependStructSlot prepends a struct onto the object at vtable slot `o`.
+        prepend_Struct_slot prepends a struct onto the object at vtable slot `o`.
         Structs are stored inline, so nothing additional is being added.
         In generated code, `d` is always 0.
         """
 
         N.enforce_number(d, N.UOffsetTFlags)
         if x != d:
-            self.assertNested(x)
-            self.Slot(v)
+            self.assert_nested(x)
+            self.slot(v)
 
-    def PrependBool(self, x): self.Prepend(N.BoolFlags, x)
+    def prepend_Bool(self, x): self.prepend(N.BoolFlags, x)
 
-    def PrependByte(self, x): self.Prepend(N.Uint8Flags, x)
+    def prepend_Byte(self, x): self.prepend(N.Uint8Flags, x)
 
-    def PrependUint8(self, x): self.Prepend(N.Uint8Flags, x)
+    def prepend_Uint8(self, x): self.prepend(N.Uint8Flags, x)
 
-    def PrependUint16(self, x): self.Prepend(N.Uint16Flags, x)
+    def prepend_Uint16(self, x): self.prepend(N.Uint16Flags, x)
 
-    def PrependUint32(self, x): self.Prepend(N.Uint32Flags, x)
+    def prepend_Uint32(self, x): self.prepend(N.Uint32Flags, x)
 
-    def PrependUint64(self, x): self.Prepend(N.Uint64Flags, x)
+    def prepend_Uint64(self, x): self.prepend(N.Uint64Flags, x)
 
-    def PrependInt8(self, x): self.Prepend(N.Int8Flags, x)
+    def prepend_Int8(self, x): self.prepend(N.Int8Flags, x)
 
-    def PrependInt16(self, x): self.Prepend(N.Int16Flags, x)
+    def prepend_Int16(self, x): self.prepend(N.Int16Flags, x)
 
-    def PrependInt32(self, x): self.Prepend(N.Int32Flags, x)
+    def prepend_Int32(self, x): self.prepend(N.Int32Flags, x)
 
-    def PrependInt64(self, x): self.Prepend(N.Int64Flags, x)
+    def prepend_Int64(self, x): self.prepend(N.Int64Flags, x)
 
-    def PrependFloat32(self, x): self.Prepend(N.Float32Flags, x)
+    def prepend_Float32(self, x): self.prepend(N.Float32Flags, x)
 
-    def PrependFloat64(self, x): self.Prepend(N.Float64Flags, x)
+    def prepend_Float64(self, x): self.prepend(N.Float64Flags, x)
 
-    def PrependVOffsetT(self, x): self.Prepend(N.VOffsetTFlags, x)
+    def prepend_VOffsetT(self, x): self.prepend(N.VOffsetTFlags, x)
 
-    def Place(self, x, flags):
+    def place(self, x, flags):
         """
-        Place prepends a value specified by `flags` to the Builder,
+        place prepends a value specified by `flags` to the Builder,
         without checking for available space.
         """
 
         N.enforce_number(x, flags)
         self.head = self.head - flags.bytewidth
-        encode.Write(flags.packer_type, self.Bytes, self.Head(), x)
+        encode.write(flags.packer_type, self.Bytes, self.head, x)
 
-    def PlaceVOffsetT(self, x):
+    def place_VOffsetT(self, x):
         """
-        PlaceVOffsetT prepends a VOffsetT to the Builder, without checking for
+        place_VOffsetT prepends a VOffsetT to the Builder, without checking for
         space.
         """
         N.enforce_number(x, N.VOffsetTFlags)
         self.head = self.head - N.VOffsetTFlags.bytewidth
-        encode.Write(packer.voffset, self.Bytes, self.Head(), x)
+        encode.write(packer.voffset, self.Bytes, self.head, x)
 
-    def PlaceSOffsetT(self, x):
+    def place_SOffsetT(self, x):
         """
-        PlaceSOffsetT prepends a SOffsetT to the Builder, without checking for
+        place_SOffsetT prepends a SOffsetT to the Builder, without checking for
         space.
         """
         N.enforce_number(x, N.SOffsetTFlags)
         self.head = self.head - N.SOffsetTFlags.bytewidth
-        encode.Write(packer.soffset, self.Bytes, self.Head(), x)
+        encode.write(packer.soffset, self.Bytes, self.head, x)
 
-    def PlaceUOffsetT(self, x):
+    def place_UOffsetT(self, x):
         """
-        PlaceUOffsetT prepends a UOffsetT to the Builder, without checking for
+        place_UOffsetT prepends a UOffsetT to the Builder, without checking for
         space.
         """
         N.enforce_number(x, N.UOffsetTFlags)
         self.head = self.head - N.UOffsetTFlags.bytewidth
-        encode.Write(packer.uoffset, self.Bytes, self.Head(), x)
+        encode.write(packer.uoffset, self.Bytes, self.head, x)
 
 
-def vtableEqual(a, objectStart, b):
-    """vtableEqual compares an unwritten vtable to a written vtable."""
+def vtable_equal(a, objectStart, b):
+    """vtable_equal compares an unwritten vtable to a written vtable."""
 
     N.enforce_number(objectStart, N.UOffsetTFlags)
 
@@ -546,7 +540,7 @@ def vtableEqual(a, objectStart, b):
         return False
 
     for i, elem in enumerate(a):
-        x = encode.Get(packer.voffset, b, i * N.VOffsetTFlags.bytewidth)
+        x = encode.get(packer.voffset, b, i * N.VOffsetTFlags.bytewidth)
 
         # Skip vtable entries that indicate a default value.
         if x == 0 and elem == 0:

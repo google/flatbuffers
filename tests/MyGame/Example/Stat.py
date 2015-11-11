@@ -7,33 +7,34 @@ import flatbuffers
 class Stat(object):
     __slots__ = ['_tab']
 
-    # Stat
-    def Init(self, buf, pos):
+    def init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # Stat
-    def Id(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+    def id(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.offset(4))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            return self._tab.string(o + self._tab.Pos)
         return ""
 
-    # Stat
-    def Val(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+    def val(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.offset(6))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int64Flags, o + self._tab.Pos)
+            return self._tab.get(flatbuffers.number_types.Int64Flags, o + self._tab.Pos)
         return 0
 
-    # Stat
-    def Count(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+    def count(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.offset(8))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
+            return self._tab.get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
 
-def StatStart(builder): builder.StartObject(3)
-def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
-def StatAddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
-def StatAddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
-def StatEnd(builder): return builder.EndObject()
+def start(builder):
+    builder.start_object(3)
+def add_id(builder, id):
+    builder.prepend_UOffsetT_relative_slot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+def add_val(builder, val):
+    builder.prepend_Int64_slot(1, val, 0)
+def add_count(builder, count):
+    builder.prepend_Uint16_slot(2, count, 0)
+def end(builder):
+    return builder.end_object()

@@ -94,7 +94,7 @@
 }
 
 .ui-resizable-e {
-  background:url("ftv2splitbar.png") repeat scroll right center transparent;
+  background:url("splitbar.png") repeat scroll right center transparent;
   cursor:e-resize;
   height:100%;
   right:0;
