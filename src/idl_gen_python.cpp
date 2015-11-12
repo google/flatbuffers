@@ -42,10 +42,9 @@ const std::string Indent = "    ";
 // this is the prefix code for that.
 std::string OffsetPrefix(const FieldDef &field) {
   return "\n" + Indent + Indent +
-         "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
-         "(self._tab.Offset(" +
+         "o = self._tab.Offset(" +
          NumToString(field.value.offset) +
-         "))\n" + Indent + Indent + "if o != 0:\n";
+         ")\n" + Indent + Indent + "if o != 0:\n";
 }
 
 // Begin by declaring namespace and imports.
@@ -97,13 +96,9 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += Indent + "@classmethod\n";
   code += Indent + "def GetRootAs";
   code += struct_def.name;
-  code += "(cls, buf, offset):";
-  code += "\n";
+  code += "(cls, buf, offset):\n";
   code += Indent + Indent;
-  code += "n = flatbuffers.encode.Get";
-  code += "(flatbuffers.packer.uoffset, buf, offset)\n";
-  code += Indent + Indent + "x = " + struct_def.name + "()\n";
-  code += Indent + Indent + "x.Init(buf, n + offset)\n";
+  code += "x = cls(flatbuffers.Table.GetRoot(buf, offset))\n";
   code += Indent + Indent + "return x\n";
   code += "\n\n";
 }
@@ -114,8 +109,8 @@ static void InitializeExisting(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
-  code += "Init(self, buf, pos):\n";
-  code += Indent + Indent + "self._tab = flatbuffers.table.Table(buf, pos)\n";
+  code += "__init__(self, tab):\n";
+  code += Indent + Indent + "self._tab = tab\n";
   code += "\n";
 }
 
@@ -141,8 +136,7 @@ static void GetScalarFieldOfStruct(const StructDef &struct_def,
   GenReceiver(struct_def, code_ptr);
   code += MakeCamel(field.name);
   code += "(self): return " + getter;
-  code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
-  code += NumToString(field.value.offset) + "))\n";
+  code += NumToString(field.value.offset) + ")\n";
 }
 
 // Get the value of a table's scalar.
@@ -156,7 +150,7 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += "(self):";
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + getter;
-  code += "o + self._tab.Pos)\n";
+  code += "o)\n";
   code += Indent + Indent + "return " + field.value.constant + "\n\n";
 }
 
@@ -168,10 +162,13 @@ static void GetStructFieldOfStruct(const StructDef &struct_def,
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += MakeCamel(field.name);
-  code += "(self, obj):\n";
-  code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
-  code += NumToString(field.value.offset) + ")";
-  code += "\n" + Indent + Indent + "return obj\n\n";
+  code += "(self):\n";
+  code += Indent + Indent;
+  code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+  code += Indent + Indent + "obj = " + TypeName(field) + "(";
+  code += "flatbuffers.Table(self._tab.Bytes, self._tab.Pos + ";
+  code += NumToString(field.value.offset) + "))\n";
+  code += Indent + Indent + "return obj\n\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -184,16 +181,13 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
   code += MakeCamel(field.name);
   code += "(self):";
   code += OffsetPrefix(field);
-  if (field.value.type.struct_def->fixed) {
-    code += Indent + Indent + Indent + "x = o + self._tab.Pos\n";
-  } else {
-    code += Indent + Indent + Indent;
-    code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
+  if (!field.value.type.struct_def->fixed) {
+    code += Indent + Indent + Indent + "o = self._tab.Indirect(o)\n";
   }
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
+  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "(";
+  code += "flatbuffers.Table(self._tab.Bytes, self._tab.Pos + o))\n";
   code += Indent + Indent + Indent + "return obj\n";
   code += Indent + Indent + "return None\n\n";
 }
@@ -208,8 +202,8 @@ static void GetStringField(const StructDef &struct_def,
   code += "(self):";
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
-  code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return \"\"\n\n";
+  code += "o)\n";
+  code += Indent + Indent + "return b\"\"\n\n";
 }
 
 // Get the value of a union from an object.
@@ -222,16 +216,8 @@ static void GetUnionField(const StructDef &struct_def,
   code += OffsetPrefix(field);
 
   // TODO(rw): this works and is not the good way to it:
-  bool is_native_table = TypeName(field) == "*flatbuffers.Table";
-  if (is_native_table) {
-    code += Indent + Indent + Indent + "from flatbuffers.table import Table\n";
-  } else {
-    code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  }
-  code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
-  code += Indent + Indent + Indent + GenGetter(field.value.type);
-  code += "obj, o)\n" + Indent + Indent + Indent + "return obj\n";
+  code += Indent + Indent + Indent + "return ";
+  code += GenGetter(field.value.type) + "o)\n";
   code += Indent + Indent + "return None\n\n";
 }
 
@@ -245,17 +231,15 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
   GenReceiver(struct_def, code_ptr);
   code += MakeCamel(field.name);
   code += "(self, j):" + OffsetPrefix(field);
-  code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
-  code += Indent + Indent + Indent;
-  code += "x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * ";
+  code += Indent + Indent + Indent + "x = self._tab.Vector(o) + int(j) * ";
   code += NumToString(InlineSize(vectortype)) + "\n";
   if (!(vectortype.struct_def->fixed)) {
     code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
   }
   code += Indent + Indent + Indent;
   code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-  code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
+  code += Indent + Indent + Indent + "obj = " + TypeName(field) + "(";
+  code += "flatbuffers.Table(self._tab.Bytes, self._tab.Pos + x))\n";
   code += Indent + Indent + Indent + "return obj\n";
   code += Indent + Indent + "return None\n\n";
 }
@@ -272,13 +256,12 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   code += MakeCamel(field.name);
   code += "(self, j):";
   code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
+  code += Indent + Indent + Indent + "x = self._tab.Vector(o) + int(j) * ";
+  code += NumToString(InlineSize(vectortype)) + "\n";
   code += Indent + Indent + Indent;
-  code += "return " + GenGetter(field.value.type);
-  code += "a + flatbuffers.number_types.UOffsetTFlags.py_type(j * ";
-  code += NumToString(InlineSize(vectortype)) + "))\n";
+  code += "return " + GenGetter(field.value.type) + "x)\n";
   if (vectortype.base_type == BASE_TYPE_STRING) {
-    code += Indent + Indent + "return \"\"\n";
+    code += Indent + Indent + "return b\"\"\n";
   } else {
     code += Indent + Indent + "return 0\n";
   }
@@ -379,13 +362,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   code += "builder.Prepend";
   code += GenMethod(field) + "Slot(";
   code += NumToString(offset) + ", ";
-  if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "flatbuffers.number_types.UOffsetTFlags.py_type";
-    code += "(";
-    code += MakeCamel(field.name, false) + ")";
-  } else {
-    code += MakeCamel(field.name, false);
-  }
+  code += MakeCamel(field.name, false);
   code += ", " + field.value.constant;
   code += ")\n";
 }
@@ -544,9 +521,7 @@ static std::string GenGetter(const Type &type) {
     case BASE_TYPE_UNION: return "self._tab.Union(";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default:
-      return "self._tab.Get(flatbuffers.number_types." + \
-             MakeCamel(GenTypeGet(type)) + \
-             "Flags, ";
+      return "self._tab.Get" + MakeCamel(GenTypeGet(type)) + "(";
   }
 }
 

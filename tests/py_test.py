@@ -26,6 +26,7 @@ from flatbuffers import compat
 from flatbuffers.compat import range_func as compat_range
 
 import flatbuffers
+import flatbuffers.builder
 from flatbuffers import number_types as N
 
 import MyGame  # refers to generated code
@@ -63,7 +64,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0)
+        CheckReadBuffer(canonicalWireData, 0)
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -98,8 +99,7 @@ def CheckReadBuffer(buf, offset):
     asserter(vec.Test2() == 2)
 
     # initialize a Test from Test3(...)
-    t = MyGame.Example.Test.Test()
-    t = vec.Test3(t)
+    t = vec.Test3()
     asserter(t is not None)
 
     # verify the properties of the Test
@@ -112,11 +112,11 @@ def CheckReadBuffer(buf, offset):
 
     # initialize a Table from a union field Test(...)
     table2 = monster.Test()
-    asserter(type(table2) is flatbuffers.table.Table)
+    asserter(type(table2) is flatbuffers.Table)
 
     # initialize a Monster from the Table from the union
-    monster2 = MyGame.Example.Monster.Monster()
-    monster2.Init(table2.Bytes, table2.Pos)
+    monster2 = MyGame.Example.Monster.Monster(
+        flatbuffers.Table(table2.Bytes, table2.Pos))
 
     asserter(monster2.Name() == b"Fred")
 
@@ -248,8 +248,8 @@ class TestFuzz(unittest.TestCase):
         # so this is deterministic.
         for i in compat_range(fuzzObjects):
 
-            table = flatbuffers.table.Table(builder.Bytes,
-                                            len(builder.Bytes) - objects[i])
+            table = flatbuffers.Table(builder.Bytes,
+                                      len(builder.Bytes) - objects[i])
 
             for j in compat_range(fuzzFields):
                 field_count = flatbuffers.builder.VtableMetadataFields + j
@@ -259,37 +259,37 @@ class TestFuzz(unittest.TestCase):
 
                 if choice == 0:
                     check(table, "bool", self.boolVal,
-                          table.GetSlot(f, False, N.BoolFlags))
+                          table.GetBoolSlot(f, False))
                 elif choice == 1:
                     check(table, "int8", self.int8Val,
-                          table.GetSlot(f, 0, N.Int8Flags))
+                          table.GetInt8Slot(f, 0))
                 elif choice == 2:
                     check(table, "uint8", self.uint8Val,
-                          table.GetSlot(f, 0, N.Uint8Flags))
+                          table.GetUint8Slot(f, 0))
                 elif choice == 3:
                     check(table, "int16", self.int16Val,
-                          table.GetSlot(f, 0, N.Int16Flags))
+                          table.GetInt16Slot(f, 0))
                 elif choice == 4:
                     check(table, "uint16", self.uint16Val,
-                          table.GetSlot(f, 0, N.Uint16Flags))
+                          table.GetUint16Slot(f, 0))
                 elif choice == 5:
                     check(table, "int32", self.int32Val,
-                          table.GetSlot(f, 0, N.Int32Flags))
+                          table.GetInt32Slot(f, 0))
                 elif choice == 6:
                     check(table, "uint32", self.uint32Val,
-                          table.GetSlot(f, 0, N.Uint32Flags))
+                          table.GetUint32Slot(f, 0))
                 elif choice == 7:
                     check(table, "int64", self.int64Val,
-                          table.GetSlot(f, 0, N.Int64Flags))
+                          table.GetInt64Slot(f, 0))
                 elif choice == 8:
                     check(table, "uint64", self.uint64Val,
-                          table.GetSlot(f, 0, N.Uint64Flags))
+                          table.GetUint64Slot(f, 0))
                 elif choice == 9:
                     check(table, "float32", self.float32Val,
-                          table.GetSlot(f, 0, N.Float32Flags))
+                          table.GetFloat32Slot(f, 0))
                 elif choice == 10:
                     check(table, "float64", self.float64Val,
-                          table.GetSlot(f, 0, N.Float64Flags))
+                          table.GetFloat64Slot(f, 0))
                 else:
                     raise RuntimeError('unreachable')
 
@@ -754,10 +754,10 @@ def make_monster_from_generated_code():
     ''' Use generated code to build the example Monster. '''
 
     b = flatbuffers.Builder(0)
-    string = b.CreateString("MyMonster")
-    test1 = b.CreateString("test1")
-    test2 = b.CreateString("test2")
-    fred = b.CreateString("Fred")
+    string = b.CreateString(b"MyMonster")
+    test1 = b.CreateString(b"test1")
+    test2 = b.CreateString(b"test2")
+    fred = b.CreateString(b"Fred")
 
     MyGame.Example.Monster.MonsterStartInventoryVector(b, 5)
     b.PrependByte(4)
@@ -830,7 +830,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(100, self.mon.Hp())
 
     def test_default_monster_name(self):
-        self.assertEqual('', self.mon.Name())
+        self.assertEqual(b'', self.mon.Name())
 
     def test_default_monster_inventory_item(self):
         self.assertEqual(0, self.mon.Inventory(0))
@@ -866,7 +866,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(0, self.mon.Test4Length())
 
     def test_default_monster_testarrayofstring(self):
-        self.assertEqual("", self.mon.Testarrayofstring(0))
+        self.assertEqual(b"", self.mon.Testarrayofstring(0))
 
     def test_default_monster_testarrayofstring_length(self):
         self.assertEqual(0, self.mon.TestarrayofstringLength())
@@ -1075,9 +1075,9 @@ class TestVtableDeduplication(unittest.TestCase):
 
         self.assertEqual((len(want), want), (len(got), got))
 
-        table0 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj0)
-        table1 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj1)
-        table2 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj2)
+        table0 = flatbuffers.Table(b.Bytes, len(b.Bytes) - obj0)
+        table1 = flatbuffers.Table(b.Bytes, len(b.Bytes) - obj1)
+        table2 = flatbuffers.Table(b.Bytes, len(b.Bytes) - obj2)
 
         def _checkTable(tab, voffsett_value, b, c, d):
             # vtable size
@@ -1092,13 +1092,13 @@ class TestVtableDeduplication(unittest.TestCase):
             got = tab.GetVOffsetTSlot(4, 0)
             self.assertEqual(voffsett_value, got, 'case 4, 0')
 
-            got = tab.GetSlot(6, 0, N.Uint8Flags)
+            got = tab.GetUint8Slot(6, 0)
             self.assertEqual(b, got, 'case 6, 0')
 
-            val = tab.GetSlot(8, 0, N.Uint8Flags)
+            val = tab.GetUint8Slot(8, 0)
             self.assertEqual(c, val, 'failed 8, 0')
 
-            got = tab.GetSlot(10, 0, N.Uint8Flags)
+            got = tab.GetUint8Slot(10, 0)
             self.assertEqual(d, got, 'failed 10, 0')
 
         _checkTable(table0, 0, 11, 22, 33)
@@ -1133,7 +1133,7 @@ class TestExceptions(unittest.TestCase):
     def test_create_string_is_nested_error(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
-        s = 'test1'
+        s = b'test1'
         assertRaises(self, lambda: b.CreateString(s),
                      flatbuffers.builder.ObjectIsNestedError)
 
@@ -1249,7 +1249,7 @@ def BenchmarkCheckReadBuffer(count, buf, off):
     data_rate = data / float(duration)
 
     print(('traversed %d %d-byte flatbuffers in %.2fsec: %.2f/sec, %.2fMB/sec')
-          % (count, len(buf), duration, rate, data_rate))
+          % (count, len(buf) - off, duration, rate, data_rate))
 
 
 def BenchmarkMakeMonsterFromGeneratedCode(count, length):
@@ -1271,7 +1271,7 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
 
 def backward_compatible_run_tests(**kwargs):
     if PY_VERSION < (2, 6):
-        sys.stderr.write("Python version less than 2.6 are not supported") 
+        sys.stderr.write("Python version less than 2.6 are not supported")
         sys.stderr.flush()
         return False
 
@@ -1284,7 +1284,7 @@ def backward_compatible_run_tests(**kwargs):
                 return False
         return True
 
-    # python2.7 and above let us not exit once unittest.main is run: 
+    # python2.7 and above let us not exit once unittest.main is run:
     kwargs['exit'] = False
     kwargs['verbosity'] = 0
     ret = unittest.main(**kwargs)
@@ -1297,15 +1297,15 @@ def main():
     import os
     import sys
     if not len(sys.argv) == 4:
-       sys.stderr.write('Usage: %s <benchmark vtable count>'
-                        '<benchmark read count> <benchmark build count>\n'
-                        % sys.argv[0])
-       sys.stderr.write('       Provide COMPARE_GENERATED_TO_GO=1   to check'
-                        'for bytewise comparison to Go data.\n')
-       sys.stderr.write('       Provide COMPARE_GENERATED_TO_JAVA=1 to check'
-                        'for bytewise comparison to Java data.\n')
-       sys.stderr.flush()
-       sys.exit(1)
+        sys.stderr.write('Usage: %s <benchmark vtable count>'
+                         '<benchmark read count> <benchmark build count>\n'
+                         % sys.argv[0])
+        sys.stderr.write('       Provide COMPARE_GENERATED_TO_GO=1   to check'
+                         'for bytewise comparison to Go data.\n')
+        sys.stderr.write('       Provide COMPARE_GENERATED_TO_JAVA=1 to check'
+                         'for bytewise comparison to Java data.\n')
+        sys.stderr.flush()
+        sys.exit(1)
 
     kwargs = dict(argv=sys.argv[:-3])
 
@@ -1332,7 +1332,7 @@ def main():
         BenchmarkCheckReadBuffer(bench_traverse, buf, off)
     if bench_build:
         buf, off = make_monster_from_generated_code()
-        BenchmarkMakeMonsterFromGeneratedCode(bench_build, len(buf))
+        BenchmarkMakeMonsterFromGeneratedCode(bench_build, len(buf) - off)
 
 if __name__ == '__main__':
     main()

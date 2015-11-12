@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ctypes
-
-from . import number_types as N
-from . import packer
 from .compat import memoryview_type
 
 

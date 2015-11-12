@@ -8,22 +8,23 @@ class Vec3(object):
     __slots__ = ['_tab']
 
     # Vec3
-    def Init(self, buf, pos):
-        self._tab = flatbuffers.table.Table(buf, pos)
+    def __init__(self, tab):
+        self._tab = tab
 
     # Vec3
-    def X(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    def X(self): return self._tab.GetFloat32(0)
     # Vec3
-    def Y(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
+    def Y(self): return self._tab.GetFloat32(4)
     # Vec3
-    def Z(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
+    def Z(self): return self._tab.GetFloat32(8)
     # Vec3
-    def Test1(self): return self._tab.Get(flatbuffers.number_types.Float64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16))
+    def Test1(self): return self._tab.GetFloat64(16)
     # Vec3
-    def Test2(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(24))
+    def Test2(self): return self._tab.GetInt8(24)
     # Vec3
-    def Test3(self, obj):
-        obj.Init(self._tab.Bytes, self._tab.Pos + 26)
+    def Test3(self):
+        from .Test import Test
+        obj = Test(flatbuffers.Table(self._tab.Bytes, self._tab.Pos + 26))
         return obj
 
 

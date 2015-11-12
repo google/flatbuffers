@@ -1,0 +1,2 @@
+# include the c extensions
+recursive-include flatbuffers *.h *.pxd *.pyx
