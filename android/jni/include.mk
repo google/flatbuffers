@@ -102,8 +102,11 @@ endef
 endif
 ifeq (Linux,$(PROJECT_OS))
 define build_flatc_recipe
-	mkdir -p bin && cd bin && $(CMAKE) $(FLATBUFFERS_CMAKELISTS_DIR) \
-	  && $(MAKE) flatc
+	+mkdir -p bin && \
+      cd bin && \
+      $(CMAKE) \
+      $(FLATBUFFERS_CMAKELISTS_DIR) && \
+      $(MAKE) flatc
 endef
 endif
 ifeq (Darwin,$(PROJECT_OS))
