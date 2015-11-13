@@ -102,8 +102,11 @@ endef
 endif
 ifeq (Linux,$(PROJECT_OS))
 define build_flatc_recipe
-	mkdir -p bin && cd bin && $(CMAKE) $(FLATBUFFERS_CMAKELISTS_DIR) \
-	  && $(MAKE) flatc
+	+mkdir -p bin && \
+      cd bin && \
+      $(CMAKE) \
+      $(FLATBUFFERS_CMAKELISTS_DIR) && \
+      $(MAKE) flatc
 endef
 endif
 ifeq (Darwin,$(PROJECT_OS))
@@ -189,7 +192,7 @@ $(foreach schema,$(1),\
   $(call flatbuffers_header_build_rule,\
     $(schema),$(strip $(2)),$(strip $(3)),$(strip $(4))))\
 $(foreach src,$(strip $(5)),\
-  $(eval $(PORTABLE_LOCAL_PATH)$$(src): \
+  $(eval $(call local-source-file-path,$(src)): \
     $(foreach schema,$(strip $(1)),\
       $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))))\
 $(if $(6),\
@@ -198,11 +201,18 @@ $(if $(6),\
       $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))),)\
 $(if $(7),\
   $(foreach src,$(strip $(5)),\
-      $(eval $(PORTABLE_LOCAL_PATH)$$(src): $(strip $(7)))),)\
+      $(eval $(call local-source-file-path,$(src)): $(strip $(7)))),)\
 $(if $(7),\
   $(foreach dependency,$(strip $(7)),\
       $(eval $(6): $(dependency))),)
 endef
+
+# TODO: Remove when the LOCAL_PATH expansion bug in the NDK is fixed.
+# Override the default behavior of local-source-file-path to workaround
+# a bug which prevents the build of deeply nested projects when NDK_OUT is
+# set.
+local-source-file-path = \
+  $(if $(call host-path-is-absolute,$1),$1,$(realpath $(LOCAL_PATH)/$1))
 
 endif  # FLATBUFFERS_INCLUDE_MK_
 
