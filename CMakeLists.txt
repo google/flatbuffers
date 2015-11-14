@@ -139,7 +139,9 @@ endfunction()
 #
 # custom_target_name: The generated files will be added as dependencies for a
 # new custom target with this name. You should add that target as a dependency
-# for your main target to ensure these files are built.
+# for your main target to ensure these files are built. You can also retrieve
+# various properties from this target, such as GENERATED_INCLUDES_DIR,
+# BINARY_SCHEMAS_DIR, and COPY_TEXT_SCHEMAS_DIR.
 #
 # additional_dependencies: A list of additional dependencies that you'd like
 # all generated files to depend on. Pass in a blank string if you have none.
@@ -184,11 +186,6 @@ function(build_flatbuffers flatbuffers_schemas
     endif()
   endforeach()
 
-  # Register the include directory we are using.
-  if (NOT ${generated_includes_dir} STREQUAL "")
-    include_directories(${generated_includes_dir})
-  endif()
-
   foreach(schema ${flatbuffers_schemas})
     get_filename_component(filename ${schema} NAME_WE)
     # For each schema, do the things we requested.
@@ -226,6 +223,28 @@ function(build_flatbuffers flatbuffers_schemas
   # to be built.
   add_custom_target(${custom_target_name}
                     DEPENDS ${all_generated_files} ${additional_dependencies})
+
+  # Register the include directory we are using.
+  if (NOT ${generated_includes_dir} STREQUAL "")
+    include_directories(${generated_includes_dir})
+    set_property(TARGET ${custom_target_name}
+      PROPERTY GENERATED_INCLUDES_DIR
+      ${generated_includes_dir})
+  endif()
+
+  # Register the binary schemas dir we are using.
+  if (NOT ${binary_schemas_dir} STREQUAL "")
+    set_property(TARGET ${custom_target_name}
+      PROPERTY BINARY_SCHEMAS_DIR
+      ${binary_schemas_dir})
+  endif()
+
+  # Register the text schema copy dir we are using.
+  if (NOT ${copy_text_schemas_dir} STREQUAL "")
+    set_property(TARGET ${custom_target_name}
+      PROPERTY COPY_TEXT_SCHEMAS_DIR
+      ${copy_text_schemas_dir})
+  endif()
 endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
