@@ -390,9 +390,19 @@ struct String : public Vector<char> {
 // with custom allocation (see the FlatBufferBuilder constructor).
 class simple_allocator {
  public:
+  simple_allocator() = default;
+  simple_allocator(simple_allocator&&) {
+    printf("simple_allocator_move_const\n");
+  }
+  simple_allocator(const simple_allocator& ) {
+    printf("simple_allocator_copy_const\n");
+  }
   virtual ~simple_allocator() {}
-  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
-  virtual void deallocate(uint8_t *p) const { delete[] p; }
+  virtual uint8_t *allocate(size_t size) const { ++alloced_; return new uint8_t[size]; }
+  virtual void deallocate(uint8_t *p) const { --alloced_; delete[] p; }
+  
+ protected:
+  mutable int alloced_;
 };
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
@@ -424,12 +434,13 @@ class vector_downward {
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
     // Actually deallocate from the start of the allocated memory.
+    printf("vector_downward::release()\n");
     std::function<void(uint8_t *)> deleter(
       std::bind(&simple_allocator::deallocate, allocator_, buf_));
 
     // Point to the desired offset.
     unique_ptr_t retval(data(), deleter);
-
+    printf("vector_downward::release() returns unique_ptr\n");
     // Don't deallocate when this instance is destroyed.
     buf_ = nullptr;
     cur_ = nullptr;
