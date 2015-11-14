@@ -21,12 +21,12 @@ public final class Stat extends Table {
   public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)count); return true; } else { return false; } }
 
   public static int createStat(FlatBufferBuilder builder,
-      int id,
+      int idOffset,
       long val,
       int count) {
     builder.startObject(3);
     Stat.addVal(builder, val);
-    Stat.addId(builder, id);
+    Stat.addId(builder, idOffset);
     Stat.addCount(builder, count);
     return Stat.endStat(builder);
   }
@@ -34,7 +34,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startObject(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)(count & 0xFFFF), 0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)count, 0); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

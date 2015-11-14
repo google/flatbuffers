@@ -29,7 +29,7 @@ public sealed class Vec3 : Struct {
     builder.PutSbyte(test3_B);
     builder.PutShort(test3_A);
     builder.Pad(1);
-    builder.PutSbyte((sbyte)(Test2));
+    builder.PutSbyte((sbyte)Test2);
     builder.PutDouble(Test1);
     builder.Pad(4);
     builder.PutFloat(Z);

@@ -17,12 +17,12 @@ public sealed class Stat : Table {
   public bool MutateCount(ushort count) { int o = __offset(8); if (o != 0) { bb.PutUshort(o + bb_pos, count); return true; } else { return false; } }
 
   public static Offset<Stat> CreateStat(FlatBufferBuilder builder,
-      StringOffset id = default(StringOffset),
+      StringOffset idOffset = default(StringOffset),
       long val = 0,
       ushort count = 0) {
     builder.StartObject(3);
     Stat.AddVal(builder, val);
-    Stat.AddId(builder, id);
+    Stat.AddId(builder, idOffset);
     Stat.AddCount(builder, count);
     return Stat.EndStat(builder);
   }
