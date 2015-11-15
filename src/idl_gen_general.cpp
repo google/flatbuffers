@@ -97,7 +97,8 @@ struct LanguageParameters {
 };
 
 LanguageParameters language_parameters[] = {
-  {
+ 
+{
     GeneratorOptions::kJava,
     false,
     ".java",
@@ -125,6 +126,34 @@ LanguageParameters language_parameters[] = {
       " */",
     },
   },
+{
+    GeneratorOptions::kKotlin,
+    false,
+    ".kt",
+    "String",
+    "Boolean ",
+    " {\n",
+    " final ",
+    "final ",
+    "final class ",
+    "\n",
+    "()",
+    "",
+    " : ",
+    "package ",
+    ";",
+    "",
+    "_byteBuffer.order(ByteOrder.LITTLE_ENDIAN) ",
+    "position()",
+    "offset()",
+    "import java.nio.*;\n"
+      "import com.google.flatbuffers.kotlin.*;\n\n",
+    {
+      "/**",
+      " *",
+      " */",
+    },
+  }, 
   {
     GeneratorOptions::kCSharp,
     true,
@@ -197,7 +226,7 @@ static std::string FunctionStart(const LanguageParameters &lang, char upper) {
 static std::string GenTypeBasic(const LanguageParameters &lang,
                                 const Type &type) {
   static const char *gtypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
         #JTYPE, #NTYPE, #GTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -334,6 +363,13 @@ static std::string DestinationCast(const LanguageParameters &lang,
           (type.base_type == BASE_TYPE_VECTOR &&
            type.element == BASE_TYPE_UINT)) return "(long)";
       break;
+ case GeneratorOptions::kKotlin:
+      // Cast necessary to correctly read serialized unsigned values.
+      if (type.base_type == BASE_TYPE_UINT ||
+          (type.base_type == BASE_TYPE_VECTOR &&
+           type.element == BASE_TYPE_UINT)) return "as Long";
+      break;
+
 
     case GeneratorOptions::kCSharp:
       // Cast from raw integral types to enum
@@ -377,6 +413,11 @@ static std::string SourceCast(const LanguageParameters &lang,
         if (type.base_type == BASE_TYPE_UINT) return "(int)";
         else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
         else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+        break;
+      case GeneratorOptions::kKotlin:
+        if (type.base_type == BASE_TYPE_UINT) return "as Int";
+        else if (type.base_type == BASE_TYPE_USHORT) return "as Short";
+        else if (type.base_type == BASE_TYPE_UCHAR) return "as Byte";
         break;
       case GeneratorOptions::kCSharp:
         if (type.enum_def != nullptr && 

@@ -60,6 +60,10 @@ const Generator generators[] = {
     flatbuffers::GeneratorOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GenerateKotlin,  "-k", "Kotlin",
+    flatbuffers::GeneratorOptions::kKotlin,
+    "Generate Kotlin classes for tables/structs",
+    flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateJS,       "-s", "JavaScript",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate JavaScript code for tables/structs",
@@ -192,7 +196,7 @@ int main(int argc, const char *argv[]) {
   if (!filenames.size()) Error("missing input files", false, true);
 
   if (!any_generator)
-    Error("no options: specify one of -c -g -j -t -b etc.", true);
+    Error("no options: specify one of -c -g -j -k -t -b etc.", true);
 
   // Now process the files:
   flatbuffers::Parser parser(opts.strict_json, proto_mode);
