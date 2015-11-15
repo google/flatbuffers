@@ -78,36 +78,13 @@ void lcg_reset() { lcg_seed = 48271; }
 
 struct MyCustomAllocator : public flatbuffers::simple_allocator
 {
-  MyCustomAllocator() = default;
-  MyCustomAllocator(MyCustomAllocator&& o) : flatbuffers::simple_allocator(o) {
-    printf("CustomAlloc move_const\n");
-  }
-  MyCustomAllocator(const MyCustomAllocator& o) : flatbuffers::simple_allocator(o) {
-    printf("CustomAlloc copy_const\n");
-  }
-  virtual ~MyCustomAllocator() {
-    printf("CustomAlloc leaked blocks=%d\n", alloced_);
-  }
-  MyCustomAllocator& operator=(const MyCustomAllocator& /*o*/) {
-    //flatbuffers::simple_allocator::operator=(o);
-    printf("CustomAlloc copy_assign\n");
-    return *this;
-  }
-  MyCustomAllocator& operator=(MyCustomAllocator&& /*o*/) {
-    //flatbuffers::simple_allocator::operator=(std::move(o));
-    printf("CustomAlloc move_assign\n");
-    return *this;
-  }
-  
   virtual uint8_t *allocate(size_t size) const {
     uint8_t* p = (uint8_t*)malloc(size);
-    ++flatbuffers::simple_allocator::alloced_;
-    printf("CustomAlloc(%p)\n", p);
+    //printf("CustomAlloc(%p, %u)\n", p, (uint32_t)size);
     return p;
   }
   virtual void deallocate(uint8_t *p) const {
-    printf("CustomFree(%p)\n", p);
-    --flatbuffers::simple_allocator::alloced_;
+    //printf("CustomFree(%p)\n", p);
     free(p);
   }
 };
