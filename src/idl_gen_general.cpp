@@ -97,7 +97,8 @@ struct LanguageParameters {
 };
 
 LanguageParameters language_parameters[] = {
-  {
+ 
+{
     GeneratorOptions::kJava,
     false,
     ".java",
@@ -125,6 +126,34 @@ LanguageParameters language_parameters[] = {
       " */",
     },
   },
+{
+    GeneratorOptions::kKotlin,
+    false,
+    ".kt",
+    "String",
+    "Boolean ",
+    " {\n",
+    " final ",
+    "final ",
+    "final class ",
+    "\n",
+    "()",
+    "",
+    " : ",
+    "package ",
+    ";",
+    "",
+    "_byteBuffer.order(ByteOrder.LITTLE_ENDIAN) ",
+    "position()",
+    "offset()",
+    "import java.nio.*;\n"
+      "import com.google.flatbuffers.kotlin.*;\n\n",
+    {
+      "/**",
+      " *",
+      " */",
+    },
+  }, 
   {
     GeneratorOptions::kCSharp,
     true,
@@ -197,8 +226,8 @@ static std::string FunctionStart(const LanguageParameters &lang, char upper) {
 static std::string GenTypeBasic(const LanguageParameters &lang,
                                 const Type &type) {
   static const char *gtypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
-        #JTYPE, #NTYPE, #GTYPE,
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
+        #JTYPE, #KTYPE, #NTYPE, #GTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -252,7 +281,7 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
   if (lang.language != GeneratorOptions::kJava) return type;
   switch (type.base_type) {
-    // We use int for both uchar/ushort, since that generally means less casting
+  	  // We use int for both uchar/ushort, since that generally means less casting
     // than using short for uchar.
     case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT);
     case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
@@ -268,9 +297,8 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
 static std::string GenOffsetType(const LanguageParameters &lang, const StructDef &struct_def) {
   if(lang.language == GeneratorOptions::kCSharp) {
     return "Offset<" + struct_def.name + ">";
-  } else {
+  } 
     return "int";
-  }
 }
 
 static std::string GenOffsetConstruct(const LanguageParameters &lang,
@@ -286,9 +314,8 @@ static std::string GenOffsetConstruct(const LanguageParameters &lang,
 static std::string GenVectorOffsetType(const LanguageParameters &lang) {
   if(lang.language == GeneratorOptions::kCSharp) {
     return "VectorOffset";
-  } else {
-    return "int";
   }
+  return "int";
 }
 
 // Generate destination type name
@@ -303,7 +330,7 @@ static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &t
     if (type.base_type == BASE_TYPE_UNION)
       return "TTable";
   }
-
+  
   // default behavior
   return GenTypeGet(lang, DestinationType(lang, type, true));
 }
@@ -311,7 +338,7 @@ static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &t
 // Mask to turn serialized value into destination type value.
 static std::string DestinationMask(const LanguageParameters &lang,
                                    const Type &type, bool vectorelem) {
-  if (lang.language != GeneratorOptions::kJava) return "";
+  if (lang.language == GeneratorOptions::kJava) { 
   switch (type.base_type) {
     case BASE_TYPE_UCHAR:  return " & 0xFF";
     case BASE_TYPE_USHORT: return " & 0xFFFF";
@@ -321,6 +348,9 @@ static std::string DestinationMask(const LanguageParameters &lang,
         return DestinationMask(lang, type.VectorType(), vectorelem);
       // else fall thru:
     default: return "";
+  }
+  } else {
+   return "";
   }
 }
 
@@ -334,7 +364,6 @@ static std::string DestinationCast(const LanguageParameters &lang,
           (type.base_type == BASE_TYPE_VECTOR &&
            type.element == BASE_TYPE_UINT)) return "(long)";
       break;
-
     case GeneratorOptions::kCSharp:
       // Cast from raw integral types to enum
       if (type.enum_def != nullptr &&
@@ -352,11 +381,11 @@ static std::string DestinationValue(const LanguageParameters &lang,
   const std::string &name,
   const Type &type) {
   std::string type_mask = DestinationMask(lang, type, false);
-  // is a typecast needed? (for C# enums and unsigned values in Java)
+  // is a typecast needed? (for C# enums and unsigned values in Java, enums and unsigned values in kotlin)
   if (type_mask.length() ||
-    (lang.language == GeneratorOptions::kCSharp &&
+    ((lang.language == GeneratorOptions::kCSharp) &&
     type.enum_def != nullptr &&
-    type.base_type != BASE_TYPE_UNION)) {
+    type.base_type != BASE_TYPE_UNION) ) {
     return "(" + GenTypeBasic(lang, type) + ")(" + name + type_mask + ")";
   } else {
     return name;
@@ -391,7 +420,7 @@ static std::string SourceCast(const LanguageParameters &lang,
 }
 
 static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
-  if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
+  if (lang.language == GeneratorOptions::kCSharp && !for_buffer) {
     switch(value.type.base_type) {
       case BASE_TYPE_STRING:
         return "default(StringOffset)";
@@ -403,7 +432,7 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Value &
         break;
     }
   }
-
+ 
   return value.type.base_type == BASE_TYPE_BOOL
            ? (value.constant == "0" ? "false" : "true")
            : value.constant;
