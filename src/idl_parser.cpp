@@ -1499,7 +1499,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
       error_ += NumToString(line_) + ":0";  // gcc alike
     #endif
     error_ += ": error: " + msg;
-    if (source_filename) files_being_parsed_.pop();
+    if (source_filename && !files_being_parsed_.empty()) files_being_parsed_.pop();
     return false;
   }
   if (source_filename) files_being_parsed_.pop();
