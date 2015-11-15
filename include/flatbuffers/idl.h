@@ -221,7 +221,8 @@ struct Definition {
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), required(false), key(false), padding(0) {}
+  FieldDef() : deprecated(false), required(false), key(false), padding(0),
+               used(false) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id)
                                                                           const;
@@ -232,6 +233,7 @@ struct FieldDef : public Definition {
   bool required;   // Field must always be present.
   bool key;        // Field functions as a key for creating sorted vectors.
   size_t padding;  // Bytes to always pad after this field.
+  bool used;       // Used during JSON parsing to check for repeated fields.
 };
 
 struct StructDef : public Definition {
@@ -376,8 +378,8 @@ class Parser {
                      const std::string &name,
                      const Type &type);
   void ParseField(StructDef &struct_def);
-  void ParseAnyValue(Value &val, FieldDef *field, size_t parent_fieldn);
-  uoffset_t ParseTable(const StructDef &struct_def, std::string *value);
+  void ParseAnyValue(Value &val, FieldDef *field);
+  uoffset_t ParseTable(const StructDef &struct_def);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
   uoffset_t ParseVector(const Type &type);
@@ -426,6 +428,7 @@ class Parser {
   std::vector<std::string> doc_comment_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
+  std::vector<uint8_t> struct_stack_;
 
   std::set<std::string> known_attributes_;
 
