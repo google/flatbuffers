@@ -32,24 +32,27 @@
 #endif
 
 namespace flatbuffers {
-namespace go {
+namespace kotlin {
 
 static std::string GenGetter(const Type &type);
+static std::string GenSetter(const Type &type);
 static std::string GenMethod(const FieldDef &field);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
-static std::string TypeName(const FieldDef &field);
 
+static std::string TypeName(const FieldDef &field);
+static std::string Zero(const FieldDef &field);
+
+static std::string DestinationCast(const Type &type) ;
+static std::string DestinationMask(const Type &type, bool vectorelem);
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
 std::string OffsetPrefix(const FieldDef &field) {
-  return "{\n\to := flatbuffers.UOffsetT(rcv._tab.Offset(" +
-         NumToString(field.value.offset) +
-         "))\n\tif o != 0 {\n";
+  return "{\n\to = _offset(" +NumToString(field.value.offset) +")\n if (o != 0) {\n";
 }
 
 // Begin by declaring namespace and imports.
@@ -59,24 +62,11 @@ static void BeginFile(const std::string name_space_name,
   std::string &code = *code_ptr;
   code += "// automatically generated, do not modify\n\n";
   code += "package " + name_space_name + "\n\n";
-  if (needs_imports) {
-    code += "import (\n";
-    code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
-    code += ")\n";
-  }
+  if (needs_imports) code += "import java.nio.*;\nimport com.google.flatbuffers.kotlin.*;\n\n";
+ 
 }
 
-// Begin a class declaration.
-static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
-  std::string &code = *code_ptr;
 
-  code += "type " + struct_def.name + " struct {\n\t";
-
-  // _ is reserved in flatbuffers field names, so no chance of name conflict:
-  code += "_tab ";
-  code += struct_def.fixed ? "flatbuffers.Struct" : "flatbuffers.Table";
-  code += "\n}\n\n";
-}
 
 // Begin enum code with a class declaration.
 static void BeginEnum(std::string *code_ptr) {
@@ -105,43 +95,67 @@ static void EndEnum(std::string *code_ptr) {
 static void NewRootTypeFromBuffer(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
-
-  code += "func GetRootAs";
+// DONE
+  code += "fun rootAs";
   code += struct_def.name;
-  code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-  code += "*" + struct_def.name + "";
+  code += "(byteBuffer : ByteBuffer, reuse : " + struct_def.name + "? = null) ";
+  code += " : " + struct_def.name;
   code += " {\n";
-  code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
-  code += "\tx := &" + struct_def.name + "{}\n";
-  code += "\tx.Init(buf, n + offset)\n";
-  code += "\treturn x\n";
-  code += "}\n\n";
+  code += "\tbyteBuffer.order(ByteOrder.LITTLE_ENDIAN);\n";
+  code += "\t return (reuse ?: " + struct_def.name + "()).wrap(byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position(), byteBuffer)\n";
+  code +=  "}\n\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
 static void InitializeExisting(const StructDef &struct_def,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
-
-  GenReceiver(struct_def, code_ptr);
-  code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
-  code += "{\n";
-  code += "\trcv._tab.Bytes = buf\n";
-  code += "\trcv._tab.Pos = i\n";
-  code += "}\n\n";
+// DONE
+  code += "fun wrap(position : Int, byteBuffer : ByteBuffer) : " + struct_def.name + " = apply {\n";
+  code +=  "\t\t_position = position\n";
+  code +=  "\t\t_byteBuffer = byteBuffer\n";
+  code +=  "\t}\n\n";
 }
 
+// Begin a class declaration.
+static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  code += "public open class " + struct_def.name + " : Table() {\n\t";
+}
+
+// Begin a class companion object (for static methods)
+static void BeginCompanion(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "companion object {\n\t";
+}
+
+
+// End a class companion object (for static methods)
+static void EndCompanion(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "\n}\n\n";
+}
+
+
+// End a class declaration.
+static void EndClass(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "\n}\n\n";
+}
+
+
 // Get the length of a vector.
-static void GetVectorLen(const StructDef &struct_def,
+static void GetVectorLen(
                          const FieldDef &field,
                          std::string *code_ptr) {
   std::string &code = *code_ptr;
-
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name) + "Length(";
-  code += ") int " + OffsetPrefix(field);
-  code += "\t\treturn rcv._tab.VectorLen(o)\n\t}\n";
-  code += "\treturn 0\n}\n\n";
+// DONE
+  code += "public val " + field.name + "Size : Int \n";
+  code += "\tget() {\n";
+  code += "\t\tval o = _offset(" + NumToString(field.value.offset) + ")\n";
+  code += "\t\treturn if (o == 0) 0 else _arraySize(o)\n";
+  code +="\t}\n\n";
 }
 
 // Get a [ubyte] vector as a byte slice.
@@ -150,7 +164,8 @@ static void GetUByteSlice(const StructDef &struct_def,
                           std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  GenReceiver(struct_def, code_ptr);
+  GenReceiver(struct_def, code_ptr); 
+
   code += " " + MakeCamel(field.name) + "Bytes(";
   code += ") []byte " + OffsetPrefix(field);
   code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos)\n\t}\n";
@@ -158,154 +173,134 @@ static void GetUByteSlice(const StructDef &struct_def,
 }
 
 // Get the value of a struct's scalar.
-static void GetScalarFieldOfStruct(const StructDef &struct_def,
+static void GetScalarFieldOfStruct(
                                    const FieldDef &field,
                                    std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "() " + TypeName(field) + " { return " + getter;
-  code += "(rcv._tab.Pos + flatbuffers.UOffsetT(";
-  code += NumToString(field.value.offset) + ")) }\n";
+  std::string setter = GenSetter(field.value.type);
+// DONE
+
+  if (field.value.type.base_type == BASE_TYPE_STRING) code += "public val "; else  code += "public var ";
+  code+= field.name + " : " + TypeName(field) + "\n";
+  code += "\tget() = " + getter + "(position + _offset(" + NumToString(field.value.offset) + ")) }\n\n";
+
+// we could use a var here for stuff different of strings
+  if (field.value.type.base_type != BASE_TYPE_STRING) {
+     code += "\tset(value) { " + setter + "(position + _offset(" + NumToString(field.value.offset) + "), value) }\n\n";
+  }
 }
 
 // Get the value of a table's scalar.
-static void GetScalarFieldOfTable(const StructDef &struct_def,
+static void GetScalarFieldOfTable(
                                   const FieldDef &field,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "() " + TypeName(field) + " ";
-  code += OffsetPrefix(field) + "\t\treturn " + getter;
-  code += "(o + rcv._tab.Pos)\n\t}\n";
-  code += "\treturn " + field.value.constant + "\n";
-  code += "}\n\n";
+// DONE
+  code += "public val " + field.name + " : " + TypeName(field) + "\n";
+  code += "\t get() {\n";
+  code += "\t\tval o = _offset(" +NumToString(field.value.offset) + ")\n";
+  code += "\t\treturn if (o == 0) " + field.value.constant + " else " + getter + "(o + _position)\n";
+  code += "\t}\n\n"; 
 }
 
 // Get a struct by initializing an existing struct.
 // Specific to Struct.
-static void GetStructFieldOfStruct(const StructDef &struct_def,
+static void GetStructFieldOfStruct(
                                    const FieldDef &field,
                                    std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "(obj *" + TypeName(field);
-  code += ") *" + TypeName(field);
-  code += " {\n";
-  code += "\tif obj == nil {\n";
-  code += "\t\tobj = new(" + TypeName(field) + ")\n";
-  code += "\t}\n";
-  code += "\tobj.Init(rcv._tab.Bytes, rcv._tab.Pos + ";
-  code += NumToString(field.value.offset) + ")";
-  code += "\n\treturn obj\n";
-  code += "}\n";
+//DONE
+  code += "public fun " + field.name + "(reuse : " + TypeName(field) + "? = null) : " + TypeName(field) + " = ";
+  code += "(reuse?: " + TypeName(field) + "()).wrap(_byteBuffer, _position + " + NumToString(field.value.offset) + ")\n\n";
 }
 
 // Get a struct by initializing an existing struct.
 // Specific to Table.
-static void GetStructFieldOfTable(const StructDef &struct_def,
+static void GetStructFieldOfTable(
                                   const FieldDef &field,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "(obj *";
-  code += TypeName(field);
-  code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
-  if (field.value.type.struct_def->fixed) {
-    code += "\t\tx := o + rcv._tab.Pos\n";
-  } else {
-    code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
-  }
-  code += "\t\tif obj == nil {\n";
-  code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
-  code += "\t\t}\n";
-  code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-  code += "\t\treturn obj\n\t}\n\treturn nil\n";
-  code += "}\n\n";
+
+  // DONE
+  code += "fun " + field.name + "(reuse : " + TypeName(field) + " = null) {\n";
+  code += "\tval o = _offset(" +NumToString(field.value.offset) + ")\n";
+  code += "\tif (o==0) return null\n";
+  if (field.value.type.struct_def->fixed) code += "\tval x = o + _position\n"; else code += "\tval x = _indirect(o + _posistion)\n";
+  code += "\t return (reuse ?:" + TypeName(field) + "()).wrap(_byteBuffer, x)\n";
+  code += "\t}\n\n";
 }
 
 // Get the value of a string.
-static void GetStringField(const StructDef &struct_def,
+static void GetStringField(
                            const FieldDef &field,
                            std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += " " +  MakeCamel(field.name);
-  code += "() " + TypeName(field) + " ";
-  code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
-  code += "(o + rcv._tab.Pos)\n\t}\n\treturn nil\n";
-  code += "}\n\n";
+
+  code += "public val " +field.name + " : String?\n";
+  code += "\tget() {\n";
+  code += "\t\tval o = _offset(" +NumToString(field.value.offset) + ")\n";
+  code += "\t\treturn if (o == 0) null else " + GenGetter(field.value.type) + "(o + _position)\n";
+  code += "\t}\n\n";
 }
 
 // Get the value of a union from an object.
-static void GetUnionField(const StructDef &struct_def,
+static void GetUnionField(
                           const FieldDef &field,
                           std::string *code_ptr) {
   std::string &code = *code_ptr;
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name) + "(";
-  code += "obj " + TypeName(field) + ") bool ";
-  code += OffsetPrefix(field);
-  code += "\t\t" + GenGetter(field.value.type);
-  code += "(obj, o)\n\t\treturn true\n\t}\n";
-  code += "\treturn false\n";
-  code += "}\n\n";
+
+  code += "fun " + field.name + "(reuse : " + TypeName(field) + "?=null) :Boolean {\n";
+  code += "\tval o = _offset(" +NumToString(field.value.offset) + ")\n";
+  code += "\tif (o==0) return false\n";
+  code += "\t" + GenGetter(field.value.type) + "(reuse ?:" + TypeName(field) + "(), o)\n";
+  code += "\treturn true\n";
+  code += "\t}\n\n";
 }
 
 // Get the value of a vector's struct member.
-static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
+static void GetMemberOfVectorOfStruct(
                                       const FieldDef &field,
                                       std::string *code_ptr) {
   std::string &code = *code_ptr;
   auto vectortype = field.value.type.VectorType();
 
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "(obj *" + TypeName(field);
-  code += ", j int) bool " + OffsetPrefix(field);
-  code += "\t\tx := rcv._tab.Vector(o)\n";
-  code += "\t\tx += flatbuffers.UOffsetT(j) * ";
-  code += NumToString(InlineSize(vectortype)) + "\n";
-  if (!(vectortype.struct_def->fixed)) {
-    code += "\t\tx = rcv._tab.Indirect(x)\n";
-  }
-  code += "\tif obj == nil {\n";
-  code += "\t\tobj = new(" + TypeName(field) + ")\n";
-  code += "\t}\n";
-  code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-  code += "\t\treturn true\n\t}\n";
-  code += "\treturn false\n";
-  code += "}\n\n";
+// DONE
+  code += field.name + "(j :Int, reuse : " + TypeName(field) + "?=null) : Boolean {";
+  code += "\to = _offset(" +NumToString(field.value.offset) + ")\n";
+  code += "\tif (o==0) return false";
+  code += "\tval x = _array(o) + j * " + NumToString(InlineSize(vectortype)) + "\n";
+  code += "\t(reuse ?: " + TypeName(field) +"() ).wrap(_byteBuffer, x";
+  if (vectortype.struct_def->fixed) code += ")\n"; else code += " + _indirect(x))\n";
+  code += "\treturn true\n\t}\n";
+  code += "\t}\n\n";
 }
 
 // Get the value of a vector's non-struct member. Uses a named return
 // argument to conveniently set the zero value for the result.
-static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
+static void GetMemberOfVectorOfNonStruct(
                                          const FieldDef &field,
                                          std::string *code_ptr) {
   std::string &code = *code_ptr;
   auto vectortype = field.value.type.VectorType();
 
-  GenReceiver(struct_def, code_ptr);
-  code += " " + MakeCamel(field.name);
-  code += "(j int) " + TypeName(field) + " ";
-  code += OffsetPrefix(field);
-  code += "\t\ta := rcv._tab.Vector(o)\n";
-  code += "\t\treturn " + GenGetter(field.value.type) + "(";
-  code += "a + flatbuffers.UOffsetT(j * ";
-  code += NumToString(InlineSize(vectortype)) + "))\n";
-  code += "\t}\n";
-  if (vectortype.base_type == BASE_TYPE_STRING) {
-    code += "\treturn nil\n";
-  } else {
-    code += "\treturn 0\n";
+  // DONE
+  code += "public fun " + field.name + "(j : Int) : " + TypeName(field) + " {\n";
+  code += "\tval o = _offset(" + NumToString(field.value.offset) + ")\n";
+  if (vectortype.base_type == BASE_TYPE_STRING) code += "\treturn if (o==0) null"; else code += "\treturn if (o==0) " + Zero(field);
+  code += " else " + GenGetter(field.value.type) + "(_array(o) + j * " + NumToString(InlineSize(vectortype)) + ")\n";
+  code += "\t}\n\n";
+
+  if (vectortype.base_type != BASE_TYPE_STRING) {
+    code += "public fun mutate" + MakeCamel(field.name) + "(j : Int, value : " + TypeName(field) + ") :Boolean {\n";
+    code += "\tval o = _offset(" + NumToString(field.value.offset) + ")\n";
+    code += "\tif (o==0) return  false\n";
+    code += "\t" + GenSetter(field.value.type) + "(_array(o) + j * " + NumToString(InlineSize(vectortype)) + ", value ";
+    code += DestinationCast(field.value.type) + DestinationMask(field.value.type, true) + " )\n";
+    code += "\treturn true\n";
+    code += "\t}\n\n";
   }
-  code += "}\n\n";
 }
 
 // Begin the creator function signature.
@@ -314,8 +309,8 @@ static void BeginBuilderArgs(const StructDef &struct_def,
   std::string &code = *code_ptr;
 
   code += "\n";
-  code += "func Create" + struct_def.name;
-  code += "(builder *flatbuffers.Builder";
+  code += "fun create" + struct_def.name;
+  code += "(builder : FlatBufferBuilder";
 }
 
 // Recursively generate arguments for a constructor, to deal with nested
@@ -338,7 +333,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
       std::string &code = *code_ptr;
       code += (std::string)", " + nameprefix;
       code += MakeCamel(field.name, false);
-      code += " " + GenTypeBasic(field.value.type);
+      code += " : " + GenTypeBasic(field.value.type);
     }
   }
 }
@@ -346,7 +341,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
 // End the creator function signature.
 static void EndBuilderArgs(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += ") flatbuffers.UOffsetT {\n";
+  code += ") :Int {\n";
 }
 
 // Recursively generate struct construction statements and instert manual
@@ -368,7 +363,7 @@ static void StructBuilderBody(const StructDef &struct_def,
                         (nameprefix + (field.name + "_")).c_str(),
                         code_ptr);
     } else {
-      code += "    builder.Prepend" + GenMethod(field) + "(";
+      code += "    builder.add" + GenMethod(field) + "(";
       code += nameprefix + MakeCamel(field.name, false) + ")\n";
     }
   }
@@ -376,7 +371,7 @@ static void StructBuilderBody(const StructDef &struct_def,
 
 static void EndBuilderBody(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "    return builder.Offset()\n";
+  code += "    return builder.offset()\n";
   code += "}\n";
 }
 
@@ -384,11 +379,11 @@ static void EndBuilderBody(std::string *code_ptr) {
 static void GetStartOfTable(const StructDef &struct_def,
                             std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "func " + struct_def.name + "Start";
-  code += "(builder *flatbuffers.Builder) { ";
-  code += "builder.StartObject(";
+  code += "public fun start" + struct_def.name;
+  code += "(builder:FlatBufferBuilder) :Unit = ";
+  code += "builder.startObject(";
   code += NumToString(struct_def.fields.vec.size());
-  code += ") }\n";
+  code += ")\n";
 }
 
 // Set the value of a table's field.
@@ -397,59 +392,57 @@ static void BuildFieldOfTable(const StructDef &struct_def,
                               const size_t offset,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "func " + struct_def.name + "Add" + MakeCamel(field.name);
-  code += "(builder *flatbuffers.Builder, ";
-  code += MakeCamel(field.name, false) + " ";
+  code += "public fun add" + MakeCamel(field.name);
+  code += "(builder : FlatBufferBuilder, ";
+  code += MakeCamel(field.name, false);
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "flatbuffers.UOffsetT";
+    code += "Offset : Int ";
   } else {
-    code += GenTypeBasic(field.value.type);
+    code += " : " + GenTypeBasic(field.value.type);
   }
-  code += ") ";
-  code += "{ builder.Prepend";
-  code += GenMethod(field) + "Slot(";
-  code += NumToString(offset) + ", ";
+  code += ") { builder.add";
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "flatbuffers.UOffsetT";
-    code += "(";
-    code += MakeCamel(field.name, false) + ")";
+    code += "Offset(" + NumToString(offset) + ", " + MakeCamel(field.name, false) + "Offset";
   } else {
-    code += MakeCamel(field.name, false);
+    code +=  GenMethod(field) + "(" + NumToString(offset) + ", " + MakeCamel(field.name, false);
   }
-  code += ", " + field.value.constant;
-  code += ") }\n";
+  code += ", " + field.value.constant + ") }\n";
 }
 
 // Set the value of one of the members of a table's vector.
-static void BuildVectorOfTable(const StructDef &struct_def,
+static void BuildVectorOfTable(
                                const FieldDef &field,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "func " + struct_def.name + "Start";
-  code += MakeCamel(field.name);
-  code += "Vector(builder *flatbuffers.Builder, numElems int) ";
-  code += "flatbuffers.UOffsetT { return builder.StartVector(";
+  code += "fun start" + MakeCamel(field.name);
+  code += "Array(builder :FlatBufferBuilder, numElems : Int) ";
+  code += " : Unit = builder.startArray(";
   auto vector_type = field.value.type.VectorType();
   auto alignment = InlineAlignment(vector_type);
   auto elem_size = InlineSize(vector_type);
   code += NumToString(elem_size);
   code += ", numElems, " + NumToString(alignment);
-  code += ")\n}\n";
+  code += ")\n\n";
 }
 
 // Get the offset of the end of a table.
 static void GetEndOffsetOnTable(const StructDef &struct_def,
                                 std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "func " + struct_def.name + "End";
-  code += "(builder *flatbuffers.Builder) flatbuffers.UOffsetT ";
-  code += "{ return builder.EndObject() }\n";
+  code += "fun end" + struct_def.name + "(builder :FlatBufferBuilder) :Int {\n\t";
+  code += "\tval o = builder.endObject()\n\t";
+  
+  // TODO required fields go there
+  // like builder.required(o, 6);  // blueprint
+
+code += "\treturn o\n";
+  code += "}";
 }
 
 // Generate the receiver for function signatures.
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "func (rcv *" + struct_def.name + ")";
+  code += "fun (rcv " + struct_def.name + ")";
 }
 
 // Generate a struct field, conditioned on its child type(s).
@@ -459,40 +452,40 @@ static void GenStructAccessor(const StructDef &struct_def,
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
-      GetScalarFieldOfStruct(struct_def, field, code_ptr);
+      GetScalarFieldOfStruct(field, code_ptr);
     } else {
-      GetScalarFieldOfTable(struct_def, field, code_ptr);
+      GetScalarFieldOfTable(field, code_ptr);
     }
   } else {
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT:
         if (struct_def.fixed) {
-          GetStructFieldOfStruct(struct_def, field, code_ptr);
+          GetStructFieldOfStruct(field, code_ptr);
         } else {
-          GetStructFieldOfTable(struct_def, field, code_ptr);
+          GetStructFieldOfTable(field, code_ptr);
         }
         break;
       case BASE_TYPE_STRING:
-        GetStringField(struct_def, field, code_ptr);
+        GetStringField(field, code_ptr);
         break;
       case BASE_TYPE_VECTOR: {
         auto vectortype = field.value.type.VectorType();
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
-          GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
+          GetMemberOfVectorOfStruct(field, code_ptr);
         } else {
-          GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+          GetMemberOfVectorOfNonStruct(field, code_ptr);
         }
         break;
       }
       case BASE_TYPE_UNION:
-        GetUnionField(struct_def, field, code_ptr);
+        GetUnionField(field, code_ptr);
         break;
       default:
         assert(0);
     }
   }
   if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-    GetVectorLen(struct_def, field, code_ptr);
+    GetVectorLen(field, code_ptr);
     if (field.value.type.element == BASE_TYPE_UCHAR) {
       GetUByteSlice(struct_def, field, code_ptr);
     }
@@ -513,7 +506,7 @@ static void GenTableBuilders(const StructDef &struct_def,
     auto offset = it - struct_def.fields.vec.begin();
     BuildFieldOfTable(struct_def, field, offset, code_ptr);
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-      BuildVectorOfTable(struct_def, field, code_ptr);
+      BuildVectorOfTable(field, code_ptr);
     }
   }
 
@@ -536,22 +529,24 @@ static void GenStruct(const StructDef &struct_def,
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
-  for (auto it = struct_def.fields.vec.begin();
-       it != struct_def.fields.vec.end();
-       ++it) {
+
+  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
     auto &field = **it;
     if (field.deprecated) continue;
-
     GenStructAccessor(struct_def, field, code_ptr);
   }
 
-  if (struct_def.fixed) {
+
+  BeginCompanion(code_ptr);
+  //if (struct_def.fixed) {
     // create a struct constructor function
     GenStructBuilder(struct_def, code_ptr);
-  } else {
+  //} else {
     // Create a set of functions that allow table construction.
     GenTableBuilders(struct_def, code_ptr);
-  }
+  //}
+  EndCompanion(code_ptr);
+  EndClass(code_ptr);
 }
 
 // Generate enum declarations.
@@ -573,19 +568,70 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
 // Returns the function name that is able to read a value of the given type.
 static std::string GenGetter(const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
-    case BASE_TYPE_UNION: return "rcv._tab.Union";
+    case BASE_TYPE_STRING: return "_string";
+    case BASE_TYPE_UNION: return "_union";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default:
-      return "rcv._tab.Get" + MakeCamel(GenTypeGet(type));
+      return "_byteBuffer.get" + GenTypeGet(type);
   }
 }
+
+
+
+// Returns the function name that is able to read a value of the given type.
+static std::string GenSetter(const Type &type) {
+  switch (type.base_type) {
+    //case BASE_TYPE_STRING: return "_string";
+    //case BASE_TYPE_UNION: return "_union";
+    // case BASE_TYPE_VECTOR: return "_byteBuffer.put" + GenTypeGet(type.VectorType());
+    default:
+      return "_byteBuffer.put" + GenTypeGet(type);
+  }
+}
+
+
+
+// Casts necessary to correctly read serialized data
+static std::string DestinationCast(const Type &type) {
+      // Cast necessary to correctly read serialized unsigned values.
+  switch (type.base_type) {
+  case BASE_TYPE_UINT:  return " as Long";
+  case BASE_TYPE_USHORT:  return " as Int";
+  case BASE_TYPE_UCHAR:  return " as Short";
+default: return "";
+}
+    /*  if (
+type.base_type == BASE_TYPE_LONG ||
+type.base_type == BASE_TYPE_UINT ||
+          (type.base_type == BASE_TYPE_VECTOR &&
+           type.element == BASE_TYPE_UINT)) return "as Long";
+
+  return "";*/
+}
+
+
+// Mask to turn serialized value into destination type value.
+static std::string DestinationMask(
+                                   const Type &type, bool vectorelem) {
+
+  switch (type.base_type) {
+    case BASE_TYPE_UCHAR:  return " and 0xFF";
+    case BASE_TYPE_USHORT: return " and 0xFFFF";
+    case BASE_TYPE_UINT:   return " and 0xFFFFFFFFL";
+    case BASE_TYPE_VECTOR:if (vectorelem) return DestinationMask(type.VectorType(), vectorelem);
+      // else fall thru:
+    default: return "";
+  }
+}
+
+
+
 
 // Returns the method name for use with add/put calls.
 static std::string GenMethod(const FieldDef &field) {
   return IsScalar(field.value.type.base_type)
-    ? MakeCamel(GenTypeBasic(field.value.type))
-    : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
+    ? /*MakeCamel(*/GenTypeBasic(field.value.type)/*)*/
+    : (IsStruct(field.value.type) ? "Struct" : "Int");
 }
 
 
@@ -610,24 +656,62 @@ static bool SaveType(const Parser &parser, const Definition &def,
   std::string code = "";
   BeginFile(namespace_name, needs_imports, &code);
   code += classcode;
-  std::string filename = namespace_dir + def.name + ".go";
+  std::string filename = namespace_dir + def.name + ".kt";
   return SaveFile(filename.c_str(), code, false);
 }
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
-      #GTYPE,
+      #KTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
   return ctypename[type.base_type];
 }
 
+/*
+static std::string Zero(const FieldDef &field) {
+switch (field.value.type.base_type) {
+case BASE_TYPE_NONE:
+case BASE_TYPE_UTYPE:
+case BASE_TYPE_CHAR:
+case BASE_TYPE_UCHAR:return "0.toByte()";
+case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:
+case BASE_TYPE_USHORT:return "0.toShort()";
+case BASE_TYPE_INT:
+case BASE_TYPE_UINT:return "0";
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return "0L";
+case BASE_TYPE_FLOAT:return "0f";
+case BASE_TYPE_DOUBLE:return "0.0";
+case BASE_TYPE_STRING:
+case BASE_TYPE_VECTOR:
+case BASE_TYPE_STRUCT:
+case BASE_TYPE_UNION:return "null";
+    default:return "0";
+  }
+}*/
+
+
+// I didn't succeed in making that work with a switch :/ see above, there is someting wrong I think with the types
+static std::string Zero(const FieldDef &field) {
+std::string typeName = TypeName(field);
+if (typeName == "Int") return "0";
+if (typeName == "Long") return "0L";
+if (typeName == "Float") return "0f";
+if (typeName == "Double") return "0.0";
+if (typeName == "Short") return "ZERO_SHORT";
+if (typeName == "Byte") return "ZERO_BYTE";
+// there are chars in kotlin (16 bits wide unsigned) but maybee it's better to serialize them as shorts
+return "null";
+}
+
 static std::string GenTypePointer(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING:
-      return "[]byte";
+      return "_string";
     case BASE_TYPE_VECTOR:
       return GenTypeGet(type.VectorType());
     case BASE_TYPE_STRUCT:
@@ -635,7 +719,7 @@ static std::string GenTypePointer(const Type &type) {
     case BASE_TYPE_UNION:
       // fall through
     default:
-      return "*flatbuffers.Table";
+      return "Table";
   }
 }
 
@@ -660,26 +744,24 @@ static void GenStructBuilder(const StructDef &struct_def,
   EndBuilderBody(code_ptr);
 }
 
-}  // namespace go
+}  // namespace kotlin
 
-bool GenerateGo(const Parser &parser,
+bool GenerateKotlin(const Parser &parser,
                 const std::string &path,
                 const std::string & /*file_name*/,
                 const GeneratorOptions & /*opts*/) {
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
-    go::GenEnum(**it, &enumcode);
-    if (!go::SaveType(parser, **it, enumcode, path, false))
+    kotlin::GenEnum(**it, &enumcode);
+    if (!kotlin::SaveType(parser, **it, enumcode, path, false))
       return false;
   }
 
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
+  for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    go::GenStruct(**it, &declcode, parser.root_struct_def_);
-    if (!go::SaveType(parser, **it, declcode, path, true))
-      return false;
+    kotlin::GenStruct(**it, &declcode, parser.root_struct_def_);
+    if (!kotlin::SaveType(parser, **it, declcode, path, true)) return false;
   }
 
   return true;
