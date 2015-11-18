@@ -528,6 +528,13 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &file_name,
                          const GeneratorOptions &opts);
 
+// Generate Php code from the definitions in the Parser object.
+// See idl_gen_php.
+extern bool GeneratePhp(const Parser &parser,
+       const std::string &path,
+       const std::string &file_name,
+       const GeneratorOptions &opts);
+
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
 extern bool GeneratePython(const Parser &parser,
