@@ -34,9 +34,10 @@
 namespace flatbuffers {
 namespace kotlin {
 
+static std::string beforeStorageType(const Type &type);
 static std::string kotlinType(const Type &type);
 static std::string zero(const Type &type);
-static std::string GenGetter(const Type &type);
+static std::string beginGet(const Type &type);
 static std::string GenSetter(const Type &type);
 static std::string GenMethod(const FieldDef &field);
 static void GenStructBuilder(const StructDef &struct_def,
@@ -48,8 +49,9 @@ static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
 //static std::string Zero(const FieldDef &field);
 
-static std::string toType(const Type &type, const bool isLitteral);
-static std::string toValue(const Type &type);
+static std::string afterStorageType(const Type &type, const bool isLitteral);
+static std::string toKotlinValue(const Type &type);
+static std::string toStorageValue(const Type &type);
 //static std::string DestinationCast(const Type &type) ;
 //static std::string DestinationMask(const Type &type, bool vectorelem);
 static std::string multiplyBySizeOf(const Type &type);
@@ -74,16 +76,18 @@ static void BeginFile(const std::string name_space_name,
 
 
 // Begin enum code with a class declaration.
-static void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) {
+static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "enum class " + enum_def.name + "(val value: Byte) :BitFlags { ";
+  /** GenTypeGet works for enum kotlinType doesn't*/
+  code += "enum class " + enum_def.name + "(val value: " + GenTypeGet(enum_def.underlying_type) + ") {\n";
+
 }
 
 // A single enum member.
-static void EnumMember(const EnumVal ev,
+static void enumMember(const EnumVal ev,
                        std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "\t" +  ev.name + "( " + NumToString(ev.value) + "),\n";
+  code += "\t" +  ev.name + "(" + NumToString(ev.value) + ")";
   /*code += "\t";
   code += enum_def.name;
   code += ev.name;
@@ -91,64 +95,63 @@ static void EnumMember(const EnumVal ev,
   code += NumToString(ev.value) + "\n";*/
 }
 
-// End enum code.
-static void EndEnum(std::string *code_ptr) {
+static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr) {
   std::string &code = *code_ptr;
+
+  code += "\t companion object {\n\tfun from( value : Int) : " + enum_def.name  + " = when (value) {\n";
+  for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
+        auto &ev = **it;
+	code += "\t" + NumToString(ev.value) + " -> " + ev.name + "\n";
+  }
+   code += "\telse -> throw Exception(\"Bad enum value : $value\")\n";
+  code += "}\n}\n";
   code += "}\n";
 }
 
 // Initialize a new struct or table from existing data.
-static void NewRootTypeFromBuffer(const StructDef &struct_def,
-                                  std::string *code_ptr) {
+static void NewRootTypeFromBuffer(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-// DONE
+
   code += "public fun rootAs" + struct_def.name + "(byteBuffer : ByteBuffer, reuse : " + struct_def.name + "? = null) : ";
   code += struct_def.name + " {byteBuffer.order(ByteOrder.LITTLE_ENDIAN); ";
   code += "return (reuse ?: " + struct_def.name + "()).wrap(byteBuffer)}\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
-static void InitializeExisting(const StructDef &struct_def,
-                               std::string *code_ptr) {
+static void initializeTableAndStruct(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-// DONE
+
   code += "public fun wrap(byteBuffer : ByteBuffer, position : Int = byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) : " + struct_def.name + " = apply {";
   code +=  "_position = position; ";
   code +=  "_byteBuffer = byteBuffer}\n";
 }
 
-// Begin a class declaration.
-static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
+
+/* class */
+static void beginClassDeclaration(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public open class " + struct_def.name + " : ";
   if (struct_def.fixed) code += "Struct"; else code+= "Table"; 
   code += "() {\n\t";
 }
 
-// Begin a class companion object (for static methods)
-static void BeginCompanion(std::string *code_ptr) {
+static void beginCompanionObject(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "companion object {\n\t";
+  code += "\tcompanion object {\n\t\t";
+}
+
+static void endCompanionObject(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "\t}\n";
 }
 
 
-// End a class companion object (for static methods)
-static void EndCompanion(std::string *code_ptr) {
-  std::string &code = *code_ptr;
-  code += "\n}\n";
-}
-
-
-// End a class declaration.
-static void EndClass(std::string *code_ptr) {
+static void endClassDeclaration(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\n}";
 }
 
-
-// Get the length of a vector.
-static void getArrayLength(const FieldDef &field,
-                         std::string *code_ptr) {
+static void getArraySize(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public val " + field.name + "Size : Int ";
   code += "get() {val o = _offset(" + NumToString(field.value.offset) + "); ";
@@ -169,43 +172,35 @@ static void GetUByteSlice(const StructDef &struct_def,
   code += "\treturn nil\n}\n\n";
 }*/
 
-// Get the value of a struct's scalar.
-static void GetScalarFieldOfStruct(
-                                   const FieldDef &field,
-                                   std::string *code_ptr) {
+static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = GenGetter(field.value.type);
+  std::string getter = beginGet(field.value.type);
   std::string setter = GenSetter(field.value.type);
-// DONE
 
   if (field.value.type.base_type == BASE_TYPE_STRING) code += "public val "; else  code += "public var ";
   code+= field.name + " : " + kotlinType(field.value.type);
-  code += " get() = " + getter + "(position + _offset(" + NumToString(field.value.offset) + "))" + toType(field.value.type, true) + "} ";
+  code += " get() = " + getter + "(position + _offset(" + NumToString(field.value.offset) + "))" + afterStorageType(field.value.type, true) + "} ";
 
-// we could use a var here for stuff different of strings
   if (field.value.type.base_type != BASE_TYPE_STRING) {
-     code += " set(value) { " + setter + "(position + _offset(" + NumToString(field.value.offset) + "), " + toValue(field.value.type) +") }";
-  }
+	code += " set(value) { " + setter + "(position + _offset(" + NumToString(field.value.offset) + "), ";
+	code += toStorageValue(field.value.type) +") }";
+  }  
  code += "\n";
 }
 
-// Get the value of a table's scalar.
-static void GetScalarFieldOfTable(
-                                  const FieldDef &field,
-                                  std::string *code_ptr) {
+static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = GenGetter(field.value.type);
-// DONE
+  std::string getter = beginGet(field.value.type);
+
   code += "public val " + field.name + " : " + kotlinType(field.value.type);
   code += " get() {val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) " + field.value.constant + toType(field.value.type, true) + " else " + getter + "(o + _position)" + toType(field.value.type, false) + "}\n"; 
+  code += "return if (o == 0) " + beforeStorageType(field.value.type) + field.value.constant + afterStorageType(field.value.type, true);
+  code += " else " + beforeStorageType(field.value.type)+ getter + "(o + _position)" + afterStorageType(field.value.type, false) + "}\n"; 
 }
 
 // Get a struct by initializing an existing struct.
 // Specific to Struct.
-static void GetStructFieldOfStruct(
-                                   const FieldDef &field,
-                                   std::string *code_ptr) {
+static void getStructFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 //DONE
   code += "public fun " + field.name + "(reuse : " + GenTypeGet(field.value.type) + "? = null) : " + GenTypeGet(field.value.type) + " = ";
@@ -214,8 +209,7 @@ static void GetStructFieldOfStruct(
 
 // Get a struct by initializing an existing struct.
 // Specific to Table.
-static void GetStructFieldOfTable(const FieldDef &field,
-                                  std::string *code_ptr) {
+static void getStructFieldOfTable(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public fun " + field.name + "(reuse : " + GenTypeGet(field.value.type) + "? = null) : " + GenTypeGet(field.value.type)+ "? {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
@@ -225,25 +219,23 @@ static void GetStructFieldOfTable(const FieldDef &field,
 }
 
 // Get the value of a string.
-static void GetStringField(const FieldDef &field,
-                           std::string *code_ptr) {
+static void getStringField(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "public val " +field.name + " : String? get() {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) null else " + GenGetter(field.value.type) + "(o + _position)";
+  code += "return if (o == 0) null else " + beginGet(field.value.type) + "(o + _position)";
   code += "}\n";
 }
 
 // it's better to return null instead of false and an object instead of true ?
 // Get the value of a union from an object.
-static void GetUnionField(const FieldDef &field,
-                          std::string *code_ptr) {
+static void getUnion(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  code += "public fun " + field.name + "(reuse : " + TypeName(field) + "? = null) : " + TypeName(field) + "? {";
+  code += "public fun " + field.name + "(reuse : " + GenTypeGet(field.value.type) + ") : " + GenTypeGet(field.value.type) + "? {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o==0) null else " + GenGetter(field.value.type) + "(reuse ?:" + TypeName(field) + "(), o)}\n";
+  code += "return if (o==0) null else _union(reuse, o)}\n";
 }
 
 
@@ -251,14 +243,14 @@ static void GetUnionField(const FieldDef &field,
 
 
 // Get the value of a union from an object.
-static void GetUnionField(const FieldDef &field,
+static void getUnion(const FieldDef &field,
                           std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "fun " + field.name + "(reuse : " + TypeName(field) + "? = null) :Boolean {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
   code += "return if (o==0) false else {";
-  code += GenGetter(field.value.type) + "(reuse ?:" + TypeName(field) + "(), o); true}}\n";
+  code += beginGet(field.value.type) + "(reuse ?:" + TypeName(field) + "(), o); true}}\n";
 }
 
 */
@@ -272,15 +264,15 @@ static void GetMemberOfVectorOfStruct(
   auto vectortype = field.value.type.VectorType();
 
 // DONE
-  code += "public fun " + field.name + "(j :Int, reuse : " + TypeName(field) + "? = null) : Boolean {";
+  code += "public fun " + field.name + "(j :Int, reuse : " + TypeName(field) + "? = null) : "+ TypeName(field) + "? {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o==0) false else {";
+  code += "return if (o==0) null else {";
   code += "val x = _array(o) + j" + multiplyBySizeOf(vectortype) + "; ";
   code += "(reuse ?: " + TypeName(field) +"() ).wrap(_byteBuffer, x";
   if (!vectortype.struct_def->fixed) code += " + _indirect(x)";
-  code += "); true}}\n";
+  code += ")}}\n";
 
-getArrayLength(field, code_ptr);
+getArraySize(field, code_ptr);
 }
 
 // Get the value of a vector's non-struct member. Uses a named return
@@ -292,21 +284,22 @@ static void GetMemberOfVectorOfNonStruct(
   auto vectortype = field.value.type.VectorType();
 
   // DONE
-// TODO it can be null here if we hve string
-  code += "public fun " + field.name + "(j : Int) : " + TypeName(field) + " {";
+  code += "public fun " + field.name + "(j : Int) : " + kotlinType(field.value.type) + " {";
   code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
   code += "return if (o==0) " + zero(field.value.type);
-  code += " else " + GenGetter(field.value.type) + "(_array(o) + j" + multiplyBySizeOf(vectortype) + ")}\n";
+  code += " else " + beginGet(field.value.type) + "(_array(o) + j" + multiplyBySizeOf(vectortype) + ")";
+	if (vectortype.base_type != BASE_TYPE_STRING) code += toKotlinValue(field.value.type); 
+code += "}\n";
 
   if (vectortype.base_type != BASE_TYPE_STRING) {
     code += "public fun mutate" + MakeCamel(field.name) + "(j : Int, value : " + kotlinType(field.value.type) + ") :Boolean {";
     code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
     code += GenSetter(field.value.type) + "(_array(o) + j" + multiplyBySizeOf(vectortype);
-    code += ", " + toValue(field.value.type) + "); true}}\n";
+    code += ", " + toStorageValue(field.value.type) + "); true}}\n";
   }
 
-getArrayLength(field, code_ptr);
+getArraySize(field, code_ptr);
 }
 
 // Begin the creator function signature.
@@ -380,7 +373,7 @@ static void GetStartOfTable(const StructDef &struct_def,
 }
 
 // Set the value of a table's field.
-static void BuildFieldOfTable(const StructDef &struct_def,
+static void buildFieldOfTable(const StructDef &struct_def,
                               const FieldDef &field,
                               const size_t offset,
                               std::string *code_ptr) {
@@ -403,7 +396,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
 }
 
 // Set the value of one of the members of a table's vector.
-static void BuildVectorOfTable(
+static void buildArrayOfTable(
                                const FieldDef &field,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -439,19 +432,17 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
 }*/
 
 // Generate a struct field, conditioned on its child type(s).
-static void GenStructAccessor(const StructDef &struct_def,
-                              const FieldDef &field,
-                              std::string *code_ptr) {
+static void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
-    if (struct_def.fixed) GetScalarFieldOfStruct(field, code_ptr); else GetScalarFieldOfTable(field, code_ptr);
+    if (struct_def.fixed) getScalarFieldOfStruct(field, code_ptr); else getScalarFieldOfTable(field, code_ptr);
   } else {
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT:
-        if (struct_def.fixed) GetStructFieldOfStruct(field, code_ptr); else  GetStructFieldOfTable(field, code_ptr);
+        if (struct_def.fixed) getStructFieldOfStruct(field, code_ptr); else  getStructFieldOfTable(field, code_ptr);
         break;
       case BASE_TYPE_STRING:
-        GetStringField(field, code_ptr);
+        getStringField(field, code_ptr);
         break;
       case BASE_TYPE_VECTOR: {
         auto vectortype = field.value.type.VectorType();
@@ -459,7 +450,7 @@ static void GenStructAccessor(const StructDef &struct_def,
         break;
       }
       case BASE_TYPE_UNION:
-        GetUnionField(field, code_ptr);
+        getUnion(field, code_ptr);
         break;
       default:
         assert(0);
@@ -467,7 +458,7 @@ static void GenStructAccessor(const StructDef &struct_def,
   }
 // this is for faster access to the underlying bytes
  /* if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-    getArrayLength(field, code_ptr);
+    getArraySize(field, code_ptr);
     if (field.value.type.element == BASE_TYPE_UCHAR) GetUByteSlice(struct_def, field, code_ptr);
   }*/
 }
@@ -477,17 +468,14 @@ static void GenTableBuilders(const StructDef &struct_def,
                              std::string *code_ptr) {
   GetStartOfTable(struct_def, code_ptr);
 
-  for (auto it = struct_def.fields.vec.begin();
-       it != struct_def.fields.vec.end();
-       ++it) {
+  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
     auto &field = **it;
     if (field.deprecated) continue;
 
     auto offset = it - struct_def.fields.vec.begin();
-    BuildFieldOfTable(struct_def, field, offset, code_ptr);
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-      BuildVectorOfTable(field, code_ptr);
-    }
+    buildFieldOfTable(struct_def, field, offset, code_ptr);
+    if (field.value.type.base_type == BASE_TYPE_VECTOR) buildArrayOfTable(field, code_ptr);
+    
   }
 
   GetEndOffsetOnTable(struct_def, code_ptr);
@@ -500,24 +488,25 @@ static void GenStruct(const StructDef &struct_def,
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
-  BeginClass(struct_def, code_ptr);
+  beginClassDeclaration(struct_def, code_ptr);
+
+  // Generate the Init method that sets the field in a pre-existing
+  // accessor object. This is to allow object reuse.
+  initializeTableAndStruct(struct_def, code_ptr);
+
+  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
+    auto &field = **it;
+    if (field.deprecated) continue;
+    generateStructAccessor(struct_def, field, code_ptr);
+  }
+
+
+  beginCompanionObject(code_ptr);
   if (&struct_def == root_struct_def) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
   }
-  // Generate the Init method that sets the field in a pre-existing
-  // accessor object. This is to allow object reuse.
-  InitializeExisting(struct_def, code_ptr);
-
-  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
-    auto &field = **it;
-    if (field.deprecated) continue;
-    GenStructAccessor(struct_def, field, code_ptr);
-  }
-
-
-  BeginCompanion(code_ptr);
   if (struct_def.fixed) {
     // create a struct constructor function
     GenStructBuilder(struct_def, code_ptr);
@@ -526,74 +515,37 @@ static void GenStruct(const StructDef &struct_def,
     GenTableBuilders(struct_def, code_ptr);
     // GenStructBuilder(struct_def, code_ptr); // added
   }
-  EndCompanion(code_ptr);
-  EndClass(code_ptr);
+  endCompanionObject(code_ptr);
+  endClassDeclaration(code_ptr);
 }
 
 // Generate enum declarations.
-static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+static void generateEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
+  auto &code = * code_ptr;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
-  BeginEnum(enum_def, code_ptr);
+  beginEnumDeclaration(enum_def, code_ptr);
   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
-    EnumMember( ev, code_ptr);
+    if (it != enum_def.vals.vec.begin()) code += ",\n";
+    enumMember( ev, code_ptr);
   }
-  EndEnum(code_ptr);
-}
-
-// Returns the function name that is able to read a value of the given type.
-static std::string GenGetter(const Type &type) {
-  switch (type.base_type) {
-    case BASE_TYPE_STRING: return "_string";
-    case BASE_TYPE_UNION: return "_union";
-    case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());   
-    case BASE_TYPE_NONE:     
-    case BASE_TYPE_BOOL: 
-    case BASE_TYPE_CHAR: 
-    case BASE_TYPE_UCHAR: return "_byteBuffer.get";    
-default:
-      return "_byteBuffer.get" + GenTypeGet(type);
-  }
+  code += ";\n";
+  endEnumDeclaration(enum_def,code_ptr);
 }
 
 
 
-// Returns the function name that is able to read a value of the given type.
-static std::string GenSetter(const Type &type) {
-  switch (type.base_type) {
-    case BASE_TYPE_VECTOR: return GenSetter(type.VectorType());
-    case BASE_TYPE_NONE:     
-    case BASE_TYPE_BOOL: 
-    case BASE_TYPE_CHAR: 
-    case BASE_TYPE_UCHAR: return "_byteBuffer.put";
-    default:
-      return "_byteBuffer.put" + GenTypeGet(type);
-  }
-}
 
 
 
-// Casts necessary to correctly read serialized data
-static std::string toValue(const Type &type) {
-      // Cast necessary to correctly read serialized unsigned values.
-  switch (type.base_type) {
-  case BASE_TYPE_BOOL:  return "if (value) 1.toByte() else 0.toByte()";
-  case BASE_TYPE_UINT:  return "value.toInt()";
-  case BASE_TYPE_USHORT:  return "value.toShort()";
-  case BASE_TYPE_UCHAR:  return "value.toByte()";
-  case BASE_TYPE_VECTOR:  return toValue(type.VectorType());
-  default: return "value";
-}
-    /*  if (
-type.base_type == BASE_TYPE_UINT ||
-          (type.base_type == BASE_TYPE_VECTOR &&
-           type.element == BASE_TYPE_UINT)) return "as Long";
 
-  return "";*/
-}
+
+
+
+
 
 /*
 // Mask to turn serialized value into destination type value.
@@ -658,30 +610,107 @@ static std::string GenTypeBasic(const Type &type) {
 }
 
 
-static std::string zero(const Type &type) {
-switch (type.base_type) {
-case BASE_TYPE_NONE:
-case BASE_TYPE_UTYPE:
-case BASE_TYPE_CHAR:
-case BASE_TYPE_UCHAR:return "0.toByte()";
-case BASE_TYPE_BOOL:return "false";
-case BASE_TYPE_SHORT:
-case BASE_TYPE_USHORT:return "0.toShort()";
-case BASE_TYPE_INT:
-case BASE_TYPE_UINT:return "0";
-case BASE_TYPE_LONG:
-case BASE_TYPE_ULONG:return "0L";
-case BASE_TYPE_FLOAT:return "0f";
-case BASE_TYPE_DOUBLE:return "0.0";
-case BASE_TYPE_VECTOR:return zero(type.VectorType());
-case BASE_TYPE_STRING:
-case BASE_TYPE_STRUCT:
-case BASE_TYPE_UNION:return "null";
-    default:return "0";
+/** setters */
+
+// Returns the function name that is able to read a value of the given type.
+static std::string GenSetter(const Type &type) {
+  switch (type.base_type) {
+    case BASE_TYPE_VECTOR: return GenSetter(type.VectorType());
+    case BASE_TYPE_NONE:     
+    case BASE_TYPE_BOOL: 
+    case BASE_TYPE_CHAR: 
+    case BASE_TYPE_UCHAR: return "_byteBuffer.put";
+    default:
+      return "_byteBuffer.put" + GenTypeGet(type);
   }
 }
 
-static std::string toType(const Type &type, const bool isLitteral) {
+static std::string toStorageValue(const Type &type) {
+  // transform kotlin value to storage value
+  switch (type.base_type) {
+  case BASE_TYPE_BOOL:  return "if (value) 1.toByte() else 0.toByte()";
+  case BASE_TYPE_UINT:  return "value.toInt()";
+  case BASE_TYPE_USHORT:  return "value.toShort()";
+  case BASE_TYPE_UCHAR:  return "value.toByte()";
+  case BASE_TYPE_VECTOR:  return toStorageValue(type.VectorType());
+  default: return "value";
+}
+}
+
+
+
+/** getters */
+
+
+static std::string beforeStorageType(const Type &type) {
+    if (type.enum_def != nullptr && !type.enum_def->is_union) return type.enum_def->name + ".from("; // enum class name
+    return "";
+}
+
+
+// Returns the function name that is able to read a value of the given type.
+static std::string beginGet(const Type &type) {
+    if (type.enum_def != nullptr) {
+        if (type.enum_def->is_union){
+switch (type.enum_def->underlying_type.base_type/*type.base_type*/) { 
+case BASE_TYPE_UNION:return "_union";               
+case BASE_TYPE_NONE:     
+               case BASE_TYPE_BOOL: 
+               case BASE_TYPE_CHAR:
+ 		
+ 	case BASE_TYPE_UTYPE: // this is wrong, what if UInt ? or UShort ? 
+              case BASE_TYPE_UCHAR: return "_byteBuffer.get";    // union go in there as well as union type
+               default:
+                    return "_byteBuffer.get" + GenTypeGet(type);
+                 }
+
+}// return /*beginGet(type.enum_def->underlying_type) +*/ "gah"; // union_type type 
+        else {// enum class name
+           switch (type.enum_def->underlying_type.base_type/*type.base_type*/) { 
+               case BASE_TYPE_NONE:     
+               case BASE_TYPE_BOOL: 
+               case BASE_TYPE_CHAR: 
+              case BASE_TYPE_UCHAR: return "_byteBuffer.get";    
+               default:
+                    return "_byteBuffer.get" + GenTypeGet(type);
+                 }
+         }
+      }  
+
+switch (type.base_type) {
+    case BASE_TYPE_VECTOR: return beginGet(type.VectorType());  
+    case BASE_TYPE_STRING: return "_string";
+    case BASE_TYPE_UNION: return "_union"; 
+    case BASE_TYPE_NONE:     
+    case BASE_TYPE_BOOL: 
+    case BASE_TYPE_CHAR: 
+    case BASE_TYPE_UCHAR: return "_byteBuffer.get";    
+default:
+      return "_byteBuffer.get" + GenTypeGet(type);
+  }
+}
+
+static std::string toKotlinValue(const Type &type) {
+  // transform storage value to kotlin value
+  switch (type.base_type) {
+  case BASE_TYPE_BOOL:  return "!=0.toByte()";
+  case BASE_TYPE_UINT:  return ".toLong().and(0xFFFFFFFFL)";
+  case BASE_TYPE_USHORT:  return ".toInt().and(0xFFFF)";
+  case BASE_TYPE_UCHAR:  return ".toInt().and(0xFF)";
+  case BASE_TYPE_VECTOR:  return toKotlinValue(type.VectorType());
+  default: return "value";
+}
+}
+
+
+
+/** converts to kotlinType from storageType */
+static std::string afterStorageType(const Type &type, const bool isLitteral) {
+    if (type.enum_def != nullptr) {
+        if (type.enum_def->is_union) {}//return GenTypeGet(type); // union_type type 
+        else return ")"; // enum class name
+    }
+
 switch (type.base_type) {
 case BASE_TYPE_BOOL: if (isLitteral) return "!= 0"; else return "!=0.toByte()";
 case BASE_TYPE_NONE:
@@ -694,7 +723,7 @@ case BASE_TYPE_UINT:
 case BASE_TYPE_ULONG: if (isLitteral) return "L"; else return ".toLong()";
 case BASE_TYPE_FLOAT: if (isLitteral) return "f"; else return ".toFloat()";
 case BASE_TYPE_DOUBLE:return ".toDouble()";
-case BASE_TYPE_VECTOR:return toType(type.VectorType(), isLitteral);
+case BASE_TYPE_VECTOR:return afterStorageType(type.VectorType(), isLitteral);
 case BASE_TYPE_STRING:
 case BASE_TYPE_STRUCT:
 case BASE_TYPE_UNION:
@@ -703,6 +732,37 @@ case BASE_TYPE_INT:
     default:return "";
   }
 }
+
+
+
+
+
+
+static std::string zero(const Type &type) {
+switch (type.base_type) {
+case BASE_TYPE_NONE:
+case BASE_TYPE_UTYPE:
+case BASE_TYPE_CHAR:
+case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:
+case BASE_TYPE_UCHAR:
+case BASE_TYPE_USHORT:
+case BASE_TYPE_INT:
+case BASE_TYPE_UINT:return "0";
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return "0L";
+case BASE_TYPE_FLOAT:return "0f";
+case BASE_TYPE_DOUBLE:return "0.0";
+case BASE_TYPE_VECTOR:return zero(type.VectorType());
+case BASE_TYPE_STRING:return "\"\"";
+case BASE_TYPE_STRUCT:
+case BASE_TYPE_UNION:return "null"; // TODO fix this
+    default:return "0";
+  }
+}
+
+
+
 
 
 
@@ -726,10 +786,26 @@ static std::string GenTypePointer(const Type &type) {
 }
 
 
+
+
+
+/** type of fields in kotlin (return type of val/var/getter) */
 static std::string kotlinType(const Type &type) {
+    if (type.enum_def != nullptr) {
+        if (type.enum_def->is_union) return GenTypeGet(type); // union_type type 
+        else return type.enum_def->name; // enum class name
+    }
+/*{
+	code += "NN";
+	auto en = field.value.type.enum_def;
+	if (en->is_union) code += "isUnion"; else code += "NotUnion";
+code += en->name;
+}*/
 switch (type.base_type) {
 case BASE_TYPE_NONE:return "Nothing";
+//case BASE_TYPE_UTYPE:return kotlinType(type.enum_def->underlying_type);
 case BASE_TYPE_BOOL:return "Boolean";
+case BASE_TYPE_CHAR:return "Byte"; 
 case BASE_TYPE_SHORT:return "Short";
 case BASE_TYPE_INT:
 case BASE_TYPE_UCHAR:
@@ -742,8 +818,10 @@ case BASE_TYPE_DOUBLE:return "Double";
 case BASE_TYPE_VECTOR:return kotlinType(type.VectorType());
 case BASE_TYPE_STRING:return "String";
 case BASE_TYPE_STRUCT:return type.struct_def->name;
-case BASE_TYPE_UNION: /** fall through */
-    default:return "Table";
+case BASE_TYPE_UTYPE:return "gah";  
+case BASE_TYPE_UNION: if (type.enum_def != nullptr) return type.enum_def->name; else return "Tablea";/** fall through */
+  
+default:return "Table";
   }
 }
 
@@ -786,7 +864,7 @@ bool GenerateKotlin(const Parser &parser,
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
-    kotlin::GenEnum(**it, &enumcode);
+    kotlin::generateEnum(**it, &enumcode);
     if (!kotlin::SaveType(parser, **it, enumcode, path, false))
       return false;
   }
