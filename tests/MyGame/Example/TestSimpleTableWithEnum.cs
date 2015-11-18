@@ -14,7 +14,7 @@ public sealed class TestSimpleTableWithEnum : Table {
   public bool MutateColor(Color color) { int o = __offset(4); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
-      Color color = (Color)2) {
+      Color color = Color.Green) {
     builder.StartObject(1);
     TestSimpleTableWithEnum.AddColor(builder, color);
     return TestSimpleTableWithEnum.EndTestSimpleTableWithEnum(builder);
