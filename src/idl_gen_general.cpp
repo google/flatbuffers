@@ -279,7 +279,7 @@ static std::string GenTypeGet(const LanguageParameters &lang,
 // one size higher signed types for unsigned serialized values in Java).
 static Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
-  if (lang.language != GeneratorOptions::kJava) return type;
+  if (lang.language != GeneratorOptions::kJava && lang.language != GeneratorOptions::kKotlin) return type;
   switch (type.base_type) {
     // We use int for both uchar/ushort, since that generally means less casting
     // than using short for uchar.
@@ -297,9 +297,11 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
 static std::string GenOffsetType(const LanguageParameters &lang, const StructDef &struct_def) {
   if(lang.language == GeneratorOptions::kCSharp) {
     return "Offset<" + struct_def.name + ">";
-  } else {
+  } 
+  if(lang.language == GeneratorOptions::kKotlin) {
+    return "Int";
+  }   
     return "int";
-  }
 }
 
 static std::string GenOffsetConstruct(const LanguageParameters &lang,
@@ -315,9 +317,11 @@ static std::string GenOffsetConstruct(const LanguageParameters &lang,
 static std::string GenVectorOffsetType(const LanguageParameters &lang) {
   if(lang.language == GeneratorOptions::kCSharp) {
     return "VectorOffset";
-  } else {
-    return "int";
   }
+  if(lang.language == GeneratorOptions::kKotlin) {
+    return "Int";
+  }  
+    return "int";
 }
 
 // Generate destination type name
@@ -332,7 +336,14 @@ static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &t
     if (type.base_type == BASE_TYPE_UNION)
       return "TTable";
   }
+  if (lang.language == GeneratorOptions::kKotlin) {
+    // Kotlin enums are represented by themselves
+    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
 
+    // Unions in Kotlin use a generic Table-derived type (todo subclass Table for unions ?) for better type safety
+    if (type.base_type == BASE_TYPE_UNION) return "Table";
+  }
+  
   // default behavior
   return GenTypeGet(lang, DestinationType(lang, type, true));
 }
@@ -340,7 +351,7 @@ static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &t
 // Mask to turn serialized value into destination type value.
 static std::string DestinationMask(const LanguageParameters &lang,
                                    const Type &type, bool vectorelem) {
-  if (lang.language != GeneratorOptions::kJava) return "";
+  if (lang.language == GeneratorOptions::kJava) { 
   switch (type.base_type) {
     case BASE_TYPE_UCHAR:  return " & 0xFF";
     case BASE_TYPE_USHORT: return " & 0xFFFF";
@@ -350,6 +361,19 @@ static std::string DestinationMask(const LanguageParameters &lang,
         return DestinationMask(lang, type.VectorType(), vectorelem);
       // else fall thru:
     default: return "";
+  }
+  } else {
+   if (lang.language != GeneratorOptions::kKotlin) return "";
+  switch (type.base_type) {
+    case BASE_TYPE_UCHAR:  return ".and(0xFF)";
+    case BASE_TYPE_USHORT: return ".and(0xFFFF)";
+    case BASE_TYPE_UINT:   return ".and(0xFFFFFFFFL)";
+    case BASE_TYPE_VECTOR:
+      if (vectorelem)
+        return DestinationMask(lang, type.VectorType(), vectorelem);
+      // else fall thru:
+    default: return "";
+  }
   }
 }
 
@@ -364,12 +388,14 @@ static std::string DestinationCast(const LanguageParameters &lang,
            type.element == BASE_TYPE_UINT)) return "(long)";
       break;
  case GeneratorOptions::kKotlin:
-      // Cast necessary to correctly read serialized unsigned values.
+      // Cast from raw integral types to enum
+      if (type.enum_def != nullptr &&
+        type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from(";
+       // Cast necessary to correctly read serialized unsigned values.
       if (type.base_type == BASE_TYPE_UINT ||
           (type.base_type == BASE_TYPE_VECTOR &&
            type.element == BASE_TYPE_UINT)) return "as Long";
       break;
-
 
     case GeneratorOptions::kCSharp:
       // Cast from raw integral types to enum
@@ -388,11 +414,11 @@ static std::string DestinationValue(const LanguageParameters &lang,
   const std::string &name,
   const Type &type) {
   std::string type_mask = DestinationMask(lang, type, false);
-  // is a typecast needed? (for C# enums and unsigned values in Java)
+  // is a typecast needed? (for C# enums and unsigned values in Java, enums and unsigned values in kotlin)
   if (type_mask.length() ||
-    (lang.language == GeneratorOptions::kCSharp &&
+    ((lang.language == GeneratorOptions::kCSharp || lang.language == GeneratorOptions::kKotlin) &&
     type.enum_def != nullptr &&
-    type.base_type != BASE_TYPE_UNION)) {
+    type.base_type != BASE_TYPE_UNION) ) {
     return "(" + GenTypeBasic(lang, type) + ")(" + name + type_mask + ")";
   } else {
     return name;
@@ -401,6 +427,7 @@ static std::string DestinationValue(const LanguageParameters &lang,
 
 // Cast statements for mutator method parameters.
 // In Java, parameters representing unsigned numbers need to be cast down to their respective type.
+// In Kotlin, parameters representing unsigned numbers need to be cast down to their respective type.
 // For example, a long holding an unsigned int value would be cast down to int before being put onto the buffer.
 // In C#, one cast directly cast an Enum to its underlying type, which is essential before putting it onto the buffer.
 static std::string SourceCast(const LanguageParameters &lang,
@@ -415,6 +442,9 @@ static std::string SourceCast(const LanguageParameters &lang,
         else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
         break;
       case GeneratorOptions::kKotlin:
+
+        if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return GenTypeGet(lang, type) + ".from(";
+      	      // TODO this should be after the type
         if (type.base_type == BASE_TYPE_UINT) return "as Int";
         else if (type.base_type == BASE_TYPE_USHORT) return "as Short";
         else if (type.base_type == BASE_TYPE_UCHAR) return "as Byte";

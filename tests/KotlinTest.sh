@@ -25,5 +25,5 @@ if [[ "$testdir" != "$thisdir" ]]; then
 	exit 1
 fi
 
-kotlinc KotlinTest.kt ${testdir}/../kotlin/* ${testdir}/../MyGame/Example/* -include-runtime  -d KotlinTest.jar 
+kotlinc KotlinTest.kt ${testdir}/../kotlin/* ${testdir}/../MyGame/Example/* -include-runtime -d KotlinTest.jar 
 java -jar KotlinTest.jar
