@@ -113,7 +113,7 @@ endif
 ifeq (Linux,$(PROJECT_OS))
 define build_flatc_recipe
 	+cd $(FLATBUFFERS_CMAKELISTS_DIR) && \
-      $(CMAKE) && \
+      $(CMAKE) . && \
       $(MAKE) flatc
 endef
 endif
