@@ -20,6 +20,6 @@ import java.nio.ByteBuffer
 
 // All structs in the generated code derive from this class, and add their own accessors.
 abstract class Struct {
-    protected var bb_pos: Int = 0
-    abstract protected var bb: ByteBuffer
+    protected var _position: Int = 0
+    protected var _byteBuffer: ByteBuffer = EMPTY_BYTEBUFFER
 }

@@ -372,7 +372,7 @@ class FlatBufferBuilder {
      */
     fun startObject(numfields: Int) {
         notNested()
-        if (vtable == null || vtable!!.size() < numfields) vtable = IntArray(numfields)
+        if (vtable == null || vtable!!.size < numfields) vtable = IntArray(numfields)
         vtable_in_use = numfields
         Arrays.fill(vtable, 0, vtable_in_use, 0)
         nested = true
@@ -500,7 +500,7 @@ class FlatBufferBuilder {
         } else {
             // No match:
             // Add the location of the current vtable to the list of vtables.
-            if (num_vtables == vtables.size()) vtables = Arrays.copyOf(vtables, num_vtables * 2)
+            if (num_vtables == vtables.size) vtables = Arrays.copyOf(vtables, num_vtables * 2)
             vtables[num_vtables++] = offset()
             // Point table to current vtable.
             bb.putInt(bb.capacity() - vtableloc, offset() - vtableloc)

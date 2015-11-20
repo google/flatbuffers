@@ -33,7 +33,13 @@
 
 namespace flatbuffers {
 namespace kotlin {
+	
+	static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr);
 
+static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr);
+
+static std::string toStorageValueForConstructor(const Type &type, const std::string value);
+	static std::string fullKotlinTypeIStructConstructor(const Type &type) ;
 static std::string fullKotlinType(const FieldDef &field);
 static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
 static std::string beforeStorageType(const Type &type);
@@ -48,12 +54,12 @@ static void GenStructBuilder(const StructDef &struct_def,
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 
-static std::string TypeName(const FieldDef &field);
+//static std::string TypeName(const FieldDef &field);
 //static std::string Zero(const FieldDef &field);
 
 static std::string afterStorageType(const Type &type, const bool isLitteral);
 static std::string toKotlinValue(const Type &type);
-static std::string toStorageValue(const Type &type);
+static std::string toStorageValue(const Type &type, const std::string value);
 //static std::string DestinationCast(const Type &type) ;
 //static std::string DestinationMask(const Type &type, bool vectorelem);
 static std::string multiplyBySizeOf(const Type &type);
@@ -79,7 +85,7 @@ static void BeginFile(const std::string name_space_name, const bool needs_import
 static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   /** GenTypeGet works for enum kotlinType doesn't*/
-  code += "enum class " + enum_def.name + "(val value: " + GenTypeGet(enum_def.underlying_type) + ") {\n";
+  code += "public enum class " + enum_def.name + "(val value: " + GenTypeGet(enum_def.underlying_type) + ") {\n";
 
 }
 
@@ -183,7 +189,7 @@ static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr)
 
   if (field.value.type.base_type != BASE_TYPE_STRING) {
 	code += "; set(value) { " + setter + "(_position + " + NumToString(field.value.offset) + ", ";
-	code += toStorageValue(field.value.type) +") }";
+	code += toStorageValue(field.value.type, "value") +") }";
   }  
  code += "\n";
 }
@@ -201,8 +207,7 @@ static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) 
     code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
     code += GenSetter(field.value.type) + "(o";
-    code += ", " + toStorageValue(field.value.type) + "); true}}\n";
-
+    code += ", " + toStorageValue(field.value.type, "value") + "); true}}\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -271,11 +276,11 @@ static void GetMemberOfVectorOfStruct(
   auto vectortype = field.value.type.VectorType();
 
 // DONE
-  code += "public fun " + sanitize(field.name, false) + "(j :Int, reuse : " + TypeName(field) + "? = null) : "+ TypeName(field) + "? {";
+  code += "public fun " + sanitize(field.name, false) + "(j :Int, reuse : " + fullKotlinType(field) + "? = null) : "+ fullKotlinType(field) + "? {";
   code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
   code += "return if (o==0) null else {";
   code += "val x = _array(o) + j" + multiplyBySizeOf(vectortype) + "; ";
-  code += "(reuse ?: " + TypeName(field) +"() ).wrap(_byteBuffer, x";
+  code += "(reuse ?: " + fullKotlinType(field) +"() ).wrap(_byteBuffer, x";
   if (!vectortype.struct_def->fixed) code += " + _indirect(x)";
   code += ")}}\n";
 
@@ -303,7 +308,7 @@ code += "}\n";
     code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
     code += GenSetter(field.value.type) + "(_array(o) + j" + multiplyBySizeOf(vectortype);
-    code += ", " + toStorageValue(field.value.type) + "); true}}\n";
+    code += ", " + toStorageValue(field.value.type, "value") + "); true}}\n";
   }
 
 getArraySize(field, code_ptr);
@@ -332,7 +337,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
     } else {
       std::string &code = *code_ptr;
       code += ", ";
-      code +=  nameprefix +sanitize(field.name, false) + " : " + GenTypeBasic(field.value.type);
+      code +=  nameprefix +sanitize(field.name, false) + " : " +  fullKotlinTypeIStructConstructor(field.value.type); // offset for structs/tables/string
     }
   }
 }
@@ -357,7 +362,7 @@ static void StructBuilderBody(const StructDef &struct_def,
       StructBuilderBody(*field.value.type.struct_def, (nameprefix + (sanitize(field.name, false) + "_")).c_str(), code_ptr);
     } else {
       code += "\t\tbuilder.add" + GenMethod(field) + "(";
-      code += nameprefix + sanitize(field.name, false) + ")\n";
+      code +=  toStorageValueForConstructor(field.value.type, nameprefix + sanitize(field.name, false)) + ")\n";
     }
   }
 }
@@ -391,20 +396,20 @@ static void buildFieldOfTable(const StructDef &struct_def,
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "Offset : Int ";
   } else {
-    code += " : " + GenTypeBasic(field.value.type);
+    code += " : " + fullKotlinType(field);
   }
   code += ") { builder.add";
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-    code += "Offset(" + NumToString(offset) + ", " + sanitize(field.name, false) + "Offset";
+    if (field.value.type.base_type != BASE_TYPE_STRUCT) code += "Offset(" + NumToString(offset) + ", " + sanitize(field.name, false) + "Offset"; // string, union and table
+    else code += "Struct(" + NumToString(offset) + ", " + sanitize(field.name, false) + "Offset";
   } else {
-    code +=  GenMethod(field) + "(" + NumToString(offset) + ", " + sanitize(field.name, false);
+    code +=  GenMethod(field) + "(" + NumToString(offset) + ", " + toStorageValue(field.value.type, sanitize(field.name, false));
   }
   code += ", " + field.value.constant /** Int */ + ") }\n";
 }
 
 // Set the value of one of the members of a table's vector.
-static void buildArrayOfTable(
-                               const FieldDef &field,
+static void buildArrayOfTable( const FieldDef &field,
                                std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t\tfun start" + sanitize(field.name, true);
@@ -416,6 +421,20 @@ static void buildArrayOfTable(
   code += NumToString(elem_size);
   code += ", numElems, " + NumToString(alignment);
   code += ")\n";
+}
+
+static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr) {
+	  std::string &code = *code_ptr;
+   code += "\t\tfun create" + sanitize(field.name, true);
+  code += "Array(builder :FlatBufferBuilder, offsets : IntArray) ";
+  code += " : Int {builder.startArray(1, offsets.size, 1); for (i in offsets.size - 1 downTo 0) builder.addInt(offsets[i]); return builder.endArray(); }\n";
+}
+
+static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr) {
+	  std::string &code = *code_ptr;
+   code += "\t\tfun create" + sanitize(field.name, true);
+  code += "Array(builder :FlatBufferBuilder, data : " + kotlinType(field.value.type.VectorType()) + "Array) ";
+  code += " : Int {builder.startArray(1, data.size, 1); for (i in data.size - 1 downTo 0) builder.add" +  GenTypeGet(field.value.type.VectorType()) + "(" + toStorageValue(field.value.type.VectorType(), "data[i]") + "); return builder.endArray(); }\n";
 }
 
 // Get the offset of the end of a table.
@@ -430,6 +449,8 @@ static void GetEndOffsetOnTable(const StructDef &struct_def,
 
 code += "\treturn o\n";
   code += "}";
+  
+  code += "\t\tfun finish" + MakeCamel(struct_def.name, true) + "Buffer(builder : FlatBufferBuilder, offset : Int) { builder.finish(offset); }";  
 }
 
 /*// Generate the receiver for function signatures.
@@ -481,17 +502,16 @@ static void GenTableBuilders(const StructDef &struct_def,
 
     auto offset = it - struct_def.fields.vec.begin();
     buildFieldOfTable(struct_def, field, offset, code_ptr);
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) buildArrayOfTable(field, code_ptr);
-    
+    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    	    buildArrayOfTable(field, code_ptr);
+    	    if (field.value.type.element == BASE_TYPE_STRUCT || field.value.type.element == BASE_TYPE_STRING) createArrayOfStruct(field, code_ptr); else createArrayOfNonStruct(field, code_ptr); 
   }
-
+}
   GetEndOffsetOnTable(struct_def, code_ptr);
 }
 
 // Generate struct or table methods.
-static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef *root_struct_def) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
@@ -520,7 +540,7 @@ static void GenStruct(const StructDef &struct_def,
   } else {
     // Create a set of functions that allow table construction.
     GenTableBuilders(struct_def, code_ptr);
-    //GenStructBuilder(struct_def, code_ptr); // added
+    GenStructBuilder(struct_def, code_ptr); // added
   }
   endCompanionObject(code_ptr);
   endClassDeclaration(code_ptr);
@@ -621,6 +641,10 @@ static std::string GenTypeBasic(const Type &type) {
 
 // Returns the function name that is able to read a value of the given type.
 static std::string GenSetter(const Type &type) {
+	    if (type.enum_def != nullptr) {// Fix this (if != byte)
+    	    return "_byteBuffer.put";
+       // if (type.enum_def->is_union){
+    }
   switch (type.base_type) {
     case BASE_TYPE_VECTOR: return GenSetter(type.VectorType());
     case BASE_TYPE_NONE:     
@@ -632,19 +656,40 @@ static std::string GenSetter(const Type &type) {
   }
 }
 
-static std::string toStorageValue(const Type &type) {
+static std::string toStorageValueForConstructor(const Type &type, const std::string value) {
+       if (type.enum_def != nullptr){
+	if (type.base_type == BASE_TYPE_UNION) return value; // union_type type 
+         else return value + ".value"; // enum class name
+       }
+/*	if (type.enum_def != nullptr) {// Fix this
+    	    return value + ".value";
+       // if (type.enum_def->is_union){
+    }*/
+	// transform kotlin value to storage value
+  switch (type.base_type) {
+  case BASE_TYPE_BOOL:  return "if (" + value + ") 1.toByte() else 0.toByte()";
+  case BASE_TYPE_UINT:  return value + ".toInt()";
+  case BASE_TYPE_USHORT:  return value + ".toShort()";
+  case BASE_TYPE_UCHAR:  return value + ".toByte()";
+  case BASE_TYPE_VECTOR:  return value; // or value + "toInt()";
+  default: return value;
+}
+}
+
+
+static std::string toStorageValue(const Type &type, const std::string value) {
     if (type.enum_def != nullptr) {// Fix this
-    	    return "value.value";
+    	    return value + ".value";
        // if (type.enum_def->is_union){
     }
 	// transform kotlin value to storage value
   switch (type.base_type) {
-  case BASE_TYPE_BOOL:  return "if (value) 1.toByte() else 0.toByte()";
-  case BASE_TYPE_UINT:  return "value.toInt()";
-  case BASE_TYPE_USHORT:  return "value.toShort()";
-  case BASE_TYPE_UCHAR:  return "value.toByte()";
-  case BASE_TYPE_VECTOR:  return toStorageValue(type.VectorType());
-  default: return "value";
+  case BASE_TYPE_BOOL:  return "if (" + value + ") 1.toByte() else 0.toByte()";
+  case BASE_TYPE_UINT:  return value + ".toInt()";
+  case BASE_TYPE_USHORT:  return value + ".toShort()";
+  case BASE_TYPE_UCHAR:  return value + ".toByte()";
+  case BASE_TYPE_VECTOR:  return toStorageValue(type.VectorType(), value);
+  default: return value;
 }
 }
 
@@ -719,8 +764,9 @@ static std::string toKotlinValue(const Type &type) {
 /** converts to kotlinType from storageType */
 static std::string afterStorageType(const Type &type, const bool isLitteral) {
     if (type.enum_def != nullptr) {
-        if (type.enum_def->is_union) {return ".toInt())";}//return GenTypeGet(type); // union_type type 
-        else return ")"; // enum class name
+    	    return ".toInt())";
+       // if (type.enum_def->is_union) {return ".toInt())";}//return GenTypeGet(type); // union_type type 
+       // else return ")"; // enum class name
     }
 
 switch (type.base_type) {
@@ -728,8 +774,9 @@ case BASE_TYPE_BOOL: if (isLitteral) return "!= 0"; else return "!=0.toByte()";
 case BASE_TYPE_NONE:
 case BASE_TYPE_UTYPE:
 case BASE_TYPE_CHAR:return ".toByte()";
-case BASE_TYPE_UCHAR:
 case BASE_TYPE_SHORT:return ".toShort()";
+case BASE_TYPE_UCHAR:
+case BASE_TYPE_USHORT:return ".toInt()";
 case BASE_TYPE_LONG:
 case BASE_TYPE_UINT:
 case BASE_TYPE_ULONG: if (isLitteral) return "L"; else return ".toLong()";
@@ -739,7 +786,6 @@ case BASE_TYPE_VECTOR:return afterStorageType(type.VectorType(), isLitteral);
 case BASE_TYPE_STRING:
 case BASE_TYPE_STRUCT:
 case BASE_TYPE_UNION:
-case BASE_TYPE_USHORT:
 case BASE_TYPE_INT:
     default:return "";
   }
@@ -798,9 +844,21 @@ static std::string GenTypePointer(const Type &type) {
 }
 
 
+static std::string fullKotlinTypeIStructConstructor(const Type &type) {
+	if (type.base_type == BASE_TYPE_BOOL)return "Boolean";
+  if (type.enum_def != nullptr) {
+    //	    return type.enum_def->name;
+    if (type.base_type == BASE_TYPE_UNION) return "Int"/*GenTypeGet(type)*/; // union_type type 
+         else return type.enum_def->name; // enum class name
+    
+      //  if (type.enum_def->is_union) return /*GenTypeGet(type) +*/ /*"arg" +*/type.enum_def->name; // union_type type 
+       //  else return type.enum_def->name; // enum class name
+    }	
+	return GenTypeBasic(type);
+}
 static std::string fullKotlinType(const FieldDef &field) {
 	std::string typeName = kotlinType(field.value.type);
-	if (typeName == "String" || typeName == "Any") return field.defined_namespace->GetFullyQualifiedName(typeName);
+	//if (typeName == "String" || typeName == "Any") return field.defined_namespace->GetFullyQualifiedName(typeName);
 	return typeName;
 }
 
@@ -826,7 +884,8 @@ static std::string kotlinType(const Type &type) {
 	//if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
     if (type.enum_def != nullptr) {
     //	    return type.enum_def->name;
-        if (type.enum_def->is_union) return GenTypeGet(type); // union_type type 
+    
+        if (type.enum_def->is_union) return /*GenTypeGet(type) +*/ /*"arg" +*/type.enum_def->name; // union_type type 
          else return type.enum_def->name; // enum class name
     }
 /*{
@@ -867,9 +926,9 @@ static std::string GenTypeGet(const Type &type) {
 }
 
 /** stored type : boolean -> Byte, UShort -> Int */
-static std::string TypeName(const FieldDef &field) {
+/*static std::string TypeName(const FieldDef &field) {
   return GenTypeGet(field.value.type);
-}
+}*/
 
 static std::string multiplyBySizeOf(const Type &type) {
 int a = InlineSize(type);
@@ -877,8 +936,7 @@ if (a == 1) return ""; else return " * " + NumToString(a);
 }
 
 // Create a struct with a builder and the struct's arguments.
-static void GenStructBuilder(const StructDef &struct_def,
-                             std::string *code_ptr) {
+static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
   BeginBuilderArgs(struct_def, code_ptr);
   StructBuilderArgs(struct_def, "", code_ptr);
   EndBuilderArgs(code_ptr);
@@ -895,12 +953,10 @@ bool GenerateKotlin(const Parser &parser,
                 const std::string &path,
                 const std::string & /*file_name*/,
                 const GeneratorOptions & /*opts*/) {
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
+  for (auto it = parser.enums_.vec.begin();it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
     kotlin::generateEnum(**it, &enumcode);
-    if (!kotlin::SaveType(parser, **it, enumcode, path, false))
-      return false;
+    if (!kotlin::SaveType(parser, **it, enumcode, path, false)) return false;
   }
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end(); ++it) {

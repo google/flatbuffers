@@ -3,6 +3,7 @@ package com.google.flatbuffers.kotlin
 import Example.Color
 import Example.Monster
 import Example.Vec3
+import Example.Test
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -34,7 +35,7 @@ fun main(args: Array<String>) {
 
     val str = builder.createString("MyMonster");
 
-    val inv = Monster.createInventoryArray(builder, byteArrayOf(0, 1, 2, 3, 4))
+    val inv = Monster.createInventoryArray(builder, intArrayOf(0, 1, 2, 3, 4))
 
     val fred = builder.createString("Fred")
     Monster.startMonster(builder)
@@ -56,12 +57,12 @@ fun main(args: Array<String>) {
     Monster.addHp(builder, 80.toShort())
     Monster.addName(builder, str)
     Monster.addInventory(builder, inv)
-    Monster.addTestType(builder, com.google.flatbuffers.kotlin.Example.Any.Monster.toByte())
+    Monster.addTestType(builder, Example.Any.Monster)
     Monster.addTest(builder, mon2)
     Monster.addTest4(builder, test4)
     Monster.addTestarrayofstring(builder, testArrayOfString)
     Monster.addTestbool(builder, false)
-    Monster.addTesthashu32Fnv1(builder, (Integer.MAX_VALUE.toLong() + 1L).toInt());
+    Monster.addTesthashu32Fnv1(builder, Integer.MAX_VALUE + 1L);
     val mon = Monster.endMonster(builder)
 
     Monster.finishMonsterBuffer(builder, mon)
@@ -152,7 +153,7 @@ fun testBuffer(bb:ByteBuffer) {
     testEq(t.a, 5.toShort());
     testEq(t.b, 6.toByte());
 
-    testEq(monster.testType, Monster)
+    testEq(monster.testType, Example.Any.Monster)
     val monster2 = Monster()
     testEq(monster.test(monster2) != null, true);
     testEq(monster2.name, "Fred");
