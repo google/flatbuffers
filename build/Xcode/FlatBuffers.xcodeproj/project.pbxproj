@@ -23,6 +23,7 @@
 		AD71FEBEE4E846529002C1F0 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AE5F47A7DCB44781B657F062 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		BE03D7B0C9584DD58B50ED34 /* idl_gen_cpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D2DA271D1BFFBC06000F9168 /* idl_gen_php.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */; };
 		E0680D6B5BFD484BA9D88EE8 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		E84E4B7612DF4C369DC24843 /* sample_binary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5EE44BFFAF8E43F485859145 /* sample_binary.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		EE4AEE138D684B30A1BF5462 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AD24EEB3D024825A37741FF /* test.cpp */; settings = {COMPILER_FLAGS = ""; }; };
@@ -47,6 +48,7 @@
 		AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_test_generated.h; path = tests/monster_test_generated.h; sourceTree = SOURCE_ROOT; };
 		C0E7B66C3FF849A0AD9A7168 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = util.h; path = include/flatbuffers/util.h; sourceTree = SOURCE_ROOT; };
 		CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_cpp.cpp; path = src/idl_gen_cpp.cpp; sourceTree = SOURCE_ROOT; };
+		D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_php.cpp; path = src/idl_gen_php.cpp; sourceTree = "<group>"; };
 		DD8B353D4756412195777FBA /* flatbuffers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = flatbuffers.h; path = include/flatbuffers/flatbuffers.h; sourceTree = SOURCE_ROOT; };
 		ECCEBFFA6977404F858F9739 /* sample_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sample_text.cpp; path = samples/sample_text.cpp; sourceTree = SOURCE_ROOT; };
 		F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_text.cpp; path = src/idl_gen_text.cpp; sourceTree = SOURCE_ROOT; };
@@ -56,6 +58,7 @@
 		28237E300FE042DEADA302D3 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */,
 				8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */,
 				8CA854B21B04244A00040A06 /* idl_gen_python.cpp */,
 				8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */,
@@ -267,6 +270,7 @@
 				8CA854B31B04244A00040A06 /* idl_gen_python.cpp in Sources */,
 				8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */,
 				8C78573E1BD5AE2C00C53C34 /* idl_gen_js.cpp in Sources */,
+				D2DA271D1BFFBC06000F9168 /* idl_gen_php.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
