@@ -206,8 +206,7 @@ static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) 
     code += "public fun mutate" + sanitize(field.name, true) + "(value : " + fullKotlinType(field) + ") :Boolean {";
     code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
-    code += GenSetter(field.value.type) + "(o";
-    code += ", " + toStorageValue(field.value.type, "value") + "); true}}\n";
+    code += GenSetter(field.value.type) + "(o + _position, " + toStorageValue(field.value.type, "value") + "); true}}\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -313,6 +312,19 @@ code += "}\n";
 
 getArraySize(field, code_ptr);
 }
+
+
+static void fieldAsByteBuffer(const FieldDef &field,
+                             std::string *code_ptr) {
+                             std::string &code = *code_ptr;
+                                      
+      code += "\tpublic val " + sanitize(field.name, false/*lang.first_camel_upper*/);
+      code += "AsByteBuffer :ByteBuffer get() = _vector_as_bytebuffer(";
+      code += NumToString(field.value.offset) + ", ";
+      code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
+                          InlineSize(field.value.type.VectorType()));
+      code += ")\n";
+                             }
 
 // Begin the creator function signature.
 static void BeginBuilderArgs(const StructDef &struct_def,
@@ -427,30 +439,46 @@ static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr) {
 	  std::string &code = *code_ptr;
    code += "\t\tfun create" + sanitize(field.name, true);
   code += "Array(builder :FlatBufferBuilder, offsets : IntArray) ";
-  code += " : Int {builder.startArray(1, offsets.size, 1); for (i in offsets.size - 1 downTo 0) builder.addInt(offsets[i]); return builder.endArray(); }\n";
+  
+  code += " : Int {builder.startArray(4, offsets.size, ";
+  if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4";
+  code += "); for (i in offsets.size - 1 downTo 0) builder.addOffset(offsets[i]); return builder.endArray(); }\n";
 }
 
 static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr) {
 	  std::string &code = *code_ptr;
    code += "\t\tfun create" + sanitize(field.name, true);
   code += "Array(builder :FlatBufferBuilder, data : " + kotlinType(field.value.type.VectorType()) + "Array) ";
-  code += " : Int {builder.startArray(1, data.size, 1); for (i in data.size - 1 downTo 0) builder.add" +  GenTypeGet(field.value.type.VectorType()) + "(" + toStorageValue(field.value.type.VectorType(), "data[i]") + "); return builder.endArray(); }\n";
+  code += " : Int {builder.startArray(" + NumToString(SizeOf(field.value.type.element)) + ", data.size, 1); for (i in data.size - 1 downTo 0) builder.add" +  GenTypeGet(field.value.type.VectorType()) + "(" + toStorageValue(field.value.type.VectorType(), "data[i]") + "); return builder.endArray(); }\n";
 }
 
 // Get the offset of the end of a table.
 static void GetEndOffsetOnTable(const StructDef &struct_def,
-                                std::string *code_ptr) {
+                                std::string *code_ptr, const Parser &parser) {
   std::string &code = *code_ptr;
   code += "\t\tfun end" + struct_def.name + "(builder :FlatBufferBuilder) :Int {\n\t";
+  
+
   code += "\tval o = builder.endObject()\n\t";
   
-  // TODO required fields go there
-  // like builder.required(o, 6);  // blueprint
+     for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      auto &field = **it;
+      if (!field.deprecated && field.required) {
+        code += "\tbuilder.required(o, ";
+        code += NumToString(field.value.offset);
+        code += ");  // " + field.name + "\n";
+      }
+    }
 
 code += "\treturn o\n";
   code += "}";
   
-  code += "\t\tfun finish" + MakeCamel(struct_def.name, true) + "Buffer(builder : FlatBufferBuilder, offset : Int) { builder.finish(offset); }";  
+  code += "\t\tfun finish" + MakeCamel(struct_def.name, true) + "Buffer(builder : FlatBufferBuilder, offset : Int) { builder.finish(offset";  
+   if (parser.root_struct_def_ == &struct_def && parser.file_identifier_.length()) code += ", \"" + parser.file_identifier_ + "\"";
+      code += ") }\n";
+  
 }
 
 /*// Generate the receiver for function signatures.
@@ -493,7 +521,7 @@ static void generateStructAccessor(const StructDef &struct_def, const FieldDef &
 
 // Generate table constructors, conditioned on its members' types.
 static void GenTableBuilders(const StructDef &struct_def,
-                             std::string *code_ptr) {
+                             std::string *code_ptr, const Parser &parser) {
   GetStartOfTable(struct_def, code_ptr);
 
   for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
@@ -507,12 +535,13 @@ static void GenTableBuilders(const StructDef &struct_def,
     	    if (field.value.type.element == BASE_TYPE_STRUCT || field.value.type.element == BASE_TYPE_STRING) createArrayOfStruct(field, code_ptr); else createArrayOfNonStruct(field, code_ptr); 
   }
 }
-  GetEndOffsetOnTable(struct_def, code_ptr);
+  GetEndOffsetOnTable(struct_def, code_ptr, parser);
 }
 
 // Generate struct or table methods.
-static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef *root_struct_def) {
+static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef *root_struct_def, const Parser &parser) {
   if (struct_def.generated) return;
+
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
   beginClassDeclaration(struct_def, code_ptr);
@@ -525,10 +554,22 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
     auto &field = **it;
     if (field.deprecated) continue;
     generateStructAccessor(struct_def, field, code_ptr);
+    if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
+          IsScalar(field.value.type.VectorType().base_type)) ||
+         field.value.type.base_type == BASE_TYPE_STRING) fieldAsByteBuffer(field, code_ptr);
   }
 
 
   beginCompanionObject(code_ptr);
+   if (parser.root_struct_def_ == &struct_def) {
+      if (parser.file_identifier_.length()) {
+        // Check if a buffer has the identifier.
+        std::string &code = *code_ptr;
+        code += "\tpublic fun ";// + struct_def.name; 
+        code += "hasIdentifier(byteBuffer : ByteBuffer) :Boolean = Table.hasIdentifier(byteBuffer, \"" + parser.file_identifier_ + "\")\n";
+      }
+    }
+    
   if (&struct_def == root_struct_def) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
@@ -539,7 +580,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
     GenStructBuilder(struct_def, code_ptr);
   } else {
     // Create a set of functions that allow table construction.
-    GenTableBuilders(struct_def, code_ptr);
+    GenTableBuilders(struct_def, code_ptr, parser);
     GenStructBuilder(struct_def, code_ptr); // added
   }
   endCompanionObject(code_ptr);
@@ -685,9 +726,9 @@ static std::string toStorageValue(const Type &type, const std::string value) {
 	// transform kotlin value to storage value
   switch (type.base_type) {
   case BASE_TYPE_BOOL:  return "if (" + value + ") 1.toByte() else 0.toByte()";
-  case BASE_TYPE_UINT:  return value + ".toInt()";
-  case BASE_TYPE_USHORT:  return value + ".toShort()";
-  case BASE_TYPE_UCHAR:  return value + ".toByte()";
+  case BASE_TYPE_UINT:  return value + ".and(0xFFFFFFFFL).toInt()";
+  case BASE_TYPE_USHORT:  return value + ".and(0xFFFF).toShort()";
+  case BASE_TYPE_UCHAR:  return value + ".and(0xFF).toByte()";
   case BASE_TYPE_VECTOR:  return toStorageValue(type.VectorType(), value);
   default: return value;
 }
@@ -775,10 +816,10 @@ case BASE_TYPE_NONE:
 case BASE_TYPE_UTYPE:
 case BASE_TYPE_CHAR:return ".toByte()";
 case BASE_TYPE_SHORT:return ".toShort()";
-case BASE_TYPE_UCHAR:
-case BASE_TYPE_USHORT:return ".toInt()";
+case BASE_TYPE_UCHAR:return ".toInt().and(0xFF)";
+case BASE_TYPE_USHORT:return ".toInt().and(0xFFFF)";
+case BASE_TYPE_UINT: return ".toLong().and(0xFFFFFFFFL)";
 case BASE_TYPE_LONG:
-case BASE_TYPE_UINT:
 case BASE_TYPE_ULONG: if (isLitteral) return "L"; else return ".toLong()";
 case BASE_TYPE_FLOAT: if (isLitteral) return "f"; else return ".toFloat()";
 case BASE_TYPE_DOUBLE:return ".toDouble()";
@@ -961,7 +1002,7 @@ bool GenerateKotlin(const Parser &parser,
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    kotlin::GenStruct(**it, &declcode, parser.root_struct_def_);
+    kotlin::GenStruct(**it, &declcode, parser.root_struct_def_, parser);
     if (!kotlin::SaveType(parser, **it, declcode, path, true)) return false;
   }
 

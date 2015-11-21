@@ -70,7 +70,7 @@ open class Table {
     // bytebuffer object, but does not actually copy the data, it still refers to the same
     // bytes as the original ByteBuffer.
     // Also useful with nested FlatBuffers etc.
-    protected fun _vector_as_bytebuffer(vector_offset: Int, elem_size: Int): ByteBuffer? {
+    protected fun _vector_as_bytebuffer(vector_offset: Int, elem_size: Int): ByteBuffer {
         val o = _offset(vector_offset)
         val bb = this._byteBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
         val vectorstart = _array(o)

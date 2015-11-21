@@ -12,7 +12,6 @@ import java.nio.ByteBuffer
 
 
 fun main(args: Array<String>) {
-    println("Hello, World!")
 
     val data = RandomAccessFile(File("monsterdata_test.mon"), "r").use {
         val temp = ByteArray(it.length().toInt())
@@ -133,7 +132,7 @@ fun main(args: Array<String>) {
 
 
 fun testBuffer(bb:ByteBuffer) {
-    //testEq(Monster.MonsterBufferHasIdentifier(bb), true);
+    testEq(Monster.hasIdentifier(bb), true);
 
     val monster = Monster.rootAsMonster(bb)
 
@@ -163,11 +162,11 @@ fun testBuffer(bb:ByteBuffer) {
     for (i in  0 until monster.inventorySize) invsum += monster.inventory(i);
     testEq(invsum, 10);
 
-/*    // Alternative way of accessing a vector:
-    val ibb = monster.inventoryAsByteBuffer();
+    // Alternative way of accessing a vector:
+    val ibb = monster.inventoryAsByteBuffer
     invsum = 0;
     while (ibb.position() < ibb.limit()) invsum += ibb.get();
-    testEq(invsum, 10);*/
+    testEq(invsum, 10);
 
     val test_0 = monster.test4(0)!!
     val test_1 = monster.test4(1)!!
@@ -188,15 +187,15 @@ fun testExtendedBuffer(bb:ByteBuffer) {
 
     val monster = Monster.rootAsMonster(bb)
 
-    testEq(monster.testhashs32Fnv1, Integer.MAX_VALUE + 1L)
+    testEq(monster.testhashu32Fnv1, Integer.MAX_VALUE + 1L)
 }
 
 
 fun testEnums() {
-    testEq(Color.valueOf(Color.Red.name), "Red");
-    testEq(Color.valueOf(Color.Blue.name), "Blue");
-    testEq(Example.Any.valueOf(Example.Any.NONE.name), "NONE");
-    testEq(Example.Any.valueOf(Example.Any.Monster.name), "Monster");
+    testEq(Color.Red.name, "Red");
+    testEq(Color.Blue.name, "Blue");
+    testEq(Example.Any.valueOf("NONE"), Example.Any.NONE);
+    testEq(Example.Any.valueOf("Monster"), Example.Any.Monster);
 }
 
 fun <T> testEq(a: T, b: T) = if (a != b) {
