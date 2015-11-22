@@ -9,6 +9,13 @@ type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
