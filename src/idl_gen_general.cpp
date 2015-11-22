@@ -227,7 +227,7 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
                                 const Type &type) {
   static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
-        #JTYPE, #NTYPE, #GTYPE,
+        #JTYPE, #KTYPE, #NTYPE, #GTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
@@ -240,11 +240,14 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
 }
 
 // Generate type to be used in user-facing API
-static std::string GenTypeForUser(const LanguageParameters &lang,
+std::string GenTypeForUser(const LanguageParameters &lang,
                                   const Type &type) {
   if (lang.language == GeneratorOptions::kCSharp) {
     if (type.enum_def != nullptr &&
           type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+  }
+  if (lang.language == GeneratorOptions::kKotlin) {
+    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
   }
   return GenTypeBasic(lang, type);
 }
@@ -340,7 +343,7 @@ static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &t
     // Kotlin enums are represented by themselves
     if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
 
-    // Unions in Kotlin use a generic Table-derived type (todo subclass Table for unions ?) for better type safety
+    // Unions in Kotlin use a generic Table-derived type 
     if (type.base_type == BASE_TYPE_UNION) return "Table";
   }
   
@@ -419,6 +422,10 @@ static std::string DestinationValue(const LanguageParameters &lang,
     ((lang.language == GeneratorOptions::kCSharp || lang.language == GeneratorOptions::kKotlin) &&
     type.enum_def != nullptr &&
     type.base_type != BASE_TYPE_UNION) ) {
+  if (lang.language == GeneratorOptions::kKotlin) {
+  	  // TODO enums must get converted
+  	  return name + type_mask + "to" + GenTypeBasic(lang, type) + "()";
+  }
     return "(" + GenTypeBasic(lang, type) + ")(" + name + type_mask + ")";
   } else {
     return name;
@@ -445,9 +452,9 @@ static std::string SourceCast(const LanguageParameters &lang,
 
         if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return GenTypeGet(lang, type) + ".from(";
       	      // TODO this should be after the type
-        if (type.base_type == BASE_TYPE_UINT) return "as Int";
-        else if (type.base_type == BASE_TYPE_USHORT) return "as Short";
-        else if (type.base_type == BASE_TYPE_UCHAR) return "as Byte";
+        if (type.base_type == BASE_TYPE_UINT) return ".toInt()";
+        else if (type.base_type == BASE_TYPE_USHORT) return ".toShort()";
+        else if (type.base_type == BASE_TYPE_UCHAR) return ".toByte()";
         break;
       case GeneratorOptions::kCSharp:
         if (type.enum_def != nullptr && 

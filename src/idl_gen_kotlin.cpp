@@ -32,6 +32,44 @@
 #endif
 
 namespace flatbuffers {
+
+//	struct LanguageParameters;
+
+struct CommentConfig {
+  const char *first_line;
+  const char *content_line_prefix;
+  const char *last_line;
+};
+
+	struct LanguageParameters {
+  GeneratorOptions::Language language;
+  // Whether function names in the language typically start with uppercase.
+  bool first_camel_upper;
+  const char *file_extension;
+  const char *string_type;
+  const char *bool_type;
+  const char *open_curly;
+  const char *const_decl;
+  const char *unsubclassable_decl;
+  const char *enum_decl;
+  const char *enum_separator;
+  const char *getter_prefix;
+  const char *getter_suffix;
+  const char *inheritance_marker;
+  const char *namespace_ident;
+  const char *namespace_begin;
+  const char *namespace_end;
+  const char *set_bb_byteorder;
+  const char *get_bb_position;
+  const char *get_fbb_offset;
+  const char *includes;
+  CommentConfig comment_config;
+};
+	extern LanguageParameters language_parameters[];
+	//static std::string SourceCast(const LanguageParameters &lang, const Type &type);
+
+	auto kotlinLang = language_parameters[GeneratorOptions::kKotlin];
+	std::string GenTypeForUser(const LanguageParameters &lang, const Type &type);
 namespace kotlin {
 	
 	static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr);
@@ -178,13 +216,13 @@ static void GetUByteSlice(const StructDef &struct_def,
   code += "\treturn nil\n}\n\n";
 }*/
 
-static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
+static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr, const LanguageParameters &lang) {
   std::string &code = *code_ptr;
   std::string getter = beginGet(field.value.type);
   std::string setter = GenSetter(field.value.type);
 
   if (field.value.type.base_type == BASE_TYPE_STRING) code += "public val "; else  code += "public var ";
-  code+= sanitize(field.name, false) + " : " + fullKotlinType(field);
+  code+= sanitize(field.name, false) + " : " + flatbuffers::GenTypeForUser(lang, field.value.type);//fullKotlinType(field);
   code += " get() = " + beforeStorageType(field.value.type) +  getter + "(_position + " + NumToString(field.value.offset) + ")" + afterStorageType(field.value.type, false);
 
   if (field.value.type.base_type != BASE_TYPE_STRING) {
@@ -488,10 +526,10 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
 }*/
 
 // Generate a struct field, conditioned on its child type(s).
-static void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr) {
+static void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr, const LanguageParameters &lang) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
-    if (struct_def.fixed) getScalarFieldOfStruct(field, code_ptr); else getScalarFieldOfTable(field, code_ptr);
+    if (struct_def.fixed) getScalarFieldOfStruct(field, code_ptr, lang); else getScalarFieldOfTable(field, code_ptr);
   } else {
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT:
@@ -539,7 +577,7 @@ static void GenTableBuilders(const StructDef &struct_def,
 }
 
 // Generate struct or table methods.
-static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef *root_struct_def, const Parser &parser) {
+static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef *root_struct_def, const Parser &parser, const LanguageParameters & lang) {
   if (struct_def.generated) return;
 
 
@@ -553,7 +591,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
   for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
     auto &field = **it;
     if (field.deprecated) continue;
-    generateStructAccessor(struct_def, field, code_ptr);
+    generateStructAccessor(struct_def, field, code_ptr, lang);
     if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
           IsScalar(field.value.type.VectorType().base_type)) ||
          field.value.type.base_type == BASE_TYPE_STRING) fieldAsByteBuffer(field, code_ptr);
@@ -588,7 +626,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
 }
 
 // Generate enum declarations.
-static void generateEnum(const EnumDef &enum_def, std::string *code_ptr) {
+static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const LanguageParameters &/*lang*/) {
   if (enum_def.generated) return;
 
   auto &code = * code_ptr;
@@ -740,10 +778,15 @@ static std::string toStorageValue(const Type &type, const std::string value) {
 
 
 static std::string beforeStorageType(const Type &type) {
+	
+	//return SourceCast(GeneratorOptions::Language::kKotlin, type);
+	
     if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from("; // enum class name
     //if (type.enum_def != nullptr && !type.enum_def->is_union) return type.enum_def->name + ".from("; // enum class name
     return "";
 }
+
+
 
 
 // Returns the function name that is able to read a value of the given type.
@@ -993,16 +1036,17 @@ static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr)
 bool GenerateKotlin(const Parser &parser,
                 const std::string &path,
                 const std::string & /*file_name*/,
-                const GeneratorOptions & /*opts*/) {
+                const GeneratorOptions & opts) {
+  auto lang = language_parameters[opts.lang];
   for (auto it = parser.enums_.vec.begin();it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
-    kotlin::generateEnum(**it, &enumcode);
+    kotlin::generateEnum(**it, &enumcode, lang);
     if (!kotlin::SaveType(parser, **it, enumcode, path, false)) return false;
   }
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    kotlin::GenStruct(**it, &declcode, parser.root_struct_def_, parser);
+    kotlin::GenStruct(**it, &declcode, parser.root_struct_def_, parser, lang);
     if (!kotlin::SaveType(parser, **it, declcode, path, true)) return false;
   }
 
