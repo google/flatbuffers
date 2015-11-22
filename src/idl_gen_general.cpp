@@ -253,7 +253,8 @@ std::string GenTypeForUser(const LanguageParameters &lang,
   return GenTypeBasic(lang, type);
 }
 
-static std::string GenTypeGet(const LanguageParameters &lang,
+// removed static for reuse in external code generators
+std::string GenTypeGet(const LanguageParameters &lang,
                               const Type &type);
 
 static std::string GenTypePointer(const LanguageParameters &lang,
@@ -272,7 +273,8 @@ static std::string GenTypePointer(const LanguageParameters &lang,
   }
 }
 
-static std::string GenTypeGet(const LanguageParameters &lang,
+// removed static for reuse in external code generators
+std::string GenTypeGet(const LanguageParameters &lang,
                               const Type &type) {
   return IsScalar(type.base_type)
     ? GenTypeBasic(lang, type)
@@ -281,7 +283,8 @@ static std::string GenTypeGet(const LanguageParameters &lang,
 
 // Find the destination type the user wants to receive the value in (e.g.
 // one size higher signed types for unsigned serialized values in Java).
-static Type DestinationType(const LanguageParameters &lang, const Type &type,
+// removed static to allow reuse in external generator files
+Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
   if (lang.language != GeneratorOptions::kJava && lang.language != GeneratorOptions::kKotlin) return type;
   switch (type.base_type) {
@@ -322,10 +325,8 @@ static std::string GenVectorOffsetType(const LanguageParameters &lang) {
   if(lang.language == GeneratorOptions::kCSharp) {
     return "VectorOffset";
   }
-  if(lang.language == GeneratorOptions::kKotlin) {
-    return "Int";
-  }  
-    return "int";
+  if(lang.language == GeneratorOptions::kKotlin) return "Int";
+  return "int";
 }
 
 // Generate destination type name
@@ -451,7 +452,7 @@ static std::string SourceCast(const LanguageParameters &lang,
         break;
       case GeneratorOptions::kKotlin:
 
-        if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return GenTypeGet(lang, type) + ".from(";
+        if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return GenTypeGet(lang, type) + ".from("; // should be userType
       	      // TODO this should be after the type
         if (type.base_type == BASE_TYPE_UINT) return ".toInt()";
         else if (type.base_type == BASE_TYPE_USHORT) return ".toShort()";
@@ -469,7 +470,8 @@ static std::string SourceCast(const LanguageParameters &lang,
   }
 }
 
-static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
+// removed static to allow reuse
+std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
   if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
     switch(value.type.base_type) {
       case BASE_TYPE_STRING:
@@ -483,6 +485,30 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Value &
     }
   }
 
+  if (lang.language == GeneratorOptions::kKotlin && !for_buffer) {  
+      switch (value.type.base_type) {
+/*case BASE_TYPE_NONE:
+case BASE_TYPE_UTYPE:
+case BASE_TYPE_CHAR:
+case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:
+case BASE_TYPE_UCHAR:
+case BASE_TYPE_USHORT:
+case BASE_TYPE_INT:
+case BASE_TYPE_UINT:return "0";*/
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return value.constant + "L";
+case BASE_TYPE_FLOAT:return value.constant + "f";
+//case BASE_TYPE_DOUBLE:return "0.0";
+//case BASE_TYPE_VECTOR:return zero(type.VectorType());
+//case BASE_TYPE_STRING:return "\"\"";
+//case BASE_TYPE_STRUCT:
+//case BASE_TYPE_UNION:return "null"; // TODO fix this
+    default://return "0";
+  break;
+      }
+  }
+  
   return value.type.base_type == BASE_TYPE_BOOL
            ? (value.constant == "0" ? "false" : "true")
            : value.constant;

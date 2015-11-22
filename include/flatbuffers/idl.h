@@ -437,7 +437,7 @@ class Parser {
 };
 
 // Utility functions for multiple generators:
-
+//extern std::string GenTypeGet(const LanguageParameters &lang, const Type &type);
 extern std::string MakeCamel(const std::string &in, bool first = true);
 
 struct CommentConfig;
