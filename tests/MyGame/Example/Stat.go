@@ -9,6 +9,13 @@ type Stat struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Stat{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

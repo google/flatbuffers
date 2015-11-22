@@ -7,6 +7,13 @@ import flatbuffers
 class Stat(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def GetRootAsStat(cls, buf, offset):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = Stat()
+        x.Init(buf, n + offset)
+        return x
+
     # Stat
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
