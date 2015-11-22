@@ -240,6 +240,7 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
 }
 
 // Generate type to be used in user-facing API
+// removed static to allow reuse in the kotlin external generator
 std::string GenTypeForUser(const LanguageParameters &lang,
                                   const Type &type) {
   if (lang.language == GeneratorOptions::kCSharp) {
