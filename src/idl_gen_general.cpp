@@ -223,7 +223,8 @@ static std::string FunctionStart(const LanguageParameters &lang, char upper) {
          : upper);
 }
 
-static std::string GenTypeBasic(const LanguageParameters &lang,
+// removed static 
+std::string GenTypeBasic(const LanguageParameters &lang,
                                 const Type &type) {
   static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
@@ -288,7 +289,7 @@ Type DestinationType(const LanguageParameters &lang, const Type &type,
                             bool vectorelem) {
   if (lang.language != GeneratorOptions::kJava && lang.language != GeneratorOptions::kKotlin) return type;
   switch (type.base_type) {
-    // We use int for both uchar/ushort, since that generally means less casting
+  	  // We use int for both uchar/ushort, since that generally means less casting
     // than using short for uchar.
     case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT);
     case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
@@ -330,7 +331,8 @@ static std::string GenVectorOffsetType(const LanguageParameters &lang) {
 }
 
 // Generate destination type name
-static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type)
+// removed static for reuse in kotlin code generator
+std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type)
 {
   if (lang.language == GeneratorOptions::kCSharp) {
     // C# enums are represented by themselves
@@ -472,7 +474,7 @@ static std::string SourceCast(const LanguageParameters &lang,
 
 // removed static to allow reuse
 std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
-  if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
+  if (lang.language == GeneratorOptions::kCSharp && !for_buffer) {
     switch(value.type.base_type) {
       case BASE_TYPE_STRING:
         return "default(StringOffset)";
@@ -487,25 +489,44 @@ std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, 
 
   if (lang.language == GeneratorOptions::kKotlin && !for_buffer) {  
       switch (value.type.base_type) {
-/*case BASE_TYPE_NONE:
-case BASE_TYPE_UTYPE:
-case BASE_TYPE_CHAR:
-case BASE_TYPE_BOOL:return "false";
-case BASE_TYPE_SHORT:
-case BASE_TYPE_UCHAR:
+case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+//case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+/*case BASE_TYPE_UCHAR:
 case BASE_TYPE_USHORT:
 case BASE_TYPE_INT:
 case BASE_TYPE_UINT:return "0";*/
 case BASE_TYPE_LONG:
 case BASE_TYPE_ULONG:return value.constant + "L";
 case BASE_TYPE_FLOAT:return value.constant + "f";
-//case BASE_TYPE_DOUBLE:return "0.0";
-//case BASE_TYPE_VECTOR:return zero(type.VectorType());
+/*case BASE_TYPE_NONE:
+case BASE_TYPE_UTYPE:*/
+	//case BASE_TYPE_DOUBLE:return "0.0";
+case BASE_TYPE_VECTOR: switch (value.type.element) {
+case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+//case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+/*case BASE_TYPE_UCHAR:
+case BASE_TYPE_USHORT:
+case BASE_TYPE_INT:
+case BASE_TYPE_UINT:return "0";*/
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return value.constant + "L";
+case BASE_TYPE_FLOAT:return value.constant + "f";
+/*case BASE_TYPE_NONE:
+case BASE_TYPE_UTYPE:*/
+	//case BASE_TYPE_DOUBLE:return "0.0";
 //case BASE_TYPE_STRING:return "\"\"";
 //case BASE_TYPE_STRUCT:
 //case BASE_TYPE_UNION:return "null"; // TODO fix this
-    default://return "0";
-  break;
+    default:return value.type.element == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+      }
+//case BASE_TYPE_STRING:return "\"\"";
+//case BASE_TYPE_STRUCT:
+//case BASE_TYPE_UNION:return "null"; // TODO fix this
+    default:break;
       }
   }
   
@@ -623,7 +644,8 @@ static std::string GenSetter(const LanguageParameters &lang,
 }
 
 // Returns the method name for use with add/put calls.
-static std::string GenMethod(const LanguageParameters &lang, const Type &type) {
+// removed static for reuse
+std::string GenMethod(const LanguageParameters &lang, const Type &type) {
   return IsScalar(type.base_type)
     ? MakeCamel(GenTypeBasic(lang, type))
     : (IsStruct(type) ? "Struct" : "Offset");
