@@ -69,8 +69,9 @@ struct CommentConfig {
 	extern LanguageParameters language_parameters[];
 	auto kotlinLang = language_parameters[GeneratorOptions::kKotlin];	
 	
-	std::string GenTypeForUser(const LanguageParameters &lang, const Type &type);
 	
+	/** these 2 methods are only used once in GenTypeForUserConstructor */
+	std::string GenTypeForUser(const LanguageParameters &lang, const Type &type);
 	// Find the destination type the user wants to receive the value in (e.g.
 	// one size higher signed types for unsigned serialized values in Java).
 	Type DestinationType(const LanguageParameters &lang, const Type &type, bool vectorelem);
@@ -79,20 +80,24 @@ struct CommentConfig {
 	std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer);
 	
 	// type of the value from getter
+	/** mostly used in setter and getter */
 	std::string GenTypeGet(const LanguageParameters &lang, const Type &type);
 
+		/** only used once in the getter and setter */
 	std::string GenTypeBasic(const LanguageParameters &lang, const Type &type);
 	
 	// type of the value for users
+	/** used a lot */
 	std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type);
 	
 	// for add/put calls
+	/** only used in add Calls*/
 	std::string GenMethod(const LanguageParameters &lang, const Type &type);
 	
 	//std::string GenSetter(const LanguageParameters &lang,const Type &type) // it uses bb	
 namespace kotlin {
 	static std::string GenSetter(const LanguageParameters &lang, const Type &type);
-	
+
 		
 	/* for use in createSruct() args */
 	static std::string GenTypeForUserConstructor(const Type &type) {
@@ -104,16 +109,15 @@ namespace kotlin {
 	static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 
 
-	// to clean up :
-	//static std::string downsizeToStorageValue(const Type &type, const std::string value);
-static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value);
-static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
-static std::string beforeStorageType(const Type &type);
-static std::string beginGet(const Type &type);
-static std::string afterStorageType(const Type &type, const bool isLitteral);
-static std::string upsizeToUserType(const Type &type, std::string value);
-static std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool);
-static std::string multiplyBySizeOf(const Type &type);
+	static std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool);
+               static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value);
+	static std::string upsizeToUserType(const Type &type, std::string value);
+	static std::string defaultToUserType(const Type &type, const std::string value);
+	
+
+              static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
+              static std::string beginGet(const Type &type);
+              static std::string multiplyBySizeOf(const Type &type);
 
 // Begin by declaring namespace and imports.
 static void BeginFile(const std::string name_space_name, const bool needs_imports, std::string *code_ptr) {
@@ -127,7 +131,7 @@ static void BeginFile(const std::string name_space_name, const bool needs_import
 // Begin enum code with a class declaration.
 static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "public enum class " + enum_def.name + "(val value: " + flatbuffers::GenTypeGet(kotlinLang, enum_def.underlying_type) + ") {\n";
+  code += "public enum class " + enum_def.name + "(val value: " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") {\n";
 
 }
 
@@ -141,7 +145,7 @@ static void enumMember(const EnumVal ev,
 static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  code += "\t companion object {\n\tfun from( value : Int) : " + enum_def.name  + " = when (value) {\n";
+  code += "\t companion object {\n\tfun from( value : " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") : " + enum_def.name  + " = when (value.toInt()) {\n";
   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
         auto &ev = **it;
 	code += "\t" + NumToString(ev.value) + " -> " + ev.name + "\n";
@@ -165,8 +169,8 @@ static void initializeTableAndStruct(const StructDef &struct_def, std::string *c
   std::string &code = *code_ptr;
 
   code += "public fun wrap(byteBuffer : ByteBuffer, position : Int = byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) : " + struct_def.name + " = apply {";
-  code +=  "_position = position; ";
-  code +=  "_byteBuffer = byteBuffer}\n";
+  code +=  "bb_pos = position; ";
+  code +=  "bb = byteBuffer}\n";
 }
 
 
@@ -197,8 +201,8 @@ static void endClassDeclaration(std::string *code_ptr) {
 static void getArraySize(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public val " + sanitize(field.name, false) + "Size : Int ";
-  code += "get() {val o = _offset(" + NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) 0 else _arraySize(o)}\n";
+  code += "get() {val o = __offset(" + NumToString(field.value.offset) + "); ";
+  code += "return if (o == 0) 0 else __vector_len(o)}\n";
 }
 
 static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
@@ -208,10 +212,10 @@ static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr)
 
   if (field.value.type.base_type == BASE_TYPE_STRING) code += "public val "; else  code += "public var ";
   code+= sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
-  code += " get() = " + beforeStorageType(field.value.type) +  getter + "(_position + " + NumToString(field.value.offset) + ")" + afterStorageType(field.value.type, false);
+  code += " get() = " + upsizeToUserType(field.value.type, getter + "(bb_pos + " + NumToString(field.value.offset) + ")");
 
   if (field.value.type.base_type != BASE_TYPE_STRING) {
-	code += "; set(value) { " + setter + "(_position + " + NumToString(field.value.offset) + ", ";
+	code += "; set(value) { " + setter + "(bb_pos + " + NumToString(field.value.offset) + ", ";
 	code += downsizeToStorageValue(field.value.type, "value", true) +") }";
   }  
  code += "\n";
@@ -222,15 +226,15 @@ static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) 
   std::string getter = beginGet(field.value.type);
 
   code += "public val " + sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
-  code += " get() {val o = _offset(" +NumToString(field.value.offset) + "); ";
+  code += " get() {val o = __offset(" +NumToString(field.value.offset) + "); ";
   code += "return if (o == 0) ";
-  if (field.value.type.base_type == BASE_TYPE_STRING) code += "null"; else code += beforeStorageType(field.value.type) + GenDefaultValue(kotlinLang, field.value, false) + afterStorageType(field.value.type, true);
-  code += " else " + beforeStorageType(field.value.type)+ getter + "(o + _position)" + afterStorageType(field.value.type, false) + "}\n"; 
+  if (field.value.type.base_type == BASE_TYPE_STRING) code += "null"; else code += defaultToUserType(field.value.type,  GenDefaultValue(kotlinLang, field.value, false));
+  code += " else " + upsizeToUserType(field.value.type, getter + "(o + bb_pos)") + "}\n"; 
 
     code += "public fun mutate" + sanitize(field.name, true) + "(value : " + GenTypeNameDest(kotlinLang, field.value.type) + ") :Boolean {";
-    code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
+    code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
-    code += GenSetter(kotlinLang, field.value.type) + "(o + _position, " + downsizeToStorageValue(field.value.type, "value", true); /* downsizeToStorageValue(field.value.type, "value")*/ 
+    code += GenSetter(kotlinLang, field.value.type) + "(o + bb_pos, " + downsizeToStorageValue(field.value.type, "value", true);
     code += "); true}}\n";
 }
 
@@ -240,7 +244,7 @@ static void getStructFieldOfStruct(const FieldDef &field, std::string *code_ptr)
   std::string &code = *code_ptr;
 //DONE
   code += "public fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + "? = null) : " + GenTypeNameDest(kotlinLang, field.value.type) + " = ";
-  code += "(reuse?: " + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(_byteBuffer, _position + " + NumToString(field.value.offset) + ")\n";
+  code += "(reuse?: " + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(bb, bb_pos + " + NumToString(field.value.offset) + ")\n";
 }
 
 // Get a struct by initializing an existing struct.
@@ -248,9 +252,9 @@ static void getStructFieldOfStruct(const FieldDef &field, std::string *code_ptr)
 static void getStructFieldOfTable(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public fun " + sanitize(field.name, false) + "(reuse : " +GenTypeNameDest(kotlinLang, field.value.type) + "? = null) : " + GenTypeNameDest(kotlinLang, field.value.type)+ "? {";
-  code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o==0) null else (reuse ?:" + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(_byteBuffer, ";
-  if (field.value.type.struct_def->fixed) code += "o + _position)"; else code += "_indirect(o + _position))"; 
+  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
+  code += "return if (o==0) null else (reuse ?:" + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(bb, ";
+  if (field.value.type.struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
   code += "}\n";
 }
 
@@ -259,8 +263,8 @@ static void getStringField(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "public val " +sanitize(field.name, false) + " : String? get() {";
-  code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) null else " + beginGet(field.value.type) + "(o + _position)";
+  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
+  code += "return if (o == 0) null else " + beginGet(field.value.type) + "(o + bb_pos)";
   code += "}\n";
 }
 
@@ -270,8 +274,8 @@ static void getUnion(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "public fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + ") : " + GenTypeNameDest(kotlinLang, field.value.type) + "? {";
-  code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o==0) null else _union(reuse, o)}\n";
+  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
+  code += "return if (o==0) null else __union(reuse, o)}\n";
 }
 
 // Get the value of a vector's struct member.
@@ -281,15 +285,15 @@ static void GetMemberOfVectorOfStruct(
   std::string &code = *code_ptr;
   auto vectortype = field.value.type.VectorType();
 
+  getArraySize(field, code_ptr);
+  
   code += "public fun " + sanitize(field.name, false) + "(j :Int, reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + "? = null) : "+ GenTypeNameDest(kotlinLang, field.value.type) + "? {";
-  code += "val o = _offset(" +NumToString(field.value.offset) + "); ";
+  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
   code += "return if (o==0) null else {";
-  code += "val x = _array(o) + j" + multiplyBySizeOf(vectortype) + "; ";
-  code += "(reuse ?: " + GenTypeNameDest(kotlinLang, field.value.type) +"() ).wrap(_byteBuffer, x";
-  if (!vectortype.struct_def->fixed) code += " + _indirect(x)";
+  code += "val x = __vector(o) + j" + multiplyBySizeOf(vectortype) + "; ";
+  code += "(reuse ?: " + GenTypeNameDest(kotlinLang, field.value.type) +"() ).wrap(bb, x";
+  if (!vectortype.struct_def->fixed) code += " + __indirect(x)";
   code += ")}}\n";
-
-getArraySize(field, code_ptr);
 }
 
 // Get the value of a vector's non-struct member. Uses a named return
@@ -299,25 +303,24 @@ static void GetMemberOfVectorOfNonStruct(
                                          std::string *code_ptr) {
   std::string &code = *code_ptr;
   auto vector_type = field.value.type.VectorType();
-
+  getArraySize(field, code_ptr);
+  
   code += "public fun " + sanitize(field.name, false) + "(j : Int) : " + GenTypeNameDest(kotlinLang, field.value.type);
   if (vector_type.base_type == BASE_TYPE_STRING) code += "?";
-  code += " {val o = _offset(" + NumToString(field.value.offset) + "); ";
+  code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
   code += "return if (o == 0) ";
-  if (vector_type.base_type != BASE_TYPE_STRING) code += GenDefaultValue(kotlinLang, field.value, false) + /** fix here */ afterStorageType(vector_type, true); else code += "null"; 
-  code += " else " + upsizeToUserType(field.value.type,  beginGet(field.value.type) + "(_array(o) + j" + multiplyBySizeOf(vector_type) + ")");
+  if (vector_type.base_type != BASE_TYPE_STRING) code += defaultToUserType(field.value.type, GenDefaultValue(kotlinLang, field.value, false) )/** fix here */ /*+ afterStorageType(vector_type, true)*/; else code += "null"; 
+  code += " else " + upsizeToUserType(field.value.type,  beginGet(field.value.type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
 //	if (vector_type.base_type != BASE_TYPE_STRING) code += upsizeToUserType(field.value.type); 
 code += "}\n";
 
   if (vector_type.base_type != BASE_TYPE_STRING) {
     code += "public fun mutate" + sanitize(field.name, true) + "(j : Int, value : " + GenTypeNameDest(kotlinLang, vector_type) + ") :Boolean {";
-    code += "val o = _offset(" + NumToString(field.value.offset) + "); ";
+    code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o == 0) false else {";
-    code += GenSetter(kotlinLang, vector_type) + "(_array(o) + j" + multiplyBySizeOf(vector_type);
+    code += GenSetter(kotlinLang, vector_type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type);
     code += ", " + downsizeToStorageValue(vector_type, "value", true)   /*downsizeToStorageValue(field.value.type, "value")*/ + "); true}}\n";
   }
-
-getArraySize(field, code_ptr);
 }
 
 
@@ -326,7 +329,7 @@ static void fieldAsByteBuffer(const FieldDef &field,
                              std::string &code = *code_ptr;
                                       
       code += "\tpublic val " + sanitize(field.name, false);
-      code += "AsByteBuffer :ByteBuffer get() = _vector_as_bytebuffer(";
+      code += "AsByteBuffer :ByteBuffer get() = __vector_as_bytebuffer(";
       code += NumToString(field.value.offset) + ", ";
       code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
                           InlineSize(field.value.type.VectorType()));
@@ -416,13 +419,12 @@ static void buildFieldOfTable(const StructDef &struct_def,
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "Offset : Int ";
   } else {
-    code += " : " + GenTypeForUser(kotlinLang, DestinationType(kotlinLang, field.value.type, false))/*GenTypeForUser(kotlinLang, field.value.type)*/;
+    code += " : " + GenTypeForUserConstructor(field.value.type);
   }
   code += ") { builder.add";
   code +=  GenMethod(kotlinLang, field.value.type) + "(" + NumToString(offset) + ", " ;
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
   	  code += sanitize(field.name, false) + "Offset"; // string, union, struct and table
-  //  else code += "Struct(" + NumToString(offset) + ", " + sanitize(field.name, false) + "Offset";
   } else {
     code +=  downsizeToStorageValue(field.value.type, sanitize(field.name, false), false);
   }
@@ -460,12 +462,12 @@ static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr
 	  std::string &code = *code_ptr;
 	          auto vector_type = field.value.type.VectorType();
         auto alignment = InlineAlignment(vector_type);
-        auto elem_size = InlineSize(vector_type);//NumToString(SizeOf(field.value.type.element))
+        auto elem_size = InlineSize(vector_type);
    code += "\t\tfun create" + sanitize(field.name, true);
-  code += "Array(builder :FlatBufferBuilder, data : " + GenTypeForUser(kotlinLang, DestinationType(kotlinLang, vector_type, false))/*GenTypeBasic(kotlinLang, vector_type)*/ + "Array) "; // must widen types + give enums
+  code += "Array(builder :FlatBufferBuilder, data : " + GenTypeForUserConstructor(vector_type)+ "Array) "; // must widen types + give enums
   code += " : Int {builder.startArray(";
   code +=  NumToString(elem_size) + ", data.size, ";
-  code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) builder.add" +   GenMethod(kotlinLang, vector_type)/*GenTypeGet(kotlinLang, field.value.type.VectorType())*/ + "(" + downsizeToStorageValue(vector_type, "data[i]", false) + "); return builder.endArray(); }\n";
+  code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) builder.add" +   GenMethod(kotlinLang, vector_type)+ "(" + downsizeToStorageValue(vector_type, "data[i]", false) + "); return builder.endArray(); }\n";
 }
 
 // Get the offset of the end of a table.
@@ -660,49 +662,18 @@ static std::string downsizeToStorageValueForConstructor(const Type &type, const 
 }
 }
 
-/*
-static std::string downsizeToStorageValue(const Type &type, const std::string value) {
-    if (type.enum_def != nullptr) {// Fix this
-    	    return value + ".value";
-       // if (type.enum_def->is_union){
-    }
-	// transform kotlin value to storage value
-  switch (type.base_type) {
-  case BASE_TYPE_BOOL:  return value;//"if (" + value + ") 1.toByte() else 0.toByte()";
-  case BASE_TYPE_UINT:  return value + ".and(0xFFFFFFFFL).toInt()";
-  case BASE_TYPE_USHORT:  return value + ".and(0xFFFF).toShort()";
-  case BASE_TYPE_UCHAR:  return value + ".and(0xFF).toByte()";
-  case BASE_TYPE_VECTOR:  return downsizeToStorageValue(type.VectorType(), value);
-  default: return value;
-}
-}*/
 
-
-
-
-
-/** getters */
-
-
-static std::string beforeStorageType(const Type &type) {
-	
-	//return SourceCast(GeneratorOptions::Language::kKotlin, type);
-	
-    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from("; // enum class name
-    //if (type.enum_def != nullptr && !type.enum_def->is_union) return type.enum_def->name + ".from("; // enum class name
-    return "";
-}
 
 // Returns the function name that is able to read a value of the given type.
 static std::string GenGetterN(const LanguageParameters &lang,
                              const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING: return "_string";
-    case BASE_TYPE_STRUCT: return "_struct";
-    case BASE_TYPE_UNION:  return "_union";
+    case BASE_TYPE_STRING: return "__string";
+    case BASE_TYPE_STRUCT: return "__struct";
+    case BASE_TYPE_UNION:  return "__union";
     case BASE_TYPE_VECTOR: return GenGetterN(lang, type.VectorType());
     default: {
-      std::string getter = "_byteBuffer.get";
+      std::string getter = "bb.get";
       if (type.base_type == BASE_TYPE_BOOL) {
         getter = "0.toByte()!=" + getter;
       } else if (GenTypeBasic(lang, type) != "Byte") {
@@ -716,7 +687,7 @@ static std::string GenGetterN(const LanguageParameters &lang,
 
 static std::string GenSetter(const LanguageParameters &lang, const Type &type) {
   if (IsScalar(type.base_type)) {
-    std::string setter = "_byteBuffer.put";
+    std::string setter = "bb.put";
     if (GenTypeBasic(lang, type) != "Byte" && 
         type.base_type != BASE_TYPE_BOOL) {
       setter += MakeCamel(GenTypeGet(lang, type));
@@ -742,56 +713,73 @@ static std::string downsizeToStorageValue(const Type &type, const std::string va
     }
 }
 
+static std::string upsizeToUserType(const Type &type, const std::string value) {
+   switch (type.base_type) {
+       case BASE_TYPE_UINT:  return value + ".toLong().and(0xFFFFFFFFL)";
+       case BASE_TYPE_USHORT:  return value + ".toInt().and(0xFFFF)";
+       case BASE_TYPE_UCHAR:  return value + ".toInt().and(0xFF)";
+       case BASE_TYPE_VECTOR:  return upsizeToUserType(type.VectorType(), value);
+       default:  if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from(" + value + ")"; else return value;
+   }
+}
+
+static std::string defaultToUserType(const Type &type, const std::string value) {
+   switch (type.base_type) {
+       case BASE_TYPE_UINT:  return value + ".toLong().and(0xFFFFFFFFL)";
+       case BASE_TYPE_USHORT:  return value + ".toInt().and(0xFFFF)";
+       case BASE_TYPE_UCHAR:  return value + ".toInt().and(0xFF)";
+       case BASE_TYPE_VECTOR:  return upsizeToUserType(type.VectorType(), value);
+       default:  if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from(" + value + ")"; else return value;
+   }
+}
+
+
+/*
+std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
+  if (lang.language == GeneratorOptions::kKotlin && !for_buffer) {  
+      switch (value.type.base_type) {
+case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+//case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return value.constant + "L";
+case BASE_TYPE_FLOAT:return value.constant + "f";
+	//case BASE_TYPE_DOUBLE:return "0.0";
+case BASE_TYPE_VECTOR: switch (value.type.element) {
+case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+//case BASE_TYPE_BOOL:return "false";
+case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+case BASE_TYPE_LONG:
+case BASE_TYPE_ULONG:return value.constant + "L";
+case BASE_TYPE_FLOAT:return value.constant + "f";
+	//case BASE_TYPE_DOUBLE:return "0.0";
+//case BASE_TYPE_STRING:return "\"\"";
+//case BASE_TYPE_STRUCT:
+//case BASE_TYPE_UNION:return "null"; // TODO fix this
+    default:return value.type.element == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+      }
+//case BASE_TYPE_STRING:return "\"\"";
+//case BASE_TYPE_STRUCT:
+//case BASE_TYPE_UNION:return "null"; // TODO fix this
+    default:break;
+      }
+  }
+  
+  return value.type.base_type == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+}
+*/
+
+
+
+
 
 // Returns the function name that is able to read a value of the given type.
 static std::string beginGet(const Type &type) {
 	return GenGetterN(kotlinLang, type);
-}
-
-static std::string upsizeToUserType(const Type &type, const std::string value) {
-   if (!IsScalar(type.base_type) && type.base_type != BASE_TYPE_VECTOR) return value;
-  // transform storage value to kotlin value
-  switch (type.base_type) {
-  //case BASE_TYPE_BOOL:  return "";
-  case BASE_TYPE_UNION: return type.enum_def->name + ".from(" + value + ")";
-  case BASE_TYPE_UINT:  return value + ".toLong().and(0xFFFFFFFFL)";
-  case BASE_TYPE_USHORT:  return value + ".toInt().and(0xFFFF)";
-  case BASE_TYPE_UCHAR:  return value + ".toInt().and(0xFF)";
-  case BASE_TYPE_VECTOR:  return upsizeToUserType(type.VectorType(), value);
-  default: return value;
-}
-}
-
-
-
-/** converts to kotlinType from storageType */
-static std::string afterStorageType(const Type &type, const bool isLitteral) {
-    if (type.enum_def != nullptr) {
-    	    return ".toInt())";
-       // if (type.enum_def->is_union) {return ".toInt())";}//return GenTypeGet(type); // union_type type 
-       // else return ")"; // enum class name
-    }
-
-switch (type.base_type) {
-case BASE_TYPE_BOOL: return "";//if (isLitteral) return "!= 0"; else return "!=0.toByte()";
-case BASE_TYPE_NONE:
-case BASE_TYPE_UTYPE:
-case BASE_TYPE_CHAR:return ".toByte()";
-case BASE_TYPE_SHORT:return ".toShort()";
-case BASE_TYPE_UCHAR:return ".toInt().and(0xFF)";
-case BASE_TYPE_USHORT:return ".toInt().and(0xFFFF)";
-case BASE_TYPE_UINT: return ".toLong().and(0xFFFFFFFFL)";
-case BASE_TYPE_LONG:
-case BASE_TYPE_ULONG: if (isLitteral) return ""; else return ".toLong()";
-case BASE_TYPE_FLOAT: if (isLitteral) return ""; else return ".toFloat()";
-case BASE_TYPE_DOUBLE:return ".toDouble()";
-case BASE_TYPE_VECTOR:return afterStorageType(type.VectorType(), isLitteral);
-case BASE_TYPE_STRING:
-case BASE_TYPE_STRUCT:
-case BASE_TYPE_UNION:
-case BASE_TYPE_INT:
-    default:return "";
-  }
 }
 
 static std::string sanitize(const std::string name, const bool isFirstLetterUpper) {

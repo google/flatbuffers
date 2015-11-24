@@ -21,31 +21,32 @@ import java.nio.ByteOrder
 
 // All tables in the generated code derive from this class, and add their own accessors.
 open class Table {
-    protected var _position: Int = 0
-    var _byteBuffer: ByteBuffer = EMPTY_BYTEBUFFER
-        protected set
+    public val byteBuffer:ByteBuffer get() =  bb
+
+    protected var bb_pos: Int = 0
+    protected var bb: ByteBuffer = EMPTY_BYTEBUFFER
 
     // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
     // present.
-    protected fun _offset(vtable_offset: Int): Int {
-        val vtable = _position - _byteBuffer.getInt(_position)
-        return if (vtable_offset < _byteBuffer.getShort(vtable)) _byteBuffer.getShort(vtable + vtable_offset).toInt() else 0
+    protected fun __offset(vtable_offset: Int): Int {
+        val vtable = bb_pos - bb.getInt(bb_pos)
+        return if (vtable_offset < bb.getShort(vtable)) bb.getShort(vtable + vtable_offset).toInt() else 0
     }
 
     // Retrieve the relative offset stored at "offset"
-    protected fun _indirect(offset: Int): Int =offset + _byteBuffer.getInt(offset)
+    protected fun __indirect(offset: Int): Int =offset + bb.getInt(offset)
 
     // Create a java String from UTF-8 data stored inside the flatbuffer.
     // This allocates a new string and converts to wide chars upon each access,
     // which is not very efficient. Instead, each FlatBuffer string also comes with an
     // accessor based on __vector_as_bytebuffer below, which is much more efficient,
     // assuming your Java program can handle UTF-8 data directly.
-    protected fun _string(offset: Int): String {
-        val off = offset + _byteBuffer.getInt(offset)
-        return if (_byteBuffer.hasArray()) String(_byteBuffer.array(), _byteBuffer.arrayOffset() + off + SIZEOF_INT, _byteBuffer.getInt(off), FlatBufferBuilder.utf8charset) else {
+    protected fun __string(offset: Int): String {
+        val off = offset + bb.getInt(offset)
+        return if (bb.hasArray()) String(bb.array(), bb.arrayOffset() + off + SIZEOF_INT, bb.getInt(off), FlatBufferBuilder.utf8charset) else {
             // We can't access .array(), since the ByteBuffer is read-only,
             // off-heap or a memory map
-            val bb = this._byteBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+            val bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN)
             // We're forced to make an extra copy:
             val copy = ByteArray(bb.getInt(off))
             bb.position(off + SIZEOF_INT)
@@ -55,42 +56,42 @@ open class Table {
     }
 
     // Get the length of a vector whose offset is stored at "offset" in this object.
-    protected fun _arraySize(offset: Int): Int {
-        val off = offset + _position
-        return _byteBuffer.getInt(off + _byteBuffer.getInt(off))
+    protected fun __vector_len(offset: Int): Int {
+        val off = offset + bb_pos
+        return bb.getInt(off + bb.getInt(off))
     }
 
     // Get the start of data of a vector whose offset is stored at "offset" in this object.
-    protected fun _array(offset: Int): Int {
-        val off = offset + _position
-        return off + _byteBuffer.getInt(off) + SIZEOF_INT  // data starts after the length
+    protected fun __vector(offset: Int): Int {
+        val off = offset + bb_pos
+        return off + bb.getInt(off) + SIZEOF_INT  // data starts after the length
     }
 
     // Get a whole vector as a ByteBuffer. This is efficient, since it only allocates a new
     // bytebuffer object, but does not actually copy the data, it still refers to the same
     // bytes as the original ByteBuffer.
     // Also useful with nested FlatBuffers etc.
-    protected fun _vector_as_bytebuffer(vector_offset: Int, elem_size: Int): ByteBuffer {
-        val o = _offset(vector_offset)
-        val bb = this._byteBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
-        val vectorstart = _array(o)
+    protected fun __vector_as_bytebuffer(vector_offset: Int, elem_size: Int): ByteBuffer {
+        val o = __offset(vector_offset)
+        val bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+        val vectorstart = __vector(o)
         bb.position(vectorstart)
-        bb.limit(vectorstart + _arraySize(o) * elem_size)
+        bb.limit(vectorstart + __vector_len(o) * elem_size)
         return bb
     }
 
     // Initialize any Table-derived type to point to the union at the given offset.
-    protected fun _union(t: com.google.flatbuffers.kotlin.Table, offset: Int): com.google.flatbuffers.kotlin.Table {
-        val off = offset + _position
-        t._position = off + _byteBuffer.getInt(off)
-        t._byteBuffer = _byteBuffer
+    protected fun __union(t: com.google.flatbuffers.kotlin.Table, offset: Int): com.google.flatbuffers.kotlin.Table {
+        val off = offset + bb_pos
+        t.bb_pos = off + bb.getInt(off)
+        t.bb = bb
         return t
     }
 
     companion object {
-        fun hasIdentifier(bb: ByteBuffer, ident: String): Boolean {
-            if (ident.length != FILE_IDENTIFIER_LENGTH) throw AssertionError("FlatBuffers: file identifier must be length " + FILE_IDENTIFIER_LENGTH)
-            for (i in 0 until FILE_IDENTIFIER_LENGTH) if (ident[i] != bb.get(bb.position() + SIZEOF_INT + i).toChar()) return false
+        public fun hasIdentifier(byteBuffer: ByteBuffer, fileIdentifier: String): Boolean {
+            if (fileIdentifier.length != FILE_IDENTIFIER_LENGTH) throw AssertionError("FlatBuffers: file identifier has length ${fileIdentifier.length} instead of $FILE_IDENTIFIER_LENGTH")
+            for (i in 0 until FILE_IDENTIFIER_LENGTH) if (fileIdentifier[i] != byteBuffer.get(byteBuffer.position() + SIZEOF_INT + i).toChar()) return false
             return true
         }
     }
