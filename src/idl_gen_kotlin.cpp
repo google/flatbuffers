@@ -69,55 +69,44 @@ struct CommentConfig {
 	extern LanguageParameters language_parameters[];
 	auto kotlinLang = language_parameters[GeneratorOptions::kKotlin];	
 	
-	
-	/** these 2 methods are only used once in GenTypeForUserConstructor */
-	std::string GenTypeForUser(const LanguageParameters &lang, const Type &type);
-	// Find the destination type the user wants to receive the value in (e.g.
-	// one size higher signed types for unsigned serialized values in Java).
-	Type DestinationType(const LanguageParameters &lang, const Type &type, bool vectorelem);
+namespace kotlin {	
+               // functions that can't be reused because they are static : we have to duplicate them 
+	static std::string GenTypeForUser(const LanguageParameters &lang, const Type &type);
+	static Type DestinationType(const LanguageParameters &lang, const Type &type, bool vectorelem);
+	static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer);
+	static std::string GenTypeGet(const LanguageParameters &lang, const Type &type);
+	static std::string GenTypeBasic(const LanguageParameters &lang, const Type &type);
+	static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type);
+	static std::string GenMethod(const LanguageParameters &lang, const Type &type);
+	static std::string GenSetterKotlin(const LanguageParameters &lang, const Type &type);
+	static std::string GenGetterKotlin(const LanguageParameters &lang, const Type &type);
 
-	// formats the default value in case the field's offset is 0
-	std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer);
+	// necessary to avoid name clash with kotlin's reserved words (val, var, fun...)
+              static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
 	
-	// type of the value from getter
-	/** mostly used in setter and getter */
-	std::string GenTypeGet(const LanguageParameters &lang, const Type &type);
-
-		/** only used once in the getter and setter */
-	std::string GenTypeBasic(const LanguageParameters &lang, const Type &type);
-	
-	// type of the value for users
-	/** used a lot */
-	std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type);
-	
-	// for add/put calls
-	/** only used in add Calls*/
-	std::string GenMethod(const LanguageParameters &lang, const Type &type);
-	
-	//std::string GenSetter(const LanguageParameters &lang,const Type &type) // it uses bb	
-namespace kotlin {
-	static std::string GenSetter(const LanguageParameters &lang, const Type &type);
-
-		
+	// the kotlin type transforms
+	static std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool);
+	static std::string upsizeToUserType(const Type &type, std::string value);
+	static std::string defaultToUserType(const Type &type, const std::string value);	
 	/* for use in createSruct() args */
+               static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value);
 	static std::string GenTypeForUserConstructor(const Type &type) {
-		return GenTypeForUser(kotlinLang, flatbuffers::DestinationType(kotlinLang, type, false));
+		return GenTypeForUser(kotlinLang, DestinationType(kotlinLang, type, false));
 	}
+	
+              static std::string multiplyBySizeOf(const Type &type);
+
 	
 	static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr);
 	static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr);
 	static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 
 
-	static std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool);
-               static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value);
-	static std::string upsizeToUserType(const Type &type, std::string value);
-	static std::string defaultToUserType(const Type &type, const std::string value);
+
 	
 
-              static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
-              static std::string beginGet(const Type &type);
-              static std::string multiplyBySizeOf(const Type &type);
+
+
 
 // Begin by declaring namespace and imports.
 static void BeginFile(const std::string name_space_name, const bool needs_imports, std::string *code_ptr) {
@@ -207,8 +196,8 @@ static void getArraySize(const FieldDef &field, std::string *code_ptr) {
 
 static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = beginGet(field.value.type);
-  std::string setter = GenSetter(kotlinLang, field.value.type);
+  std::string getter =  GenGetterKotlin(kotlinLang, field.value.type);
+  std::string setter = GenSetterKotlin(kotlinLang, field.value.type);
 
   if (field.value.type.base_type == BASE_TYPE_STRING) code += "public val "; else  code += "public var ";
   code+= sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
@@ -223,7 +212,7 @@ static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr)
 
 static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  std::string getter = beginGet(field.value.type);
+  std::string getter = GenGetterKotlin(kotlinLang, field.value.type);
 
   code += "public val " + sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
   code += " get() {val o = __offset(" +NumToString(field.value.offset) + "); ";
@@ -234,7 +223,7 @@ static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) 
     code += "public fun mutate" + sanitize(field.name, true) + "(value : " + GenTypeNameDest(kotlinLang, field.value.type) + ") :Boolean {";
     code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o==0) false else {";
-    code += GenSetter(kotlinLang, field.value.type) + "(o + bb_pos, " + downsizeToStorageValue(field.value.type, "value", true);
+    code += GenSetterKotlin(kotlinLang, field.value.type) + "(o + bb_pos, " + downsizeToStorageValue(field.value.type, "value", true);
     code += "); true}}\n";
 }
 
@@ -264,7 +253,7 @@ static void getStringField(const FieldDef &field, std::string *code_ptr) {
 
   code += "public val " +sanitize(field.name, false) + " : String? get() {";
   code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) null else " + beginGet(field.value.type) + "(o + bb_pos)";
+  code += "return if (o == 0) null else " + GenGetterKotlin(kotlinLang, field.value.type) + "(o + bb_pos)";
   code += "}\n";
 }
 
@@ -310,7 +299,7 @@ static void GetMemberOfVectorOfNonStruct(
   code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
   code += "return if (o == 0) ";
   if (vector_type.base_type != BASE_TYPE_STRING) code += defaultToUserType(field.value.type, GenDefaultValue(kotlinLang, field.value, false) )/** fix here */ /*+ afterStorageType(vector_type, true)*/; else code += "null"; 
-  code += " else " + upsizeToUserType(field.value.type,  beginGet(field.value.type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
+  code += " else " + upsizeToUserType(field.value.type,  GenGetterKotlin(kotlinLang, field.value.type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
 //	if (vector_type.base_type != BASE_TYPE_STRING) code += upsizeToUserType(field.value.type); 
 code += "}\n";
 
@@ -318,7 +307,7 @@ code += "}\n";
     code += "public fun mutate" + sanitize(field.name, true) + "(j : Int, value : " + GenTypeNameDest(kotlinLang, vector_type) + ") :Boolean {";
     code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
     code += "return if (o == 0) false else {";
-    code += GenSetter(kotlinLang, vector_type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type);
+    code += GenSetterKotlin(kotlinLang, vector_type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type);
     code += ", " + downsizeToStorageValue(vector_type, "value", true)   /*downsizeToStorageValue(field.value.type, "value")*/ + "); true}}\n";
   }
 }
@@ -642,64 +631,23 @@ static bool SaveType(const Parser &parser, const Definition &def,
 }
 
 
-
-
-/** setters */
-
+// takes a scalar value with a user facing type and downsizes it into the corresponding bits with a storage type for constructor methods (offset for tables, ...)
 static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value) {
-       if (type.enum_def != nullptr){
+  if (type.enum_def != nullptr){
 	if (type.base_type == BASE_TYPE_UNION) return value; // union_type type 
-         else return value + ".value"; // enum class name
-       }
-	// transform kotlin value to storage value
+               else return value + ".value"; // enum class name
+  }
   switch (type.base_type) {
-  case BASE_TYPE_BOOL:  return value;//"if (" + value + ") 1.toByte() else 0.toByte()";
-  case BASE_TYPE_UINT:  return value + ".toInt()";
-  case BASE_TYPE_USHORT:  return value + ".toShort()";
-  case BASE_TYPE_UCHAR:  return value + ".toByte()";
-  case BASE_TYPE_VECTOR:  return value; // or value + "toInt()";
-  default: return value;
-}
-}
 
-
-
-// Returns the function name that is able to read a value of the given type.
-static std::string GenGetterN(const LanguageParameters &lang,
-                             const Type &type) {
-  switch (type.base_type) {
-    case BASE_TYPE_STRING: return "__string";
-    case BASE_TYPE_STRUCT: return "__struct";
-    case BASE_TYPE_UNION:  return "__union";
-    case BASE_TYPE_VECTOR: return GenGetterN(lang, type.VectorType());
-    default: {
-      std::string getter = "bb.get";
-      if (type.base_type == BASE_TYPE_BOOL) {
-        getter = "0.toByte()!=" + getter;
-      } else if (GenTypeBasic(lang, type) != "Byte") {
-        getter += MakeCamel(GenTypeGet(lang, type));
-      }
-      return getter;
-    }
+  	case BASE_TYPE_UINT:  return value + ".toInt()";
+  	case BASE_TYPE_USHORT:  return value + ".toShort()";
+  	case BASE_TYPE_UCHAR:  return value + ".toByte()";
+  		//case BASE_TYPE_BOOL:  return value;
+  		//case BASE_TYPE_VECTOR:  return value;
+  	default: return value;
   }
 }
 
-
-static std::string GenSetter(const LanguageParameters &lang, const Type &type) {
-  if (IsScalar(type.base_type)) {
-    std::string setter = "bb.put";
-    if (GenTypeBasic(lang, type) != "Byte" && 
-        type.base_type != BASE_TYPE_BOOL) {
-      setter += MakeCamel(GenTypeGet(lang, type));
-    }
-    return setter;
-  } else {
-    return "";
-  }
-}
-
-
-// improve SourceCast where source is the value that goes in a put call
 // takes a scalar value with a user facing type and downsizes it into the corresponding bits with a storage type
 static std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool) {
     if (type.enum_def != nullptr) return value + ".value";
@@ -733,55 +681,6 @@ static std::string defaultToUserType(const Type &type, const std::string value) 
    }
 }
 
-
-/*
-std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
-  if (lang.language == GeneratorOptions::kKotlin && !for_buffer) {  
-      switch (value.type.base_type) {
-case BASE_TYPE_CHAR:return value.constant + ".toByte()";
-//case BASE_TYPE_BOOL:return "false";
-case BASE_TYPE_SHORT:return value.constant + ".toShort()";
-case BASE_TYPE_LONG:
-case BASE_TYPE_ULONG:return value.constant + "L";
-case BASE_TYPE_FLOAT:return value.constant + "f";
-	//case BASE_TYPE_DOUBLE:return "0.0";
-case BASE_TYPE_VECTOR: switch (value.type.element) {
-case BASE_TYPE_CHAR:return value.constant + ".toByte()";
-//case BASE_TYPE_BOOL:return "false";
-case BASE_TYPE_SHORT:return value.constant + ".toShort()";
-case BASE_TYPE_LONG:
-case BASE_TYPE_ULONG:return value.constant + "L";
-case BASE_TYPE_FLOAT:return value.constant + "f";
-	//case BASE_TYPE_DOUBLE:return "0.0";
-//case BASE_TYPE_STRING:return "\"\"";
-//case BASE_TYPE_STRUCT:
-//case BASE_TYPE_UNION:return "null"; // TODO fix this
-    default:return value.type.element == BASE_TYPE_BOOL
-           ? (value.constant == "0" ? "false" : "true")
-           : value.constant;
-      }
-//case BASE_TYPE_STRING:return "\"\"";
-//case BASE_TYPE_STRUCT:
-//case BASE_TYPE_UNION:return "null"; // TODO fix this
-    default:break;
-      }
-  }
-  
-  return value.type.base_type == BASE_TYPE_BOOL
-           ? (value.constant == "0" ? "false" : "true")
-           : value.constant;
-}
-*/
-
-
-
-
-
-// Returns the function name that is able to read a value of the given type.
-static std::string beginGet(const Type &type) {
-	return GenGetterN(kotlinLang, type);
-}
-
 static std::string sanitize(const std::string name, const bool isFirstLetterUpper) {
 	std::string camelName = MakeCamel(name, isFirstLetterUpper);
 	if (camelName.size() >= 1 && camelName.compare(camelName.size() - 1, 1, "_") == 0) return camelName + "_";
@@ -807,6 +706,194 @@ static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr)
 
   EndBuilderBody(code_ptr);
 }
+
+
+// functions copied from idl_gen_general.cpp because they are static (can't be shared)
+
+static std::string GenTypeBasic(const LanguageParameters &lang,
+                                const Type &type) {
+  static const char *gtypename[] = {
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, KTYPE, GTYPE, NTYPE, PTYPE) \
+        #JTYPE, #KTYPE, #NTYPE, #GTYPE,
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+    #undef FLATBUFFERS_TD
+  };
+
+  /*if(lang.language == GeneratorOptions::kCSharp && type.base_type == BASE_TYPE_STRUCT) {
+    return "Offset<" + type.struct_def->name + ">";
+  }*/
+
+  return gtypename[type.base_type * GeneratorOptions::kMAX + lang.language];
+}
+
+// Generate type to be used in user-facing API
+// removed static to allow reuse in the kotlin external generator
+static std::string GenTypeForUser(const LanguageParameters &lang,
+                                  const Type &type) {
+  if (lang.language == GeneratorOptions::kCSharp) {
+    if (type.enum_def != nullptr &&
+          type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+  }
+  if (lang.language == GeneratorOptions::kKotlin) {
+    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+  }
+  return GenTypeBasic(lang, type);
+}
+
+// removed static for reuse in external code generators
+static std::string GenTypeGet(const LanguageParameters &lang,
+                              const Type &type);
+
+static std::string GenTypePointer(const LanguageParameters &lang,
+                                  const Type &type) {
+  switch (type.base_type) {
+    case BASE_TYPE_STRING:
+      return lang.string_type;
+    case BASE_TYPE_VECTOR:
+      return GenTypeGet(lang, type.VectorType());
+    case BASE_TYPE_STRUCT:
+      return type.struct_def->name;
+    case BASE_TYPE_UNION:
+      // fall through
+    default:
+      return "Table";
+  }
+}
+
+// removed static for reuse in external code generators
+static std::string GenTypeGet(const LanguageParameters &lang,
+                              const Type &type) {
+  return IsScalar(type.base_type)
+    ? GenTypeBasic(lang, type)
+    : GenTypePointer(lang, type);
+}
+
+// Find the destination type the user wants to receive the value in (e.g.
+// one size higher signed types for unsigned serialized values in Java).
+// removed static to allow reuse in external generator files
+static Type DestinationType(const LanguageParameters &lang, const Type &type,
+                            bool vectorelem) {
+  //if (lang.language != GeneratorOptions::kJava && lang.language != GeneratorOptions::kKotlin) return type;
+  switch (type.base_type) {
+  	  // We use int for both uchar/ushort, since that generally means less casting
+    // than using short for uchar.
+    case BASE_TYPE_UCHAR:  return Type(BASE_TYPE_INT);
+    case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
+    case BASE_TYPE_UINT:   return Type(BASE_TYPE_LONG);
+    case BASE_TYPE_VECTOR:
+      if (vectorelem)
+        return DestinationType(lang, type.VectorType(), vectorelem);
+      // else fall thru:
+    default: return type;
+  }
+}
+
+
+// Generate destination type name
+// removed static for reuse in kotlin code generator
+std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type)
+{
+  /*if (lang.language == GeneratorOptions::kCSharp) {
+    // C# enums are represented by themselves
+    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION)
+      return type.enum_def->name;
+
+    // Unions in C# use a generic Table-derived type for better type safety
+    if (type.base_type == BASE_TYPE_UNION)
+      return "TTable";
+  }*/
+  if (lang.language == GeneratorOptions::kKotlin) {
+    // Kotlin enums are represented by themselves
+    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+
+    // Unions in Kotlin use a generic Table-derived type 
+    if (type.base_type == BASE_TYPE_UNION) return "Table";
+  }
+  
+  // default behavior
+  return GenTypeGet(lang, DestinationType(lang, type, true));
+}
+
+// removed static to allow reuse
+std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
+  /*if (lang.language == GeneratorOptions::kCSharp && !for_buffer) {
+    switch(value.type.base_type) {
+      case BASE_TYPE_STRING:
+        return "default(StringOffset)";
+      case BASE_TYPE_STRUCT:
+        return "default(Offset<" + value.type.struct_def->name + ">)";
+      case BASE_TYPE_VECTOR:
+        return "default(VectorOffset)";
+      default:
+        break;
+    }
+  }*/
+
+  if (lang.language == GeneratorOptions::kKotlin && !for_buffer) {  
+      switch (value.type.base_type) {
+      	case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+      	case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+      	case BASE_TYPE_LONG:
+      	case BASE_TYPE_ULONG:return value.constant + "L";
+      	case BASE_TYPE_FLOAT:return value.constant + "f";
+      	case BASE_TYPE_VECTOR: switch (value.type.element) {
+      		case BASE_TYPE_CHAR:return value.constant + ".toByte()";
+      		case BASE_TYPE_SHORT:return value.constant + ".toShort()";
+      		case BASE_TYPE_LONG:
+      		case BASE_TYPE_ULONG:return value.constant + "L";
+      		case BASE_TYPE_FLOAT:return value.constant + "f";
+      		default:return value.type.element == BASE_TYPE_BOOL ? (value.constant == "0" ? "false" : "true") : value.constant;
+      	}
+    	default:break;
+      }
+  }
+  
+  return value.type.base_type == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+}
+
+
+// Returns the method name for use with add/put calls.
+static std::string GenMethod(const LanguageParameters &lang, const Type &type) {
+  return IsScalar(type.base_type)
+    ? MakeCamel(GenTypeBasic(lang, type))
+    : (IsStruct(type) ? "Struct" : "Offset");
+}
+
+
+// Returns the function name that is able to read a value of the given type.
+static std::string GenGetterKotlin(const LanguageParameters &lang,
+                             const Type &type) {
+  switch (type.base_type) {
+    case BASE_TYPE_STRING: return "__string";
+    case BASE_TYPE_STRUCT: return "__struct";
+    case BASE_TYPE_UNION:  return "__union";
+    case BASE_TYPE_VECTOR: return GenGetterKotlin(lang, type.VectorType());
+    default: {
+      std::string getter = "bb.get";
+      if (type.base_type == BASE_TYPE_BOOL) {
+        getter = "0.toByte()!=" + getter; // Kotlin specific
+      } else if (GenTypeBasic(lang, type) != "Byte") { // Kotlin specific
+        getter += MakeCamel(GenTypeGet(lang, type));
+      }
+      return getter;
+    }
+  }
+}
+
+static std::string GenSetterKotlin(const LanguageParameters &lang, const Type &type) {
+  if (IsScalar(type.base_type)) {
+    std::string setter = "bb.put";
+    if (GenTypeBasic(lang, type) != "Byte"  /* Kotlin specific*/&& type.base_type != BASE_TYPE_BOOL) setter += MakeCamel(GenTypeGet(lang, type));
+    return setter;
+  }
+  return "";
+}
+
+
+
+
 
 }  // namespace kotlin
 
