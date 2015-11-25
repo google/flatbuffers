@@ -154,7 +154,10 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   std::string &code = *code_ptr;
   std::string &code_post = *code_ptr_post;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
-  code += GenEnumDecl(enum_def, opts) + " {\n";
+  code += GenEnumDecl(enum_def, opts);
+  if (opts.scoped_enums)
+    code += " : " + GenTypeBasic(parser, enum_def.underlying_type, false);
+  code += " {\n";
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
@@ -311,7 +314,14 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
           code += "const char *val) const { return strcmp(" + field.name;
           code += "()->c_str(), val); }\n";
         } else {
-          code += GenTypeBasic(parser, field.value.type, false);
+          if (opts.scoped_enums &&
+            field.value.type.enum_def &&
+            IsScalar(field.value.type.base_type)) {
+            code += GenTypeGet(parser, field.value.type, " ", "const ", " *",
+                               true);
+          } else {
+            code += GenTypeBasic(parser, field.value.type, false);
+          }
           code += " val) const { return " + field.name + "() < val ? -1 : ";
           code += field.name + "() > val; }\n";
         }
