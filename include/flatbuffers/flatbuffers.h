@@ -329,9 +329,9 @@ public:
       return nullptr;  // Key not found.
     }
 
-    const uint8_t *data = reinterpret_cast<const uint8_t *>(search_result);
+    const uint8_t *element = reinterpret_cast<const uint8_t *>(search_result);
 
-    return IndirectHelper<T>::Read(data, 0);
+    return IndirectHelper<T>::Read(element, 0);
   }
 
 protected:

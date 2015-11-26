@@ -46,15 +46,15 @@ MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z_;
 
  public:
-  Vec3(float x, float y, float z)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)) { }
+  Vec3(float _x, float _y, float _z)
+    : x_(flatbuffers::EndianScalar(_x)), y_(flatbuffers::EndianScalar(_y)), z_(flatbuffers::EndianScalar(_z)) { }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
-  void mutate_x(float x) { flatbuffers::WriteScalar(&x_, x); }
+  void mutate_x(float _x) { flatbuffers::WriteScalar(&x_, _x); }
   float y() const { return flatbuffers::EndianScalar(y_); }
-  void mutate_y(float y) { flatbuffers::WriteScalar(&y_, y); }
+  void mutate_y(float _y) { flatbuffers::WriteScalar(&y_, _y); }
   float z() const { return flatbuffers::EndianScalar(z_); }
-  void mutate_z(float z) { flatbuffers::WriteScalar(&z_, z); }
+  void mutate_z(float _z) { flatbuffers::WriteScalar(&z_, _z); }
 };
 STRUCT_END(Vec3, 12);
 
@@ -62,15 +62,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(4); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(4); }
   int16_t mana() const { return GetField<int16_t>(6, 150); }
-  bool mutate_mana(int16_t mana) { return SetField(6, mana); }
+  bool mutate_mana(int16_t _mana) { return SetField(6, _mana); }
   int16_t hp() const { return GetField<int16_t>(8, 100); }
-  bool mutate_hp(int16_t hp) { return SetField(8, hp); }
+  bool mutate_hp(int16_t _hp) { return SetField(8, _hp); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
   flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(10); }
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
   flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(14); }
   Color color() const { return static_cast<Color>(GetField<int8_t>(16, 2)); }
-  bool mutate_color(Color color) { return SetField(16, static_cast<int8_t>(color)); }
+  bool mutate_color(Color _color) { return SetField(16, static_cast<int8_t>(_color)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, 4 /* pos */) &&
