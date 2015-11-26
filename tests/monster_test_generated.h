@@ -55,13 +55,13 @@ MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   int8_t __padding0;
 
  public:
-  Test(int16_t a, int8_t b)
-    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) { (void)__padding0; }
+  Test(int16_t _a, int8_t _b)
+    : a_(flatbuffers::EndianScalar(_a)), b_(flatbuffers::EndianScalar(_b)), __padding0(0) { (void)__padding0; }
 
   int16_t a() const { return flatbuffers::EndianScalar(a_); }
-  void mutate_a(int16_t a) { flatbuffers::WriteScalar(&a_, a); }
+  void mutate_a(int16_t _a) { flatbuffers::WriteScalar(&a_, _a); }
   int8_t b() const { return flatbuffers::EndianScalar(b_); }
-  void mutate_b(int8_t b) { flatbuffers::WriteScalar(&b_, b); }
+  void mutate_b(int8_t _b) { flatbuffers::WriteScalar(&b_, _b); }
 };
 STRUCT_END(Test, 4);
 
@@ -78,19 +78,19 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   int16_t __padding2;
 
  public:
-  Vec3(float x, float y, float z, double test1, Color test2, const Test &test3)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(static_cast<int8_t>(test2))), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
+  Vec3(float _x, float _y, float _z, double _test1, Color _test2, const Test &_test3)
+    : x_(flatbuffers::EndianScalar(_x)), y_(flatbuffers::EndianScalar(_y)), z_(flatbuffers::EndianScalar(_z)), __padding0(0), test1_(flatbuffers::EndianScalar(_test1)), test2_(flatbuffers::EndianScalar(static_cast<int8_t>(_test2))), __padding1(0), test3_(_test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
-  void mutate_x(float x) { flatbuffers::WriteScalar(&x_, x); }
+  void mutate_x(float _x) { flatbuffers::WriteScalar(&x_, _x); }
   float y() const { return flatbuffers::EndianScalar(y_); }
-  void mutate_y(float y) { flatbuffers::WriteScalar(&y_, y); }
+  void mutate_y(float _y) { flatbuffers::WriteScalar(&y_, _y); }
   float z() const { return flatbuffers::EndianScalar(z_); }
-  void mutate_z(float z) { flatbuffers::WriteScalar(&z_, z); }
+  void mutate_z(float _z) { flatbuffers::WriteScalar(&z_, _z); }
   double test1() const { return flatbuffers::EndianScalar(test1_); }
-  void mutate_test1(double test1) { flatbuffers::WriteScalar(&test1_, test1); }
+  void mutate_test1(double _test1) { flatbuffers::WriteScalar(&test1_, _test1); }
   Color test2() const { return static_cast<Color>(flatbuffers::EndianScalar(test2_)); }
-  void mutate_test2(Color test2) { flatbuffers::WriteScalar(&test2_, static_cast<int8_t>(test2)); }
+  void mutate_test2(Color _test2) { flatbuffers::WriteScalar(&test2_, static_cast<int8_t>(_test2)); }
   const Test &test3() const { return test3_; }
   Test &mutable_test3() { return test3_; }
 };
@@ -98,7 +98,7 @@ STRUCT_END(Vec3, 32);
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Color color() const { return static_cast<Color>(GetField<int8_t>(4, 2)); }
-  bool mutate_color(Color color) { return SetField(4, static_cast<int8_t>(color)); }
+  bool mutate_color(Color _color) { return SetField(4, static_cast<int8_t>(_color)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, 4 /* color */) &&
@@ -129,9 +129,9 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(4); }
   flatbuffers::String *mutable_id() { return GetPointer<flatbuffers::String *>(4); }
   int64_t val() const { return GetField<int64_t>(6, 0); }
-  bool mutate_val(int64_t val) { return SetField(6, val); }
+  bool mutate_val(int64_t _val) { return SetField(6, _val); }
   uint16_t count() const { return GetField<uint16_t>(8, 0); }
-  bool mutate_count(uint16_t count) { return SetField(8, count); }
+  bool mutate_count(uint16_t _count) { return SetField(8, _count); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, 4 /* id */) &&
@@ -172,9 +172,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(4); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(4); }
   int16_t mana() const { return GetField<int16_t>(6, 150); }
-  bool mutate_mana(int16_t mana) { return SetField(6, mana); }
+  bool mutate_mana(int16_t _mana) { return SetField(6, _mana); }
   int16_t hp() const { return GetField<int16_t>(8, 100); }
-  bool mutate_hp(int16_t hp) { return SetField(8, hp); }
+  bool mutate_hp(int16_t _hp) { return SetField(8, _hp); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
   flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(10); }
   bool KeyCompareLessThan(const Monster *o) const { return *name() < *o->name(); }
@@ -182,9 +182,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
   flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(14); }
   Color color() const { return static_cast<Color>(GetField<int8_t>(16, 8)); }
-  bool mutate_color(Color color) { return SetField(16, static_cast<int8_t>(color)); }
+  bool mutate_color(Color _color) { return SetField(16, static_cast<int8_t>(_color)); }
   Any test_type() const { return static_cast<Any>(GetField<uint8_t>(18, 0)); }
-  bool mutate_test_type(Any test_type) { return SetField(18, static_cast<uint8_t>(test_type)); }
+  bool mutate_test_type(Any _test_type) { return SetField(18, static_cast<uint8_t>(_test_type)); }
   const void *test() const { return GetPointer<const void *>(20); }
   void *mutable_test() { return GetPointer<void *>(20); }
   const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(22); }
@@ -203,23 +203,23 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Stat *testempty() const { return GetPointer<const Stat *>(32); }
   Stat *mutable_testempty() { return GetPointer<Stat *>(32); }
   uint8_t testbool() const { return GetField<uint8_t>(34, 0); }
-  bool mutate_testbool(uint8_t testbool) { return SetField(34, testbool); }
+  bool mutate_testbool(uint8_t _testbool) { return SetField(34, _testbool); }
   int32_t testhashs32_fnv1() const { return GetField<int32_t>(36, 0); }
-  bool mutate_testhashs32_fnv1(int32_t testhashs32_fnv1) { return SetField(36, testhashs32_fnv1); }
+  bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) { return SetField(36, _testhashs32_fnv1); }
   uint32_t testhashu32_fnv1() const { return GetField<uint32_t>(38, 0); }
-  bool mutate_testhashu32_fnv1(uint32_t testhashu32_fnv1) { return SetField(38, testhashu32_fnv1); }
+  bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) { return SetField(38, _testhashu32_fnv1); }
   int64_t testhashs64_fnv1() const { return GetField<int64_t>(40, 0); }
-  bool mutate_testhashs64_fnv1(int64_t testhashs64_fnv1) { return SetField(40, testhashs64_fnv1); }
+  bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) { return SetField(40, _testhashs64_fnv1); }
   uint64_t testhashu64_fnv1() const { return GetField<uint64_t>(42, 0); }
-  bool mutate_testhashu64_fnv1(uint64_t testhashu64_fnv1) { return SetField(42, testhashu64_fnv1); }
+  bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) { return SetField(42, _testhashu64_fnv1); }
   int32_t testhashs32_fnv1a() const { return GetField<int32_t>(44, 0); }
-  bool mutate_testhashs32_fnv1a(int32_t testhashs32_fnv1a) { return SetField(44, testhashs32_fnv1a); }
+  bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) { return SetField(44, _testhashs32_fnv1a); }
   uint32_t testhashu32_fnv1a() const { return GetField<uint32_t>(46, 0); }
-  bool mutate_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) { return SetField(46, testhashu32_fnv1a); }
+  bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) { return SetField(46, _testhashu32_fnv1a); }
   int64_t testhashs64_fnv1a() const { return GetField<int64_t>(48, 0); }
-  bool mutate_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { return SetField(48, testhashs64_fnv1a); }
+  bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) { return SetField(48, _testhashs64_fnv1a); }
   uint64_t testhashu64_fnv1a() const { return GetField<uint64_t>(50, 0); }
-  bool mutate_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { return SetField(50, testhashu64_fnv1a); }
+  bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) { return SetField(50, _testhashu64_fnv1a); }
   const flatbuffers::Vector<uint8_t> *testarrayofbools() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(52); }
   flatbuffers::Vector<uint8_t> *mutable_testarrayofbools() { return GetPointer<flatbuffers::Vector<uint8_t> *>(52); }
   bool Verify(flatbuffers::Verifier &verifier) const {

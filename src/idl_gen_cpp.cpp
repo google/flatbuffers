@@ -277,8 +277,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
         if (is_scalar) {
           code += "  bool mutate_" + field.name + "(";
           code += GenTypeBasic(parser, field.value.type, true);
-          code += " " + field.name + ") { return SetField(" + offsetstr + ", ";
-          code += GenUnderlyingCast(parser, field, false, field.name);
+          code += " _" + field.name + ") { return SetField(" + offsetstr + ", ";
+          code += GenUnderlyingCast(parser, field, false, "_" + field.name);
           code += "); }\n";
         } else {
           auto type = GenTypeGet(parser, field.value.type, " ", "", " *", true);
@@ -524,7 +524,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     auto &field = **it;
     if (it != struct_def.fields.vec.begin()) code += ", ";
     code += GenTypeGet(parser, field.value.type, " ", "const ", " &", true);
-    code += field.name;
+    code += "_" + field.name;
   }
   code += ")\n    : ";
   padding_id = 0;
@@ -536,10 +536,10 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     code += field.name + "_(";
     if (IsScalar(field.value.type.base_type)) {
       code += "flatbuffers::EndianScalar(";
-      code += GenUnderlyingCast(parser, field, false, field.name);
+      code += GenUnderlyingCast(parser, field, false, "_" + field.name);
       code += "))";
     } else {
-      code += field.name + ")";
+      code += "_" + field.name + ")";
     }
     GenPadding(field, [&code, &padding_id](int bits) {
       (void)bits;
@@ -579,9 +579,9 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
       if (is_scalar) {
         code += "  void mutate_" + field.name + "(";
         code += GenTypeBasic(parser, field.value.type, true);
-        code += " " + field.name + ") { flatbuffers::WriteScalar(&";
+        code += " _" + field.name + ") { flatbuffers::WriteScalar(&";
         code += field.name + "_, ";
-        code += GenUnderlyingCast(parser, field, false, field.name);
+        code += GenUnderlyingCast(parser, field, false, "_" + field.name);
         code += "); }\n";
       } else {
         code += "  ";
