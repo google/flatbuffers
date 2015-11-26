@@ -28,7 +28,8 @@ struct Generator {
                    const std::string &path,
                    const std::string &file_name,
                    const flatbuffers::GeneratorOptions &opts);
-  const char *generator_opt;
+  const char *generator_opt_short;
+  const char *generator_opt_long;
   const char *lang_name;
   flatbuffers::GeneratorOptions::Language lang;
   const char *generator_help;
@@ -40,41 +41,41 @@ struct Generator {
 };
 
 const Generator generators[] = {
-  { flatbuffers::GenerateBinary,   "-b", "binary",
+  { flatbuffers::GenerateBinary,   "-b", "--binary", "binary",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate wire format binaries for any data definitions",
     flatbuffers::BinaryMakeRule },
-  { flatbuffers::GenerateTextFile, "-t", "text",
+  { flatbuffers::GenerateTextFile, "-t", "--json", "text",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate text output for any data definitions",
     flatbuffers::TextMakeRule },
-  { flatbuffers::GenerateCPP,      "-c", "C++",
+  { flatbuffers::GenerateCPP,      "-c", "--cpp", "C++",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate C++ headers for tables/structs",
     flatbuffers::CPPMakeRule },
-  { flatbuffers::GenerateGo,       "-g", "Go",
+  { flatbuffers::GenerateGo,       "-g", "--go", "Go",
     flatbuffers::GeneratorOptions::kGo,
     "Generate Go files for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GenerateGeneral,  "-j", "Java",
+  { flatbuffers::GenerateGeneral,  "-j", "--java", "Java",
     flatbuffers::GeneratorOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GenerateJS,       "-s", "JavaScript",
+  { flatbuffers::GenerateJS,       "-s", "--js", "JavaScript",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate JavaScript code for tables/structs",
     flatbuffers::JSMakeRule },
-  { flatbuffers::GenerateGeneral,  "-n", "C#",
+  { flatbuffers::GenerateGeneral,  "-n", "--csharp", "C#",
     flatbuffers::GeneratorOptions::kCSharp,
     "Generate C# classes for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GeneratePython,   "-p", "Python",
+  { flatbuffers::GeneratePython,   "-p", "--python", "Python",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
-    { flatbuffers::GeneratePhp,   "--php", "PHP",
+    { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
     flatbuffers::GeneratorOptions::kMAX,
-    "Generate Php files for tables/structs",
+    "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
 };
 
@@ -86,8 +87,11 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
   if (usage) {
     printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
-      printf("  %s              %s.\n",
-             generators[i].generator_opt,
+      printf("  %-12s %s %s.\n",
+             generators[i].generator_opt_long,
+             generators[i].generator_opt_short
+               ? generators[i].generator_opt_short
+               : "  ",
              generators[i].generator_help);
     printf(
       "  -o PATH         Prefix PATH to all generated files.\n"
@@ -179,7 +183,9 @@ int main(int argc, const char *argv[]) {
         print_make_rules = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
-          if (arg == generators[i].generator_opt) {
+          if (arg == generators[i].generator_opt_long ||
+              (generators[i].generator_opt_short &&
+               arg == generators[i].generator_opt_short)) {
             generator_enabled[i] = true;
             any_generator = true;
             goto found;
