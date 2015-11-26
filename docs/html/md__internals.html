@@ -1,3 +1,4 @@
+<!-- HTML header for doxygen 1.8.6-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -15,16 +16,23 @@
   $(document).ready(initResizable);
   $(window).load(resizeHeight);
 </script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -56,25 +64,25 @@ $(document).ready(function(){initNavTree('md__internals.html','');});
 <div class="textblock"><p>This section is entirely optional for the use of FlatBuffers. In normal usage, you should never need the information contained herein. If you're interested however, it should give you more of an appreciation of why FlatBuffers is both efficient and convenient.</p>
 <h3>Format components</h3>
 <p>A FlatBuffer is a binary file and in-memory format consisting mostly of scalars of various sizes, all aligned to their own size. Each scalar is also always represented in little-endian format, as this corresponds to all commonly used CPUs today. FlatBuffers will also work on big-endian machines, but will be slightly slower because of additional byte-swap intrinsics.</p>
-<p>On purpose, the format leaves a lot of details about where exactly things live in memory undefined, e.g. fields in a table can have any order, and objects to some extend can be stored in many orders. This is because the format doesn't need this information to be efficient, and it leaves room for optimization and extension (for example, fields can be packed in a way that is most compact). Instead, the format is defined in terms of offsets and adjacency only.</p>
+<p>On purpose, the format leaves a lot of details about where exactly things live in memory undefined, e.g. fields in a table can have any order, and objects to some extend can be stored in many orders. This is because the format doesn't need this information to be efficient, and it leaves room for optimization and extension (for example, fields can be packed in a way that is most compact). Instead, the format is defined in terms of offsets and adjacency only. This may mean two different implementations may produce different binaries given the same input values, and this is perfectly valid.</p>
 <h3>Format identification</h3>
 <p>The format also doesn't contain information for format identification and versioning, which is also by design. FlatBuffers is a statically typed system, meaning the user of a buffer needs to know what kind of buffer it is. FlatBuffers can of course be wrapped inside other containers where needed, or you can use its union feature to dynamically identify multiple possible sub-objects stored. Additionally, it can be used together with the schema parser if full reflective capabilities are desired.</p>
 <p>Versioning is something that is intrinsically part of the format (the optionality / extensibility of fields), so the format itself does not need a version number (it's a meta-format, in a sense). We're hoping that this format can accommodate all data needed. If format breaking changes are ever necessary, it would become a new kind of format rather than just a variation.</p>
 <h3>Offsets</h3>
-<p>The most important and generic offset type (see <code>flatbuffers.h</code>) is <code>offset_t</code>, which is currently always a <code>uint32_t</code>, and is used to refer to all tables/unions/strings/vectors. 32bit is intentional, since we want to keep the format binary compatible between 32 and 64bit systems, and a 64bit offset would bloat the size for almost all uses. A version of this format with 64bit (or 16bit) offsets is easy to set when needed. Unsigned means they can only point in one direction, which typically is forward (towards a higher memory location). Any backwards offsets will be explicitly marked as such.</p>
-<p>The format starts with an <code>offset_t</code> to the root object in the buffer.</p>
+<p>The most important and generic offset type (see <code>flatbuffers.h</code>) is <code>uoffset_t</code>, which is currently always a <code>uint32_t</code>, and is used to refer to all tables/unions/strings/vectors (these are never stored in-line). 32bit is intentional, since we want to keep the format binary compatible between 32 and 64bit systems, and a 64bit offset would bloat the size for almost all uses. A version of this format with 64bit (or 16bit) offsets is easy to set when needed. Unsigned means they can only point in one direction, which typically is forward (towards a higher memory location). Any backwards offsets will be explicitly marked as such.</p>
+<p>The format starts with an <code>uoffset_t</code> to the root object in the buffer.</p>
 <p>We have two kinds of objects, structs and tables.</p>
 <h3>Structs</h3>
 <p>These are the simplest, and as mentioned, intended for simple data that benefits from being extra efficient and doesn't need versioning / extensibility. They are always stored inline in their parent (a struct, table, or vector) for maximum compactness. Structs define a consistent memory layout where all components are aligned to their size, and structs aligned to their largest scalar member. This is done independent of the alignment rules of the underlying compiler to guarantee a cross platform compatible layout. This layout is then enforced in the generated code.</p>
 <h3>Tables</h3>
-<p>These start with an <code>soffset_t</code> to a vtable (signed version of <code>offset_t</code>, since vtables may be stored anywhere), followed by all the fields as aligned scalars. Unlike structs, not all fields need to be present. There is no set order and layout.</p>
+<p>These start with an <code>soffset_t</code> to a vtable. This is a signed version of <code>uoffset_t</code>, since vtables may be stored anywhere relative to the object. This offset is substracted (not added) from the object start to arrive at the vtable start. This offset is followed by all the fields as aligned scalars (or offsets). Unlike structs, not all fields need to be present. There is no set order and layout.</p>
 <p>To be able to access fields regardless of these uncertainties, we go through a vtable of offsets. Vtables are shared between any objects that happen to have the same vtable values.</p>
-<p>The elements of a vtable are all of type <code>voffset_t</code>, which is currently a <code>uint16_t</code>. The first element is the number of elements of the vtable, including this one. The second one is the size of the object, in bytes (including the vtable offset). This size is used for streaming, to know how many bytes to read to be able to access all fields of the object. The remaining elements are N the offsets, where N is the amount of field declared in the schema when the code that constructed this buffer was compiled (thus, the size of the table is N + 2).</p>
+<p>The elements of a vtable are all of type <code>voffset_t</code>, which is a <code>uint16_t</code>. The first element is the size of the vtable in bytes, including the size element. The second one is the size of the object, in bytes (including the vtable offset). This size could be used for streaming, to know how many bytes to read to be able to access all fields of the object. The remaining elements are the N offsets, where N is the amount of fields declared in the schema when the code that constructed this buffer was compiled (thus, the size of the table is N + 2).</p>
 <p>All accessor functions in the generated code for tables contain the offset into this table as a constant. This offset is checked against the first field (the number of elements), to protect against newer code reading older data. If this offset is out of range, or the vtable entry is 0, that means the field is not present in this object, and the default value is return. Otherwise, the entry is used as offset to the field to be read.</p>
 <h3>Strings and Vectors</h3>
-<p>Strings are simply a vector of bytes, and are always null-terminated. Vectors are stored as contiguous aligned scalar elements prefixed by a count.</p>
+<p>Strings are simply a vector of bytes, and are always null-terminated. Vectors are stored as contiguous aligned scalar elements prefixed by a 32bit element count (not including any null termination).</p>
 <h3>Construction</h3>
-<p>The current implementation constructs these buffers backwards, since that significantly reduces the amount of bookkeeping and simplifies the construction API.</p>
+<p>The current implementation constructs these buffers backwards (starting at the highest memory address of the buffer), since that significantly reduces the amount of bookkeeping and simplifies the construction API.</p>
 <h3>Code example</h3>
 <p>Here's an example of the code that gets generated for the <code>samples/monster.fbs</code>. What follows is the entire file, broken up by comments: </p><pre class="fragment">// automatically generated, do not modify
 
@@ -107,7 +115,7 @@ inline const char **EnumNamesAny() {
 inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
 </pre><p>Unions share a lot with enums. </p><pre class="fragment">struct Vec3;
 struct Monster;
-</pre><p>Predeclare all datatypes since there may be circular references. </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+</pre><p>Predeclare all data types since circular references between types are allowed (circular references between object are not, though). </p><pre class="fragment">MANUALLY_ALIGNED_STRUCT(4) Vec3 {
  private:
   float x_;
   float y_;

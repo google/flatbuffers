@@ -20,7 +20,9 @@ order, and objects to some extend can be stored in many orders. This is
 because the format doesn't need this information to be efficient, and it
 leaves room for optimization and extension (for example, fields can be
 packed in a way that is most compact). Instead, the format is defined in
-terms of offsets and adjacency only.
+terms of offsets and adjacency only. This may mean two different
+implementations may produce different binaries given the same input
+values, and this is perfectly valid.
 
 ### Format identification
 
@@ -43,8 +45,9 @@ than just a variation.
 ### Offsets
 
 The most important and generic offset type (see `flatbuffers.h`) is
-`offset_t`, which is currently always a `uint32_t`, and is used to
-refer to all tables/unions/strings/vectors. 32bit is
+`uoffset_t`, which is currently always a `uint32_t`, and is used to
+refer to all tables/unions/strings/vectors (these are never stored
+in-line). 32bit is
 intentional, since we want to keep the format binary compatible between
 32 and 64bit systems, and a 64bit offset would bloat the size for almost
 all uses. A version of this format with 64bit (or 16bit) offsets is easy to set
@@ -52,7 +55,7 @@ when needed. Unsigned means they can only point in one direction, which
 typically is forward (towards a higher memory location). Any backwards
 offsets will be explicitly marked as such.
 
-The format starts with an `offset_t` to the root object in the buffer.
+The format starts with an `uoffset_t` to the root object in the buffer.
 
 We have two kinds of objects, structs and tables.
 
@@ -70,21 +73,23 @@ code.
 
 ### Tables
 
-These start with an `soffset_t` to a vtable (signed version of
-`offset_t`, since vtables may be stored anywhere), followed by all the
-fields as aligned scalars. Unlike structs, not all fields need to be
-present. There is no set order and layout.
+These start with an `soffset_t` to a vtable. This is a signed version of
+`uoffset_t`, since vtables may be stored anywhere relative to the object.
+This offset is substracted (not added) from the object start to arrive at
+the vtable start. This offset is followed by all the
+fields as aligned scalars (or offsets). Unlike structs, not all fields
+need to be present. There is no set order and layout.
 
 To be able to access fields regardless of these uncertainties, we go
 through a vtable of offsets. Vtables are shared between any objects that
 happen to have the same vtable values.
 
-The elements of a vtable are all of type `voffset_t`, which is currently
-a `uint16_t`. The first element is the number of elements of the vtable,
-including this one. The second one is the size of the object, in bytes
-(including the vtable offset). This size is used for streaming, to know
+The elements of a vtable are all of type `voffset_t`, which is
+a `uint16_t`. The first element is the size of the vtable in bytes,
+including the size element. The second one is the size of the object, in bytes
+(including the vtable offset). This size could be used for streaming, to know
 how many bytes to read to be able to access all fields of the object.
-The remaining elements are N the offsets, where N is the amount of field
+The remaining elements are the N offsets, where N is the amount of fields
 declared in the schema when the code that constructed this buffer was
 compiled (thus, the size of the table is N + 2).
 
@@ -100,11 +105,13 @@ field to be read.
 
 Strings are simply a vector of bytes, and are always
 null-terminated. Vectors are stored as contiguous aligned scalar
-elements prefixed by a count.
+elements prefixed by a 32bit element count (not including any
+null termination).
 
 ### Construction
 
-The current implementation constructs these buffers backwards, since
+The current implementation constructs these buffers backwards (starting
+at the highest memory address of the buffer), since
 that significantly reduces the amount of bookkeeping and simplifies the
 construction API.
 
@@ -154,7 +161,8 @@ Unions share a lot with enums.
     struct Vec3;
     struct Monster;
 
-Predeclare all datatypes since there may be circular references.
+Predeclare all data types since circular references between types are allowed
+(circular references between object are not, though).
 
     MANUALLY_ALIGNED_STRUCT(4) Vec3 {
      private:

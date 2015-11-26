@@ -22,7 +22,7 @@ using namespace MyGame::Sample;
 
 // Example how to use FlatBuffers to create and read binary buffers.
 
-int main(int argc, const char *argv[]) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   // Build up a serialized buffer algorithmically:
   flatbuffers::FlatBufferBuilder builder;
 
@@ -49,14 +49,16 @@ int main(int argc, const char *argv[]) {
 
   assert(monster->hp() == 80);
   assert(monster->mana() == 150);  // default
-  assert(!strcmp(monster->name()->c_str(), "MyMonster"));
+  assert(monster->name()->str() == "MyMonster");
 
   auto pos = monster->pos();
   assert(pos);
   assert(pos->z() == 3);
+  (void)pos;
 
   auto inv = monster->inventory();
   assert(inv);
   assert(inv->Get(9) == 9);
+  (void)inv;
 }
 

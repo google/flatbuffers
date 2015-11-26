@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package flatbuffers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-import java.nio.ByteBuffer;
-
-// All structs in the generated code derive from this class, and add their own accessors.
-public class Struct {
-  protected int bb_pos;
-  protected ByteBuffer bb;
+namespace FlatBuffers
+{
+    public static class FlatBufferConstants
+    {
+        public const int FileIdentifierLength = 4;
+    }
 }

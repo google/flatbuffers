@@ -8,14 +8,22 @@
 
 /* Begin PBXBuildFile section */
 		1963D7D2A57344A3B1C1713F /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
-		3343DD4ED370434BBA148FAB /* idl_gen_java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3803689175184C7E8CB3EED0 /* idl_gen_java.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5AC48C391ACA9A0A008132C5 /* idl_gen_general.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */; };
 		61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		61FF3C34FBEC4819A1C30F92 /* sample_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECCEBFFA6977404F858F9739 /* sample_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */; };
+		8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
+		8C78573E1BD5AE2C00C53C34 /* idl_gen_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */; };
+		8C8774631B703D4800E693F5 /* reflection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C8774621B703D4800E693F5 /* reflection.cpp */; };
+		8C8774641B703E1200E693F5 /* idl_gen_fbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */; };
+		8CA854B31B04244A00040A06 /* idl_gen_python.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CA854B21B04244A00040A06 /* idl_gen_python.cpp */; };
+		8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */; };
 		A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3709AC883348409592530AE6 /* idl_parser.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD29781D8E490284B06504 /* flatc.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AD71FEBEE4E846529002C1F0 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		AE5F47A7DCB44781B657F062 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		BE03D7B0C9584DD58B50ED34 /* idl_gen_cpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D2DA271D1BFFBC06000F9168 /* idl_gen_php.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */; };
 		E0680D6B5BFD484BA9D88EE8 /* idl_gen_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		E84E4B7612DF4C369DC24843 /* sample_binary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5EE44BFFAF8E43F485859145 /* sample_binary.cpp */; settings = {COMPILER_FLAGS = ""; }; };
 		EE4AEE138D684B30A1BF5462 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AD24EEB3D024825A37741FF /* test.cpp */; settings = {COMPILER_FLAGS = ""; }; };
@@ -26,48 +34,40 @@
 		0DFD29781D8E490284B06504 /* flatc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = flatc.cpp; path = src/flatc.cpp; sourceTree = SOURCE_ROOT; };
 		18185F364F604E648CF6EE25 /* flatc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flatc; sourceTree = BUILT_PRODUCTS_DIR; };
 		3709AC883348409592530AE6 /* idl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_parser.cpp; path = src/idl_parser.cpp; sourceTree = SOURCE_ROOT; };
-		3803689175184C7E8CB3EED0 /* idl_gen_java.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_java.cpp; path = src/idl_gen_java.cpp; sourceTree = SOURCE_ROOT; };
 		3863042BCEC64791BFB48625 /* flatsamplebinary */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flatsamplebinary; sourceTree = BUILT_PRODUCTS_DIR; };
 		420E3BC724ED4A008D79297F /* flatsampletext */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flatsampletext; sourceTree = BUILT_PRODUCTS_DIR; };
-		423CA92401AE442B91546E63 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = /Users/wvo/flatbuffers_snapshot9/CMakeLists.txt; sourceTree = "<absolute>"; };
 		5EE44BFFAF8E43F485859145 /* sample_binary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sample_binary.cpp; path = samples/sample_binary.cpp; sourceTree = SOURCE_ROOT; };
 		6AD24EEB3D024825A37741FF /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = test.cpp; path = tests/test.cpp; sourceTree = SOURCE_ROOT; };
+		8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_go.cpp; path = src/idl_gen_go.cpp; sourceTree = "<group>"; };
+		8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_fbs.cpp; path = src/idl_gen_fbs.cpp; sourceTree = "<group>"; };
+		8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_js.cpp; path = src/idl_gen_js.cpp; sourceTree = "<group>"; };
+		8C8774621B703D4800E693F5 /* reflection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = reflection.cpp; path = src/reflection.cpp; sourceTree = "<group>"; };
+		8CA854B21B04244A00040A06 /* idl_gen_python.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_python.cpp; path = src/idl_gen_python.cpp; sourceTree = "<group>"; };
+		8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_general.cpp; path = src/idl_gen_general.cpp; sourceTree = "<group>"; };
 		A13F25CDAD23435DA293690D /* flattests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = flattests; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_test_generated.h; path = tests/monster_test_generated.h; sourceTree = SOURCE_ROOT; };
-		AD3682C6E1DD4EABB822C0CC /* monster_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monster_generated.h; path = samples/monster_generated.h; sourceTree = SOURCE_ROOT; };
 		C0E7B66C3FF849A0AD9A7168 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = util.h; path = include/flatbuffers/util.h; sourceTree = SOURCE_ROOT; };
 		CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_cpp.cpp; path = src/idl_gen_cpp.cpp; sourceTree = SOURCE_ROOT; };
+		D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_php.cpp; path = src/idl_gen_php.cpp; sourceTree = "<group>"; };
 		DD8B353D4756412195777FBA /* flatbuffers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = flatbuffers.h; path = include/flatbuffers/flatbuffers.h; sourceTree = SOURCE_ROOT; };
 		ECCEBFFA6977404F858F9739 /* sample_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sample_text.cpp; path = samples/sample_text.cpp; sourceTree = SOURCE_ROOT; };
 		F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = idl_gen_text.cpp; path = src/idl_gen_text.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		194905BCBB5C451DB092EB08 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Resources;
-			sourceTree = "<group>";
-		};
 		28237E300FE042DEADA302D3 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
-				0DFD29781D8E490284B06504 /* flatc.cpp */,
+				D2DA271C1BFFBC06000F9168 /* idl_gen_php.cpp */,
+				8C78573D1BD5AE2C00C53C34 /* idl_gen_js.cpp */,
+				8CA854B21B04244A00040A06 /* idl_gen_python.cpp */,
+				8C6905EC19F8357300CB8866 /* idl_gen_fbs.cpp */,
+				8CD8717A19CB937D0012A827 /* idl_gen_general.cpp */,
+				8C303C581975D6A700D7C1C5 /* idl_gen_go.cpp */,
+				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
+				3709AC883348409592530AE6 /* idl_parser.cpp */,
 				CD90A7F6B2BE4D0384294DD1 /* idl_gen_cpp.cpp */,
-				3803689175184C7E8CB3EED0 /* idl_gen_java.cpp */,
-				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
-				3709AC883348409592530AE6 /* idl_parser.cpp */,
-			);
-			name = "Source Files";
-			sourceTree = "<group>";
-		};
-		355DCA17961E4B2FB2C71403 /* Source Files */ = {
-			isa = PBXGroup;
-			children = (
-				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
-				3709AC883348409592530AE6 /* idl_parser.cpp */,
-				6AD24EEB3D024825A37741FF /* test.cpp */,
+				8C8774621B703D4800E693F5 /* reflection.cpp */,
 			);
 			name = "Source Files";
 			sourceTree = "<group>";
@@ -75,50 +75,9 @@
 		378446B9D5EF46EF92B35E21 /* flatc */ = {
 			isa = PBXGroup;
 			children = (
-				5FEA84E7D39645988300317C /* Header Files */,
-				28237E300FE042DEADA302D3 /* Source Files */,
-				423CA92401AE442B91546E63 /* CMakeLists.txt */,
+				0DFD29781D8E490284B06504 /* flatc.cpp */,
 			);
 			name = flatc;
-			sourceTree = "<group>";
-		};
-		40E30B8480BD493EA459E9B4 /* Header Files */ = {
-			isa = PBXGroup;
-			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				00154BD8654B4B5B9FF45FA6 /* idl.h */,
-				C0E7B66C3FF849A0AD9A7168 /* util.h */,
-				AD3682C6E1DD4EABB822C0CC /* monster_generated.h */,
-			);
-			name = "Header Files";
-			sourceTree = "<group>";
-		};
-		4D1151F6FE594E40A1C177FF /* Header Files */ = {
-			isa = PBXGroup;
-			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				AD3682C6E1DD4EABB822C0CC /* monster_generated.h */,
-			);
-			name = "Header Files";
-			sourceTree = "<group>";
-		};
-		5235469653ED4BC88A6C504D /* Header Files */ = {
-			isa = PBXGroup;
-			children = (
-				DD8B353D4756412195777FBA /* flatbuffers.h */,
-				00154BD8654B4B5B9FF45FA6 /* idl.h */,
-				C0E7B66C3FF849A0AD9A7168 /* util.h */,
-				AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */,
-			);
-			name = "Header Files";
-			sourceTree = "<group>";
-		};
-		5648A71028E14478841372D3 /* Source Files */ = {
-			isa = PBXGroup;
-			children = (
-				5EE44BFFAF8E43F485859145 /* sample_binary.cpp */,
-			);
-			name = "Source Files";
 			sourceTree = "<group>";
 		};
 		5FEA84E7D39645988300317C /* Header Files */ = {
@@ -134,6 +93,8 @@
 		866694F9F2F7451382D236B3 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				28237E300FE042DEADA302D3 /* Source Files */,
+				5FEA84E7D39645988300317C /* Header Files */,
 				378446B9D5EF46EF92B35E21 /* flatc */,
 				DB9DE41C20F349F694A488F3 /* flatsamplebinary */,
 				8FA1F43C78914AE5AD04E24E /* flatsampletext */,
@@ -145,8 +106,8 @@
 		88421F5F87584EE3B67C979A /* flattests */ = {
 			isa = PBXGroup;
 			children = (
-				5235469653ED4BC88A6C504D /* Header Files */,
-				355DCA17961E4B2FB2C71403 /* Source Files */,
+				AB70F1FBA50E4120BCF37C8D /* monster_test_generated.h */,
+				6AD24EEB3D024825A37741FF /* test.cpp */,
 			);
 			name = flattests;
 			sourceTree = "<group>";
@@ -155,7 +116,6 @@
 			isa = PBXGroup;
 			children = (
 				866694F9F2F7451382D236B3 /* Sources */,
-				194905BCBB5C451DB092EB08 /* Resources */,
 				99CC11E382B8420AA79A8A14 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -163,8 +123,7 @@
 		8FA1F43C78914AE5AD04E24E /* flatsampletext */ = {
 			isa = PBXGroup;
 			children = (
-				40E30B8480BD493EA459E9B4 /* Header Files */,
-				A1C826615F904FDE8F0CA154 /* Source Files */,
+				ECCEBFFA6977404F858F9739 /* sample_text.cpp */,
 			);
 			name = flatsampletext;
 			sourceTree = "<group>";
@@ -180,22 +139,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A1C826615F904FDE8F0CA154 /* Source Files */ = {
-			isa = PBXGroup;
-			children = (
-				ECCEBFFA6977404F858F9739 /* sample_text.cpp */,
-				F6C5D81DBF864365B12E269D /* idl_gen_text.cpp */,
-				3709AC883348409592530AE6 /* idl_parser.cpp */,
-			);
-			name = "Source Files";
-			sourceTree = "<group>";
-		};
 		DB9DE41C20F349F694A488F3 /* flatsamplebinary */ = {
 			isa = PBXGroup;
 			children = (
-				4D1151F6FE594E40A1C177FF /* Header Files */,
-				5648A71028E14478841372D3 /* Source Files */,
-				423CA92401AE442B91546E63 /* CMakeLists.txt */,
+				5EE44BFFAF8E43F485859145 /* sample_binary.cpp */,
 			);
 			name = flatsamplebinary;
 			sourceTree = "<group>";
@@ -270,7 +217,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0700;
 			};
 			buildConfigurationList = 6428BEB363AA4E03A282AA8C /* Build configuration list for PBXProject "FlatBuffers" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -314,11 +261,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C303C591975D6A700D7C1C5 /* idl_gen_go.cpp in Sources */,
 				AA9BACF55EB3456BA2F633BB /* flatc.cpp in Sources */,
 				BE03D7B0C9584DD58B50ED34 /* idl_gen_cpp.cpp in Sources */,
-				3343DD4ED370434BBA148FAB /* idl_gen_java.cpp in Sources */,
 				AD71FEBEE4E846529002C1F0 /* idl_gen_text.cpp in Sources */,
+				8C8774641B703E1200E693F5 /* idl_gen_fbs.cpp in Sources */,
 				A9C9A99F719A4ED58DC2D2FC /* idl_parser.cpp in Sources */,
+				8CA854B31B04244A00040A06 /* idl_gen_python.cpp in Sources */,
+				8CD8717B19CB937D0012A827 /* idl_gen_general.cpp in Sources */,
+				8C78573E1BD5AE2C00C53C34 /* idl_gen_js.cpp in Sources */,
+				D2DA271D1BFFBC06000F9168 /* idl_gen_php.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,6 +278,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C8774631B703D4800E693F5 /* reflection.cpp in Sources */,
+				5AC48C391ACA9A0A008132C5 /* idl_gen_general.cpp in Sources */,
+				8C6905FD19F835B400CB8866 /* idl_gen_fbs.cpp in Sources */,
 				E0680D6B5BFD484BA9D88EE8 /* idl_gen_text.cpp in Sources */,
 				61823BBC53544106B6DBC38E /* idl_parser.cpp in Sources */,
 				EE4AEE138D684B30A1BF5462 /* test.cpp in Sources */,
@@ -340,7 +295,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = RelWithDebInfo;
@@ -348,6 +303,11 @@
 		04681CC521204B3B87BB1E81 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = "";
 				EXECUTABLE_SUFFIX = "";
@@ -356,6 +316,25 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
 				INSTALL_PATH = "";
 				LIBRARY_SEARCH_PATHS = "";
@@ -453,6 +432,11 @@
 		33335DE09CF844709E9E4AA9 /* RelWithDebInfo */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = "";
 				EXECUTABLE_SUFFIX = "";
@@ -461,6 +445,25 @@
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
 				INSTALL_PATH = "";
 				LIBRARY_SEARCH_PATHS = "";
@@ -492,6 +495,11 @@
 		33B3983234F648E28F058235 /* MinSizeRel */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = "";
 				EXECUTABLE_SUFFIX = "";
@@ -500,6 +508,25 @@
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
 				INSTALL_PATH = "";
 				LIBRARY_SEARCH_PATHS = "";
@@ -570,6 +597,11 @@
 		37C0FFB777CF4C19BD7AA662 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = "";
 				EXECUTABLE_SUFFIX = "";
@@ -578,6 +610,25 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
 				INSTALL_PATH = "";
 				LIBRARY_SEARCH_PATHS = "";
@@ -760,8 +811,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
+				ENABLE_TESTABILITY = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Debug;
@@ -771,7 +823,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = Release;
@@ -931,7 +983,7 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = .;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk;
+				SDKROOT = macosx;
 				SYMROOT = build;
 			};
 			name = MinSizeRel;

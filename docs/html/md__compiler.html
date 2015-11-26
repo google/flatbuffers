@@ -1,3 +1,4 @@
+<!-- HTML header for doxygen 1.8.6-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -15,16 +16,23 @@
   $(document).ready(initResizable);
   $(window).load(resizeHeight);
 </script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -53,14 +61,44 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <div class="title">Using the schema compiler </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ -c ] [ -j ] [ -b ] [ -t ] file1 file2 ..
-</pre><p>The files are read and parsed in order, and can contain either schemas or data (see below). Later files can make use of definitions in earlier files. Depending on the flags passed, additional files may be generated for each file processed:</p>
+<div class="textblock"><p>Usage: </p><pre class="fragment">flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
+      [ -- FILES...]
+</pre><p>The files are read and parsed in order, and can contain either schemas or data (see below). Later files can make use of definitions in earlier files.</p>
+<p><code>--</code> indicates that the following files are binary files in FlatBuffer format conforming to the schema(s) indicated before it. Incompatible binary files currently will give unpredictable results (!)</p>
+<p>Depending on the flags passed, additional files may be generated for each file processed:</p>
+<p>For any schema input files, one or more generators can be specified:</p>
 <ul>
-<li><code>-c</code> : Generate a C++ header for all definitions in this file (as <code>filename_generated.h</code>). Skips data.</li>
-<li><code>-j</code> : Generate Java classes.</li>
-<li><code>-b</code> : If data is contained in this file, generate a <code>filename_wire.bin</code> containing the binary flatbuffer.</li>
-<li><code>-t</code> : If data is contained in this file, generate a <code>filename_wire.txt</code> (for debugging). </li>
+<li><code>--cpp</code>, <code>-c</code> : Generate a C++ header for all definitions in this file (as <code>filename_generated.h</code>).</li>
+<li><code>--java</code>, <code>-j</code> : Generate Java code.</li>
+<li><code>--csharp</code>, <code>-n</code> : Generate C# code.</li>
+<li><code>--go</code>, <code>-g</code> : Generate Go code.</li>
+<li><code>--python</code>, <code>-p</code>: Generate Python code.</li>
+<li><code>--javascript</code>, <code>-s</code>: Generate JavaScript code.</li>
+<li><code>--php</code>: Generate PHP code.</li>
 </ul>
+<p>For any data input files:</p>
+<ul>
+<li><code>--binary</code>, <code>-b</code> : If data is contained in this file, generate a <code>filename.bin</code> containing the binary flatbuffer (or a different extension if one is specified in the schema).</li>
+<li><code>--json</code>, <code>-t</code> : If data is contained in this file, generate a <code>filename.json</code> representing the data in the flatbuffer.</li>
+</ul>
+<p>Additional options:</p>
+<ul>
+<li><code>-o PATH</code> : Output all generated files to PATH (either absolute, or relative to the current directory). If omitted, PATH will be the current directory. PATH should end in your systems path separator, e.g. <code>/</code> or <code>\</code>.</li>
+<li><code>-I PATH</code> : when encountering <code>include</code> statements, attempt to load the files from this path. Paths will be tried in the order given, and if all fail (or none are specified) it will try to load relative to the path of the schema file being parsed.</li>
+<li><code>-M</code> : Print make rules for generated files.</li>
+<li><code>--strict-json</code> : Require &amp; generate strict JSON (field names are enclosed in quotes, no trailing commas in tables/vectors). By default, no quotes are required/generated, and trailing commas are allowed.</li>
+<li><code>--defaults-json</code> : Output fields whose value is equal to the default value when writing JSON text.</li>
+<li><code>--no-prefix</code> : Don't prefix enum values in generated C++ by their enum type.</li>
+<li><code>--scoped-enums</code> : Use C++11 style scoped and strongly typed enums in generated C++. This also implies <code>--no-prefix</code>.</li>
+<li><code>--gen-includes</code> : (deprecated), this is the default behavior. If the original behavior is required (no include statements) use <code>--no-includes.</code></li>
+<li><code>--no-includes</code> : Don't generate include statements for included schemas the generated file depends on (C++).</li>
+<li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
+<li><code>--gen-onefile</code> : Generate single output file (useful for C#)</li>
+<li><code>--raw-binary</code> : Allow binaries without a file_indentifier to be read. This may crash flatc given a mismatched schema.</li>
+<li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>, nested declarations, <code>import</code> (use <code>-I</code> for paths), <code>extend</code>, <code>oneof</code>, <code>group</code>. Does not support, but will skip without error: <code>option</code>, <code>service</code>, <code>extensions</code>, and most everything else.</li>
+<li><code>--schema</code>: Serialize schemas instead of JSON (use with -b). This will output a binary version of the specified schema that itself corresponds to the reflection/reflection.fbs schema. Loading this binary file is the basis for reflection functionality.</li>
+</ul>
+<p>NOTE: short-form options for generators are deprecated, use the long form whenever possible. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

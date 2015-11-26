@@ -1,3 +1,4 @@
+<!-- HTML header for doxygen 1.8.6-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -15,16 +16,23 @@
   $(document).ready(initResizable);
   $(window).load(resizeHeight);
 </script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -58,7 +66,8 @@ $(document).ready(function(){initNavTree('md__building.html','');});
 cmake -G "Visual Studio 10"
 cmake -G "Xcode"
 </pre><p>Then, build as normal for your platform. This should result in a <code>flatc</code> executable, essential for the next steps. Note that to use clang instead of gcc, you may need to set up your environment variables, e.g. <code>CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Unix Makefiles"</code>.</p>
-<p>Optionally, run the <code>flattests</code> executable. to ensure everything is working correctly on your system. If this fails, please contact us!</p>
+<p>Optionally, run the <code>flattests</code> executable to ensure everything is working correctly on your system. If this fails, please contact us!</p>
+<p>Note that you MUST be in the root of the FlatBuffers distribution when you run 'flattests' (and the samples), or it will fail to load its files.</p>
 <p>Building should also produce two sample executables, <code>sample_binary</code> and <code>sample_text</code>, see the corresponding <code>.cpp</code> file in the samples directory.</p>
 <p>There is an <code>android</code> directory that contains all you need to build the test executable on android (use the included <code>build_apk.sh</code> script, or use <code>ndk_build</code> / <code>adb</code> etc. as usual). Upon running, it will output to the log if tests succeeded or not.</p>
 <p>There is usually no runtime to compile, as the code consists of a single header, <code>include/flatbuffers/flatbuffers.h</code>. You should add the <code>include</code> folder to your include paths. If you wish to be able to load schemas and/or parse text into binary buffers at runtime, you additionally need the other headers in <code>include/flatbuffers</code>. You must also compile/link <code>src/idl_parser.cpp</code> (and <code>src/idl_gen_text.cpp</code> if you also want to be able convert binary to text).</p>

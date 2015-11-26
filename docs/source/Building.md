@@ -18,9 +18,11 @@ Note that to use clang instead of gcc, you may need to set up your environment
 variables, e.g.
 `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Unix Makefiles"`.
 
-Optionally, run the `flattests` executable.
-to ensure everything is working correctly on your system. If this fails,
-please contact us!
+Optionally, run the `flattests` executable to ensure everything is working
+correctly on your system. If this fails, please contact us!
+
+Note that you MUST be in the root of the FlatBuffers distribution when you
+run 'flattests' (and the samples), or it will fail to load its files.
 
 Building should also produce two sample executables, `sample_binary` and
 `sample_text`, see the corresponding `.cpp` file in the samples directory.
