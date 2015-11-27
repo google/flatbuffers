@@ -520,7 +520,7 @@ static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr) {
   code += "Of(vararg offsets : Int) ";
   
   code += " : Int {startArray(4, offsets.size, ";
-  if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4";
+  if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4"; // look into this
   code += "); for (i in offsets.size - 1 downTo 0) addOffset(offsets[i]); return endArray(); }\n";
 }
 

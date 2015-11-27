@@ -4,17 +4,24 @@ FlatBuffers supports reading and writing binary FlatBuffers in Kotlin.
 Generate code for Kotlin with the `-k` option to `flatc`.
 
 See `KotlinTest.kt` for an example. Essentially, you read a FlatBuffer binary
-file into a `ByteBuffer`, which you pass to the `wrap` function:
+file into a `ByteBuffer`, which you either pass to the `wrap` method 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val monster = Monster.wrap(byteBuffer)
+    val monster = Monster()
+    monster.wrap(byteBuffer)  // reusing monster, no allocation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now you can access values much like C++:
+or which you use to construct a new accessor
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val hp = monster.hp
-    val pos = monster.pos() // might be null if not set in monster
+    val monster = Monster(byteBuffer) // allocates a Monster accessor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Then you can access values :
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
+    val hp = monster.hp   // a short
+    val pos = monster.pos // a Vec3? struct
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that whenever you access a new object like in the `pos` example above,
@@ -30,8 +37,7 @@ the amount of object allocation (and thus garbage collection) your program does.
 
 Kotlin does not support unsigned scalars. This means that any unsigned types you
 use in your schema will actually be represented as a signed value (an Int or a Long). 
-This means all bits are still present, but may represent a negative value when used.
-For example, to read a Byte `b` as an unsigned number, you can do:
+This means all bits are still present, but may represent a negative value when used. For example, to read a Byte `b` as an unsigned number, you can do:
 `b.toInt().and(0xFF)`
 
 The default string accessor (e.g. `monster.name`) currently creates
@@ -74,24 +80,30 @@ in the generated code, and the FlatBufferBuilder class:
 Create strings:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val stringOffset = fbb.createString("MyMonster")
+    val stringOffset = fbb.stringOf("MyMonster")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The generated methods to construct an object are extension functions of it's Companion object (to avoid namespace pollution) and they need a FlatBufferBuilder receiver (fluent api). It is convenient ( and necessary as of Kotlin beta 1.0) to use the scoping method `with` to set their receivers. 
+
 
 Create a table with a struct contained therein:
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    Monster.start(fbb);
-    Monster.addPos(fbb, 1.0f, 2.0f, 3.0f, 3.0, Color.Green, 5.toShort(), 6.toByte())
-    Monster.addHp(fbb, 80.toShort())
-    Monster.addName(fbb, str)
-    Monster.addInventory(fbb, inv)
-    Monster.addTestType(fbb, Example.Any.Monster)
-    Monster.addTest(fbb, mon2)
-    Monster.addTest4(fbb, test4)
-    int mon = Monster.end(fbb);
+        with (fbb) {
+            with(Monster) {         
+                val mon = monsterOf {
+                    pos(vec3Of(1.0f, 2.0f, 3.0f, 3.0, Color.Green, 5.toShort(), 6.toByte()))
+                    hp(80.toShort())
+                    name(str)
+                    inventory(inv)
+                    testType(Example.Any.Monster)
+                    test(mon2)
+                    test4(test4)
+                }
+            }
+        }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For some simpler types, you can use a convenient `create` function call that
+For some simpler types, you can use a convenient `someTypeOf` function call that
 allows you to construct tables in one function call. This example definition
 however contains an inline struct field, so we have to create the table
 manually.
@@ -111,7 +123,7 @@ care must thus be taken that you set the right offset on the right field.
 Vectors can be created from the corresponding Kotlin array like so:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val invOffset = Monster.createInventoryArray(fbb, intArrayOf(0, 1, 2, 3, 4))
+    val inv = with(Monster) { fbb.inventoryOf(0, 1, 2, 3, 4) }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This works for arrays of scalars and (Int) offsets to strings/tables,
@@ -119,26 +131,28 @@ but not structs. If you want to write structs, or what you want to write
 does not sit in an array, you can also use the start/end pattern:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    Monster.startInventoryArray(fbb, 5)
-    for (i in 4 downTo 0) fbb.addByte(i.toByte())
-    val invOffset = fbb.endArray()
+    val inv = with(Monster) { 
+	fbb.inventoryOf(5) {
+        	for (i in 4 downTo 0) addByte(i.toByte())
+        }
+    }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use the generated method `startInventoryArray` to conveniently call
-`startArray` with the right element size. You pass the number of
-elements you want to write. Note how you write the elements backwards since
-the buffer is being constructed back to front. You then pass `invOffset` to the
-corresponding `add` call when you construct the table containing it afterwards.
+You can use the generated method `inventoryOf` with the right element size. 
+You pass the number of elements you want to write. 
+Note how you write the elements backwards since
+the buffer is being constructed back to front. You then pass `inv` to the
+corresponding `inentory` call when you construct the table containing it afterwards.
 
 There are `add` functions for all the scalar types. You use `addOffset` for
 any previously constructed objects (such as other tables, strings, vectors).
-For structs, you use the appropriate `create` function in-line, as shown
+For structs, you use the appropriate `typeOf` function in-line, as shown
 above in the `Monster` example.
 
 To finish the buffer, call:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    Monster.finishMonsterBuffer(fbb, mon);
+    with(Monster) { fbb.finishBuffer(mon)}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The buffer is now ready to be transmitted. It is contained in the `ByteBuffer`
@@ -173,10 +187,10 @@ To get non-const accessors, invoke `flatc` with `--gen-mutable`.
 You now can:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    Monster monster = Monster.rootAsMonster(bb)
-    monster.mutateHp(10)            // Set table field.
-    monster.pos()!!.z = 4           // Set struct field.
-    monster.mutateInventory(0, 1)   // Set vector element.
+    val monster = Monster(bb)
+    monster.mutateHp(10) // Set table field // hp is a val.
+    monster.pos?.z = 4   // Set struct field // z is a var.
+    monster.mutateInventory(0, 1)  // Set vector element.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We use the somewhat verbose term `mutate` instead of `set` to indicate that
@@ -198,6 +212,3 @@ One way to solve this is to call `forceDefaults()` on a
 `FlatBufferBuilder` to force all fields you set to actually be written. This
 of course increases the size of the buffer somewhat, but this may be
 acceptable for a mutable buffer.
-
-TODO : 
-(todo subclass Table for unions ?) for better type safety ?
