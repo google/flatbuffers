@@ -20,11 +20,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 // All tables in the generated code derive from this class, and add their own accessors.
-open class Table {
+abstract class Table(protected var bb: ByteBuffer, protected var bb_pos: Int) {
     public val byteBuffer:ByteBuffer get() =  bb
-
-    protected var bb_pos: Int = 0
-    protected var bb: ByteBuffer = EMPTY_BYTEBUFFER
 
     // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
     // present.

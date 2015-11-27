@@ -96,7 +96,7 @@ class FlatBufferBuilder {
 
      * @param byte_size Number of bytes to add.
      */
-    fun pad(byte_size: Int) {
+    fun pad(byte_size: Int) : FlatBufferBuilder = apply {
         for (i in 0 until byte_size) bb.put(--space, 0.toByte())
     }
 
@@ -111,7 +111,7 @@ class FlatBufferBuilder {
      * *
      * @param additional_bytes The padding size
      */
-    fun prep(size: Int, additional_bytes: Int) {
+    fun prep(size: Int, additional_bytes: Int) : FlatBufferBuilder = apply {
         // Track the biggest thing we've ever aligned to.
         if (size > minalign) minalign = size
         // Find the amount of alignment needed such that `size` is properly
@@ -128,82 +128,62 @@ class FlatBufferBuilder {
 
     // Add a scalar to the buffer, backwards from the current location.
     // Doesn't align nor check for space.
-    fun putBoolean(x: Boolean) {
+    fun putBoolean(x: Boolean) : FlatBufferBuilder = apply {
         bb.put(--space, (if (x) 1 else 0).toByte())
     }
 
-    fun putByte(x: Byte) {
+    fun putByte(x: Byte) :FlatBufferBuilder = apply {
         bb.put(--space, x)
     }
 
-    fun putShort(x: Short) {
+    fun putShort(x: Short) : FlatBufferBuilder = apply {
         space -= 2
         bb.putShort(space, x)
     }
 
-    fun putInt(x: Int) {
+    fun putInt(x: Int) : FlatBufferBuilder = apply {
         space -= 4
         bb.putInt(space, x)
     }
 
-    fun putLong(x: Long) {
+    fun putLong(x: Long) : FlatBufferBuilder = apply {
         space -= 8
         bb.putLong(space, x)
     }
 
-    fun putFloat(x: Float) {
+    fun putFloat(x: Float): FlatBufferBuilder = apply  {
         space -= 4
         bb.putFloat(space, x)
     }
 
-    fun putDouble(x: Double) {
+    fun putDouble(x: Double): FlatBufferBuilder = apply  {
         space -= 8
         bb.putDouble(space, x)
     }
 
     // Adds a scalar to the buffer, properly aligned, and the buffer grown
     // if needed.
-    fun addBoolean(x: Boolean) {
-        prep(1, 0)
-        putBoolean(x)
-    }
+    fun addBoolean(x: Boolean): FlatBufferBuilder = prep(1, 0).putBoolean(x)
 
-    fun addByte(x: Byte) {
-        prep(1, 0)
-        putByte(x)
-    }
+    fun addByte(x: Byte) : FlatBufferBuilder = prep(1, 0).putByte(x)
 
-    fun addShort(x: Short) {
-        prep(2, 0)
-        putShort(x)
-    }
+    fun addShort(x: Short) : FlatBufferBuilder = prep(2, 0).putShort(x)
+    
+    fun addInt(x: Int) : FlatBufferBuilder = prep(4, 0).putInt(x)
 
-    fun addInt(x: Int) {
-        prep(4, 0)
-        putInt(x)
-    }
+    fun addLong(x: Long) : FlatBufferBuilder =prep(8, 0).putLong(x)
 
-    fun addLong(x: Long) {
-        prep(8, 0)
-        putLong(x)
-    }
-
-    fun addFloat(x: Float) {
-        prep(4, 0)
-        putFloat(x)
-    }
-
-    fun addDouble(x: Double) {
-        prep(8, 0)
-        putDouble(x)
-    }
+    fun addFloat(x: Float) : FlatBufferBuilder = prep(4, 0).putFloat(x)
+    
+    fun addDouble(x: Double) : FlatBufferBuilder = prep(8, 0).putDouble(x)
+    
 
     /**
      * Adds on offset, relative to where it will be written.
 
      * @param off The offset to add
      */
-    fun addOffset(off: Int) {
+    fun addOffset(off: Int) : FlatBufferBuilder = apply {
         prep(SIZEOF_INT, 0)  // Ensure alignment is already done.
         assert(off <= offset())
         putInt(offset() - off + SIZEOF_INT)
@@ -254,7 +234,7 @@ class FlatBufferBuilder {
      * *
      * @param alignment The alignment of the array
      */
-    fun startArray(elem_size: Int, num_elems: Int, alignment: Int) {
+    fun startArray(elem_size: Int, num_elems: Int, alignment: Int) : FlatBufferBuilder = apply {
         notNested()
         vector_num_elems = num_elems
         prep(SIZEOF_INT, elem_size * num_elems)
@@ -281,7 +261,7 @@ class FlatBufferBuilder {
      * *
      * @return The offset in the buffer where the encoded string starts
      */
-    fun createString(s: String): Int {
+    fun stringOf(s: String): Int {
         val utf8 = s.toByteArray(utf8charset)
         addByte(0.toByte())
         startArray(1, utf8.size, 1)
@@ -298,7 +278,7 @@ class FlatBufferBuilder {
      * *
      * @return The offset in the buffer where the encoded string starts
      */
-    fun createString(s: ByteBuffer): Int {
+    fun stringOf(s: ByteBuffer): Int {
         val length = s.remaining()
         addByte(0.toByte())
         startArray(1, length, 1)
@@ -370,7 +350,7 @@ class FlatBufferBuilder {
 
      * @param numfields The number of fields found in this object.
      */
-    fun startObject(numfields: Int) {
+    fun startObject(numfields: Int) : FlatBufferBuilder = apply {
         notNested()
         if (vtable == null || vtable!!.size < numfields) vtable = IntArray(numfields)
         vtable_in_use = numfields
@@ -380,56 +360,56 @@ class FlatBufferBuilder {
     }
 
     // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-    fun addBoolean(o: Int, x: Boolean, d: Boolean) {
+    fun addBoolean(o: Int, x: Boolean, d: Boolean) : FlatBufferBuilder = apply {
         if (force_defaults || x != d) {
             addBoolean(x)
             slot(o)
         }
     }
 
-    fun addByte(o: Int, x: Byte, d: Int) {
+    fun addByte(o: Int, x: Byte, d: Int) : FlatBufferBuilder = apply {
         if (force_defaults || x.toInt() != d) {
             addByte(x)
             slot(o)
         }
     }
 
-    fun addShort(o: Int, x: Short, d: Int) {
+    fun addShort(o: Int, x: Short, d: Int) : FlatBufferBuilder = apply {
         if (force_defaults || x.toInt() != d) {
             addShort(x)
             slot(o)
         }
     }
 
-    fun addInt(o: Int, x: Int, d: Int) {
+    fun addInt(o: Int, x: Int, d: Int) : FlatBufferBuilder = apply {
         if (force_defaults || x != d) {
             addInt(x)
             slot(o)
         }
     }
 
-    fun addLong(o: Int, x: Long, d: Long) {
+    fun addLong(o: Int, x: Long, d: Long) : FlatBufferBuilder = apply {
         if (force_defaults || x != d) {
             addLong(x)
             slot(o)
         }
     }
 
-    fun addFloat(o: Int, x: Float, d: Double) {
+    fun addFloat(o: Int, x: Float, d: Double) : FlatBufferBuilder = apply {
         if (force_defaults || x.toDouble() != d) {
             addFloat(x)
             slot(o)
         }
     }
 
-    fun addDouble(o: Int, x: Double, d: Double) {
+    fun addDouble(o: Int, x: Double, d: Double) : FlatBufferBuilder = apply {
         if (force_defaults || x != d) {
             addDouble(x)
             slot(o)
         }
     }
 
-    fun addOffset(o: Int, x: Int, d: Int) {
+    fun addOffset(o: Int, x: Int, d: Int) : FlatBufferBuilder = apply {
         if (force_defaults || x != d) {
             addOffset(x)
             slot(o)
@@ -437,7 +417,7 @@ class FlatBufferBuilder {
     }
 
     // Structs are stored inline, so nothing additional is being added. `d` is always 0.
-    fun addStruct(voffset: Int, x: Int, d: Int) {
+    fun addStruct(voffset: Int, x: Int, d: Int) : FlatBufferBuilder = apply {
         if (x != d) {
             Nested(x)
             slot(voffset)
@@ -512,7 +492,7 @@ class FlatBufferBuilder {
 
     // This checks a required field has been set in a given table that has
     // just been constructed.
-    fun required(table: Int, field: Int) {
+    fun required(table: Int, field: Int) : FlatBufferBuilder = apply {
         val table_start = bb.capacity() - table
         val vtable_start = table_start - bb.getInt(table_start)
         val ok = bb.getShort(vtable_start + field) != 0.toShort()
@@ -546,15 +526,14 @@ class FlatBufferBuilder {
      * *
      * @return this
      */
-    fun forceDefaults(forceDefaults: Boolean): FlatBufferBuilder {
-        this.force_defaults = forceDefaults
-        return this
+    fun forceDefaults(forceDefaults: Boolean): FlatBufferBuilder = apply {
+        force_defaults = forceDefaults
     }
 
     // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
     // called finish(). The actual data starts at the ByteBuffer's current position,
     // not necessarily at 0.
-    fun dataBuffer(): ByteBuffer = bb
+    public val dataBuffer : ByteBuffer get() = bb
 
     /**
      * The FlatBuffer data doesn't start at offset 0 in the [ByteBuffer], but
@@ -564,8 +543,8 @@ class FlatBufferBuilder {
      * *
      */
 
-    @Deprecated("This method should not be needed anymore, but is left\n     here for the moment to document this API change. It will be removed in the future.")
-    private fun dataStart(): Int = space
+    //@Deprecated("This method should not be needed anymore, but is left\n     here for the moment to document this API change. It will be removed in the future.")
+    //private fun dataStart(): Int = space
 
     /**
      * Utility function for copying a byte array from `start` to
