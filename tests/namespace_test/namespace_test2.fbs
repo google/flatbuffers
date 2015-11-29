@@ -1,0 +1,10 @@
+include "namespace_test1.fbs";
+
+namespace NamespaceA;
+
+table TableInFirstNS
+{
+    foo_table:NamespaceB.TableInNestedNS;
+	foo_enum:NamespaceB.EnumInNestedNS;
+	foo_struct:NamespaceB.StructInNestedNS;
+}

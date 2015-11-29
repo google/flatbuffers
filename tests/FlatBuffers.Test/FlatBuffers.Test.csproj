@@ -77,6 +77,18 @@
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>
     </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\EnumInNestedNS.cs">
+      <Link>NamespaceA\NamespaceB\EnumInNestedNS.cs</Link>
+    </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\StructInNestedNS.cs">
+      <Link>NamespaceA\NamespaceB\StructInNestedNS.cs</Link>
+    </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\TableInNestedNS.cs">
+      <Link>NamespaceA\NamespaceB\TableInNestedNS.cs</Link>
+    </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
+      <Link>NamespaceA\TableInFirstNS.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBuffersFuzzTests.cs" />
