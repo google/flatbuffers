@@ -17,6 +17,8 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <string>
+#include <set>
+
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -85,6 +87,31 @@ namespace kotlin {
 	static std::string GenMethod(const LanguageParameters &lang, const Type &type);
 	static std::string GenSetterKotlin(const LanguageParameters &lang, const Type &type);
 	static std::string GenGetterKotlin(const LanguageParameters &lang, const Type &type);
+	
+	
+	
+	// Ensure that a type is prefixed with its namespace whenever it is used
+// outside of its namespace.
+static std::string WrapInNameSpace(const Parser &parser, const Namespace *ns,
+                                   const std::string &name) {
+  if (parser.namespaces_.back() != ns) {
+    std::string qualified_name;
+    for (auto it = ns->components.begin();
+             it != ns->components.end(); ++it) {
+      qualified_name += *it + "::";
+    }
+    return qualified_name + name;
+  } else {
+    return name;
+  }
+}
+
+static std::string WrapInNameSpace(const Parser &parser,
+                                   const Definition &def) {
+  return WrapInNameSpace(parser, def.defined_namespace, def.name);
+}
+
+static std::string package(const Parser &parser);
 
 	// necessary to avoid name clash with kotlin's reserved words (val, var, fun...)
               static std::string sanitize(const std::string name, const bool isFirstLetterUpper);
@@ -108,7 +135,6 @@ namespace kotlin {
 	static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 
 
-
 std::string LowerFirst(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
@@ -127,6 +153,11 @@ static void BeginFile(const std::string name_space_name, const bool needs_import
  
 }
 
+static void enumImports(const EnumDef &enum_def, std::string &code) {
+  if (enum_def.is_union)  code += "import com.google.flatbuffers.kotlin.Table\n\n";
+}
+
+
 // Begin enum code with a class declaration.
 static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -141,38 +172,51 @@ static void enumMember(const EnumVal ev,
   code += "\t" +  ev.name + "(" + NumToString(ev.value) + ")";
 }
 
-static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr) {
+static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr, const Parser & parser) {
   std::string &code = *code_ptr;
 
-  code += "\t companion object {\n\tfun from( value : " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") : " + enum_def.name  + " = when (value.toInt()) {\n";
+  
+  code += "\t companion object {\n";
+  
+  // deserializing enums
+  code += "\tfun from( value : " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") : " + enum_def.name  + " = when (value.toInt()) {\n";
   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
         auto &ev = **it;
 	code += "\t" + NumToString(ev.value) + " -> " + ev.name + "\n";
   }
    code += "\telse -> throw Exception(\"Bad enum value : $value\")\n";
-  code += "}\n}\n";
   code += "}\n";
+  
+  // fetching correct constructor for unions
+  if (enum_def.is_union) {
+  	  std::string pack = package(parser);
+  	  
+  	   code += "\tfun toTable( value : " + enum_def.name + ") : Table = when (value) {\n";
+  	   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
+  	   	   auto &ev = **it;
+  	              
+  	              
+
+  	   	   if (it == enum_def.vals.vec.begin())  code += "\t" + ev.name + " -> throw Exception(\"void union\")\n";
+  	   	   else {
+  	   	   	   if (ev.struct_def) {
+  	   	   	   	    //auto namespac = ev.struct_def->defined_namespace->GetFullyQualifiedName(name);
+  	   	   	   	    auto namespac =  WrapInNameSpace(parser, *ev.struct_def) ;
+  	   	   	   	    if (namespac.length() > ev.name.length()) code += "\t" + ev.name + " -> " + namespac + "()\n";  
+  	   	   	   	    else  code += "\t" + ev.name + " -> " + pack + "." + ev.name + "()\n";
+  	   	   	      } else  code += "\t" + ev.name + " -> " + pack + "." + ev.name + "()\n";
+  	   	   	   
+  	   } 
+  	   }
+  	   code += "}\n";
+  }
+  
+  code += "}\n"; // end companion object
+  	
+  code += "}\n"; // end enum
 }
 
-// Initialize a new struct or table from existing data.
-/** static method : use with 
-     val monster = Monster.wrap(byteBuffer)  // always allocate a new Monster instance
-     or
-     val monster = reusableMonster.wrap(byteBuffer) // reuse a Monster instance 
 
-*/
-/*static void NewRootTypeFromBuffer(const StructDef &struct_def, std::string *code_ptr) {
-  std::string &code = *code_ptr;
-
-  code += "public fun rootAs" + struct_def.name + "(byteBuffer : ByteBuffer, reuse : " + struct_def.name + "? = null) : ";
-  code += struct_def.name + " {byteBuffer.order(ByteOrder.LITTLE_ENDIAN); ";
-  code += "return (reuse ?: " + struct_def.name + "()).wrap(byteBuffer)}\n";
-
-   // static method
-       val monster = Monster.wrap(byteBuffer)  // allocates and wrap into a new Monster instance
-  
-//  code += "public fun wrap(byteBuffer : ByteBuffer) : " + struct_def.name + " = " + struct_def.name + "().wrap(byteBuffer.order(ByteOrder.LITTLE_ENDIAN))\n";
-}*/
 
 // Initialize an existing object with other data, to avoid an allocation.
 static void initializeTableAndStruct(const StructDef &struct_def, std::string *code_ptr) {
@@ -191,6 +235,28 @@ static void beginClassDeclaration(const StructDef &struct_def, std::string *code
   if (struct_def.fixed) code += "Struct"; else code+= "Table"; 
   code += "(byteBuffer.order(ByteOrder.LITTLE_ENDIAN), if (byteBuffer === EMPTY_BYTEBUFFER) 0 else byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) {\n";
 }
+
+
+static void toString(const StructDef &struct_def, std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  code += "\toverride public fun toString() : String = \"" + MakeCamel(struct_def.name, true) + "(";  
+  bool first = true;  
+  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
+    	    auto &field = **it;
+    	    if (field.deprecated) continue;
+    	    if (!first) code +=  ",";
+    	    first = false;
+    	    code += sanitize(field.name, false) + "=";
+    	    
+    	    if (field.value.type.base_type != BASE_TYPE_VECTOR) code += "$" + sanitize(field.name, false);
+    	    else  {
+    	    	    code += "${(0 until " + sanitize(field.name, false) + "Size).map({" + sanitize(field.name, false) + "(it).toString()}).joinToString(\", \", \"[\",\"]\")}";
+    	    }
+   }
+    code += ")\"\n";
+}
+
 
 static void beginCompanionObject(std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -217,23 +283,18 @@ static void getArraySize(const FieldDef &field, std::string *code_ptr) {
 
 static void getScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  //std::string getter =  GenGetterKotlin(kotlinLang, field.value.type);
-  //std::string setter = GenSetterKotlin(kotlinLang, field.value.type);
 
-  /*if (field.value.type.base_type == BASE_TYPE_STRING) code += "\tpublic val "; else*/  code += "\tpublic var ";
+  code += "\tpublic var ";
   code+= sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
   code += " get() = " + upsizeToUserType(field.value.type,  GenGetterKotlin(kotlinLang, field.value.type) + "(bb_pos + " + NumToString(field.value.offset) + ")");
 
-  //if (field.value.type.base_type != BASE_TYPE_STRING) {
-	code += "; set(value) { " + GenSetterKotlin(kotlinLang, field.value.type) + "(bb_pos + " + NumToString(field.value.offset) + ", ";
-	code += downsizeToStorageValue(field.value.type, "value", true) +") }";
-  //}  
+  code += "; set(value) { " + GenSetterKotlin(kotlinLang, field.value.type) + "(bb_pos + " + NumToString(field.value.offset) + ", ";
+  code += downsizeToStorageValue(field.value.type, "value", true) +") }";
  code += "\n";
 }
 
 static void getScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  //std::string getter = GenGetterKotlin(kotlinLang, field.value.type);
 
   code += "\tpublic val " + sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type);
   code += " get() {val o = __offset(" +NumToString(field.value.offset) + "); ";
@@ -257,13 +318,8 @@ static void getStructFieldOfStruct(const FieldDef &field, std::string *code_ptr)
   code += sanitize(field.name, false) + "(" + GenTypeNameDest(kotlinLang, field.value.type) + "())\n";
   
 
- code += "\tpublic fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + ") : " + GenTypeNameDest(kotlinLang, field.value.type) + " = ";
+  code += "\tpublic fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + ") : " + GenTypeNameDest(kotlinLang, field.value.type) + " = ";
   code += "reuse.wrap(bb, bb_pos + " + NumToString(field.value.offset) + ")\n";
-
-  
-/*  code += "public fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + "? = null) : " + GenTypeNameDest(kotlinLang, field.value.type) + " = ";
-  code += "(reuse?: " + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(bb, bb_pos + " + NumToString(field.value.offset) + ")\n";
-*/
 }
 
 // Get a struct by initializing an existing struct.
@@ -281,14 +337,6 @@ static void getStructFieldOfTable(const FieldDef &field, std::string *code_ptr) 
   code += "return if (o == 0) null else reuse.wrap(bb, ";
   if (field.value.type.struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
   code += "}\n";
-
-/*
-
-  code += "public fun " + sanitize(field.name, false) + "(reuse : " +GenTypeNameDest(kotlinLang, field.value.type) + "? = null) : " + GenTypeNameDest(kotlinLang, field.value.type)+ "? {";
-  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
-  code += "return if (o == 0) null else (reuse ?:" + GenTypeNameDest(kotlinLang, field.value.type) + "()).wrap(bb, ";
-  if (field.value.type.struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
-  code += "}\n";*/
 }
 
 // Get the value of a string.
@@ -309,6 +357,10 @@ static void getUnion(const FieldDef &field, std::string *code_ptr) {
   code += "\tpublic fun " + sanitize(field.name, false) + "(reuse : " + GenTypeNameDest(kotlinLang, field.value.type) + ") : " + GenTypeNameDest(kotlinLang, field.value.type) + "? {";
   code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
   code += "return if (o == 0) null else __union(reuse, o)}\n";
+  
+  code += "\tpublic val " + sanitize(field.name, false) + " : " + GenTypeNameDest(kotlinLang, field.value.type) + "? get() {";
+  code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
+  code += "return if (o == 0) null else __union(" + field.value.type.enum_def->name + ".toTable(" + sanitize(field.name, false) +"Type), o)}\n";
 }
 
 // Get the value of a vector's struct member.
@@ -630,6 +682,8 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   initializeTableAndStruct(struct_def, code_ptr);
+  
+  toString(struct_def, code_ptr);
 
   for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
     auto &field = **it;
@@ -671,11 +725,13 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
 }
 
 // Generate enum declarations.
-static void generateEnum(const EnumDef &enum_def, std::string *code_ptr) {
+static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const Parser & parser) {
   if (enum_def.generated) return;
 
   auto &code = * code_ptr;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
+  
+  enumImports(enum_def, code);
   beginEnumDeclaration(enum_def, code_ptr);
   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
     auto &ev = **it;
@@ -684,7 +740,17 @@ static void generateEnum(const EnumDef &enum_def, std::string *code_ptr) {
     enumMember( ev, code_ptr);
   }
   code += ";\n";
-  endEnumDeclaration(enum_def,code_ptr);
+  endEnumDeclaration(enum_def,code_ptr, parser);
+}
+
+static std::string package(const Parser &parser) {
+  std::string namespace_name;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+    if (namespace_name.length()) namespace_name += ".";
+    namespace_name = *it;
+  }
+  return namespace_name;
 }
 
 // Save out the generated code for a Kotlin Table type.
@@ -693,7 +759,8 @@ static bool SaveType(const Parser &parser, const Definition &def,
                      bool needs_imports) {
   if (!classcode.length()) return true;
 
-  std::string namespace_name;
+
+    std::string namespace_name;
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
@@ -763,13 +830,26 @@ static std::string defaultToUserType(const Type &type, const std::string value) 
    }
 }
 
+static const std::set<std::string> keywords {"val","var","fun","for","while","if","else", "class", "enum", "private", "public", "internal", "override"};
+/*std::set<std::string> reservedWords; // équivaut à std::set<int, std::less<int> > 
+  reservedWords.insert("val"); // s contient 2 
+  reservedWords.insert("var"); // s contient 2 5 
+  reservedWords.insert("fun"); // le doublon n'est pas inséré 
+  reservedWords.insert("inline"); // s contient 1 2 5 
+*/
+
 static std::string sanitize(const std::string name, const bool isFirstLetterUpper) {
+	
+	// transforms name with _ inside into camelCase
 	std::string camelName = MakeCamel(name, isFirstLetterUpper);
+	// if there is a trailing "_", add one
 	if (camelName.size() >= 1 && camelName.compare(camelName.size() - 1, 1, "_") == 0) return camelName + "_";
-	if (camelName == "val") return "val_";
+	// if tis is a reserved word in kotlin, add a trailing "_"
+	if (keywords.find(camelName) != keywords.end()) return camelName + "_"; else return camelName;
+/*	if (camelName == "val") return "val_";
 	if (camelName == "var") return "var_";
-	if (camelName == "fun") return "fun_";
-	return camelName;
+	if (camelName == "fun") return "fun_";*/
+//	return camelName;
 }
 
 static std::string multiplyBySizeOf(const Type &type) {
@@ -985,7 +1065,7 @@ bool GenerateKotlin(const Parser &parser,
                 const GeneratorOptions & /*opts*/) {
   for (auto it = parser.enums_.vec.begin();it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
-    kotlin::generateEnum(**it, &enumcode);
+    kotlin::generateEnum(**it, &enumcode, parser);
     if (!kotlin::SaveType(parser, **it, enumcode, path, false)) return false;
   }
 

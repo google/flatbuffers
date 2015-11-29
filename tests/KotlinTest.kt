@@ -241,6 +241,7 @@ fun main(args: Array<String>) {
         val monster = Monster(bb)
 
         testEq(monster.testhashu32Fnv1, Integer.MAX_VALUE + 1L)
+	println(monster.toString())
     }
 
 
