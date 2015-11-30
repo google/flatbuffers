@@ -379,7 +379,7 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
-  std::string str() const { return c_str(); }
+  std::string str() const { return std::string(c_str(), Length()); }
 
   bool operator <(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
@@ -445,7 +445,7 @@ class vector_downward {
     if (len > static_cast<size_t>(cur_ - buf_)) {
       auto old_size = size();
       auto largest_align = AlignOf<largest_scalar_t>();
-      reserved_ += std::max(len, growth_policy(reserved_));
+      reserved_ += (std::max)(len, growth_policy(reserved_));
       // Round up to avoid undefined behavior from unaligned loads and stores.
       reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
       auto new_buf = allocator_.allocate(reserved_);
