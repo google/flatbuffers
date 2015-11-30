@@ -59,20 +59,22 @@ static std::string TranslateNameSpace(const std::string &qualified_name) {
 
 // Return a C++ type from the table in idl.h
 static std::string GenTypeBasic(const Parser &parser, const Type &type,
-                                bool real_enum) {
+                                bool user_facing_type) {
   static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       #CTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };
-  return real_enum && type.enum_def
-      ? WrapInNameSpace(parser, *type.enum_def)
-      : ctypename[type.base_type];
+  if (user_facing_type) {
+    if (type.enum_def) return WrapInNameSpace(parser, *type.enum_def);
+    if (type.base_type == BASE_TYPE_BOOL) return "bool";
+  }
+  return ctypename[type.base_type];
 }
 
 static std::string GenTypeWire(const Parser &parser, const Type &type,
-                               const char *postfix, bool real_enum);
+                               const char *postfix, bool user_facing_type);
 
 // Return a C++ pointer type, specialized to the actual struct/table types,
 // and vector element types.
@@ -96,9 +98,9 @@ static std::string GenTypePointer(const Parser &parser, const Type &type) {
 // Return a C++ type for any type (scalar/pointer) specifically for
 // building a flatbuffer.
 static std::string GenTypeWire(const Parser &parser, const Type &type,
-                               const char *postfix, bool real_enum) {
+                               const char *postfix, bool user_facing_type) {
   return IsScalar(type.base_type)
-    ? GenTypeBasic(parser, type, real_enum) + postfix
+    ? GenTypeBasic(parser, type, user_facing_type) + postfix
     : IsStruct(type)
       ? "const " + GenTypePointer(parser, type) + " *"
       : "flatbuffers::Offset<" + GenTypePointer(parser, type) + ">" + postfix;
@@ -118,9 +120,9 @@ static std::string GenTypeSize(const Parser &parser, const Type &type) {
 // using a flatbuffer.
 static std::string GenTypeGet(const Parser &parser, const Type &type,
                               const char *afterbasic, const char *beforeptr,
-                              const char *afterptr, bool real_enum) {
+                              const char *afterptr, bool user_facing_type) {
   return IsScalar(type.base_type)
-    ? GenTypeBasic(parser, type, real_enum) + afterbasic
+    ? GenTypeBasic(parser, type, user_facing_type) + afterbasic
     : beforeptr + GenTypePointer(parser, type) + afterptr;
 }
 
@@ -190,9 +192,12 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
     }
     code += "nullptr };\n  return names;\n}\n\n";
     code += "inline const char *EnumName" + enum_def.name;
-    code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name + "()[static_cast<int>(e)";
-    if (enum_def.vals.vec.front()->value)
-      code += " - static_cast<int>(" + GetEnumVal(enum_def, *enum_def.vals.vec.front(), opts) +")";
+    code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name;
+    code += "()[static_cast<int>(e)";
+    if (enum_def.vals.vec.front()->value) {
+      code += " - static_cast<int>(";
+      code += GetEnumVal(enum_def, *enum_def.vals.vec.front(), opts) +")";
+    }
     code += "]; }\n\n";
   }
 
@@ -230,7 +235,8 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
 // underlying type to the interface type.
 std::string GenUnderlyingCast(const Parser &parser, const FieldDef &field,
                               bool from, const std::string &val) {
-  return field.value.type.enum_def && IsScalar(field.value.type.base_type)
+  return (field.value.type.enum_def && IsScalar(field.value.type.base_type)) ||
+         field.value.type.base_type == BASE_TYPE_BOOL
       ? "static_cast<" + GenTypeBasic(parser, field.value.type, from) + ">(" +
         val + ")"
       : val;
@@ -456,6 +462,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
         } else {
           code += GenUnderlyingCast(parser, field, true, field.value.constant);
         }
+      } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
+        code += field.value.constant == "0" ? "false" : "true";
       } else {
         code += field.value.constant;
       }

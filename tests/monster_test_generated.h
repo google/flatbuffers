@@ -202,8 +202,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data()); }
   const Stat *testempty() const { return GetPointer<const Stat *>(32); }
   Stat *mutable_testempty() { return GetPointer<Stat *>(32); }
-  uint8_t testbool() const { return GetField<uint8_t>(34, 0); }
-  bool mutate_testbool(uint8_t _testbool) { return SetField(34, _testbool); }
+  bool testbool() const { return static_cast<bool>(GetField<uint8_t>(34, 0)); }
+  bool mutate_testbool(bool _testbool) { return SetField(34, static_cast<uint8_t>(_testbool)); }
   int32_t testhashs32_fnv1() const { return GetField<int32_t>(36, 0); }
   bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) { return SetField(36, _testhashs32_fnv1); }
   uint32_t testhashu32_fnv1() const { return GetField<uint32_t>(38, 0); }
@@ -281,7 +281,7 @@ struct MonsterBuilder {
   void add_enemy(flatbuffers::Offset<Monster> enemy) { fbb_.AddOffset(28, enemy); }
   void add_testnestedflatbuffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer) { fbb_.AddOffset(30, testnestedflatbuffer); }
   void add_testempty(flatbuffers::Offset<Stat> testempty) { fbb_.AddOffset(32, testempty); }
-  void add_testbool(uint8_t testbool) { fbb_.AddElement<uint8_t>(34, testbool, 0); }
+  void add_testbool(bool testbool) { fbb_.AddElement<uint8_t>(34, static_cast<uint8_t>(testbool), 0); }
   void add_testhashs32_fnv1(int32_t testhashs32_fnv1) { fbb_.AddElement<int32_t>(36, testhashs32_fnv1, 0); }
   void add_testhashu32_fnv1(uint32_t testhashu32_fnv1) { fbb_.AddElement<uint32_t>(38, testhashu32_fnv1, 0); }
   void add_testhashs64_fnv1(int64_t testhashs64_fnv1) { fbb_.AddElement<int64_t>(40, testhashs64_fnv1, 0); }
@@ -315,7 +315,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    flatbuffers::Offset<Monster> enemy = 0,
    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0,
    flatbuffers::Offset<Stat> testempty = 0,
-   uint8_t testbool = 0,
+   bool testbool = false,
    int32_t testhashs32_fnv1 = 0,
    uint32_t testhashu32_fnv1 = 0,
    int64_t testhashs64_fnv1 = 0,
