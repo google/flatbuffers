@@ -799,6 +799,15 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     PreAlign(len * elemsize, elemsize);  // Just in case elemsize > uoffset_t.
   }
 
+  // Call this right before StartVector/CreateVector if you want to force the
+  // alignment to be something different than what the element size would
+  // normally dictate.
+  // This is useful when storing a nested_flatbuffer in a vector of bytes,
+  // or when storing SIMD floats, etc.
+  void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
+    PreAlign(len * elemsize, alignment);
+  }
+
   uint8_t *ReserveElements(size_t len, size_t elemsize) {
     return buf_.make_space(len * elemsize);
   }
