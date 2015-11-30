@@ -242,6 +242,12 @@ std::string GenUnderlyingCast(const Parser &parser, const FieldDef &field,
       : val;
 }
 
+std::string GenFieldOffsetName(const FieldDef &field) {
+  std::string uname = field.name;
+  std::transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+  return "VT_" + uname;
+}
+
 // Generate an accessor struct, builder structs & function for a table.
 static void GenTable(const Parser &parser, StructDef &struct_def,
                      const GeneratorOptions &opts, std::string *code_ptr) {
@@ -254,6 +260,19 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   code += "struct " + struct_def.name;
   code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
   code += " {\n";
+  // Generate field id constants.
+  code += "  enum {\n";
+  for (auto it = struct_def.fields.vec.begin();
+       it != struct_def.fields.vec.end();
+       ++it) {
+    auto &field = **it;
+    if (!field.deprecated) {  // Deprecated fields won't be accessible.
+      code += "    " + GenFieldOffsetName(field) + " = ";
+      code += NumToString(field.value.offset) + ",\n";
+    }
+  }
+  code += "  };\n";
+  // Generate the accessors.
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -268,7 +287,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       auto accessor = is_scalar
         ? "GetField<"
         : (IsStruct(field.value.type) ? "GetStruct<" : "GetPointer<");
-      auto offsetstr = NumToString(field.value.offset);
+      auto offsetstr = GenFieldOffsetName(field);
       auto call =
           accessor +
           GenTypeGet(parser, field.value.type, "", "const ", " *", false) +
@@ -347,8 +366,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += prefix + "VerifyField";
       if (field.required) code += "Required";
       code += "<" + GenTypeSize(parser, field.value.type);
-      code += ">(verifier, " + NumToString(field.value.offset);
-      code += " /* " + field.name + " */)";
+      code += ">(verifier, " + GenFieldOffsetName(field) + ")";
       switch (field.value.type.base_type) {
         case BASE_TYPE_UNION:
           code += prefix + "Verify" + field.value.type.enum_def->name;
@@ -412,7 +430,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       } else {
         code += "Offset";
       }
-      code += "(" + NumToString(field.value.offset) + ", ";
+      code += "(" + struct_def.name + "::" + GenFieldOffsetName(field) + ", ";
       code += GenUnderlyingCast(parser, field, false, field.name);
       if (IsScalar(field.value.type.base_type))
         code += ", " + field.value.constant;
@@ -433,7 +451,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
        ++it) {
     auto &field = **it;
     if (!field.deprecated && field.required) {
-      code += "    fbb_.Required(o, " + NumToString(field.value.offset);
+      code += "    fbb_.Required(o, ";
+      code += struct_def.name + "::" + GenFieldOffsetName(field);
       code += ");  // " + field.name + "\n";
     }
   }
