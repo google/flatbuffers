@@ -653,8 +653,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
 
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-std::string GenerateJS(const Parser &parser,
-                       const GeneratorOptions &opts) {
+std::string GenerateJS(const Parser &parser) {
   using namespace js;
 
   // Generate code for all the enum declarations.
@@ -684,7 +683,7 @@ std::string GenerateJS(const Parser &parser,
     code += enum_code;
     code += decl_code;
 
-    if (!exports_code.empty() && !opts.skip_js_exports) {
+    if (!exports_code.empty() && !parser.opts.skip_js_exports) {
       code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
@@ -702,17 +701,15 @@ static std::string GeneratedFileName(const std::string &path,
 
 bool GenerateJS(const Parser &parser,
                 const std::string &path,
-                const std::string &file_name,
-                const GeneratorOptions &opts) {
-    auto code = GenerateJS(parser, opts);
+                const std::string &file_name) {
+    auto code = GenerateJS(parser);
     return !code.length() ||
            SaveFile(GeneratedFileName(path, file_name).c_str(), code, false);
 }
 
 std::string JSMakeRule(const Parser &parser,
                        const std::string &path,
-                       const std::string &file_name,
-                       const GeneratorOptions & /*opts*/) {
+                       const std::string &file_name) {
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));
   std::string make_rule = GeneratedFileName(path, filebase) + ": ";

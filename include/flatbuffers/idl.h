@@ -306,15 +306,48 @@ struct EnumDef : public Definition {
   Type underlying_type;
 };
 
+// Container of options that may apply to any of the source/text generators.
+struct IDLOptions {
+  bool strict_json;
+  bool skip_js_exports;
+  bool output_default_scalars_in_json;
+  int indent_step;
+  bool output_enum_identifiers;
+  bool prefixed_enums;
+  bool scoped_enums;
+  bool include_dependence_headers;
+  bool mutable_buffer;
+  bool one_file;
+  bool proto_mode;
+  bool generate_all;
+
+  // Possible options for the more general generator below.
+  enum Language { kJava, kCSharp, kGo, kMAX };
+
+  Language lang;
+
+  IDLOptions()
+    : strict_json(false),
+      skip_js_exports(false),
+      output_default_scalars_in_json(false),
+      indent_step(2),
+      output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
+      include_dependence_headers(true),
+      mutable_buffer(false),
+      one_file(false),
+      proto_mode(false),
+      generate_all(false),
+      lang(IDLOptions::kJava) {}
+};
+
 class Parser {
  public:
-  Parser(bool strict_json = false, bool proto_mode = false)
+  explicit Parser(const IDLOptions &options = IDLOptions())
     : root_struct_def_(nullptr),
+      opts(options),
       source_(nullptr),
       cursor_(nullptr),
       line_(1),
-      proto_mode_(proto_mode),
-      strict_json_(strict_json),
       anonymous_counter(0) {
     // Just in case none are declared:
     namespaces_.push_back(new Namespace());
@@ -415,13 +448,14 @@ class Parser {
   std::map<std::string, bool> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
 
+  IDLOptions opts;
+
  private:
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
   std::string files_being_parsed_;
-  bool proto_mode_;
-  bool strict_json_;
+
   std::string attribute_;
   std::vector<std::string> doc_comment_;
 
@@ -443,35 +477,6 @@ extern void GenComment(const std::vector<std::string> &dc,
                        const CommentConfig *config,
                        const char *prefix = "");
 
-// Container of options that may apply to any of the source/text generators.
-struct GeneratorOptions {
-  bool strict_json;
-  bool skip_js_exports;
-  bool output_default_scalars_in_json;
-  int indent_step;
-  bool output_enum_identifiers;
-  bool prefixed_enums;
-  bool scoped_enums;
-  bool include_dependence_headers;
-  bool mutable_buffer;
-  bool one_file;
-
-  // Possible options for the more general generator below.
-  enum Language { kJava, kCSharp, kGo, kMAX };
-
-  Language lang;
-
-  GeneratorOptions() : strict_json(false),
-                       skip_js_exports(false),
-                       output_default_scalars_in_json(false),
-                       indent_step(2),
-                       output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
-                       include_dependence_headers(true),
-                       mutable_buffer(false),
-                       one_file(false),
-                       lang(GeneratorOptions::kJava) {}
-};
-
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // If ident_step is 0, no indentation will be generated. Additionally,
@@ -480,126 +485,106 @@ struct GeneratorOptions {
 // strict_json adds "quotes" around field names if true.
 extern void GenerateText(const Parser &parser,
                          const void *flatbuffer,
-                         const GeneratorOptions &opts,
                          std::string *text);
 extern bool GenerateTextFile(const Parser &parser,
                              const std::string &path,
-                             const std::string &file_name,
-                             const GeneratorOptions &opts);
+                             const std::string &file_name);
 
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // See idl_gen_general.cpp.
 extern bool GenerateBinary(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
 extern std::string GenerateCPP(const Parser &parser,
-                               const std::string &include_guard_ident,
-                               const GeneratorOptions &opts);
+                               const std::string &include_guard_ident);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
-                        const std::string &file_name,
-                        const GeneratorOptions &opts);
+                        const std::string &file_name);
 
 // Generate JavaScript code from the definitions in the Parser object.
 // See idl_gen_js.
-extern std::string GenerateJS(const Parser &parser,
-                              const GeneratorOptions &opts);
+extern std::string GenerateJS(const Parser &parser);
 extern bool GenerateJS(const Parser &parser,
                        const std::string &path,
-                       const std::string &file_name,
-                       const GeneratorOptions &opts);
+                       const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser,
                        const std::string &path,
-                       const std::string &file_name,
-                       const GeneratorOptions &opts);
+                       const std::string &file_name);
 
 // Generate Java files from the definitions in the Parser object.
 // See idl_gen_java.cpp.
 extern bool GenerateJava(const Parser &parser,
                          const std::string &path,
-                         const std::string &file_name,
-                         const GeneratorOptions &opts);
+                         const std::string &file_name);
 
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
 extern bool GeneratePhp(const Parser &parser,
        const std::string &path,
-       const std::string &file_name,
-       const GeneratorOptions &opts);
+       const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
 extern bool GeneratePython(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
 
 // Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.
 extern bool GenerateCSharp(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
 
 // Generate Java/C#/.. files from the definitions in the Parser object.
 // See idl_gen_general.cpp.
 extern bool GenerateGeneral(const Parser &parser,
                             const std::string &path,
-                            const std::string &file_name,
-                            const GeneratorOptions &opts);
+                            const std::string &file_name);
 
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name,
-                               const GeneratorOptions &opts);
+                               const std::string &file_name);
 extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
-                        const std::string &file_name,
-                        const GeneratorOptions &opts);
+                        const std::string &file_name);
 
 // Generate a make rule for the generated JavaScript code.
 // See idl_gen_js.cpp.
 extern std::string JSMakeRule(const Parser &parser,
                               const std::string &path,
-                              const std::string &file_name,
-                              const GeneratorOptions &opts);
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
 extern std::string CPPMakeRule(const Parser &parser,
                                const std::string &path,
-                               const std::string &file_name,
-                               const GeneratorOptions &opts);
+                               const std::string &file_name);
 
 // Generate a make rule for the generated Java/C#/... files.
 // See idl_gen_general.cpp.
 extern std::string GeneralMakeRule(const Parser &parser,
                                    const std::string &path,
-                                   const std::string &file_name,
-                                   const GeneratorOptions &opts);
+                                   const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.
 extern std::string TextMakeRule(const Parser &parser,
                                 const std::string &path,
-                                const std::string &file_name,
-                                const GeneratorOptions &opts);
+                                const std::string &file_names);
 
 // Generate a make rule for the generated binary files.
 // See idl_gen_general.cpp.
 extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
-                                  const std::string &file_name,
-                                  const GeneratorOptions &opts);
+                                  const std::string &file_name);
 
 }  // namespace flatbuffers
 

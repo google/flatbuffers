@@ -80,6 +80,11 @@ Additional options:
 
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
+-   `--gen-all`: Generate not just code for the current schema files, but
+    for all files it includes as well. If the language uses a single file for
+    output (by default the case for C++ and JS), all code will end up in
+    this one file.
+
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 

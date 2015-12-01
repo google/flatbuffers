@@ -638,8 +638,7 @@ static void GenStructBuilder(const StructDef &struct_def,
 
 bool GeneratePython(const Parser &parser,
                     const std::string &path,
-                    const std::string & /*file_name*/,
-                    const GeneratorOptions & /*opts*/) {
+                    const std::string & /*file_name*/) {
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;

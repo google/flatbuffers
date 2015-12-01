@@ -140,8 +140,8 @@ namespace php {
       code += Indent + " * @return " + struct_def.name + "\n";
       code += Indent + " **/\n";
       code += Indent + "public function init($_i, ByteBuffer $_bb)\n";
-	  code += Indent + "{\n";
-	  code += Indent + Indent + "$this->bb_pos = $_i;\n";
+      code += Indent + "{\n";
+      code += Indent + Indent + "$this->bb_pos = $_i;\n";
       code += Indent + Indent + "$this->bb = $_bb;\n";
       code += Indent + Indent + "return $this;\n";
       code += Indent + "}\n\n";
@@ -241,7 +241,7 @@ namespace php {
       code += Indent + "public function get";
       code += MakeCamel(field.name);
       code += "()\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "$obj = new ";
       code += MakeCamel(GenTypeGet(field.value.type)) + "();\n";
       code += Indent + Indent +
@@ -251,8 +251,6 @@ namespace php {
       code += Indent + Indent;
       code += "return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : ";
       code += GenDefaultValue(field.value) + ";\n";
-
-
       code += Indent + "}\n\n";
     }
 
@@ -263,7 +261,7 @@ namespace php {
       code += Indent + "public function get";
       code += MakeCamel(field.name);
       code += "()\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent +
         "$o = $this->__offset(" +
         NumToString(field.value.offset) +
@@ -307,7 +305,7 @@ namespace php {
       code += Indent + "public function get";
       code += MakeCamel(field.name);
       code += "($j)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent +
         "$o = $this->__offset(" +
         NumToString(field.value.offset) +
@@ -371,7 +369,7 @@ namespace php {
       code += Indent + "public function get";
       code += MakeCamel(field.name);
       code += "($j)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent +
         "$o = $this->__offset(" +
         NumToString(field.value.offset) +
@@ -456,7 +454,7 @@ namespace php {
       code += Indent + " */\n";
       code += Indent + "public static function start" + struct_def.name;
       code += "(FlatBufferBuilder $builder)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "$builder->StartObject(";
       code += NumToString(struct_def.fields.vec.size());
       code += ");\n";
@@ -528,7 +526,7 @@ namespace php {
       code += "(FlatBufferBuilder $builder, ";
       code += "$" + MakeCamel(field.name, false);
       code += ")\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "$builder->add";
       code += GenMethod(field) + "X(";
       code += NumToString(offset) + ", ";
@@ -562,7 +560,7 @@ namespace php {
       code += Indent + "public static function create";
       code += MakeCamel(field.name);
       code += "Vector(FlatBufferBuilder $builder, array $data)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "$builder->startVector(";
       code += NumToString(elem_size);
       code += ", count($data), " + NumToString(alignment);
@@ -591,7 +589,7 @@ namespace php {
       code += Indent + "public static function start";
       code += MakeCamel(field.name);
       code += "Vector(FlatBufferBuilder $builder, $numElems)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent +  "$builder->startVector(";
       code += NumToString(elem_size);
       code += ", $numElems, " + NumToString(alignment);
@@ -612,7 +610,7 @@ namespace php {
       code += Indent + " */\n";
       code += Indent + "public static function end" + struct_def.name;
       code += "(FlatBufferBuilder $builder)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "$o = $builder->endObject();\n";
 
 
@@ -644,7 +642,7 @@ namespace php {
       }
     }
 
-	// Generate a struct field, conditioned on its child type(s).
+  // Generate a struct field, conditioned on its child type(s).
     static void GenStructAccessor(const StructDef &struct_def,
       const FieldDef &field,
       std::string *code_ptr) {
@@ -707,7 +705,7 @@ namespace php {
           code += Indent + "public static function add";
           code += MakeCamel(field.name);
           code += "(FlatBufferBuilder $builder, $offset)\n";
-		  code += Indent + "{\n";
+          code += Indent + "{\n";
           code += Indent + Indent + "$builder->addOffsetX(";
           code += NumToString(offset) + ", $offset, 0);\n";
           code += Indent + "}\n\n";
@@ -815,7 +813,7 @@ namespace php {
 
       code += Indent + ");\n\n";
       code += Indent + "public static function Name($e)\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
       code += Indent + Indent + "if (!isset(self::$names[$e])) {\n";
       code += Indent + Indent + Indent + "throw new \\Exception();\n";
       code += Indent + Indent + "}\n";
@@ -943,7 +941,7 @@ namespace php {
       code += "(FlatBufferBuilder $builder";
       StructBuilderArgs(struct_def, "", code_ptr);
       code += ")\n";
-	  code += Indent + "{\n";
+      code += Indent + "{\n";
 
       StructBuilderBody(struct_def, "", code_ptr);
 
@@ -955,8 +953,7 @@ namespace php {
 
   bool GeneratePhp(const Parser &parser,
     const std::string &path,
-    const std::string & /*file_name*/,
-    const GeneratorOptions & /*opts*/) {
+    const std::string & /*file_name*/) {
     for (auto it = parser.enums_.vec.begin();
     it != parser.enums_.vec.end(); ++it) {
       std::string enumcode;

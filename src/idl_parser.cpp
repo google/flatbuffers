@@ -589,10 +589,10 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def, std::string *value) {
   Expect('{');
   size_t fieldn = 0;
   for (;;) {
-    if ((!strict_json_ || !fieldn) && IsNext('}')) break;
+    if ((!opts.strict_json || !fieldn) && IsNext('}')) break;
     std::string name = attribute_;
     if (!IsNext(kTokenStringConstant))
-      Expect(strict_json_ ? kTokenStringConstant : kTokenIdentifier);
+      Expect(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
     auto field = struct_def.fields.Lookup(name);
     if (!field) Error("unknown field: " + name);
     Expect(':');
@@ -685,7 +685,7 @@ uoffset_t Parser::ParseTable(const StructDef &struct_def, std::string *value) {
 uoffset_t Parser::ParseVector(const Type &type) {
   int count = 0;
   for (;;) {
-    if ((!strict_json_ || !count) && IsNext(']')) break;
+    if ((!opts.strict_json || !count) && IsNext(']')) break;
     Value val;
     val.type = type;
     ParseAnyValue(val, nullptr, 0);
@@ -903,7 +903,7 @@ EnumDef &Parser::ParseEnum(bool is_union) {
     enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
     enum_def.underlying_type.enum_def = &enum_def;
   } else {
-    if (proto_mode_) {
+    if (opts.proto_mode) {
       enum_def.underlying_type.base_type = BASE_TYPE_INT;
     } else {
       // Give specialized error message, since this type spec used to
@@ -922,7 +922,7 @@ EnumDef &Parser::ParseEnum(bool is_union) {
   Expect('{');
   if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
   do {
-    if (proto_mode_ && attribute_ == "option") {
+    if (opts.proto_mode && attribute_ == "option") {
       ParseProtoOption();
     } else {
       auto value_name = attribute_;
@@ -944,17 +944,17 @@ EnumDef &Parser::ParseEnum(bool is_union) {
       if (IsNext('=')) {
         ev.value = atoi(attribute_.c_str());
         Expect(kTokenIntegerConstant);
-        if (!proto_mode_ && prevsize &&
+        if (!opts.proto_mode && prevsize &&
             enum_def.vals.vec[prevsize - 1]->value >= ev.value)
           Error("enum values must be specified in ascending order");
       }
-      if (proto_mode_ && IsNext('[')) {
+      if (opts.proto_mode && IsNext('[')) {
         // ignore attributes on enums.
         while (token_ != ']') Next();
         Next();
       }
     }
-  } while (IsNext(proto_mode_ ? ';' : ',') && token_ != '}');
+  } while (IsNext(opts.proto_mode ? ';' : ',') && token_ != '}');
   Expect('}');
   if (enum_def.attributes.Lookup("bit_flags")) {
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
@@ -1372,15 +1372,15 @@ bool Parser::Parse(const char *source, const char **include_paths,
     // Includes must come before type declarations:
     for (;;) {
       // Parse pre-include proto statements if any:
-      if (proto_mode_  &&
+      if (opts.proto_mode  &&
           (attribute_ == "option" || attribute_ == "syntax" ||
            attribute_ == "package")) {
           ParseProtoDecl();
       } else if (IsNext(kTokenInclude) ||
-                 (proto_mode_ &&
+                 (opts.proto_mode &&
                   attribute_ == "import" &&
                   IsNext(kTokenIdentifier))) {
-        if (proto_mode_ && attribute_ == "public") Next();
+        if (opts.proto_mode && attribute_ == "public") Next();
         auto name = attribute_;
         Expect(kTokenStringConstant);
         // Look for the file in include_paths.
@@ -1403,8 +1403,8 @@ bool Parser::Parse(const char *source, const char **include_paths,
             // Any errors, we're done.
             return false;
           }
-          // We do not want to output code for any included files:
-          MarkGenerated();
+          // We generally do not want to output code for any included files:
+          if (!opts.generate_all) MarkGenerated();
           // This is the easiest way to continue this file after an include:
           // instead of saving and restoring all the state, we simply start the
           // file anew. This will cause it to encounter the same include statement
@@ -1421,7 +1421,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
     }
     // Now parse all other kinds of declarations:
     while (token_ != kTokenEof) {
-      if (proto_mode_) {
+      if (opts.proto_mode) {
         ParseProtoDecl();
       } else if (token_ == kTokenNameSpace) {
         ParseNamespace();

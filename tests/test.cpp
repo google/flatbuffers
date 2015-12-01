@@ -281,8 +281,7 @@ void ParseAndGenerateTextTest() {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
@@ -426,15 +425,17 @@ void ParseProtoTest() {
   TEST_EQ(flatbuffers::LoadFile(
     "tests/prototest/test.golden", false, &goldenfile), true);
 
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+
   // Parse proto.
-  flatbuffers::Parser parser(false, true);
+  flatbuffers::Parser parser(opts);
   const char *include_directories[] = { "tests/prototest", nullptr };
   TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
 
   // Generate fbs.
-  flatbuffers::GeneratorOptions opts;
-  opts.include_dependence_headers = false;
-  auto fbs = flatbuffers::GenerateFBS(parser, "test", opts);
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
@@ -677,9 +678,8 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(json.c_str()), true);
 
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  opts.indent_step = 0;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  parser.opts.indent_step = 0;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
 
   if (jsongen != json) {
     // These strings are larger than a megabyte, so we show the bytes around
@@ -706,7 +706,9 @@ void FuzzTest2() {
 // Test that parser errors are actually generated.
 void TestError(const char *src, const char *error_substr,
                bool strict_json = false) {
-  flatbuffers::Parser parser(strict_json);
+  flatbuffers::IDLOptions opts;
+  opts.strict_json = strict_json;
+  flatbuffers::Parser parser(opts);
   TEST_EQ(parser.Parse(src), false);  // Must signal error
   // Must be the error we're expecting
   TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
@@ -794,9 +796,8 @@ void UnicodeTest() {
                        "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
                        "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }"), true);
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  opts.indent_step = -1;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
                      "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
 }
