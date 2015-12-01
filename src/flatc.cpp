@@ -272,7 +272,7 @@ int main(int argc, const char *argv[]) {
         if (generator_enabled[i]) {
           if (!print_make_rules) {
             flatbuffers::EnsureDirExists(output_path);
-            if (!generators[i].generate(parser, output_path, filebase, opts)) {
+            if (!generators[i].generate(*parser, output_path, filebase, opts)) {
               Error(std::string("Unable to generate ") +
                     generators[i].lang_name +
                     " for " +
@@ -280,7 +280,7 @@ int main(int argc, const char *argv[]) {
             }
           } else {
             std::string make_rule = generators[i].make_rule(
-                parser, output_path, *file_it, opts);
+                *parser, output_path, *file_it, opts);
             if (!make_rule.empty())
               printf("%s\n", flatbuffers::WordWrap(
                   make_rule, 80, " ", " \\").c_str());
@@ -288,7 +288,7 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      if (proto_mode) GenerateFBS(parser, output_path, filebase, opts);
+      if (proto_mode) GenerateFBS(*parser, output_path, filebase, opts);
   }
 
   delete parser;
