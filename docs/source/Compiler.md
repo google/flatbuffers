@@ -6,12 +6,11 @@ Usage:
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
-or data (see below). Later files can make use of definitions in earlier
-files.
+or data (see below). Data files are processed according to the definitions of
+the most recent schema specified.
 
 `--` indicates that the following files are binary files in
-FlatBuffer format conforming to the schema(s) indicated before it.
-Incompatible binary files currently will give unpredictable results (!)
+FlatBuffer format conforming to the schema indicated before it.
 
 Depending on the flags passed, additional files may
 be generated for each file processed:

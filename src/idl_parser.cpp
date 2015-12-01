@@ -1072,10 +1072,9 @@ bool Parser::SetRootType(const char *name) {
 }
 
 void Parser::MarkGenerated() {
-  // Since the Parser object retains definitions across files, we must
-  // ensure we only output code for definitions once, in the file they are first
-  // declared. This function marks all existing definitions as having already
-  // been generated.
+  // This function marks all existing definitions as having already
+  // been generated, which signals no code for included files should be
+  // generated.
   for (auto it = enums_.vec.begin();
            it != enums_.vec.end(); ++it) {
     (*it)->generated = true;
