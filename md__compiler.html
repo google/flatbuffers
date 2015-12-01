@@ -94,6 +94,7 @@ $(document).ready(function(){initNavTree('md__compiler.html','');});
 <li><code>--no-includes</code> : Don't generate include statements for included schemas the generated file depends on (C++).</li>
 <li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
 <li><code>--gen-onefile</code> : Generate single output file (useful for C#)</li>
+<li><code>--gen-all</code>: Generate not just code for the current schema files, but for all files it includes as well. If the language uses a single file for output (by default the case for C++ and JS), all code will end up in this one file.</li>
 <li><code>--raw-binary</code> : Allow binaries without a file_indentifier to be read. This may crash flatc given a mismatched schema.</li>
 <li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>, nested declarations, <code>import</code> (use <code>-I</code> for paths), <code>extend</code>, <code>oneof</code>, <code>group</code>. Does not support, but will skip without error: <code>option</code>, <code>service</code>, <code>extensions</code>, and most everything else.</li>
 <li><code>--schema</code>: Serialize schemas instead of JSON (use with -b). This will output a binary version of the specified schema that itself corresponds to the reflection/reflection.fbs schema. Loading this binary file is the basis for reflection functionality.</li>
