@@ -80,47 +80,51 @@ in the generated code, and the FlatBufferBuilder class:
 Create strings:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val stringOffset = fbb.stringOf("MyMonster")
+    val stringOffset = fbb.of("MyMonster")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The generated methods to construct an object are extension functions of it's Companion object (to avoid namespace pollution) and they need a FlatBufferBuilder receiver (fluent api). It is convenient ( and necessary as of Kotlin beta 1.0) to use the scoping method `with` to set their receivers. 
+The generated methods to construct an object are extension functions 
+of it's Companion object (to avoid namespace pollution) and they need 
+a FlatBufferBuilder receiver (fluent api). 
+It is convenient ( and necessary as of Kotlin beta 1.0) 
+to use the scoping method `with` to set their receivers. 
 
 
 Create a table with a struct contained therein:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
         with (fbb) {
-            with(Monster) {         
-                val mon = monsterOf {
-                    pos(vec3Of(1.0f, 2.0f, 3.0f, 3.0, Color.Green, 5.toShort(), 6.toByte()))
-                    hp(80.toShort())
-                    name(str)
-                    inventory(inv)
-                    testType(Example.Any.Monster)
-                    test(mon2)
-                    test4(test4)
-                }
+            with(Monster) { 
+                val mon = monsterOf(
+                        nameOf = of("MyMonster"), 
+                	testbool = false,
+                	hp = 80.toShort(),
+                	inventoryOf = inventoryOf(0, 1, 2, 3, 4),
+                	testType = Example.Any.Monster,
+                	testOf = monsterOf(of("Fred")), 
+			posDef = vec3Def(1.0f, 2.0f, 3.0f, 3.0, Color.Green, testDef(5.toShort(), 6.toByte()))
+                 )
             }
         }
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For some simpler types, you can use a convenient `someTypeOf` function call that
-allows you to construct tables in one function call. This example definition
-however contains an inline struct field, so we have to create the table
-manually.
-This is to create the buffer without using temporary object allocation.
+For most types, you can use a convenient `typeOf` function that allows 
+you to construct tables in one function call and that returns an offset
+to the constructed type. 
 
-It's important to understand that fields that are structs are inline (like
-`Vec3` above), and MUST thus be created between the start and end calls of
-a table. Everything else (other tables, strings, vectors) MUST be created
-before the start of the table they are referenced in.
+Structs have a `structOf` function as well that is usefull when creating 
+arrays of structs and a deffered `structDef` function that allows inlining 
+nested structs inside tables 
 
 Structs do have convenient methods that even have arguments for nested structs.
 
-As you can see, references to other objects (e.g. the string above) are simple
-Ints, and thus do not have the type-safety of the Offset type in C++. Extra
-care must thus be taken that you set the right offset on the right field.
+As of now, references to other objects (e.g. the string above) are simple Ints, 
+and thus do not have the type-safety of the Offset type in C++. 
+Extra care must thus be taken that you set the right offset on the right field.
+(we could use generics to add type safety but that would need an allocation 
+for each offset)
 
-Vectors can be created from the corresponding Kotlin array like so:
+Arrays can be created with an `arrayOf` method that uses vararg like so:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
     val inv = with(Monster) { fbb.inventoryOf(0, 1, 2, 3, 4) }
@@ -128,11 +132,11 @@ Vectors can be created from the corresponding Kotlin array like so:
 
 This works for arrays of scalars and (Int) offsets to strings/tables,
 but not structs. If you want to write structs, or what you want to write
-does not sit in an array, you can also use the start/end pattern:
+does not sit in an array, you can also use a lambda 
+to write data from back to front:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val inv = with(Monster) { 
-	fbb.inventoryOf(5) {
+    val inv = with(Monster) { fbb.inventoryOf(5) {
         	for (i in 4 downTo 0) addByte(i.toByte())
         }
     }
@@ -144,10 +148,16 @@ Note how you write the elements backwards since
 the buffer is being constructed back to front. You then pass `inv` to the
 corresponding `inentory` call when you construct the table containing it afterwards.
 
-There are `add` functions for all the scalar types. You use `addOffset` for
-any previously constructed objects (such as other tables, strings, vectors).
-For structs, you use the appropriate `typeOf` function in-line, as shown
-above in the `Monster` example.
+
+For structs you can use the `structOf` method inside the lambda
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
+    val test4 = with(Monster) { test4Of(2) {
+          testOf(10.toShort(), 20.toByte())
+          testOf(30.toShort(), 40.toByte())
+        }
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To finish the buffer, call:
 
@@ -212,3 +222,4 @@ One way to solve this is to call `forceDefaults()` on a
 `FlatBufferBuilder` to force all fields you set to actually be written. This
 of course increases the size of the buffer somewhat, but this may be
 acceptable for a mutable buffer.git add
+
