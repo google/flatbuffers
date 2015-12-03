@@ -43,7 +43,7 @@ This means all bits are still present, but may represent a negative value when u
 The default string accessor (e.g. `monster.name`) currently creates
 a new `String` when accessed, which means that the utf8 bytes get converted 
 and copied in a CharArray inside the newly created String. Alternatively, 
-use `monster.nameAsByteBuffer` which returns a `ByteBuffer` referring to the UTF-8 data in the original
+use `monster.nameBytes` which returns a `ByteBuffer` referring to the UTF-8 data in the original
 `ByteBuffer`, which is much more efficient. The `ByteBuffer`'s `position`
 points to the first character, and its `limit` to just after the last.
 
@@ -56,7 +56,7 @@ suffixed by `Size` let's you know the number of elements you can access:
         monster.inventory(i); // do something here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, much like strings, you can use `monster.inventoryAsByteBuffer`
+Alternatively, much like strings, you can use `monster.inventory`
 to get a `ByteBuffer` referring to the whole vector. Use `ByteBuffer` methods
 like `asFloatBuffer` to get specific views if needed.
 
@@ -94,40 +94,38 @@ Create a table with a struct contained therein:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
         with (fbb) {
             with(Monster) { 
-                val mon = monsterOf(
-                        nameOf = of("MyMonster"), 
+                val mon = monster(
+                        name = of("MyMonster"), 
                 	testbool = false,
                 	hp = 80.toShort(),
-                	inventoryOf = inventoryOf(0, 1, 2, 3, 4),
+                	inventory = inventory(0, 1, 2, 3, 4),
                 	testType = Example.Any.Monster,
-                	testOf = monsterOf(of("Fred")), 
-			posDef = vec3Def(1.0f, 2.0f, 3.0f, 3.0, Color.Green, testDef(5.toShort(), 6.toByte()))
+                	test = monster(of("Fred")), 
+			pos = vec3(1.0f, 2.0f, 3.0f, 3.0, Color.Green, test(5.toShort(), 6.toByte()))
                  )
             }
         }
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For most types, you can use a convenient `typeOf` function that allows 
-you to construct tables in one function call and that returns an offset
-to the constructed type. 
+For table `Type`, you can use a convenient `type` function that allows 
+you to it in one function call and that returns an offset
+to the constructed table. 
 
-Structs have a `structOf` function as well that is usefull when creating 
-arrays of structs and a deffered `structDef` function that allows inlining 
+Structs have a `structRaw` function as well that is usefull when creating 
+arrays of structs and a deffered `struct` function that allows inlining 
 nested structs inside tables 
-
-Structs do have convenient methods that even have arguments for nested structs.
 
 As of now, references to other objects (e.g. the string above) are simple Ints, 
 and thus do not have the type-safety of the Offset type in C++. 
 Extra care must thus be taken that you set the right offset on the right field.
-(we could use generics to add type safety but that would need an allocation 
+(we could use generics to improve type safety but that would need an allocation 
 for each offset)
 
-Arrays can be created with an `arrayOf` method that uses vararg like so:
+Arrays can be created with an `field` method that uses vararg like so:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val inv = with(Monster) { fbb.inventoryOf(0, 1, 2, 3, 4) }
+    val inv = with(Monster) { fbb.inventory(0, 1, 2, 3, 4) }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This works for arrays of scalars and (Int) offsets to strings/tables,
@@ -136,25 +134,26 @@ does not sit in an array, you can also use a lambda
 to write data from back to front:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val inv = with(Monster) { fbb.inventoryOf(5) {
+    val inv = with(Monster) { fbb.inventory(5) {
         	for (i in 4 downTo 0) addByte(i.toByte())
         }
     }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use the generated method `inventoryOf` with the right element size. 
+You can use the generated method `inventory` with the right element size. 
 You pass the number of elements you want to write. 
 Note how you write the elements backwards since
 the buffer is being constructed back to front. You then pass `inv` to the
-corresponding `inentory` call when you construct the table containing it afterwards.
+corresponding `inventory` parameter 
+when you construct the table containing it afterwards.
 
 
-For structs you can use the `structOf` method inside the lambda
+For structs you can use the `structRaw` method inside the lambda
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
-    val test4 = with(Monster) { test4Of(2) {
-          testOf(10.toShort(), 20.toByte())
-          testOf(30.toShort(), 40.toByte())
+    val test4 = with(Monster) { test4(2) {
+          testRaw(10.toShort(), 20.toByte())
+          testRaw(30.toShort(), 40.toByte())
         }
     }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

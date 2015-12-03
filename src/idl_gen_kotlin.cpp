@@ -165,11 +165,11 @@ static std::string package(const Parser &parser);
               static std::string multiplyBySizeOf(const Type &type);
 
 	
-	static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr);
-	static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr);
+	static void buildTableOrStringArrayWithVararg( const FieldDef &field, std::string *code_ptr);
+	static void buildScalarArrayWithVararg( const FieldDef &field, std::string *code_ptr);
 	//static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 	
-	static void generateTableConstructor(const StructDef &struct_def,std::string *code_ptr);
+	static void generateTable(const StructDef &struct_def,std::string *code_ptr);
 	
 	static void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 
@@ -472,43 +472,42 @@ static void generateStructBuilder(const StructDef &struct_def, std::string *code
   
   code += "\t\t";
   if (hasNestedStruct(struct_def)) code += "inline "; // only inline if there is a nested struct (or kotlin warns you)
-  code += "public fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "Of(";
+  code += "public fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "Raw(";
   for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
       auto &field = **it;
       if (it!= struct_def.fields.vec.begin()) code += ", ";
-      if (IsStruct(field.value.type)) code += "crossinline " + sanitize(field.name, false) + "Def : FlatBufferBuilder.()->Int"; else code +=  sanitize(field.name, false)  + " : " + GenTypeForUserConstructor(field.value.type); 
+      if (IsStruct(field.value.type)) code += "crossinline " + sanitize(field.name, false) + " : FlatBufferBuilder.()->Int"; else code +=  sanitize(field.name, false)  + " : " + GenTypeForUserConstructor(field.value.type); 
   }
-  code += "):Int = with(this) {\n";
+  code += "):FlatBufferBuilder = with(this) {\n";
   code += "prep(" + NumToString(struct_def.minalign) + ", " + NumToString(struct_def.bytesize) + ")\n";
   for (auto it = struct_def.fields.vec.rbegin(); it != struct_def.fields.vec.rend(); ++it) {
     auto &field = **it;
     if (field.padding) code += "\t\t\tpad(" + NumToString(field.padding) + ")\n";
-    if (IsStruct(field.value.type)) code += "\t\t\t" + sanitize(field.name, false) + "Def()\n"; else {
+    if (IsStruct(field.value.type)) code += "\t\t\t" + sanitize(field.name, false) + "()\n"; else {
       code += "\t\t\tadd" + GenMethod(kotlinLang, field.value.type) + "(";
       code +=  downsizeToStorageValueForConstructor(field.value.type, sanitize(field.name, false)) + ")\n";
     }
   }
-  code += "\n\t\toffset()}\n";
+  code += "\n\t}\n";
   
   if (hasNestedStruct(struct_def)) code += "inline ";
-  code += "public fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "Def(";  
+  code += "public fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "(";  
     for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
       auto &field = **it;
       if (it!= struct_def.fields.vec.begin()) code += ", ";
-      if (IsStruct(field.value.type)) code += "crossinline " + sanitize(field.name, false) + "Def : FlatBufferBuilder.()->Int"; else code +=  sanitize(field.name, false)  + " : " + GenTypeForUserConstructor(field.value.type); 
+      if (IsStruct(field.value.type)) code += "crossinline " + sanitize(field.name, false) + " : FlatBufferBuilder.()->Int"; else code +=  sanitize(field.name, false)  + " : " + GenTypeForUserConstructor(field.value.type); 
   }
-    code += "):FlatBufferBuilder.()->Int = {"+ LowerFirst(struct_def.name) + "Of(";
+    code += "):FlatBufferBuilder.()->Int = {"+ LowerFirst(struct_def.name) + "Raw(";
         for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
       auto &field = **it;
       if (it!= struct_def.fields.vec.begin()) code += ", ";
-      if (IsStruct(field.value.type)) code += sanitize(field.name, false) + "Def"; else code +=  sanitize(field.name, false); 
-
+      code +=  sanitize(field.name, false); 
   }
-  code += ")}\n";
+  code += ");offset()}\n";
 }
 
 // Set the value of a table's field.
-static void buildFieldOfTable(const StructDef &struct_def,
+/*static void buildFieldOfTable(const StructDef &struct_def,
                               const FieldDef &field,
                               const size_t offset,
                               std::string *code_ptr) {
@@ -530,13 +529,12 @@ static void buildFieldOfTable(const StructDef &struct_def,
   } else {
     code +=  downsizeToStorageValue(field.value.type, sanitize(field.name, false), false);
   }
-   code += ", " + field.value.constant; /** Int */ 
+   code += ", " + field.value.constant; // Int
    if (field.value.type.base_type == BASE_TYPE_BOOL) code += "!=0"; // hack to work with booleans... bad :(
    code += ") }\n";
-}
+}*/
 
-// Set the value of one of the members of a table's vector.
-static void buildArrayOfTable( const FieldDef &field, std::string *code_ptr) {
+static void buildArrayWithLambda( const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   auto vector_type = field.value.type.VectorType();
@@ -544,33 +542,33 @@ static void buildArrayOfTable( const FieldDef &field, std::string *code_ptr) {
   auto elem_size = InlineSize(vector_type);
   
   code += "\t\tinline public fun FlatBufferBuilder." + LowerFirst(sanitize(field.name, false));
-  code += "Of(numElems : Int, action : FlatBufferBuilder.()->Unit) : Int {startArray(";
+  code += "(numElems : Int, action : FlatBufferBuilder.()->Unit) : Int {startArray(";
   code += NumToString(elem_size);
   code += ", numElems, " + NumToString(alignment);
   code += "); action(); return endArray()}\n";
 }
 
-static void createArrayOfStruct( const FieldDef &field, std::string *code_ptr) {
+static void buildTableOrStringArrayWithVararg( const FieldDef &field, std::string *code_ptr) {
 	  std::string &code = *code_ptr;
   
-     code += "\t\tpublic fun FlatBufferBuilder." + LowerFirst(sanitize(field.name, true));
-  code += "Of(vararg offsets : Int) ";
-  
+  code += "\t\tpublic fun FlatBufferBuilder." + LowerFirst(sanitize(field.name, true));
+  code += "(vararg offsets : Int) ";
   code += " : Int {startArray(4, offsets.size, ";
+  // table or string
   if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4"; // look into this
   code += "); for (i in offsets.size - 1 downTo 0) addOffset(offsets[i]); return endArray(); }\n";
 }
 
-static void createArrayOfNonStruct( const FieldDef &field, std::string *code_ptr) {
-	  std::string &code = *code_ptr;
-	          auto vector_type = field.value.type.VectorType();
-        auto alignment = InlineAlignment(vector_type);
-        auto elem_size = InlineSize(vector_type);
-   code += "\t\tfun FlatBufferBuilder." + LowerFirst(sanitize(field.name, false));
-  code += "Of(vararg data : " + GenTypeForUserConstructor(vector_type) + ")", 
-  code += " : Int {startArray(";
-  code +=  NumToString(elem_size) + ", data.size, ";
-  code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) add" +   GenMethod(kotlinLang, vector_type)+ "(" + downsizeToStorageValue(vector_type, "data[i]", false) + "); return endArray(); }\n";
+static void buildScalarArrayWithVararg( const FieldDef &field, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    auto vector_type = field.value.type.VectorType();
+    auto alignment = InlineAlignment(vector_type);
+    auto elem_size = InlineSize(vector_type);
+    code += "\t\tfun FlatBufferBuilder." + LowerFirst(sanitize(field.name, false));
+    code += "(vararg data : " + GenTypeForUserConstructor(vector_type) + ")", 
+    code += " : Int {startArray(";
+    code +=  NumToString(elem_size) + ", data.size, ";
+    code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) add" +   GenMethod(kotlinLang, vector_type)+ "(" + downsizeToStorageValue(vector_type, "data[i]", false) + "); return endArray(); }\n";
 }
 
 // Get the offset of the end of a table.
@@ -616,25 +614,20 @@ static void generateStructAccessor(const StructDef &struct_def, const FieldDef &
 
 // Generate table constructors, conditioned on its members' types.
 static void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr, const Parser &parser) {
-
-  for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
-    auto &field = **it;
-    if (field.deprecated) continue;
-
-    auto offset = it - struct_def.fields.vec.begin();
-    buildFieldOfTable(struct_def, field, offset, code_ptr);
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-         buildArrayOfTable(field, code_ptr);
-         if (field.value.type.element == BASE_TYPE_STRUCT || field.value.type.element == BASE_TYPE_STRING) createArrayOfStruct(field, code_ptr); else createArrayOfNonStruct(field, code_ptr); 
-  }
-  }
-  generateFinishBuffer(struct_def, code_ptr, parser);
+    for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
+        auto &field = **it;
+        if (field.deprecated) continue;
+        if (field.value.type.base_type != BASE_TYPE_VECTOR) continue;
+        buildArrayWithLambda(field, code_ptr);
+        if (field.value.type.element == BASE_TYPE_STRUCT && field.value.type.struct_def->fixed) continue;
+        if (IsScalar(field.value.type.element)) buildScalarArrayWithVararg(field, code_ptr);  else  buildTableOrStringArrayWithVararg(field, code_ptr); 
+    }
+    generateFinishBuffer(struct_def, code_ptr, parser);
 }
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef * /*root_struct_def*/, const Parser &parser) {
   if (struct_def.generated) return;
-
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
   beginClassDeclaration(struct_def, code_ptr);
@@ -672,11 +665,13 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
   endClassDeclaration(code_ptr);
   
   // create a struct constructor function
-  if (struct_def.fixed) generateStructBuilder(struct_def, code_ptr);//GenStructBuilder(struct_def, code_ptr);
-  else generateTableConstructor(struct_def, code_ptr);
-  
-  
+  if (struct_def.fixed) generateStructBuilder(struct_def, code_ptr);
+  else generateTable(struct_def, code_ptr);  
 }
+
+
+
+
 
 // Generate enum declarations.
 static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const Parser & parser) {
@@ -964,7 +959,7 @@ static std::string GenSetterKotlin(const LanguageParameters &lang, const Type &t
 
 
 // Generate a method that creates a table in one go. This is only possible
-static void generateTableConstructor(const StructDef &struct_def,std::string *code_ptr) {
+static void generateTable(const StructDef &struct_def,std::string *code_ptr) {
     int num_fields = 0;
     for (auto it = struct_def.fields.vec.begin(); it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -973,7 +968,7 @@ static void generateTableConstructor(const StructDef &struct_def,std::string *co
 
    if (!num_fields) return;
    std::string &code = *code_ptr;
-      code += "\t\tpublic fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "Of(";
+      code += "\t\tpublic fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "(";
       bool first = true;
       // add required parameters first without defaults
       for (auto it = struct_def.fields.vec.begin(); it != struct_def.fields.vec.end(); ++it) {
@@ -984,7 +979,7 @@ static void generateTableConstructor(const StructDef &struct_def,std::string *co
         
         code += sanitize(field.name, false);
         if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-        	if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "Def : FlatBufferBuilder.()->Int "; else code += "Of : Int ";
+        	if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += " : FlatBufferBuilder.()->Int "; else code += " : Int ";
         }
         else code += " : " + GenTypeForUserConstructor(field.value.type);
       }
@@ -997,25 +992,30 @@ static void generateTableConstructor(const StructDef &struct_def,std::string *co
         
         code += sanitize(field.name, false);
         if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-        	if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "Def : FlatBufferBuilder.()->Int "; else code += "Of : Int ";
+        	if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += " : FlatBufferBuilder.()->Int "; else code += " : Int ";
         }
         else code += " : " + GenTypeForUserConstructor(field.value.type);
         code += " = ";
         if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {   
         	if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "{0}"; else code += "0"; 
         } else code += defaultToUserType(field.value.type, GenDefaultValue(kotlinLang, field.value, false) ); // add defaults later + " = " +  field.value.constant; 
-      }
+      }      
+      code += ") = with(this) {\n\t\twith(" + MakeCamel(struct_def.name,true) + " ) {\n\t\t\tstartObject(" + NumToString(struct_def.fields.vec.size()) + ")\n";
       
-      code += ") = with(this) {\n\t\twith(" + MakeCamel(struct_def.name,true) + " ) {\n\t\t\tstartObject(" + NumToString(struct_def.fields.vec.size()) + ")\n\t\t\t\t\n";  
       for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;size;size /= 2) {
         for (auto it = struct_def.fields.vec.rbegin();it != struct_def.fields.vec.rend(); ++it) {
           auto &field = **it;
           if (!field.deprecated &&(!struct_def.sortbysize || size == SizeOf(field.value.type.base_type))) {
-            code += "\t\t\t" + sanitize(field.name, false) +"(";
-            code += sanitize(field.name, false);
-             if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-                 if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "Def"; else code += "Of";
-             }
+
+      /** inlining the field builder */
+            auto offset =   struct_def.fields.vec.rend() - 1 -it ;
+      code += "\t\t\tadd" + GenMethod(kotlinLang, field.value.type) + "(" + NumToString(offset) + ", "  ;
+      if (!IsScalar(field.value.type.base_type)) {
+  	  code += sanitize(field.name, false);// + "Of"; // string, union, struct and table
+  	  if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "()"; //else code += "Of";
+       } else  code +=  downsizeToStorageValue(field.value.type, sanitize(field.name, false), false);
+   code += ", " + field.value.constant; //Int  
+   if (field.value.type.base_type == BASE_TYPE_BOOL) code += "!=0"; // hack to work with booleans... bad :(
            code += ")\n";
           }
         }
