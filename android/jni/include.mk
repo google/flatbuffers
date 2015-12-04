@@ -37,6 +37,10 @@
 ifeq (,$(FLATBUFFERS_INCLUDE_MK_))
 FLATBUFFERS_INCLUDE_MK_ := 1
 
+# Portable version of $(realpath) that omits drive letters on Windows.
+realpath-portable = $(join $(filter %:,$(subst :,: ,$1)),\
+                      $(realpath $(filter-out %:,$(subst :,: ,$1))))
+
 PROJECT_OS := $(OS)
 ifeq (,$(OS))
 PROJECT_OS := $(shell uname -s)
@@ -50,26 +54,31 @@ endif
 # rebuilt from flatbuffers schemas.
 
 FLATBUFFERS_CMAKELISTS_DIR := \
-  $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+  $(call realpath-portable,$(dir $(lastword $(MAKEFILE_LIST)))/../..)
 
 # Directory that contains the FlatBuffers compiler.
 ifeq (Windows,$(PROJECT_OS))
-FLATBUFFERS_FLATC_PATH?=$(CURDIR)/bin
-FLATBUFFERS_FLATC := $(FLATBUFFERS_FLATC_PATH)/Debug/flatc.exe
+FLATBUFFERS_FLATC_PATH?=$(FLATBUFFERS_CMAKELISTS_DIR)
+FLATBUFFERS_FLATC := $(lastword \
+                       $(wildcard $(FLATBUFFERS_FLATC_PATH)/*/flatc.exe) \
+                       $(wildcard $(FLATBUFFERS_FLATC_PATH)/flatc.exe))
 endif
 ifeq (Linux,$(PROJECT_OS))
-FLATBUFFERS_FLATC_PATH?=$(CURDIR)/bin
+FLATBUFFERS_FLATC_PATH?=$(FLATBUFFERS_CMAKELISTS_DIR)
 FLATBUFFERS_FLATC := $(FLATBUFFERS_FLATC_PATH)/flatc
 endif
 ifeq (Darwin,$(PROJECT_OS))
 FLATBUFFERS_FLATC_PATH?=$(FLATBUFFERS_CMAKELISTS_DIR)
-FLATBUFFERS_FLATC := $(FLATBUFFERS_FLATC_PATH)/Debug/flatc
+FLATBUFFERS_FLATC := $(lastword \
+                       $(wildcard $(FLATBUFFERS_FLATC_PATH)/*/flatc) \
+                       $(wildcard $(FLATBUFFERS_FLATC_PATH)/flatc))
 endif
 
 FLATBUFFERS_FLATC_ARGS?=
 
 # Search for cmake.
-CMAKE_ROOT := $(realpath $(LOCAL_PATH)/../../../../../../prebuilts/cmake)
+CMAKE_ROOT := \
+  $(call realpath-portable,$(LOCAL_PATH)/../../../../../../prebuilts/cmake)
 ifeq (,$(CMAKE))
 ifeq (Linux,$(PROJECT_OS))
 CMAKE := $(wildcard $(CMAKE_ROOT)/linux-x86/current/bin/cmake*)
@@ -97,13 +106,15 @@ endif
 # Generate a host build rule for the flatbuffers compiler.
 ifeq (Windows,$(PROJECT_OS))
 define build_flatc_recipe
-	cd  & jni\build_flatc.bat $(CMAKE)
+	$(FLATBUFFERS_CMAKELISTS_DIR)\android\jni\build_flatc.bat \
+        $(CMAKE) $(FLATBUFFERS_CMAKELISTS_DIR)
 endef
 endif
 ifeq (Linux,$(PROJECT_OS))
 define build_flatc_recipe
-	mkdir -p bin && cd bin && $(CMAKE) $(FLATBUFFERS_CMAKELISTS_DIR) \
-	  && $(MAKE) flatc
+	+cd $(FLATBUFFERS_CMAKELISTS_DIR) && \
+      $(CMAKE) . && \
+      $(MAKE) flatc
 endef
 endif
 ifeq (Darwin,$(PROJECT_OS))
@@ -122,6 +133,9 @@ endif
 ifeq ($(strip $(FLATBUFFERS_FLATC)),)
 flatc_target := build_flatc
 .PHONY: $(flatc_target)
+FLATBUFFERS_FLATC := \
+  python $(FLATBUFFERS_CMAKELISTS_DIR)/android/jni/run_flatc.py \
+    $(FLATBUFFERS_CMAKELISTS_DIR)
 else
 flatc_target := $(FLATBUFFERS_FLATC)
 endif
@@ -163,6 +177,15 @@ $(eval \
       $(foreach include,$(4),-I $(include)) -o $$(dir $$@) -c $$<)
 endef
 
+# TODO: Remove when the LOCAL_PATH expansion bug in the NDK is fixed.
+# Override the default behavior of local-source-file-path to workaround
+# a bug which prevents the build of deeply nested projects when NDK_OUT is
+# set.
+local-source-file-path=\
+$(if $(call host-path-is-absolute,$1),$1,$(call \
+    realpath-portable,$(LOCAL_PATH)/$1))
+
+
 # $(flatbuffers_header_build_rules schema_files,schema_dir,output_dir,\
 #   schema_include_dirs,src_files,[build_target],[dependencies]))
 #
@@ -184,12 +207,19 @@ endef
 # $(call flatbuffers_header_build_rules,$(MY_PROJ_SCHEMA_FILES),\
 #   $(MY_PROJ_SCHEMA_DIR),$(MY_PROJ_GENERATED_OUTPUT_DIR),
 #   $(MY_PROJ_SCHEMA_INCLUDE_DIRS),$(LOCAL_SRC_FILES))
+#
+# NOTE: Due problesm with path processing in ndk-build when presented with
+# deeply nested projects must redefine LOCAL_PATH after include this makefile
+# using:
+#
+# LOCAL_PATH := $(call realpath-portable,$(LOCAL_PATH))
+#
 define flatbuffers_header_build_rules
 $(foreach schema,$(1),\
   $(call flatbuffers_header_build_rule,\
     $(schema),$(strip $(2)),$(strip $(3)),$(strip $(4))))\
 $(foreach src,$(strip $(5)),\
-  $(eval $(PORTABLE_LOCAL_PATH)$$(src): \
+  $(eval $(call local-source-file-path,$(src)): \
     $(foreach schema,$(strip $(1)),\
       $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))))\
 $(if $(6),\
@@ -198,11 +228,10 @@ $(if $(6),\
       $(call flatbuffers_fbs_to_h,$(strip $(2)),$(strip $(3)),$(schema)))),)\
 $(if $(7),\
   $(foreach src,$(strip $(5)),\
-      $(eval $(PORTABLE_LOCAL_PATH)$$(src): $(strip $(7)))),)\
+      $(eval $(call local-source-file-path,$(src)): $(strip $(7)))),)\
 $(if $(7),\
   $(foreach dependency,$(strip $(7)),\
       $(eval $(6): $(dependency))),)
 endef
 
 endif  # FLATBUFFERS_INCLUDE_MK_
-

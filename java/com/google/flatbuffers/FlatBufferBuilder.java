@@ -28,18 +28,19 @@ import java.nio.charset.Charset;
  * main FlatBuffers documentation.
  */
 public class FlatBufferBuilder {
-    ByteBuffer bb;          // Where we construct the FlatBuffer.
-    int space;              // Remaining space in the ByteBuffer.
+    ByteBuffer bb;                   // Where we construct the FlatBuffer.
+    int space;                       // Remaining space in the ByteBuffer.
     static final Charset utf8charset = Charset.forName("UTF-8");
-    int minalign = 1;       // Minimum alignment encountered so far.
-    int[] vtable = null;    // The vtable for the current table.
-    int vtable_in_use = 0;  // The amount of fields we're actually using.
-    boolean nested = false; // Whether we are currently serializing a table.
-    int object_start;       // Starting offset of the current struct/table.
-    int[] vtables = new int[16];  // List of offsets of all vtables.
-    int num_vtables = 0;          // Number of entries in `vtables` in use.
-    int vector_num_elems = 0;     // For the current vector being built.
-    boolean force_defaults = false; // False omits default values from the serialized data
+    int minalign = 1;                // Minimum alignment encountered so far.
+    int[] vtable = null;             // The vtable for the current table.
+    int vtable_in_use = 0;           // The amount of fields we're actually using.
+    boolean nested = false;          // Whether we are currently serializing a table.
+    boolean finished = false;        // Whether the buffer is finished.
+    int object_start;                // Starting offset of the current struct/table.
+    int[] vtables = new int[16];     // List of offsets of all vtables.
+    int num_vtables = 0;             // Number of entries in `vtables` in use.
+    int vector_num_elems = 0;        // For the current vector being built.
+    boolean force_defaults = false;  // False omits default values from the serialized data
 
    /**
     * Start with a buffer of size {@code initial_size}, then grow as required.
@@ -86,6 +87,7 @@ public class FlatBufferBuilder {
         space = bb.capacity();
         vtable_in_use = 0;
         nested = false;
+        finished = false;
         object_start = 0;
         num_vtables = 0;
         vector_num_elems = 0;
@@ -240,6 +242,7 @@ public class FlatBufferBuilder {
         vector_num_elems = num_elems;
         prep(SIZEOF_INT, elem_size * num_elems);
         prep(alignment, elem_size * num_elems); // Just in case alignment > int.
+        nested = true;
     }
 
    /**
@@ -250,6 +253,9 @@ public class FlatBufferBuilder {
     * @see #startVector(int, int, int)
     */
     public int endVector() {
+        if (!nested)
+            throw new AssertionError("FlatBuffers: endVector called without startVector");
+        nested = false;
         putInt(vector_num_elems);
         return offset();
     }
@@ -282,6 +288,16 @@ public class FlatBufferBuilder {
         bb.position(space -= length);
         bb.put(s);
         return endVector();
+    }
+
+   /**
+    * Should not be accessing the final buffer before it is finished.
+    */
+    public void finished() {
+        if (!finished)
+            throw new AssertionError(
+                "FlatBuffers: you can only access the serialized buffer after it has been" +
+                " finished by FlatBufferBuilder.finish().");
     }
 
    /**
@@ -452,6 +468,7 @@ public class FlatBufferBuilder {
         prep(minalign, SIZEOF_INT);
         addOffset(root_table);
         bb.position(space);
+        finished = true;
     }
 
     public void finish(int root_table, String file_identifier) {
@@ -481,7 +498,10 @@ public class FlatBufferBuilder {
     // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
     // called finish(). The actual data starts at the ByteBuffer's current position,
     // not necessarily at 0.
-    public ByteBuffer dataBuffer() { return bb; }
+    public ByteBuffer dataBuffer() {
+        finished();
+        return bb;
+    }
 
    /**
     * The FlatBuffer data doesn't start at offset 0 in the {@link ByteBuffer}, but
@@ -493,6 +513,7 @@ public class FlatBufferBuilder {
     */
     @Deprecated
     private int dataStart() {
+        finished();
         return space;
     }
 
@@ -506,6 +527,7 @@ public class FlatBufferBuilder {
     * @throws IndexOutOfBoundsException If the range of bytes is ouf of bound
     */
     public byte[] sizedByteArray(int start, int length){
+        finished();
         byte[] array = new byte[length];
         bb.position(start);
         bb.get(array);

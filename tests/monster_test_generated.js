@@ -352,6 +352,8 @@ MyGame.Example.Stat.endStat = function(builder) {
 };
 
 /**
+ * an example documentation comment: monster object
+ *
  * @constructor
  */
 MyGame.Example.Monster = function() {

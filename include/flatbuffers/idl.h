@@ -422,7 +422,7 @@ class Parser {
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
-  std::stack<std::string> files_being_parsed_;
+  std::string files_being_parsed_;
   bool proto_mode_;
   bool strict_json_;
   std::string attribute_;
@@ -532,13 +532,19 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &file_name,
                          const GeneratorOptions &opts);
 
-
 // Generate Kotlin files from the definitions in the Parser object.
 // See idl_gen_kotlin.cpp.
 extern bool GenerateKotlin(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name,
                        const GeneratorOptions &opts);
+
+// Generate Php code from the definitions in the Parser object.
+// See idl_gen_php.
+extern bool GeneratePhp(const Parser &parser,
+       const std::string &path,
+       const std::string &file_name,
+       const GeneratorOptions &opts);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.

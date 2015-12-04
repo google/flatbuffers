@@ -329,9 +329,9 @@ public:
       return nullptr;  // Key not found.
     }
 
-    const uint8_t *data = reinterpret_cast<const uint8_t *>(search_result);
+    const uint8_t *element = reinterpret_cast<const uint8_t *>(search_result);
 
-    return IndirectHelper<T>::Read(data, 0);
+    return IndirectHelper<T>::Read(element, 0);
   }
 
 protected:
@@ -379,7 +379,7 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
-  std::string str() const { return c_str(); }
+  std::string str() const { return std::string(c_str(), Length()); }
 
   bool operator <(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
@@ -445,7 +445,7 @@ class vector_downward {
     if (len > static_cast<size_t>(cur_ - buf_)) {
       auto old_size = size();
       auto largest_align = AlignOf<largest_scalar_t>();
-      reserved_ += std::max(len, growth_policy(reserved_));
+      reserved_ += (std::max)(len, growth_policy(reserved_));
       // Round up to avoid undefined behavior from unaligned loads and stores.
       reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
       auto new_buf = allocator_.allocate(reserved_);
@@ -792,6 +792,15 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     nested = true;
     PreAlign<uoffset_t>(len * elemsize);
     PreAlign(len * elemsize, elemsize);  // Just in case elemsize > uoffset_t.
+  }
+
+  // Call this right before StartVector/CreateVector if you want to force the
+  // alignment to be something different than what the element size would
+  // normally dictate.
+  // This is useful when storing a nested_flatbuffer in a vector of bytes,
+  // or when storing SIMD floats, etc.
+  void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
+    PreAlign(len * elemsize, alignment);
   }
 
   uint8_t *ReserveElements(size_t len, size_t elemsize) {

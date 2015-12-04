@@ -174,6 +174,12 @@ inline std::string StripExtension(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
+// Returns the extension, if any.
+inline std::string GetExtension(const std::string &filepath) {
+  size_t i = filepath.find_last_of(".");
+  return i != std::string::npos ? filepath.substr(i + 1) : "";
+}
+
 // Return the last component of the path, after the last separator.
 inline std::string StripPath(const std::string &filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);

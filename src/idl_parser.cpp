@@ -896,7 +896,7 @@ EnumDef &Parser::ParseEnum(bool is_union) {
   Expect(kTokenIdentifier);
   auto &enum_def = *new EnumDef();
   enum_def.name = enum_name;
-  if (!files_being_parsed_.empty()) enum_def.file = files_being_parsed_.top();
+  enum_def.file = files_being_parsed_;
   enum_def.doc_comment = enum_comment;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = namespaces_.back();
@@ -977,7 +977,7 @@ StructDef &Parser::StartStruct(const std::string &name) {
   if (!struct_def.predecl) Error("datatype already exists: " + name);
   struct_def.predecl = false;
   struct_def.name = name;
-  if (!files_being_parsed_.empty()) struct_def.file = files_being_parsed_.top();
+  struct_def.file = files_being_parsed_;
   // Move this struct to the back of the vector just in case it was predeclared,
   // to preserve declaration order.
   *remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
@@ -1076,10 +1076,9 @@ bool Parser::SetRootType(const char *name) {
 }
 
 void Parser::MarkGenerated() {
-  // Since the Parser object retains definitions across files, we must
-  // ensure we only output code for definitions once, in the file they are first
-  // declared. This function marks all existing definitions as having already
-  // been generated.
+  // This function marks all existing definitions as having already
+  // been generated, which signals no code for included files should be
+  // generated.
   for (auto it = enums_.vec.begin();
            it != enums_.vec.end(); ++it) {
     (*it)->generated = true;
@@ -1356,11 +1355,11 @@ Type Parser::ParseTypeFromProtoType() {
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
+  files_being_parsed_ = source_filename ? source_filename : "";
   if (source_filename &&
       included_files_.find(source_filename) == included_files_.end()) {
     included_files_[source_filename] = true;
     files_included_per_file_[source_filename] = std::set<std::string>();
-    files_being_parsed_.push(source_filename);
   }
   if (!include_paths) {
     static const char *current_directory[] = { "", nullptr };
@@ -1503,11 +1502,8 @@ bool Parser::Parse(const char *source, const char **include_paths,
       error_ += NumToString(line_) + ":0";  // gcc alike
     #endif
     error_ += ": error: " + msg;
-    if (source_filename) files_being_parsed_.pop();
     return false;
   }
-  if (source_filename) files_being_parsed_.pop();
-  assert(!struct_stack_.size());
   return true;
 }
 

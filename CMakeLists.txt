@@ -35,6 +35,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_go.cpp
   src/idl_gen_js.cpp
   src/idl_gen_kotlin.cpp
+  src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_fbs.cpp
   src/flatc.cpp
@@ -81,10 +82,12 @@ if(APPLE)
     "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
+    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+      "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
@@ -158,3 +161,5 @@ if(FLATBUFFERS_BUILD_TESTS)
        "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
 endif()
+
+include(CMake/BuildFlatBuffers.cmake)
