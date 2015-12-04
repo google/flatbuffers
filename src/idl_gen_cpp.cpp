@@ -260,17 +260,19 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
   code += " {\n";
   // Generate field id constants.
-  code += "  enum {\n";
-  for (auto it = struct_def.fields.vec.begin();
-       it != struct_def.fields.vec.end();
-       ++it) {
-    auto &field = **it;
-    if (!field.deprecated) {  // Deprecated fields won't be accessible.
-      code += "    " + GenFieldOffsetName(field) + " = ";
-      code += NumToString(field.value.offset) + ",\n";
+  if (struct_def.fields.vec.size() > 0) {
+    code += "  enum {\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      auto &field = **it;
+      if (!field.deprecated) {  // Deprecated fields won't be accessible.
+        code += "    " + GenFieldOffsetName(field) + " = ";
+        code += NumToString(field.value.offset) + ",\n";
+      }
     }
+    code += "  };\n";
   }
-  code += "  };\n";
   // Generate the accessors.
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
