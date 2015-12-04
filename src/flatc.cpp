@@ -61,6 +61,10 @@ const Generator generators[] = {
     flatbuffers::GeneratorOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GenerateKotlin,  "-k", "--kotlin", "Kotlin",
+    flatbuffers::GeneratorOptions::kKotlin,
+    "Generate Kotlin classes for tables/structs",
+    flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateJS,       "-s", "--js", "JavaScript",
     flatbuffers::GeneratorOptions::kMAX,
     "Generate JavaScript code for tables/structs",
@@ -107,7 +111,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                  also implies --no-prefix.\n"
       "  --gen-includes  (deprecated), this is the default behavior.\n"
       "                  If the original behavior is required (no include\n"
-    "                  statements) use --no-includes.\n"
+	  "                  statements) use --no-includes.\n"
       "  --no-includes   Don\'t generate include statements for included\n"
       "                  schemas the generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
@@ -204,7 +208,7 @@ int main(int argc, const char *argv[]) {
   if (!filenames.size()) Error("missing input files", false, true);
 
   if (!any_generator)
-    Error("no options: specify one of -c -g -j -t -b etc.", true);
+    Error("no options: specify one of -c -g -j -k -t -b etc.", true);
 
   // Now process the files:
   parser = new flatbuffers::Parser(opts.strict_json, proto_mode);
@@ -213,7 +217,7 @@ int main(int argc, const char *argv[]) {
           ++file_it) {
       std::string contents;
       if (!flatbuffers::LoadFile(file_it->c_str(), true, &contents))
-        Error("unable to load file: " + *file_it);
+        Error("unable to load file" + *file_it);
 
       bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
                        binary_files_from;
