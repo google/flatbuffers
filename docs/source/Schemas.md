@@ -1,7 +1,8 @@
-# Writing a schema
+Writing a schema    {#flatbuffers_guide_writing_schema}
+================
 
-The syntax of the schema language (aka IDL, Interface Definition
-Language) should look quite familiar to users of any of the C family of
+The syntax of the schema language (aka IDL, [Interface Definition Language][])
+should look quite familiar to users of any of the C family of
 languages, and also to users of other IDLs. Let's look at an example
 first:
 
@@ -34,14 +35,14 @@ first:
 
     root_type Monster;
 
-(Weapon & Pickup not defined as part of this example).
+(`Weapon` & `Pickup` not defined as part of this example).
 
 ### Tables
 
 Tables are the main way of defining objects in FlatBuffers, and consist
 of a name (here `Monster`) and a list of fields. Each field has a name,
-a type, and optionally a default value (if omitted, it defaults to 0 /
-NULL).
+a type, and optionally a default value (if omitted, it defaults to `0` /
+`NULL`).
 
 Each field is optional: It does not have to appear in the wire
 representation, and you can choose to omit fields for each individual
@@ -85,13 +86,13 @@ parent object, and use no virtual table).
 
 Built-in scalar types are:
 
--   8 bit: `byte ubyte bool`
+-   8 bit: `byte`, `ubyte`, `bool`
 
--   16 bit: `short ushort`
+-   16 bit: `short`, `ushort`
 
--   32 bit: `int uint float`
+-   32 bit: `int`, `uint`, `float`
 
--   64 bit: `long ulong double`
+-   64 bit: `long`, `ulong`, `double`
 
 Built-in non-scalar types:
 
@@ -111,18 +112,19 @@ high bit yet.
 
 ### (Default) Values
 
-Values are a sequence of digits, optionally followed by a `.` and more digits
-for float constants, and optionally prefixed by a `-`. Floats may end with an
-`e` or `E`, followed by a `+` or `-` and more digits (scientific notation).
+Values are a sequence of digits. Values may be optionally followed by a decimal
+point (`.`) and more digits, for float constants, or optionally prefixed by
+a `-`. Floats may also be in scientific notation; optionally ending with an `e`
+or `E`, followed by a `+` or `-` and more digits.
 
 Only scalar values can have defaults, non-scalar (string/vector/table) fields
-default to NULL when not present.
+default to `NULL` when not present.
 
 You generally do not want to change default values after they're initially
 defined. Fields that have the default value are not actually stored in the
 serialized data but are generated in code, so when you change the default, you'd
 now get a different value than from code generated from an older version of
-the schema. There are situations however where this may be
+the schema. There are situations, however, where this may be
 desirable, especially if you can ensure a simultaneous rebuild of
 all code.
 
@@ -142,7 +144,7 @@ itself, by handling unknown enum values.
 
 Unions share a lot of properties with enums, but instead of new names
 for constants, you use names of tables. You can then declare
-a union field which can hold a reference to any of those types, and
+a union field, which can hold a reference to any of those types, and
 additionally a hidden field with the suffix `_type` is generated that
 holds the corresponding enum value, allowing you to know which type to
 cast to at runtime.
@@ -178,7 +180,7 @@ included files (those you still generate separately).
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
-serialized data. This is particular important for parsing JSON data,
+serialized data. This is particularly important for parsing JSON data,
 which doesn't include object type information.
 
 ### File identification and extension
@@ -234,7 +236,7 @@ in the corresponding C++ code. Multiple such lines per item are allowed.
 
 Attributes may be attached to a declaration, behind a field, or after
 the name of a table/struct/enum/union. These may either have a value or
-not. Some attributes like `deprecated` are understood by the compiler,
+not. Some attributes like `deprecated` are understood by the compiler;
 user defined ones need to be declared with the attribute declaration
 (like `priority` in the example above), and are
 available to query if you parse the schema at runtime.
@@ -421,3 +423,6 @@ Occasionally ok. You've renamed fields, which will break all code (and JSON
 files!) that use this schema, but as long as the change is obvious, this is not
 incompatible with the actual binary buffers, since those only ever address
 fields by id/offset.
+<br>
+
+   [Interface Definition Language]: https://en.wikipedia.org/wiki/Interface_description_language

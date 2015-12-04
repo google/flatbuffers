@@ -1,4 +1,4 @@
-FlatBuffers Version 1.1.0
+FlatBuffers Version 1.2.0
 
 # Welcome to FlatBuffers!
 
@@ -20,6 +20,8 @@ Discuss FlatBuffers with other developers and users on the
 [FlatBuffers Google Group][]. File issues on the [FlatBuffers Issues Tracker][]
 or post your questions to [stackoverflow.com][] using the [`flatbuffers` tag][].
 
+To contribute to this project, see [CONTRIBUTING][].
+
 For applications on Google Play that integrate this tool, usage is tracked.
 This tracking is done automatically using the embedded version string
 (flatbuffer_version_string), and helps us continue to optimize it. Aside from
@@ -29,8 +31,11 @@ is useful and if we should continue to invest in it. Since this is open
 source, you are free to remove the version string but we would appreciate if
 you would leave it in.
 
-  [FlatBuffers Google Group]: http://group.google.com/group/flatbuffers
-  [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
-  [stackoverflow.com]: http://www.stackoverflow.com
-  [landing page]: http://google.github.io/flatbuffers
-  [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers
+<br>
+
+   [CONTRIBUTING]: http://github.com/google/flatbuffers/blob/master/CONTRIBUTING
+   [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers
+   [FlatBuffers Google Group]: http://group.google.com/group/flatbuffers
+   [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
+   [stackoverflow.com]: http://www.stackoverflow.com
+   [landing page]: http://google.github.io/flatbuffers

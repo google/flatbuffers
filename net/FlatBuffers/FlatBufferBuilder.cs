@@ -18,12 +18,15 @@
 using System;
 using System.Text;
 
+/// @file
+/// @addtogroup flatbuffers_csharp_api
+/// @{
 
 namespace FlatBuffers
 {
     /// <summary>
-    /// Responsible for building up and accessing a flatbuffer formatted byte
-    /// array (via ByteBuffer)
+    /// Responsible for building up and accessing a FlatBuffer formatted byte
+    /// array (via ByteBuffer).
     /// </summary>
     public class FlatBufferBuilder
     {
@@ -44,6 +47,12 @@ namespace FlatBuffers
         // For the current vector being built.
         private int _vectorNumElems = 0;
 
+        /// <summary>
+        /// Create a FlatBufferBuilder with a given initial size.
+        /// </summary>
+        /// <param name="initialSize">
+        /// The initial size to use for the internal buffer.
+        /// </param>
         public FlatBufferBuilder(int initialSize)
         {
             if (initialSize <= 0)
@@ -53,6 +62,9 @@ namespace FlatBuffers
             _bb = new ByteBuffer(new byte[initialSize]);
         }
 
+        /// <summary>
+        /// Reset the FlatBufferBuilder by purging all data that it holds.
+        /// </summary>
         public void Clear()
         {
             _space = _bb.Length;
@@ -64,6 +76,8 @@ namespace FlatBuffers
             _numVtables = 0;
             _vectorNumElems = 0;
         }
+
+        /// @cond FLATBUFFERS_INTERNAL
 
         public int Offset { get { return _bb.Length - _space; } }
 
@@ -171,25 +185,79 @@ namespace FlatBuffers
         {
             _bb.PutDouble(_space -= sizeof(double), x);
         }
+        /// @endcond
 
-        // Adds a scalar to the buffer, properly aligned, and the buffer grown
-        // if needed.
+        /// <summary>
+        /// Add a `bool` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `bool` to add to the buffer.</param>
         public void AddBool(bool x) { Prep(sizeof(byte), 0); PutBool(x); }
+
+        /// <summary>
+        /// Add a `sbyte` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `sbyte` to add to the buffer.</param>
         public void AddSbyte(sbyte x) { Prep(sizeof(sbyte), 0); PutSbyte(x); }
+
+        /// <summary>
+        /// Add a `byte` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `byte` to add to the buffer.</param>
         public void AddByte(byte x) { Prep(sizeof(byte), 0); PutByte(x); }
+
+        /// <summary>
+        /// Add a `short` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `short` to add to the buffer.</param>
         public void AddShort(short x) { Prep(sizeof(short), 0); PutShort(x); }
+
+        /// <summary>
+        /// Add an `ushort` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `ushort` to add to the buffer.</param>
         public void AddUshort(ushort x) { Prep(sizeof(ushort), 0); PutUshort(x); }
+
+        /// <summary>
+        /// Add an `int` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `int` to add to the buffer.</param>
         public void AddInt(int x) { Prep(sizeof(int), 0); PutInt(x); }
+
+        /// <summary>
+        /// Add an `uint` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `uint` to add to the buffer.</param>
         public void AddUint(uint x) { Prep(sizeof(uint), 0); PutUint(x); }
+
+        /// <summary>
+        /// Add a `long` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `long` to add to the buffer.</param>
         public void AddLong(long x) { Prep(sizeof(long), 0); PutLong(x); }
+
+        /// <summary>
+        /// Add an `ulong` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `ulong` to add to the buffer.</param>
         public void AddUlong(ulong x) { Prep(sizeof(ulong), 0); PutUlong(x); }
+
+        /// <summary>
+        /// Add a `float` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `float` to add to the buffer.</param>
         public void AddFloat(float x) { Prep(sizeof(float), 0); PutFloat(x); }
+
+        /// <summary>
+        /// Add a `double` to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <param name="x">The `double` to add to the buffer.</param>
         public void AddDouble(double x) { Prep(sizeof(double), 0);
                                           PutDouble(x); }
 
-
-
-        // Adds on offset, relative to where it will be written.
+        /// <summary>
+        /// Adds an offset, relative to where it will be written.
+        /// </summary>
+        /// <param name="off">The offset to add to the buffer.</param>
         public void AddOffset(int off)
         {
             Prep(sizeof(int), 0);  // Ensure alignment is already done.
@@ -200,6 +268,7 @@ namespace FlatBuffers
             PutInt(off);
         }
 
+        /// @cond FLATBUFFERS_INTERNAL
         public void StartVector(int elemSize, int count, int alignment)
         {
             NotNested();
@@ -207,13 +276,18 @@ namespace FlatBuffers
             Prep(sizeof(int), elemSize * count);
             Prep(alignment, elemSize * count); // Just in case alignment > int.
         }
+        /// @endcond
 
+        /// <summary>
+        /// Writes data necessary to finish a vector construction.
+        /// </summary>
         public VectorOffset EndVector()
         {
             PutInt(_vectorNumElems);
             return new VectorOffset(Offset);
         }
 
+        /// @cond FLATBUFFERS_INTENRAL
         public void Nested(int obj)
         {
             // Structs are always stored inline, so need to be created right
@@ -271,10 +345,18 @@ namespace FlatBuffers
         public void AddFloat(int o, float x, double d) { if (x != d) { AddFloat(x); Slot(o); } }
         public void AddDouble(int o, double x, double d) { if (x != d) { AddDouble(x); Slot(o); } }
         public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }
+        /// @endcond
 
+        /// <summary>
+        /// Encode the string `s` in the buffer using UTF-8.
+        /// </summary>
+        /// <param name="s">The string to encode.</param>
+        /// <returns>
+        /// The offset in the buffer where the encoded string starts.
+        /// </returns>
         public StringOffset CreateString(string s)
         {
-            NotNested();            
+            NotNested();
             AddByte(0);
             var utf8StringLen = Encoding.UTF8.GetByteCount(s);
             StartVector(1, utf8StringLen, 1);
@@ -282,6 +364,7 @@ namespace FlatBuffers
             return new StringOffset(EndVector().Value);
         }
 
+        /// @cond FLATBUFFERS_INTERNAL
         // Structs are stored inline, so nothing additional is being added.
         // `d` is always 0.
         public void AddStruct(int voffset, int x, int d)
@@ -376,7 +459,14 @@ namespace FlatBuffers
             throw new InvalidOperationException("FlatBuffers: field " + field +
                                                 " must be set");
         }
+        /// @endcond
 
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `root_table`.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
         public void Finish(int rootTable)
         {
             Prep(_minAlign, sizeof(int));
@@ -384,9 +474,24 @@ namespace FlatBuffers
             _bb.Position = _space;
         }
 
+        /// <summary>
+        /// Get the ByteBuffer representing the FlatBuffer.
+        /// </summary>
+        /// <remarks>
+        /// This is typically only called after you call `Finish()`.
+        /// </remarks>
+        /// <returns>
+        /// Returns the ByteBuffer for this FlatBuffer.
+        /// </returns>
         public ByteBuffer DataBuffer { get { return _bb; } }
 
-        // Utility function for copying a byte array that starts at 0.
+        /// <summary>
+        /// A utility function to copy and return the ByteBuffer data as a
+        /// `byte[]`.
+        /// </summary>
+        /// <returns>
+        /// A full copy of the FlatBuffer data.
+        /// </returns>
         public byte[] SizedByteArray()
         {
             var newArray = new byte[_bb.Data.Length - _bb.Position];
@@ -395,6 +500,16 @@ namespace FlatBuffers
             return newArray;
         }
 
+         /// <summary>
+         /// Finalize a buffer, pointing to the given `rootTable`.
+         /// </summary>
+         /// <param name="rootTable">
+         /// An offset to be added to the buffer.
+         /// </param>
+         /// <param name="fileIdentifier">
+         /// A FlatBuffer file identifier to be added to the buffer before
+         /// `root_table`.
+         /// </param>
          public void Finish(int rootTable, string fileIdentifier)
          {
              Prep(_minAlign, sizeof(int) +
@@ -416,3 +531,5 @@ namespace FlatBuffers
 
     }
 }
+
+/// @}
