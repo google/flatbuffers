@@ -125,7 +125,7 @@ fun main(args: Array<String>) = try {
         testEq(monster.mana, 150.toShort())  // default
 
         testEq(monster.name, "MyMonster")
-        testEq(monster.nameBytes.toUtf8String(), "MyMonster")
+        testEq(monster.nameBuffer.toUtf8String(), "MyMonster")
         // monster.friendly() // can't access, deprecated
 
         val pos = monster.pos!!
@@ -142,12 +142,12 @@ fun main(args: Array<String>) = try {
         val monster2 = Monster()
         testEq(monster.test(monster2) != null, true)
         testEq(monster2.name, "Fred")
-        testEq(monster2.nameBytes.toUtf8String(), "Fred")
+        testEq(monster2.nameBuffer.toUtf8String(), "Fred")
 
         testEq(monster.inventorySize, 5)
         var invsum = 0
         for (i in  0 until monster.inventorySize) invsum += monster.inventory(i)
-        //testEq(invsum, 10)
+        testEq(invsum, 10)
 
         // Alternative way of accessing a vector:
         val ibb = monster.inventory
@@ -163,6 +163,9 @@ fun main(args: Array<String>) = try {
         testEq(monster.testarrayofstringSize, 2)
         testEq(monster.testarrayofstring(0), "test1")
         testEq(monster.testarrayofstring(1), "test2")
+        // string as ByteBuffer        
+        testEq(monster.testarrayofstringBuffer(0)!!.toUtf8String(), "test1")
+        testEq(monster.testarrayofstringBuffer(1)!!.toUtf8String(), "test2")
 
         testEq(monster.testbool, false)
     }

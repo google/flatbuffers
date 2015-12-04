@@ -437,6 +437,15 @@ static void GetMemberOfVectorOfNonStruct(
   code += " else " + upsizeToUserType(field.value.type,  GenGetterKotlin(kotlinLang, field.value.type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
 code += "}\n";
 
+ if (field.value.type.element == BASE_TYPE_STRING)  {// string as ByteBuffer
+  code += "\tpublic fun " + sanitize(field.name, false) + "Buffer(j : Int) : ByteBuffer? ";
+  code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
+  code += "return if (o == 0) null";
+  code += " else __string_element_as_bytebuffer(o, j)";
+  code += "}\n";
+ }
+
+ // mutation
   if (vector_type.base_type != BASE_TYPE_STRING) {
     code += "\tpublic fun mutate" + sanitize(field.name, true) + "(j : Int, value : " + GenTypeNameDest(kotlinLang, vector_type) + ") :Boolean {";
     code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
@@ -451,7 +460,7 @@ static void fieldAsByteBuffer(const FieldDef &field, std::string *code_ptr) {
                              std::string &code = *code_ptr;
                                      
       code += "\tpublic val " + sanitize(field.name, false);
-      if (field.value.type.base_type == BASE_TYPE_STRING) code += "Bytes";
+      if (field.value.type.base_type == BASE_TYPE_STRING) code += "Buffer";
       code += " : ByteBuffer get() = __vector_as_bytebuffer(";
       code += NumToString(field.value.offset) + ", ";
       code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(field.value.type.VectorType()));

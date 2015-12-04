@@ -37,7 +37,8 @@ the amount of object allocation (and thus garbage collection) your program does.
 
 Kotlin does not support unsigned scalars. This means that any unsigned types you
 use in your schema will actually be represented as a signed value (an Int or a Long). 
-This means all bits are still present, but may represent a negative value when used. For example, to read a Byte `b` as an unsigned number, you can do:
+This means all bits are still present, but may represent a negative value when used. 
+For example, to read a Byte `b` as an unsigned number, you can do:
 `b.toInt().and(0xFF)`
 
 The default string accessor (e.g. `monster.name`) currently creates
@@ -56,9 +57,20 @@ suffixed by `Size` let's you know the number of elements you can access:
         monster.inventory(i); // do something here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, much like strings, you can use `monster.inventory`
+Alternatively, a bit like strings, you can use `monster.inventory`
 to get a `ByteBuffer` referring to the whole vector. Use `ByteBuffer` methods
 like `asFloatBuffer` to get specific views if needed.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
+    val intBuffer = monster.inventory.asIntBuffer()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For vector of strings, you can use `typeBuffer` method to access 
+the string at index i through a ByteBuffer
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.kotlin}
+    val byteBuffer = monster.testBuffer(i)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you specified a file_indentifier in the schema, you can query if the
 buffer is of the desired type before accessing it using:

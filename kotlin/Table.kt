@@ -77,6 +77,22 @@ abstract class Table(protected var bb: ByteBuffer, protected var bb_pos: Int) {
         return bb
     }
 
+    // Get a string element as a ByteBuffer. This is efficient, since it only allocates a new
+    // bytebuffer object, but does not actually copy the data, it still refers to the same
+    // bytes as the original ByteBuffer.
+    // Also useful with nested FlatBuffers etc.
+    protected fun __string_element_as_bytebuffer(vector_offset: Int, index : Int): ByteBuffer? {
+        val offset  = __vector(vector_offset) + 4 * index
+        val relativeMove = bb.getInt(offset)
+        if (relativeMove == 0) return null
+        val off = offset + relativeMove
+        val bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+        bb.position(off + SIZEOF_INT)
+        bb.limit(off + SIZEOF_INT + bb.getInt(off))
+        return bb
+    }
+
+
     // Initialize any Table-derived type to point to the union at the given offset.
     protected fun __union(t: com.google.flatbuffers.kotlin.Table, offset: Int): com.google.flatbuffers.kotlin.Table {
         val off = offset + bb_pos
