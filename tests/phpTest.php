@@ -192,7 +192,7 @@ function fuzzTest1(Assert $assert)
     $uchar_val = 0xFF;
     $short_val = -32222; // 0x8222;
     $ushort_val = 0xFEEE;
-    $int_val = 0x83333333 | 0;
+    $int_val = 0x7fffffff | 0;
     // for now
     $uint_val = 1;
     $long_val = 2;

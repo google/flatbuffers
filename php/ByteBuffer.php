@@ -239,7 +239,9 @@ class ByteBuffer
      */
     public function putInt($offset, $value)
     {
-        self::validateValue(~PHP_INT_MAX,  PHP_INT_MAX, $value, "int");
+        // 2147483647 = (1 << 31) -1 = Maximum signed 32-bit int
+        // -2147483648 = -1 << 31 = Minimum signed 32-bit int
+        self::validateValue(-2147483648, 2147483647, $value, "int");
 
         $this->assertOffsetAndLength($offset, 4);
         $this->writeLittleEndian($offset, 4, $value);
@@ -252,7 +254,8 @@ class ByteBuffer
     public function putUint($offset, $value)
     {
         // NOTE: We can't put big integer value. this is PHP limitation.
-        self::validateValue(0,  PHP_INT_MAX, $value, "uint",  " php has big numbers limitation. check your PHP_INT_MAX");
+        // 4294967295 = (1 << 32) -1 = Maximum unsigned 32-bin int
+        self::validateValue(0, 4294967295, $value, "uint",  " php has big numbers limitation. check your PHP_INT_MAX");
 
         $this->assertOffsetAndLength($offset, 4);
         $this->writeLittleEndian($offset, 4, $value);
