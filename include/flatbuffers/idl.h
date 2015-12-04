@@ -524,6 +524,12 @@ extern bool GenerateJava(const Parser &parser,
                          const std::string &path,
                          const std::string &file_name);
 
+// Generate Kotlin files from the definitions in the Parser object.
+// See idl_gen_kotlin.cpp.
+extern bool GenerateKotlin(const Parser &parser,
+                            const std::string &path,
+                            const std::string &file_name);
+
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
 extern bool GeneratePhp(const Parser &parser,
