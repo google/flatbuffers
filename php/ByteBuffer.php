@@ -372,7 +372,11 @@ class ByteBuffer
     {
         $result = $this->readLittleEndian($index, 2);
 
-        return self::convertHelper(self::__SHORT, $result);
+        $sign = $index + (ByteBuffer::isLittleEndian() ? 1 : 0);
+        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
+
+        // 65536 = 1 << 16 = Maximum unsigned 16-bit int
+        return $issigned ? $result - 65536 : $result;
     }
 
     /**
@@ -392,7 +396,11 @@ class ByteBuffer
     {
         $result = $this->readLittleEndian($index, 4);
 
-        return self::convertHelper(self::__INT, $result);
+        $sign = $index + (ByteBuffer::isLittleEndian() ? 3 : 0);
+        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
+
+        // 4294967296 = 1 << 32 = Maximum unsigned 32-bit int
+        return $issigned ? $result - 4294967296 : $result;
     }
 
     /**
@@ -410,9 +418,7 @@ class ByteBuffer
      */
     public function getLong($index)
     {
-        $result =  $this->readLittleEndian($index, 8);
-
-        return self::convertHelper(self::__LONG, $result);
+        return $this->readLittleEndian($index, 8);
     }
 
     /**
@@ -459,22 +465,6 @@ class ByteBuffer
         // see also: http://php.net/manual/en/function.pack.php
 
         switch ($type) {
-            case self::__SHORT:
-                $helper = pack("v", $value);
-                $v = unpack("s", $helper);
-
-                return $v[1];
-                break;
-            case self::__INT:
-                $helper = pack("V", $value);
-                $v = unpack("l", $helper);
-                return $v[1];
-                break;
-            case self::__LONG:
-                $helper = pack("P", $value);
-                $v = unpack("q", $helper);
-                return $v[1];
-                break;
             case self::__FLOAT:
                 $inthelper = pack("V", $value);
                 $v = unpack("f", $inthelper);

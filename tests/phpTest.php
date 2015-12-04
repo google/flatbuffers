@@ -539,6 +539,19 @@ function testByteBuffer(Assert $assert) {
         $buffer[7] = chr(0x01);
         $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
         $assert->Equal(0x010203040A0B0C0D, $uut->getLong(0));
+
+        //Test: Signed Long
+        $buffer = str_repeat("\0", 8);
+        $buffer[0] = chr(0x00);
+        $buffer[1] = chr(0x00);
+        $buffer[2] = chr(0x00);
+        $buffer[3] = chr(0x00);
+        $buffer[4] = chr(0x00);
+        $buffer[5] = chr(0x00);
+        $buffer[6] = chr(0x00);
+        $buffer[7] = chr(0x80);
+        $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
+        $assert->Equal(-1 << 63, $uut->getLong(0));
     }
 
     //Test: ByteBuffer_GetLongChecksOffset
