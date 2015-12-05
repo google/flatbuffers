@@ -182,22 +182,14 @@ namespace kotlin {
 	
 	// Ensure that a type is prefixed with its namespace whenever it is used
 // outside of its namespace.
-static std::string WrapInNameSpace(const Parser &parser, const Namespace *ns,
-                                   const std::string &name) {
-  if (parser.namespaces_.back() != ns) {
+static std::string WrapInNameSpace(const Parser &parser, const Namespace *ns, const std::string &name) {
+  if (parser.namespaces_.back() == ns) return name;
     std::string qualified_name;
-    for (auto it = ns->components.begin();
-             it != ns->components.end(); ++it) {
-      qualified_name += *it + "::";
-    }
+    for (auto it = ns->components.begin(); it != ns->components.end(); ++it) qualified_name += *it + ".";
     return qualified_name + name;
-  } else {
-    return name;
-  }
 }
 
-static std::string WrapInNameSpace(const Parser &parser,
-                                   const Definition &def) {
+static std::string WrapInNameSpace(const Parser &parser, const Definition &def) {
   return WrapInNameSpace(parser, def.defined_namespace, def.name);
 }
 
@@ -733,7 +725,7 @@ static std::string package(const Parser &parser) {
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (namespace_name.length()) namespace_name += ".";
-    namespace_name = *it;
+    namespace_name += *it;
   }
   return namespace_name;
 }
@@ -749,10 +741,9 @@ static bool SaveType(const Parser &parser, const Definition &def,
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    if (namespace_name.length()) {
-      namespace_name += ".";
-    }
-    namespace_name = *it;
+    if (namespace_name.length()) namespace_name += ".";
+    
+    namespace_name += *it;
     namespace_dir += *it + kPathSeparator;
   }
   EnsureDirExists(namespace_dir);

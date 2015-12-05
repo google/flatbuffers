@@ -1,6 +1,6 @@
 package com.google.flatbuffers.kotlin
 
-import Example.*
+import MyGame.Example.*
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 fun main(args: Array<String>) = try {
 
 
-        val data = RandomAccessFile(File("/home/ubuntu/git/flatbuffers/tests/monsterdata_test.mon"), "r").use {
+        val data = RandomAccessFile(File("monsterdata_test.mon"), "r").use {
             val temp = ByteArray(it.length().toInt())
             it.readFully(temp)
             temp
@@ -36,7 +36,7 @@ fun main(args: Array<String>) = try {
 		val mon = monster(of("MyMonster"), 
                 	hp = 80.toShort(),
                 	inventory = inventory(0, 1, 2, 3, 4),
-                	testType = Example.Any.Monster,
+                	testType = MyGame.Example.Any.Monster,
                 	test = monster(of("Fred")), 
                 	test4 = test4(2) {testRaw(10.toShort(), 20.toByte());testRaw(30.toShort(), 40.toByte())},
                 	testarrayofstring = testarrayofstring(of("test1"), of("test2")), 
@@ -77,11 +77,11 @@ fun main(args: Array<String>) = try {
         testEq(monster.mana, 150.toShort())
 
         // testType is an existing field and mutating it should succeed
-        testEq(monster.testType, Example.Any.Monster)
-        testEq(monster.mutateTestType(Example.Any.NONE), true)
-        testEq(monster.testType, Example.Any.NONE)
-        testEq(monster.mutateTestType(Example.Any.Monster), true)
-        testEq(monster.testType, Example.Any.Monster)
+        testEq(monster.testType, MyGame.Example.Any.Monster)
+        testEq(monster.mutateTestType(MyGame.Example.Any.NONE), true)
+        testEq(monster.testType, MyGame.Example.Any.NONE)
+        testEq(monster.mutateTestType(MyGame.Example.Any.Monster), true)
+        testEq(monster.testType, MyGame.Example.Any.Monster)
 
         //mutate the inventory vector
         testEq(monster.mutateInventory(0, 1), true)
@@ -138,7 +138,7 @@ fun main(args: Array<String>) = try {
         testEq(t.a, 5.toShort())
         testEq(t.b, 6.toByte())
 
-        testEq(monster.testType, Example.Any.Monster)
+        testEq(monster.testType, MyGame.Example.Any.Monster)
         val monster2 = Monster()
         testEq(monster.test(monster2) != null, true)
         testEq(monster2.name, "Fred")
@@ -178,15 +178,17 @@ fun main(args: Array<String>) = try {
         val monster = Monster(bb)
 
         testEq(monster.testhashu32Fnv1, Integer.MAX_VALUE + 1L)
-	println(monster.toString())
+	testEq(monster.toString(), MONSTER_STRING)
     }
+
+    val MONSTER_STRING = """Monster(pos=Vec3(x=1.0,y=2.0,z=3.0,test1=3.0,test2=Green,test3=Test(a=5,b=6)),mana=150,hp=80,name=MyMonster,inventory=[0, 1, 2, 3, 4],color=Blue,testType=Monster,test=Monster(pos=null,mana=150,hp=100,name=Fred,inventory=[],color=Blue,testType=NONE,test=null,test4=[],testarrayofstring=[],testarrayoftables=[],enemy=null,testnestedflatbuffer=[],testempty=null,testbool=false,testhashs32Fnv1=0,testhashu32Fnv1=0,testhashs64Fnv1=0,testhashu64Fnv1=0,testhashs32Fnv1a=0,testhashu32Fnv1a=0,testhashs64Fnv1a=0,testhashu64Fnv1a=0,testarrayofbools=[]),test4=[Test(a=30,b=40), Test(a=10,b=20)],testarrayofstring=[test1, test2],testarrayoftables=[],enemy=null,testnestedflatbuffer=[],testempty=null,testbool=false,testhashs32Fnv1=0,testhashu32Fnv1=2147483648,testhashs64Fnv1=0,testhashu64Fnv1=0,testhashs32Fnv1a=0,testhashu32Fnv1a=0,testhashs64Fnv1a=0,testhashu64Fnv1a=0,testarrayofbools=[])"""
 
 
     fun testEnums() {
         testEq(Color.Red.name, "Red")
         testEq(Color.Blue.name, "Blue")
-        testEq(Example.Any.valueOf("NONE"), Example.Any.NONE)
-        testEq(Example.Any.valueOf("Monster"), Example.Any.Monster)
+        testEq(MyGame.Example.Any.valueOf("NONE"), MyGame.Example.Any.NONE)
+        testEq(MyGame.Example.Any.valueOf("Monster"), MyGame.Example.Any.Monster)
     }
 
     fun <T> testEq(a: T, b: T) = if (a != b) {
