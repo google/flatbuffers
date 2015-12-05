@@ -6,6 +6,9 @@ namespace MyGame.Example;
 
 attribute "priority";
 
+enum Map:ubyte  { A, B=3, C, D, E, F, G, H, I}
+enum Function:short  { A=-5, B=-2, C=1, D=4, E=7, F=10, G=13, H=16, I=19}
+
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements

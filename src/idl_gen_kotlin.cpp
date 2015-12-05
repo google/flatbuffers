@@ -36,12 +36,12 @@
 
 /** possible improvements : 
   A) maintainability : implement base abstract class (allowing others to reuse it) & concrete class for Kotlin
-    1) remove dependency from the stuff of idl_gen_general that doesn't cleanly separate from kotlin
+    1) DONE ----------remove dependency from the stuff of idl_gen_general that doesn't cleanly separate from kotlin-----------
     2) implement a sharable base class, with sensible defaults, that provides nice utils but does the minimum that a parser should do
         and that has no IF, no switch, no language specific stuff
     3) implement a concrete class for kotlin
   B) correctness : implement flatbuffers features : 
-     1) namespaces are broken (only the last part gets exported)
+     1) DONE ----------namespaces are broken (only the last part gets exported)-------
      2) DONE ----------required (in constructor)------------
      3) DONE ----------defaults values (in constructor)----------
      4) key
@@ -55,6 +55,7 @@
      12) key
      
   C) enhancements :
+    0) improve enums performance
     1) allocation free toString() (requires recursion public __offset(byteBuffer, position) & cie)
     2) equals
     3) hashCode
@@ -229,7 +230,6 @@ std::string LowerFirst(const std::string &in) {
   return s;
 }
 
-
 // Begin by declaring namespace and imports.
 static void BeginFile(const std::string name_space_name, const bool needs_imports, std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -252,26 +252,94 @@ static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr)
 }
 
 // A single enum member.
-static void enumMember(const EnumVal ev,
-                       std::string *code_ptr) {
+static void enumMember(const EnumVal ev, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t" +  ev.name + "(" + NumToString(ev.value) + ")";
 }
 
+
+
+/** enum in arithmetic progression value = a * index + b */
+const int ENUM_ARITHMETIC_PROGRESSION = 0;
+// We could also check if enums are implemented with ranges 
+// with holes between them and use an increasing bound function 
+// to map it back to a contiguous range
+// but it's probably overkill and error prone
+/** less than 8 values : use multi if */
+const int ENUM_WHEN = 1;
+/** more values */
+// we could also use an (sparse) array as in the C++ code it the max-min value isn't very big
+// we could also use a binarysearch
+const int ENUM_MAP = 2; 
+
+
+// Begin enum code with a class declaration.
+static int analyzeEnum(const EnumDef &enum_def) {
+    // first check if the enums are in an arithmetic progression
+    int size =  enum_def.vals.vec.size();
+    if (size <= 2) return ENUM_ARITHMETIC_PROGRESSION;
+    int nextValue = enum_def.vals.vec[1]->value;
+    int r =  nextValue - enum_def.vals.vec[0]->value;
+    bool isArithmeticProgression = true;
+    for (int index = 2; index < size; index++) {
+    	  nextValue += r;
+    	  if ( enum_def.vals.vec[index]->value != nextValue) {
+    	       isArithmeticProgression = false;
+    	       break;
+    	  }
+    }
+    if (isArithmeticProgression) return ENUM_ARITHMETIC_PROGRESSION;
+    if (size < 8) return ENUM_WHEN;
+    return ENUM_MAP;
+}
+
+
+
 static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr, const Parser & parser) {
   std::string &code = *code_ptr;
 
-  
+  int analyzedEnum = analyzeEnum(enum_def);
   code += "\t companion object {\n";
   
   // deserializing enums
-  code += "\tfun from( value : " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") : " + enum_def.name  + " = when (value.toInt()) {\n";
-  for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();++it) {
-        auto &ev = **it;
-	code += "\t" + NumToString(ev.value) + " -> " + ev.name + "\n";
-  }
-   code += "\telse -> throw Exception(\"Bad enum value : $value\")\n";
-  code += "}\n";
+  code += "\tfun from( value : " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") : " + enum_def.name;
+  
+  int first;
+  int r;
+  switch(analyzedEnum) {
+  case ENUM_WHEN :
+      code +=  " = when (value.toInt()) {\n";
+      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end(); ++it) {
+         auto &ev = **it;
+         code += "\t" + NumToString(ev.value) + " -> " + ev.name + "\n";
+      }
+      code += "\telse -> throw Exception(\"Bad enum value : $value\")\n";
+      code += "}\n";
+      break;
+case ENUM_ARITHMETIC_PROGRESSION:
+	if (enum_def.vals.vec.size() == 1) {
+		code +=  " = if  (value.toInt() == " + NumToString(enum_def.vals.vec[0]->value) + ") " + enum_def.vals.vec[0]->name + " else throw Exception(\"Bad enum value : $value\")"; 
+		break;
+	}
+	first = enum_def.vals.vec[0]->value;
+	r = enum_def.vals.vec[1]->value - first;
+	code +=  " =values[(value.toInt()";
+	if (first >= 0) code += " - " + NumToString(first); else code += " + " + NumToString(-first);
+	code += ") / " + NumToString(r) + "]\n";
+	break;
+case ENUM_MAP:
+	default:
+code +=  "= map[value.toInt()] ?: throw Exception(\"Bad enum value : $value\")\n";
+code += "private val map = mapOf(";
+  for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end(); ++it) {
+         auto &ev = **it;
+         if (it != enum_def.vals.vec.begin()) code += ",\n\t";
+         code += NumToString(ev.value) + " to " + ev.name;
+      }
+code += ")\n";      
+	break;
+  } 
+  
   
   // fetching correct constructor for unions
   if (enum_def.is_union) {
@@ -703,8 +771,8 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
 
 // Generate enum declarations.
 static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const Parser & parser) {
-  if (enum_def.generated) return;
-
+  if (enum_def.generated || !enum_def.vals.vec.size()) return;
+  
   auto &code = * code_ptr;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
   
@@ -717,7 +785,7 @@ static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const P
     enumMember( ev, code_ptr);
   }
   code += ";\n";
-  endEnumDeclaration(enum_def,code_ptr, parser);
+  endEnumDeclaration(enum_def, code_ptr, parser);
 }
 
 static std::string package(const Parser &parser) {
