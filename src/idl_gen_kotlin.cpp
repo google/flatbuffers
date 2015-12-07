@@ -323,7 +323,7 @@ case ENUM_ARITHMETIC_PROGRESSION:
 	}
 	first = enum_def.vals.vec[0]->value;
 	r = enum_def.vals.vec[1]->value - first;
-	code +=  " =values[(value.toInt()";
+	code +=  " =values()[(value.toInt()";
 	if (first >= 0) code += " - " + NumToString(first); else code += " + " + NumToString(-first);
 	code += ") / " + NumToString(r) + "]\n";
 	break;
@@ -602,7 +602,7 @@ static void generateStructBuilder(const StructDef &struct_def, std::string *code
       if (it!= struct_def.fields.vec.begin()) code += ", ";
       if (IsStruct(field.value.type)) code += "crossinline " + sanitize(field.name, false) + " : FlatBufferBuilder.()->Int"; else code +=  sanitize(field.name, false)  + " : " + GenTypeForUserConstructor(field.value.type); 
   }
-  code += "):FlatBufferBuilder = with(this) {\n";
+  code += "):Int = with(this) {\n";
   code += "prep(" + NumToString(struct_def.minalign) + ", " + NumToString(struct_def.bytesize) + ")\n";
   for (auto it = struct_def.fields.vec.rbegin(); it != struct_def.fields.vec.rend(); ++it) {
     auto &field = **it;
@@ -612,7 +612,7 @@ static void generateStructBuilder(const StructDef &struct_def, std::string *code
       code +=  downsizeToStorageValueForConstructor(field.value.type, sanitize(field.name, false)) + ")\n";
     }
   }
-  code += "\n\t}\n";
+  code += "\n\toffset()\n\t}\n";
   
   if (hasNestedStruct(struct_def)) code += "inline ";
   code += "public fun FlatBufferBuilder." + LowerFirst(struct_def.name) + "(";  
@@ -627,7 +627,7 @@ static void generateStructBuilder(const StructDef &struct_def, std::string *code
       if (it!= struct_def.fields.vec.begin()) code += ", ";
       code +=  sanitize(field.name, false); 
   }
-  code += ");offset()}\n";
+  code += ")}\n";
 }
 
 static void buildArrayWithLambda( const FieldDef &field, std::string *code_ptr) {
