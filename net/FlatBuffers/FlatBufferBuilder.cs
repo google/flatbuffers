@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+
 using System;
 using System.Text;
+
 
 namespace FlatBuffers
 {
@@ -29,8 +31,10 @@ namespace FlatBuffers
         private ByteBuffer _bb;
         private int _minAlign = 1;
 
-        // The vtable for the current table, null otherwise.
-        private int[] _vtable;
+        // The vtable for the current table (if _vtableSize >= 0)
+        private int[] _vtable = new int[16];
+        // The size of the vtable. -1 indicates no vtable
+        private int _vtableSize = -1;
         // Starting offset of the current struct/table.
         private int _objectStart;
         // List of offsets of all vtables.
@@ -54,9 +58,9 @@ namespace FlatBuffers
             _space = _bb.Length;
             _bb.Reset();
             _minAlign = 1;
-            _vtable = null;
+            while (_vtableSize > 0) _vtable[--_vtableSize] = 0;
+            _vtableSize = -1;
             _objectStart = 0;
-            _vtables = new int[16];
             _numVtables = 0;
             _vectorNumElems = 0;
         }
@@ -226,15 +230,22 @@ namespace FlatBuffers
         {
             // You should not be creating any other objects or strings/vectors
             // while an object is being constructed
-            if (_vtable != null)
+            if (_vtableSize >= 0)
                 throw new Exception(
                     "FlatBuffers: object serialization must not be nested.");
         }
 
         public void StartObject(int numfields)
         {
+            if (numfields < 0)
+                throw new ArgumentOutOfRangeException("Flatbuffers: invalid numfields");
+
             NotNested();
-            _vtable = new int[numfields];
+
+            if (_vtable.Length < numfields)
+                _vtable = new int[numfields];
+
+            _vtableSize = numfields;
             _objectStart = Offset;
         }
 
@@ -243,6 +254,9 @@ namespace FlatBuffers
         // buffer.
         public void Slot(int voffset)
         {
+            if (voffset >= _vtableSize)
+                throw new IndexOutOfRangeException("Flatbuffers: invalid voffset");
+
             _vtable[voffset] = Offset;
         }
 
@@ -284,30 +298,31 @@ namespace FlatBuffers
 
         public int EndObject()
         {
-
-            if (_vtable == null)
+            if (_vtableSize < 0)
                 throw new InvalidOperationException(
                   "Flatbuffers: calling endObject without a startObject");
 
             AddInt((int)0);
             var vtableloc = Offset;
             // Write out the current vtable.
-            for (int i = _vtable.Length - 1; i >= 0 ; i--) {
+            for (int i = _vtableSize - 1; i >= 0 ; i--) {
                 // Offset relative to the start of the table.
                 short off = (short)(_vtable[i] != 0
                                         ? vtableloc - _vtable[i]
                                         : 0);
                 AddShort(off);
+
+                // clear out written entry
+                _vtable[i] = 0;
             }
 
             const int standardFields = 2; // The fields below:
             AddShort((short)(vtableloc - _objectStart));
-            AddShort((short)((_vtable.Length + standardFields) *
+            AddShort((short)((_vtableSize + standardFields) *
                              sizeof(short)));
 
             // Search for an existing vtable that matches the current one.
             int existingVtable = 0;
-
             for (int i = 0; i < _numVtables; i++) {
                 int vt1 = _bb.Length - _vtables[i];
                 int vt2 = _space;
@@ -348,7 +363,7 @@ namespace FlatBuffers
                 _bb.PutInt(_bb.Length - vtableloc, Offset - vtableloc);
             }
 
-            _vtable = null;
+            _vtableSize = -1;
             return vtableloc;
         }
 
