@@ -17,6 +17,8 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import MyGame.Example.*;
+import NamespaceA.*;
+import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -155,6 +157,8 @@ class JavaTest {
 
         TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
+        TestNamespaceNesting();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -224,6 +228,19 @@ class JavaTest {
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
+    }
+    
+    static void TestNamespaceNesting() {
+        // reference / manipulate these to verify compilation
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        
+        TableInNestedNS.startTableInNestedNS(fbb);
+        TableInNestedNS.addFoo(fbb, 1234);
+        int nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb);
+        
+        TableInFirstNS.startTableInFirstNS(fbb);      
+        TableInFirstNS.addFooTable(fbb, nestedTableOff);
+        int off = TableInFirstNS.endTableInFirstNS(fbb);
     }
 
     static <T> void TestEq(T a, T b) {
