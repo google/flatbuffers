@@ -239,7 +239,9 @@ class ByteBuffer
      */
     public function putInt($offset, $value)
     {
-        self::validateValue(~PHP_INT_MAX,  PHP_INT_MAX, $value, "int");
+        // 2147483647 = (1 << 31) -1 = Maximum signed 32-bit int
+        // -2147483648 = -1 << 31 = Minimum signed 32-bit int
+        self::validateValue(-2147483648, 2147483647, $value, "int");
 
         $this->assertOffsetAndLength($offset, 4);
         $this->writeLittleEndian($offset, 4, $value);
@@ -252,7 +254,8 @@ class ByteBuffer
     public function putUint($offset, $value)
     {
         // NOTE: We can't put big integer value. this is PHP limitation.
-        self::validateValue(0,  PHP_INT_MAX, $value, "uint",  " php has big numbers limitation. check your PHP_INT_MAX");
+        // 4294967295 = (1 << 32) -1 = Maximum unsigned 32-bin int
+        self::validateValue(0, 4294967295, $value, "uint",  " php has big numbers limitation. check your PHP_INT_MAX");
 
         $this->assertOffsetAndLength($offset, 4);
         $this->writeLittleEndian($offset, 4, $value);
@@ -369,7 +372,11 @@ class ByteBuffer
     {
         $result = $this->readLittleEndian($index, 2);
 
-        return self::convertHelper(self::__SHORT, $result);
+        $sign = $index + (ByteBuffer::isLittleEndian() ? 1 : 0);
+        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
+
+        // 65536 = 1 << 16 = Maximum unsigned 16-bit int
+        return $issigned ? $result - 65536 : $result;
     }
 
     /**
@@ -389,7 +396,11 @@ class ByteBuffer
     {
         $result = $this->readLittleEndian($index, 4);
 
-        return self::convertHelper(self::__INT, $result);
+        $sign = $index + (ByteBuffer::isLittleEndian() ? 3 : 0);
+        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
+
+        // 4294967296 = 1 << 32 = Maximum unsigned 32-bit int
+        return $issigned ? $result - 4294967296 : $result;
     }
 
     /**
@@ -407,9 +418,7 @@ class ByteBuffer
      */
     public function getLong($index)
     {
-        $result =  $this->readLittleEndian($index, 8);
-
-        return self::convertHelper(self::__LONG, $result);
+        return $this->readLittleEndian($index, 8);
     }
 
     /**
@@ -456,22 +465,6 @@ class ByteBuffer
         // see also: http://php.net/manual/en/function.pack.php
 
         switch ($type) {
-            case self::__SHORT:
-                $helper = pack("v", $value);
-                $v = unpack("s", $helper);
-
-                return $v[1];
-                break;
-            case self::__INT:
-                $helper = pack("V", $value);
-                $v = unpack("l", $helper);
-                return $v[1];
-                break;
-            case self::__LONG:
-                $helper = pack("P", $value);
-                $v = unpack("q", $helper);
-                return $v[1];
-                break;
             case self::__FLOAT:
                 $inthelper = pack("V", $value);
                 $v = unpack("f", $inthelper);
