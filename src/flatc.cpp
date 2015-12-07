@@ -268,7 +268,7 @@ int main(int argc, const char *argv[]) {
                                flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
-        opts.lang = generators[i].lang;
+        parser->opts.lang = generators[i].lang;
         if (generator_enabled[i]) {
           if (!print_make_rules) {
             flatbuffers::EnsureDirExists(output_path);
