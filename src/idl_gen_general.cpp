@@ -957,8 +957,13 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
         if (lang.language != IDLOptions::kJava) {
+          std::string default_cast = "";
+          if (lang.language == IDLOptions::kCSharp && field.value.type.base_type == BASE_TYPE_FLOAT) {
+            // CSharp needs `f` suffix. for now, use cast.
+            default_cast = "(float)";
+          }
           code += " = ";
-          code += GenDefaultValueBasic(lang, parser, field.value);
+          code += default_cast + GenDefaultValueBasic(lang, parser, field.value);
         }
       }
       code += ") {\n    builder.";
