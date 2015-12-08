@@ -168,7 +168,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public void PutInt(int offset, int value)
@@ -185,7 +184,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public unsafe void PutLong(int offset, long value)
@@ -203,7 +201,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public unsafe void PutFloat(int offset, float value)
@@ -220,7 +217,6 @@ namespace FlatBuffers
                     *(uint*)(ptr + offset) = ReverseBytes(*(uint*)(&value));
                 }
             }
-            _pos = offset;
         }
 
         public unsafe void PutDouble(int offset, double value)
@@ -238,7 +234,6 @@ namespace FlatBuffers
                     *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(ptr + offset));
                 }
             }
-            _pos = offset;
         }
 #else // !UNSAFE_BYTEBUFFER
         // Slower versions of Put* for when unsafe code is not allowed.
