@@ -369,15 +369,16 @@ namespace FlatBuffers
 
         // This checks a required field has been set in a given table that has
         // just been constructed.
-        public void Required(int table, int field)
+        public void Required(int table, int fieldNumber, string fieldName)
         {
-          int table_start = _bb.Length - table;
-          int vtable_start = table_start - _bb.GetInt(table_start);
-          bool ok = _bb.GetShort(vtable_start + field) != 0;
-          // If this fails, the caller will show what field needs to be set.
-          if (!ok)
-            throw new InvalidOperationException("FlatBuffers: field " + field +
-                                                " must be set");
+            int table_start = _bb.Length - table;
+            int vtable_start = table_start - _bb.GetInt(table_start);
+            bool ok = _bb.GetShort(vtable_start + fieldNumber) != 0;
+            // If this fails, the caller will show what field needs to be set.
+            if (!ok)
+            {
+                throw new InvalidOperationException(string.Format("FlatBuffers: field '{0}' (offset {1}) must be set", fieldName, fieldNumber));
+            }
         }
 
         public void Finish(int rootTable)

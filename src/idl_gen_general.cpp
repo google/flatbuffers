@@ -1051,7 +1051,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       if (!field.deprecated && field.required) {
         code += "    builder." + FunctionStart(lang, 'R') + "equired(o, ";
         code += NumToString(field.value.offset);
-        code += ");  // " + field.name + "\n";
+        code += ", \"" + field.name + "\");\n";
       }
     }
     code += "    return " + GenOffsetConstruct(lang, parser, struct_def, "o") + ";\n  }\n";

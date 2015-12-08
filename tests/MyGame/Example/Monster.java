@@ -115,7 +115,7 @@ public final class Monster extends Table {
   public static void startTestarrayofboolsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
-    builder.required(o, 10);  // name
+    builder.required(o, 10, "name");
     return o;
   }
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
