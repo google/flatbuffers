@@ -432,10 +432,13 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Parser 
                                    const Value &value, bool enableLangOverrides) {
   if (enableLangOverrides) {
     // handles both enum case and vector of enum case
-    if (lang.language == IDLOptions::kCSharp &&
-        value.type.enum_def != nullptr &&
+    if (lang.language == IDLOptions::kCSharp) {
+      if (value.type.enum_def != nullptr &&
         value.type.base_type != BASE_TYPE_UNION) {
-      return GenEnumDefaultValue(parser, value);
+        return GenEnumDefaultValue(parser, value);
+      } else if (value.type.base_type == BASE_TYPE_FLOAT) {
+        return value.constant + "f";
+      }
     }
   }
   return value.type.base_type == BASE_TYPE_BOOL
@@ -769,7 +772,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       // returns an actual c# enum that doesn't need to be casted. However, default values for enum elements of
       // vectors are integer literals ("0") and are still casted for clarity.
       if (field.value.type.enum_def == nullptr || field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (field.value.type.base_type != BASE_TYPE_FLOAT) {
           default_cast = "(" + type_name_dest + ")";
+        }
       }
     }
     std::string member_suffix = "";
@@ -957,13 +962,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
         if (lang.language != IDLOptions::kJava) {
-          std::string default_cast = "";
-          if (lang.language == IDLOptions::kCSharp && field.value.type.base_type == BASE_TYPE_FLOAT) {
-            // CSharp needs `f` suffix. for now, use cast.
-            default_cast = "(float)";
-          }
           code += " = ";
-          code += default_cast + GenDefaultValueBasic(lang, parser, field.value);
+          code += GenDefaultValueBasic(lang, parser, field.value);
         }
       }
       code += ") {\n    builder.";
