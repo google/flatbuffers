@@ -107,6 +107,14 @@ namespace FlatBuffers.Test
             }
         }
 
+        public static void IsFalse(bool value)
+        {
+            if (value)
+            {
+                throw new AssertFailedException(false, value);
+            }
+        }
+
         public static void Throws<T>(Action action) where T : Exception
         {
             var caught = false;

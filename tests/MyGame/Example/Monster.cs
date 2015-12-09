@@ -3,6 +3,7 @@
 namespace MyGame.Example
 {
 
+using System;
 using FlatBuffers;
 
 /// an example documentation comment: monster object
@@ -19,8 +20,10 @@ public sealed class Monster : Table {
   public short Hp { get { int o = __offset(8); return o != 0 ? bb.GetShort(o + bb_pos) : (short)100; } }
   public bool MutateHp(short hp) { int o = __offset(8); if (o != 0) { bb.PutShort(o + bb_pos, hp); return true; } else { return false; } }
   public string Name { get { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; } }
+  public ArraySegment<byte>? GetNameBytes() { return __vector_as_arraysegment(10); }
   public byte GetInventory(int j) { int o = __offset(14); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; } }
+  public ArraySegment<byte>? GetInventoryBytes() { return __vector_as_arraysegment(14); }
   public bool MutateInventory(int j, byte inventory) { int o = __offset(14); if (o != 0) { bb.Put(__vector(o) + j * 1, inventory); return true; } else { return false; } }
   public Color Color { get { int o = __offset(16); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : Color.Blue; } }
   public bool MutateColor(Color color) { int o = __offset(16); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
@@ -41,6 +44,7 @@ public sealed class Monster : Table {
   public Monster GetEnemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public byte GetTestnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; } }
+  public ArraySegment<byte>? GetTestnestedflatbufferBytes() { return __vector_as_arraysegment(30); }
   public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __offset(30); if (o != 0) { bb.Put(__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public Stat Testempty { get { return GetTestempty(new Stat()); } }
   public Stat GetTestempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
@@ -64,6 +68,7 @@ public sealed class Monster : Table {
   public bool MutateTesthashu64Fnv1a(ulong testhashu64_fnv1a) { int o = __offset(50); if (o != 0) { bb.PutUlong(o + bb_pos, testhashu64_fnv1a); return true; } else { return false; } }
   public bool GetTestarrayofbools(int j) { int o = __offset(52); return o != 0 ? 0!=bb.Get(__vector(o) + j * 1) : false; }
   public int TestarrayofboolsLength { get { int o = __offset(52); return o != 0 ? __vector_len(o) : 0; } }
+  public ArraySegment<byte>? GetTestarrayofboolsBytes() { return __vector_as_arraysegment(52); }
   public bool MutateTestarrayofbools(int j, bool testarrayofbools) { int o = __offset(52); if (o != 0) { bb.Put(__vector(o) + j * 1, (byte)(testarrayofbools ? 1 : 0)); return true; } else { return false; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(25); }

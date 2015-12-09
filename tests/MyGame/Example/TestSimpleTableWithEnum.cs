@@ -3,6 +3,7 @@
 namespace MyGame.Example
 {
 
+using System;
 using FlatBuffers;
 
 public sealed class TestSimpleTableWithEnum : Table {
