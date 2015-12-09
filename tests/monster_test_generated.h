@@ -236,7 +236,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data()); }
   const Stat *testempty() const { return GetPointer<const Stat *>(VT_TESTEMPTY); }
   Stat *mutable_testempty() { return GetPointer<Stat *>(VT_TESTEMPTY); }
-  bool testbool() const { return static_cast<bool>(GetField<uint8_t>(VT_TESTBOOL, 0)); }
+  bool testbool() const { return GetField<uint8_t>(VT_TESTBOOL, 0) != 0; }
   bool mutate_testbool(bool _testbool) { return SetField(VT_TESTBOOL, static_cast<uint8_t>(_testbool)); }
   int32_t testhashs32_fnv1() const { return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0); }
   bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) { return SetField(VT_TESTHASHS32_FNV1, _testhashs32_fnv1); }

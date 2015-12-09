@@ -234,11 +234,16 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
 // underlying type to the interface type.
 std::string GenUnderlyingCast(const Parser &parser, const FieldDef &field,
                               bool from, const std::string &val) {
-  return (field.value.type.enum_def && IsScalar(field.value.type.base_type)) ||
-         field.value.type.base_type == BASE_TYPE_BOOL
-      ? "static_cast<" + GenTypeBasic(parser, field.value.type, from) + ">(" +
-        val + ")"
-      : val;
+  if (from && field.value.type.base_type == BASE_TYPE_BOOL) {
+    return val + " != 0";
+  } else if ((field.value.type.enum_def &&
+              IsScalar(field.value.type.base_type)) ||
+             field.value.type.base_type == BASE_TYPE_BOOL) {
+    return "static_cast<" + GenTypeBasic(parser, field.value.type, from) +
+           ">(" + val + ")";
+  } else {
+    return val;
+  }
 }
 
 std::string GenFieldOffsetName(const FieldDef &field) {
