@@ -1066,8 +1066,10 @@ void Parser::ParseDecl() {
 }
 
 bool Parser::SetRootType(const char *name) {
-  root_struct_def_ = structs_.Lookup(
-                       namespaces_.back()->GetFullyQualifiedName(name));
+  root_struct_def_ = structs_.Lookup(name);
+  if (!root_struct_def_)
+    root_struct_def_ = structs_.Lookup(
+                         namespaces_.back()->GetFullyQualifiedName(name));
   return root_struct_def_ != nullptr;
 }
 
@@ -1440,6 +1442,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
         Next();
         auto root_type = attribute_;
         Expect(kTokenIdentifier);
+        ParseNamespacing(&root_type, nullptr);
         if (!SetRootType(root_type.c_str()))
           Error("unknown root type: " + root_type);
         if (root_struct_def_->fixed)
