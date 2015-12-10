@@ -3,6 +3,7 @@
 namespace NamespaceA
 {
 
+using System;
 using FlatBuffers;
 
 public sealed class TableInFirstNS : Table {

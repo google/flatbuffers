@@ -21,6 +21,8 @@
 #include "flatbuffers/util.h"
 
 #include "monster_test_generated.h"
+#include "namespace_test/namespace_test1_generated.h"
+#include "namespace_test/namespace_test2_generated.h"
 
 #include <random>
 
