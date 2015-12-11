@@ -276,12 +276,11 @@ namespace FlatBuffers
 
         public StringOffset CreateString(string s)
         {
-            NotNested();
-            byte[] utf8 = Encoding.UTF8.GetBytes(s);
-            AddByte((byte)0);
-            StartVector(1, utf8.Length, 1);
-            Buffer.BlockCopy(utf8, 0, _bb.Data, _space -= utf8.Length,
-                             utf8.Length);
+            NotNested();            
+            AddByte(0);
+            var utf8StringLen = Encoding.UTF8.GetByteCount(s);
+            StartVector(1, utf8StringLen, 1);
+            Encoding.UTF8.GetBytes(s, 0, s.Length, _bb.Data, _space -= utf8StringLen);
             return new StringOffset(EndVector().Value);
         }
 
