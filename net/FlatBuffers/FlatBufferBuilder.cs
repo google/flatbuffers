@@ -69,10 +69,7 @@ namespace FlatBuffers
 
         public void Pad(int size)
         {
-            for (var i = 0; i < size; i++)
-            {
-                _bb.PutByte(--_space, 0);
-            }
+             _bb.PutByte(_space -= size, 0, size);
         }
 
         // Doubles the size of the ByteBuffer, and copies the old data towards
@@ -116,7 +113,8 @@ namespace FlatBuffers
                 _space += (int)_bb.Length - oldBufSize;
 
             }
-            Pad(alignSize);
+            if (alignSize > 0)
+                Pad(alignSize);
         }
 
         public void PutBool(bool x)
