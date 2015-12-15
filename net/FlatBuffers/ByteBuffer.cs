@@ -14,7 +14,20 @@
  * limitations under the License.
  */
 
-//#define UNSAFE_BYTEBUFFER  // uncomment this line to use faster ByteBuffer
+// There are 2 #defines that have an impact on performance of this ByteBuffer implementation
+//
+//      UNSAFE_BYTEBUFFER 
+//          This will use unsafe code to manipulate the underlying byte array. This
+//          can yield a reasonable performance increase.
+//
+//      BYTEBUFFER_NO_BOUNDS_CHECK
+//          This will disable the bounds check asserts to the byte array. This can
+//          yield a small performance gain in normal code..
+//
+// Using UNSAFE_BYTEBUFFER and BYTEBUFFER_NO_BOUNDS_CHECK together can yield a
+// performance gain of ~15% for some operations, however doing so is potentially 
+// dangerous. Do so at your own risk!
+//
 
 using System;
 
@@ -22,9 +35,6 @@ namespace FlatBuffers
 {
     /// <summary>
     /// Class to mimic Java's ByteBuffer which is used heavily in Flatbuffers.
-    /// If your execution environment allows unsafe code, you should enable
-    /// unsafe code in your project and #define UNSAFE_BYTEBUFFER to use a
-    /// MUCH faster version of ByteBuffer.
     /// </summary>
     public class ByteBuffer
     {
@@ -126,12 +136,15 @@ namespace FlatBuffers
         }
 #endif // !UNSAFE_BYTEBUFFER
 
+
         private void AssertOffsetAndLength(int offset, int length)
         {
+            #if !BYTEBUFFER_NO_BOUNDS_CHECK
             if (offset < 0 ||
                 offset >= _buffer.Length ||
                 offset + length > _buffer.Length)
                 throw new ArgumentOutOfRangeException();
+            #endif
         }
 
         public void PutSbyte(int offset, sbyte value)
@@ -201,7 +214,6 @@ namespace FlatBuffers
         public unsafe void PutUlong(int offset, ulong value)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-
             fixed (byte* ptr = _buffer)
             {
                 *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian
