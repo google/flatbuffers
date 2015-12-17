@@ -74,6 +74,9 @@ function main()
     fuzzTest1($assert);
 //    testUnicode($assert);
 
+
+    testIndirectBuffer($assert);
+
     echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
 }
 
@@ -587,7 +590,15 @@ function testByteBuffer(Assert $assert) {
     $assert->Equal(0x0D0C0B0A, $uut->readLittleEndian(0, 4, true));
 
 }
-
+function testIndirectBuffer(Assert $assert)
+{
+    $js = json_decode(file_get_contents('monsterdata_indirect.json'), true);
+    $data = file_get_contents('monsterdata_indirect.mon');
+    $bb = Google\FlatBuffers\ByteBuffer::wrap($data);
+    $mons = \MyGame\Example\Monster::getRootAsMonster($bb);
+    $assert->Equal($js["name"], $mons->getName());
+    $assert->Equal($js["enemy"]["name"], $mons->getEnemy()->getName());
+}
 class Assert {
     public function ok($result, $message = "") {
         if (!$result){
