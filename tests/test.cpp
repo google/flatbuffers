@@ -221,6 +221,10 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   for (auto it = tests->begin(); it != tests->end(); ++it) {
     TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
   }
+
+  // Checking for presence of fields:
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_HP), true);
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_MANA), false);
 }
 
 // Change a FlatBuffer in-place, after it has been constructed.

@@ -1187,6 +1187,18 @@ class Table {
   uint8_t data_[1];
 };
 
+// Helper function to test if a field is present, using any of the field
+// enums in the generated code.
+// `table` must be a generated table type. Since this is a template parameter,
+// this is not typechecked to be a subclass of Table, so beware!
+// Note: this function will return false for fields equal to the default
+// value, since they're not stored in the buffer (unless force_defaults was
+// used).
+template<typename T> bool IsFieldPresent(const T *table, voffset_t field) {
+  // Cast, since Table is a private baseclass of any table types.
+  return reinterpret_cast<const Table *>(table)->CheckField(field);
+}
+
 // Utility function for reverse lookups on the EnumNames*() functions
 // (in the generated C++ code)
 // names must be NULL terminated.
