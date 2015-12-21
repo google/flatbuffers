@@ -26,6 +26,22 @@
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
 
+
+#if defined(__CYGWIN32__)
+#define FLATBUFFERS_API __stdcall
+#define FLATBUFFERS_EXPORT __declspec(dllexport)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(WINAPI_FAMILY)
+#define FLATBUFFERS_API __stdcall
+#define FLATBUFFERS_EXPORT __declspec(dllexport)
+#elif defined(__MACH__) || defined(__ANDROID__) || defined(__linux__) || defined(__QNX__)
+#define FLATBUFFERS_API
+#define FLATBUFFERS_EXPORT
+#else
+#define FLATBUFFERS_API
+#define FLATBUFFERS_EXPORT
+#endif
+
+
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
 

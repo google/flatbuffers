@@ -2163,3 +2163,78 @@ std::string Parser::ConformTo(const Parser &base) {
 }
 
 }  // namespace flatbuffers
+
+
+extern "C" {
+  FLATBUFFERS_EXPORT flatbuffers::Parser* flatbuffers_parser_new()
+  {
+    flatbuffers::Parser *p = new flatbuffers::Parser();
+    return p;
+  }
+
+  FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers::Parser *parser, const char* source)
+  {
+    if (parser == nullptr)
+    {
+      return -1;
+    }
+
+    bool result = parser->Parse(source, nullptr, nullptr);
+    if (result)
+    {
+      return 0;
+    }
+    return -1;
+  }
+
+  FLATBUFFERS_EXPORT void flatbuffers_free_string(char **buffer)
+  {
+    if (buffer != nullptr)
+    {
+      free(buffer);
+    }
+  }
+
+  FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers::Parser *parser, char **buffer, size_t *size)
+  {
+    std::string jsongen;
+    *size = parser->builder_.GetSize();
+    flatbuffers::GenerateText(*parser, parser->builder_.GetBufferPointer(), &jsongen);
+
+    *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
+    memcpy(*buffer, jsongen.c_str(), *size);
+    return *size;
+  }
+
+  FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers::Parser *parser, char **buffer, size_t *size)
+  {
+    *size = parser->builder_.GetSize();
+    *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
+    memcpy(*buffer, reinterpret_cast<const char *>(parser->builder_.GetBufferPointer()), *size);
+
+    return *size;
+  }
+
+  FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers::Parser *parser, const char *root_type)
+  {
+    if (parser == nullptr)
+    {
+      return -1;
+    }
+
+    bool result = parser->SetRootType(root_type);
+    if (result)
+    {
+      return 0;
+    }
+    return -1;
+  }
+
+  FLATBUFFERS_EXPORT void flatbuffers_parser_free(flatbuffers::Parser *parser)
+  {
+    if (parser != nullptr)
+    {
+      delete parser;
+    }
+  }
+}

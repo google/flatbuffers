@@ -6,6 +6,7 @@ project(FlatBuffers)
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
+option(FLATBUFFERS_BUILD_SHARED_LIBS "Build Shared Library (OFF for Static)" OFF)
 option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library"
        ON)
 option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
@@ -150,7 +151,11 @@ include_directories(include)
 include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  set(LIB_TYPE STATIC)
+  IF(FLATBUFFERS_BUILD_SHARED_LIBS)
+    set(LIB_TYPE SHARED)
+  ENDIF()
+  add_library(flatbuffers ${LIB_TYPE} ${FlatBuffers_Library_SRCS})
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
