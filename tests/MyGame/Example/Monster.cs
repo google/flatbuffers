@@ -7,7 +7,7 @@ using System;
 using FlatBuffers;
 
 /// an example documentation comment: monster object
-public struct Monster : ITable {
+public struct Monster : ITable<Monster> {
   private readonly TablePos pos;
 
   public Monster(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
@@ -15,6 +15,7 @@ public struct Monster : ITable {
 
   ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
   TablePos ITable.TablePos { get { return this.pos; } }
+  Monster ITable<Monster>.Construct(TablePos pos) { return new Monster(pos); }
 
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return (new Monster(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return TablePos.__has_identifier(_bb, "MONS"); }
@@ -34,8 +35,7 @@ public struct Monster : ITable {
   public bool MutateColor(Color color) { int o = this.pos.__offset(16); if (o != 0) { this.pos.bb.PutSbyte(o + this.pos.bb_pos, (sbyte)color); return true; } else { return false; } }
   public Any TestType { get { int o = this.pos.__offset(18); return o != 0 ? (Any)this.pos.bb.Get(o + this.pos.bb_pos) : Any.NONE; } }
   public bool MutateTestType(Any test_type) { int o = this.pos.__offset(18); if (o != 0) { this.pos.bb.Put(o + this.pos.bb_pos, (byte)test_type); return true; } else { return false; } }
-  public Monster? GetTestAsMonster() { int o = this.pos.__offset(20); return o != 0 ? new Monster(this.pos.__union(o)) : (Monster?)null; }
-  public TestSimpleTableWithEnum? GetTestAsTestSimpleTableWithEnum() { int o = this.pos.__offset(20); return o != 0 ? new TestSimpleTableWithEnum(this.pos.__union(o)) : (TestSimpleTableWithEnum?)null; }
+  public TTable? GetTest<TTable>() where TTable : struct, ITable<TTable> { int o = this.pos.__offset(20); return o != 0 ? this.pos.__union<TTable>(o) : (TTable?)null; }
   public Test? GetTest4(int j) { int o = this.pos.__offset(22); return o != 0 ? new Test(this.pos.__vector(o) + j * 4, this.pos.bb) : (Test?)null; }
   public int Test4Length { get { int o = this.pos.__offset(22); return o != 0 ? this.pos.__vector_len(o) : 0; } }
   public string GetTestarrayofstring(int j) { int o = this.pos.__offset(24); return o != 0 ? this.pos.__string(this.pos.__vector(o) + j * 4) : null; }

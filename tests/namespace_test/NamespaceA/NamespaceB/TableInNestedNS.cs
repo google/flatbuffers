@@ -6,7 +6,7 @@ namespace NamespaceA.NamespaceB
 using System;
 using FlatBuffers;
 
-public struct TableInNestedNS : ITable {
+public struct TableInNestedNS : ITable<TableInNestedNS> {
   private readonly TablePos pos;
 
   public TableInNestedNS(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
@@ -14,6 +14,7 @@ public struct TableInNestedNS : ITable {
 
   ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
   TablePos ITable.TablePos { get { return this.pos; } }
+  TableInNestedNS ITable<TableInNestedNS>.Construct(TablePos pos) { return new TableInNestedNS(pos); }
 
   public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb) { return (new TableInNestedNS(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
 

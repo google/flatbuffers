@@ -684,8 +684,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   if (lang.language == IDLOptions::kCSharp) {
     code += "struct " + struct_def.name;
     code += lang.inheritance_marker;
-    std::string itfc_type = struct_def.fixed ? "IStruct" : "ITable";
-    code += itfc_type;
+    code += struct_def.fixed ? "IStruct" : "ITable<" + struct_def.name + ">";
     code += " {\n";
     // add pos field
     code += "  private readonly ";
@@ -698,7 +697,13 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     code += "{ this.pos = pos; }\n\n";
     // add explicit interface implementations
     code += "  ByteBuffer IFieldGroup.ByteBuffer { get { return " + GenByteBufferRef(lang) + "; } }\n";
-    code += "  " + pos_type + " " + itfc_type + "." + pos_type + " { get { return this.pos; } }\n\n";
+    code += "  " + pos_type + " " + (struct_def.fixed ? "IStruct" : "ITable") + "." + pos_type;
+    code += " { get { return this.pos; } }\n";
+    if (!struct_def.fixed) {
+      code += "  " + struct_def.name + " ITable<" + struct_def.name + ">.Construct(TablePos pos) ";
+      code += "{ return new " + struct_def.name + "(pos); }\n";
+    }
+    code += "\n";
   } else {
     code += lang.unsubclassable_decl;
     code += "class " + struct_def.name + lang.inheritance_marker;
@@ -800,7 +805,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       }
     } else if (field.value.type.base_type == BASE_TYPE_UNION) {
       if (lang.language == IDLOptions::kCSharp) {
-        method_start = "";
+        method_start = "  public TTable? Get" + MakeCamel(field.name, lang.first_camel_upper) + "<TTable>() ";
+        method_start += "where TTable : struct, ITable<TTable>";
       }
     }
     std::string getter = dest_cast + GenGetter(lang, parser, field.value.type);
@@ -890,16 +896,8 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         }
         case BASE_TYPE_UNION:
           if (lang.language == IDLOptions::kCSharp) {
-            for (auto it = field.value.type.enum_def->vals.vec.begin() + 1; // skip NONE
-                 it != field.value.type.enum_def->vals.vec.end();
-                 ++it) {
-              auto &enum_val = **it;
-              std::string u_member_type = WrapInNameSpace(parser, *enum_val.struct_def);
-              code += "  public " + u_member_type + "? Get";
-              code += MakeCamel(field.name, lang.first_camel_upper) + "As" + enum_val.name + "()";
-              code += offset_prefix + GenObjInit(lang, u_member_type) + "(" + getter + "(o)) : ";
-              code += GenObjDefaultCast(lang, u_member_type) + "null; }\n";
-            }
+            code += offset_prefix + getter;
+            code += "<TTable>(o) : " + GenObjDefaultCast(lang,"TTable") + "null";
           } else {
             code += "(" + type_name + " obj)" + offset_prefix + getter;
             code += "(obj, o) : null";
@@ -909,11 +907,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           assert(0);
       }
     }
-    if (field.value.type.base_type != BASE_TYPE_UNION || lang.language != IDLOptions::kCSharp) {
-      code += "; ";
-      code += member_suffix;
-      code += "}\n";
-    }
+    code += "; ";
+    code += member_suffix;
+    code += "}\n";
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       code += "  public int " + MakeCamel(field.name, lang.first_camel_upper);
       code += "Length";

@@ -161,7 +161,7 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual(Any.Monster, monster.TestType);
 
-            var monster2 = monster.GetTestAsMonster();
+            var monster2 = monster.GetTest<Monster>();
             Assert.IsTrue(monster2 != null);
             Assert.AreEqual("Fred", monster2.GetValueOrDefault().Name);
 

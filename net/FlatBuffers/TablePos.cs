@@ -70,10 +70,11 @@ namespace FlatBuffers
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.
-        public TablePos __union(int offset)
+        public TTable __union<TTable>(int offset) where TTable : struct, ITable<TTable>
         {
+            TTable table = default(TTable);
             offset += bb_pos;
-            return new TablePos(offset + bb.GetInt(offset), bb);
+            return table.Construct(new TablePos(offset + bb.GetInt(offset), bb));
         }
 
         public static bool __has_identifier(ByteBuffer bb, string ident)

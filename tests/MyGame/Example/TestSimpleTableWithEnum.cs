@@ -6,7 +6,7 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public struct TestSimpleTableWithEnum : ITable {
+public struct TestSimpleTableWithEnum : ITable<TestSimpleTableWithEnum> {
   private readonly TablePos pos;
 
   public TestSimpleTableWithEnum(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
@@ -14,6 +14,7 @@ public struct TestSimpleTableWithEnum : ITable {
 
   ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
   TablePos ITable.TablePos { get { return this.pos; } }
+  TestSimpleTableWithEnum ITable<TestSimpleTableWithEnum>.Construct(TablePos pos) { return new TestSimpleTableWithEnum(pos); }
 
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return (new TestSimpleTableWithEnum(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
 

@@ -6,7 +6,7 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public struct Stat : ITable {
+public struct Stat : ITable<Stat> {
   private readonly TablePos pos;
 
   public Stat(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
@@ -14,6 +14,7 @@ public struct Stat : ITable {
 
   ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
   TablePos ITable.TablePos { get { return this.pos; } }
+  Stat ITable<Stat>.Construct(TablePos pos) { return new Stat(pos); }
 
   public static Stat GetRootAsStat(ByteBuffer _bb) { return (new Stat(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
 
