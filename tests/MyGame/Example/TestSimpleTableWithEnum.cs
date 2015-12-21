@@ -6,13 +6,19 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public sealed class TestSimpleTableWithEnum : Table {
-  public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return GetRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
-  public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public TestSimpleTableWithEnum __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+public struct TestSimpleTableWithEnum : ITable {
+  private readonly TablePos pos;
 
-  public Color Color { get { int o = __offset(4); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : Color.Green; } }
-  public bool MutateColor(Color color) { int o = __offset(4); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
+  public TestSimpleTableWithEnum(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
+  public TestSimpleTableWithEnum(TablePos pos) { this.pos = pos; }
+
+  ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
+  TablePos ITable.TablePos { get { return this.pos; } }
+
+  public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return (new TestSimpleTableWithEnum(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+
+  public Color Color { get { int o = this.pos.__offset(4); return o != 0 ? (Color)this.pos.bb.GetSbyte(o + this.pos.bb_pos) : Color.Green; } }
+  public bool MutateColor(Color color) { int o = this.pos.__offset(4); if (o != 0) { this.pos.bb.PutSbyte(o + this.pos.bb_pos, (sbyte)color); return true; } else { return false; } }
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
       Color color = Color.Green) {

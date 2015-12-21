@@ -42,11 +42,14 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
 STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  int32_t foo() const { return GetField<int32_t>(4, 0); }
-  bool mutate_foo(int32_t _foo) { return SetField(4, _foo); }
+  enum {
+    VT_FOO = 4,
+  };
+  int32_t foo() const { return GetField<int32_t>(VT_FOO, 0); }
+  bool mutate_foo(int32_t _foo) { return SetField(VT_FOO, _foo); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, 4 /* foo */) &&
+           VerifyField<int32_t>(verifier, VT_FOO) &&
            verifier.EndTable();
   }
 };
@@ -54,7 +57,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct TableInNestedNSBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_foo(int32_t foo) { fbb_.AddElement<int32_t>(4, foo, 0); }
+  void add_foo(int32_t foo) { fbb_.AddElement<int32_t>(TableInNestedNS::VT_FOO, foo, 0); }
   TableInNestedNSBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TableInNestedNSBuilder &operator=(const TableInNestedNSBuilder &);
   flatbuffers::Offset<TableInNestedNS> Finish() {

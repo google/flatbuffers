@@ -41,6 +41,15 @@
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
       <Link>FlatBuffers\ByteBuffer.cs</Link>
     </Compile>
+    <Compile Include="..\..\net\FlatBuffers\IFieldGroup.cs">
+      <Link>FlatBuffers\IFieldGroup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\IStruct.cs">
+      <Link>FlatBuffers\IStruct.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net\FlatBuffers\ITable.cs">
+      <Link>FlatBuffers\ITable.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\Offset.cs">
       <Link>FlatBuffers\Offset.cs</Link>
     </Compile>
@@ -50,11 +59,11 @@
     <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
       <Link>FlatBuffers\FlatBufferConstants.cs</Link>
     </Compile>
-    <Compile Include="..\..\net\FlatBuffers\Struct.cs">
-      <Link>FlatBuffers\Struct.cs</Link>
+    <Compile Include="..\..\net\FlatBuffers\StructPos.cs">
+      <Link>FlatBuffers\StructPos.cs</Link>
     </Compile>
-    <Compile Include="..\..\net\FlatBuffers\Table.cs">
-      <Link>FlatBuffers\Table.cs</Link>
+    <Compile Include="..\..\net\FlatBuffers\TablePos.cs">
+      <Link>FlatBuffers\TablePos.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
