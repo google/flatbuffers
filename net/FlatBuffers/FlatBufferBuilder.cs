@@ -69,10 +69,7 @@ namespace FlatBuffers
 
         public void Pad(int size)
         {
-            for (var i = 0; i < size; i++)
-            {
-                _bb.PutByte(--_space, 0);
-            }
+             _bb.PutByte(_space -= size, 0, size);
         }
 
         // Doubles the size of the ByteBuffer, and copies the old data towards
@@ -116,7 +113,8 @@ namespace FlatBuffers
                 _space += (int)_bb.Length - oldBufSize;
 
             }
-            Pad(alignSize);
+            if (alignSize > 0)
+                Pad(alignSize);
         }
 
         public void PutBool(bool x)
@@ -276,12 +274,11 @@ namespace FlatBuffers
 
         public StringOffset CreateString(string s)
         {
-            NotNested();
-            byte[] utf8 = Encoding.UTF8.GetBytes(s);
-            AddByte((byte)0);
-            StartVector(1, utf8.Length, 1);
-            Buffer.BlockCopy(utf8, 0, _bb.Data, _space -= utf8.Length,
-                             utf8.Length);
+            NotNested();            
+            AddByte(0);
+            var utf8StringLen = Encoding.UTF8.GetByteCount(s);
+            StartVector(1, utf8StringLen, 1);
+            Encoding.UTF8.GetBytes(s, 0, s.Length, _bb.Data, _space -= utf8StringLen);
             return new StringOffset(EndVector().Value);
         }
 

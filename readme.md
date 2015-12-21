@@ -18,8 +18,7 @@ Windows, OS X, Linux), see `docs/html/index.html`
 
 Discuss FlatBuffers with other developers and users on the
 [FlatBuffers Google Group][]. File issues on the [FlatBuffers Issues Tracker][]
-or post your questions to [stackoverflow.com][] with a mention of
-**flatbuffers**.
+or post your questions to [stackoverflow.com][] using the [`flatbuffers` tag][].
 
 For applications on Google Play that integrate this tool, usage is tracked.
 This tracking is done automatically using the embedded version string
@@ -34,3 +33,4 @@ you would leave it in.
   [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
   [stackoverflow.com]: http://www.stackoverflow.com
   [landing page]: http://google.github.io/flatbuffers
+  [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers

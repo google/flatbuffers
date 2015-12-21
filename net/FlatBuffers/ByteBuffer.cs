@@ -146,6 +146,13 @@ namespace FlatBuffers
             _buffer[offset] = value;
         }
 
+        public void PutByte(int offset, byte value, int count)
+        {
+            AssertOffsetAndLength(offset, sizeof(byte) * count);
+            for (var i = 0; i < count; ++i)
+                _buffer[offset + i] = value;
+        }
+
         // this method exists in order to conform with Java ByteBuffer standards
         public void Put(int offset, byte value)
         {
