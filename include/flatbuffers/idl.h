@@ -340,6 +340,46 @@ struct IDLOptions {
       lang(IDLOptions::kJava) {}
 };
 
+// A way to make error propagation less error prone by requiring values to be
+// checked.
+// Once you create a value of this type you must either:
+// - Call Check() on it.
+// - Copy or assign it to another value.
+// Failure to do so leads to an assert.
+// This guarantees that this as return value cannot be ignored.
+class CheckedError {
+ public:
+  explicit CheckedError(bool error)
+    : is_error_(error), has_been_checked_(false) {}
+
+  CheckedError &operator=(const CheckedError &other) {
+    is_error_ = other.is_error_;
+    has_been_checked_ = false;
+    other.has_been_checked_ = true;
+    return *this;
+  }
+
+  CheckedError(const CheckedError &other) {
+    *this = other;  // Use assignment operator.
+  }
+
+  ~CheckedError() { assert(has_been_checked_); }
+
+  bool Check() { has_been_checked_ = true; return is_error_; }
+
+ private:
+  bool is_error_;
+  mutable bool has_been_checked_;
+};
+
+// Additionally, in GCC we can get these errors statically, for additional
+// assurance:
+#ifdef __GNUC__
+#define CHECKED_ERROR CheckedError __attribute__((warn_unused_result))
+#else
+#define CHECKED_ERROR CheckedError
+#endif
+
 class Parser {
  public:
   explicit Parser(const IDLOptions &options = IDLOptions())
@@ -395,44 +435,51 @@ class Parser {
   // See reflection/reflection.fbs
   void Serialize();
 
- private:
-  int64_t ParseHexNum(int nibbles);
-  void Next();
-  bool IsNext(int t);
-  void Expect(int t);
+  CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
+
+private:
+  CHECKED_ERROR Error(const std::string &msg);
+  CHECKED_ERROR ParseHexNum(int nibbles, int64_t *val);
+  CHECKED_ERROR Next();
+  bool Is(int t);
+  CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t);
   EnumDef *LookupEnum(const std::string &id);
-  void ParseNamespacing(std::string *id, std::string *last);
-  void ParseTypeIdent(Type &type);
-  void ParseType(Type &type);
-  FieldDef &AddField(StructDef &struct_def,
-                     const std::string &name,
-                     const Type &type);
-  void ParseField(StructDef &struct_def);
-  void ParseAnyValue(Value &val, FieldDef *field, size_t parent_fieldn);
-  uoffset_t ParseTable(const StructDef &struct_def, std::string *value);
+  CHECKED_ERROR ParseNamespacing(std::string *id, std::string *last);
+  CHECKED_ERROR ParseTypeIdent(Type &type);
+  CHECKED_ERROR ParseType(Type &type);
+  CHECKED_ERROR AddField(StructDef &struct_def, const std::string &name,
+                         const Type &type, FieldDef **dest);
+  CHECKED_ERROR ParseField(StructDef &struct_def);
+  CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field, size_t parent_fieldn);
+  CHECKED_ERROR ParseTable(const StructDef &struct_def, std::string *value,
+                           uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
-  uoffset_t ParseVector(const Type &type);
-  void ParseMetaData(Definition &def);
-  bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
-  void ParseHash(Value &e, FieldDef* field);
-  void ParseSingleValue(Value &e);
-  int64_t ParseIntegerFromString(Type &type);
+  CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  CHECKED_ERROR ParseMetaData(Definition &def);
+  CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e, BaseType req,
+                              bool *destmatch);
+  CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
+  CHECKED_ERROR ParseSingleValue(Value &e);
+  CHECKED_ERROR ParseIntegerFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);
-  EnumDef &ParseEnum(bool is_union);
-  void ParseNamespace();
-  StructDef &StartStruct(const std::string &name);
-  void ParseDecl();
-  void ParseProtoFields(StructDef *struct_def, bool isextend,
-                        bool inside_oneof);
-  void ParseProtoOption();
-  void ParseProtoKey();
-  void ParseProtoDecl();
-  void ParseProtoCurliesOrIdent();
-  Type ParseTypeFromProtoType();
+  CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  CHECKED_ERROR ParseNamespace();
+  CHECKED_ERROR StartStruct(const std::string &name, StructDef **dest);
+  CHECKED_ERROR ParseDecl();
+  CHECKED_ERROR ParseProtoFields(StructDef *struct_def, bool isextend,
+                                 bool inside_oneof);
+  CHECKED_ERROR ParseProtoOption();
+  CHECKED_ERROR ParseProtoKey();
+  CHECKED_ERROR ParseProtoDecl();
+  CHECKED_ERROR ParseProtoCurliesOrIdent();
+  CHECKED_ERROR ParseTypeFromProtoType(Type *type);
+
+  CHECKED_ERROR DoParse(const char *_source, const char **include_paths,
+                        const char *source_filename);
 
  public:
   SymbolTable<StructDef> structs_;
@@ -454,7 +501,7 @@ class Parser {
   const char *source_, *cursor_;
   int line_;  // the current line being parsed
   int token_;
-  std::string files_being_parsed_;
+  std::string file_being_parsed_;
 
   std::string attribute_;
   std::vector<std::string> doc_comment_;

@@ -3,6 +3,7 @@
 namespace NamespaceA.NamespaceB
 {
 
+using System;
 using FlatBuffers;
 
 public sealed class StructInNestedNS : Struct {

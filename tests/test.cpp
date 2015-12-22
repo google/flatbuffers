@@ -21,6 +21,8 @@
 #include "flatbuffers/util.h"
 
 #include "monster_test_generated.h"
+#include "namespace_test/namespace_test1_generated.h"
+#include "namespace_test/namespace_test2_generated.h"
 
 #include <random>
 
@@ -219,6 +221,10 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   for (auto it = tests->begin(); it != tests->end(); ++it) {
     TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
   }
+
+  // Checking for presence of fields:
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_HP), true);
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_MANA), false);
 }
 
 // Change a FlatBuffer in-place, after it has been constructed.
@@ -398,6 +404,11 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   rtestarrayofstring->MutateOffset(2, string_ptr);
   TEST_EQ_STR(rtestarrayofstring->Get(0)->c_str(), "bob");
   TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
+  // Test integrity of all resize operations above.
+  flatbuffers::Verifier resize_verifier(
+        reinterpret_cast<const uint8_t *>(resizingbuf.data()),
+        resizingbuf.size());
+  TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
   // As an additional test, also set it on the name field.
   // Note: unlike the name change above, this just overwrites the offset,
   // rather than changing the string in-place.
