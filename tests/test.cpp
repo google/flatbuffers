@@ -813,6 +813,26 @@ void UnicodeTest() {
                      "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
 }
 
+void UnknownFieldsTest() {
+  flatbuffers::IDLOptions opts;
+  opts.skip_unexpected_fields_in_json = true;
+  flatbuffers::Parser parser(opts);
+
+  TEST_EQ(parser.Parse("table T { str:string; i:int;}"
+                       "root_type T;"
+                       "{ str:\"test\","
+                       "unknown_int:10,"
+                       "unknown_float:1.0,"
+                       "unknown_array: [ 1, 2, 3, 4],"
+                       "unknown_object: { i: 10 },"
+                       "i:10}"), true);
+
+  std::string jsongen;
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -837,6 +857,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ScientificTest();
   EnumStringsTest();
   UnicodeTest();
+  UnknownFieldsTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
