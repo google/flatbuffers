@@ -26,6 +26,11 @@ enum BaseType : byte {
     Union
 }
 
+table Attribute {
+    name:string (required);
+    value:string (required);
+}
+
 table Type {
     base_type:BaseType;
     element:BaseType = None;  // Only if base_type == Vector.
@@ -45,6 +50,7 @@ table Enum {
     values:[EnumVal] (required);  // In order of their values.
     is_union:bool = false;
     underlying_type:Type (required);
+    attributes:[Attribute] (required);
 }
 
 table Field {
@@ -57,6 +63,7 @@ table Field {
     deprecated:bool = false;
     required:bool = false;
     key:bool = false;
+    attributes:[Attribute] (required);
 }
 
 table Object {  // Used for both tables and structs.
@@ -65,6 +72,8 @@ table Object {  // Used for both tables and structs.
     is_struct:bool = false;
     minalign:int;
     bytesize:int;  // For structs.
+
+    attributes:[Attribute] (required);
 }
 
 table Schema {
