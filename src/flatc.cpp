@@ -100,12 +100,15 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                  no trailing commas in tables/vectors.\n"
       "  --defaults-json Output fields whose value is the default when\n"
       "                  writing JSON\n"
+      "  --unknown-json  Allow fields in JSON that are not defined in the\n"
+      "                  schema. These fields will be discared when generating\n"
+      "                  binaries.\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
       "  --scoped-enums  Use C++11 style scoped and strongly typed enums.\n"
       "                  also implies --no-prefix.\n"
       "  --gen-includes  (deprecated), this is the default behavior.\n"
       "                  If the original behavior is required (no include\n"
-    "                  statements) use --no-includes.\n"
+      "                  statements) use --no-includes.\n"
       "  --no-includes   Don\'t generate include statements for included\n"
       "                  schemas the generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
@@ -155,6 +158,8 @@ int main(int argc, const char *argv[]) {
         opts.skip_js_exports = true;
       } else if(arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
+      } else if (arg == "--unknown-json") {
+        opts.skip_unexpected_fields_in_json = true;
       } else if(arg == "--no-prefix") {
         opts.prefixed_enums = false;
       } else if(arg == "--scoped-enums") {
