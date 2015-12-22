@@ -404,6 +404,11 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   rtestarrayofstring->MutateOffset(2, string_ptr);
   TEST_EQ_STR(rtestarrayofstring->Get(0)->c_str(), "bob");
   TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
+  // Test integrity of all resize operations above.
+  flatbuffers::Verifier resize_verifier(
+        reinterpret_cast<const uint8_t *>(resizingbuf.data()),
+        resizingbuf.size());
+  TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
   // As an additional test, also set it on the name field.
   // Note: unlike the name change above, this just overwrites the offset,
   // rather than changing the string in-place.
