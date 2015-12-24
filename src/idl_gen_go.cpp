@@ -391,27 +391,27 @@ static void GetStartOfTable(const StructDef &struct_def,
   code += ") }\n";
 }
 
-// Generate IsNullField() call for distinguishing null from default.
-static void GenerateIsNullFieldMethod(const StructDef &struct_def,
+// Generate FieldIsSet() call for distinguishing null from default.
+static void GenerateFieldIsSetMethod(const StructDef &struct_def,
                                 std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
-  code += " IsNullField(slot flatbuffers.VOffsetT) bool";
+  code += " FieldIsSet(slot flatbuffers.VOffsetT) bool";
   code += "{\n";
-  code += "\treturn rcv._tab.IsNullField(slot)\n";
+  code += "\treturn rcv._tab.FieldIsSet(slot)\n";
   code += "}\n\n";
 }
 
   
-// Generate constants for IsNullField() calls.
-static void GenerateIsNullFieldConstants(const StructDef &struct_def,
+// Generate constants for FieldIsSet() calls.
+static void GenerateFieldIsSetConstants(const StructDef &struct_def,
                               std::string *code_ptr) {
   std::string &code = *code_ptr;
   
   // Generate field id constants.
   if (struct_def.fields.vec.size() > 0) {
-    code += "\n// constants for IsNullField() calls.\nconst (\n";
+    code += "\n// constants for FieldIsSet() calls.\nconst (\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end();
          ++it) {
@@ -553,8 +553,8 @@ static void GenTableBuilders(const StructDef &struct_def,
 
   GetEndOffsetOnTable(struct_def, code_ptr);
 
-  GenerateIsNullFieldConstants(struct_def, code_ptr);
-  GenerateIsNullFieldMethod(struct_def, code_ptr);
+  GenerateFieldIsSetConstants(struct_def, code_ptr);
+  GenerateFieldIsSetMethod(struct_def, code_ptr);
 }
 
 // Generate struct or table methods.

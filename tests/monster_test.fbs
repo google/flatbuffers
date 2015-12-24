@@ -59,6 +59,8 @@ table Monster {
   testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32");
   testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
+  haszerodefault:long = 0 (id:25);
+  hasthreedefault:long = 3 (id:26);
 }
 
 root_type Monster;

@@ -124,9 +124,9 @@ func TestAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Check that the internal GenerateIsNullFieldConstants() and
-	// the API method IsNullField() are working.
-	CheckIsNullField(t.Fatalf)
+	// Check that the internal GenerateFieldIsSetConstants() and
+	// the API method FieldIsSet() are working.
+	CheckFieldIsSet(t.Fatalf)
 }
 
 // CheckReadBuffer checks that the given buffer is evaluated correctly
@@ -1408,8 +1408,8 @@ func BenchmarkBuildGold(b *testing.B) {
 	}
 }
 
-// CheckIsNullField(t.Fatalf) checks the generated constants and IsNullField() are functioning.
-func CheckIsNullField(fail func(string, ...interface{})) {
+// CheckFieldIsSet(t.Fatalf) checks the generated constants and FieldIsSet() are functioning.
+func CheckFieldIsSet(fail func(string, ...interface{})) {
 
 	b := flatbuffers.NewBuilder(0)
 	example.MonsterStart(b)
@@ -1417,23 +1417,23 @@ func CheckIsNullField(fail func(string, ...interface{})) {
 	b.Finish(mon)
 	monster := example.GetRootAsMonster(b.Bytes, b.Head())
 
-	wantNull := func(field string, isNull bool) {
-		if !isNull {
-			fail("CheckIsNullField wants null field '%s', but was not null", field)
+	wantSet := func(field string, isSet bool) {
+		if !isSet {
+			fail("CheckFieldIsSet wants null field '%s', but was not null", field)
 		}
 	}
-	wantNotNull := func(field string, isNull bool) {
-		if isNull {
-			fail("CheckIsNullField wants non-null field '%s', but was null", field)
+	wantNotSet := func(field string, isSet bool) {
+		if isSet {
+			fail("CheckFieldIsSet wants non-null field '%s', but was null", field)
 		}
 	}
 
-	wantNull("Pos", monster.IsNullField(example.VtMonsterPos))
-	wantNull("Mana", monster.IsNullField(example.VtMonsterMana))
-	wantNull("Hp", monster.IsNullField(example.VtMonsterHp))
-	wantNull("Name", monster.IsNullField(example.VtMonsterName))
-	wantNull("Inventory", monster.IsNullField(example.VtMonsterInventory))
-	wantNull("Color", monster.IsNullField(example.VtMonsterColor))
+	wantNotSet("Pos", monster.FieldIsSet(example.VtMonsterPos))
+	wantNotSet("Mana", monster.FieldIsSet(example.VtMonsterMana))
+	wantNotSet("Hp", monster.FieldIsSet(example.VtMonsterHp))
+	wantNotSet("Name", monster.FieldIsSet(example.VtMonsterName))
+	wantNotSet("Inventory", monster.FieldIsSet(example.VtMonsterInventory))
+	wantNotSet("Color", monster.FieldIsSet(example.VtMonsterColor))
 
 	makeHalfMonster := func() *example.Monster {
 		// set only Name, Inventory, Pos
@@ -1462,22 +1462,47 @@ func CheckIsNullField(fail func(string, ...interface{})) {
 
 	half := makeHalfMonster()
 
-	wantNotNull("Name", half.IsNullField(example.VtMonsterName))
-	wantNotNull("Inventory", half.IsNullField(example.VtMonsterInventory))
-	wantNotNull("Pos", half.IsNullField(example.VtMonsterPos))
-	wantNull("Hp", half.IsNullField(example.VtMonsterHp))
-	wantNull("Mana", half.IsNullField(example.VtMonsterMana))
-	wantNull("Color", half.IsNullField(example.VtMonsterColor))
+	wantSet("Name", half.FieldIsSet(example.VtMonsterName))
+	wantSet("Inventory", half.FieldIsSet(example.VtMonsterInventory))
+	wantSet("Pos", half.FieldIsSet(example.VtMonsterPos))
+	wantNotSet("Hp", half.FieldIsSet(example.VtMonsterHp))
+	wantNotSet("Mana", half.FieldIsSet(example.VtMonsterMana))
+	wantNotSet("Color", half.FieldIsSet(example.VtMonsterColor))
 
 	// and with Hp set too.
 
 	by, h := CheckGeneratedBuild(fail)
 	four := example.GetRootAsMonster(by, h)
 
-	wantNotNull("Name", four.IsNullField(example.VtMonsterName))
-	wantNotNull("Inventory", four.IsNullField(example.VtMonsterInventory))
-	wantNotNull("Pos", four.IsNullField(example.VtMonsterPos))
-	wantNotNull("Hp", four.IsNullField(example.VtMonsterHp))
-	wantNull("Mana", four.IsNullField(example.VtMonsterMana))
-	wantNull("Color", four.IsNullField(example.VtMonsterColor))
+	wantSet("Name", four.FieldIsSet(example.VtMonsterName))
+	wantSet("Inventory", four.FieldIsSet(example.VtMonsterInventory))
+	wantSet("Pos", four.FieldIsSet(example.VtMonsterPos))
+	wantSet("Hp", four.FieldIsSet(example.VtMonsterHp))
+	wantNotSet("Mana", four.FieldIsSet(example.VtMonsterMana))
+	wantNotSet("Color", four.FieldIsSet(example.VtMonsterColor))
+
+	// and build with and without ForceDefaults
+	// with ForceDefaults
+	b.Reset()
+	b.ForceDefaults = true
+	example.MonsterStart(b)
+	example.MonsterAddHaszerodefault(b, 0)
+	example.MonsterAddHasthreedefault(b, 3)
+	mon = example.MonsterEnd(b)
+	b.Finish(mon)
+	monster = example.GetRootAsMonster(b.Bytes, b.Head())
+	wantSet("Haszerodefault", monster.FieldIsSet(example.VtMonsterHaszerodefault))
+	wantSet("Hasthreedefault", monster.FieldIsSet(example.VtMonsterHasthreedefault))
+
+	// without ForceDefaults
+	b.Reset()
+	b.ForceDefaults = false // the default
+	example.MonsterStart(b)
+	example.MonsterAddHaszerodefault(b, 0)
+	example.MonsterAddHasthreedefault(b, 3)
+	mon = example.MonsterEnd(b)
+	b.Finish(mon)
+	monster = example.GetRootAsMonster(b.Bytes, b.Head())
+	wantNotSet("Haszerodefault", monster.FieldIsSet(example.VtMonsterHaszerodefault))
+	wantNotSet("Hasthreedefault", monster.FieldIsSet(example.VtMonsterHasthreedefault))
 }

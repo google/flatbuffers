@@ -293,10 +293,17 @@ func (t *Table) GetVOffsetTSlot(slot VOffsetT, d VOffsetT) VOffsetT {
 	return VOffsetT(off)
 }
 
-// Is NullField checks to see if the field was ever set, allowing
-// clients to distinguish between default values and unset fields.
-// The same functionality as Table::CheckField() in the C++. The
-// generated VtStructField constants should be used for slot.
-func (t *Table) IsNullField(slot VOffsetT) bool {
-	return t.Offset(slot) == 0
+// FieldIsSet returns true if the field was ever set, allowing
+// clients to distinguish between default values and unset fields,
+// assuming that the builder.ForceDefaults flag was true.
+//
+// If the builder had ForceDefaults == false, then FieldIsSet()
+// will also return false in cases when the default value was set.
+//
+// The generated VtStructField constants should be used for slot.
+//
+// Offers the same functionality as Table::CheckField() in the C++
+// bindings.
+func (t *Table) FieldIsSet(slot VOffsetT) bool {
+	return t.Offset(slot) != 0
 }
