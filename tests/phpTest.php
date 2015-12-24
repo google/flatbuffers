@@ -79,9 +79,6 @@ function main()
     fuzzTest1($assert);
 //    testUnicode($assert);
 
-
-    testAnyBuffer($assert);
-
     echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
 }
 
@@ -598,19 +595,6 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Equal(0x0D0C0B0A, $uut->readLittleEndian(0, 4, true));
 
-}
-
-function testAnyBuffer(Assert $assert)
-{
-//    PHP needs double quote. for now, use Fred directly
-//    $js = json_decode(file_get_contents('monsterdata_test.json'), true);
-    $data = file_get_contents('monsterdata_test.mon');
-    $bb = Google\FlatBuffers\ByteBuffer::wrap($data);
-    $mons = \MyGame\Example\Monster::getRootAsMonster($bb);
-    $indirect_monster = new \MyGame\Example\Monster();
-    $assert->Equal($mons->getTestType(), \MyGame\Example\Any::Monster);
-    $mons->getTest($indirect_monster);
-    $assert->Equal("Fred", $indirect_monster->getName());
 }
 
 class Assert {
