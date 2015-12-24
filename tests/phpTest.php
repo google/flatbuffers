@@ -30,6 +30,10 @@ function main()
 
     // We set up the same values as monsterdata.json:
     $str = $fbb->createString("MyMonster");
+    $name = $fbb->createString('Fred');
+    \MyGame\Example\Monster::startMonster($fbb);
+    \MyGame\Example\Monster::addName($fbb, $name);
+    $enemy = \MyGame\Example\Monster::endMonster($fbb);
 
     $inv = \MyGame\Example\Monster::CreateInventoryVector($fbb, array(0, 1, 2, 3, 4));
 
@@ -62,6 +66,7 @@ function main()
     \MyGame\Example\Monster::AddTest($fbb, $mon2);
     \MyGame\Example\Monster::AddTest4($fbb, $test4);
     \MyGame\Example\Monster::AddTestarrayofstring($fbb, $testArrayOfString);
+    \MyGame\Example\Monster::AddEnemy($fbb, $enemy);
     \MyGame\Example\Monster::AddTestbool($fbb, false);
     $mon = \MyGame\Example\Monster::EndMonster($fbb);
 
@@ -75,7 +80,7 @@ function main()
 //    testUnicode($assert);
 
 
-    testIndirectBuffer($assert);
+    testAnyBuffer($assert);
 
     echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
 }
@@ -135,6 +140,10 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     $assert->strictEqual($monster->GetTestarrayofstringLength(), 2);
     $assert->strictEqual($monster->GetTestarrayofstring(0), 'test1');
     $assert->strictEqual($monster->GetTestarrayofstring(1), 'test2');
+
+    $fred = $monster->getEnemy();
+    $assert->Equal('Fred', $fred->getName());
+
     $assert->strictEqual($monster->GetTestbool(), false);
 }
 
@@ -590,15 +599,20 @@ function testByteBuffer(Assert $assert) {
     $assert->Equal(0x0D0C0B0A, $uut->readLittleEndian(0, 4, true));
 
 }
-function testIndirectBuffer(Assert $assert)
+
+function testAnyBuffer(Assert $assert)
 {
-    $js = json_decode(file_get_contents('monsterdata_indirect.json'), true);
-    $data = file_get_contents('monsterdata_indirect.mon');
+//    PHP needs double quote. for now, use Fred directly
+//    $js = json_decode(file_get_contents('monsterdata_test.json'), true);
+    $data = file_get_contents('monsterdata_test.mon');
     $bb = Google\FlatBuffers\ByteBuffer::wrap($data);
     $mons = \MyGame\Example\Monster::getRootAsMonster($bb);
-    $assert->Equal($js["name"], $mons->getName());
-    $assert->Equal($js["enemy"]["name"], $mons->getEnemy()->getName());
+    $indirect_monster = new \MyGame\Example\Monster();
+    $assert->Equal($mons->getTestType(), \MyGame\Example\Any::Monster);
+    $mons->getTest($indirect_monster);
+    $assert->Equal("Fred", $indirect_monster->getName());
 }
+
 class Assert {
     public function ok($result, $message = "") {
         if (!$result){
