@@ -30,15 +30,7 @@ namespace FlatBuffers
 
         public bool Parse(string source)
         {
-            var ret = flatbuffers_parser_parse(m_parser, source);
-            if (ret == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return flatbuffers_parser_parse(m_parser, source) == 0 ? true : false;0
         }
 
         public bool SetRootType(string root_type)
