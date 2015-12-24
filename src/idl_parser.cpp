@@ -2187,7 +2187,7 @@ FLATBUFFERS_EXPORT void flatbuffers_free_string(char **buffer)
   }
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers::Parser *parser, char **buffer, size_t *size)
+FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers::Parser *parser, char **buffer, int *size)
 {
   std::string jsongen;
   *size = parser->builder_.GetSize();
@@ -2198,7 +2198,7 @@ FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers::Parser *parser, ch
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers::Parser *parser, char **buffer, size_t *size)
+FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers::Parser *parser, char **buffer, int *size)
 {
   *size = parser->builder_.GetSize();
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));

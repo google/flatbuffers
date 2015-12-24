@@ -30,27 +30,24 @@ namespace FlatBuffers
 
         public bool Parse(string source)
         {
-            return flatbuffers_parser_parse(m_parser, source) == 0 ? true : false;0
+            return flatbuffers_parser_parse(m_parser, source) == 0 ? true : false;
         }
 
         public bool SetRootType(string root_type)
         {
-            var result = flatbuffers_parser_set_root_type(m_parser, root_type);
-            if (result == 0)
-            {
-                return true;
-            }
-            return false;
+            return (flatbuffers_parser_set_root_type(m_parser, root_type) == 0) ?  true : false;
         }
 
         public string GenerateJson()
         {
             IntPtr buffer = new IntPtr();
-            IntPtr size = new IntPtr();
+            int size = 0;
 
             flatbuffers_generate_json(m_parser, ref buffer, ref size);
-            var result = Marshal.PtrToStringAnsi(buffer);
-            if (size.ToInt32() > 0)
+            byte[] temp = new byte[size];
+            Marshal.Copy(buffer, temp, 0, size);
+            var result = System.Text.Encoding.UTF8.GetString(temp);
+            if (size > 0)
             {
                 flatbuffers_free_string(buffer);
             }
@@ -61,13 +58,13 @@ namespace FlatBuffers
         public byte[] GenerateBuffer()
         {
             IntPtr buffer = new IntPtr();
-            IntPtr size = new IntPtr();
+            int size = 0;
 
             flatbuffers_generate_buffer(m_parser, ref buffer, ref size);
 
-            byte[] managedArray = new byte[size.ToInt32()];
-            Marshal.Copy(buffer, managedArray, 0, size.ToInt32());
-            if (size.ToInt32() > 0)
+            byte[] managedArray = new byte[size];
+            Marshal.Copy(buffer, managedArray, 0, size);
+            if (size > 0)
             {
                 flatbuffers_free_string(buffer);
             }
@@ -91,15 +88,15 @@ namespace FlatBuffers
 
         [DllImport("flatbuffers")]
         private static extern int flatbuffers_parser_parse(IntPtr parser, string source);
-    
+
         [DllImport("flatbuffers")]
         private static extern int flatbuffers_parser_set_root_type(IntPtr parser, string root_type);
 
         [DllImport("flatbuffers")]
-        private static extern int flatbuffers_generate_json(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
+        private static extern int flatbuffers_generate_json(IntPtr parser, ref IntPtr buffer, ref int size);
 
         [DllImport("flatbuffers")]
-        private static extern int flatbuffers_generate_buffer(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
+        private static extern int flatbuffers_generate_buffer(IntPtr parser, ref IntPtr buffer, ref int size);
 
         [DllImport("flatbuffers")]
         private static extern void flatbuffers_free_string(IntPtr buffer);
