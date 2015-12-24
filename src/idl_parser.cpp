@@ -2176,11 +2176,7 @@ FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers::Parser *parser, con
   assert(parser);
 
   bool result = parser->Parse(source, nullptr, nullptr);
-  if (result)
-  {
-    return 0;
-  }
-  return -1;
+  return result ? 0 : -1;
 }
 
 FLATBUFFERS_EXPORT void flatbuffers_free_string(char **buffer)
@@ -2216,11 +2212,7 @@ FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers::Parser *par
   assert(parser);
 
   bool result = parser->SetRootType(root_type);
-  if (result)
-  {
-    return 0;
-  }
-  return -1;
+  return result ? 0 : -1;
 }
 
 FLATBUFFERS_EXPORT void flatbuffers_parser_free(flatbuffers::Parser *parser)
