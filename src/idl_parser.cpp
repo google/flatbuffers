@@ -2173,10 +2173,7 @@ FLATBUFFERS_EXPORT flatbuffers::Parser* flatbuffers_parser_new()
 
 FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers::Parser *parser, const char* source)
 {
-  if (parser == nullptr)
-  {
-    return -1;
-  }
+  assert(parser);
 
   bool result = parser->Parse(source, nullptr, nullptr);
   if (result)
@@ -2216,10 +2213,7 @@ FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers::Parser *parser, 
 
 FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers::Parser *parser, const char *root_type)
 {
-  if (parser == nullptr)
-  {
-    return -1;
-  }
+  assert(parser);
 
   bool result = parser->SetRootType(root_type);
   if (result)
