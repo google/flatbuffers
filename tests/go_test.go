@@ -123,6 +123,10 @@ func TestAll(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Check that the internal GenerateIsNullFieldConstants() and
+	// the API method IsNullField() are working.
+	CheckIsNullField(t.Fatalf)
 }
 
 // CheckReadBuffer checks that the given buffer is evaluated correctly
@@ -1402,4 +1406,78 @@ func BenchmarkBuildGold(b *testing.B) {
 
 		bldr.Finish(mon)
 	}
+}
+
+// CheckIsNullField(t.Fatalf) checks the generated constants and IsNullField() are functioning.
+func CheckIsNullField(fail func(string, ...interface{})) {
+
+	b := flatbuffers.NewBuilder(0)
+	example.MonsterStart(b)
+	mon := example.MonsterEnd(b)
+	b.Finish(mon)
+	monster := example.GetRootAsMonster(b.Bytes, b.Head())
+
+	wantNull := func(field string, isNull bool) {
+		if !isNull {
+			fail("CheckIsNullField wants null field '%s', but was not null", field)
+		}
+	}
+	wantNotNull := func(field string, isNull bool) {
+		if isNull {
+			fail("CheckIsNullField wants non-null field '%s', but was null", field)
+		}
+	}
+
+	wantNull("Pos", monster.IsNullField(example.VtMonsterPos))
+	wantNull("Mana", monster.IsNullField(example.VtMonsterMana))
+	wantNull("Hp", monster.IsNullField(example.VtMonsterHp))
+	wantNull("Name", monster.IsNullField(example.VtMonsterName))
+	wantNull("Inventory", monster.IsNullField(example.VtMonsterInventory))
+	wantNull("Color", monster.IsNullField(example.VtMonsterColor))
+
+	makeHalfMonster := func() *example.Monster {
+		// set only Name, Inventory, Pos
+		b := flatbuffers.NewBuilder(0)
+		fred := b.CreateString("Fred")
+
+		example.MonsterStartInventoryVector(b, 5)
+		b.PrependByte(4)
+		b.PrependByte(3)
+		b.PrependByte(2)
+		b.PrependByte(1)
+		b.PrependByte(0)
+		inv := b.EndVector(5)
+		pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+
+		example.MonsterStart(b)
+		example.MonsterAddPos(b, pos)
+		example.MonsterAddInventory(b, inv)
+		example.MonsterAddName(b, fred)
+		//example.MonsterAddHp(b, 80)
+		mon := example.MonsterEnd(b)
+
+		b.Finish(mon)
+		return example.GetRootAsMonster(b.Bytes, b.Head())
+	}
+
+	half := makeHalfMonster()
+
+	wantNotNull("Name", half.IsNullField(example.VtMonsterName))
+	wantNotNull("Inventory", half.IsNullField(example.VtMonsterInventory))
+	wantNotNull("Pos", half.IsNullField(example.VtMonsterPos))
+	wantNull("Hp", half.IsNullField(example.VtMonsterHp))
+	wantNull("Mana", half.IsNullField(example.VtMonsterMana))
+	wantNull("Color", half.IsNullField(example.VtMonsterColor))
+
+	// and with Hp set too.
+
+	by, h := CheckGeneratedBuild(fail)
+	four := example.GetRootAsMonster(by, h)
+
+	wantNotNull("Name", four.IsNullField(example.VtMonsterName))
+	wantNotNull("Inventory", four.IsNullField(example.VtMonsterInventory))
+	wantNotNull("Pos", four.IsNullField(example.VtMonsterPos))
+	wantNotNull("Hp", four.IsNullField(example.VtMonsterHp))
+	wantNull("Mana", four.IsNullField(example.VtMonsterMana))
+	wantNull("Color", four.IsNullField(example.VtMonsterColor))
 }

@@ -25,3 +25,12 @@ func (rcv *TestSimpleTableWithEnum) Color() int8 {
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) { builder.StartObject(1) }
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color int8) { builder.PrependInt8Slot(0, color, 2) }
 func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+
+// constants for IsNullField() calls.
+const (
+    VtTestSimpleTableWithEnumColor = 4
+)
+func (rcv *TestSimpleTableWithEnum) IsNullField(slot flatbuffers.VOffsetT) bool{
+	return rcv._tab.IsNullField(slot)
+}
+

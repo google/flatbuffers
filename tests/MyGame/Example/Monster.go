@@ -351,3 +351,35 @@ func MonsterAddTestarrayofbools(builder *flatbuffers.Builder, testarrayofbools f
 func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT { return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+
+// constants for IsNullField() calls.
+const (
+    VtMonsterPos = 4
+    VtMonsterMana = 6
+    VtMonsterHp = 8
+    VtMonsterName = 10
+    VtMonsterInventory = 14
+    VtMonsterColor = 16
+    VtMonsterTestType = 18
+    VtMonsterTest = 20
+    VtMonsterTest4 = 22
+    VtMonsterTestarrayofstring = 24
+    VtMonsterTestarrayoftables = 26
+    VtMonsterEnemy = 28
+    VtMonsterTestnestedflatbuffer = 30
+    VtMonsterTestempty = 32
+    VtMonsterTestbool = 34
+    VtMonsterTesthashs32Fnv1 = 36
+    VtMonsterTesthashu32Fnv1 = 38
+    VtMonsterTesthashs64Fnv1 = 40
+    VtMonsterTesthashu64Fnv1 = 42
+    VtMonsterTesthashs32Fnv1a = 44
+    VtMonsterTesthashu32Fnv1a = 46
+    VtMonsterTesthashs64Fnv1a = 48
+    VtMonsterTesthashu64Fnv1a = 50
+    VtMonsterTestarrayofbools = 52
+)
+func (rcv *Monster) IsNullField(slot flatbuffers.VOffsetT) bool{
+	return rcv._tab.IsNullField(slot)
+}
+

@@ -43,3 +43,14 @@ func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) { builder.
 func StatAddVal(builder *flatbuffers.Builder, val int64) { builder.PrependInt64Slot(1, val, 0) }
 func StatAddCount(builder *flatbuffers.Builder, count uint16) { builder.PrependUint16Slot(2, count, 0) }
 func StatEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+
+// constants for IsNullField() calls.
+const (
+    VtStatId = 4
+    VtStatVal = 6
+    VtStatCount = 8
+)
+func (rcv *Stat) IsNullField(slot flatbuffers.VOffsetT) bool{
+	return rcv._tab.IsNullField(slot)
+}
+
