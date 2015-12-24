@@ -41,15 +41,26 @@ namespace FlatBuffers
         public string GenerateJson()
         {
             IntPtr buffer = new IntPtr();
+            string result = string.Empty;
             int size = 0;
 
-            flatbuffers_generate_json(m_parser, ref buffer, ref size);
-            byte[] temp = new byte[size];
-            Marshal.Copy(buffer, temp, 0, size);
-            var result = System.Text.Encoding.UTF8.GetString(temp);
-            if (size > 0)
+            try
             {
-                flatbuffers_free_string(buffer);
+                flatbuffers_generate_json(m_parser, ref buffer, ref size);
+                if (size > 0)
+                {
+                    byte[] temp = new byte[size];
+
+                    Marshal.Copy(buffer, temp, 0, size);
+                    result = System.Text.Encoding.UTF8.GetString(temp);
+                }
+            }
+            finally
+            {
+                if (size > 0)
+                {
+                    flatbuffers_free_string(buffer);
+                }
             }
 
             return result;
@@ -60,16 +71,20 @@ namespace FlatBuffers
             IntPtr buffer = new IntPtr();
             int size = 0;
 
-            flatbuffers_generate_buffer(m_parser, ref buffer, ref size);
-
-            byte[] managedArray = new byte[size];
-            Marshal.Copy(buffer, managedArray, 0, size);
-            if (size > 0)
+            try
             {
-                flatbuffers_free_string(buffer);
+                flatbuffers_generate_buffer(m_parser, ref buffer, ref size);
+                byte[] managedArray = new byte[size];
+                Marshal.Copy(buffer, managedArray, 0, size);
+                return managedArray;
             }
-
-            return managedArray;
+            finally
+            {
+                if (size > 0)
+                {
+                    flatbuffers_free_string(buffer);
+                }
+            }
         }
 
         ~Parser()
