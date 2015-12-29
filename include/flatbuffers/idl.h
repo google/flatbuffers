@@ -320,6 +320,7 @@ struct IDLOptions {
   bool one_file;
   bool proto_mode;
   bool generate_all;
+  bool skip_unexpected_fields_in_json;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
@@ -337,6 +338,7 @@ struct IDLOptions {
       one_file(false),
       proto_mode(false),
       generate_all(false),
+      skip_unexpected_fields_in_json(false),
       lang(IDLOptions::kJava) {}
 };
 
@@ -477,7 +479,10 @@ private:
   CHECKED_ERROR ParseProtoDecl();
   CHECKED_ERROR ParseProtoCurliesOrIdent();
   CHECKED_ERROR ParseTypeFromProtoType(Type *type);
-
+  CHECKED_ERROR SkipAnyJsonValue();
+  CHECKED_ERROR SkipJsonObject();
+  CHECKED_ERROR SkipJsonArray();
+  CHECKED_ERROR SkipJsonString();
   CHECKED_ERROR DoParse(const char *_source, const char **include_paths,
                         const char *source_filename);
 

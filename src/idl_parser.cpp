@@ -673,24 +673,33 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
     }
     auto field = struct_def.fields.Lookup(name);
-    if (!field) return Error("unknown field: " + name);
-    EXPECT(':');
-    Value val = field->value;
-    ECHECK(ParseAnyValue(val, field, fieldn));
-    size_t i = field_stack_.size();
-    // Hardcoded insertion-sort with error-check.
-    // If fields are specified in order, then this loop exits immediately.
-    for (; i > field_stack_.size() - fieldn; i--) {
-      auto existing_field = field_stack_[i - 1].second;
-      if (existing_field == field)
-        return Error("field set more than once: " + field->name);
-      if (existing_field->value.offset < field->value.offset) break;
+    if (!field) {
+      if (!opts.skip_unexpected_fields_in_json) {
+        return Error("unknown field: " + name);
+      } else {
+        EXPECT(':');
+        ECHECK(SkipAnyJsonValue());
+      }
+    } else {
+      EXPECT(':');
+      Value val = field->value;
+      ECHECK(ParseAnyValue(val, field, fieldn));
+      size_t i = field_stack_.size();
+      // Hardcoded insertion-sort with error-check.
+      // If fields are specified in order, then this loop exits immediately.
+      for (; i > field_stack_.size() - fieldn; i--) {
+        auto existing_field = field_stack_[i - 1].second;
+        if (existing_field == field)
+          return Error("field set more than once: " + field->name);
+        if (existing_field->value.offset < field->value.offset) break;
+      }
+      field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
+      fieldn++;
     }
-    field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
-    fieldn++;
     if (Is('}')) { NEXT(); break; }
     EXPECT(',');
   }
+
   if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
@@ -1477,6 +1486,72 @@ CheckedError Parser::ParseTypeFromProtoType(Type *type) {
   }
   if (Is('.')) NEXT();  // qualified names may start with a . ?
   ECHECK(ParseTypeIdent(*type));
+  return NoError();
+}
+
+CheckedError Parser::SkipAnyJsonValue() {
+  switch (token_) {
+    case '{':
+      ECHECK(SkipJsonObject());
+      break;
+    case kTokenStringConstant:
+      ECHECK(SkipJsonString());
+      break;
+    case '[':
+      ECHECK(SkipJsonArray());
+      break;
+    case kTokenIntegerConstant:
+      EXPECT(kTokenIntegerConstant);
+      break;
+    case kTokenFloatConstant:
+      EXPECT(kTokenFloatConstant);
+      break;
+    default:
+      return Error(std::string("Unexpected token:") + std::string(1, token_));
+  }
+  return NoError();
+}
+
+CheckedError Parser::SkipJsonObject() {
+  EXPECT('{');
+  size_t fieldn = 0;
+
+  while (true) {
+    if ((!opts.strict_json || !fieldn) && Is('}')) break;
+
+    if (!Is(kTokenStringConstant))
+      EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+
+    EXPECT(':');
+    ECHECK(SkipAnyJsonValue());
+    fieldn++;
+
+    if (Is('}')) break;
+    EXPECT(',');
+  }
+
+  NEXT();
+  return NoError();
+}
+
+CheckedError Parser::SkipJsonArray() {
+  EXPECT('[');
+  
+  while (true) {
+    if (Is(']')) break;
+        
+    ECHECK(SkipAnyJsonValue());
+
+    if (Is(']')) break;
+    EXPECT(',');
+  }
+
+  NEXT();
+  return NoError();
+}
+
+CheckedError Parser::SkipJsonString() {
+  EXPECT(kTokenStringConstant);
   return NoError();
 }
 
