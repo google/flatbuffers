@@ -399,8 +399,13 @@ class ByteBuffer
         $sign = $index + (ByteBuffer::isLittleEndian() ? 3 : 0);
         $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
 
-        // 4294967296 = 1 << 32 = Maximum unsigned 32-bit int
-        return $issigned ? $result - 4294967296 : $result;
+        if (PHP_INT_SIZE > 4) {
+            // 4294967296 = 1 << 32 = Maximum unsigned 32-bit int
+            return $issigned ? $result - 4294967296 : $result;
+        } else {
+            // 32bit / Windows treated number as signed integer.
+            return $result;
+        }
     }
 
     /**
