@@ -188,7 +188,7 @@ class Monster extends Table
     {
         $obj = new Monster();
         $o = $this->__offset(28);
-        return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
     }
 
     /**
@@ -214,7 +214,7 @@ class Monster extends Table
     {
         $obj = new Stat();
         $o = $this->__offset(32);
-        return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
     }
 
     /**
