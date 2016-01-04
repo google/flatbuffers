@@ -30,6 +30,10 @@ function main()
 
     // We set up the same values as monsterdata.json:
     $str = $fbb->createString("MyMonster");
+    $name = $fbb->createString('Fred');
+    \MyGame\Example\Monster::startMonster($fbb);
+    \MyGame\Example\Monster::addName($fbb, $name);
+    $enemy = \MyGame\Example\Monster::endMonster($fbb);
 
     $inv = \MyGame\Example\Monster::CreateInventoryVector($fbb, array(0, 1, 2, 3, 4));
 
@@ -62,6 +66,7 @@ function main()
     \MyGame\Example\Monster::AddTest($fbb, $mon2);
     \MyGame\Example\Monster::AddTest4($fbb, $test4);
     \MyGame\Example\Monster::AddTestarrayofstring($fbb, $testArrayOfString);
+    \MyGame\Example\Monster::AddEnemy($fbb, $enemy);
     \MyGame\Example\Monster::AddTestbool($fbb, false);
     $mon = \MyGame\Example\Monster::EndMonster($fbb);
 
@@ -132,6 +137,10 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     $assert->strictEqual($monster->GetTestarrayofstringLength(), 2);
     $assert->strictEqual($monster->GetTestarrayofstring(0), 'test1');
     $assert->strictEqual($monster->GetTestarrayofstring(1), 'test2');
+
+    $fred = $monster->getEnemy();
+    $assert->Equal('Fred', $fred->getName());
+
     $assert->strictEqual($monster->GetTestbool(), false);
 }
 

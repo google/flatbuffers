@@ -249,7 +249,13 @@ namespace php {
         NumToString(field.value.offset) +
         ");\n";
       code += Indent + Indent;
-      code += "return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : ";
+      code += "return $o != 0 ? $obj->init(";
+	  if (field.value.type.struct_def->fixed)
+      {
+        code += "$o + $this->bb_pos, $this->bb) : ";
+      } else {
+        code += "$this->__indirect($o + $this->bb_pos), $this->bb) : ";
+      }
       code += GenDefaultValue(field.value) + ";\n";
       code += Indent + "}\n\n";
     }

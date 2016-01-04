@@ -37,6 +37,9 @@
     "test1",
     "test2"
   ],
+  enemy: {
+    name: "Fred"
+  },
   testarrayofbools:[
     true, false, true
   ],
