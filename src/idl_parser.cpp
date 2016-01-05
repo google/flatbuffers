@@ -1522,7 +1522,7 @@ CheckedError Parser::SkipJsonObject() {
   EXPECT('{');
   size_t fieldn = 0;
 
-  while (true) {
+  for (;;) {
     if ((!opts.strict_json || !fieldn) && Is('}')) break;
 
     if (!Is(kTokenStringConstant))
@@ -1543,7 +1543,7 @@ CheckedError Parser::SkipJsonObject() {
 CheckedError Parser::SkipJsonArray() {
   EXPECT('[');
   
-  while (true) {
+  for (;;) {
     if (Is(']')) break;
         
     ECHECK(SkipAnyJsonValue());
