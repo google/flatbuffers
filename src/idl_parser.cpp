@@ -1513,7 +1513,7 @@ CheckedError Parser::SkipAnyJsonValue() {
       EXPECT(kTokenFloatConstant);
       break;
     default:
-      return Error(std::string("Unexpected token:") + std::string(1, token_));
+      return Error(std::string("Unexpected token:") + std::string(1, static_cast<char>(token_)));
   }
   return NoError();
 }
