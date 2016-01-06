@@ -43,7 +43,13 @@ static_assert(BASE_TYPE_UNION ==
               static_cast<BaseType>(reflection::Union),
               "enums don't match");
 
+// Any parsing calls have to be wrapped in this macro, which automates
+// handling of recursive error checking a bit. It will check the received
+// CheckedError object, and return straight away on error.
 #define ECHECK(call) { auto ce = (call); if (ce.Check()) return ce; }
+
+// These two functions are called hundreds of times below, so define a short
+// form:
 #define NEXT() ECHECK(Next())
 #define EXPECT(tok) ECHECK(Expect(tok))
 

@@ -377,9 +377,10 @@ class CheckedError {
 // Additionally, in GCC we can get these errors statically, for additional
 // assurance:
 #ifdef __GNUC__
-#define CHECKED_ERROR CheckedError __attribute__((warn_unused_result))
+#define FLATBUFFERS_CHECKED_ERROR CheckedError \
+          __attribute__((warn_unused_result))
 #else
-#define CHECKED_ERROR CheckedError
+#define FLATBUFFERS_CHECKED_ERROR CheckedError
 #endif
 
 class Parser {
@@ -437,54 +438,59 @@ class Parser {
   // See reflection/reflection.fbs
   void Serialize();
 
-  CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
+  FLATBUFFERS_CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
 
 private:
-  CHECKED_ERROR Error(const std::string &msg);
-  CHECKED_ERROR ParseHexNum(int nibbles, int64_t *val);
-  CHECKED_ERROR Next();
+  FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
+  FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, int64_t *val);
+  FLATBUFFERS_CHECKED_ERROR Next();
   bool Is(int t);
-  CHECKED_ERROR Expect(int t);
+  FLATBUFFERS_CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t);
   EnumDef *LookupEnum(const std::string &id);
-  CHECKED_ERROR ParseNamespacing(std::string *id, std::string *last);
-  CHECKED_ERROR ParseTypeIdent(Type &type);
-  CHECKED_ERROR ParseType(Type &type);
-  CHECKED_ERROR AddField(StructDef &struct_def, const std::string &name,
-                         const Type &type, FieldDef **dest);
-  CHECKED_ERROR ParseField(StructDef &struct_def);
-  CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field, size_t parent_fieldn);
-  CHECKED_ERROR ParseTable(const StructDef &struct_def, std::string *value,
-                           uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string *id,
+                                             std::string *last);
+  FLATBUFFERS_CHECKED_ERROR ParseTypeIdent(Type &type);
+  FLATBUFFERS_CHECKED_ERROR ParseType(Type &type);
+  FLATBUFFERS_CHECKED_ERROR AddField(StructDef &struct_def,
+                                     const std::string &name, const Type &type,
+                                     FieldDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
+  FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
+                                          size_t parent_fieldn);
+  FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
+                                       std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
-  CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
-  CHECKED_ERROR ParseMetaData(Definition &def);
-  CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e, BaseType req,
-                              bool *destmatch);
-  CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
-  CHECKED_ERROR ParseSingleValue(Value &e);
-  CHECKED_ERROR ParseIntegerFromString(Type &type, int64_t *result);
+  FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseMetaData(Definition &def);
+  FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
+                                          BaseType req, bool *destmatch);
+  FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
+  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(Value &e);
+  FLATBUFFERS_CHECKED_ERROR ParseIntegerFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);
-  CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
-  CHECKED_ERROR ParseNamespace();
-  CHECKED_ERROR StartStruct(const std::string &name, StructDef **dest);
-  CHECKED_ERROR ParseDecl();
-  CHECKED_ERROR ParseProtoFields(StructDef *struct_def, bool isextend,
-                                 bool inside_oneof);
-  CHECKED_ERROR ParseProtoOption();
-  CHECKED_ERROR ParseProtoKey();
-  CHECKED_ERROR ParseProtoDecl();
-  CHECKED_ERROR ParseProtoCurliesOrIdent();
-  CHECKED_ERROR ParseTypeFromProtoType(Type *type);
-  CHECKED_ERROR SkipAnyJsonValue();
-  CHECKED_ERROR SkipJsonObject();
-  CHECKED_ERROR SkipJsonArray();
-  CHECKED_ERROR SkipJsonString();
-  CHECKED_ERROR DoParse(const char *_source, const char **include_paths,
-                        const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseNamespace();
+  FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
+                                        StructDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseDecl();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
+                                             bool isextend, bool inside_oneof);
+  FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoKey();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoDecl();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoCurliesOrIdent();
+  FLATBUFFERS_CHECKED_ERROR ParseTypeFromProtoType(Type *type);
+  FLATBUFFERS_CHECKED_ERROR SkipAnyJsonValue();
+  FLATBUFFERS_CHECKED_ERROR SkipJsonObject();
+  FLATBUFFERS_CHECKED_ERROR SkipJsonArray();
+  FLATBUFFERS_CHECKED_ERROR SkipJsonString();
+  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+                                    const char **include_paths,
+                                    const char *source_filename);
 
  public:
   SymbolTable<StructDef> structs_;
