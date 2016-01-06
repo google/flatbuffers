@@ -65,7 +65,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_HP = 8,
     VT_NAME = 10,
     VT_INVENTORY = 14,
-    VT_COLOR = 16,
+    VT_COLOR = 16
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }

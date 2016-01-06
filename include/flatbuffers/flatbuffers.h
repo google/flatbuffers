@@ -33,9 +33,28 @@
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
     (!defined(__GNUC__) || \
-      (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40603))
-  #error A C++11 compatible compiler is required for FlatBuffers.
+      (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40400))
+  #error A C++11 compatible compiler with support for the auto typing is required for FlatBuffers.
   #error __cplusplus _MSC_VER __GNUC__  __GNUC_MINOR__  __GNUC_PATCHLEVEL__
+#endif
+
+#if !defined(__clang__) && \
+    defined(__GNUC__) && \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40600)
+  // Backwards compatability for g++ 4.4, and 4.5 which don't have the nullptr and constexpr
+  // keywords. Note the __clang__ check is needed, because clang presents itself as an older GNUC
+  // compiler.
+  #ifndef nullptr_t
+    const class nullptr_t {
+    public:
+      template<class T> inline operator T*() const { return 0; }
+    private:
+      void operator&() const;
+    } nullptr = {};
+  #endif
+  #ifndef constexpr
+    #define constexpr const
+  #endif
 #endif
 
 // The wire format uses a little endian encoding (since that's efficient for
@@ -154,7 +173,11 @@ template<typename T> size_t AlignOf() {
   #ifdef _MSC_VER
     return __alignof(T);
   #else
-    return alignof(T);
+    #ifndef alignof
+      return __alignof__(T);
+    #else
+      return alignof(T);
+    #endif
   #endif
 }
 
@@ -836,15 +859,20 @@ class FlatBufferBuilder FLATBUFFERS_FINAL_CLASS {
     return CreateVectorOfStructs(v.data(), v.size());
   }
 
+  template<typename T>
+  struct TableKeyComparator {
+  TableKeyComparator(vector_downward& buf) : buf_(buf) {}
+    bool operator()(const Offset<T> &a, const Offset<T> &b) const {
+      auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
+      auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
+      return table_a->KeyCompareLessThan(table_b);
+    }
+    vector_downward& buf_;
+  };
+
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
                                                      Offset<T> *v, size_t len) {
-    std::sort(v, v + len,
-      [this](const Offset<T> &a, const Offset<T> &b) -> bool {
-        auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
-        auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
-        return table_a->KeyCompareLessThan(table_b);
-      }
-    );
+    std::sort(v, v + len, TableKeyComparator<T>(buf_));
     return CreateVector(v, len);
   }
 
