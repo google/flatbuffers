@@ -4,6 +4,7 @@ import sys
 
 PY2 = sys.version_info[0] == 2
 PY26 = sys.version_info[0:2] == (2, 6)
+PY27 = sys.version_info[0:2] == (2, 7)
 PY3 = sys.version_info[0] == 3
 PY34 = sys.version_info[0:2] >= (3, 4)
 
@@ -17,7 +18,7 @@ else:
     string_types = (basestring,)
     binary_type = str
     range_func = xrange
-    if PY26:
+    if PY26 or PY27:
         memoryview_type = buffer
         struct_bool_decl = "<b"
     else:
