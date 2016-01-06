@@ -210,10 +210,7 @@ inline void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
   #ifdef _WIN32
-    #ifdef _MSC_VER
-      #pragma warning(suppress: 6031) // "return value ignored: <function> could return unexpected value"
-    #endif
-    _mkdir(filepath.c_str());
+    (void)_mkdir(filepath.c_str());
   #else
     mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
   #endif
