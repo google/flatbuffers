@@ -231,7 +231,7 @@ inline std::string AbsolutePath(const std::string &filepath) {
     #endif
       ? abs_path
       : filepath;
-  #endif // NO_ABSOLUTE_PATH_RESOLUTION
+  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
 }
 
 // To and from UTF-8 unicode conversion functions
