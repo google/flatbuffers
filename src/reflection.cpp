@@ -289,7 +289,7 @@ void SetString(const reflection::Schema &schema, const std::string &val,
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
   auto str_start = static_cast<uoffset_t>(
                      reinterpret_cast<const uint8_t *>(str) - flatbuf->data());
-  auto start = str_start + sizeof(uoffset_t);
+  auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
     memset(flatbuf->data() + start, 0, str->Length());
