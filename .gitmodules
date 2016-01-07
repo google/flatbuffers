@@ -1,12 +1,12 @@
-[submodule "benchmarks\\cpp\\PB\\protobuf-2.5.0"]
-	path = benchmarks\\cpp\\PB\\protobuf-2.5.0
+[submodule "benchmarks/cpp/PB/protobuf-2.5.0"]
+	path = benchmarks/cpp/PB/protobuf-2.5.0
 	url = https://github.com/google/protobuf
-[submodule "benchmarks\\cpp\\XML\\pugixml-1.4"]
-	path = benchmarks\\cpp\\XML\\pugixml-1.4
+[submodule "benchmarks/cpp/XML/pugixml-1.4"]
+	path = benchmarks/cpp/XML/pugixml-1.4
 	url = https://github.com/zeux/pugixml
-[submodule "benchmarks\\cpp\\JSON\\rapidjson"]
-	path = benchmarks\\cpp\\JSON\\rapidjson
+[submodule "benchmarks/cpp/JSON/rapidjson"]
+	path = benchmarks/cpp/JSON/rapidjson
 	url = https://github.com/miloyip/rapidjson
-[submodule "benchmarks\\cpp\\zlib"]
-	path = benchmarks\\cpp\\zlib
+[submodule "benchmarks/cpp/zlib"]
+	path = benchmarks/cpp/zlib
 	url = https://github.com/madler/zlib
