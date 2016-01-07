@@ -52,3 +52,9 @@ meant to be representative of game data, e.g. a scene format.
     fields manually), is very much tied to the rest of the engine, and works
     without a schema to generate code (tied to your C++ class definition).
 
+### Code for benchmarks
+
+Code for these benchmarks sits in `benchmarks/` in git branch `benchmarks`.
+It sits in its own branch because it has submodule dependencies that the main
+project doesn't need, and the code standards do not meet those of the main
+project. Please read `benchmarks/cpp/README.txt` before working with the code.
