@@ -94,8 +94,10 @@ $(document).ready(function(){initNavTree('md__benchmarks.html','');});
 <li>Thrift: very similar to Protocol Buffers, but appears to be less efficient, and have more dependencies.</li>
 <li>YAML: a superset of JSON and otherwise very similar. Used by e.g. Unity.</li>
 <li>C# comes with built-in serialization functionality, as used by Unity also. Being tied to the language, and having no automatic versioning support limits its applicability.</li>
-<li>Project Anarchy (the free mobile engine by Havok) comes with a serialization system, that however does no automatic versioning (have to code around new fields manually), is very much tied to the rest of the engine, and works without a schema to generate code (tied to your C++ class definition). </li>
+<li>Project Anarchy (the free mobile engine by Havok) comes with a serialization system, that however does no automatic versioning (have to code around new fields manually), is very much tied to the rest of the engine, and works without a schema to generate code (tied to your C++ class definition).</li>
 </ul>
+<h3>Code for benchmarks</h3>
+<p>Code for these benchmarks sits in <code>benchmarks/</code> in git branch <code>benchmarks</code>. It sits in its own branch because it has submodule dependencies that the main project doesn't need, and the code standards do not meet those of the main project. Please read <code>benchmarks/cpp/README.txt</code> before working with the code. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->
