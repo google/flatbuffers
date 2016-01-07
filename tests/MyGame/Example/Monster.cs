@@ -109,7 +109,7 @@ public sealed class Monster : Table {
   public static void StartTestarrayofboolsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
-    builder.Required(o, 10);  // name
+    builder.Required(o, 10, "name");
     return new Offset<Monster>(o);
   }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }

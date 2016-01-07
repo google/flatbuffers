@@ -455,13 +455,13 @@ public class FlatBufferBuilder {
 
     // This checks a required field has been set in a given table that has
     // just been constructed.
-    public void required(int table, int field) {
+    public void required(int table, int field, String fieldName) {
         int table_start = bb.capacity() - table;
         int vtable_start = table_start - bb.getInt(table_start);
         boolean ok = bb.getShort(vtable_start + field) != 0;
         // If this fails, the caller will show what field needs to be set.
         if (!ok)
-            throw new AssertionError("FlatBuffers: field " + field + " must be set");
+            throw new AssertionError("FlatBuffers: field '" + fieldName + "' (offset "+ field +") must be set");
     }
 
     public void finish(int root_table) {
