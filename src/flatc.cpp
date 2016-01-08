@@ -117,7 +117,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                  This may crash flatc given a mismatched schema.\n"
       "  --proto         Input is a .proto, translate to .fbs.\n"
       "  --schema        Serialize schemas instead of JSON (use with -b)\n"
-      "FILEs may depend on declarations in earlier files.\n"
+      "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
       "and written to the current directory or the path given by -o.\n"
@@ -251,6 +251,10 @@ int main(int argc, const char *argv[]) {
           }
         }
       } else {
+        // Check if file contains 0 bytes.
+        if (contents.length() != strlen(contents.c_str())) {
+          Error("input file appears to be binary: " + *file_it, true);
+        }
         if (flatbuffers::GetExtension(*file_it) == "fbs") {
           // If we're processing multiple schemas, make sure to start each
           // one from scratch. If it depends on previous schemas it must do
