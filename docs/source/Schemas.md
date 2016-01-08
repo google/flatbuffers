@@ -313,6 +313,9 @@ JSON:
     you do when serializing from code. E.g. for a field `foo`, you must
     add a field `foo_type: FooOne` right before the `foo` field, where
     `FooOne` would be the table out of the union you want to use.
+-   A field that has the value `null` (e.g. `field: null`) is intended to
+    have the default value for that field (thus has the same effect as if
+    that field wasn't specified at all).
 
 When parsing JSON, it recognizes the following escape codes in strings:
 

@@ -151,7 +151,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(FileIdentifier, 267, "file_identifier") \
   TD(FileExtension, 268, "file_extension") \
   TD(Include, 269, "include") \
-  TD(Attribute, 270, "attribute")
+  TD(Attribute, 270, "attribute") \
+  TD(Null, 271, "null")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -341,6 +342,10 @@ CheckedError Parser::Next() {
           }
           if (attribute_ == "file_extension") {
             token_ = kTokenFileExtension;
+            return NoError();
+          }
+          if (attribute_ == "null") {
+            token_ = kTokenNull;
             return NoError();
           }
           // If not, it is a user-defined identifier:
@@ -688,19 +693,23 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       }
     } else {
       EXPECT(':');
-      Value val = field->value;
-      ECHECK(ParseAnyValue(val, field, fieldn));
-      size_t i = field_stack_.size();
-      // Hardcoded insertion-sort with error-check.
-      // If fields are specified in order, then this loop exits immediately.
-      for (; i > field_stack_.size() - fieldn; i--) {
-        auto existing_field = field_stack_[i - 1].second;
-        if (existing_field == field)
-          return Error("field set more than once: " + field->name);
-        if (existing_field->value.offset < field->value.offset) break;
+      if (Is(kTokenNull)) {
+        NEXT(); // Ignore this field.
+      } else {
+        Value val = field->value;
+        ECHECK(ParseAnyValue(val, field, fieldn));
+        size_t i = field_stack_.size();
+        // Hardcoded insertion-sort with error-check.
+        // If fields are specified in order, then this loop exits immediately.
+        for (; i > field_stack_.size() - fieldn; i--) {
+          auto existing_field = field_stack_[i - 1].second;
+          if (existing_field == field)
+            return Error("field set more than once: " + field->name);
+          if (existing_field->value.offset < field->value.offset) break;
+        }
+        field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
+        fieldn++;
       }
-      field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
-      fieldn++;
     }
     if (Is('}')) { NEXT(); break; }
     EXPECT(',');
@@ -1542,10 +1551,10 @@ CheckedError Parser::SkipJsonObject() {
 
 CheckedError Parser::SkipJsonArray() {
   EXPECT('[');
-  
+
   for (;;) {
     if (Is(']')) break;
-        
+
     ECHECK(SkipAnyJsonValue());
 
     if (Is(']')) break;
