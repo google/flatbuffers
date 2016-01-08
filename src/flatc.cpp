@@ -183,7 +183,6 @@ int main(int argc, const char *argv[]) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-        any_generator = true;
       } else if(arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
@@ -208,8 +207,12 @@ int main(int argc, const char *argv[]) {
 
   if (!filenames.size()) Error("missing input files", false, true);
 
-  if (!any_generator)
+  if (opts.proto_mode) {
+    if (any_generator)
+      Error("cannot generate code directly from .proto files", true);
+  } else if (!any_generator) {
     Error("no options: specify at least one generator.", true);
+  }
 
   // Now process the files:
   parser = new flatbuffers::Parser(opts);
