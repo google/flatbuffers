@@ -98,6 +98,7 @@ root_type Monster;
 <li>You cannot delete fields you don't use anymore from the schema, but you can simply stop writing them into your data for almost the same effect. Additionally you can mark them as <code>deprecated</code> as in the example above, which will prevent the generation of accessors in the generated C++, as a way to enforce the field not being used any more. (careful: this may break code!).</li>
 <li>You may change field names and table names, if you're ok with your code breaking until you've renamed them there too.</li>
 </ul>
+<p>See "Schema evolution examples" below for more on this topic.</p>
 <h3>Structs</h3>
 <p>Similar to a table, only now none of the fields are optional (so no defaults either), and fields may not be added or be deprecated. Structs may only contain scalars or other structs. Use this for simple objects where you are very sure no changes will ever be made (as quite clear in the example <code>Vec3</code>). Structs use less memory than tables and are even faster to access (they are always stored in-line in their parent object, and use no virtual table).</p>
 <h3>Types</h3>
@@ -121,6 +122,7 @@ root_type Monster;
 <p>You generally do not want to change default values after they're initially defined. Fields that have the default value are not actually stored in the serialized data but are generated in code, so when you change the default, you'd now get a different value than from code generated from an older version of the schema. There are situations however where this may be desirable, especially if you can ensure a simultaneous rebuild of all code.</p>
 <h3>Enums</h3>
 <p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type.</p>
+<p>Typically, enum values should only ever be added, never removed (there is no deprecation for enums). This requires code to handle forwards compatibility itself, by handling unknown enum values.</p>
 <h3>Unions</h3>
 <p>Unions share a lot of properties with enums, but instead of new names for constants, you use names of tables. You can then declare a union field which can hold a reference to any of those types, and additionally a hidden field with the suffix <code>_type</code> is generated that holds the corresponding enum value, allowing you to know which type to cast to at runtime.</p>
 <p>Unions are a good way to be able to send multiple message types as a FlatBuffer. Note that because a union field is really two fields, it must always be part of a table, it cannot be the root of a FlatBuffer by itself.</p>
@@ -183,7 +185,19 @@ root_type Monster;
 <h3>Schemas and version control</h3>
 <p>FlatBuffers relies on new field declarations being added at the end, and earlier declarations to not be removed, but be marked deprecated when needed. We think this is an improvement over the manual number assignment that happens in Protocol Buffers (and which is still an option using the <code>id</code> attribute mentioned above).</p>
 <p>One place where this is possibly problematic however is source control. If user A adds a field, generates new binary data with this new schema, then tries to commit both to source control after user B already committed a new field also, and just auto-merges the schema, the binary files are now invalid compared to the new schema.</p>
-<p>The solution of course is that you should not be generating binary data before your schema changes have been committed, ensuring consistency with the rest of the world. If this is not practical for you, use explicit field ids, which should always generate a merge conflict if two people try to allocate the same id. </p>
+<p>The solution of course is that you should not be generating binary data before your schema changes have been committed, ensuring consistency with the rest of the world. If this is not practical for you, use explicit field ids, which should always generate a merge conflict if two people try to allocate the same id.</p>
+<h3>Schema evolution examples</h3>
+<p>Some examples to clarify what happens as you change a schema:</p>
+<p>If we have the following original schema: </p><pre class="fragment">table { a:int; b:int; }
+</pre><p>And we extend it: </p><pre class="fragment">table { a:int; b:int; c:int; }
+</pre><p>This is ok. Code compiled with the old schema reading data generated with the new one will simply ignore the presence of the new field. Code compiled with the new schema reading old data will get the default value for <code>c</code> (which is 0 in this case, since it is not specified). </p><pre class="fragment">table { a:int (deprecated); b:int; }
+</pre><p>This is also ok. Code compiled with the old schema reading newer data will now always get the default value for <code>a</code> since it is not present. Code compiled with the new schema now cannot read nor write <code>a</code> anymore (any existing code that tries to do so will result in compile errors), but can still read old data (they will ignore the field). </p><pre class="fragment">table { c:int a:int; b:int; }
+</pre><p>This is NOT ok, as this makes the schemas incompatible. Old code reading newer data will interpret <code>c</code> as if it was <code>a</code>, and new code reading old data accessing <code>a</code> will instead receive <code>b</code>. </p><pre class="fragment">table { c:int (id: 2); a:int (id: 0); b:int (id: 1); }
+</pre><p>This is ok. If your intent was to order/group fields in a way that makes sense semantically, you can do so using explicit id assignment. Now we are compatible with the original schema, and the fields can be ordered in any way, as long as we keep the sequence of ids. </p><pre class="fragment">table { b:int; }
+</pre><p>NOT ok. We can only remove a field by deprecation, regardless of wether we use explicit ids or not. </p><pre class="fragment">table { a:uint; b:uint; }
+</pre><p>This is MAYBE ok, and only in the case where the type change is the same size, like here. If old data never contained any negative numbers, this will be safe to do. </p><pre class="fragment">table { a:int = 1; b:int = 2; }
+</pre><p>Generally NOT ok. Any older data written that had 0 values were not written to the buffer, and rely on the default value to be recreated. These will now have those values appear to <code>1</code> and <code>2</code> instead. There may be cases in which this is ok, but care must be taken. </p><pre class="fragment">table { aa:int; bb:int; }
+</pre><p>Occasionally ok. You've renamed fields, which will break all code (and JSON files!) that use this schema, but as long as the change is obvious, this is not incompatible with the actual binary buffers, since those only ever address fields by id/offset. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

@@ -68,7 +68,8 @@ and backwards compatibility. Note that:
 -   You may change field names and table names, if you're ok with your
     code breaking until you've renamed them there too.
 
-
+See "Schema evolution examples" below for more on this
+topic.
 
 ### Structs
 
@@ -132,6 +133,10 @@ increasing by one from the previous one. The default first value
 is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
 the type of any fields declared with this enum type.
+
+Typically, enum values should only ever be added, never removed (there is no
+deprecation for enums). This requires code to handle forwards compatibility
+itself, by handling unknown enum values.
 
 ### Unions
 
@@ -351,3 +356,65 @@ the world. If this is not practical for you, use explicit field ids, which
 should always generate a merge conflict if two people try to allocate the same
 id.
 
+### Schema evolution examples
+
+Some examples to clarify what happens as you change a schema:
+
+If we have the following original schema:
+
+    table { a:int; b:int; }
+
+And we extend it:
+
+    table { a:int; b:int; c:int; }
+
+This is ok. Code compiled with the old schema reading data generated with the
+new one will simply ignore the presence of the new field. Code compiled with the
+new schema reading old data will get the default value for `c` (which is 0
+in this case, since it is not specified).
+
+    table { a:int (deprecated); b:int; }
+
+This is also ok. Code compiled with the old schema reading newer data will now
+always get the default value for `a` since it is not present. Code compiled
+with the new schema now cannot read nor write `a` anymore (any existing code
+that tries to do so will result in compile errors), but can still read
+old data (they will ignore the field).
+
+    table { c:int a:int; b:int; }
+
+This is NOT ok, as this makes the schemas incompatible. Old code reading newer
+data will interpret `c` as if it was `a`, and new code reading old data
+accessing `a` will instead receive `b`.
+
+    table { c:int (id: 2); a:int (id: 0); b:int (id: 1); }
+
+This is ok. If your intent was to order/group fields in a way that makes sense
+semantically, you can do so using explicit id assignment. Now we are compatible
+with the original schema, and the fields can be ordered in any way, as long as
+we keep the sequence of ids.
+
+    table { b:int; }
+
+NOT ok. We can only remove a field by deprecation, regardless of wether we use
+explicit ids or not.
+
+    table { a:uint; b:uint; }
+
+This is MAYBE ok, and only in the case where the type change is the same size,
+like here. If old data never contained any negative numbers, this will be
+safe to do.
+
+    table { a:int = 1; b:int = 2; }
+
+Generally NOT ok. Any older data written that had 0 values were not written to
+the buffer, and rely on the default value to be recreated. These will now have
+those values appear to `1` and `2` instead. There may be cases in which this
+is ok, but care must be taken.
+
+    table { aa:int; bb:int; }
+
+Occasionally ok. You've renamed fields, which will break all code (and JSON
+files!) that use this schema, but as long as the change is obvious, this is not
+incompatible with the actual binary buffers, since those only ever address
+fields by id/offset.
