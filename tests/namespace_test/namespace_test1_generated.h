@@ -15,7 +15,9 @@ struct StructInNestedNS;
 enum EnumInNestedNS {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
-  EnumInNestedNS_C = 2
+  EnumInNestedNS_C = 2,
+  EnumInNestedNS_MIN_VAL = EnumInNestedNS_A,
+  EnumInNestedNS_MAX_VAL = EnumInNestedNS_C
 };
 
 inline const char **EnumNamesEnumInNestedNS() {

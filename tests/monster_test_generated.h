@@ -23,7 +23,9 @@ struct Monster;
 enum Color {
   Color_Red = 1,
   Color_Green = 2,
-  Color_Blue = 8
+  Color_Blue = 8,
+  Color_MIN = Color_Red,
+  Color_MAX = Color_Blue
 };
 
 inline const char **EnumNamesColor() {
@@ -36,7 +38,9 @@ inline const char *EnumNameColor(Color e) { return EnumNamesColor()[static_cast<
 enum Any {
   Any_NONE = 0,
   Any_Monster = 1,
-  Any_TestSimpleTableWithEnum = 2
+  Any_TestSimpleTableWithEnum = 2,
+  Any_MIN = Any_NONE,
+  Any_MAX = Any_TestSimpleTableWithEnum
 };
 
 inline const char **EnumNamesAny() {

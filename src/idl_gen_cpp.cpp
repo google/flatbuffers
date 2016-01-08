@@ -131,10 +131,10 @@ static std::string GenEnumDecl(const EnumDef &enum_def,
   return (opts.scoped_enums ? "enum class " : "enum ") + enum_def.name;
 }
 
-static std::string GenEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
+static std::string GenEnumVal(const EnumDef &enum_def,
+                              const std::string &enum_val,
                               const IDLOptions &opts) {
-  return opts.prefixed_enums ? enum_def.name + "_" + enum_val.name
-                             : enum_val.name;
+  return opts.prefixed_enums ? enum_def.name + "_" + enum_val : enum_val;
 }
 
 static std::string GetEnumVal(const EnumDef &enum_def, const EnumVal &enum_val,
@@ -159,15 +159,22 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   if (parser.opts.scoped_enums)
     code += " : " + GenTypeBasic(parser, enum_def.underlying_type, false);
   code += " {\n";
+  EnumVal *minv = nullptr, *maxv = nullptr;
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, nullptr, "  ");
-    code += "  " + GenEnumVal(enum_def, ev, parser.opts) + " = ";
-    code += NumToString(ev.value);
-    code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
+    code += "  " + GenEnumVal(enum_def, ev.name, parser.opts) + " = ";
+    code += NumToString(ev.value) + ",\n";
+    minv = !minv || minv->value > ev.value ? &ev : minv;
+    maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
   }
+  assert(minv && maxv);
+  code += "  " + GenEnumVal(enum_def, "MIN", parser.opts) + " = ";
+  code += GenEnumVal(enum_def, minv->name, parser.opts) + ",\n";
+  code += "  " + GenEnumVal(enum_def, "MAX", parser.opts) + " = ";
+  code += GenEnumVal(enum_def, maxv->name, parser.opts) + "\n";
   code += "};\n\n";
 
   // Generate a generate string table for enum values.

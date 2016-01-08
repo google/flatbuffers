@@ -36,7 +36,7 @@ class TableInFirstNS extends Table
     {
         $obj = new TableInNestedNS();
         $o = $this->__offset(4);
-        return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
     }
 
     /**
