@@ -6,13 +6,20 @@ namespace NamespaceA.NamespaceB
 using System;
 using FlatBuffers;
 
-public sealed class TableInNestedNS : Table {
-  public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb) { return GetRootAsTableInNestedNS(_bb, new TableInNestedNS()); }
-  public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb, TableInNestedNS obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public TableInNestedNS __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+public struct TableInNestedNS : ITable<TableInNestedNS> {
+  private readonly TablePos pos;
 
-  public int Foo { get { int o = __offset(4); return o != 0 ? bb.GetInt(o + bb_pos) : (int)0; } }
-  public bool MutateFoo(int foo) { int o = __offset(4); if (o != 0) { bb.PutInt(o + bb_pos, foo); return true; } else { return false; } }
+  public TableInNestedNS(int _i, ByteBuffer _bb) { this.pos = new TablePos(_i, _bb); }
+  public TableInNestedNS(TablePos pos) { this.pos = pos; }
+
+  ByteBuffer IFieldGroup.ByteBuffer { get { return this.pos.bb; } }
+  TablePos ITable.TablePos { get { return this.pos; } }
+  TableInNestedNS ITable<TableInNestedNS>.Construct(TablePos pos) { return new TableInNestedNS(pos); }
+
+  public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb) { return (new TableInNestedNS(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+
+  public int Foo { get { int o = this.pos.__offset(4); return o != 0 ? this.pos.bb.GetInt(o + this.pos.bb_pos) : (int)0; } }
+  public bool MutateFoo(int foo) { int o = this.pos.__offset(4); if (o != 0) { this.pos.bb.PutInt(o + this.pos.bb_pos, foo); return true; } else { return false; } }
 
   public static Offset<TableInNestedNS> CreateTableInNestedNS(FlatBufferBuilder builder,
       int foo = 0) {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +130,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(monster.MutateInventory(4, 4), true);
 
             // get a struct field and edit one of its fields
-            Vec3 pos = monster.Pos;
+            Vec3 pos = (Vec3)monster.Pos;
             Assert.AreEqual(pos.X, 1.0f);
             pos.MutateX(55.0f);
             Assert.AreEqual(pos.X, 55.0f);
@@ -148,7 +148,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(150, monster.Mana);
             Assert.AreEqual("MyMonster", monster.Name);
 
-            var pos = monster.Pos;
+            var pos = (Vec3)monster.Pos;
             Assert.AreEqual(1.0f, pos.X);
             Assert.AreEqual(2.0f, pos.Y);
             Assert.AreEqual(3.0f, pos.Z);
@@ -161,9 +161,9 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual(Any.Monster, monster.TestType);
 
-            var monster2 = new Monster();
-            Assert.IsTrue(monster.GetTest(monster2) != null);
-            Assert.AreEqual("Fred", monster2.Name);
+            var monster2 = monster.GetTest<Monster>();
+            Assert.IsTrue(monster2 != null);
+            Assert.AreEqual("Fred", monster2.GetValueOrDefault().Name);
 
 
             Assert.AreEqual(5, monster.InventoryLength);
@@ -174,8 +174,8 @@ namespace FlatBuffers.Test
             }
             Assert.AreEqual(10, invsum);
 
-            var test0 = monster.GetTest4(0);
-            var test1 = monster.GetTest4(1);
+            var test0 = (MyGame.Example.Test)monster.GetTest4(0);
+            var test1 = (MyGame.Example.Test)monster.GetTest4(1);
             Assert.AreEqual(2, monster.Test4Length);
 
             Assert.AreEqual(100, test0.A + test0.B + test1.A + test1.B);

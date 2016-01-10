@@ -1,50 +1,37 @@
-/*
- * Copyright 2014 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace FlatBuffers
+namespace FlatBuffers 
 {
-    /// <summary>
-    /// All tables in the generated code derive from this class, and add their own accessors.
-    /// </summary>
-    public abstract class Table
+    public struct TablePos 
     {
-        protected int bb_pos;
-        protected ByteBuffer bb;
+        public TablePos(int bb_pos, ByteBuffer bb) 
+        {
+            this.bb_pos = bb_pos;
+            this.bb = bb;
+        }
 
-        public ByteBuffer ByteBuffer { get { return bb; } }
+        public readonly int bb_pos;
+        public readonly ByteBuffer bb;
 
         // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
         // present.
-        protected int __offset(int vtableOffset)
+        public int __offset(int vtableOffset)
         {
             int vtable = bb_pos - bb.GetInt(bb_pos);
             return vtableOffset < bb.GetShort(vtable) ? (int)bb.GetShort(vtable + vtableOffset) : 0;
         }
 
         // Retrieve the relative offset stored at "offset"
-        protected int __indirect(int offset)
+        public int __indirect(int offset)
         {
             return offset + bb.GetInt(offset);
         }
 
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
-        protected string __string(int offset)
+        public string __string(int offset)
         {
             offset += bb.GetInt(offset);
             var len = bb.GetInt(offset);
@@ -53,7 +40,7 @@ namespace FlatBuffers
         }
 
         // Get the length of a vector whose offset is stored at "offset" in this object.
-        protected int __vector_len(int offset)
+        public int __vector_len(int offset)
         {
             offset += bb_pos;
             offset += bb.GetInt(offset);
@@ -61,7 +48,7 @@ namespace FlatBuffers
         }
 
         // Get the start of data of a vector whose offset is stored at "offset" in this object.
-        protected int __vector(int offset)
+        public int __vector(int offset)
         {
             offset += bb_pos;
             return offset + bb.GetInt(offset) + sizeof(int);  // data starts after the length
@@ -70,7 +57,7 @@ namespace FlatBuffers
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // ArraySegment&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then a null value will be returned.
-        protected ArraySegment<byte>? __vector_as_arraysegment(int offset) {
+        public ArraySegment<byte>? __vector_as_arraysegment(int offset) {
             var o = this.__offset(offset);
             if (0 == o)
             {
@@ -83,15 +70,14 @@ namespace FlatBuffers
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.
-        protected TTable __union<TTable>(TTable t, int offset) where TTable : Table
+        public TTable __union<TTable>(int offset) where TTable : struct, ITable<TTable>
         {
+            TTable table = default(TTable);
             offset += bb_pos;
-            t.bb_pos = offset + bb.GetInt(offset);
-            t.bb = bb;
-            return t;
+            return table.Construct(new TablePos(offset + bb.GetInt(offset), bb));
         }
 
-        protected static bool __has_identifier(ByteBuffer bb, string ident)
+        public static bool __has_identifier(ByteBuffer bb, string ident)
         {
             if (ident.Length != FlatBufferConstants.FileIdentifierLength)
                 throw new ArgumentException("FlatBuffers: file identifier must be length " + FlatBufferConstants.FileIdentifierLength, "ident");
@@ -103,7 +89,5 @@ namespace FlatBuffers
 
             return true;
         }
-
-
     }
 }

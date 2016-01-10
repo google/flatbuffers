@@ -547,16 +547,36 @@ static void GenEnum(const LanguageParameters &lang, const Parser &parser, EnumDe
   code += "};\n\n";
 }
 
+static std::string GenMemberPrefix(const LanguageParameters &lang) {
+  return lang.language == IDLOptions::kCSharp ? "this.pos." : "";
+}
+
+static std::string GenByteBufferPosRef(const LanguageParameters &lang) {
+  return GenMemberPrefix(lang) + "bb_pos";
+}
+
+static std::string GenByteBufferRef(const LanguageParameters &lang) {
+  return GenMemberPrefix(lang) + "bb";
+}
+
+static std::string GenObjInit(const LanguageParameters &lang, const std::string& type_name) {
+  return lang.language == IDLOptions::kCSharp ? "new " + type_name : "obj.__init";
+}
+
+static std::string GenObjDefaultCast(const LanguageParameters &lang, const std::string& type_name) {
+  return lang.language == IDLOptions::kCSharp ? "(" + type_name + "?)" : "";
+}
+
 // Returns the function name that is able to read a value of the given type.
 static std::string GenGetter(const LanguageParameters &lang, const Parser &parser,
                              const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING: return "__string";
-    case BASE_TYPE_STRUCT: return "__struct";
-    case BASE_TYPE_UNION:  return "__union";
+    case BASE_TYPE_STRING: return GenMemberPrefix(lang) + "__string";
+    case BASE_TYPE_STRUCT: return GenMemberPrefix(lang) + "__struct";
+    case BASE_TYPE_UNION:  return GenMemberPrefix(lang) + "__union";
     case BASE_TYPE_VECTOR: return GenGetter(lang, parser, type.VectorType());
     default: {
-      std::string getter = "bb." + FunctionStart(lang, 'G') + "et";
+      std::string getter = GenByteBufferRef(lang) + "." + FunctionStart(lang, 'G') + "et";
       if (type.base_type == BASE_TYPE_BOOL) {
         getter = "0!=" + getter;
       } else if (GenTypeBasic(lang, parser, type, false) != "byte") {
@@ -572,7 +592,7 @@ static std::string GenGetter(const LanguageParameters &lang, const Parser &parse
 static std::string GenSetter(const LanguageParameters &lang, const Parser &parser,
                              const Type &type) {
   if (IsScalar(type.base_type)) {
-    std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
+    std::string setter = GenByteBufferRef(lang) + "." + FunctionStart(lang, 'P') + "ut";
     if (GenTypeBasic(lang, parser, type, false) != "byte" && 
         type.base_type != BASE_TYPE_BOOL) {
       setter += MakeCamel(GenTypeBasic(lang, parser, type, false));
@@ -659,10 +679,38 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
-  code += std::string("public ") + lang.unsubclassable_decl;
-  code += "class " + struct_def.name + lang.inheritance_marker;
-  code += struct_def.fixed ? "Struct" : "Table";
-  code += " {\n";
+  code += std::string("public ");
+  std::string pos_type;
+  if (lang.language == IDLOptions::kCSharp) {
+    code += "struct " + struct_def.name;
+    code += lang.inheritance_marker;
+    code += struct_def.fixed ? "IStruct" : "ITable<" + struct_def.name + ">";
+    code += " {\n";
+    // add pos field
+    code += "  private readonly ";
+    pos_type = (struct_def.fixed ? "StructPos" : "TablePos");
+    code += pos_type + " pos;\n\n";
+    // add constructors
+    code += "  public " + struct_def.name + "(int _i, ByteBuffer _bb) ";
+    code += "{ this.pos = new " + pos_type + "(_i, _bb); }\n";
+    code += "  public " + struct_def.name + "(" + pos_type + " pos) ";
+    code += "{ this.pos = pos; }\n\n";
+    // add explicit interface implementations
+    code += "  ByteBuffer IFieldGroup.ByteBuffer { get { return " + GenByteBufferRef(lang) + "; } }\n";
+    code += "  " + pos_type + " " + (struct_def.fixed ? "IStruct" : "ITable") + "." + pos_type;
+    code += " { get { return this.pos; } }\n";
+    if (!struct_def.fixed) {
+      code += "  " + struct_def.name + " ITable<" + struct_def.name + ">.Construct(TablePos pos) ";
+      code += "{ return new " + struct_def.name + "(pos); }\n";
+    }
+    code += "\n";
+  } else {
+    code += lang.unsubclassable_decl;
+    code += "class " + struct_def.name + lang.inheritance_marker;
+    code += struct_def.fixed ? "Struct" : "Table";
+    code += " {\n";
+  }
+  
   if (!struct_def.fixed) {
     // Generate a special accessor for the table that when used as the root
     // of a FlatBuffer
@@ -671,12 +719,16 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
 
     // create convenience method that doesn't require an existing object
     code += method_signature + "(ByteBuffer _bb) ";
-    code += "{ return " + method_name + "(_bb, new " + struct_def.name+ "()); }\n";
-
-    // create method that allows object reuse
-    code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
+    if (lang.language != IDLOptions::kCSharp) {
+      code += "{ return ";
+      code += method_name + "(_bb, new " + struct_def.name + "()); }\n";
+      // create method that allows object reuse
+      code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) ";
+    }
+    code += "{ ";
     code += lang.set_bb_byteorder;
-    code += "return (obj.__init(_bb." + FunctionStart(lang, 'G');
+    code += "return (" + GenObjInit(lang, struct_def.name); 
+    code += "(_bb." + FunctionStart(lang, 'G');
     code += "etInt(_bb.";
     code += lang.get_bb_position;
     code += ") + _bb.";
@@ -688,16 +740,22 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += "  public static ";
         code += lang.bool_type + struct_def.name;
         code += "BufferHasIdentifier(ByteBuffer _bb) { return ";
+        if (lang.language == IDLOptions::kCSharp)
+          code += pos_type + ".";
         code += "__has_identifier(_bb, \"" + parser.file_identifier_;
         code += "\"); }\n";
       }
     }
   }
-  // Generate the __init method that sets the field in a pre-existing
-  // accessor object. This is to allow object reuse.
-  code += "  public " + struct_def.name;
-  code += " __init(int _i, ByteBuffer _bb) ";
-  code += "{ bb_pos = _i; bb = _bb; return this; }\n\n";
+  if (lang.language != IDLOptions::kCSharp) {
+    // Generate the __init method that sets the field in a pre-existing
+    // accessor object. This is to allow object reuse.
+    code += "  public " + struct_def.name;
+    code += " __init(int _i, ByteBuffer _bb) ";
+    code += "{ bb_pos = _i; bb = _bb; return this; }\n";
+  }
+  code += "\n";
+
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -714,20 +772,16 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
 
     // Most field accessors need to retrieve and test the field offset first,
     // this is the prefix code for that:
-    auto offset_prefix = " { int o = __offset(" +
+    auto offset_prefix = " { int o = " + GenMemberPrefix(lang) + "__offset(" +
       NumToString(field.value.offset) +
       "); return o != 0 ? ";
     // Generate the accessors that don't do object reuse.
     if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-      // Calls the accessor that takes an accessor object with a new object.
-      if (lang.language == IDLOptions::kCSharp) {
-        code += method_start + " { get { return Get";
-        code += MakeCamel(field.name, lang.first_camel_upper);
-        code += "(new ";
-        code += type_name + "()); } }\n";
-        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
-      }
-      else {
+      // If we're within a struct, there's no need to return a nullable.
+      if (lang.language == IDLOptions::kCSharp && !struct_def.fixed) {
+        method_start = "  public " + type_name_dest + "? " + MakeCamel(field.name, lang.first_camel_upper);
+      } else if (lang.language != IDLOptions::kCSharp) {
+        // Calls the accessor that takes an accessor object with a new object.
         code += method_start + "() { return ";
         code += MakeCamel(field.name, lang.first_camel_upper);
         code += "(new ";
@@ -738,24 +792,21 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       // Accessors for vectors of structs also take accessor objects, this
       // generates a variant without that argument.
       if (lang.language == IDLOptions::kCSharp) {
-        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
-        code += method_start + "(int j) { return Get";
+        method_start = "  public " + type_name_dest + "? Get" + MakeCamel(field.name, lang.first_camel_upper);
       } else {
         code += method_start + "(int j) { return ";
+        code += MakeCamel(field.name, lang.first_camel_upper);
+        code += "(new ";
+        code += type_name + "(), j); }\n";
       }
-      code += MakeCamel(field.name, lang.first_camel_upper);
-      code += "(new ";
-      code += type_name + "(), j); }\n";
     } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       if (lang.language == IDLOptions::kCSharp) {
         method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
       }
     } else if (field.value.type.base_type == BASE_TYPE_UNION) {
       if (lang.language == IDLOptions::kCSharp) {
-        // union types in C# use generic Table-derived type for better type safety
-        method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper) + "<TTable>";
-        offset_prefix = " where TTable : Table" + offset_prefix;
-        type_name = type_name_dest;
+        method_start = "  public TTable? Get" + MakeCamel(field.name, lang.first_camel_upper) + "<TTable>() ";
+        method_start += "where TTable : struct, ITable<TTable>";
       }
     }
     std::string getter = dest_cast + GenGetter(lang, parser, field.value.type);
@@ -778,62 +829,79 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       member_suffix = lang.getter_suffix;
       if (struct_def.fixed) {
         code += " { return " + getter;
-        code += "(bb_pos + " + NumToString(field.value.offset) + ")";
+        code += "(" + GenByteBufferPosRef(lang) + " + " + NumToString(field.value.offset) + ")";
         code += dest_mask;
       } else {
         code += offset_prefix + getter;
-        code += "(o + bb_pos)" + dest_mask + " : " + default_cast;
+        code += "(o + " + GenByteBufferPosRef(lang) + ")" + dest_mask + " : " + default_cast;
         code += GenDefaultValue(lang, parser, field.value);
       }
     } else {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT:
-          code += "(" + type_name + " obj";
-          if (struct_def.fixed) {
-            code += ") { return obj.__init(bb_pos + ";
-            code += NumToString(field.value.offset) + ", bb)";
+          if (lang.language == IDLOptions::kCSharp) {
+            code += lang.getter_prefix;
+            member_suffix = lang.getter_suffix;
           } else {
-            code += ")";
+            code += "(" + type_name + " obj)";
+          }
+          if (struct_def.fixed) {
+            code += " { return " + GenObjInit(lang,type_name) + "(" + GenByteBufferPosRef(lang)+ " + ";
+            code += NumToString(field.value.offset) + ", " + GenByteBufferRef(lang) + ")";
+          } else {
             code += offset_prefix;
-            code += "obj.__init(";
+            code += GenObjInit(lang, type_name) + "(";
             code += field.value.type.struct_def->fixed
-                      ? "o + bb_pos"
-                      : "__indirect(o + bb_pos)";
-            code += ", bb) : null";
+                      ? "o + " + GenByteBufferPosRef(lang)
+                      : GenMemberPrefix(lang) + "__indirect(o + " + GenByteBufferPosRef(lang) + ")";
+            code += ", " + GenByteBufferRef(lang) + ") : " + GenObjDefaultCast(lang, type_name) + "null";
           }
           break;
         case BASE_TYPE_STRING:
           code += lang.getter_prefix;
           member_suffix = lang.getter_suffix;
-          code += offset_prefix + getter + "(o + bb_pos) : null";
+          code += offset_prefix + getter + "(o + " + GenByteBufferPosRef(lang) + ") : null";
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
           code += "(";
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
-            code += type_name + " obj, ";
-            getter = "obj.__init";
+            if (lang.language != IDLOptions::kCSharp)
+              code += type_name + " obj, ";
+            getter = GenObjInit(lang, type_name);
           }
-          code += "int j)" + offset_prefix + getter +"(";
-          auto index = "__vector(o) + j * " +
-                       NumToString(InlineSize(vectortype));
+          code += "int j)" + offset_prefix + getter + "(";
+          auto index = GenMemberPrefix(lang) + "__vector(o) + j * " +
+            NumToString(InlineSize(vectortype));
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             code += vectortype.struct_def->fixed
-                      ? index
-                      : "__indirect(" + index + ")";
-            code += ", bb";
+              ? index
+              : GenMemberPrefix(lang) + "__indirect(" + index + ")";
+            code += ", " + GenByteBufferRef(lang);
           } else {
             code += index;
           }
           code += ")" + dest_mask + " : ";
 
-          code += field.value.type.element == BASE_TYPE_BOOL ? "false" :
-            (IsScalar(field.value.type.element) ? default_cast + "0" : "null");
+          if (field.value.type.element == BASE_TYPE_BOOL) {
+            code += "false";
+          } else if (IsScalar(field.value.type.element)) {
+            code += default_cast + "0";
+          } else {
+            if (field.value.type.element == BASE_TYPE_STRUCT)
+              code += GenObjDefaultCast(lang, type_name);
+            code += "null";
+          }
           break;
         }
         case BASE_TYPE_UNION:
-          code += "(" + type_name + " obj)" + offset_prefix + getter;
-          code += "(obj, o) : null";
+          if (lang.language == IDLOptions::kCSharp) {
+            code += offset_prefix + getter;
+            code += "<TTable>(o) : " + GenObjDefaultCast(lang,"TTable") + "null";
+          } else {
+            code += "(" + type_name + " obj)" + offset_prefix + getter;
+            code += "(obj, o) : null";
+          }
           break;
         default:
           assert(0);
@@ -847,7 +915,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "Length";
       code += lang.getter_prefix;
       code += offset_prefix;
-      code += "__vector_len(o) : 0; ";
+      code += GenMemberPrefix(lang) + "__vector_len(o) : 0; ";
       code += lang.getter_suffix;
       code += "}\n";
     }
@@ -859,7 +927,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         case IDLOptions::kJava:
           code += "  public ByteBuffer ";
           code += MakeCamel(field.name, lang.first_camel_upper);
-          code += "AsByteBuffer() { return __vector_as_bytebuffer(";
+          code += "AsByteBuffer() { return " + GenMemberPrefix(lang) + "__vector_as_bytebuffer(";
           code += NumToString(field.value.offset) + ", ";
           code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
                               InlineSize(field.value.type.VectorType()));
@@ -868,7 +936,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         case IDLOptions::kCSharp:
           code += "  public ArraySegment<byte>? Get";
           code += MakeCamel(field.name, lang.first_camel_upper);
-          code += "Bytes() { return __vector_as_arraysegment(";
+          code += "Bytes() { return " + GenMemberPrefix(lang) + "__vector_as_arraysegment(";
           code += NumToString(field.value.offset);
           code += "); }\n";
           break;
@@ -890,8 +958,10 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
                             GenTypeNameDest(lang, parser, underlying_type) + " " +
                             field.name + ") { ";
       auto setter_index = field.value.type.base_type == BASE_TYPE_VECTOR
-                    ? "__vector(o) + j * " + NumToString(InlineSize(underlying_type))
-                    : (struct_def.fixed ? "bb_pos + " + NumToString(field.value.offset) : "o + bb_pos");
+                    ? GenMemberPrefix(lang) + "__vector(o) + j * " + NumToString(InlineSize(underlying_type))
+                    : (struct_def.fixed 
+                         ? GenByteBufferPosRef(lang) + " + " + NumToString(field.value.offset) 
+                         : "o + " + GenByteBufferPosRef(lang));
       if (IsScalar(field.value.type.base_type) ||
           (field.value.type.base_type == BASE_TYPE_VECTOR &&
           IsScalar(field.value.type.VectorType().base_type))) {
@@ -903,7 +973,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           code += GenSetter(lang, parser, underlying_type) + "(" + setter_index + ", ";
           code += src_cast + setter_parameter + "); }\n";
         } else {
-          code += "int o = __offset(" + NumToString(field.value.offset) + ");";
+          code += "int o = " + GenMemberPrefix(lang) + "__offset(" + NumToString(field.value.offset) + ");";
           code += " if (o != 0) { " + GenSetter(lang, parser, underlying_type);
           code += "(" + setter_index + ", " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
         }
