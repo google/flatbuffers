@@ -359,8 +359,8 @@ static void StructBuilderArgs(const StructDef &struct_def,
       code += (std::string)", " + nameprefix;
       code += MakeCamel(field.name, false);
       code += " ";
-      code += field.value.type.enum_def
-           ? field.value.type.enum_def->name
+      code += IsEnum(field)
+           ? EnumName(field)
            : GenTypeBasic(field.value.type);
     }
   }
