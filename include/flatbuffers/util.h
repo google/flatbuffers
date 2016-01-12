@@ -42,10 +42,8 @@ namespace flatbuffers {
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
-// converted to a string of digits.
+// converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
-  // to_string() prints different numbers of digits for floats depending on
-  // platform and isn't available on Android, so we use stringstream
   std::stringstream ss;
   ss << t;
   return ss.str();
@@ -56,6 +54,27 @@ template<> inline std::string NumToString<signed char>(signed char t) {
 }
 template<> inline std::string NumToString<unsigned char>(unsigned char t) {
   return NumToString(static_cast<int>(t));
+}
+
+// Special versions for floats/doubles.
+template<> inline std::string NumToString<double>(double t) {
+  // to_string() prints different numbers of digits for floats depending on
+  // platform and isn't available on Android, so we use stringstream
+  std::stringstream ss;
+  // Use std::fixed to surpress scientific notation.
+  ss << std::fixed << t;
+  auto s = ss.str();
+  // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
+  auto p = s.find_last_not_of('0');
+  if (p != std::string::npos) {
+    s.resize(p + 1);  // Strip trailing zeroes.
+    if (s.back() == '.')
+      s.erase(s.size() - 1, 1);  // Strip '.' if a whole number.
+  }
+  return s;
+}
+template<> inline std::string NumToString<float>(float t) {
+  return NumToString(static_cast<double>(t));
 }
 
 // Convert an integer value to a hexadecimal string.
@@ -71,8 +90,17 @@ inline std::string IntToStringHex(int i, int xdigits) {
   return ss.str();
 }
 
-// Portable implementation of strtoull().
+// Portable implementation of strtoll().
 inline int64_t StringToInt(const char *str, int base = 10) {
+  #ifdef _MSC_VER
+    return _strtoi64(str, nullptr, base);
+  #else
+    return strtoll(str, nullptr, base);
+  #endif
+}
+
+// Portable implementation of strtoull().
+inline int64_t StringToUInt(const char *str, int base = 10) {
   #ifdef _MSC_VER
     return _strtoui64(str, nullptr, base);
   #else
@@ -93,8 +121,18 @@ inline bool FileExists(const char *name) {
 inline bool LoadFile(const char *name, bool binary, std::string *buf) {
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
-  *buf = std::string(std::istreambuf_iterator<char>(ifs),
-                    std::istreambuf_iterator<char>());
+  if (binary) {
+    // The fastest way to read a file into a string.
+    ifs.seekg(0, std::ios::end);
+    (*buf).resize(static_cast<size_t>(ifs.tellg()));
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(&(*buf)[0], (*buf).size());
+  } else {
+    // This is slower, but works correctly on all platforms for text files.
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    *buf = oss.str();
+  }
   return !ifs.bad();
 }
 
@@ -136,6 +174,12 @@ inline std::string StripExtension(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
+// Returns the extension, if any.
+inline std::string GetExtension(const std::string &filepath) {
+  size_t i = filepath.find_last_of(".");
+  return i != std::string::npos ? filepath.substr(i + 1) : "";
+}
+
 // Return the last component of the path, after the last separator.
 inline std::string StripPath(const std::string &filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
@@ -166,7 +210,7 @@ inline void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
   #ifdef _WIN32
-    _mkdir(filepath.c_str());
+    (void)_mkdir(filepath.c_str());
   #else
     mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
   #endif
@@ -175,15 +219,19 @@ inline void EnsureDirExists(const std::string &filepath) {
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
 inline std::string AbsolutePath(const std::string &filepath) {
-  #ifdef _WIN32
-    char abs_path[MAX_PATH];
-    return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+    return filepath;
   #else
-    char abs_path[PATH_MAX];
-    return realpath(filepath.c_str(), abs_path)
-  #endif
-    ? abs_path
-    : filepath;
+    #ifdef _WIN32
+      char abs_path[MAX_PATH];
+      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+    #else
+      char abs_path[PATH_MAX];
+      return realpath(filepath.c_str(), abs_path)
+    #endif
+      ? abs_path
+      : filepath;
+  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
 }
 
 // To and from UTF-8 unicode conversion functions

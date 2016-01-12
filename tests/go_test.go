@@ -68,6 +68,13 @@ func TestAll(t *testing.T) {
 	// expected bytes (does not use any schema):
 	CheckByteLayout(t.Fatalf)
 
+	// Verify that panics are raised during exceptional conditions:
+	CheckNotInObjectError(t.Fatalf)
+	CheckStringIsNestedError(t.Fatalf)
+	CheckByteStringIsNestedError(t.Fatalf)
+	CheckStructIsNotInlineError(t.Fatalf)
+	CheckFinishedBytesError(t.Fatalf)
+
 	// Verify that using the generated Go code builds a buffer without
 	// returning errors:
 	generated, off := CheckGeneratedBuild(t.Fatalf)
@@ -194,10 +201,6 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 
 	if got := monster.TestType(); example.AnyMonster != got {
 		fail(FailString("monster.TestType()", example.AnyMonster, got))
-	}
-
-	if unionType := monster.TestType(); unionType != example.AnyMonster {
-		fail("monster.TestType()")
 	}
 
 	// initialize a Table from a union field Test(...)
@@ -365,7 +368,7 @@ func checkFuzz(fuzzFields, fuzzObjects int, fail func(string, ...interface{})) {
 
 		for j := 0; j < fuzzFields; j++ {
 			f := flatbuffers.VOffsetT((flatbuffers.VtableMetadataFields + j) * flatbuffers.SizeVOffsetT)
-			choice := int(l.Next()) % testValuesMax
+			choice := l.Next() % uint32(testValuesMax)
 
 			switch choice {
 			case 0:
@@ -540,7 +543,7 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	// We use escape codes here so that editors without unicode support
 	// aren't bothered:
 	uni_str := "\u65e5\u672c\u8a9e"
-	b.CreateString(uni_str)  
+	b.CreateString(uni_str)
 	check([]byte{9, 0, 0, 0, 230, 151, 165, 230, 156, 172, 232, 170, 158, 0, //  null-terminated, 2-byte pad
 		0, 0})
 
@@ -1094,6 +1097,76 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 	testTable(table0, 0, 11, 22, 33)
 	testTable(table1, 0, 44, 55, 66)
 	testTable(table2, 0, 77, 88, 99)
+}
+
+// CheckNotInObjectError verifies that `EndObject` fails if not inside an
+// object.
+func CheckNotInObjectError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckNotInObjectError")
+		}
+	}()
+	b.EndObject()
+}
+
+// CheckStringIsNestedError verifies that a string can not be created inside
+// another object.
+func CheckStringIsNestedError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+	b.StartObject(0)
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckStringIsNestedError")
+		}
+	}()
+	b.CreateString("foo")
+}
+
+// CheckByteStringIsNestedError verifies that a bytestring can not be created
+// inside another object.
+func CheckByteStringIsNestedError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+	b.StartObject(0)
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckByteStringIsNestedError")
+		}
+	}()
+	b.CreateByteString([]byte("foo"))
+}
+
+// CheckStructIsNotInlineError verifies that writing a struct in a location
+// away from where it is used will cause a panic.
+func CheckStructIsNotInlineError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+	b.StartObject(0)
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckStructIsNotInlineError")
+		}
+	}()
+	b.PrependStructSlot(0, 1, 0)
+}
+
+// CheckFinishedBytesError verifies that `FinishedBytes` panics if the table
+// is not finished.
+func CheckFinishedBytesError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckFinishedBytesError")
+		}
+	}()
+	b.FinishedBytes()
 }
 
 // CheckDocExample checks that the code given in FlatBuffers documentation

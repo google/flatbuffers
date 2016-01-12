@@ -17,6 +17,8 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import MyGame.Example.*;
+import NamespaceA.*;
+import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -81,6 +83,7 @@ class JavaTest {
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
         Monster.addTestbool(fbb, false);
+        Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
         int mon = Monster.endMonster(fbb);
 
         Monster.finishMonsterBuffer(fbb, mon);
@@ -101,14 +104,60 @@ class JavaTest {
         }
 
         // Test it:
-        TestBuffer(fbb.dataBuffer());
+        TestExtendedBuffer(fbb.dataBuffer());
 
         // Make sure it also works with read only ByteBuffers. This is slower,
         // since creating strings incurs an additional copy
         // (see Table.__string).
-        TestBuffer(fbb.dataBuffer().asReadOnlyBuffer());
+        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
         TestEnums();
+
+        //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
+        // revert to original values after testing
+        Monster monster = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        // mana is optional and does not exist in the buffer so the mutation should fail
+        // the mana field should retain its default value
+        TestEq(monster.mutateMana((short)10), false);
+        TestEq(monster.mana(), (short)150);
+
+        // testType is an existing field and mutating it should succeed
+        TestEq(monster.testType(), (byte)Any.Monster);
+        TestEq(monster.mutateTestType(Any.NONE), true);
+        TestEq(monster.testType(), (byte)Any.NONE);
+        TestEq(monster.mutateTestType(Any.Monster), true);
+        TestEq(monster.testType(), (byte)Any.Monster);
+
+        //mutate the inventory vector
+        TestEq(monster.mutateInventory(0, 1), true);
+        TestEq(monster.mutateInventory(1, 2), true);
+        TestEq(monster.mutateInventory(2, 3), true);
+        TestEq(monster.mutateInventory(3, 4), true);
+        TestEq(monster.mutateInventory(4, 5), true);
+
+        for (int i = 0; i < monster.inventoryLength(); i++) {
+            TestEq(monster.inventory(i), i + 1);
+        }
+
+        //reverse mutation
+        TestEq(monster.mutateInventory(0, 0), true);
+        TestEq(monster.mutateInventory(1, 1), true);
+        TestEq(monster.mutateInventory(2, 2), true);
+        TestEq(monster.mutateInventory(3, 3), true);
+        TestEq(monster.mutateInventory(4, 4), true);
+
+        // get a struct field and edit one of its fields
+        Vec3 pos = monster.pos();
+        TestEq(pos.x(), 1.0f);
+        pos.mutateX(55.0f);
+        TestEq(pos.x(), 55.0f);
+        pos.mutateX(1.0f);
+        TestEq(pos.x(), 1.0f);
+
+        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
+
+        TestNamespaceNesting();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -122,7 +171,7 @@ class JavaTest {
 
     static void TestBuffer(ByteBuffer bb) {
         TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
-
+        
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
@@ -169,6 +218,29 @@ class JavaTest {
         TestEq(monster.testarrayofstring(1),"test2");
 
         TestEq(monster.testbool(), false);
+    }
+
+    // this method checks additional fields not present in the binary buffer read from file
+    // these new tests are performed on top of the regular tests
+    static void TestExtendedBuffer(ByteBuffer bb) {
+        TestBuffer(bb);
+
+        Monster monster = Monster.getRootAsMonster(bb);
+
+        TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
+    }
+    
+    static void TestNamespaceNesting() {
+        // reference / manipulate these to verify compilation
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        
+        TableInNestedNS.startTableInNestedNS(fbb);
+        TableInNestedNS.addFoo(fbb, 1234);
+        int nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb);
+        
+        TableInFirstNS.startTableInFirstNS(fbb);      
+        TableInFirstNS.addFooTable(fbb, nestedTableOff);
+        int off = TableInFirstNS.endTableInFirstNS(fbb);
     }
 
     static <T> void TestEq(T a, T b) {

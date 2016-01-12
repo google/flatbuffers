@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+
 using System;
 using System.Text;
+
 
 namespace FlatBuffers
 {
@@ -29,8 +31,10 @@ namespace FlatBuffers
         private ByteBuffer _bb;
         private int _minAlign = 1;
 
-        // The vtable for the current table, null otherwise.
-        private int[] _vtable;
+        // The vtable for the current table (if _vtableSize >= 0)
+        private int[] _vtable = new int[16];
+        // The size of the vtable. -1 indicates no vtable
+        private int _vtableSize = -1;
         // Starting offset of the current struct/table.
         private int _objectStart;
         // List of offsets of all vtables.
@@ -49,15 +53,23 @@ namespace FlatBuffers
             _bb = new ByteBuffer(new byte[initialSize]);
         }
 
+        public void Clear()
+        {
+            _space = _bb.Length;
+            _bb.Reset();
+            _minAlign = 1;
+            while (_vtableSize > 0) _vtable[--_vtableSize] = 0;
+            _vtableSize = -1;
+            _objectStart = 0;
+            _numVtables = 0;
+            _vectorNumElems = 0;
+        }
 
         public int Offset { get { return _bb.Length - _space; } }
 
         public void Pad(int size)
         {
-            for (var i = 0; i < size; i++)
-            {
-                _bb.PutByte(--_space, 0);
-            }
+             _bb.PutByte(_space -= size, 0, size);
         }
 
         // Doubles the size of the ByteBuffer, and copies the old data towards
@@ -75,8 +87,7 @@ namespace FlatBuffers
 
             Buffer.BlockCopy(oldBuf, 0, newBuf, newBufSize - oldBufSize,
                              oldBufSize);
-
-            _bb = new ByteBuffer(newBuf);
+            _bb = new ByteBuffer(newBuf, newBufSize);
         }
 
         // Prepare to write an element of `size` after `additional_bytes`
@@ -102,7 +113,8 @@ namespace FlatBuffers
                 _space += (int)_bb.Length - oldBufSize;
 
             }
-            Pad(alignSize);
+            if (alignSize > 0)
+                Pad(alignSize);
         }
 
         public void PutBool(bool x)
@@ -196,10 +208,10 @@ namespace FlatBuffers
             Prep(alignment, elemSize * count); // Just in case alignment > int.
         }
 
-        public int EndVector()
+        public VectorOffset EndVector()
         {
             PutInt(_vectorNumElems);
-            return Offset;
+            return new VectorOffset(Offset);
         }
 
         public void Nested(int obj)
@@ -216,15 +228,22 @@ namespace FlatBuffers
         {
             // You should not be creating any other objects or strings/vectors
             // while an object is being constructed
-            if (_vtable != null)
+            if (_vtableSize >= 0)
                 throw new Exception(
                     "FlatBuffers: object serialization must not be nested.");
         }
 
         public void StartObject(int numfields)
         {
+            if (numfields < 0)
+                throw new ArgumentOutOfRangeException("Flatbuffers: invalid numfields");
+
             NotNested();
-            _vtable = new int[numfields];
+
+            if (_vtable.Length < numfields)
+                _vtable = new int[numfields];
+
+            _vtableSize = numfields;
             _objectStart = Offset;
         }
 
@@ -233,6 +252,9 @@ namespace FlatBuffers
         // buffer.
         public void Slot(int voffset)
         {
+            if (voffset >= _vtableSize)
+                throw new IndexOutOfRangeException("Flatbuffers: invalid voffset");
+
             _vtable[voffset] = Offset;
         }
 
@@ -250,15 +272,14 @@ namespace FlatBuffers
         public void AddDouble(int o, double x, double d) { if (x != d) { AddDouble(x); Slot(o); } }
         public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }
 
-        public int CreateString(string s)
+        public StringOffset CreateString(string s)
         {
-            NotNested();
-            byte[] utf8 = Encoding.UTF8.GetBytes(s);
-            AddByte((byte)0);
-            StartVector(1, utf8.Length, 1);
-            Buffer.BlockCopy(utf8, 0, _bb.Data, _space -= utf8.Length,
-                             utf8.Length);
-            return EndVector();
+            NotNested();            
+            AddByte(0);
+            var utf8StringLen = Encoding.UTF8.GetByteCount(s);
+            StartVector(1, utf8StringLen, 1);
+            Encoding.UTF8.GetBytes(s, 0, s.Length, _bb.Data, _space -= utf8StringLen);
+            return new StringOffset(EndVector().Value);
         }
 
         // Structs are stored inline, so nothing additional is being added.
@@ -274,30 +295,31 @@ namespace FlatBuffers
 
         public int EndObject()
         {
-
-            if (_vtable == null)
+            if (_vtableSize < 0)
                 throw new InvalidOperationException(
                   "Flatbuffers: calling endObject without a startObject");
 
             AddInt((int)0);
             var vtableloc = Offset;
             // Write out the current vtable.
-            for (int i = _vtable.Length - 1; i >= 0 ; i--) {
+            for (int i = _vtableSize - 1; i >= 0 ; i--) {
                 // Offset relative to the start of the table.
                 short off = (short)(_vtable[i] != 0
                                         ? vtableloc - _vtable[i]
                                         : 0);
                 AddShort(off);
+
+                // clear out written entry
+                _vtable[i] = 0;
             }
 
             const int standardFields = 2; // The fields below:
             AddShort((short)(vtableloc - _objectStart));
-            AddShort((short)((_vtable.Length + standardFields) *
+            AddShort((short)((_vtableSize + standardFields) *
                              sizeof(short)));
 
             // Search for an existing vtable that matches the current one.
             int existingVtable = 0;
-
             for (int i = 0; i < _numVtables; i++) {
                 int vt1 = _bb.Length - _vtables[i];
                 int vt2 = _space;
@@ -338,7 +360,7 @@ namespace FlatBuffers
                 _bb.PutInt(_bb.Length - vtableloc, Offset - vtableloc);
             }
 
-            _vtable = null;
+            _vtableSize = -1;
             return vtableloc;
         }
 
@@ -359,6 +381,7 @@ namespace FlatBuffers
         {
             Prep(_minAlign, sizeof(int));
             AddOffset(rootTable);
+            _bb.Position = _space;
         }
 
         public ByteBuffer DataBuffer { get { return _bb; } }
@@ -387,7 +410,7 @@ namespace FlatBuffers
              {
                 AddByte((byte)fileIdentifier[i]);
              }
-             AddOffset(rootTable);
+             Finish(rootTable);
         }
 
 

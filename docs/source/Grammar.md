@@ -1,7 +1,8 @@
-# Formal Grammar of the schema language
+# Grammar of the schema language
 
 schema = include*
          ( namespace\_decl | type\_decl | enum\_decl | root\_decl |
+           file_extension_decl | file_identifier_decl |
            attribute\_decl | object )*
 
 include = `include` string\_constant `;`
@@ -17,7 +18,7 @@ enumval\_decl ) `}`
 
 root\_decl = `root_type` ident `;`
 
-field\_decl = type `:` ident [ `=` scalar ] metadata `;`
+field\_decl = ident `:` type [ `=` scalar ] metadata `;`
 
 type = `bool` | `byte` | `ubyte` | `short` | `ushort` | `int` | `uint` |
 `float` | `long` | `ulong` | `double`
@@ -25,12 +26,22 @@ type = `bool` | `byte` | `ubyte` | `short` | `ushort` | `int` | `uint` |
 
 enumval\_decl = ident [ `=` integer\_constant ]
 
-metadata = [ `(` commasep( ident [ `:` scalar ] ) `)` ]
+metadata = [ `(` commasep( ident [ `:` single\_value ] ) `)` ]
 
-scalar = integer\_constant | float\_constant | `true` | `false`
+scalar = integer\_constant | float\_constant
 
 object = { commasep( ident `:` value ) }
 
-value = scalar | object | string\_constant | `[` commasep( value ) `]`
+single\_value = scalar | string\_constant
+
+value = single\_value | object | `[` commasep( value ) `]`
 
 commasep(x) = [ x ( `,` x )\* ]
+
+file_extension_decl = `file_extension` string\_constant `;`
+
+file_identifier_decl = `file_identifier` string\_constant `;`
+
+integer\_constant = -?[0-9]+ | `true` | `false`
+
+float\_constant = -?[0-9]+.[0-9]+((e|E)(+|-)?[0-9]+)?

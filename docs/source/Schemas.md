@@ -111,8 +111,11 @@ high bit yet.
 ### (Default) Values
 
 Values are a sequence of digits, optionally followed by a `.` and more digits
-for float constants, and optionally prefixed by a `-`. Non-scalar defaults are
-currently not supported (always NULL).
+for float constants, and optionally prefixed by a `-`. Floats may end with an
+`e` or `E`, followed by a `+` or `-` and more digits (scientific notation).
+
+Only scalar values can have defaults, non-scalar (string/vector/table) fields
+default to NULL when not present.
 
 You generally do not want to change default values after they're initially
 defined. Fields that have the default value are not actually stored in the

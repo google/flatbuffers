@@ -6,6 +6,7 @@ project(FlatBuffers)
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
+option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library" ON)
 option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler" ON)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 
@@ -15,7 +16,7 @@ if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     set(FLATBUFFERS_BUILD_TESTS OFF)
 endif()
 
-set(FlatBuffers_Compiler_SRCS
+set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
@@ -23,11 +24,18 @@ set(FlatBuffers_Compiler_SRCS
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
   src/idl_parser.cpp
+  src/idl_gen_text.cpp
+  src/reflection.cpp
+)
+
+set(FlatBuffers_Compiler_SRCS
+  ${FlatBuffers_Library_SRCS}
   src/idl_gen_cpp.cpp
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
+  src/idl_gen_js.cpp
+  src/idl_gen_php.cpp
   src/idl_gen_python.cpp
-  src/idl_gen_text.cpp
   src/idl_gen_fbs.cpp
   src/flatc.cpp
 )
@@ -38,14 +46,9 @@ set(FlatHash_SRCS
 )
 
 set(FlatBuffers_Tests_SRCS
-  include/flatbuffers/flatbuffers.h
-  include/flatbuffers/hash.h
-  include/flatbuffers/idl.h
-  include/flatbuffers/util.h
-  src/idl_parser.cpp
-  src/idl_gen_general.cpp
-  src/idl_gen_text.cpp
+  ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  src/idl_gen_general.cpp
   tests/test.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
@@ -78,10 +81,12 @@ if(APPLE)
     "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra")
+    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow -Wunused-result -Werror=unused-result")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+      "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
@@ -96,6 +101,10 @@ if(BIICODE)
 endif()
 
 include_directories(include)
+
+if(FLATBUFFERS_BUILD_FLATLIB)
+add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
@@ -136,6 +145,9 @@ endif()
 
 if(FLATBUFFERS_INSTALL)
   install(DIRECTORY include/flatbuffers DESTINATION include)
+  if(FLATBUFFERS_BUILD_FLATLIB)
+    install(TARGETS flatbuffers DESTINATION lib)
+  endif()
   if(FLATBUFFERS_BUILD_FLATC)
     install(TARGETS flatc DESTINATION bin)
   endif()
@@ -148,3 +160,5 @@ if(FLATBUFFERS_BUILD_TESTS)
        "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
 endif()
+
+include(CMake/BuildFlatBuffers.cmake)

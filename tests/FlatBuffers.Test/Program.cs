@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -24,38 +25,43 @@ namespace FlatBuffers.Test
     {
         public static int Main(string[] args)
         {
-            var tests = new FlatBuffersExampleTests();
-            try
+            var testResults = new List<bool>();
+
+            var testClasses = Assembly.GetExecutingAssembly().GetExportedTypes()
+                .Where(t => t.IsClass && t.GetCustomAttributes(typeof (FlatBuffersTestClassAttribute), false).Length > 0);
+
+            foreach (var testClass in testClasses)
             {
-                tests.RunTests();
+                var methods = testClass.GetMethods(BindingFlags.Public |
+                                                         BindingFlags.Instance)
+                          .Where(m => m.GetCustomAttributes(typeof(FlatBuffersTestMethodAttribute), false).Length > 0);
+
+                var inst = Activator.CreateInstance(testClass);
+
+                foreach (var method in methods)
+                {
+                    try
+                    {
+                        method.Invoke(inst, new object[] { });
+                        testResults.Add(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("{0}: FAILED when invoking {1} with error {2}",
+                            testClass.Name ,method.Name, ex.GetBaseException());
+                        testResults.Add(false);
+                    }
+                }
             }
-            catch (Exception ex)
+
+            var failedCount = testResults.Count(i => i == false);
+
+            Console.WriteLine("{0} tests run, {1} failed", testResults.Count, failedCount);
+
+            if (failedCount > 0)
             {
-                Console.WriteLine("FlatBuffersExampleTests FAILED - {0}", ex.GetBaseException());
                 return -1;
             }
-
-            // Run ByteBuffers Tests
-            var testClass = new ByteBufferTests();
-
-            var methods = testClass.GetType().GetMethods(BindingFlags.Public |
-                                                         BindingFlags.Instance)
-                          .Where(m => m.Name.StartsWith("ByteBuffer_"));
-            foreach (var method in methods)
-            {
-                try
-                {
-                    method.Invoke(testClass, new object[] { });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("ByteBufferTests FAILED when invoking {0} with error {1}",
-                                      method.Name, ex.GetBaseException());
-                    return -1;
-                }
-
-            }
-
             return 0;
         }
     }

@@ -31,14 +31,21 @@ proguard-project.txt
 linklint_results
 Makefile
 flatc
+flatc.exe
 flathash
+flathash.exe
 flattests
+flattests.exe
 flatsamplebinary
+flatsamplebinary.exe
 flatsampletext
+flatsampletext.exe
 snapshot.sh
 tests/go_gen
 tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
+tests/monsterdata_javascript_wire.mon
+tests/unicode_test.mon
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -50,3 +57,4 @@ java/.idea
 java/*.iml
 java/target
 **/*.pyc
+.idea

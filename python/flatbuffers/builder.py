@@ -32,7 +32,7 @@ class OffsetArithmeticError(RuntimeError):
     pass
 
 
-class NotInObjectError(RuntimeError):
+class IsNotNestedError(RuntimeError):
     """
     Error caused by using a Builder to write Object data when not inside
     an Object.
@@ -40,7 +40,7 @@ class NotInObjectError(RuntimeError):
     pass
 
 
-class ObjectIsNestedError(RuntimeError):
+class IsNestedError(RuntimeError):
     """
     Error caused by using a Builder to begin an Object when an Object is
     already being built.
@@ -60,6 +60,12 @@ class BuilderSizeError(RuntimeError):
     """
     Error caused by causing a Builder to exceed the hardcoded limit of 2
     gigabytes.
+    """
+    pass
+
+class BuilderNotFinishedError(RuntimeError):
+    """
+    Error caused by not calling `Finish` before calling `Output`.
     """
     pass
 
@@ -85,7 +91,14 @@ class Builder(object):
     """
 
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
-                 "vtables")
+                 "vtables", "nested", "finished")
+
+    """
+    Maximum buffer size constant, in bytes.
+    Builder will never allow it's buffer grow over this size.
+    Currently equals 2Gb.
+    """
+    MAX_BUFFER_SIZE = 2**31
 
     def __init__(self, initialSize):
         """
@@ -93,7 +106,7 @@ class Builder(object):
         The internal buffer is grown as needed.
         """
 
-        if not (0 <= initialSize < (2**UOffsetTFlags.bytewidth - 1)):
+        if not (0 <= initialSize <= Builder.MAX_BUFFER_SIZE):
             msg = "flatbuffers: Cannot create Builder larger than 2 gigabytes."
             raise BuilderSizeError(msg)
 
@@ -103,12 +116,18 @@ class Builder(object):
         self.minalign = 1
         self.objectEnd = None
         self.vtables = []
+        self.nested = False
+        self.finished = False
 
     def Output(self):
         """
         Output returns the portion of the buffer that has been used for
-        writing data.
+        writing data. It raises BuilderNotFinishedError if the buffer has not
+        been finished with `Finish`.
         """
+
+        if not self.finished:
+            raise BuilderNotFinishedError()
 
         return self.Bytes[self.Head():]
 
@@ -121,6 +140,7 @@ class Builder(object):
         self.current_vtable = [0 for _ in range_func(numfields)]
         self.objectEnd = self.Offset()
         self.minalign = 1
+        self.nested = True
 
     def WriteVtable(self):
         """
@@ -229,20 +249,18 @@ class Builder(object):
 
     def EndObject(self):
         """EndObject writes data necessary to finish object construction."""
-        if self.current_vtable is None:
-            msg = ("flatbuffers: Tried to write the end of an Object when "
-                   "the Builder was not currently writing an Object.")
-            raise NotInObjectError(msg)
+        self.assertNested()
+        self.nested = False
         return self.WriteVtable()
 
     def growByteBuffer(self):
         """Doubles the size of the byteslice, and copies the old data towards
            the end of the new buffer (since we build the buffer backwards)."""
-        if not len(self.Bytes) <= 2**20:
+        if len(self.Bytes) == Builder.MAX_BUFFER_SIZE:
             msg = "flatbuffers: cannot grow buffer beyond 2 gigabytes"
             raise BuilderSizeError(msg)
 
-        newSize = len(self.Bytes) * 2
+        newSize = min(len(self.Bytes) * 2, Builder.MAX_BUFFER_SIZE)
         if newSize == 0:
             newSize = 1
         bytes2 = bytearray(newSize)
@@ -329,6 +347,7 @@ class Builder(object):
         """
 
         self.assertNotNested()
+        self.nested = True
         self.Prep(N.Uint32Flags.bytewidth, elemSize*numElems)
         self.Prep(alignment, elemSize*numElems)  # In case alignment > int.
         return self.Offset()
@@ -336,12 +355,17 @@ class Builder(object):
     def EndVector(self, vectorNumElems):
         """EndVector writes data necessary to finish vector construction."""
 
+        self.assertNested()
+        self.nested = False
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(vectorNumElems)
         return self.Offset()
 
     def CreateString(self, s):
         """CreateString writes a null-terminated byte string as a vector."""
+
+        self.assertNotNested()
+        self.nested = True
 
         if isinstance(s, compat.string_types):
             x = s.encode()
@@ -360,18 +384,24 @@ class Builder(object):
 
         return self.EndVector(len(x))
 
+    def assertNested(self):
+        """
+        Check that we are in the process of building an object.
+        """
+
+        if not self.nested:
+            raise IsNotNestedError()
+
     def assertNotNested(self):
         """
         Check that no other objects are being built while making this
         object. If not, raise an exception.
         """
 
-        if self.current_vtable is not None:
-            msg = ("flatbuffers: Tried to write a new Object when the "
-                   "Builder was already writing an Object.")
-            raise ObjectIsNestedError(msg)
+        if self.nested:
+            raise IsNestedError()
 
-    def assertNested(self, obj):
+    def assertStructIsInline(self, obj):
         """
         Structs are always stored inline, so need to be created right
         where they are used. You'll get this error if you created it
@@ -390,11 +420,7 @@ class Builder(object):
         buffer.
 
         """
-        if self.current_vtable is None:
-            msg = ("flatbuffers: Tried to write an Object field when "
-                   "the Builder was not currently writing an Object.")
-            raise NotInObjectError(msg)
-
+        self.assertNested()
         self.current_vtable[slotnum] = self.Offset()
 
     def Finish(self, rootTable):
@@ -402,6 +428,7 @@ class Builder(object):
         N.enforce_number(rootTable, N.UOffsetTFlags)
         self.Prep(self.minalign, N.UOffsetTFlags.bytewidth)
         self.PrependUOffsetTRelative(rootTable)
+        self.finished = True
         return self.Head()
 
     def Prepend(self, flags, off):
@@ -461,7 +488,7 @@ class Builder(object):
 
         N.enforce_number(d, N.UOffsetTFlags)
         if x != d:
-            self.assertNested(x)
+            self.assertStructIsInline(x)
             self.Slot(v)
 
     def PrependBool(self, x): self.Prepend(N.BoolFlags, x)

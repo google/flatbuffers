@@ -18,11 +18,12 @@
 #include <sstream>
 #include <string>
 #include "flatbuffers/hash.h"
+#include <stdio.h>
 
 enum OutputFormat {
   kDecimal,
   kHexadecimal,
-  kHexadecimal0x,
+  kHexadecimal0x
 };
 
 int main(int argc, char* argv[]) {

@@ -7,11 +7,14 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
+@SuppressWarnings("unused")
 public final class Test extends Struct {
   public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public short a() { return bb.getShort(bb_pos + 0); }
+  public void mutateA(short a) { bb.putShort(bb_pos + 0, a); }
   public byte b() { return bb.get(bb_pos + 2); }
+  public void mutateB(byte b) { bb.put(bb_pos + 2, b); }
 
   public static int createTest(FlatBufferBuilder builder, short a, byte b) {
     builder.prep(2, 4);

@@ -255,6 +255,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int KeyCompareWithValue(const char *val) const { return strcmp(name()->c_str(), val); }
   const flatbuffers::Vector<flatbuffers::Offset<Field>> *fields() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Field>> *>(6); }
   uint8_t is_struct() const { return GetField<uint8_t>(8, 0); }
+  int32_t minalign() const { return GetField<int32_t>(10, 0); }
+  int32_t bytesize() const { return GetField<int32_t>(12, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, 4 /* name */) &&
@@ -263,6 +265,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(fields()) &&
            verifier.VerifyVectorOfTables(fields()) &&
            VerifyField<uint8_t>(verifier, 8 /* is_struct */) &&
+           VerifyField<int32_t>(verifier, 10 /* minalign */) &&
+           VerifyField<int32_t>(verifier, 12 /* bytesize */) &&
            verifier.EndTable();
   }
 };
@@ -273,10 +277,12 @@ struct ObjectBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(4, name); }
   void add_fields(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Field>>> fields) { fbb_.AddOffset(6, fields); }
   void add_is_struct(uint8_t is_struct) { fbb_.AddElement<uint8_t>(8, is_struct, 0); }
+  void add_minalign(int32_t minalign) { fbb_.AddElement<int32_t>(10, minalign, 0); }
+  void add_bytesize(int32_t bytesize) { fbb_.AddElement<int32_t>(12, bytesize, 0); }
   ObjectBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ObjectBuilder &operator=(const ObjectBuilder &);
   flatbuffers::Offset<Object> Finish() {
-    auto o = flatbuffers::Offset<Object>(fbb_.EndTable(start_, 3));
+    auto o = flatbuffers::Offset<Object>(fbb_.EndTable(start_, 5));
     fbb_.Required(o, 4);  // name
     fbb_.Required(o, 6);  // fields
     return o;
@@ -286,8 +292,12 @@ struct ObjectBuilder {
 inline flatbuffers::Offset<Object> CreateObject(flatbuffers::FlatBufferBuilder &_fbb,
    flatbuffers::Offset<flatbuffers::String> name = 0,
    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Field>>> fields = 0,
-   uint8_t is_struct = 0) {
+   uint8_t is_struct = 0,
+   int32_t minalign = 0,
+   int32_t bytesize = 0) {
   ObjectBuilder builder_(_fbb);
+  builder_.add_bytesize(bytesize);
+  builder_.add_minalign(minalign);
   builder_.add_fields(fields);
   builder_.add_name(name);
   builder_.add_is_struct(is_struct);

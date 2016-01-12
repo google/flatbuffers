@@ -1,8 +1,9 @@
 # FlatBuffers
 
-FlatBuffers is an efficient cross platform serialization library for C++,
-with support for Java, C# and Go. It was created at Google specifically for game
-development and other performance-critical applications.
+FlatBuffers is an efficient cross platform serialization library for C++, Java,
+C#, Go, Python and JavaScript (C, PHP & Ruby in progress).
+It was originally created at Google for game development and other
+performance-critical applications.
 
 It is available as Open Source on [GitHub](http://github.com/google/flatbuffers)
 under the Apache license, v2 (see LICENSE.txt).
@@ -16,8 +17,8 @@ under the Apache license, v2 (see LICENSE.txt).
     structure evolution (forwards/backwards compatibility).
 
 -   **Memory efficiency and speed** - The only memory needed to access
-    your data is that of the buffer. It requires 0 additional allocations.
-    FlatBuffers is also very
+    your data is that of the buffer. It requires 0 additional allocations
+    (in C++, other languages may vary). FlatBuffers is also very
     suitable for use with mmap (or streaming), requiring only part of the
     buffer to be in memory. Access is close to the speed of raw
     struct access with only one extra indirection (a kind of vtable) to
@@ -47,9 +48,10 @@ under the Apache license, v2 (see LICENSE.txt).
     needed (faster and more memory efficient than other JSON
     parsers).
 
-    Java and Go code supports object-reuse.
+    Java and Go code supports object-reuse. C# has efficient struct based
+    accessors.
 
--   **Cross platform C++11/Java/C#/Go code with no dependencies** - will work
+-   **Cross platform code with no dependencies** - C++ code will work
     with any recent gcc/clang and VS2010. Comes with build files for the tests &
     samples (Android .mk files, and cmake for all other platforms).
 
@@ -76,6 +78,17 @@ little to no information ahead of time about what data needs to be stored.
 Read more about the "why" of FlatBuffers in the
 [white paper](md__white_paper.html).
 
+### Who uses FlatBuffers?
+-   [Cocos2d-x](http://www.cocos2d-x.org/), the #1 open source mobile game
+    engine, uses it to serialize all their
+    [game data](http://www.cocos2d-x.org/reference/native-cpp/V3.5/d7/d2d/namespaceflatbuffers.html).
+-   [Facebook](http://facebook.com/) uses it for client-server communication in
+    their Android app. They have a nice
+    [article](https://code.facebook.com/posts/872547912839369/improving-facebook-s-performance-on-android-with-flatbuffers/)
+    explaining how it speeds up loading their posts.
+-   [Fun Propulsion Labs](https://developers.google.com/games/#Tools)
+    at Google uses it extensively in all their libraries and games.
+
 ## Usage in brief
 
 This section is a quick rundown of how to use this system. Subsequent
@@ -89,8 +102,8 @@ sections provide a more in-depth usage guide.
     present for every object instance.
 
 -   Use `flatc` (the FlatBuffer compiler) to generate a C++ header (or
-    Java/C#/Go classes) with helper classes to access and construct serialized
-    data. This header (say `mydata_generated.h`) only depends on
+    Java/C#/Go/Python.. classes) with helper classes to access and construct
+    serialized data. This header (say `mydata_generated.h`) only depends on
     `flatbuffers.h`, which defines the core functionality.
 
 -   Use the `FlatBufferBuilder` class to construct a flat binary buffer.
@@ -115,6 +128,7 @@ sections provide a more in-depth usage guide.
     programs.
 -   How to [use the generated Go code](md__go_usage.html) in your own
     programs.
+-   [Support matrix](md__support.html) for platforms/languages/features.
 -   Some [benchmarks](md__benchmarks.html) showing the advantage of using
     FlatBuffers.
 -   A [white paper](md__white_paper.html) explaining the "why" of FlatBuffers.
@@ -127,3 +141,17 @@ sections provide a more in-depth usage guide.
 -   [Landing page](http://google.github.io/flatbuffers)
 -   [FlatBuffers Google Group](http://group.google.com/group/flatbuffers)
 -   [FlatBuffers Issues Tracker](http://github.com/google/flatbuffers/issues)
+-   Independent implementations & tools:
+    - [FlatCC](https://github.com/dvidelabs/flatcc) Alternative FlatBuffers
+      parser, code generator and runtime all in C.
+-   Videos:
+    - Colt's [DevByte](https://www.youtube.com/watch?v=iQTxMkSJ1dQ).
+    - GDC 2015 [Lightning Talk](https://www.youtube.com/watch?v=olmL1fUnQAQ).
+    - FlatBuffers for [Go](https://www.youtube.com/watch?v=-BPVId_lA5w).
+    - Evolution of FlatBuffers
+      [visualization](https://www.youtube.com/watch?v=a0QE0xS8rKM).
+-   Useful documentation created by others:
+    - [FlatBuffers in Go](https://rwinslow.com/tags/flatbuffers/)
+    - [FlatBuffers in Android](http://frogermcs.github.io/flatbuffers-in-android-introdution/)
+    - [Parsing JSON to FlatBuffers in Java](http://frogermcs.github.io/json-parsing-with-flatbuffers-in-android/)
+    - [FlatBuffers in Unity](http://exiin.com/blog/flatbuffers-for-unity-sample-code/)

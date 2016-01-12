@@ -21,6 +21,8 @@
 #include "flatbuffers/util.h"
 
 #include "monster_test_generated.h"
+#include "namespace_test/namespace_test1_generated.h"
+#include "namespace_test/namespace_test2_generated.h"
 
 #include <random>
 
@@ -219,6 +221,10 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   for (auto it = tests->begin(); it != tests->end(); ++it) {
     TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
   }
+
+  // Checking for presence of fields:
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_HP), true);
+  TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_MANA), false);
 }
 
 // Change a FlatBuffer in-place, after it has been constructed.
@@ -281,8 +287,7 @@ void ParseAndGenerateTextTest() {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
@@ -302,18 +307,19 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
 
   // Make sure the schema is what we expect it to be.
-  auto schema = reflection::GetSchema(bfbsfile.c_str());
-  auto root_table = schema->root_table();
+  auto &schema = *reflection::GetSchema(bfbsfile.c_str());
+  auto root_table = schema.root_table();
   TEST_EQ_STR(root_table->name()->c_str(), "Monster");
   auto fields = root_table->fields();
-  auto hp_field = fields->LookupByKey("hp");
-  TEST_NOTNULL(hp_field);
-  TEST_EQ_STR(hp_field->name()->c_str(), "hp");
-  TEST_EQ(hp_field->id(), 2);
-  TEST_EQ(hp_field->type()->base_type(), reflection::Short);
+  auto hp_field_ptr = fields->LookupByKey("hp");
+  TEST_NOTNULL(hp_field_ptr);
+  auto &hp_field = *hp_field_ptr;
+  TEST_EQ_STR(hp_field.name()->c_str(), "hp");
+  TEST_EQ(hp_field.id(), 2);
+  TEST_EQ(hp_field.type()->base_type(), reflection::Short);
 
   // Now use it to dynamically access a buffer.
-  auto root = flatbuffers::GetAnyRoot(flatbuf);
+  auto &root = *flatbuffers::GetAnyRoot(flatbuf);
   auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 80);
 
@@ -323,51 +329,101 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(hp_int64, 80);
   auto hp_double = flatbuffers::GetAnyFieldF(root, hp_field);
   TEST_EQ(hp_double, 80.0);
-  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field);
+  auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, &schema);
   TEST_EQ_STR(hp_string.c_str(), "80");
 
   // We can also modify it.
-  flatbuffers::SetField<uint16_t>(root, hp_field, 200);
+  flatbuffers::SetField<uint16_t>(&root, hp_field, 200);
   hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 200);
 
   // We can also set fields generically:
-  flatbuffers::SetAnyFieldI(root, hp_field, 300);
+  flatbuffers::SetAnyFieldI(&root, hp_field, 300);
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
-  flatbuffers::SetAnyFieldF(root, hp_field, 300.5);
+  flatbuffers::SetAnyFieldF(&root, hp_field, 300.5);
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
-  flatbuffers::SetAnyFieldS(root, hp_field, "300");
+  flatbuffers::SetAnyFieldS(&root, hp_field, "300");
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
 
   // Reset it, for further tests.
-  flatbuffers::SetField<uint16_t>(root, hp_field, 80);
+  flatbuffers::SetField<uint16_t>(&root, hp_field, 80);
 
   // More advanced functionality: changing the size of items in-line!
   // First we put the FlatBuffer inside an std::vector.
   std::vector<uint8_t> resizingbuf(flatbuf, flatbuf + length);
   // Find the field we want to modify.
-  auto name_field = fields->LookupByKey("name");
+  auto &name_field = *fields->LookupByKey("name");
   // Get the root.
   // This time we wrap the result from GetAnyRoot in a smartpointer that
   // will keep rroot valid as resizingbuf resizes.
   auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
                                 resizingbuf);
-  SetString(*schema, "totally new string", GetFieldS(*rroot, name_field),
+  SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
   // Here resizingbuf has changed, but rroot is still valid.
-  TEST_EQ_STR(GetFieldS(*rroot, name_field)->c_str(), "totally new string");
+  TEST_EQ_STR(GetFieldS(**rroot, name_field)->c_str(), "totally new string");
   // Now lets extend a vector by 100 elements (10 -> 110).
-  auto inventory_field = fields->LookupByKey("inventory");
+  auto &inventory_field = *fields->LookupByKey("inventory");
   auto rinventory = flatbuffers::piv(
-                     flatbuffers::GetFieldV<uint8_t>(*rroot, inventory_field),
+                     flatbuffers::GetFieldV<uint8_t>(**rroot, inventory_field),
                      resizingbuf);
-  flatbuffers::ResizeVector<uint8_t>(*schema, 110, 50, *rinventory,
+  flatbuffers::ResizeVector<uint8_t>(schema, 110, 50, *rinventory,
                                      &resizingbuf);
   // rinventory still valid, so lets read from it.
   TEST_EQ(rinventory->Get(10), 50);
+
+  // For reflection uses not covered already, there is a more powerful way:
+  // we can simply generate whatever object we want to add/modify in a
+  // FlatBuffer of its own, then add that to an existing FlatBuffer:
+  // As an example, let's add a string to an array of strings.
+  // First, find our field:
+  auto &testarrayofstring_field = *fields->LookupByKey("testarrayofstring");
+  // Find the vector value:
+  auto rtestarrayofstring = flatbuffers::piv(
+         flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::String>>(
+           **rroot, testarrayofstring_field),
+         resizingbuf);
+  // It's a vector of 2 strings, to which we add one more, initialized to
+  // offset 0.
+  flatbuffers::ResizeVector<flatbuffers::Offset<flatbuffers::String>>(
+        schema, 3, 0, *rtestarrayofstring, &resizingbuf);
+  // Here we just create a buffer that contans a single string, but this
+  // could also be any complex set of tables and other values.
+  flatbuffers::FlatBufferBuilder stringfbb;
+  stringfbb.Finish(stringfbb.CreateString("hank"));
+  // Add the contents of it to our existing FlatBuffer.
+  // We do this last, so the pointer doesn't get invalidated (since it is
+  // at the end of the buffer):
+  auto string_ptr = flatbuffers::AddFlatBuffer(resizingbuf,
+                                               stringfbb.GetBufferPointer(),
+                                               stringfbb.GetSize());
+  // Finally, set the new value in the vector.
+  rtestarrayofstring->MutateOffset(2, string_ptr);
+  TEST_EQ_STR(rtestarrayofstring->Get(0)->c_str(), "bob");
+  TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
+  // Test integrity of all resize operations above.
+  flatbuffers::Verifier resize_verifier(
+        reinterpret_cast<const uint8_t *>(resizingbuf.data()),
+        resizingbuf.size());
+  TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
+  // As an additional test, also set it on the name field.
+  // Note: unlike the name change above, this just overwrites the offset,
+  // rather than changing the string in-place.
+  SetFieldT(*rroot, name_field, string_ptr);
+  TEST_EQ_STR(GetFieldS(**rroot, name_field)->c_str(), "hank");
+
+  // Using reflection, rather than mutating binary FlatBuffers, we can also copy
+  // tables and other things out of other FlatBuffers into a FlatBufferBuilder,
+  // either part or whole.
+  flatbuffers::FlatBufferBuilder fbb;
+  auto root_offset = flatbuffers::CopyTable(fbb, schema, *root_table,
+                                            *flatbuffers::GetAnyRoot(flatbuf));
+  fbb.Finish(root_offset, MonsterIdentifier());
+  // Test that it was copied correctly:
+  AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
 }
 
 // Parse a .proto schema, output as .fbs
@@ -380,14 +436,17 @@ void ParseProtoTest() {
   TEST_EQ(flatbuffers::LoadFile(
     "tests/prototest/test.golden", false, &goldenfile), true);
 
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+
   // Parse proto.
-  flatbuffers::Parser parser(false, true);
-  TEST_EQ(parser.Parse(protofile.c_str(), nullptr), true);
+  flatbuffers::Parser parser(opts);
+  const char *include_directories[] = { "tests/prototest", nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
 
   // Generate fbs.
-  flatbuffers::GeneratorOptions opts;
-  opts.include_dependence_headers = false;
-  auto fbs = flatbuffers::GenerateFBS(parser, "test", opts);
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
@@ -461,7 +520,7 @@ void FuzzTest1() {
 
   lcg_reset();  // Reset.
 
-  uint8_t *eob = builder.GetBufferPointer() + builder.GetSize();
+  uint8_t *eob = builder.GetCurrentBufferPointer() + builder.GetSize();
 
   // Test that all objects we generated are readable and return the
   // expected values. We generate random objects in the same order
@@ -589,6 +648,11 @@ void FuzzTest2() {
             Dummy();
           }
           break;
+        case flatbuffers::BASE_TYPE_BOOL:
+          AddToSchemaAndInstances("bool", deprecated
+                                  ? ""
+                                  : (lcg_rand() % 2 ? "true" : "false"));
+          break;
         default:
           // All the scalar types.
           schema += flatbuffers::kTypeNames[base_type];
@@ -625,9 +689,8 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(json.c_str()), true);
 
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  opts.indent_step = 0;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  parser.opts.indent_step = 0;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
 
   if (jsongen != json) {
     // These strings are larger than a megabyte, so we show the bytes around
@@ -654,7 +717,9 @@ void FuzzTest2() {
 // Test that parser errors are actually generated.
 void TestError(const char *src, const char *error_substr,
                bool strict_json = false) {
-  flatbuffers::Parser parser(strict_json);
+  flatbuffers::IDLOptions opts;
+  opts.strict_json = strict_json;
+  flatbuffers::Parser parser(opts);
   TEST_EQ(parser.Parse(src), false);  // Must signal error
   // Must be the error we're expecting
   TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
@@ -686,7 +751,7 @@ void ErrorTest() {
   TestError("table X { Y:int; } root_type X; { \"Y\":1, }", "string constant",
             true);
   TestError("struct X { Y:int; Z:int; } table W { V:X; } root_type W; "
-            "{ V:{ Y:1 } }", "incomplete");
+            "{ V:{ Y:1 } }", "wrong number");
   TestError("enum E:byte { A } table X { Y:E; } root_type X; { Y:U }",
             "unknown enum value");
   TestError("table X { Y:byte; } root_type X; { Y:; }", "starting");
@@ -742,11 +807,30 @@ void UnicodeTest() {
                        "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
                        "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }"), true);
   std::string jsongen;
-  flatbuffers::GeneratorOptions opts;
-  opts.indent_step = -1;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts, &jsongen);
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
                      "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+}
+
+void UnknownFieldsTest() {
+  flatbuffers::IDLOptions opts;
+  opts.skip_unexpected_fields_in_json = true;
+  flatbuffers::Parser parser(opts);
+
+  TEST_EQ(parser.Parse("table T { str:string; i:int;}"
+                       "root_type T;"
+                       "{ str:\"test\","
+                       "unknown_int:10,"
+                       "unknown_float:1.0,"
+                       "unknown_array: [ 1, 2, 3, 4],"
+                       "unknown_object: { i: 10 },"
+                       "i:10}"), true);
+
+  std::string jsongen;
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
 }
 
 int main(int /*argc*/, const char * /*argv*/[]) {
@@ -773,6 +857,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ScientificTest();
   EnumStringsTest();
   UnicodeTest();
+  UnknownFieldsTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

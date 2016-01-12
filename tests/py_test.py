@@ -309,7 +309,7 @@ class TestByteLayout(unittest.TestCase):
 
         want_ints = list(map(integerize, want_chars_or_ints))
         want = bytearray(want_ints)
-        got = builder.Output()
+        got = builder.Bytes[builder.Head():] # use the buffer directly
         self.assertEqual(want, got)
 
     def test_numbers(self):
@@ -878,24 +878,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b = flatbuffers.Builder(0)
 
         # make a child Monster within a vector of Monsters:
-        MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 1)
-
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddHp(b, 99)
         sub_monster = MyGame.Example.Monster.MonsterEnd(b)
-        b.Finish(sub_monster)
 
-        tables = b.EndVector(1)
+        # build the vector:
+        MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 1)
+        b.PrependUOffsetTRelative(sub_monster)
+        vec = b.EndVector(1)
 
         # make the parent monster and include the vector of Monster:
         MyGame.Example.Monster.MonsterStart(b)
-        MyGame.Example.Monster.MonsterAddTestarrayoftables(b, tables)
+        MyGame.Example.Monster.MonsterAddTestarrayoftables(b, vec)
         mon = MyGame.Example.Monster.MonsterEnd(b)
         b.Finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Bytes,
-                                                               b.Head())
+        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Output(), 0)
         self.assertEqual(99, mon2.Testarrayoftables(0).Hp())
         self.assertEqual(1, mon2.TestarrayoftablesLength())
 
@@ -1050,7 +1049,7 @@ class TestVtableDeduplication(unittest.TestCase):
         b.PrependInt16Slot(3, 99, 0)
         obj2 = b.EndObject()
 
-        got = b.Output()
+        got = b.Bytes[b.Head():]
 
         want = bytearray([
             240, 255, 255, 255,  # == -12. offset to dedupped vtable.
@@ -1107,17 +1106,16 @@ class TestVtableDeduplication(unittest.TestCase):
 
 
 class TestExceptions(unittest.TestCase):
-    def test_not_in_object_error(self):
-        b = flatbuffers.Builder(0)
-        exc = None
-        assertRaises(self, lambda: b.EndObject(),
-                     flatbuffers.builder.NotInObjectError)
-
     def test_object_is_nested_error(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
         assertRaises(self, lambda: b.StartObject(0),
-                     flatbuffers.builder.ObjectIsNestedError)
+                     flatbuffers.builder.IsNestedError)
+
+    def test_object_is_not_nested_error(self):
+        b = flatbuffers.Builder(0)
+        assertRaises(self, lambda: b.EndObject(),
+                     flatbuffers.builder.IsNotNestedError)
 
     def test_struct_is_not_inline_error(self):
         b = flatbuffers.Builder(0)
@@ -1129,6 +1127,18 @@ class TestExceptions(unittest.TestCase):
         b = flatbuffers.Builder(0)
         assertRaises(self, lambda: b.PrependUOffsetTRelative(1),
                      flatbuffers.builder.OffsetArithmeticError)
+
+    def test_create_string_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = 'test1'
+        assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.IsNestedError)
+
+    def test_finished_bytes_error(self):
+        b = flatbuffers.Builder(0)
+        assertRaises(self, lambda: b.Output(),
+                     flatbuffers.builder.BuilderNotFinishedError)
 
 
 def CheckAgainstGoldDataGo():

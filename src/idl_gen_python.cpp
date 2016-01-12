@@ -307,9 +307,9 @@ static void StructBuilderArgs(const StructDef &struct_def,
     if (IsStruct(field.value.type)) {
       // Generate arguments for a struct inside a struct. To ensure names
       // don't clash, and to make it obvious these arguments are constructing
-      // a nested struct, prefix the name with the struct name.
+      // a nested struct, prefix the name with the field name.
       StructBuilderArgs(*field.value.type.struct_def,
-                        (field.value.type.struct_def->name + "_").c_str(),
+                        (nameprefix + (field.name + "_")).c_str(),
                         code_ptr);
     } else {
       std::string &code = *code_ptr;
@@ -341,7 +341,7 @@ static void StructBuilderBody(const StructDef &struct_def,
       code += "    builder.Pad(" + NumToString(field.padding) + ")\n";
     if (IsStruct(field.value.type)) {
       StructBuilderBody(*field.value.type.struct_def,
-                        (field.value.type.struct_def->name + "_").c_str(),
+                        (nameprefix + (field.name + "_")).c_str(),
                         code_ptr);
     } else {
       code += "    builder.Prepend" + GenMethod(field) + "(";
@@ -493,7 +493,7 @@ static void GenStruct(const StructDef &struct_def,
                       StructDef *root_struct_def) {
   if (struct_def.generated) return;
 
-  GenComment(struct_def.doc_comment, code_ptr, nullptr);
+  GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
   BeginClass(struct_def, code_ptr);
   if (&struct_def == root_struct_def) {
     // Generate a special accessor for the table that has been declared as
@@ -638,8 +638,7 @@ static void GenStructBuilder(const StructDef &struct_def,
 
 bool GeneratePython(const Parser &parser,
                     const std::string &path,
-                    const std::string & /*file_name*/,
-                    const GeneratorOptions & /*opts*/) {
+                    const std::string & /*file_name*/) {
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
@@ -660,5 +659,3 @@ bool GeneratePython(const Parser &parser,
 }
 
 }  // namespace flatbuffers
-
-

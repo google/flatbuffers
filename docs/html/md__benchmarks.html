@@ -1,3 +1,4 @@
+<!-- HTML header for doxygen 1.8.6-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -15,16 +16,23 @@
   $(document).ready(initResizable);
   $(window).load(resizeHeight);
 </script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -86,8 +94,10 @@ $(document).ready(function(){initNavTree('md__benchmarks.html','');});
 <li>Thrift: very similar to Protocol Buffers, but appears to be less efficient, and have more dependencies.</li>
 <li>YAML: a superset of JSON and otherwise very similar. Used by e.g. Unity.</li>
 <li>C# comes with built-in serialization functionality, as used by Unity also. Being tied to the language, and having no automatic versioning support limits its applicability.</li>
-<li>Project Anarchy (the free mobile engine by Havok) comes with a serialization system, that however does no automatic versioning (have to code around new fields manually), is very much tied to the rest of the engine, and works without a schema to generate code (tied to your C++ class definition). </li>
+<li>Project Anarchy (the free mobile engine by Havok) comes with a serialization system, that however does no automatic versioning (have to code around new fields manually), is very much tied to the rest of the engine, and works without a schema to generate code (tied to your C++ class definition).</li>
 </ul>
+<h3>Code for benchmarks</h3>
+<p>Code for these benchmarks sits in <code>benchmarks/</code> in git branch <code>benchmarks</code>. It sits in its own branch because it has submodule dependencies that the main project doesn't need, and the code standards do not meet those of the main project. Please read <code>benchmarks/cpp/README.txt</code> before working with the code. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

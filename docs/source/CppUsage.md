@@ -72,7 +72,9 @@ since they won't bloat up the buffer sizes if they're not actually used.
 We do something similarly for the union field `test` by specifying a `0` offset
 and the `NONE` enum value (part of every union) to indicate we don't actually
 want to write this field. You can use `0` also as a default for other
-non-scalar types, such as strings, vectors and tables.
+non-scalar types, such as strings, vectors and tables. To pass an actual
+table, pass a preconstructed table as `mytable.Union()` that corresponds to
+union enum you're passing.
 
 Tables (like `Monster`) give you full flexibility on what fields you write
 (unlike `Vec3`, which always has all fields set because it is a `struct`).

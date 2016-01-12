@@ -25,5 +25,5 @@ if [[ "$testdir" != "$thisdir" ]]; then
 	exit 1
 fi
 
-javac -classpath ${testdir}/../java:${testdir} JavaTest.java
-java -classpath ${testdir}/../java:${testdir} JavaTest
+javac -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test JavaTest.java
+java -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test JavaTest

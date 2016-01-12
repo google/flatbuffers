@@ -23,7 +23,7 @@ enum BaseType : byte {
     String,
     Vector,
     Obj,     // Used for tables & structs.
-    Union    //
+    Union
 }
 
 table Type {
@@ -63,6 +63,8 @@ table Object {  // Used for both tables and structs.
     name:string (required, key);
     fields:[Field] (required);  // Sorted.
     is_struct:bool = false;
+    minalign:int;
+    bytesize:int;  // For structs.
 }
 
 table Schema {

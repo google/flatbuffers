@@ -6,6 +6,8 @@ package flatbuffers
 // A Builder constructs byte buffers in a last-first manner for simplicity and
 // performance.
 type Builder struct {
+	// `Bytes` gives raw access to the buffer. Most users will want to use
+	// FinishedBytes() instead.
 	Bytes []byte
 
 	minalign  int
@@ -13,6 +15,8 @@ type Builder struct {
 	objectEnd UOffsetT
 	vtables   []UOffsetT
 	head      UOffsetT
+	nested    bool
+	finished  bool
 }
 
 // NewBuilder initializes a Builder of size `initial_size`.
@@ -32,7 +36,7 @@ func NewBuilder(initialSize int) *Builder {
 }
 
 // Reset truncates the underlying Builder buffer, facilitating alloc-free
-// reuse of a Builder.
+// reuse of a Builder. It also resets bookkeeping data.
 func (b *Builder) Reset() {
 	if b.Bytes != nil {
 		b.Bytes = b.Bytes[:cap(b.Bytes)]
@@ -48,11 +52,23 @@ func (b *Builder) Reset() {
 
 	b.head = UOffsetT(len(b.Bytes))
 	b.minalign = 1
+	b.nested = false
+	b.finished = false
+}
+
+// FinishedBytes returns a pointer to the written data in the byte buffer.
+// Panics if the builder is not in a finished state (which is caused by calling
+// `Finish()`).
+func (b *Builder) FinishedBytes() []byte {
+	b.assertFinished()
+	return b.Bytes[b.Head():]
 }
 
 // StartObject initializes bookkeeping for writing a new object.
 func (b *Builder) StartObject(numfields int) {
-	b.notNested()
+	b.assertNotNested()
+	b.nested = true
+
 	// use 32-bit offsets so that arithmetic doesn't overflow.
 	if cap(b.vtable) < numfields || b.vtable == nil {
 		b.vtable = make([]UOffsetT, numfields)
@@ -126,7 +142,7 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 			var off UOffsetT
 			if b.vtable[i] != 0 {
 				// Forward reference to field;
-				// use 32bit number to ensure no overflow:
+				// use 32bit number to assert no overflow:
 				off = objectOffset - b.vtable[i]
 			}
 
@@ -170,10 +186,10 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 
 // EndObject writes data necessary to finish object construction.
 func (b *Builder) EndObject() UOffsetT {
-	if b.vtable == nil {
-		panic("not in object")
-	}
-	return b.WriteVtable()
+	b.assertNested()
+	n := b.WriteVtable()
+	b.nested = false
+	return n
 }
 
 // Doubles the size of the byteslice, and copies the old data towards the
@@ -266,7 +282,8 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 //   <UOffsetT: number of elements in this vector>
 //   <T: data>+, where T is the type of elements of this vector.
 func (b *Builder) StartVector(elemSize, numElems, alignment int) UOffsetT {
-	b.notNested()
+	b.assertNotNested()
+	b.nested = true
 	b.Prep(SizeUint32, elemSize*numElems)
 	b.Prep(alignment, elemSize*numElems) // Just in case alignment > int.
 	return b.Offset()
@@ -274,13 +291,20 @@ func (b *Builder) StartVector(elemSize, numElems, alignment int) UOffsetT {
 
 // EndVector writes data necessary to finish vector construction.
 func (b *Builder) EndVector(vectorNumElems int) UOffsetT {
+	b.assertNested()
+
 	// we already made space for this, so write without PrependUint32
 	b.PlaceUOffsetT(UOffsetT(vectorNumElems))
+
+	b.nested = false
 	return b.Offset()
 }
 
 // CreateString writes a null-terminated string as a vector.
 func (b *Builder) CreateString(s string) UOffsetT {
+	b.assertNotNested()
+	b.nested = true
+
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
 
@@ -294,6 +318,9 @@ func (b *Builder) CreateString(s string) UOffsetT {
 
 // CreateByteString writes a byte slice as a string (null-terminated).
 func (b *Builder) CreateByteString(s []byte) UOffsetT {
+	b.assertNotNested()
+	b.nested = true
+
 	b.Prep(int(SizeUOffsetT), (len(s)+1)*SizeByte)
 	b.PlaceByte(0)
 
@@ -307,6 +334,9 @@ func (b *Builder) CreateByteString(s []byte) UOffsetT {
 
 // CreateByteVector writes a ubyte vector
 func (b *Builder) CreateByteVector(v []byte) UOffsetT {
+	b.assertNotNested()
+	b.nested = true
+
 	b.Prep(int(SizeUOffsetT), len(v)*SizeByte)
 
 	l := UOffsetT(len(v))
@@ -317,20 +347,38 @@ func (b *Builder) CreateByteVector(v []byte) UOffsetT {
 	return b.EndVector(len(v))
 }
 
-func (b *Builder) notNested() {
-	// Check that no other objects are being built while making this
-	// object. If not, panic:
-	if len(b.vtable) > 0 {
-		panic("non-inline data write inside of object")
+func (b *Builder) assertNested() {
+	// If you get this assert, you're in an object while trying to write
+	// data that belongs outside of an object.
+	// To fix this, write non-inline data (like vectors) before creating
+	// objects.
+	if !b.nested {
+		panic("Incorrect creation order: must be inside object.")
 	}
 }
 
-func (b *Builder) nested(obj UOffsetT) {
-	// Structs are always stored inline, so need to be created right
-	// where they are used. You'll get this panic if you created it
-	// elsewhere:
-	if obj != b.Offset() {
-		panic("inline data write outside of object")
+func (b *Builder) assertNotNested() {
+	// If you hit this, you're trying to construct a Table/Vector/String
+	// during the construction of its parent table (between the MyTableBuilder
+	// and builder.Finish()).
+	// Move the creation of these sub-objects to above the MyTableBuilder to
+	// not get this assert.
+	// Ignoring this assert may appear to work in simple cases, but the reason
+	// it is here is that storing objects in-line may cause vtable offsets
+	// to not fit anymore. It also leads to vtable duplication.
+	if b.nested {
+		panic("Incorrect creation order: object must not be nested.")
+	}
+}
+
+func (b *Builder) assertFinished() {
+	// If you get this assert, you're attempting to get access a buffer
+	// which hasn't been finished yet. Be sure to call builder.Finish()
+	// with your root table.
+	// If you really need to access an unfinished buffer, use the Bytes
+	// buffer directly.
+	if !b.finished {
+		panic("Incorrect use of FinishedBytes(): must call 'Finish' first.")
 	}
 }
 
@@ -474,7 +522,10 @@ func (b *Builder) PrependUOffsetTSlot(o int, x, d UOffsetT) {
 // In generated code, `d` is always 0.
 func (b *Builder) PrependStructSlot(voffset int, x, d UOffsetT) {
 	if x != d {
-		b.nested(x)
+		b.assertNested()
+		if x != b.Offset() {
+			panic("inline data write outside of object")
+		}
 		b.Slot(voffset)
 	}
 }
@@ -486,8 +537,10 @@ func (b *Builder) Slot(slotnum int) {
 
 // Finish finalizes a buffer, pointing to the given `rootTable`.
 func (b *Builder) Finish(rootTable UOffsetT) {
+	b.assertNotNested()
 	b.Prep(b.minalign, SizeUOffsetT)
 	b.PrependUOffsetT(rootTable)
+	b.finished = true
 }
 
 // vtableEqual compares an unwritten vtable to a written vtable.

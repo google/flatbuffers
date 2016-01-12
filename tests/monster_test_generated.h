@@ -15,6 +15,7 @@ namespace MyGame {
 namespace Example {
 
 struct Test;
+struct TestSimpleTableWithEnum;
 struct Vec3;
 struct Stat;
 struct Monster;
@@ -30,19 +31,20 @@ inline const char **EnumNamesColor() {
   return names;
 }
 
-inline const char *EnumNameColor(Color e) { return EnumNamesColor()[e - Color_Red]; }
+inline const char *EnumNameColor(Color e) { return EnumNamesColor()[static_cast<int>(e) - static_cast<int>(Color_Red)]; }
 
 enum Any {
   Any_NONE = 0,
-  Any_Monster = 1
+  Any_Monster = 1,
+  Any_TestSimpleTableWithEnum = 2
 };
 
 inline const char **EnumNamesAny() {
-  static const char *names[] = { "NONE", "Monster", nullptr };
+  static const char *names[] = { "NONE", "Monster", "TestSimpleTableWithEnum", nullptr };
   return names;
 }
 
-inline const char *EnumNameAny(Any e) { return EnumNamesAny()[e]; }
+inline const char *EnumNameAny(Any e) { return EnumNamesAny()[static_cast<int>(e)]; }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type);
 
@@ -53,13 +55,13 @@ MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   int8_t __padding0;
 
  public:
-  Test(int16_t a, int8_t b)
-    : a_(flatbuffers::EndianScalar(a)), b_(flatbuffers::EndianScalar(b)), __padding0(0) { (void)__padding0; }
+  Test(int16_t _a, int8_t _b)
+    : a_(flatbuffers::EndianScalar(_a)), b_(flatbuffers::EndianScalar(_b)), __padding0(0) { (void)__padding0; }
 
   int16_t a() const { return flatbuffers::EndianScalar(a_); }
-  void mutate_a(int16_t a) { flatbuffers::WriteScalar(&a_, a); }
+  void mutate_a(int16_t _a) { flatbuffers::WriteScalar(&a_, _a); }
   int8_t b() const { return flatbuffers::EndianScalar(b_); }
-  void mutate_b(int8_t b) { flatbuffers::WriteScalar(&b_, b); }
+  void mutate_b(int8_t _b) { flatbuffers::WriteScalar(&b_, _b); }
 };
 STRUCT_END(Test, 4);
 
@@ -76,37 +78,74 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   int16_t __padding2;
 
  public:
-  Vec3(float x, float y, float z, double test1, Color test2, const Test &test3)
-    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)), __padding0(0), test1_(flatbuffers::EndianScalar(test1)), test2_(flatbuffers::EndianScalar(static_cast<int8_t>(test2))), __padding1(0), test3_(test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
+  Vec3(float _x, float _y, float _z, double _test1, Color _test2, const Test &_test3)
+    : x_(flatbuffers::EndianScalar(_x)), y_(flatbuffers::EndianScalar(_y)), z_(flatbuffers::EndianScalar(_z)), __padding0(0), test1_(flatbuffers::EndianScalar(_test1)), test2_(flatbuffers::EndianScalar(static_cast<int8_t>(_test2))), __padding1(0), test3_(_test3), __padding2(0) { (void)__padding0; (void)__padding1; (void)__padding2; }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
-  void mutate_x(float x) { flatbuffers::WriteScalar(&x_, x); }
+  void mutate_x(float _x) { flatbuffers::WriteScalar(&x_, _x); }
   float y() const { return flatbuffers::EndianScalar(y_); }
-  void mutate_y(float y) { flatbuffers::WriteScalar(&y_, y); }
+  void mutate_y(float _y) { flatbuffers::WriteScalar(&y_, _y); }
   float z() const { return flatbuffers::EndianScalar(z_); }
-  void mutate_z(float z) { flatbuffers::WriteScalar(&z_, z); }
+  void mutate_z(float _z) { flatbuffers::WriteScalar(&z_, _z); }
   double test1() const { return flatbuffers::EndianScalar(test1_); }
-  void mutate_test1(double test1) { flatbuffers::WriteScalar(&test1_, test1); }
+  void mutate_test1(double _test1) { flatbuffers::WriteScalar(&test1_, _test1); }
   Color test2() const { return static_cast<Color>(flatbuffers::EndianScalar(test2_)); }
-  void mutate_test2(Color test2) { flatbuffers::WriteScalar(&test2_, static_cast<int8_t>(test2)); }
+  void mutate_test2(Color _test2) { flatbuffers::WriteScalar(&test2_, static_cast<int8_t>(_test2)); }
   const Test &test3() const { return test3_; }
   Test &mutable_test3() { return test3_; }
 };
 STRUCT_END(Vec3, 32);
 
-struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(4); }
-  flatbuffers::String *mutable_id() { return GetPointer<flatbuffers::String *>(4); }
-  int64_t val() const { return GetField<int64_t>(6, 0); }
-  bool mutate_val(int64_t val) { return SetField(6, val); }
-  uint16_t count() const { return GetField<uint16_t>(8, 0); }
-  bool mutate_count(uint16_t count) { return SetField(8, count); }
+struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_COLOR = 4,
+  };
+  Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2)); }
+  bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 4 /* id */) &&
+           VerifyField<int8_t>(verifier, VT_COLOR) &&
+           verifier.EndTable();
+  }
+};
+
+struct TestSimpleTableWithEnumBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_color(Color color) { fbb_.AddElement<int8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<int8_t>(color), 2); }
+  TestSimpleTableWithEnumBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  TestSimpleTableWithEnumBuilder &operator=(const TestSimpleTableWithEnumBuilder &);
+  flatbuffers::Offset<TestSimpleTableWithEnum> Finish() {
+    auto o = flatbuffers::Offset<TestSimpleTableWithEnum>(fbb_.EndTable(start_, 1));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb,
+   Color color = Color_Green) {
+  TestSimpleTableWithEnumBuilder builder_(_fbb);
+  builder_.add_color(color);
+  return builder_.Finish();
+}
+
+struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_ID = 4,
+    VT_VAL = 6,
+    VT_COUNT = 8,
+  };
+  const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(VT_ID); }
+  flatbuffers::String *mutable_id() { return GetPointer<flatbuffers::String *>(VT_ID); }
+  int64_t val() const { return GetField<int64_t>(VT_VAL, 0); }
+  bool mutate_val(int64_t _val) { return SetField(VT_VAL, _val); }
+  uint16_t count() const { return GetField<uint16_t>(VT_COUNT, 0); }
+  bool mutate_count(uint16_t _count) { return SetField(VT_COUNT, _count); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ID) &&
            verifier.Verify(id()) &&
-           VerifyField<int64_t>(verifier, 6 /* val */) &&
-           VerifyField<uint16_t>(verifier, 8 /* count */) &&
+           VerifyField<int64_t>(verifier, VT_VAL) &&
+           VerifyField<uint16_t>(verifier, VT_COUNT) &&
            verifier.EndTable();
   }
 };
@@ -114,9 +153,9 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct StatBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(flatbuffers::Offset<flatbuffers::String> id) { fbb_.AddOffset(4, id); }
-  void add_val(int64_t val) { fbb_.AddElement<int64_t>(6, val, 0); }
-  void add_count(uint16_t count) { fbb_.AddElement<uint16_t>(8, count, 0); }
+  void add_id(flatbuffers::Offset<flatbuffers::String> id) { fbb_.AddOffset(Stat::VT_ID, id); }
+  void add_val(int64_t val) { fbb_.AddElement<int64_t>(Stat::VT_VAL, val, 0); }
+  void add_count(uint16_t count) { fbb_.AddElement<uint16_t>(Stat::VT_COUNT, count, 0); }
   StatBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   StatBuilder &operator=(const StatBuilder &);
   flatbuffers::Offset<Stat> Finish() {
@@ -136,94 +175,125 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
+/// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  const Vec3 *pos() const { return GetStruct<const Vec3 *>(4); }
-  Vec3 *mutable_pos() { return GetStruct<Vec3 *>(4); }
-  int16_t mana() const { return GetField<int16_t>(6, 150); }
-  bool mutate_mana(int16_t mana) { return SetField(6, mana); }
-  int16_t hp() const { return GetField<int16_t>(8, 100); }
-  bool mutate_hp(int16_t hp) { return SetField(8, hp); }
-  const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(10); }
-  flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(10); }
+  enum {
+    VT_POS = 4,
+    VT_MANA = 6,
+    VT_HP = 8,
+    VT_NAME = 10,
+    VT_INVENTORY = 14,
+    VT_COLOR = 16,
+    VT_TEST_TYPE = 18,
+    VT_TEST = 20,
+    VT_TEST4 = 22,
+    VT_TESTARRAYOFSTRING = 24,
+    VT_TESTARRAYOFTABLES = 26,
+    VT_ENEMY = 28,
+    VT_TESTNESTEDFLATBUFFER = 30,
+    VT_TESTEMPTY = 32,
+    VT_TESTBOOL = 34,
+    VT_TESTHASHS32_FNV1 = 36,
+    VT_TESTHASHU32_FNV1 = 38,
+    VT_TESTHASHS64_FNV1 = 40,
+    VT_TESTHASHU64_FNV1 = 42,
+    VT_TESTHASHS32_FNV1A = 44,
+    VT_TESTHASHU32_FNV1A = 46,
+    VT_TESTHASHS64_FNV1A = 48,
+    VT_TESTHASHU64_FNV1A = 50,
+    VT_TESTARRAYOFBOOLS = 52,
+  };
+  const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
+  Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }
+  int16_t mana() const { return GetField<int16_t>(VT_MANA, 150); }
+  bool mutate_mana(int16_t _mana) { return SetField(VT_MANA, _mana); }
+  int16_t hp() const { return GetField<int16_t>(VT_HP, 100); }
+  bool mutate_hp(int16_t _hp) { return SetField(VT_HP, _hp); }
+  const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
+  flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(VT_NAME); }
   bool KeyCompareLessThan(const Monster *o) const { return *name() < *o->name(); }
   int KeyCompareWithValue(const char *val) const { return strcmp(name()->c_str(), val); }
-  const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(14); }
-  flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(14); }
-  Color color() const { return static_cast<Color>(GetField<int8_t>(16, 8)); }
-  bool mutate_color(Color color) { return SetField(16, static_cast<int8_t>(color)); }
-  Any test_type() const { return static_cast<Any>(GetField<uint8_t>(18, 0)); }
-  bool mutate_test_type(Any test_type) { return SetField(18, static_cast<uint8_t>(test_type)); }
-  const void *test() const { return GetPointer<const void *>(20); }
-  void *mutable_test() { return GetPointer<void *>(20); }
-  const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(22); }
-  flatbuffers::Vector<const Test *> *mutable_test4() { return GetPointer<flatbuffers::Vector<const Test *> *>(22); }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(24); }
-  flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *mutable_testarrayofstring() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(24); }
+  const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY); }
+  flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY); }
+  Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 8)); }
+  bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
+  Any test_type() const { return static_cast<Any>(GetField<uint8_t>(VT_TEST_TYPE, 0)); }
+  bool mutate_test_type(Any _test_type) { return SetField(VT_TEST_TYPE, static_cast<uint8_t>(_test_type)); }
+  const void *test() const { return GetPointer<const void *>(VT_TEST); }
+  void *mutable_test() { return GetPointer<void *>(VT_TEST); }
+  const flatbuffers::Vector<const Test *> *test4() const { return GetPointer<const flatbuffers::Vector<const Test *> *>(VT_TEST4); }
+  flatbuffers::Vector<const Test *> *mutable_test4() { return GetPointer<flatbuffers::Vector<const Test *> *>(VT_TEST4); }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING); }
+  flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *mutable_testarrayofstring() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING); }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
-  const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(26); }
-  flatbuffers::Vector<flatbuffers::Offset<Monster>> *mutable_testarrayoftables() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(26); }
-  const Monster *enemy() const { return GetPointer<const Monster *>(28); }
-  Monster *mutable_enemy() { return GetPointer<Monster *>(28); }
-  const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(30); }
-  flatbuffers::Vector<uint8_t> *mutable_testnestedflatbuffer() { return GetPointer<flatbuffers::Vector<uint8_t> *>(30); }
+  const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(VT_TESTARRAYOFTABLES); }
+  flatbuffers::Vector<flatbuffers::Offset<Monster>> *mutable_testarrayoftables() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(VT_TESTARRAYOFTABLES); }
+  const Monster *enemy() const { return GetPointer<const Monster *>(VT_ENEMY); }
+  Monster *mutable_enemy() { return GetPointer<Monster *>(VT_ENEMY); }
+  const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER); }
+  flatbuffers::Vector<uint8_t> *mutable_testnestedflatbuffer() { return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER); }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const { return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data()); }
-  const Stat *testempty() const { return GetPointer<const Stat *>(32); }
-  Stat *mutable_testempty() { return GetPointer<Stat *>(32); }
-  uint8_t testbool() const { return GetField<uint8_t>(34, 0); }
-  bool mutate_testbool(uint8_t testbool) { return SetField(34, testbool); }
-  int32_t testhashs32_fnv1() const { return GetField<int32_t>(36, 0); }
-  bool mutate_testhashs32_fnv1(int32_t testhashs32_fnv1) { return SetField(36, testhashs32_fnv1); }
-  uint32_t testhashu32_fnv1() const { return GetField<uint32_t>(38, 0); }
-  bool mutate_testhashu32_fnv1(uint32_t testhashu32_fnv1) { return SetField(38, testhashu32_fnv1); }
-  int64_t testhashs64_fnv1() const { return GetField<int64_t>(40, 0); }
-  bool mutate_testhashs64_fnv1(int64_t testhashs64_fnv1) { return SetField(40, testhashs64_fnv1); }
-  uint64_t testhashu64_fnv1() const { return GetField<uint64_t>(42, 0); }
-  bool mutate_testhashu64_fnv1(uint64_t testhashu64_fnv1) { return SetField(42, testhashu64_fnv1); }
-  int32_t testhashs32_fnv1a() const { return GetField<int32_t>(44, 0); }
-  bool mutate_testhashs32_fnv1a(int32_t testhashs32_fnv1a) { return SetField(44, testhashs32_fnv1a); }
-  uint32_t testhashu32_fnv1a() const { return GetField<uint32_t>(46, 0); }
-  bool mutate_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) { return SetField(46, testhashu32_fnv1a); }
-  int64_t testhashs64_fnv1a() const { return GetField<int64_t>(48, 0); }
-  bool mutate_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { return SetField(48, testhashs64_fnv1a); }
-  uint64_t testhashu64_fnv1a() const { return GetField<uint64_t>(50, 0); }
-  bool mutate_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { return SetField(50, testhashu64_fnv1a); }
+  const Stat *testempty() const { return GetPointer<const Stat *>(VT_TESTEMPTY); }
+  Stat *mutable_testempty() { return GetPointer<Stat *>(VT_TESTEMPTY); }
+  bool testbool() const { return GetField<uint8_t>(VT_TESTBOOL, 0) != 0; }
+  bool mutate_testbool(bool _testbool) { return SetField(VT_TESTBOOL, static_cast<uint8_t>(_testbool)); }
+  int32_t testhashs32_fnv1() const { return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0); }
+  bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) { return SetField(VT_TESTHASHS32_FNV1, _testhashs32_fnv1); }
+  uint32_t testhashu32_fnv1() const { return GetField<uint32_t>(VT_TESTHASHU32_FNV1, 0); }
+  bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) { return SetField(VT_TESTHASHU32_FNV1, _testhashu32_fnv1); }
+  int64_t testhashs64_fnv1() const { return GetField<int64_t>(VT_TESTHASHS64_FNV1, 0); }
+  bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) { return SetField(VT_TESTHASHS64_FNV1, _testhashs64_fnv1); }
+  uint64_t testhashu64_fnv1() const { return GetField<uint64_t>(VT_TESTHASHU64_FNV1, 0); }
+  bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) { return SetField(VT_TESTHASHU64_FNV1, _testhashu64_fnv1); }
+  int32_t testhashs32_fnv1a() const { return GetField<int32_t>(VT_TESTHASHS32_FNV1A, 0); }
+  bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) { return SetField(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a); }
+  uint32_t testhashu32_fnv1a() const { return GetField<uint32_t>(VT_TESTHASHU32_FNV1A, 0); }
+  bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) { return SetField(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a); }
+  int64_t testhashs64_fnv1a() const { return GetField<int64_t>(VT_TESTHASHS64_FNV1A, 0); }
+  bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) { return SetField(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a); }
+  uint64_t testhashu64_fnv1a() const { return GetField<uint64_t>(VT_TESTHASHU64_FNV1A, 0); }
+  bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) { return SetField(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a); }
+  const flatbuffers::Vector<uint8_t> *testarrayofbools() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS); }
+  flatbuffers::Vector<uint8_t> *mutable_testarrayofbools() { return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<Vec3>(verifier, 4 /* pos */) &&
-           VerifyField<int16_t>(verifier, 6 /* mana */) &&
-           VerifyField<int16_t>(verifier, 8 /* hp */) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, 10 /* name */) &&
+           VerifyField<Vec3>(verifier, VT_POS) &&
+           VerifyField<int16_t>(verifier, VT_MANA) &&
+           VerifyField<int16_t>(verifier, VT_HP) &&
+           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 14 /* inventory */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_INVENTORY) &&
            verifier.Verify(inventory()) &&
-           VerifyField<int8_t>(verifier, 16 /* color */) &&
-           VerifyField<uint8_t>(verifier, 18 /* test_type */) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 20 /* test */) &&
+           VerifyField<int8_t>(verifier, VT_COLOR) &&
+           VerifyField<uint8_t>(verifier, VT_TEST_TYPE) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEST) &&
            VerifyAny(verifier, test(), test_type()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 22 /* test4 */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEST4) &&
            verifier.Verify(test4()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 24 /* testarrayofstring */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSTRING) &&
            verifier.Verify(testarrayofstring()) &&
            verifier.VerifyVectorOfStrings(testarrayofstring()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 26 /* testarrayoftables */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFTABLES) &&
            verifier.Verify(testarrayoftables()) &&
            verifier.VerifyVectorOfTables(testarrayoftables()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 28 /* enemy */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ENEMY) &&
            verifier.VerifyTable(enemy()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 30 /* testnestedflatbuffer */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTNESTEDFLATBUFFER) &&
            verifier.Verify(testnestedflatbuffer()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 32 /* testempty */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
-           VerifyField<uint8_t>(verifier, 34 /* testbool */) &&
-           VerifyField<int32_t>(verifier, 36 /* testhashs32_fnv1 */) &&
-           VerifyField<uint32_t>(verifier, 38 /* testhashu32_fnv1 */) &&
-           VerifyField<int64_t>(verifier, 40 /* testhashs64_fnv1 */) &&
-           VerifyField<uint64_t>(verifier, 42 /* testhashu64_fnv1 */) &&
-           VerifyField<int32_t>(verifier, 44 /* testhashs32_fnv1a */) &&
-           VerifyField<uint32_t>(verifier, 46 /* testhashu32_fnv1a */) &&
-           VerifyField<int64_t>(verifier, 48 /* testhashs64_fnv1a */) &&
-           VerifyField<uint64_t>(verifier, 50 /* testhashu64_fnv1a */) &&
+           VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
+           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1) &&
+           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1) &&
+           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1) &&
+           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1) &&
+           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1A) &&
+           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1A) &&
+           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1A) &&
+           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1A) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFBOOLS) &&
+           verifier.Verify(testarrayofbools()) &&
            verifier.EndTable();
   }
 };
@@ -231,34 +301,35 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct MonsterBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_pos(const Vec3 *pos) { fbb_.AddStruct(4, pos); }
-  void add_mana(int16_t mana) { fbb_.AddElement<int16_t>(6, mana, 150); }
-  void add_hp(int16_t hp) { fbb_.AddElement<int16_t>(8, hp, 100); }
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(10, name); }
-  void add_inventory(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory) { fbb_.AddOffset(14, inventory); }
-  void add_color(Color color) { fbb_.AddElement<int8_t>(16, static_cast<int8_t>(color), 8); }
-  void add_test_type(Any test_type) { fbb_.AddElement<uint8_t>(18, static_cast<uint8_t>(test_type), 0); }
-  void add_test(flatbuffers::Offset<void> test) { fbb_.AddOffset(20, test); }
-  void add_test4(flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4) { fbb_.AddOffset(22, test4); }
-  void add_testarrayofstring(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring) { fbb_.AddOffset(24, testarrayofstring); }
-  void add_testarrayoftables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables) { fbb_.AddOffset(26, testarrayoftables); }
-  void add_enemy(flatbuffers::Offset<Monster> enemy) { fbb_.AddOffset(28, enemy); }
-  void add_testnestedflatbuffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer) { fbb_.AddOffset(30, testnestedflatbuffer); }
-  void add_testempty(flatbuffers::Offset<Stat> testempty) { fbb_.AddOffset(32, testempty); }
-  void add_testbool(uint8_t testbool) { fbb_.AddElement<uint8_t>(34, testbool, 0); }
-  void add_testhashs32_fnv1(int32_t testhashs32_fnv1) { fbb_.AddElement<int32_t>(36, testhashs32_fnv1, 0); }
-  void add_testhashu32_fnv1(uint32_t testhashu32_fnv1) { fbb_.AddElement<uint32_t>(38, testhashu32_fnv1, 0); }
-  void add_testhashs64_fnv1(int64_t testhashs64_fnv1) { fbb_.AddElement<int64_t>(40, testhashs64_fnv1, 0); }
-  void add_testhashu64_fnv1(uint64_t testhashu64_fnv1) { fbb_.AddElement<uint64_t>(42, testhashu64_fnv1, 0); }
-  void add_testhashs32_fnv1a(int32_t testhashs32_fnv1a) { fbb_.AddElement<int32_t>(44, testhashs32_fnv1a, 0); }
-  void add_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) { fbb_.AddElement<uint32_t>(46, testhashu32_fnv1a, 0); }
-  void add_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { fbb_.AddElement<int64_t>(48, testhashs64_fnv1a, 0); }
-  void add_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { fbb_.AddElement<uint64_t>(50, testhashu64_fnv1a, 0); }
+  void add_pos(const Vec3 *pos) { fbb_.AddStruct(Monster::VT_POS, pos); }
+  void add_mana(int16_t mana) { fbb_.AddElement<int16_t>(Monster::VT_MANA, mana, 150); }
+  void add_hp(int16_t hp) { fbb_.AddElement<int16_t>(Monster::VT_HP, hp, 100); }
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(Monster::VT_NAME, name); }
+  void add_inventory(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory) { fbb_.AddOffset(Monster::VT_INVENTORY, inventory); }
+  void add_color(Color color) { fbb_.AddElement<int8_t>(Monster::VT_COLOR, static_cast<int8_t>(color), 8); }
+  void add_test_type(Any test_type) { fbb_.AddElement<uint8_t>(Monster::VT_TEST_TYPE, static_cast<uint8_t>(test_type), 0); }
+  void add_test(flatbuffers::Offset<void> test) { fbb_.AddOffset(Monster::VT_TEST, test); }
+  void add_test4(flatbuffers::Offset<flatbuffers::Vector<const Test *>> test4) { fbb_.AddOffset(Monster::VT_TEST4, test4); }
+  void add_testarrayofstring(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring) { fbb_.AddOffset(Monster::VT_TESTARRAYOFSTRING, testarrayofstring); }
+  void add_testarrayoftables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Monster>>> testarrayoftables) { fbb_.AddOffset(Monster::VT_TESTARRAYOFTABLES, testarrayoftables); }
+  void add_enemy(flatbuffers::Offset<Monster> enemy) { fbb_.AddOffset(Monster::VT_ENEMY, enemy); }
+  void add_testnestedflatbuffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer) { fbb_.AddOffset(Monster::VT_TESTNESTEDFLATBUFFER, testnestedflatbuffer); }
+  void add_testempty(flatbuffers::Offset<Stat> testempty) { fbb_.AddOffset(Monster::VT_TESTEMPTY, testempty); }
+  void add_testbool(bool testbool) { fbb_.AddElement<uint8_t>(Monster::VT_TESTBOOL, static_cast<uint8_t>(testbool), 0); }
+  void add_testhashs32_fnv1(int32_t testhashs32_fnv1) { fbb_.AddElement<int32_t>(Monster::VT_TESTHASHS32_FNV1, testhashs32_fnv1, 0); }
+  void add_testhashu32_fnv1(uint32_t testhashu32_fnv1) { fbb_.AddElement<uint32_t>(Monster::VT_TESTHASHU32_FNV1, testhashu32_fnv1, 0); }
+  void add_testhashs64_fnv1(int64_t testhashs64_fnv1) { fbb_.AddElement<int64_t>(Monster::VT_TESTHASHS64_FNV1, testhashs64_fnv1, 0); }
+  void add_testhashu64_fnv1(uint64_t testhashu64_fnv1) { fbb_.AddElement<uint64_t>(Monster::VT_TESTHASHU64_FNV1, testhashu64_fnv1, 0); }
+  void add_testhashs32_fnv1a(int32_t testhashs32_fnv1a) { fbb_.AddElement<int32_t>(Monster::VT_TESTHASHS32_FNV1A, testhashs32_fnv1a, 0); }
+  void add_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) { fbb_.AddElement<uint32_t>(Monster::VT_TESTHASHU32_FNV1A, testhashu32_fnv1a, 0); }
+  void add_testhashs64_fnv1a(int64_t testhashs64_fnv1a) { fbb_.AddElement<int64_t>(Monster::VT_TESTHASHS64_FNV1A, testhashs64_fnv1a, 0); }
+  void add_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) { fbb_.AddElement<uint64_t>(Monster::VT_TESTHASHU64_FNV1A, testhashu64_fnv1a, 0); }
+  void add_testarrayofbools(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testarrayofbools) { fbb_.AddOffset(Monster::VT_TESTARRAYOFBOOLS, testarrayofbools); }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 24));
-    fbb_.Required(o, 10);  // name
+    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 25));
+    fbb_.Required(o, Monster::VT_NAME);  // name
     return o;
   }
 };
@@ -278,7 +349,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    flatbuffers::Offset<Monster> enemy = 0,
    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0,
    flatbuffers::Offset<Stat> testempty = 0,
-   uint8_t testbool = 0,
+   bool testbool = false,
    int32_t testhashs32_fnv1 = 0,
    uint32_t testhashu32_fnv1 = 0,
    int64_t testhashs64_fnv1 = 0,
@@ -286,12 +357,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
    int32_t testhashs32_fnv1a = 0,
    uint32_t testhashu32_fnv1a = 0,
    int64_t testhashs64_fnv1a = 0,
-   uint64_t testhashu64_fnv1a = 0) {
+   uint64_t testhashu64_fnv1a = 0,
+   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testarrayofbools = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_testhashu64_fnv1a(testhashu64_fnv1a);
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_testarrayofbools(testarrayofbools);
   builder_.add_testhashu32_fnv1a(testhashu32_fnv1a);
   builder_.add_testhashs32_fnv1a(testhashs32_fnv1a);
   builder_.add_testhashu32_fnv1(testhashu32_fnv1);
@@ -318,6 +391,7 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, An
   switch (type) {
     case Any_NONE: return true;
     case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));
+    case Any_TestSimpleTableWithEnum: return verifier.VerifyTable(reinterpret_cast<const TestSimpleTableWithEnum *>(union_obj));
     default: return false;
   }
 }

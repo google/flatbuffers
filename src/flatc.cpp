@@ -26,51 +26,59 @@ static void Error(const std::string &err, bool usage = false,
 struct Generator {
   bool (*generate)(const flatbuffers::Parser &parser,
                    const std::string &path,
-                   const std::string &file_name,
-                   const flatbuffers::GeneratorOptions &opts);
-  const char *generator_opt;
+                   const std::string &file_name);
+  const char *generator_opt_short;
+  const char *generator_opt_long;
   const char *lang_name;
-  flatbuffers::GeneratorOptions::Language lang;
+  flatbuffers::IDLOptions::Language lang;
   const char *generator_help;
 
   std::string (*make_rule)(const flatbuffers::Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const flatbuffers::GeneratorOptions &opts);
+                           const std::string &file_name);
 };
 
 const Generator generators[] = {
-  { flatbuffers::GenerateBinary,   "-b", "binary",
-    flatbuffers::GeneratorOptions::kMAX,
+  { flatbuffers::GenerateBinary,   "-b", "--binary", "binary",
+    flatbuffers::IDLOptions::kMAX,
     "Generate wire format binaries for any data definitions",
     flatbuffers::BinaryMakeRule },
-  { flatbuffers::GenerateTextFile, "-t", "text",
-    flatbuffers::GeneratorOptions::kMAX,
+  { flatbuffers::GenerateTextFile, "-t", "--json", "text",
+    flatbuffers::IDLOptions::kMAX,
     "Generate text output for any data definitions",
     flatbuffers::TextMakeRule },
-  { flatbuffers::GenerateCPP,      "-c", "C++",
-    flatbuffers::GeneratorOptions::kMAX,
+  { flatbuffers::GenerateCPP,      "-c", "--cpp", "C++",
+    flatbuffers::IDLOptions::kMAX,
     "Generate C++ headers for tables/structs",
     flatbuffers::CPPMakeRule },
-  { flatbuffers::GenerateGo,       "-g", "Go",
-    flatbuffers::GeneratorOptions::kGo,
+  { flatbuffers::GenerateGo,       "-g", "--go", "Go",
+    flatbuffers::IDLOptions::kGo,
     "Generate Go files for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GenerateGeneral,  "-j", "Java",
-    flatbuffers::GeneratorOptions::kJava,
+  { flatbuffers::GenerateGeneral,  "-j", "--java", "Java",
+    flatbuffers::IDLOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GenerateGeneral,  "-n", "C#",
-    flatbuffers::GeneratorOptions::kCSharp,
+  { flatbuffers::GenerateJS,       "-s", "--js", "JavaScript",
+    flatbuffers::IDLOptions::kMAX,
+    "Generate JavaScript code for tables/structs",
+    flatbuffers::JSMakeRule },
+  { flatbuffers::GenerateGeneral,  "-n", "--csharp", "C#",
+    flatbuffers::IDLOptions::kCSharp,
     "Generate C# classes for tables/structs",
     flatbuffers::GeneralMakeRule },
-  { flatbuffers::GeneratePython,   "-p", "Python",
-    flatbuffers::GeneratorOptions::kMAX,
+  { flatbuffers::GeneratePython,   "-p", "--python", "Python",
+    flatbuffers::IDLOptions::kMAX,
     "Generate Python files for tables/structs",
+    flatbuffers::GeneralMakeRule },
+    { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
+    flatbuffers::IDLOptions::kMAX,
+    "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
 };
 
-const char *program_name = NULL;
+const char *program_name = nullptr;
+flatbuffers::Parser *parser = nullptr;
 
 static void Error(const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) printf("%s: ", program_name);
@@ -78,8 +86,11 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
   if (usage) {
     printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
-      printf("  %s              %s.\n",
-             generators[i].generator_opt,
+      printf("  %-12s %s %s.\n",
+             generators[i].generator_opt_long,
+             generators[i].generator_opt_short
+               ? generators[i].generator_opt_short
+               : "  ",
              generators[i].generator_help);
     printf(
       "  -o PATH         Prefix PATH to all generated files.\n"
@@ -89,8 +100,15 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                  no trailing commas in tables/vectors.\n"
       "  --defaults-json Output fields whose value is the default when\n"
       "                  writing JSON\n"
+      "  --unknown-json  Allow fields in JSON that are not defined in the\n"
+      "                  schema. These fields will be discared when generating\n"
+      "                  binaries.\n"
       "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
-      "  --gen-includes  (deprecated), instead use:\n"
+      "  --scoped-enums  Use C++11 style scoped and strongly typed enums.\n"
+      "                  also implies --no-prefix.\n"
+      "  --gen-includes  (deprecated), this is the default behavior.\n"
+      "                  If the original behavior is required (no include\n"
+      "                  statements) use --no-includes.\n"
       "  --no-includes   Don\'t generate include statements for included\n"
       "                  schemas the generated file depends on (C++).\n"
       "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
@@ -106,18 +124,18 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "example: %s -c -b schema1.fbs schema2.fbs data.json\n",
       program_name);
   }
+  if (parser) delete parser;
   exit(1);
 }
 
 int main(int argc, const char *argv[]) {
   program_name = argv[0];
-  flatbuffers::GeneratorOptions opts;
+  flatbuffers::IDLOptions opts;
   std::string output_path;
   const size_t num_generators = sizeof(generators) / sizeof(generators[0]);
   bool generator_enabled[num_generators] = { false };
   bool any_generator = false;
   bool print_make_rules = false;
-  bool proto_mode = false;
   bool raw_binary = false;
   bool schema_binary = false;
   std::vector<std::string> filenames;
@@ -136,12 +154,22 @@ int main(int argc, const char *argv[]) {
         include_directories.push_back(argv[argi]);
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
+      } else if(arg == "--no-js-exports") {
+        opts.skip_js_exports = true;
       } else if(arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
+      } else if (arg == "--unknown-json") {
+        opts.skip_unexpected_fields_in_json = true;
       } else if(arg == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if(arg == "--scoped-enums") {
+        opts.prefixed_enums = false;
+        opts.scoped_enums = true;
       } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
+      } else if(arg == "--gen-all") {
+        opts.generate_all = true;
+        opts.include_dependence_headers = false;
       } else if(arg == "--gen-includes") {
         // Deprecated, remove this option some time in the future.
         printf("warning: --gen-includes is deprecated (it is now default)\n");
@@ -154,15 +182,16 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
-        proto_mode = true;
-        any_generator = true;
+        opts.proto_mode = true;
       } else if(arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
         print_make_rules = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
-          if (arg == generators[i].generator_opt) {
+          if (arg == generators[i].generator_opt_long ||
+              (generators[i].generator_opt_short &&
+               arg == generators[i].generator_opt_short)) {
             generator_enabled[i] = true;
             any_generator = true;
             goto found;
@@ -176,25 +205,29 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-  if (!filenames.size()) Error("missing input files", nullptr, true);
+  if (!filenames.size()) Error("missing input files", false, true);
 
-  if (!any_generator)
-    Error("no options: specify one of -c -g -j -t -b etc.", true);
+  if (opts.proto_mode) {
+    if (any_generator)
+      Error("cannot generate code directly from .proto files", true);
+  } else if (!any_generator) {
+    Error("no options: specify at least one generator.", true);
+  }
 
   // Now process the files:
-  flatbuffers::Parser parser(opts.strict_json, proto_mode);
+  parser = new flatbuffers::Parser(opts);
   for (auto file_it = filenames.begin();
             file_it != filenames.end();
           ++file_it) {
       std::string contents;
       if (!flatbuffers::LoadFile(file_it->c_str(), true, &contents))
-        Error("unable to load file" + *file_it);
+        Error("unable to load file: " + *file_it);
 
       bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
                        binary_files_from;
       if (is_binary) {
-        parser.builder_.Clear();
-        parser.builder_.PushBytes(
+        parser->builder_.Clear();
+        parser->builder_.PushFlatBuffer(
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
         if (!raw_binary) {
@@ -203,30 +236,37 @@ int main(int argc, const char *argv[]) {
           // does not contain a file identifier.
           // We'd expect that typically any binary used as a file would have
           // such an identifier, so by default we require them to match.
-          if (!parser.file_identifier_.length()) {
+          if (!parser->file_identifier_.length()) {
             Error("current schema has no file_identifier: cannot test if \"" +
                  *file_it +
                  "\" matches the schema, use --raw-binary to read this file"
                  " anyway.");
           } else if (!flatbuffers::BufferHasIdentifier(contents.c_str(),
-                                             parser.file_identifier_.c_str())) {
+                                             parser->file_identifier_.c_str())) {
             Error("binary \"" +
                  *file_it +
                  "\" does not have expected file_identifier \"" +
-                 parser.file_identifier_ +
+                 parser->file_identifier_ +
                  "\", use --raw-binary to read this file anyway.");
           }
         }
       } else {
+        if (flatbuffers::GetExtension(*file_it) == "fbs") {
+          // If we're processing multiple schemas, make sure to start each
+          // one from scratch. If it depends on previous schemas it must do
+          // so explicitly using an include.
+          delete parser;
+          parser = new flatbuffers::Parser(opts);
+        }
         auto local_include_directory = flatbuffers::StripFileName(*file_it);
         include_directories.push_back(local_include_directory.c_str());
         include_directories.push_back(nullptr);
-        if (!parser.Parse(contents.c_str(), &include_directories[0],
+        if (!parser->Parse(contents.c_str(), &include_directories[0],
                           file_it->c_str()))
-          Error(parser.error_, false, false);
+          Error(parser->error_, false, false);
         if (schema_binary) {
-          parser.Serialize();
-          parser.file_extension_ = reflection::SchemaExtension();
+          parser->Serialize();
+          parser->file_extension_ = reflection::SchemaExtension();
         }
         include_directories.pop_back();
         include_directories.pop_back();
@@ -236,11 +276,11 @@ int main(int argc, const char *argv[]) {
                                flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
-        opts.lang = generators[i].lang;
+        parser->opts.lang = generators[i].lang;
         if (generator_enabled[i]) {
           if (!print_make_rules) {
             flatbuffers::EnsureDirExists(output_path);
-            if (!generators[i].generate(parser, output_path, filebase, opts)) {
+            if (!generators[i].generate(*parser, output_path, filebase)) {
               Error(std::string("Unable to generate ") +
                     generators[i].lang_name +
                     " for " +
@@ -248,7 +288,7 @@ int main(int argc, const char *argv[]) {
             }
           } else {
             std::string make_rule = generators[i].make_rule(
-                parser, output_path, *file_it, opts);
+                *parser, output_path, *file_it);
             if (!make_rule.empty())
               printf("%s\n", flatbuffers::WordWrap(
                   make_rule, 80, " ", " \\").c_str());
@@ -256,12 +296,13 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      if (proto_mode) GenerateFBS(parser, output_path, filebase, opts);
+      if (opts.proto_mode) GenerateFBS(*parser, output_path, filebase);
 
       // We do not want to generate code for the definitions in this file
       // in any files coming up next.
-      parser.MarkGenerated();
+      parser->MarkGenerated();
   }
 
+  delete parser;
   return 0;
 }

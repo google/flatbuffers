@@ -8,9 +8,13 @@ attribute "priority";
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
-union Any { Monster }  // TODO: add more elements
+union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements
 
 struct Test { a:short; b:byte; }
+
+table TestSimpleTableWithEnum {
+  color: Color = Green;
+}
 
 struct Vec3 (force_align: 16) {
   x:float;
@@ -27,6 +31,7 @@ table Stat {
   count:ushort;
 }
 
+/// an example documentation comment: monster object
 table Monster {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
@@ -39,6 +44,7 @@ table Monster {
   /// multiline too
   testarrayoftables:[Monster] (id: 11);
   testarrayofstring:[string] (id: 10);
+  testarrayofbools:[bool] (id: 24);
   enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
   test4:[Test] (id: 9);

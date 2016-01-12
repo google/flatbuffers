@@ -23,21 +23,21 @@
 namespace flatbuffers {
 
 static void GenStruct(const StructDef &struct_def, const Table *table,
-                      int indent, const GeneratorOptions &opts,
+                      int indent, const IDLOptions &opts,
                       std::string *_text);
 
 // If indentation is less than 0, that indicates we don't want any newlines
 // either.
-const char *NewLine(const GeneratorOptions &opts) {
+const char *NewLine(const IDLOptions &opts) {
   return opts.indent_step >= 0 ? "\n" : "";
 }
 
-int Indent(const GeneratorOptions &opts) {
+int Indent(const IDLOptions &opts) {
   return std::max(opts.indent_step, 0);
 }
 
 // Output an identifier with or without quotes depending on strictness.
-void OutputIdentifier(const std::string &name, const GeneratorOptions &opts,
+void OutputIdentifier(const std::string &name, const IDLOptions &opts,
                       std::string *_text) {
   std::string &text = *_text;
   if (opts.strict_json) text += "\"";
@@ -50,7 +50,7 @@ void OutputIdentifier(const std::string &name, const GeneratorOptions &opts,
 // The general case for scalars:
 template<typename T> void Print(T val, Type type, int /*indent*/,
                                 StructDef * /*union_sd*/,
-                                const GeneratorOptions &opts,
+                                const IDLOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
   if (type.enum_def && opts.output_enum_identifiers) {
@@ -60,12 +60,17 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
       return;
     }
   }
-  text += NumToString(val);
+
+  if (type.base_type == BASE_TYPE_BOOL) {
+    text += val != 0 ? "true" : "false";
+  } else {
+    text += NumToString(val);
+  }
 }
 
 // Print a vector a sequence of JSON values, comma separated, wrapped in "[]".
 template<typename T> void PrintVector(const Vector<T> &v, Type type,
-                                      int indent, const GeneratorOptions &opts,
+                                      int indent, const IDLOptions &opts,
                                       std::string *_text) {
   std::string &text = *_text;
   text += "[";
@@ -131,7 +136,7 @@ static void EscapeString(const String &s, std::string *_text) {
 template<> void Print<const void *>(const void *val,
                                     Type type, int indent,
                                     StructDef *union_sd,
-                                    const GeneratorOptions &opts,
+                                    const IDLOptions &opts,
                                     std::string *_text) {
   switch (type.base_type) {
     case BASE_TYPE_UNION:
@@ -176,7 +181,7 @@ template<> void Print<const void *>(const void *val,
 // Generate text for a scalar field.
 template<typename T> static void GenField(const FieldDef &fd,
                                           const Table *table, bool fixed,
-                                          const GeneratorOptions &opts,
+                                          const IDLOptions &opts,
                                           int indent,
                                           std::string *_text) {
   Print(fixed ?
@@ -188,7 +193,7 @@ template<typename T> static void GenField(const FieldDef &fd,
 // Generate text for non-scalar field.
 static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
                            int indent, StructDef *union_sd,
-                           const GeneratorOptions &opts, std::string *_text) {
+                           const IDLOptions &opts, std::string *_text) {
   const void *val = nullptr;
   if (fixed) {
     // The only non-scalar fields in structs are structs.
@@ -206,7 +211,7 @@ static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
 // Generate text for a struct or table, values separated by commas, indented,
 // and bracketed by "{}"
 static void GenStruct(const StructDef &struct_def, const Table *table,
-                      int indent, const GeneratorOptions &opts,
+                      int indent, const IDLOptions &opts,
                       std::string *_text) {
   std::string &text = *_text;
   text += "{";
@@ -268,16 +273,16 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
 
 // Generate a text representation of a flatbuffer in JSON format.
 void GenerateText(const Parser &parser, const void *flatbuffer,
-                  const GeneratorOptions &opts, std::string *_text) {
+                  std::string *_text) {
   std::string &text = *_text;
   assert(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);   // Reduce amount of inevitable reallocs.
   GenStruct(*parser.root_struct_def_,
             GetRoot<Table>(flatbuffer),
             0,
-            opts,
+            parser.opts,
             _text);
-  text += NewLine(opts);
+  text += NewLine(parser.opts);
 }
 
 std::string TextFileName(const std::string &path,
@@ -287,12 +292,10 @@ std::string TextFileName(const std::string &path,
 
 bool GenerateTextFile(const Parser &parser,
                       const std::string &path,
-                      const std::string &file_name,
-                      const GeneratorOptions &opts) {
+                      const std::string &file_name) {
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return true;
   std::string text;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), opts,
-               &text);
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &text);
   return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(),
                                text,
                                false);
@@ -300,8 +303,7 @@ bool GenerateTextFile(const Parser &parser,
 
 std::string TextMakeRule(const Parser &parser,
                          const std::string &path,
-                         const std::string &file_name,
-                         const GeneratorOptions & /*opts*/) {
+                         const std::string &file_name) {
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));

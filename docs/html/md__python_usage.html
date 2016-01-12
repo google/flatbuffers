@@ -1,3 +1,4 @@
+<!-- HTML header for doxygen 1.8.6-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -15,16 +16,23 @@
   $(document).ready(initResizable);
   $(window).load(resizeHeight);
 </script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
-<div id="titlearea">
+<div id="titlearea" style="height: 110px;">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">FlatBuffers
+   </div>
+   <div style="font-size:12px;">
+    An open source project by <a href="https://developers.google.com/games/#Tools">FPL</a>.
    </div>
   </td>
  </tr>
@@ -68,7 +76,7 @@ $(document).ready(function(){initNavTree('md__python_usage.html','');});
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="keywordflow">for</span> i <span class="keywordflow">in</span> xrange(monster.InventoryLength()):</div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;    monster.Inventory(i) <span class="comment"># do something here</span></div>
 </div><!-- fragment --><p>You can also construct these buffers in Python using the functions found in the generated code, and the FlatBufferBuilder class:</p>
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;builder = flatbuffers.NewBuilder(0)</div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;builder = flatbuffers.Builder(0)</div>
 </div><!-- fragment --><p>Create strings:</p>
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;s = builder.CreateString(<span class="stringliteral">&quot;MyMonster&quot;</span>)</div>
 </div><!-- fragment --><p>Create a table with a struct contained therein:</p>
@@ -82,7 +90,7 @@ $(document).ready(function(){initNavTree('md__python_usage.html','');});
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;example.MonsterAddTest4(builder, test4s)</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;mon = example.MonsterEnd(builder)</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;final_flatbuffer = bulder.Output()</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;final_flatbuffer = builder.Output()</div>
 </div><!-- fragment --><p>Unlike C++, Python does not support table creation functions like 'createMonster()'. This is to create the buffer without using temporary object allocation (since the <code>Vec3</code> is an inline component of <code>Monster</code>, it has to be created right where it is added, whereas the name and the inventory are not inline, and <b>must</b> be created outside of the table creation sequence). Structs do have convenient methods that allow you to construct them in one call. These also have arguments for nested structs, e.g. if a struct has a field <code>a</code> and a nested struct field <code>b</code> (which has fields <code>c</code> and <code>d</code>), then the arguments will be <code>a</code>, <code>c</code> and <code>d</code>.</p>
 <p>Vectors also use this start/end pattern to allow vectors of both scalar types and structs:</p>
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;example.MonsterStartInventoryVector(builder, 5)</div>
