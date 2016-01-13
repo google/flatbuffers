@@ -35,7 +35,7 @@ namespace flatbuffers {
 namespace go {
 
 static std::string GenGetter(const Type &type);
-static std::string GenMethod(const FieldDef &field, const bool lower = false);
+static std::string GenMethod(const FieldDef &field, const bool lower = true);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
@@ -395,7 +395,7 @@ static void StructBuilderBody(const StructDef &struct_def,
         
       auto is_enum = IsEnum(field);
       if (is_enum) {
-        code += GenMethod(field, true) + "(";
+        code += GenMethod(field, false) + "(";
       }
       code += nameprefix + MakeCamel(field.name, false) + ")";
       code += is_enum ? ")\n" : "\n";
@@ -432,7 +432,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "flatbuffers.UOffsetT";
   } else {
-    code += GenTypeBasic(field.value.type);
+    code += TypeName(field);
   }
   code += ") ";
   code += "{ builder.Prepend";
@@ -443,7 +443,10 @@ static void BuildFieldOfTable(const StructDef &struct_def,
     code += "(";
     code += MakeCamel(field.name, false) + ")";
   } else {
-    code += MakeCamel(field.name, false);
+    auto name = MakeCamel(field.name, false);
+    code += IsEnum(field)
+          ? GenTypeGet(field.value.type) + "(" + name + ")"
+          : name;
   }
   code += ", " + field.value.constant;
   code += ") }\n";
@@ -613,14 +616,9 @@ static std::string GenGetter(const Type &type) {
 
 // Returns the method name for use with add/put calls + "("
 static std::string GenMethod(const FieldDef &field, const bool lower) {
-  if (IsScalar(field.value.type.base_type)) {
-    auto ret = GenTypeBasic(field.value.type);
-    if (lower) {
-      return ret;
-    }
-    return MakeCamel(ret);
-  }
-  return IsStruct(field.value.type) ? "Struct" : "UOffsetT";
+  return IsScalar(field.value.type.base_type)
+         ? MakeCamel(GenTypeBasic(field.value.type), lower)
+         : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
 }
 
 // Save out the generated code for a Go Table type.
