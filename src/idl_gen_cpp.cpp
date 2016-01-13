@@ -45,7 +45,7 @@ static std::string WrapInNameSpace(const Parser &parser,
 }
 
 // Translates a qualified name in flatbuffer text format to the same name in
-// the equivalent C++ namepsace.
+// the equivalent C++ namespace.
 static std::string TranslateNameSpace(const std::string &qualified_name) {
   std::string cpp_qualified_name = qualified_name;
   size_t start_pos = 0;
