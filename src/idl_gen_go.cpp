@@ -35,7 +35,7 @@ namespace flatbuffers {
 namespace go {
 
 static std::string GenGetter(const Type &type);
-static std::string GenMethod(const FieldDef &field);
+static std::string GenMethod(const FieldDef &field, const bool lower = false);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
@@ -392,7 +392,13 @@ static void StructBuilderBody(const StructDef &struct_def,
                         code_ptr);
     } else {
       code += "    builder.Prepend" + GenMethod(field) + "(";
-      code += nameprefix + MakeCamel(field.name, false) + ")\n";
+        
+      auto is_enum = IsEnum(field);
+      if (is_enum) {
+        code += GenMethod(field, true) + "(";
+      }
+      code += nameprefix + MakeCamel(field.name, false) + ")";
+      code += is_enum ? ")\n" : "\n";
     }
   }
 }
@@ -605,13 +611,17 @@ static std::string GenGetter(const Type &type) {
   }
 }
 
-// Returns the method name for use with add/put calls.
-static std::string GenMethod(const FieldDef &field) {
-  return IsScalar(field.value.type.base_type)
-    ? MakeCamel(GenTypeBasic(field.value.type))
-    : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
+// Returns the method name for use with add/put calls + "("
+static std::string GenMethod(const FieldDef &field, const bool lower) {
+  if (IsScalar(field.value.type.base_type)) {
+    auto ret = GenTypeBasic(field.value.type);
+    if (lower) {
+      return ret;
+    }
+    return MakeCamel(ret);
+  }
+  return IsStruct(field.value.type) ? "Struct" : "UOffsetT";
 }
-
 
 // Save out the generated code for a Go Table type.
 static bool SaveType(const Parser &parser, const Definition &def,
