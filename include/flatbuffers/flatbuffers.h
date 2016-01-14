@@ -487,8 +487,7 @@ class vector_downward {
   }
 
   void add(size_t bytes) {
-    auto dest = make_space(bytes);
-    for (size_t i = 0; i < bytes; i++) dest[i] = 0;
+    make_space(bytes);
   }
 
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
