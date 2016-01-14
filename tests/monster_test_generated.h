@@ -302,6 +302,7 @@ struct MonsterBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_pos(const Vec3 *pos) { fbb_.AddStruct(Monster::VT_POS, pos); }
+  template <typename ... Args> void emplace_pos(Args...args) { fbb_.EmplaceStruct<Vec3> (Monster::VT_POS, args...); }
   void add_mana(int16_t mana) { fbb_.AddElement<int16_t>(Monster::VT_MANA, mana, 150); }
   void add_hp(int16_t hp) { fbb_.AddElement<int16_t>(Monster::VT_HP, hp, 100); }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(Monster::VT_NAME, name); }

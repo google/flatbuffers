@@ -441,6 +441,14 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       if (IsScalar(field.value.type.base_type))
         code += ", " + field.value.constant;
       code += "); }\n";
+      // Add emplace for structs
+      if (IsStruct(field.value.type)) {
+          code += "  template <typename ... Args> void emplace_" + field.name
+              + "(Args...args) { fbb_.EmplaceStruct<" 
+              + GenTypePointer(parser, field.value.type) + "> (" 
+              + struct_def.name + "::" + GenFieldOffsetName(field) 
+              + ", args...); }\n";
+      }
     }
   }
   code += "  " + struct_def.name;
