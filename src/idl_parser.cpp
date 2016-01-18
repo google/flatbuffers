@@ -200,6 +200,13 @@ CheckedError Parser::ParseHexNum(int nibbles, int64_t *val) {
   return NoError();
 }
 
+CheckedError Parser::SkipByteOrderMark() {
+  if (static_cast<unsigned char>(*cursor_++) != 0xef) return NoError();
+  if (static_cast<unsigned char>(*cursor_++) != 0xbb) return Error("invalid utf-8 byte order mark");
+  if (static_cast<unsigned char>(*cursor_++) != 0xff) return Error("invalid utf-8 byte order mark");
+  return NoError();
+}
+
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
@@ -1584,6 +1591,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   builder_.Clear();
   // Start with a blank namespace just in case this file doesn't have one.
   namespaces_.push_back(new Namespace());
+  ECHECK(SkipByteOrderMark());
   NEXT();
   // Includes must come before type declarations:
   for (;;) {
