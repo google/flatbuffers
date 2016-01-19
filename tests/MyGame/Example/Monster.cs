@@ -45,6 +45,8 @@ public sealed class Monster : Table {
   public byte GetTestnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.Get(__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; } }
   public ArraySegment<byte>? GetTestnestedflatbufferBytes() { return __vector_as_arraysegment(30); }
+  public Monster TestnestedflatbufferAsMonster() { return GetTestnestedflatbufferAsMonster(new Monster()); }
+  public Monster GetTestnestedflatbufferAsMonster(Monster obj) { int o = __offset(30); return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }
   public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __offset(30); if (o != 0) { bb.Put(__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public Stat Testempty { get { return GetTestempty(new Stat()); } }
   public Stat GetTestempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
