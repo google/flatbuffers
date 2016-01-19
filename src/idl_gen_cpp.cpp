@@ -274,16 +274,24 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   // Generate field id constants.
   if (struct_def.fields.vec.size() > 0) {
     code += "  enum {\n";
+    bool is_first_field = true; // track the first field that's not deprecated
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end();
          ++it) {
       auto &field = **it;
       if (!field.deprecated) {  // Deprecated fields won't be accessible.
+        if (!is_first_field) {
+          // Add trailing comma and newline to previous element. Don't add trailing comma to 
+          // last element since older versions of gcc complain about this.
+          code += ",\n";
+        } else {
+          is_first_field = false;
+        }
         code += "    " + GenFieldOffsetName(field) + " = ";
-        code += NumToString(field.value.offset) + ",\n";
+        code += NumToString(field.value.offset);
       }
     }
-    code += "  };\n";
+    code += "\n  };\n";
   }
   // Generate the accessors.
   for (auto it = struct_def.fields.vec.begin();
@@ -520,13 +528,30 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
 }
 
 static void GenPadding(const FieldDef &field,
-                       const std::function<void (int bits)> &f) {
+            std::string &code,
+            int &padding_id,
+            const std::function<void (int bits, std::string &code, int &padding_id)> &f) {
   if (field.padding) {
     for (int i = 0; i < 4; i++)
       if (static_cast<int>(field.padding) & (1 << i))
-        f((1 << i) * 8);
+        f((1 << i) * 8, code, padding_id);
     assert(!(field.padding & ~0xF));
   }
+}
+
+static void PaddingDefinition(int bits, std::string &code, int &padding_id) {
+  code += "  int" + NumToString(bits) +
+          "_t __padding" + NumToString(padding_id++) + ";\n";
+}
+
+static void PaddingDeclaration(int bits, std::string &code, int &padding_id) {
+  (void)bits;
+  code += " (void)__padding" + NumToString(padding_id++) + ";";
+}
+
+static void PaddingInitializer(int bits, std::string &code, int &padding_id) {
+  (void)bits;
+  code += ", __padding" + NumToString(padding_id++) + "(0)";
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -550,10 +575,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     auto &field = **it;
     code += "  " + GenTypeGet(parser, field.value.type, " ", "", " ", false);
     code += field.name + "_;\n";
-    GenPadding(field, [&code, &padding_id](int bits) {
-      code += "  int" + NumToString(bits) +
-              "_t __padding" + NumToString(padding_id++) + ";\n";
-    });
+    GenPadding(field, code, padding_id, PaddingDefinition);
   }
 
   // Generate a constructor that takes all fields as arguments.
@@ -581,21 +603,16 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     } else {
       code += "_" + field.name + ")";
     }
-    GenPadding(field, [&code, &padding_id](int bits) {
-      (void)bits;
-      code += ", __padding" + NumToString(padding_id++) + "(0)";
-    });
+    GenPadding(field, code, padding_id, PaddingInitializer);
   }
+
   code += " {";
   padding_id = 0;
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
     auto &field = **it;
-    GenPadding(field, [&code, &padding_id](int bits) {
-      (void)bits;
-      code += " (void)__padding" + NumToString(padding_id++) + ";";
-    });
+    GenPadding(field, code, padding_id, PaddingDeclaration);
   }
   code += " }\n\n";
 
@@ -648,6 +665,12 @@ void CloseNestedNameSpaces(Namespace *ns, std::string *code_ptr) {
 }
 
 }  // namespace cpp
+
+struct IsAlnum {
+  bool operator()(char c) {
+    return !isalnum(c);
+  }
+};
 
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
@@ -719,7 +742,7 @@ std::string GenerateCPP(const Parser &parser,
     include_guard_ident.erase(
       std::remove_if(include_guard_ident.begin(),
                      include_guard_ident.end(),
-                     [](char c) { return !isalnum(c); }),
+                     IsAlnum()),
       include_guard_ident.end());
     std::string include_guard = "FLATBUFFERS_GENERATED_" + include_guard_ident;
     include_guard += "_";

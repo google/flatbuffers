@@ -17,6 +17,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include <limits>
 
 static void Error(const std::string &err, bool usage = false,
                   bool show_exe_name = true);

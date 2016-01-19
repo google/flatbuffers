@@ -45,7 +45,7 @@ STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_FOO = 4,
+    VT_FOO = 4
   };
   int32_t foo() const { return GetField<int32_t>(VT_FOO, 0); }
   bool mutate_foo(int32_t _foo) { return SetField(VT_FOO, _foo); }
