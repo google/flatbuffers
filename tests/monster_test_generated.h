@@ -98,7 +98,7 @@ STRUCT_END(Vec3, 32);
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_COLOR = 4,
+    VT_COLOR = 4
   };
   Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2)); }
   bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
@@ -132,7 +132,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_ID = 4,
     VT_VAL = 6,
-    VT_COUNT = 8,
+    VT_COUNT = 8
   };
   const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(VT_ID); }
   flatbuffers::String *mutable_id() { return GetPointer<flatbuffers::String *>(VT_ID); }
@@ -201,7 +201,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TESTHASHU32_FNV1A = 46,
     VT_TESTHASHS64_FNV1A = 48,
     VT_TESTHASHU64_FNV1A = 50,
-    VT_TESTARRAYOFBOOLS = 52,
+    VT_TESTARRAYOFBOOLS = 52
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }

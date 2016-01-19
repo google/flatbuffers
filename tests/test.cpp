@@ -478,8 +478,8 @@ void FuzzTest1() {
   const uint16_t ushort_val = 0xFEEE;
   const int32_t  int_val    = 0x83333333;
   const uint32_t uint_val   = 0xFDDDDDDD;
-  const int64_t  long_val   = 0x8444444444444444;
-  const uint64_t ulong_val  = 0xFCCCCCCCCCCCCCCC;
+  const int64_t  long_val   = 0x8444444444444444LL;
+  const uint64_t ulong_val  = 0xFCCCCCCCCCCCCCCCULL;
   const float    float_val  = 3.14159f;
   const double   double_val = 3.14159265359;
 
@@ -564,7 +564,27 @@ void FuzzTest2() {
 
   struct RndDef {
     std::string instances[instances_per_definition];
+
+    // Since we're generating schema and corresponding data in tandem,
+    // this convenience function adds strings to both at once.
+    static void Add(RndDef (&definitions_l)[num_definitions],
+                    std::string &schema_l,
+                    const int instances_per_definition_l,
+                    const char *schema_add, const char *instance_add,
+                    int definition) {
+      schema_l += schema_add;
+      for (int i = 0; i < instances_per_definition_l; i++)
+        definitions_l[definition].instances[i] += instance_add;
+    }
   };
+
+  #define AddToSchemaAndInstances(schema_add, instance_add) \
+    RndDef::Add(definitions, schema, instances_per_definition, \
+                schema_add, instance_add, definition)
+
+  #define Dummy() \
+    RndDef::Add(definitions, schema, instances_per_definition, \
+                "byte", "1", definition)
 
   RndDef definitions[num_definitions];
 
@@ -577,17 +597,6 @@ void FuzzTest2() {
   // being generated. We generate multiple instances such that when creating
   // hierarchy, we get some variety by picking one randomly.
   for (int definition = 0; definition < num_definitions; definition++) {
-    // Since we're generating schema & and corresponding data in tandem,
-    // this convenience function adds strings to both at once.
-    auto AddToSchemaAndInstances = [&](const char *schema_add,
-                                       const char *instance_add) {
-      schema += schema_add;
-      for (int i = 0; i < instances_per_definition; i++)
-        definitions[definition].instances[i] += instance_add;
-    };
-    // Generate a default type if we can't generate something else.
-    auto Dummy = [&]() { AddToSchemaAndInstances("byte", "1"); };
-
     std::string definition_name = "D" + flatbuffers::NumToString(definition);
 
     bool is_struct = definition < num_struct_definitions;
