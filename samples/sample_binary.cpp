@@ -90,12 +90,15 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     assert(weps->Get(i)->name()->str() == expected_weapon_names[i]);
     assert(weps->Get(i)->damage() == expected_weapon_damages[i]);
   }
+  (void)expected_weapon_names;
+  (void)expected_weapon_damages;
 
   // Get and test the `Equipment` union (`equipped` field).
   assert(monster->equipped_type() == Equipment_Weapon);
   auto equipped = static_cast<const Weapon*>(monster->equipped());
   assert(equipped->name()->str() == "Axe");
   assert(equipped->damage() == 5);
+  (void)equipped;
 
   printf("The FlatBuffer was successfully created and verified!\n");
 }
