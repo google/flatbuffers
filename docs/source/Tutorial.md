@@ -1644,9 +1644,6 @@ One way to solve this is to call `ForceDefaults` on a FlatBufferBuilder to
 force all fields you set to actually be written. This, of course, increases the
 size of the buffer somewhat, but this may be acceptable for a mutable buffer.
 
-<div class="language-csharp">
-  **Note: `ForceDefaults` is not yet implemented in C#.**
-</div>
 
 ## JSON with FlatBuffers
 
