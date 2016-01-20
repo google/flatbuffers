@@ -513,6 +513,10 @@ class vector_downward {
     for (size_t i = 0; i < zero_pad_bytes; i++) dest[i] = 0;
   }
 
+  void add(size_t bytes) {
+    make_space(bytes);
+  }
+
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
  private:
@@ -642,6 +646,10 @@ FLATBUFFERS_FINAL_CLASS
     buf_.push(bytes, size);
   }
 
+  void AddBytes(size_t size) {
+    buf_.add(size);
+  }
+
   void PopBytes(size_t amount) { buf_.pop(amount); }
 
   template<typename T> void AssertScalarT() {
@@ -690,6 +698,14 @@ FLATBUFFERS_FINAL_CLASS
     if (!structptr) return;  // Default, don't store.
     Align(AlignOf<T>());
     PushBytes(reinterpret_cast<const uint8_t *>(structptr), sizeof(T));
+    TrackField(field, GetSize());
+  }
+
+  template<typename T, typename ... Args> void EmplaceStruct(voffset_t field, Args...args) {
+    // Emplace struct ALWAYS stores
+    Align(AlignOf<T>());
+    AddBytes(sizeof(T));
+    new (buf_.data ()) T(args...);
     TrackField(field, GetSize());
   }
 
