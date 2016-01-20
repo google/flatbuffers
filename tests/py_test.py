@@ -152,8 +152,6 @@ def CheckReadBuffer(buf, offset):
     asserter(monster.Testarrayofstring(0) == b"test1")
     asserter(monster.Testarrayofstring(1) == b"test2")
 
-    asserter(monster.Enemy() is None)
-
     asserter(monster.TestarrayoftablesLength() == 0)
     asserter(monster.TestnestedflatbufferLength() == 0)
     asserter(monster.Testempty() is None)
@@ -1274,7 +1272,7 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
 
 def backward_compatible_run_tests(**kwargs):
     if PY_VERSION < (2, 6):
-        sys.stderr.write("Python version less than 2.6 are not supported") 
+        sys.stderr.write("Python version less than 2.6 are not supported")
         sys.stderr.flush()
         return False
 
@@ -1287,7 +1285,7 @@ def backward_compatible_run_tests(**kwargs):
                 return False
         return True
 
-    # python2.7 and above let us not exit once unittest.main is run: 
+    # python2.7 and above let us not exit once unittest.main is run:
     kwargs['exit'] = False
     kwargs['verbosity'] = 0
     ret = unittest.main(**kwargs)
