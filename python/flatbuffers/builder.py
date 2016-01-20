@@ -391,7 +391,7 @@ class Builder(object):
         self.PlaceUOffsetT(vectorNumElems)
         return self.Offset()
 
-    def CreateString(self, s):
+    def CreateString(self, s, encoding='utf-8', errors='strict'):
         """CreateString writes a null-terminated byte string as a vector."""
 
         self.assertNotNested()
@@ -400,7 +400,7 @@ class Builder(object):
         ## @endcond
 
         if isinstance(s, compat.string_types):
-            x = s.encode()
+            x = s.encode(encoding, errors)
         elif isinstance(s, compat.binary_type):
             x = s
         else:
