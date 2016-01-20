@@ -21,7 +21,8 @@
   ],
   test_type: Monster,
   test: {
-    name: "Fred"
+    name: "Fred",
+    pos: null
   },
   test4: [
     {

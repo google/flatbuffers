@@ -1,10 +1,10 @@
-// example IDL file
+// Example IDL file for our monster's schema.
 
 namespace MyGame.Sample;
 
 enum Color:byte { Red = 0, Green, Blue = 2 }
 
-union Any { Monster }  // add more elements..
+union Equipment { Weapon } // Optionally add more tables.
 
 struct Vec3 {
   x:float;
@@ -20,6 +20,13 @@ table Monster {
   friendly:bool = false (deprecated);
   inventory:[ubyte];
   color:Color = Blue;
+  weapons:[Weapon];
+  equipped:Equipment;
+}
+
+table Weapon {
+  name:string;
+  damage:short;
 }
 
 root_type Monster;

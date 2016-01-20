@@ -1,4 +1,5 @@
-# Platform / Language / Feature support
+Platform / Language / Feature support    {#flatbuffers_support}
+=====================================
 
 FlatBuffers is actively being worked on, which means that certain platform /
 language / feature combinations may not be available yet.
@@ -39,3 +40,5 @@ Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | ev
   * js = jonsimantov
   * mik = mikkelfj
   * ch = chobie
+
+<br>

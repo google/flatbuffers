@@ -58,3 +58,6 @@ java/*.iml
 java/target
 **/*.pyc
 .idea
+build/VS2010/FlatBuffers.sdf
+build/VS2010/FlatBuffers.opensdf
+build/VS2010/ipch/**/*.ipch

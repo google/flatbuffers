@@ -22,7 +22,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_FOO_TABLE = 4,
     VT_FOO_ENUM = 6,
-    VT_FOO_STRUCT = 8,
+    VT_FOO_STRUCT = 8
   };
   const NamespaceA::NamespaceB::TableInNestedNS *foo_table() const { return GetPointer<const NamespaceA::NamespaceB::TableInNestedNS *>(VT_FOO_TABLE); }
   NamespaceA::NamespaceB::TableInNestedNS *mutable_foo_table() { return GetPointer<NamespaceA::NamespaceB::TableInNestedNS *>(VT_FOO_TABLE); }
