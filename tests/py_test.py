@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2014 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -387,23 +388,36 @@ class TestByteLayout(unittest.TestCase):
 
     def test_create_ascii_string(self):
         b = flatbuffers.Builder(0)
-        b.CreateString(u"foo".encode('ascii'))
+        b.CreateString(u"foo", encoding='ascii')
+
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
-        b.CreateString(u"moop".encode('ascii'))
+        b.CreateString(u"moop", encoding='ascii')
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 'm', 'o', 'o', 'p',
                                      0, 0, 0, 0,
                                      3, 0, 0, 0, 'f', 'o', 'o', 0])
 
+    def test_create_utf8_string(self):
+        b = flatbuffers.Builder(0)
+        b.CreateString(u"Цлїςσδε")
+        self.assertBuilderEquals(b, "\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
+        b.CreateString(u"ﾌﾑｱﾑｶﾓｹﾓ")
+        self.assertBuilderEquals(b, "\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91" \
+            "\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef" \
+            "\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
     def test_create_arbitrary_string(self):
         b = flatbuffers.Builder(0)
-        s = "\x01\x02\x03".encode('utf-8')
-        b.CreateString(s)
+        s = "\x01\x02\x03"
+        b.CreateString(s) # Default encoding is utf-8.
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
-        s2 = "\x04\x05\x06\x07".encode('utf-8')
-        b.CreateString(s2)
+        s2 = "\x04\x05\x06\x07"
+        b.CreateString(s2) # Default encoding is utf-8.
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
