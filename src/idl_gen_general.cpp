@@ -659,7 +659,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
-  code += std::string("public ") + lang.unsubclassable_decl;
+  code += "public ";
+  if (lang.language == IDLOptions::kCSharp &&
+      struct_def.attributes.Lookup("csharp_partial")) {
+    // generate a partial class for this C# struct/table
+    code += "partial ";
+  }
+  else {
+    code += lang.unsubclassable_decl;
+  }
   code += "class " + struct_def.name + lang.inheritance_marker;
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
