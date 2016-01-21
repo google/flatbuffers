@@ -77,6 +77,15 @@ namespace FlatBuffers
             _vectorNumElems = 0;
         }
 
+        /// <summary>
+        /// Gets and sets a Boolean to disable the optimization when serializing
+        /// default values to a Table.
+        /// 
+        /// In order to save space, fields that are set to their default value
+        /// don't get serialized into the buffer. 
+        /// </summary>
+        public bool ForceDefaults { get; set; }
+
         /// @cond FLATBUFFERS_INTERNAL
 
         public int Offset { get { return _bb.Length - _space; } }
@@ -332,19 +341,113 @@ namespace FlatBuffers
             _vtable[voffset] = Offset;
         }
 
-        // Add a scalar to a table at `o` into its vtable, with value `x` and default `d`
-        public void AddBool(int o, bool x, bool d) { if (x != d) { AddBool(x); Slot(o); } }
-        public void AddSbyte(int o, sbyte x, sbyte d) { if (x != d) { AddSbyte(x); Slot(o); } }
-        public void AddByte(int o, byte x, byte d) { if (x != d) { AddByte(x); Slot(o); } }
-        public void AddShort(int o, short x, int d) { if (x != d) { AddShort(x); Slot(o); } }
-        public void AddUshort(int o, ushort x, ushort d) { if (x != d) { AddUshort(x); Slot(o); } }
-        public void AddInt(int o, int x, int d) { if (x != d) { AddInt(x); Slot(o); } }
-        public void AddUint(int o, uint x, uint d) { if (x != d) { AddUint(x); Slot(o); } }
-        public void AddLong(int o, long x, long d) { if (x != d) { AddLong(x); Slot(o); } }
-        public void AddUlong(int o, ulong x, ulong d) { if (x != d) { AddUlong(x); Slot(o); } }
-        public void AddFloat(int o, float x, double d) { if (x != d) { AddFloat(x); Slot(o); } }
-        public void AddDouble(int o, double x, double d) { if (x != d) { AddDouble(x); Slot(o); } }
-        public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }
+        /// <summary>
+        /// Adds a Boolean to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddBool(int o, bool x, bool d) { if (ForceDefaults || x != d) { AddBool(x); Slot(o); } }
+        
+        /// <summary>
+        /// Adds a SByte to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddSbyte(int o, sbyte x, sbyte d) { if (ForceDefaults || x != d) { AddSbyte(x); Slot(o); } }
+        
+        /// <summary>
+        /// Adds a Byte to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddByte(int o, byte x, byte d) { if (ForceDefaults || x != d) { AddByte(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Int16 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddShort(int o, short x, int d) { if (ForceDefaults || x != d) { AddShort(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a UInt16 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddUshort(int o, ushort x, ushort d) { if (ForceDefaults || x != d) { AddUshort(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds an Int32 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddInt(int o, int x, int d) { if (ForceDefaults || x != d) { AddInt(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a UInt32 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddUint(int o, uint x, uint d) { if (ForceDefaults || x != d) { AddUint(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds an Int64 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddLong(int o, long x, long d) { if (ForceDefaults || x != d) { AddLong(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a UInt64 to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddUlong(int o, ulong x, ulong d) { if (ForceDefaults || x != d) { AddUlong(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Single to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddFloat(int o, float x, double d) { if (ForceDefaults || x != d) { AddFloat(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Double to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddDouble(int o, double x, double d) { if (ForceDefaults || x != d) { AddDouble(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a buffer offset to the Table at index `o` in its vtable using the value `x` and default `d`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The value to put into the buffer. If the value is equal to the default
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
+        /// <param name="d">The default value to compare the value against</param>
+        public void AddOffset(int o, int x, int d) { if (ForceDefaults || x != d) { AddOffset(x); Slot(o); } }
         /// @endcond
 
         /// <summary>

@@ -938,6 +938,9 @@ FLATBUFFERS_FINAL_CLASS
       return table_a->KeyCompareLessThan(table_b);
     }
     vector_downward& buf_;
+
+  private:
+    TableKeyComparator& operator= (const TableKeyComparator&);
   };
   /// @endcond
 
