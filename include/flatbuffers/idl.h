@@ -403,6 +403,7 @@ class Parser {
     known_attributes_.insert("bit_flags");
     known_attributes_.insert("original_order");
     known_attributes_.insert("nested_flatbuffer");
+    known_attributes_.insert("csharp_partial");
   }
 
   ~Parser() {
