@@ -1102,7 +1102,7 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
 };
 
 // Exports for Node.js and RequireJS
-this.flatbuffers = flatbuffers;
+module.exports = flatbuffers;
 
 /// @endcond
 /// @}
