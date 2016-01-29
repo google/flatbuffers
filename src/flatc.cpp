@@ -19,6 +19,8 @@
 #include "flatbuffers/util.h"
 #include <limits>
 
+#define FLATC_VERSION "1.2.0"
+
 static void Error(const std::string &err, bool usage = false,
                   bool show_exe_name = true);
 
@@ -97,6 +99,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  -o PATH         Prefix PATH to all generated files.\n"
       "  -I PATH         Search for includes in the specified path.\n"
       "  -M              Print make rules for generated files.\n"
+      "  -v, --version   Print the version number of flatc and exit.\n"
       "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
       "                  no trailing commas in tables/vectors.\n"
       "  --defaults-json Output fields whose value is the default when\n"
@@ -188,6 +191,9 @@ int main(int argc, const char *argv[]) {
         schema_binary = true;
       } else if(arg == "-M") {
         print_make_rules = true;
+      } else if(arg == "-v" || arg == "--version") {
+        printf("flatc version %s\n", FLATC_VERSION);
+        exit(0);
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
           if (arg == generators[i].generator_opt_long ||
