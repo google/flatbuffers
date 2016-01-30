@@ -1101,8 +1101,17 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
   return true;
 };
 
-// Exports for Node.js and RequireJS
-this.flatbuffers = flatbuffers;
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = flatbuffers;
+} else {
+  if (typeof define === 'function' && define.amd) {
+    define([], function() {
+      return flatbuffers;
+    });
+  } else {
+    window.flatbuffers = flatbuffers;
+  }
+}
 
 /// @endcond
 /// @}
