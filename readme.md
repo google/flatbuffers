@@ -20,9 +20,8 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 * JavaScript
 * PHP
 * Python
-* C (in progress)
-* Ruby (in progress)
 
+*and many more in progress...*
 
 ## Contribution 
 * [FlatBuffers Google Group][] to discuss FlatBuffers with other developers and users.
