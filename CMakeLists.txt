@@ -30,6 +30,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/util.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
+  include/flatbuffers/flexbuffers.h
   src/code_generators.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
