@@ -27,6 +27,8 @@
   #include <random>
 #endif
 
+#include "flatbuffers/flexbuffers.h"
+
 using namespace MyGame::Example;
 
 #ifdef __ANDROID__
@@ -490,8 +492,6 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   auto pos_table_ptr = schema.objects()->Get(pos_field_ptr->type()->index());
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
-
-
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
@@ -1360,6 +1360,66 @@ void ConformTest() {
   test_conform("enum E:byte { B, A }", "values differ for enum");
 }
 
+void FlexBuffersTest() {
+  flexbuffers::Builder slb(512,
+                           flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+
+  // Write the equivalent of:
+  // { vec: [ -100, "Fred", 4.0 ], bar: [ 1, 2, 3 ], foo: 100 }
+  slb.Map([&]() {
+     slb.Vector("vec", [&]() {
+      slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
+      slb += "Fred";
+      slb.IndirectFloat(4.0f);
+    });
+    std::vector<int> ints = { 1, 2, 3 };
+    slb.Add("bar", ints);
+    slb.FixedTypedVector("bar3", ints.data(), ints.size());  // Static size.
+    slb.Double("foo", 100);
+    slb.Map("mymap", [&]() {
+      slb.String("foo", "Fred");  // Testing key and string reuse.
+    });
+  });
+  slb.Finish();
+
+  for (size_t i = 0; i < slb.GetBuffer().size(); i++)
+    printf("%d ", slb.GetBuffer().data()[i]);
+  printf("\n");
+
+  auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
+  TEST_EQ(map.size(), 5);
+  auto vec = map["vec"].AsVector();
+  TEST_EQ(vec.size(), 3);
+  TEST_EQ(vec[0].AsInt64(), -100);
+  TEST_EQ_STR(vec[1].AsString().c_str(), "Fred");
+  TEST_EQ(vec[1].AsInt64(), 0);  // Number parsing failed.
+  TEST_EQ(vec[2].AsDouble(), 4.0);
+  TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
+  TEST_EQ_STR(vec[2].AsString().c_str(), "");  // This still works though.
+  TEST_EQ_STR(vec[2].ToString().c_str(), "4");  // Or have it converted.
+  auto tvec = map["bar"].AsTypedVector();
+  TEST_EQ(tvec.size(), 3);
+  TEST_EQ(tvec[2].AsInt8(), 3);
+  auto tvec3 = map["bar3"].AsFixedTypedVector();
+  TEST_EQ(tvec3.size(), 3);
+  TEST_EQ(tvec3[2].AsInt8(), 3);
+  TEST_EQ(map["foo"].AsUInt8(), 100);
+  TEST_EQ(map["unknown"].IsNull(), true);
+  auto mymap = map["mymap"].AsMap();
+  // These should be equal by pointer equality, since key and value are shared.
+  TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[2].AsKey());
+  TEST_EQ(mymap.Values()[0].AsString().c_str(), vec[1].AsString().c_str());
+  // We can mutate values in the buffer.
+  TEST_EQ(vec[0].MutateInt(-99), true);
+  TEST_EQ(vec[0].AsInt64(), -99);
+  TEST_EQ(vec[1].MutateString("John"), true);  // Size must match.
+  TEST_EQ_STR(vec[1].AsString().c_str(), "John");
+  TEST_EQ(vec[1].MutateString("Alfred"), false);  // Too long.
+  TEST_EQ(vec[2].MutateFloat(2.0f), true);
+  TEST_EQ(vec[2].AsFloat(), 2.0f);
+  TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1398,6 +1458,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
+
+  FlexBuffersTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

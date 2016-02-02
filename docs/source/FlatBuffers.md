@@ -78,6 +78,9 @@ inefficiency, but also forces you to write *more* code to access data
 In this context, it is only a better choice for systems that have very
 little to no information ahead of time about what data needs to be stored.
 
+If you do need to store data that doesn't fit a schema, FlatBuffers also
+offers a schema-less (self-describing) version!
+
 Read more about the "why" of FlatBuffers in the
 [white paper](@ref flatbuffers_white_paper).
 
@@ -137,6 +140,8 @@ sections provide a more in-depth usage guide.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of
     using FlatBuffers.
 -   A [white paper](@ref flatbuffers_white_paper) explaining the "why" of
+    FlatBuffers.
+-   How to use the [schema-less](@ref flexbuffers) version of
     FlatBuffers.
 -   A description of the [internals](@ref flatbuffers_internals) of FlatBuffers.
 -   A formal [grammar](@ref flatbuffers_grammar) of the schema language.
