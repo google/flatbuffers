@@ -47,15 +47,16 @@
      4) key
      5) verifyer
      6) id
-     7) deprecated
+     7) DONE deprecated
      8) original_order
      9) bit_flags
      10) improve the enum deserialization routine (use a transform function, skips, sparse array, list with binary search or a map)
      11) nested_flatbuffer
      12) key
+     13) don't generate mutable methods if the flag is not set for flatc
      
   C) enhancements :
-    0) improve enums performance
+    0) DONE (arithmetic progression for unions) improve enums performance
     1) allocation free toString() (requires recursion public __offset(byteBuffer, position) & cie)
     2) equals
     3) hashCode
@@ -206,10 +207,16 @@ static std::string package(const Parser &parser);
 
 	/* for use in createSruct() args */
                static std::string downsizeToStorageValueForConstructor(const Type &type, const std::string value);
-	static std::string GenTypeForUserConstructor(const Type &type) {
+	/*static std::string GenTypeForUserConstructor(const Type &type) {
 		if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
 		if (type.base_type == BASE_TYPE_VECTOR && type.element == BASE_TYPE_BOOL) return "Boolean";
 		return GenTypeForUser(kotlinLang, DestinationType(kotlinLang, type, false));
+	}*/
+	
+	static std::string GenTypeForUserConstructor(const Type &type) {
+		if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
+		if (type.base_type == BASE_TYPE_VECTOR && type.element == BASE_TYPE_BOOL) return "Boolean";
+		return GenTypeForUser(kotlinLang, DestinationType(kotlinLang, type, true));
 	}
 	
               static std::string multiplyBySizeOf(const Type &type);
@@ -707,7 +714,9 @@ static void buildScalarArrayWithVararg( const FieldDef &field, std::string *code
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
     code += "\t\tfun FlatBufferBuilder." + LowerFirst(sanitize(field.name, false));
-    code += "(vararg data : " + GenTypeForUserConstructor(field.value.type/*vector_type*/) + ")", 
+    code += "(vararg data : " //+ GenTypeGet(kotlinLang, DestinationType(kotlinLang, field.value.type, true))
+    + GenTypeForUserConstructor(field.value.type/*vector_type*/) 
+    + ")", 
     code += " : Int {startArray(";
     code +=  NumToString(elem_size) + ", data.size, ";
     code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) add" +   GenMethod(kotlinLang, vector_type)+ "(" + downsizeToStorageValue(vector_type, "data[i]", false) + "); return endArray(); }\n";
@@ -1003,13 +1012,11 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
 // removed static for reuse in kotlin code generator
 std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type) {
 
- // if (lang.language == IDLOptions::kKotlin) {
     // Kotlin enums are represented by themselves
     if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
 
     // Unions in Kotlin use a generic Table-derived type 
     if (type.base_type == BASE_TYPE_UNION) return "Table";
-  //}
   
   // default behavior
   return GenTypeGet(lang, DestinationType(lang, type, true));
