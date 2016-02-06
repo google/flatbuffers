@@ -16,7 +16,6 @@
 
 package com.google.flatbuffers.kotlin
 
-import org.lakedaemon.L
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
