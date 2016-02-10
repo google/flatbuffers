@@ -1082,7 +1082,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       }
       if (Is('=')) {
         NEXT();
-        ev.value = atoi(attribute_.c_str());
+        ev.value = StringToInt(attribute_.c_str());
         EXPECT(kTokenIntegerConstant);
         if (!opts.proto_mode && prevsize &&
             enum_def.vals.vec[prevsize - 1]->value >= ev.value)
@@ -1146,7 +1146,7 @@ CheckedError Parser::CheckClash(std::vector<FieldDef*> &fields,
   }
   return NoError();
 }
-    
+
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
   auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
   auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
@@ -1307,7 +1307,7 @@ CheckedError Parser::ParseProtoDecl() {
     if (Is(';')) NEXT();
     // Protobuf allows them to be specified in any order, so sort afterwards.
     auto &v = enum_def->vals.vec;
-    std::sort(v.begin(), v.end(), compareEnumVals);    
+    std::sort(v.begin(), v.end(), compareEnumVals);
 
     // Temp: remove any duplicates, as .fbs files can't handle them.
     for (auto it = v.begin(); it != v.end(); ) {
