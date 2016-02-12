@@ -105,6 +105,13 @@ function testBuffer(bb) {
   }
   assert.strictEqual(invsum, 10);
 
+  var invsum2 = 0;
+  var invArr = monster.inventoryArray();
+  for (var i = 0; i < invArr.length; i++) {
+    invsum2 += invArr[i];
+  }
+  assert.strictEqual(invsum2, 10);
+
   var test_0 = monster.test4(0);
   var test_1 = monster.test4(1);
   assert.strictEqual(monster.test4Length(), 2);

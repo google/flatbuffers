@@ -511,12 +511,24 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     }
     code += "};\n\n";
 
-    // Emit a length helper
+    // Emit vector helpers
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      // Emit a length helper
       GenDocComment(code_ptr, "@returns {number}");
       code += object_name + ".prototype." + MakeCamel(field.name, false);
       code += "Length = function() {\n" + offset_prefix;
       code += "this.bb.__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
+
+      // For scalar types, emit a typed array helper
+      auto vectorType = field.value.type.VectorType();
+      if (IsScalar(vectorType.base_type)) {
+        GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
+        code += object_name + ".prototype." + MakeCamel(field.name, false);
+        code += "Array = function() {\n" + offset_prefix;
+        code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
+          "this.bb.__vector(this.bb_pos + offset), "
+          "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+      }
     }
   }
 
