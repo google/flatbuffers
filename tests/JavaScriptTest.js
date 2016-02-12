@@ -122,21 +122,23 @@ function testUnicode() {
   var json = JSON.parse(fs.readFileSync('unicode_test.json', 'utf8'));
 
   // Test reading
-  var bb = new flatbuffers.ByteBuffer(new Uint8Array(correct));
-  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
-  assert.strictEqual(monster.name(), json.name);
-  assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
-  assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
-  json.testarrayoftables.forEach(function(table, i) {
-    var value = monster.testarrayoftables(i);
-    assert.strictEqual(value.name(), table.name);
-    assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
-  });
-  assert.strictEqual(monster.testarrayofstringLength(), json.testarrayofstring.length);
-  json.testarrayofstring.forEach(function(string, i) {
-    assert.strictEqual(monster.testarrayofstring(i), string);
-    assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
-  });
+  function testReadingUnicode(bb) {
+    var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+    assert.strictEqual(monster.name(), json.name);
+    assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
+    assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
+    json.testarrayoftables.forEach(function(table, i) {
+      var value = monster.testarrayoftables(i);
+      assert.strictEqual(value.name(), table.name);
+      assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
+    });
+    assert.strictEqual(monster.testarrayofstringLength(), json.testarrayofstring.length);
+    json.testarrayofstring.forEach(function(string, i) {
+      assert.strictEqual(monster.testarrayofstring(i), string);
+      assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
+    });
+  }
+  testReadingUnicode(new flatbuffers.ByteBuffer(new Uint8Array(correct)));
 
   // Test writing
   var fbb = new flatbuffers.Builder();
@@ -156,7 +158,7 @@ function testUnicode() {
   MyGame.Example.Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
   MyGame.Example.Monster.addName(fbb, name);
   MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
-  assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
+  testReadingUnicode(new flatbuffers.ByteBuffer(fbb.asUint8Array()));
 }
 
 var __imul = Math.imul ? Math.imul : function(a, b) {
