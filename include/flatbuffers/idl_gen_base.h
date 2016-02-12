@@ -54,18 +54,26 @@ namespace flatbuffers {
         }
 
         for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end(); ++it) {
-          if (!generateStruct(**it)) return false;
+          auto &struct_def = **it;
+          if (struct_def.fixed) {
+            if (!generateStruct(struct_def)) return false;
+          } else {
+            if (!generateTable(struct_def)) return false;
+          }
         }       
         return true;
    }
-protected:
+   
+   protected:
    virtual bool generateEnum(const EnumDef &enum_def) = 0;
    virtual bool generateUnion(const EnumDef &enum_def) = 0;
    virtual bool generateStruct(const StructDef &struct_def) = 0;
+   virtual bool generateTable(const StructDef &struct_def) = 0;
    
    virtual std::string fileName(std::string name) {
    	   return std::string(namespace_dir) + name;
    }
+   
    virtual void atFileStart(std::string &code) {
      code += "// automatically generated, do not modify\n\n";
    }
@@ -78,28 +86,39 @@ protected:
      code += "import java.nio.*;\nimport com.google.flatbuffers.kotlin.*;\n\n";
    }*/
    
+   /** util methods */
+   static bool isAnArithmeticProgression(const EnumDef &enum_def) {
+     // first check if the enums are in an arithmetic progression
+     int size =  enum_def.vals.vec.size();
+     if (size <= 2) return true;
+     int nextValue = enum_def.vals.vec[1]->value;
+     int r =  nextValue - enum_def.vals.vec[0]->value;
+     for (int index = 2; index < size; index++) {
+       nextValue += r;
+       if ( enum_def.vals.vec[index]->value != nextValue) return false;	  
+     }
+     return true;
+   }
 
-    static bool isArithmeticProgression(const EnumDef &enum_def) {
-    // first check if the enums are in an arithmetic progression
-    int size =  enum_def.vals.vec.size();
-    if (size <= 2) return true;
-    int nextValue = enum_def.vals.vec[1]->value;
-    int r =  nextValue - enum_def.vals.vec[0]->value;
-    for (int index = 2; index < size; index++) {
-    	  nextValue += r;
-    	  if ( enum_def.vals.vec[index]->value != nextValue) return false;	  
-    }
-    return true;
-    }
-
-
-
- 	 const Parser & parser;
- 	 const std::string & path;
- 	 const std::string & file_name;
- 	 std::string namespace_name; // TODO make const
- 	 std::string namespace_dir;
+   // Ensure that a type is prefixed with its namespace whenever it is used
+   // outside of its namespace.
+   std::string wrapInNameSpace(const Namespace *ns, const std::string &name) {
+     if (parser.namespaces_.back() == ns) return name;
+     std::string qualified_name;
+     for (auto it = ns->components.begin(); it != ns->components.end(); ++it) qualified_name += *it + ".";
+     return qualified_name + name;
+   }
+   
+   std::string wrapInNameSpace(const Definition &def) {
+     return wrapInNameSpace(def.defined_namespace, def.name);
+   }
+    
+   const Parser & parser;
+   const std::string & path;
+   const std::string & file_name;
+   std::string namespace_name; // TODO make const
+   std::string namespace_dir;
  };
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_IDL_H_
+#endif  // FLATBUFFERS_IDL_GEN_BASE_H_
