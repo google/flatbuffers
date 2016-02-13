@@ -7,7 +7,9 @@
 
 namespace MyGame {
 namespace OtherNameSpace {
+
 struct Unused;
+
 }  // namespace OtherNameSpace
 }  // namespace MyGame
 
@@ -15,9 +17,13 @@ namespace MyGame {
 namespace Example {
 
 struct Test;
+
 struct TestSimpleTableWithEnum;
+
 struct Vec3;
+
 struct Stat;
+
 struct Monster;
 
 enum Color {

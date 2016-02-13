@@ -981,15 +981,26 @@ CheckedError Parser::ParseSingleValue(Value &e) {
 StructDef *Parser::LookupCreateStruct(const std::string &name,
                                       bool create_if_new, bool definition) {
   std::string qualified_name = namespaces_.back()->GetFullyQualifiedName(name);
+  // See if it exists pre-declared by an unqualified use.
   auto struct_def = structs_.Lookup(name);
   if (struct_def && struct_def->predecl) {
     if (definition) {
+      // Make sure it has the current namespace, and is registered under its
+      // qualified name.
       struct_def->defined_namespace = namespaces_.back();
       structs_.Move(name, qualified_name);
     }
     return struct_def;
   }
+  // See if it exists pre-declared by an qualified use.
   struct_def = structs_.Lookup(qualified_name);
+  if (struct_def && struct_def->predecl) {
+    if (definition) {
+      // Make sure it has the current namespace.
+      struct_def->defined_namespace = namespaces_.back();
+    }
+    return struct_def;
+  }
   if (!definition) {
     // Search thru parent namespaces.
     for (size_t components = namespaces_.back()->components.size();
