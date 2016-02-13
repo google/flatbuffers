@@ -25,7 +25,7 @@ if [[ "$testdir" != "$thisdir" ]]; then
 	exit 1
 fi
 
-kotlinc KotlinTest.kt ${testdir}/../kotlin/* ${testdir}/../MyGame/Example/* -include-runtime -d KotlinTest.jar 
+kotlinc KotlinTest.kt ${testdir}/../kotlin/* ${testdir}/MyGame/Example/*.kt -include-runtime -d KotlinTest.jar 
 if [ $? -ne 0 ]; then
     echo "Failed Kotlin compilation, look into logs.txt for error output"
     exit 1
