@@ -224,11 +224,10 @@ static std::string package(const Parser &parser);
 	
 	static void buildTableOrStringArrayWithVararg( const FieldDef &field, std::string *code_ptr);
 	static void buildScalarArrayWithVararg( const FieldDef &field, std::string *code_ptr);
-	//static void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr);
+	void generateCreateTable(const StructDef &struct_def,std::string *code_ptr);
+	//static void generateTable(const StructDef &struct_def,std::string *code_ptr);
 	
-	static void generateTable(const StructDef &struct_def,std::string *code_ptr);
-	
-	static void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr);
+	/*static*/ void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr);
 
 
 std::string LowerFirst(const std::string &in) {
@@ -248,20 +247,20 @@ static void BeginFile(const std::string name_space_name, const bool needs_import
  
 }
 
-static void enumImports(const EnumDef &enum_def, std::string &code) {
+/*static*/ void enumImports(const EnumDef &enum_def, std::string &code) {
   if (enum_def.is_union)  code += "import com.google.flatbuffers.kotlin.Table\n\n";
 }
 
 
 // Begin enum code with a class declaration.
-static void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
+/*static*/ void beginEnumDeclaration(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "public enum class " + enum_def.name + "(val value: " + GenTypeGet(kotlinLang, enum_def.underlying_type) + ") {\n";
 
 }
 
 // A single enum member.
-static void enumMember(const EnumVal ev, std::string *code_ptr) {
+/*static*/ void enumMember(const EnumVal ev, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t" +  ev.name + "(" + NumToString(ev.value) + ")";
 }
@@ -304,7 +303,7 @@ static int analyzeEnum(const EnumDef &enum_def) {
 
 
 
-static void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr, const Parser & parser) {
+/*static*/ void endEnumDeclaration(const EnumDef &enum_def,std::string *code_ptr, const Parser & parser) {
   std::string &code = *code_ptr;
 
   int analyzedEnum = analyzeEnum(enum_def);
@@ -410,7 +409,7 @@ static void beginClassDeclaration(const StructDef &struct_def, std::string *code
 }
 
 
-static void toString(const StructDef &struct_def, std::string *code_ptr) {
+/*static*/ void toString(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "\toverride public fun toString() : String = \"" + MakeCamel(struct_def.name, true) + "(";  
@@ -624,7 +623,7 @@ code += "}\n";
 }
 
 
-static void fieldAsByteBuffer(const FieldDef &field, std::string *code_ptr) {
+/*static*/ void fieldAsByteBuffer(const FieldDef &field, std::string *code_ptr) {
                              std::string &code = *code_ptr;
                                      
       code += "\tpublic val " + sanitize(field.name, false);
@@ -644,7 +643,7 @@ static bool hasNestedStruct(const StructDef &struct_def) {
        return false;
 }
 
-static void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
+/*static*/ void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   
   code += "\t\t";
@@ -732,7 +731,7 @@ static void generateFinishBuffer(const StructDef &struct_def, std::string *code_
 }
 
 // Generate a struct field, conditioned on its child type(s).
-static void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr) {
+/*static*/ void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) getScalarFieldOfStruct(field, code_ptr); else getScalarFieldOfTable(field, code_ptr);
@@ -764,7 +763,7 @@ static void generateStructAccessor(const StructDef &struct_def, const FieldDef &
 }
 
 // Generate table constructors, conditioned on its members' types.
-static void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr, const Parser &parser) {
+/*static*/ void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr, const Parser &parser) {
     for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
         auto &field = **it;
         if (field.deprecated) continue;
@@ -777,7 +776,7 @@ static void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr,
 }
 
 // Generate struct or table methods.
-static void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef * /*root_struct_def*/, const Parser &parser) {
+/*static*/ void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef * /*root_struct_def*/, const Parser &parser) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
@@ -817,7 +816,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
   
   // create a struct constructor function
   if (struct_def.fixed) generateStructBuilder(struct_def, code_ptr);
-  else generateTable(struct_def, code_ptr);  
+  else generateCreateTable(struct_def, code_ptr);  
 }
 
 
@@ -825,7 +824,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr, Struct
 
 
 // Generate enum declarations.
-static void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const Parser & parser) {
+/*static*/ void generateEnum(const EnumDef &enum_def, std::string *code_ptr, const Parser & parser) {
   if (enum_def.generated || !enum_def.vals.vec.size()) return;
   
   auto &code = * code_ptr;
@@ -854,7 +853,7 @@ static std::string package(const Parser &parser) {
 }
 
 // Save out the generated code for a Kotlin Table type.
-static bool SaveType(const Parser &parser, const Definition &def,
+/*static*/ bool SaveType(const Parser &parser, const Definition &def,
                      const std::string &classcode, const std::string &path,
                      bool needs_imports) {
   if (!classcode.length()) return true;
@@ -1089,7 +1088,7 @@ static std::string GenSetterKotlin(const LanguageParameters &lang, const Type &t
 
 
 // Generate a method that creates a table in one go. This is only possible
-static void generateTable(const StructDef &struct_def,std::string *code_ptr) {
+/*static*/ void generateCreateTable(const StructDef &struct_def,std::string *code_ptr) {
     int num_fields = 0;
     for (auto it = struct_def.fields.vec.begin(); it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;

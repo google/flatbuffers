@@ -72,32 +72,22 @@ namespace flatbuffers {
    "Float", // FLOAT
    "Double", // DOUBLE
 };
+static const std::set<std::string> kotlinKeywords {"class","else", "enum","fun","for", "if", "in", "is", "import", "internal", "override", "package", "private", "protected", "public", "return", "val", "var", "when", "while"};
 
-
- extern bool SaveType(const Parser &parser, const Definition &def, const std::string &classcode, const std::string &path, bool needs_imports);
- extern void GenStruct(const StructDef &struct_def, std::string *code_ptr, StructDef * /*root_struct_def*/, const Parser &parser);
- extern void toString(const StructDef &struct_def, std::string *code_ptr);
  extern void fieldAsByteBuffer(const FieldDef &field, std::string *code_ptr);
- extern void generateStructAccessor(const StructDef &struct_def, const FieldDef &field,std::string *code_ptr);
- extern void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr, const Parser &parser);
  extern void generateStructBuilder(const StructDef &struct_def, std::string *code_ptr);
   extern void generateCreateTable(const StructDef &struct_def, std::string *code_ptr);
     class KotlinGenerator : public BaseGenerator {
     public:
-      KotlinGenerator(const Parser &parsera,const std::string &patha,const std::string & file_namea) : BaseGenerator(parsera, patha, file_namea) {};
+      KotlinGenerator(const Parser &parsera,const std::string &patha,const std::string & file_namea) : BaseGenerator(parsera, patha, file_namea, kotlinKeywords) {};
     protected:
-    
-
-      /*bool generateStruct(const StructDef &struct_def) {
-      	      std::string declcode;
-      	      kotlin::GenStruct(struct_def, &declcode, parser.root_struct_def_, parser);
-      	      return kotlin::SaveType(parser, struct_def, declcode, path, true);
+    	    
+      /*const char * writeScalarToWire(BaseType & baseType) {
+        return "add" + wireScalarType(baseType)
       }
       
-      bool generateTable(const StructDef &struct_def) {
-      	      std::string declcode;
-      	      kotlin::GenStruct(struct_def, &declcode, parser.root_struct_def_, parser);
-      	      return kotlin::SaveType(parser, struct_def, declcode, path, true);
+      const char * readScalarFromWire(BaseType & baseType) {
+        return "get" + wireScalarType(baseType)
       }*/
       
       /** struct generation */
@@ -118,12 +108,12 @@ namespace flatbuffers {
         // accessor object. This is to allow object reuse.
         tableOrStructInitialize(struct_def, code);
   
-        toString(struct_def, &code);
+        toString(struct_def, code);
 
         for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
           auto &field = **it;
           if (field.deprecated) continue;
-          generateStructAccessor(struct_def, field, &code);
+          generateStructAccessor(struct_def, field, code);
           if ((field.value.type.base_type == BASE_TYPE_VECTOR && IsScalar(field.value.type.VectorType().base_type)) || 
           	  field.value.type.base_type == BASE_TYPE_STRING) fieldAsByteBuffer(field, &code);
         }
@@ -137,11 +127,40 @@ namespace flatbuffers {
         // create a struct constructor function
         generateStructBuilder(struct_def, &code); 
         
-        return SaveFile((struct_def.name + ".kt").c_str(), code, true);
+        return saveFile(struct_def.name, ".kt", code);
      }
      
       void structImports(const StructDef &/*struct_def*/, std::string &code) {
         code += "import java.nio.*;\nimport com.google.flatbuffers.kotlin.*;\n\n";
+      }
+      
+      void generateStructAccessor(const StructDef &/*struct_def*/, const FieldDef &field, std::string & code) {
+        GenComment(field.doc_comment, &code, nullptr, "");
+        if (IsScalar(field.value.type.base_type)) getScalarFieldOfStruct(field, code); else switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT:getStructFieldOfStruct(field, code); return;
+          case BASE_TYPE_STRING:getStringField(field, code); return;
+          default:assert(0);
+        }
+      }
+      
+      void getScalarFieldOfStruct(const FieldDef &field, std::string & code) {
+      	// TODO respect flatc's generate mutable flag
+        code += "\tpublic var ";
+        code += safeName(field) + " : " + userType(field);
+        code += " get() = " + upsizeToUserType(field.value.type, wireGetter(field.value.type) + "(bb_pos + " + NumToString(field.value.offset) + ")");
+
+        code += "; set(value) { " + wireSetter(field.value.type.base_type) + "(bb_pos + " + NumToString(field.value.offset) + ", ";
+        code += downsizeToStorageValue(field.value.type, "value", true) +") }";
+        code += "\n";
+      }
+      
+      // Get a struct by initializing an existing struct.Specific to Struct.
+      void getStructFieldOfStruct(const FieldDef &field, std::string & code) {
+      	auto structName = field.value.type.struct_def->name;
+        code += "\tpublic val " + safeName(field) + " : " + structName + " get() = " ;
+        code += safeName(field) + "(" + structName + "())\n";
+        code += "\tpublic fun " + safeName(field) + "(reuse : " + structName + ") : " + structName + " = ";
+        code += "reuse.wrap(bb, bb_pos + " + NumToString(field.value.offset) + ")\n";
       }
       
       /** table generation */
@@ -154,6 +173,7 @@ namespace flatbuffers {
         startNamespace(code);
         tableImports(struct_def, code);   
         GenComment(struct_def.doc_comment, &code, nullptr);
+        
         code += "public open class " + struct_def.name + "(byteBuffer : ByteBuffer = EMPTY_BYTEBUFFER) : Table"; 
         code += "(byteBuffer.order(ByteOrder.LITTLE_ENDIAN), if (byteBuffer === EMPTY_BYTEBUFFER) 0 else byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) {\n";
 
@@ -162,21 +182,22 @@ namespace flatbuffers {
         // accessor object. This is to allow object reuse.
         tableOrStructInitialize(struct_def, code);
   
-        toString(struct_def, &code);
+        toString(struct_def, code);
 
         for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
           auto &field = **it;
           if (field.deprecated) continue;
-          generateStructAccessor(struct_def, field, &code);
+          generateTableAccessor(struct_def, field, code);
           if ((field.value.type.base_type == BASE_TYPE_VECTOR && IsScalar(field.value.type.VectorType().base_type)) || 
           	  field.value.type.base_type == BASE_TYPE_STRING) fieldAsByteBuffer(field, &code);
         }
 
         code += "\n\tcompanion object {\n";
+        
         if (parser.root_struct_def_ == &struct_def && parser.file_identifier_.length()) generateHasIdentifier(struct_def, code); 
 
         // Create a set of functions that allow table construction.
-        GenTableBuilders(struct_def, &code, parser);
+        generateTableBuilders(struct_def, code);
 
         code += "\t}\n"; // end companion object
         code += "}"; // end class declaration
@@ -184,14 +205,193 @@ namespace flatbuffers {
         // create a struct constructor function
         generateCreateTable(struct_def, &code);  
         
-        return SaveFile((struct_def.name + ".kt").c_str(), code, true);
+        return saveFile(struct_def.name, ".kt", code);
       }
       
       void tableImports(const StructDef &/*struct_def*/, std::string &code) {
       	      code += "import java.nio.*;\nimport com.google.flatbuffers.kotlin.*;\n\n";
       }
       
+      void generateTableAccessor(const StructDef &/*struct_def*/, const FieldDef &field, std::string & code) {
+        GenComment(field.doc_comment, &code, nullptr, "");
+        if (IsScalar(field.value.type.base_type)) getScalarFieldOfTable(field, code); else switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT:getStructFieldOfTable(field, code); return;
+          case BASE_TYPE_STRING:getStringField(field, code); return;
+          case BASE_TYPE_UNION:getUnion(field, code);return;
+          case BASE_TYPE_VECTOR: {
+            if (field.value.type.element == BASE_TYPE_STRUCT) getMemberOfVectorOfStruct(field, code); else getMemberOfVectorOfNonStruct(field, code);
+            return;
+          }
+          default:assert(0);
+        }
+      }
+      
+      /** scalar fields = integers/floats/enums */
+      /** pointer fields = strings/structs/tables/unions*/
+      
+      void getScalarFieldOfTable(const FieldDef &field, std::string & code) {
+        code += "\tpublic val " + safeName(field) + " : " + userType(field);
+        code += " get() {val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) ";
+        // !!!!! if (field.value.type.base_type == BASE_TYPE_STRING) code += "null"; else code += defaultToUserType(field.value.type,  defaultValue(kotlinLang, field.value, false));
+        code += defaultToUserType(field.value.type, defaultValue(field.value, false));
+        // !!!!
+        code += " else " + upsizeToUserType(field.value.type, wireGetter(field.value.type) + "(o + bb_pos)") + "}\n"; 
+
+        code += "\tpublic fun mutate" + SafeName(field) + "(value : " + userType(field) + ") :Boolean {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) false else {";
+        code += wireSetter(field.value.type.base_type) + "(o + bb_pos, " + downsizeToStorageValue(field.value.type, "value", true);
+        code += "); true}}\n";
+      }
+      
+      // Get a struct by initializing an existing struct.Specific to Table.
+      void getStructFieldOfTable(const FieldDef &field, std::string & code) {
+      	StructDef * struct_def = field.value.type.struct_def;
+        code += "\tpublic val " + safeName(field) + " : " + struct_def->name + "? get() {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) null else " + struct_def->name + "().wrap(bb, ";
+        if (struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
+        code += "}\n";
+  
+        code += "\tpublic fun " + safeName(field) + "(reuse : " + struct_def->name + ") : " + struct_def->name + "? {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) null else reuse.wrap(bb, ";
+        if (struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
+        code += "}\n";
+      }
+      
+      // it's better to return null instead of false and an object instead of true ?
+      // Get the value of a union from an object.
+      void getUnion(const FieldDef &field, std::string & code) {
+        code += "\tpublic fun " + safeName(field) + "(reuse : Table) : Table? {";
+        code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) null else __union(reuse, o)}\n";
+  
+        code += "\tpublic val " + safeName(field) + " : Table? get() {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) null else __union(" + field.value.type.enum_def->name + ".toTable(" + safeName(field) +"Type), o)}\n";
+      }
+      
+      void getArraySize(const FieldDef &field, std::string & code) {
+        code += "\tpublic val " + safeName(field) + "Size : Int ";
+        code += "get() {val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) 0 else __vector_len(o)}\n";
+      }
+      
+      // Get the value of a vector's struct member.
+      void getMemberOfVectorOfStruct(const FieldDef &field, std::string & code) {
+      	getArraySize(field, code);
+        
+      	StructDef * struct_def = field.value.type.struct_def;
+        code += "\tpublic fun " + safeName(field) + "(j :Int, reuse : " + struct_def->name + "? = null) : "+ struct_def->name + "? {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) ";
+        // you really shouldn't expect elements from an array that is empty or unset 
+        code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+        code += " else {val x = __vector(o) + j" + multiplyBySizeOf(field.value.type.VectorType()) + "; ";
+        code += "(reuse ?: " + struct_def->name +"() ).wrap(bb, x";
+        if (!struct_def->fixed) code += " + __indirect(x)";
+        code += ")}}\n";
+      }
+      
+      // Get the value of a vector's non-struct member. Uses a named return
+      // argument to conveniently set the zero value for the result.
+      void getMemberOfVectorOfNonStruct(const FieldDef &field, std::string & code) {
+        getArraySize(field, code);
+      	auto vector_type = field.value.type.VectorType();
+      	BaseType element = field.value.type.element;
+        code += "\tpublic fun " +  safeName(field) + "(j : Int) : ";
+        if (element == BASE_TYPE_STRING) code += "String?"; else code += userType(field);//userScalarType(element);
+        code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) ";
+        // you really shouldn't expect elements from an array that is empty or unset 
+        code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+        //if (vector_type.base_type != BASE_TYPE_STRING) code += defaultToUserType(field.value.type, defaultValue(kotlinLang, field.value, false) ); else code += "null"; 
+        code += " else " + upsizeToUserType(field.value.type,  wireGetter(vector_type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
+        code += "}\n";
+
+        if (element == BASE_TYPE_STRING)  {// string as ByteBuffer
+          code += "\tpublic fun " + safeName(field) + "Buffer(j : Int) : ByteBuffer? ";
+          code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
+          code += "return if (o == 0) ";
+          // you really shouldn't expect elements from an array that is empty or unset 
+          code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+          code += " else __string_element_as_bytebuffer(o, j)";
+          code += "}\n";
+        }
+
+        // mutation
+        if (element != BASE_TYPE_STRING) {
+          code += "\tpublic fun mutate" + SafeName(field) + "(j : Int, value : " + userType(field) + ") :Boolean {";
+          code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+          code += "return if (o == 0) false else {";
+          code += wireSetter(element) + "(__vector(o) + j" + multiplyBySizeOf(vector_type);
+          code += ", " + downsizeToStorageValue(vector_type, "value", true)   + "); true}}\n";
+        }
+      }
+      
+      /** mutable table creation */
+      void generateTableBuilders(const StructDef &struct_def, std::string &code) {
+        for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
+          auto &field = **it;
+          if (field.deprecated) continue;
+          if (field.value.type.base_type != BASE_TYPE_VECTOR) continue;
+          auto vector_type = field.value.type.VectorType();
+          auto alignment = InlineAlignment(vector_type);
+          auto elem_size = InlineSize(vector_type);
+          buildArrayWithLambda(field, code, alignment, elem_size);
+          if (field.value.type.element == BASE_TYPE_STRUCT && field.value.type.struct_def->fixed) continue;
+          // TODO what about aray of unions ?
+          if (IsScalar(field.value.type.element)) buildScalarArrayWithVararg(field, code, alignment, elem_size); else buildTableOrStringArrayWithVararg(field, code); 
+        }
+        generateFinishBuffer(struct_def, code);
+      }
+      
+      void buildArrayWithLambda(const FieldDef &field, std::string & code, int alignment, int elem_size) {
+        code += "\t\tinline public fun FlatBufferBuilder." + safeName(field);
+        code += "(numElems : Int, action : FlatBufferBuilder.()->Unit) : Int {startArray(";
+        code += NumToString(elem_size);
+        code += ", numElems, " + NumToString(alignment);
+        code += "); action(); return endArray()}\n";
+      }
+      
+      // TODO replace varargs with array
+      void buildScalarArrayWithVararg( const FieldDef &field, std::string &code, int alignment, int elem_size) {
+        code += "\t\tfun FlatBufferBuilder." + safeName(field);
+        code += "(vararg data : ";
+        code += userType(field);
+        code += "): Int {startArray(";
+        code +=  NumToString(elem_size) + ", data.size, ";
+        // TODO addToWire ???
+        code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) add" + wireScalarType(field.value.type.element) + "(" + downsizeToStorageValue(field.value.type.VectorType(), "data[i]", false) + "); return endArray(); }\n";
+      }
+      
+      // TODO replace varargs with array
+      void buildTableOrStringArrayWithVararg( const FieldDef &field, std::string & code) {
+        code += "\t\tpublic fun FlatBufferBuilder." + safeName(field);
+        code += "(vararg offsets : Int) ";
+        code += " : Int {startArray(4, offsets.size, ";
+        // table or string
+        if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4"; // look into this
+        code += "); for (i in offsets.size - 1 downTo 0) addOffset(offsets[i]); return endArray(); }\n";
+      }
+      
+      void generateFinishBuffer(const StructDef &struct_def, std::string & code) {
+        code += "\t\tfun  FlatBufferBuilder.finishBuffer(offset : Int) { finish(offset";  
+        if (parser.root_struct_def_ == &struct_def && parser.file_identifier_.length()) code += ", \"" + parser.file_identifier_ + "\"";
+        code += ") }\n";
+      }
+      
       /** table and struct */
+      
+      // Get the value of a string.
+      void getStringField(const FieldDef &field, std::string & code) {
+        code += "\tpublic val " + safeName(field) + " : String? get() {";
+        code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
+        code += "return if (o == 0) null else " + wireGetter(field.value.type) + "(o + bb_pos)";
+        code += "}\n";
+      }
       
       void tableOrStructInitialize(const StructDef &struct_def, std::string & code) {
         code += "\tpublic fun wrap(byteBuffer : ByteBuffer, position : Int = byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) : " + struct_def.name + " = apply {";
@@ -202,6 +402,23 @@ namespace flatbuffers {
       void generateHasIdentifier(const StructDef & /*struct_def*/, std::string &code) {
       	 // Check if a buffer has the identifier.
          code += "\tpublic fun hasIdentifier(byteBuffer : ByteBuffer) :Boolean = Table.hasIdentifier(byteBuffer, \"" + parser.file_identifier_ + "\")\n";
+      }
+      
+      /** for debugging only, this doesn't reuse accessors and creates new objects like crazy */
+      void toString(const StructDef &struct_def, std::string &code) {
+        code += "\toverride public fun toString() : String = \"" + MakeCamel(struct_def.name, true) + "(";  
+        bool first = true;  
+        for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
+    	    auto &field = **it;
+    	    if (field.deprecated) continue;
+    	    if (!first) code +=  ",";
+    	    first = false;
+    	    code += safeName(field) + "=";
+    	    
+    	    if (field.value.type.base_type != BASE_TYPE_VECTOR) code += "$" + safeName(field);
+    	    else  code += "${(0 until " + safeName(field) + "Size).map({" + safeName(field) + "(it).toString()}).joinToString(\", \", \"[\",\"]\")}";
+        }
+        code += ")\"\n";
       }
       
       /** enum generation */
@@ -215,7 +432,7 @@ namespace flatbuffers {
         enumImports(enum_def, code);
         GenComment(enum_def.doc_comment, &code, nullptr);
         enumDeclaration(enum_def, code);
-        return SaveFile((enum_def.name + ".kt").c_str(), code, false);
+        return saveFile(enum_def.name, ".kt", code);
       }
       
       void enumImports(const EnumDef &/*enum_def*/, std::string &code) {
@@ -252,8 +469,8 @@ namespace flatbuffers {
       }
       
       void deserializeEnumMethodDeclaration(const EnumDef &enum_def, std::string & code) {
-      	  code += "\tfun from( value : ";
-          code += userScalarType(enum_def.underlying_type.base_type);
+      	  code += "\tfun from(value : ";
+          code += wireScalarType(enum_def.underlying_type.base_type);
           code += ") : " + enum_def.name;
       }
       
@@ -305,7 +522,7 @@ namespace flatbuffers {
       
 
       
-
+      /** type conversion && get / put into wire */
       
       
       /** scalar type for the getters/setters on the wire facing api
@@ -313,7 +530,7 @@ namespace flatbuffers {
           and that ressembles it the most,
           except that booleans are serialized as byte (in the spec)
       */
-      const char * wireScalarType(const BaseType &base_type) {
+      std::string wireScalarType(const BaseType &base_type) {
       	      return wireTypes[base_type];
       }
       
@@ -321,15 +538,151 @@ namespace flatbuffers {
           this is the most convenient language type that can hold the wire type
           except that booleans are serialized as byte (see the flatbuffers spec)
       */
-      const char * userScalarType(const BaseType &base_type) {
+      std::string userScalarType(const BaseType &base_type) {
       	      return userTypes[base_type];
       }
       
+      std::string userType(const FieldDef &field) {
+      	      Type type = field.value.type;
+      	      if (type.struct_def != nullptr) return type.struct_def->name; // struct or Table
+      	      BaseType base_type = type.base_type;
+      	      if (base_type == BASE_TYPE_STRING) return "String";
+      	      if (base_type == BASE_TYPE_VECTOR) base_type = type.element;
+      	      if (type.enum_def == nullptr) return userTypes[base_type];
+      	      if (base_type == BASE_TYPE_UNION) return "Table"; else return type.enum_def->name; // enum or unionType (which is an enum)
+      }
+      
+      /*std::string wireType(const FieldDef &field) {
+      	      Type type = field.value.type;
+      	      if (type.struct_def != nullptr) return "Int";//"Struct" "Offset"; // struct or Table
+      	      BaseType base_type = type.base_type;
+      	      if (base_type == BASE_TYPE_STRING) return "String";
+      	      if (base_type == BASE_TYPE_VECTOR) base_type = type.element;
+      	      if (type.enum_def == nullptr || base_type == BASE_TYPE_UTYPE) return userTypes[base_type];
+      	      if (base_type == BASE_TYPE_UNION) return "Table"; else return type.enum_def->name; 
+      }*/
+      
+           std::string wireSetter(const BaseType & base_type) {
+           	   
+	if (wireScalarType(base_type) == "Byte" || wireScalarType(base_type) == "Boolean") return "bb.put"; else return "bb.put" + wireScalarType(base_type);
+     }
+     
+        /*  std::string wireSetter(const FieldDef & field) {
+	if (wireScalarType(base_type) == "Byte") return "bb.put"; else return "bb.put" + wireScalarType(base_type);
+     }*/
+      
+           // Returns the function name that is able to read a value of the given type.
+     std::string wireGetter(const Type &type) {
+       switch (type.base_type) {
+         case BASE_TYPE_STRING: return "__string";
+         case BASE_TYPE_STRUCT: return "__struct";
+         case BASE_TYPE_UNION:  return "__union";
+         case BASE_TYPE_VECTOR: return wireGetter(type.VectorType());
+         default: {
+           if (type.base_type == BASE_TYPE_BOOL) return  "0.toByte()!=bb.get";
+           std::string wireType = wireScalarType(type.base_type);
+           if (wireType == "Byte") return "bb.get";
+           return  std::string("bb.get") + wireType;
+    }
+  }
+}
+
 
       
+      /*std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool) {
+        if (type.enum_def != nullptr) return value + ".value";
+        switch (type.base_type) {
+  	  case BASE_TYPE_BOOL:  return downsizeBool ? "if (" + value + ") 1.toByte() else 0.toByte()" : value;
+  	  case BASE_TYPE_UINT:  return value + ".and(0xFFFFFFFFL).toInt()";
+  	  case BASE_TYPE_USHORT:  return value + ".and(0xFFFF).toShort()";
+  	  case BASE_TYPE_UCHAR:  return value + ".and(0xFF).toByte()";
+  	  case BASE_TYPE_VECTOR:  return downsizeToStorageValue(type.VectorType(), value, downsizeBool);
+  	  default: return value;
+       }
+     }  */  
+     
+     /** downsize a scalar userType to a scalar wireType 
+         with tricky corner cases : 
+         1) with vector, you have to transform the element type
+         2) with enums, you have to first transform the enum into a scalar userType before you turn it into a scalar wireType
+         */
+           std::string downsizeToStorageValue(const Type &type, const std::string value, const bool downsizeBool) {
+             std::string val(value);
+             if (type.enum_def != nullptr) val += ".value";
+        switch (type.base_type) {
+  	  case BASE_TYPE_BOOL:  return downsizeBool ? "if (" + val + ") 1.toByte() else 0.toByte()" : val;
+  	  case BASE_TYPE_UINT:  return val + ".and(0xFFFFFFFFL).toInt()";
+  	  case BASE_TYPE_USHORT:  return val + ".and(0xFFFF).toShort()";
+  	  case BASE_TYPE_UCHAR:  return val + ".and(0xFF).toByte()";
+  	  case BASE_TYPE_VECTOR:  return downsizeToStorageValue(type.VectorType(), value, downsizeBool);
+  	  default: return val;
+       }
+     } 
+     
+     
+     
+     
+     
+     
+     
+     std::string upsizeToUserType(const Type &type, const std::string value) {
+       if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from(" + value + ")";  
+       switch (type.base_type) {
+       case BASE_TYPE_UINT:  return value + ".toLong().and(0xFFFFFFFFL)";
+       case BASE_TYPE_USHORT:  return value + ".toInt().and(0xFFFF)";
+       case BASE_TYPE_UCHAR:  return value + ".toInt().and(0xFF)";
+       case BASE_TYPE_VECTOR:  return upsizeToUserType(type.VectorType(), value);
+       default:  return value;
+      }
+     }
       
-      
-      
+
+
+
+
+
+     
+     std::string defaultToUserType(const Type &type, const std::string value) {
+       // we have to catch enums before the switch because otherwise they follow the path of their underlying base_type.
+       if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION) return type.enum_def->name + ".from(" + value + ")"; 
+       switch (type.base_type) {
+       case BASE_TYPE_UINT:  return value + ".toLong().and(0xFFFFFFFFL)";
+       case BASE_TYPE_USHORT:  return value + ".toInt().and(0xFFFF)";
+       case BASE_TYPE_UCHAR:  return value + ".toInt().and(0xFF)";
+       case BASE_TYPE_VECTOR:  return defaultToUserType(type.VectorType(), value);
+       default:   return value;
+   }
+}
+
+
+// removed static to allow reuse
+std::string defaultValue(const Value &value, bool for_buffer) {
+
+  if (!for_buffer) {  
+      switch (value.type.base_type) {
+      	case BASE_TYPE_CHAR:return "(" + value.constant + ").toByte()";
+      	case BASE_TYPE_SHORT:return "(" +value.constant + ").toShort()";
+      	case BASE_TYPE_LONG:
+      	case BASE_TYPE_ULONG:return value.constant + "L";
+      	case BASE_TYPE_FLOAT:return value.constant + "f";
+      	case BASE_TYPE_VECTOR: switch (value.type.element) {
+      		case BASE_TYPE_CHAR:return "(" +value.constant + ").toByte()";
+      		case BASE_TYPE_SHORT:return "(" +value.constant + ").toShort()";
+      		case BASE_TYPE_LONG:
+      		case BASE_TYPE_ULONG:return value.constant + "L";
+      		case BASE_TYPE_FLOAT:return value.constant + "f";
+      		default:return value.type.element == BASE_TYPE_BOOL ? (value.constant == "0" ? "false" : "true") : value.constant;
+      	}
+    	default:break;
+      }
+  }
+  
+  return value.type.base_type == BASE_TYPE_BOOL
+           ? (value.constant == "0" ? "false" : "true")
+           : value.constant;
+}
+
+
       /** union generation (differs slightly from enums) */
       
       bool generateUnion(const EnumDef &enum_def) {
@@ -341,7 +694,7 @@ namespace flatbuffers {
         unionImports(enum_def, code);
         GenComment(enum_def.doc_comment, &code, nullptr);
         unionDeclaration(enum_def, code);
-        return SaveFile((enum_def.name + ".kt").c_str(), code, false);
+        return saveFile(enum_def.name, ".kt", code);
       }
       
       void unionImports(const EnumDef &/*enum_def*/, std::string &code) {
