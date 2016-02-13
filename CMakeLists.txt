@@ -20,6 +20,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
+  include/flatbuffers/idl_gen_base_code_generator.h
   include/flatbuffers/util.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
