@@ -111,9 +111,9 @@ namespace flatbuffers {
     
     static const std::set<std::string> kotlinKeywords {"class","else", "enum","fun","for", "if", "in", "is", "import", "internal", "override", "package", "private", "protected", "public", "return", "val", "var", "when", "while"};
 
-    class KotlinGenerator : public BaseGenerator {
+    class KotlinGenerator : public StronglyTypedGenerator {
     public:
-      KotlinGenerator(const Parser &parsera,const std::string &patha,const std::string & file_namea) : BaseGenerator(parsera, patha, file_namea, kotlinKeywords) {};
+      KotlinGenerator(const Parser &parser_,const std::string &path_,const std::string & file_name_) : StronglyTypedGenerator(parser_, path_, file_name_, kotlinKeywords) {};
     protected:
     	    
       /*const char * writeScalarToWire(BaseType & baseType) {

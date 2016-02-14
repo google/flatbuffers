@@ -24,12 +24,51 @@
 // that code generators can extend to gain common functionnalities.
 
 namespace flatbuffers {
-	extern std::string MakeCamel(const std::string &in, bool first);
+  extern std::string MakeCamel(const std::string &in, bool first);
 
- class BaseGenerator {
+  /** all generators should implement this 
+      
+      A. migration path (for a Language code generator) : 
+      
+      1) write a LanguageGenerator that is a concrete implementation of BaseGenerator and implement the 
+            generate() 
+         method with the body of the old
+              bool GenerateLanguage(const Parser &parser,const std::string &path,const std::string & file_name)
+      
+      2) write a new   
+           bool GenerateLanguage(const Parser &parser,const std::string &path,const std::string & file_name)
+         method by replacing the old body with : 
+            LanguageGenerator * generator = LanguageGenerator(parser, path, file_name);
+            return generator->generate();
+      
+      Look at the Kotlin Generator, for an example of how it is done
+  
+      B. migration path (for flatc) 
+      
+      Once all code generators use a Base Generator 
+      (this can be done easily, without the active intervention of the code generator maintainers),
+      use a switch to make flatc call the relevant 
+          LanguageGenerator * generator = LanguageGenerator(parser, path, file_name);
+          return generator->generate();
+      code for each generator
+      
+  */
+  class BaseGenerator {
+    public:
+      BaseGenerator(const Parser & parser_,const std::string & path_,const std::string & file_name_) : parser(parser_), path(path_), file_name(file_name_) {};
+      virtual bool generate() = 0;
+    protected:
+      virtual ~BaseGenerator() {};
+      
+      const Parser & parser;
+      const std::string & path;
+      const std::string & file_name;
+  };
 
- public:
-   BaseGenerator(const Parser &parsera,const std::string &patha,const std::string & file_namea, const std::set<std::string> keywordsa) : parser(parsera), path(patha), file_name(file_namea), keywords(keywordsa){
+  /** maybee we should split the utilities among a few orthogonal interfaces (file & path, types, safeNames and safeTypes) ? */
+  class StronglyTypedGenerator : public BaseGenerator {
+    public:
+      StronglyTypedGenerator(const Parser &parser_,const std::string &path_,const std::string & file_name_, const std::set<std::string> keywords_) : BaseGenerator(parser_, path_, file_name_), keywords(keywords_){
       	   /** computes the package name and the package directory. C++ won't use that and wil need it's own solution */
    	   std::string name;
    	   std::string dir = path;  // Either empty or ends in separator.
@@ -41,8 +80,9 @@ namespace flatbuffers {
        	   }
        	   namespace_name = name;
        	   namespace_dir = dir;
-   }
-   virtual bool generate() {
+      }
+      
+      virtual bool generate() {
    	EnsureDirExists(namespace_dir);
         for (auto it = parser.enums_.vec.begin();it != parser.enums_.vec.end() ; ++it) {
           auto &enum_def = **it;
@@ -65,7 +105,7 @@ namespace flatbuffers {
         return true;
    }
    protected:
-   virtual ~BaseGenerator() {};
+   virtual ~StronglyTypedGenerator() {};
     
    virtual bool generateEnum(const EnumDef &enum_def) = 0;
    virtual bool generateUnion(const EnumDef &enum_def) = 0;
@@ -162,9 +202,6 @@ namespace flatbuffers {
      return wrapInNameSpace(def.defined_namespace, def.name);
    }
     
-   const Parser & parser;
-   const std::string & path;
-   const std::string & file_name;
    const std::set<std::string> keywords; 
     std::string namespace_name; // TODO make const
     std::string namespace_dir;
