@@ -150,15 +150,15 @@ namespace flatbuffers {
     return s;
   }
 
-   std::string safeName(const Definition & definition) {
+   std::string name(const Definition & definition) {
      return sanitize(definition.name, false);
    }
       
-   std::string SafeName(const Definition & definition) {
+   std::string Name(const Definition & definition) {
      return sanitize(definition.name, true);
    }
    
-   bool saveFile(const std::string name, const std::string ext, const std::string code) {
+   bool saveTextFile(const std::string name, const std::string ext, const std::string code) {
      return SaveFile((namespace_dir + name + ext).c_str(), code, false);
    }
    

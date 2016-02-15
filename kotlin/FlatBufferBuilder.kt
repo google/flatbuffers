@@ -291,6 +291,12 @@ class FlatBufferBuilder {
         return endArray()
     }
 
+    fun ofArrayOf(vararg strings: String): IntArray {
+        val offsets = IntArray(strings.size)
+        for (a in strings.size -1 downTo 0) offsets[a] = of(strings[a])
+        return offsets 
+    }
+
     /**
      * Encode the string `s` in the buffer using UTF-8.
 

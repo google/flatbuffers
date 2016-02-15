@@ -134,13 +134,13 @@ namespace flatbuffers {
         startNamespace(code);
         structImports(struct_def, code);  
         GenComment(struct_def.doc_comment, &code, nullptr);
-        code += "public open class " + struct_def.name + "(byteBuffer : ByteBuffer = EMPTY_BYTEBUFFER) : Struct"; 
+        code += "open class " + struct_def.name + "(byteBuffer : ByteBuffer = EMPTY_BYTEBUFFER) : Struct"; 
         code += "(byteBuffer.order(ByteOrder.LITTLE_ENDIAN), if (byteBuffer === EMPTY_BYTEBUFFER) 0 else byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) {\n";
 
 
         // Generate the Init method that sets the field in a pre-existing
         // accessor object. This is to allow object reuse.
-        tableOrStructInitialize(struct_def, code);
+        initializeTableOrStruct(struct_def, code);
   
         toString(struct_def, code);
 
@@ -156,12 +156,12 @@ namespace flatbuffers {
         if (parser.root_struct_def_ == &struct_def && parser.file_identifier_.length()) generateHasIdentifier(struct_def, code); 
 
         code += "\t}\n"; // end companion object
-        code += "}"; // end class declaration
+        code += "}\n"; // end struct declaration
   
         // create a struct constructor function
         generateCreateStruct(struct_def, code); 
         
-        return saveFile(struct_def.name, ".kt", code);
+        return saveTextFile(struct_def.name, ".kt", code);
      }
      
       void structImports(const StructDef &/*struct_def*/, std::string &code) {
@@ -179,8 +179,8 @@ namespace flatbuffers {
       
       void getScalarFieldOfStruct(const FieldDef &field, std::string & code) {
       	// TODO respect flatc's generate mutable flag
-        code += "\tpublic var ";
-        code += safeName(field) + " : " + userType(field);
+        code += "\tvar ";
+        code += name(field) + " : " + userType(field);
         code += " get() = " + upsizeToUserType(field.value.type, wireGetter(field.value.type) + "(bb_pos + " + NumToString(field.value.offset) + ")");
 
         code += "; set(value) { " + wireSetter(field.value.type.base_type) + "(bb_pos + " + NumToString(field.value.offset) + ", ";
@@ -191,9 +191,9 @@ namespace flatbuffers {
       // Get a struct by initializing an existing struct.Specific to Struct.
       void getStructFieldOfStruct(const FieldDef &field, std::string & code) {
       	auto structName = field.value.type.struct_def->name;
-        code += "\tpublic val " + safeName(field) + " : " + structName + " get() = " ;
-        code += safeName(field) + "(" + structName + "())\n";
-        code += "\tpublic fun " + safeName(field) + "(reuse : " + structName + ") : " + structName + " = ";
+        code += "\tval " + name(field) + " : " + structName + " get() = " ;
+        code += name(field) + "(" + structName + "())\n";
+        code += "\tfun " + name(field) + "(reuse : " + structName + ") : " + structName + " = ";
         code += "reuse.wrap(bb, bb_pos + " + NumToString(field.value.offset) + ")\n";
       }
       
@@ -201,38 +201,38 @@ namespace flatbuffers {
       void generateCreateStruct(const StructDef &struct_def, std::string & code) {
         code += "\t\t";
         if (hasNestedStruct(struct_def)) code += "inline "; // only inline if there is a nested struct (or kotlin warns you)
-        code += "public fun FlatBufferBuilder." + lowerFirst(struct_def.name) + "Raw(";
+        code += "fun FlatBufferBuilder." + lowerFirst(struct_def.name) + "Raw(";
         for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
           auto &field = **it;
           if (it!= struct_def.fields.vec.begin()) code += ", ";
-          if (IsStruct(field.value.type)) code += "crossinline " + safeName(field) + " : FlatBufferBuilder.()->Int"; 
-          else code +=  safeName(field)  + " : " + userTypeForCreation(field);
+          if (IsStruct(field.value.type)) code += "crossinline " + name(field) + " : FlatBufferBuilder.()->Int"; 
+          else code +=  name(field)  + " : " + userTypeForCreation(field);
         }
         code += "):Int = with(this) {\n";
         code += "prep(" + NumToString(struct_def.minalign) + ", " + NumToString(struct_def.bytesize) + ")\n";
         for (auto it = struct_def.fields.vec.rbegin(); it != struct_def.fields.vec.rend(); ++it) {
           auto &field = **it;
           if (field.padding) code += "\t\t\tpad(" + NumToString(field.padding) + ")\n";
-          if (IsStruct(field.value.type)) code += "\t\t\t" + safeName(field) + "()\n"; else {
+          if (IsStruct(field.value.type)) code += "\t\t\t" + name(field) + "()\n"; else {
             code += "\t\t\tadd" + wireScalarType(field.value.type.base_type) + "(";
-            code +=  downsizeToStorageValue(field.value.type, safeName(field), false) + ")\n";
+            code +=  downsizeToStorageValue(field.value.type, name(field), false) + ")\n";
           }
         }
         code += "\n\toffset()\n\t}\n";
   
         if (hasNestedStruct(struct_def)) code += "inline ";
-          code += "public fun FlatBufferBuilder." + lowerFirst(struct_def.name) + "(";  
+          code += "fun FlatBufferBuilder." + lowerFirst(struct_def.name) + "(";  
           for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
             auto &field = **it;
             if (it!= struct_def.fields.vec.begin()) code += ", ";
-            if (IsStruct(field.value.type)) code += "crossinline " + safeName(field) + " : FlatBufferBuilder.()->Int"; 
-            else code +=  safeName(field)  + " : " + userTypeForCreation(field); 
+            if (IsStruct(field.value.type)) code += "crossinline " + name(field) + " : FlatBufferBuilder.()->Int"; 
+            else code +=  name(field)  + " : " + userTypeForCreation(field); 
           }
           code += "):FlatBufferBuilder.()->Int = {"+ lowerFirst(struct_def.name) + "Raw(";
           for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
             auto &field = **it;
             if (it!= struct_def.fields.vec.begin()) code += ", ";
-            code +=  safeName(field); 
+            code +=  name(field); 
          }
          code += ")}\n";
       }
@@ -248,13 +248,13 @@ namespace flatbuffers {
         tableImports(struct_def, code);   
         GenComment(struct_def.doc_comment, &code, nullptr);
         
-        code += "public open class " + struct_def.name + "(byteBuffer : ByteBuffer = EMPTY_BYTEBUFFER) : Table"; 
+        code += "open class " + struct_def.name + "(byteBuffer : ByteBuffer = EMPTY_BYTEBUFFER) : Table"; 
         code += "(byteBuffer.order(ByteOrder.LITTLE_ENDIAN), if (byteBuffer === EMPTY_BYTEBUFFER) 0 else byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) {\n";
 
 
         // Generate the Init method that sets the field in a pre-existing
         // accessor object. This is to allow object reuse.
-        tableOrStructInitialize(struct_def, code);
+        initializeTableOrStruct(struct_def, code);
   
         toString(struct_def, code);
 
@@ -274,12 +274,12 @@ namespace flatbuffers {
         generateTableBuilders(struct_def, code);
 
         code += "\t}\n"; // end companion object
-        code += "}"; // end class declaration
+        code += "}\n"; // end class declaration
   
         // create a struct constructor function
         generateCreateTable(struct_def, code);  
         
-        return saveFile(struct_def.name, ".kt", code);
+        return saveTextFile(struct_def.name, ".kt", code);
       }
       
       void tableImports(const StructDef &/*struct_def*/, std::string &code) {
@@ -304,7 +304,7 @@ namespace flatbuffers {
       /** pointer fields = strings/structs/tables/unions */
       
       void getScalarFieldOfTable(const FieldDef &field, std::string & code) {
-        code += "\tpublic val " + safeName(field) + " : " + userType(field);
+        code += "\tval " + name(field) + " : " + userType(field);
         code += " get() {val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) ";
         // !!!!! if (field.value.type.base_type == BASE_TYPE_STRING) code += "null"; else code += defaultToUserType(field.value.type,  defaultValue(kotlinLang, field.value, false));
@@ -312,7 +312,7 @@ namespace flatbuffers {
         // !!!!
         code += " else " + upsizeToUserType(field.value.type, wireGetter(field.value.type) + "(o + bb_pos)") + "}\n"; 
 
-        code += "\tpublic fun mutate" + SafeName(field) + "(value : " + userType(field) + ") :Boolean {";
+        code += "\tfun mutate" + Name(field) + "(value : " + userType(field) + ") :Boolean {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) false else {";
         code += wireSetter(field.value.type.base_type) + "(o + bb_pos, " + downsizeToStorageValue(field.value.type, "value", true);
@@ -322,13 +322,13 @@ namespace flatbuffers {
       // Get a struct by initializing an existing struct.Specific to Table.
       void getStructFieldOfTable(const FieldDef &field, std::string & code) {
       	StructDef * struct_def = field.value.type.struct_def;
-        code += "\tpublic val " + safeName(field) + " : " + struct_def->name + "? get() {";
+        code += "\tval " + name(field) + " : " + struct_def->name + "? get() {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) null else " + struct_def->name + "().wrap(bb, ";
         if (struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
         code += "}\n";
   
-        code += "\tpublic fun " + safeName(field) + "(reuse : " + struct_def->name + ") : " + struct_def->name + "? {";
+        code += "\tfun " + name(field) + "(reuse : " + struct_def->name + ") : " + struct_def->name + "? {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) null else reuse.wrap(bb, ";
         if (struct_def->fixed) code += "o + bb_pos)"; else code += "__indirect(o + bb_pos))"; 
@@ -338,17 +338,17 @@ namespace flatbuffers {
       // it's better to return null instead of false and an object instead of true ?
       // Get the value of a union from an object.
       void getUnion(const FieldDef &field, std::string & code) {
-        code += "\tpublic fun " + safeName(field) + "(reuse : Table) : Table? {";
+        code += "\tfun " + name(field) + "(reuse : Table) : Table? {";
         code += "val o = __offset(" +NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) null else __union(reuse, o)}\n";
   
-        code += "\tpublic val " + safeName(field) + " : Table? get() {";
+        code += "\tval " + name(field) + " : Table? get() {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
-        code += "return if (o == 0) null else __union(" + field.value.type.enum_def->name + ".toTable(" + safeName(field) +"Type), o)}\n";
+        code += "return if (o == 0) null else __union(" + field.value.type.enum_def->name + ".toTable(" + name(field) +"Type), o)}\n";
       }
       
       void getArraySize(const FieldDef &field, std::string & code) {
-        code += "\tpublic val " + safeName(field) + "Size : Int ";
+        code += "\tval " + name(field) + "Size : Int ";
         code += "get() {val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) 0 else __vector_len(o)}\n";
       }
@@ -358,11 +358,11 @@ namespace flatbuffers {
       	getArraySize(field, code);
         
       	StructDef * struct_def = field.value.type.struct_def;
-        code += "\tpublic fun " + safeName(field) + "(j :Int, reuse : " + struct_def->name + "? = null) : "+ struct_def->name + "? {";
+        code += "\tfun " + name(field) + "(j :Int, reuse : " + struct_def->name + "? = null) : "+ struct_def->name + "? {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) ";
         // you really shouldn't expect elements from an array that is empty or unset 
-        code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+        code += "throw Exception(\"calling member $j of array " + name(field) +" which is either empty or unset\")";
         code += " else {val x = __vector(o) + j" + multiplyBySizeOf(field.value.type.VectorType()) + "; ";
         code += "(reuse ?: " + struct_def->name +"() ).wrap(bb, x";
         if (!struct_def->fixed) code += " + __indirect(x)";
@@ -375,12 +375,12 @@ namespace flatbuffers {
         getArraySize(field, code);
       	auto vector_type = field.value.type.VectorType();
       	BaseType element = field.value.type.element;
-        code += "\tpublic fun " +  safeName(field) + "(j : Int) : ";
+        code += "\tfun " +  name(field) + "(j : Int) : ";
         if (element == BASE_TYPE_STRING) code += "String?"; else code += userType(field);//userScalarType(element);
         code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) ";
         // you really shouldn't expect elements from an array that is empty or unset 
-        code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+        code += "throw Exception(\"calling member $j of array " + name(field) +" which is either empty or unset\")";
         //if (vector_type.base_type != BASE_TYPE_STRING) code += defaultToUserType(field.value.type, defaultValue(kotlinLang, field.value, false) ); else code += "null"; 
         code += " else " + upsizeToUserType(field.value.type,  wireGetter(vector_type) + "(__vector(o) + j" + multiplyBySizeOf(vector_type) + ")");
         code += "}\n";
@@ -389,7 +389,7 @@ namespace flatbuffers {
 
         // mutation
         if (element != BASE_TYPE_STRING) {
-          code += "\tpublic fun mutate" + SafeName(field) + "(j : Int, value : " + userType(field) + ") :Boolean {";
+          code += "\tfun mutate" + Name(field) + "(j : Int, value : " + userType(field) + ") :Boolean {";
           code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
           code += "return if (o == 0) false else {";
           code += wireSetter(element) + "(__vector(o) + j" + multiplyBySizeOf(vector_type);
@@ -398,17 +398,17 @@ namespace flatbuffers {
       }
       
       void generateBulkStringArrayAccessor(const FieldDef &field, std::string & code) {
-      	  code += "\tpublic fun " + safeName(field) + "Buffer(j : Int) : ByteBuffer? ";
+      	  code += "\tfun " + name(field) + "Buffer(j : Int) : ByteBuffer? ";
           code += " {val o = __offset(" + NumToString(field.value.offset) + "); ";
           code += "return if (o == 0) ";
           // you really shouldn't expect elements from an array that is empty or unset 
-          code += "throw Exception(\"calling member $j of array " + safeName(field) +" which is either empty or unset\")";
+          code += "throw Exception(\"calling member $j of array " + name(field) +" which is either empty or unset\")";
           code += " else __string_element_as_bytebuffer(o, j)";
           code += "}\n";
       }
       
       void generateBulkAccessors(const FieldDef &field, std::string & code) {
-        code += "\tpublic val " + safeName(field);
+        code += "\tval " + name(field);
         if (field.value.type.base_type == BASE_TYPE_STRING) code += "Buffer";
         code += " : ByteBuffer get() = __vector_as_bytebuffer(";
         code += NumToString(field.value.offset) + ", ";
@@ -427,7 +427,7 @@ namespace flatbuffers {
         if (!num_fields) return; 
    
         // method declaration
-        code += "\t\tpublic fun FlatBufferBuilder." + lowerFirst(struct_def.name) + "(";
+        code += "\t\tfun FlatBufferBuilder." + lowerFirst(struct_def.name) + "(";
         bool first = true;
         // add required parameters first without defaults
         for (auto it = struct_def.fields.vec.begin(); it != struct_def.fields.vec.end(); ++it) {
@@ -436,7 +436,7 @@ namespace flatbuffers {
           if (!first) code += ", ";
           first = false;
         
-          code += safeName(field);
+          code += name(field);
           if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
             if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += " : FlatBufferBuilder.()->Int "; else code += " : Int ";
           } else code += " : " + userTypeForCreation(field);
@@ -469,9 +469,9 @@ namespace flatbuffers {
               auto offset =   struct_def.fields.vec.rend() - 1 -it ;
               code += "\t\t\tadd" + wireTypeForCreation(field)/*GenMethod(kotlinLang, field.value.type)*/ + "(" + NumToString(offset) + ", "  ;
               if (!IsScalar(field.value.type.base_type)) {
-  	        code += safeName(field);
+  	        code += name(field);
   	        if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) code += "()"; 
-              } else  code +=  downsizeToStorageValue(field.value.type, safeName(field), false);
+              } else  code +=  downsizeToStorageValue(field.value.type, name(field), false);
               code += ", " + field.value.constant; //Int  
               if (field.value.type.base_type == BASE_TYPE_BOOL) code += "!=0"; // hack to work with booleans... bad :(
                 code += ")\n";
@@ -493,13 +493,13 @@ namespace flatbuffers {
           buildArrayWithLambda(field, code, alignment, elem_size);
           if (field.value.type.element == BASE_TYPE_STRUCT && field.value.type.struct_def->fixed) continue;
           // TODO what about aray of unions ?
-          if (IsScalar(field.value.type.element)) buildScalarArrayWithVararg(field, code, alignment, elem_size); else buildTableOrStringArrayWithVararg(field, code); 
+          if (IsScalar(field.value.type.element)) buildArrayOfScalar(field, code, alignment, elem_size); else buildArrayOfTableOrString(field, code); 
         }
         generateFinishBuffer(struct_def, code);
       }
       
       void buildArrayWithLambda(const FieldDef &field, std::string & code, int alignment, int elem_size) {
-        code += "\t\tinline public fun FlatBufferBuilder." + safeName(field);
+        code += "\t\tinline fun FlatBufferBuilder." + name(field);
         code += "(numElems : Int, action : FlatBufferBuilder.()->Unit) : Int {startArray(";
         code += NumToString(elem_size);
         code += ", numElems, " + NumToString(alignment);
@@ -507,20 +507,19 @@ namespace flatbuffers {
       }
       
       // TODO replace varargs with array
-      void buildScalarArrayWithVararg( const FieldDef &field, std::string &code, int alignment, int elem_size) {
-        code += "\t\tfun FlatBufferBuilder." + safeName(field);
-        code += "(vararg data : ";
-        code += userType(field);
+      void buildArrayOfScalar( const FieldDef &field, std::string &code, int alignment, int elem_size) {
+        code += "\t\tfun FlatBufferBuilder." + name(field);
+        code += "(data : ";
+        code += userTypeForArray(field);
         code += "): Int {startArray(";
         code +=  NumToString(elem_size) + ", data.size, ";
         // TODO addToWire ???
         code += NumToString(alignment) +"); for (i in data.size - 1 downTo 0) add" + wireScalarType(field.value.type.element) + "(" + downsizeToStorageValue(field.value.type.VectorType(), "data[i]", false) + "); return endArray(); }\n";
       }
-      
-      // TODO replace varargs with array
-      void buildTableOrStringArrayWithVararg( const FieldDef &field, std::string & code) {
-        code += "\t\tpublic fun FlatBufferBuilder." + safeName(field);
-        code += "(vararg offsets : Int) ";
+
+      void buildArrayOfTableOrString( const FieldDef &field, std::string & code) {
+        code += "\t\tfun FlatBufferBuilder." + name(field);
+        code += "(offsets : IntArray) ";
         code += " : Int {startArray(4, offsets.size, ";
         // table or string
         if (field.value.type.struct_def != nullptr) code += NumToString(field.value.type.struct_def->minalign); else code += "4"; // look into this
@@ -528,7 +527,7 @@ namespace flatbuffers {
       }
       
       void generateFinishBuffer(const StructDef &struct_def, std::string & code) {
-        code += "\t\tfun  FlatBufferBuilder.finishBuffer(offset : Int) { finish(offset";  
+        code += "\t\tfun FlatBufferBuilder.finishBuffer(offset : Int) { finish(offset";  
         if (parser.root_struct_def_ == &struct_def && parser.file_identifier_.length()) code += ", \"" + parser.file_identifier_ + "\"";
         code += ") }\n";
       }
@@ -537,36 +536,36 @@ namespace flatbuffers {
       
       // Get the value of a string.
       void getStringField(const FieldDef &field, std::string & code) {
-        code += "\tpublic val " + safeName(field) + " : String? get() {";
+        code += "\tval " + name(field) + " : String? get() {";
         code += "val o = __offset(" + NumToString(field.value.offset) + "); ";
         code += "return if (o == 0) null else " + wireGetter(field.value.type) + "(o + bb_pos)";
         code += "}\n";
       }
       
-      void tableOrStructInitialize(const StructDef &struct_def, std::string & code) {
-        code += "\tpublic fun wrap(byteBuffer : ByteBuffer, position : Int = byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) : " + struct_def.name + " = apply {";
+      void initializeTableOrStruct(const StructDef &struct_def, std::string & code) {
+        code += "\tfun wrap(byteBuffer : ByteBuffer, position : Int = byteBuffer.getInt(byteBuffer.position()) + byteBuffer.position()) : " + struct_def.name + " = apply {";
         code +=  "bb = byteBuffer; ";
         code +=  "bb_pos = position}\n";
       }
       
       void generateHasIdentifier(const StructDef & /*struct_def*/, std::string &code) {
       	 // Check if a buffer has the identifier.
-         code += "\tpublic fun hasIdentifier(byteBuffer : ByteBuffer) :Boolean = Table.hasIdentifier(byteBuffer, \"" + parser.file_identifier_ + "\")\n";
+         code += "\tfun hasIdentifier(byteBuffer : ByteBuffer) :Boolean = Table.hasIdentifier(byteBuffer, \"" + parser.file_identifier_ + "\")\n";
       }
       
       /** for debugging only, this doesn't reuse accessors and creates new objects like crazy */
       void toString(const StructDef &struct_def, std::string &code) {
-        code += "\toverride public fun toString() : String = \"" + MakeCamel(struct_def.name, true) + "(";  
+        code += "\toverride fun toString() : String = \"" + MakeCamel(struct_def.name, true) + "(";  
         bool first = true;  
         for (auto it = struct_def.fields.vec.begin();it != struct_def.fields.vec.end();++it) {
     	    auto &field = **it;
     	    if (field.deprecated) continue;
     	    if (!first) code +=  ",";
     	    first = false;
-    	    code += safeName(field) + "=";
+    	    code += name(field) + "=";
     	    
-    	    if (field.value.type.base_type != BASE_TYPE_VECTOR) code += "$" + safeName(field);
-    	    else  code += "${(0 until " + safeName(field) + "Size).map({" + safeName(field) + "(it).toString()}).joinToString(\", \", \"[\",\"]\")}";
+    	    if (field.value.type.base_type != BASE_TYPE_VECTOR) code += "$" + name(field);
+    	    else  code += "${(0 until " + name(field) + "Size).map({" + name(field) + "(it).toString()}).joinToString(\", \", \"[\",\"]\")}";
         }
         code += ")\"\n";
       }
@@ -582,7 +581,7 @@ namespace flatbuffers {
         enumImports(enum_def, code);
         GenComment(enum_def.doc_comment, &code, nullptr);
         enumDeclaration(enum_def, code);
-        return saveFile(enum_def.name, ".kt", code);
+        return saveTextFile(enum_def.name, ".kt", code);
       }
       
       void enumImports(const EnumDef &/*enum_def*/, std::string &code) {
@@ -590,7 +589,7 @@ namespace flatbuffers {
       }
       
       void enumDeclaration(const EnumDef &enum_def, std::string & code) {
-      	code += "public enum class " + enum_def.name + "(val value: " + userScalarType(enum_def.underlying_type.base_type) + ") {\n";
+      	code += "enum class " + enum_def.name + "(val value: " + userScalarType(enum_def.underlying_type.base_type) + ") {\n";
         enumMembersDeclaration(enum_def, code);
         code += ";\n";
         code += "\t companion object {\n";
@@ -700,6 +699,15 @@ namespace flatbuffers {
       	      if (base_type == BASE_TYPE_VECTOR) base_type = type.element;
       	      if (type.enum_def == nullptr) return userTypes[base_type];
       	      if (base_type == BASE_TYPE_UNION) return "Table"; else return type.enum_def->name; // enum or unionType (which is an enum)
+      }
+      
+      
+      /** create methods in this code generator use Int for all pointer type and regular userTypes for scalar types*/
+      std::string userTypeForArray(const FieldDef &field) {
+         if (IsScalar(field.value.type.element)) {
+         	 if (field.value.type.enum_def == nullptr) return userType(field) + "Array"; else return "Array<" + userType(field) + ">";
+         }
+         return "Int";
       }
       
       /** create methods in this code generator use Int for all pointer type and regular userTypes for scalar types*/
@@ -823,7 +831,7 @@ std::string defaultValue(const Value &value, bool for_buffer) {
         unionImports(enum_def, code);
         GenComment(enum_def.doc_comment, &code, nullptr);
         unionDeclaration(enum_def, code);
-        return saveFile(enum_def.name, ".kt", code);
+        return saveTextFile(enum_def.name, ".kt", code);
       }
       
       void unionImports(const EnumDef &/*enum_def*/, std::string &code) {
@@ -832,7 +840,7 @@ std::string defaultValue(const Value &value, bool for_buffer) {
       }
       
       void unionDeclaration(const EnumDef &enum_def, std::string & code) {
-      	code += "public enum class " + enum_def.name + "(val value: " + userScalarType(enum_def.underlying_type.base_type) + ") {\n";
+      	code += "enum class " + enum_def.name + "(val value: " + userScalarType(enum_def.underlying_type.base_type) + ") {\n";
         unionMembersDeclaration(enum_def, code);
         code += ";\n";
         code += "\t companion object {\n";
