@@ -117,8 +117,8 @@ namespace flatbuffers {
    //virtual const char * writeToWire(BaseType & baseType) = 0;
    //virtual const char * readFromWire(BaseType & baseType) = 0;
    
-   virtual std::string fileName(std::string name) {
-   	   return std::string(namespace_dir) + name;
+   virtual std::string fileName(std::string name_) {
+   	   return std::string(namespace_dir) + name_;
    }
    
    virtual void atFileStart(std::string &code) {
@@ -162,9 +162,9 @@ namespace flatbuffers {
      return SaveFile((namespace_dir + name_ + ext).c_str(), code, false);
    }
    
-   std::string sanitize(const std::string name, const bool isFirstLetterUpper) {
+   std::string sanitize(const std::string name_, const bool isFirstLetterUpper) {
 	// transforms name with _ inside into camelCase
-	std::string camelName = MakeCamel(name, isFirstLetterUpper);
+	std::string camelName = MakeCamel(name_, isFirstLetterUpper);
 	// if there is a trailing "_", add one
 	if (camelName.size() >= 1 && camelName.compare(camelName.size() - 1, 1, "_") == 0) return camelName + "_";
 	// if this is a reserved word, add a trailing "_"
