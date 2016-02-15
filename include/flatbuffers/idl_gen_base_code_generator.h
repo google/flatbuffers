@@ -70,16 +70,16 @@ namespace flatbuffers {
     public:
       StronglyTypedGenerator(const Parser &parser_,const std::string &path_,const std::string & file_name_, const std::set<std::string> keywords_) : BaseGenerator(parser_, path_, file_name_), keywords(keywords_){
       	   /** computes the package name and the package directory. C++ won't use that and wil need it's own solution */
-   	   std::string name;
-   	   std::string dir = path;  // Either empty or ends in separator.
+   	   std::string name_;
+   	   std::string dir_ = path;  // Either empty or ends in separator.
    	   auto &ns = parser.namespaces_.back()->components;
    	   for (auto it = ns.begin(); it != ns.end(); ++it) {
-       	       if (name.length()) name += ".";
-       	       name += *it;
-       	       dir += *it + kPathSeparator;
+       	       if (name_.length()) name_ += ".";
+       	       name_ += *it;
+       	       dir_ += *it + kPathSeparator;
        	   }
-       	   namespace_name = name;
-       	   namespace_dir = dir;
+       	   namespace_name = name_;
+       	   namespace_dir = dir_;
       }
       
       virtual bool generate() {
