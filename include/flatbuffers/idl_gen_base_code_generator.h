@@ -158,8 +158,8 @@ namespace flatbuffers {
      return sanitize(definition.name, true);
    }
    
-   bool saveTextFile(const std::string name, const std::string ext, const std::string code) {
-     return SaveFile((namespace_dir + name + ext).c_str(), code, false);
+   bool saveTextFile(const std::string name_, const std::string ext, const std::string code) {
+     return SaveFile((namespace_dir + name_ + ext).c_str(), code, false);
    }
    
    std::string sanitize(const std::string name, const bool isFirstLetterUpper) {
@@ -191,11 +191,11 @@ namespace flatbuffers {
 
    // Ensure that a type is prefixed with its namespace whenever it is used
    // outside of its namespace.
-   std::string wrapInNameSpace(const Namespace *ns, const std::string &name) {
-     if (parser.namespaces_.back() == ns) return name;
+   std::string wrapInNameSpace(const Namespace *ns, const std::string &name_) {
+     if (parser.namespaces_.back() == ns) return name_;
      std::string qualified_name;
      for (auto it = ns->components.begin(); it != ns->components.end(); ++it) qualified_name += *it + ".";
-     return qualified_name + name;
+     return qualified_name + name_;
    }
    
    std::string wrapInNameSpace(const Definition &def) {
