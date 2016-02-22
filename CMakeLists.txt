@@ -81,7 +81,11 @@ if(APPLE)
     "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow -Wunused-result -Werror=unused-result")
+    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow")
+  if (GCC_VERSION VERSION_GREATER 4.4)
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")
+  endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
@@ -119,7 +123,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND flatc -c --no-includes --gen-mutable -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
 
@@ -128,7 +132,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
-    COMMAND flatc -b --schema -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -b --schema -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
 

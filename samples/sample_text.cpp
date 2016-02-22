@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include "monster_generated.h"
+#include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
 
@@ -52,4 +51,6 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
   }
+
+  printf("The FlatBuffer has been parsed from JSON successfully.\n");
 }

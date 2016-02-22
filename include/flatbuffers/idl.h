@@ -403,6 +403,7 @@ class Parser {
     known_attributes_.insert("bit_flags");
     known_attributes_.insert("original_order");
     known_attributes_.insert("nested_flatbuffer");
+    known_attributes_.insert("csharp_partial");
   }
 
   ~Parser() {
@@ -444,6 +445,7 @@ private:
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, int64_t *val);
   FLATBUFFERS_CHECKED_ERROR Next();
+  FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
   bool Is(int t);
   FLATBUFFERS_CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t);
@@ -491,6 +493,10 @@ private:
   FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
                                     const char **include_paths,
                                     const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*> &fields,
+                                       StructDef *struct_def,
+                                       const char *suffix,
+                                       BaseType baseType);
 
  public:
   SymbolTable<StructDef> structs_;

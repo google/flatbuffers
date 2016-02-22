@@ -17,6 +17,9 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include <limits>
+
+#define FLATC_VERSION "1.3.0 (" __DATE__ ")"
 
 static void Error(const std::string &err, bool usage = false,
                   bool show_exe_name = true);
@@ -96,6 +99,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  -o PATH         Prefix PATH to all generated files.\n"
       "  -I PATH         Search for includes in the specified path.\n"
       "  -M              Print make rules for generated files.\n"
+      "  --version       Print the version number of flatc and exit.\n"
       "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
       "                  no trailing commas in tables/vectors.\n"
       "  --defaults-json Output fields whose value is the default when\n"
@@ -117,7 +121,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                  This may crash flatc given a mismatched schema.\n"
       "  --proto         Input is a .proto, translate to .fbs.\n"
       "  --schema        Serialize schemas instead of JSON (use with -b)\n"
-      "FILEs may depend on declarations in earlier files.\n"
+      "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
       "and written to the current directory or the path given by -o.\n"
@@ -183,11 +187,13 @@ int main(int argc, const char *argv[]) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-        any_generator = true;
       } else if(arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
         print_make_rules = true;
+      } else if(arg == "--version") {
+        printf("flatc version %s\n", FLATC_VERSION);
+        exit(0);
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
           if (arg == generators[i].generator_opt_long ||
@@ -208,8 +214,12 @@ int main(int argc, const char *argv[]) {
 
   if (!filenames.size()) Error("missing input files", false, true);
 
-  if (!any_generator)
+  if (opts.proto_mode) {
+    if (any_generator)
+      Error("cannot generate code directly from .proto files", true);
+  } else if (!any_generator) {
     Error("no options: specify at least one generator.", true);
+  }
 
   // Now process the files:
   parser = new flatbuffers::Parser(opts);
@@ -248,6 +258,10 @@ int main(int argc, const char *argv[]) {
           }
         }
       } else {
+        // Check if file contains 0 bytes.
+        if (contents.length() != strlen(contents.c_str())) {
+          Error("input file appears to be binary: " + *file_it, true);
+        }
         if (flatbuffers::GetExtension(*file_it) == "fbs") {
           // If we're processing multiple schemas, make sure to start each
           // one from scratch. If it depends on previous schemas it must do

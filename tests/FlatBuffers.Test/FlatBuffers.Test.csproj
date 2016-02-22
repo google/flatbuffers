@@ -91,6 +91,7 @@
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
+    <Compile Include="FlatBufferBuilderTests.cs" />
     <Compile Include="FlatBuffersFuzzTests.cs" />
     <Compile Include="FlatBuffersTestClassAttribute.cs" />
     <Compile Include="FlatBuffersTestMethodAttribute.cs" />

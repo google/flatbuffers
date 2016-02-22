@@ -151,7 +151,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(FileIdentifier, 267, "file_identifier") \
   TD(FileExtension, 268, "file_extension") \
   TD(Include, 269, "include") \
-  TD(Attribute, 270, "attribute")
+  TD(Attribute, 270, "attribute") \
+  TD(Null, 271, "null")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -191,12 +192,20 @@ std::string Parser::TokenToStringId(int t) {
 // Parses exactly nibbles worth of hex digits into a number, or error.
 CheckedError Parser::ParseHexNum(int nibbles, int64_t *val) {
   for (int i = 0; i < nibbles; i++)
-    if (!isxdigit(cursor_[i]))
+    if (!isxdigit(static_cast<const unsigned char>(cursor_[i])))
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
   *val = StringToUInt(target.c_str(), 16);
   cursor_ += nibbles;
+  return NoError();
+}
+
+CheckedError Parser::SkipByteOrderMark() {
+  if (static_cast<unsigned char>(*cursor_) != 0xef) return NoError();
+  cursor_++;
+  if (static_cast<unsigned char>(*cursor_++) != 0xbb) return Error("invalid utf-8 byte order mark");
+  if (static_cast<unsigned char>(*cursor_++) != 0xbf) return Error("invalid utf-8 byte order mark");
   return NoError();
 }
 
@@ -214,7 +223,7 @@ CheckedError Parser::Next() {
       case '{': case '}': case '(': case ')': case '[': case ']':
       case ',': case ':': case ';': case '=': return NoError();
       case '.':
-        if(!isdigit(*cursor_)) return NoError();
+        if(!isdigit(static_cast<const unsigned char>(*cursor_))) return NoError();
         return Error("floating point constant can\'t start with \".\"");
       case '\"':
       case '\'':
@@ -341,6 +350,10 @@ CheckedError Parser::Next() {
           }
           if (attribute_ == "file_extension") {
             token_ = kTokenFileExtension;
+            return NoError();
+          }
+          if (attribute_ == "null") {
+            token_ = kTokenNull;
             return NoError();
           }
           // If not, it is a user-defined identifier:
@@ -688,19 +701,23 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       }
     } else {
       EXPECT(':');
-      Value val = field->value;
-      ECHECK(ParseAnyValue(val, field, fieldn));
-      size_t i = field_stack_.size();
-      // Hardcoded insertion-sort with error-check.
-      // If fields are specified in order, then this loop exits immediately.
-      for (; i > field_stack_.size() - fieldn; i--) {
-        auto existing_field = field_stack_[i - 1].second;
-        if (existing_field == field)
-          return Error("field set more than once: " + field->name);
-        if (existing_field->value.offset < field->value.offset) break;
+      if (Is(kTokenNull)) {
+        NEXT(); // Ignore this field.
+      } else {
+        Value val = field->value;
+        ECHECK(ParseAnyValue(val, field, fieldn));
+        size_t i = field_stack_.size();
+        // Hardcoded insertion-sort with error-check.
+        // If fields are specified in order, then this loop exits immediately.
+        for (; i > field_stack_.size() - fieldn; i--) {
+          auto existing_field = field_stack_[i - 1].second;
+          if (existing_field == field)
+            return Error("field set more than once: " + field->name);
+          if (existing_field->value.offset < field->value.offset) break;
+        }
+        field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
+        fieldn++;
       }
-      field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
-      fieldn++;
     }
     if (Is('}')) { NEXT(); break; }
     EXPECT(',');
@@ -964,15 +981,26 @@ CheckedError Parser::ParseSingleValue(Value &e) {
 StructDef *Parser::LookupCreateStruct(const std::string &name,
                                       bool create_if_new, bool definition) {
   std::string qualified_name = namespaces_.back()->GetFullyQualifiedName(name);
+  // See if it exists pre-declared by an unqualified use.
   auto struct_def = structs_.Lookup(name);
   if (struct_def && struct_def->predecl) {
     if (definition) {
+      // Make sure it has the current namespace, and is registered under its
+      // qualified name.
       struct_def->defined_namespace = namespaces_.back();
       structs_.Move(name, qualified_name);
     }
     return struct_def;
   }
+  // See if it exists pre-declared by an qualified use.
   struct_def = structs_.Lookup(qualified_name);
+  if (struct_def && struct_def->predecl) {
+    if (definition) {
+      // Make sure it has the current namespace.
+      struct_def->defined_namespace = namespaces_.back();
+    }
+    return struct_def;
+  }
   if (!definition) {
     // Search thru parent namespaces.
     for (size_t components = namespaces_.back()->components.size();
@@ -1065,7 +1093,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       }
       if (Is('=')) {
         NEXT();
-        ev.value = atoi(attribute_.c_str());
+        ev.value = StringToInt(attribute_.c_str());
         EXPECT(kTokenIntegerConstant);
         if (!opts.proto_mode && prevsize &&
             enum_def.vals.vec[prevsize - 1]->value >= ev.value)
@@ -1107,6 +1135,33 @@ CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   *remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
   *dest = &struct_def;
   return NoError();
+}
+
+CheckedError Parser::CheckClash(std::vector<FieldDef*> &fields,
+                                StructDef *struct_def,
+                                const char *suffix,
+                                BaseType basetype) {
+  auto len = strlen(suffix);
+  for (auto it = fields.begin(); it != fields.end(); ++it) {
+    auto &fname = (*it)->name;
+    if (fname.length() > len &&
+        fname.compare(fname.length() - len, len, suffix) == 0 &&
+        (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
+      auto field = struct_def->fields.Lookup(
+                                             fname.substr(0, fname.length() - len));
+      if (field && field->value.type.base_type == basetype)
+        return Error("Field " + fname +
+                     " would clash with generated functions for field " +
+                     field->name);
+    }
+  }
+  return NoError();
+}
+
+static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
+  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
+  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+  return a_id < b_id;
 }
 
 CheckedError Parser::ParseDecl() {
@@ -1151,12 +1206,7 @@ CheckedError Parser::ParseDecl() {
               "either all fields or no fields must have an 'id' attribute");
       // Simply sort by id, then the fields are the same as if no ids had
       // been specified.
-      std::sort(fields.begin(), fields.end(),
-        [](const FieldDef *a, const FieldDef *b) -> bool {
-          auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
-          auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
-          return a_id < b_id;
-      });
+      std::sort(fields.begin(), fields.end(), compareFieldDefs);
       // Verify we have a contiguous set, and reassign vtable offsets.
       for (int i = 0; i < static_cast<int>(fields.size()); i++) {
         if (i != atoi(fields[i]->attributes.Lookup("id")->constant.c_str()))
@@ -1166,34 +1216,13 @@ CheckedError Parser::ParseDecl() {
       }
     }
   }
-  // Check that no identifiers clash with auto generated fields.
-  // This is not an ideal situation, but should occur very infrequently,
-  // and allows us to keep using very readable names for type & length fields
-  // without inducing compile errors.
-  auto CheckClash = [&fields, &struct_def, this](const char *suffix,
-                                            BaseType basetype) -> CheckedError {
-    auto len = strlen(suffix);
-    for (auto it = fields.begin(); it != fields.end(); ++it) {
-      auto &fname = (*it)->name;
-      if (fname.length() > len &&
-          fname.compare(fname.length() - len, len, suffix) == 0 &&
-          (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
-        auto field = struct_def->fields.Lookup(
-                       fname.substr(0, fname.length() - len));
-        if (field && field->value.type.base_type == basetype)
-          return Error("Field " + fname +
-                " would clash with generated functions for field " +
-                field->name);
-      }
-    }
-    return NoError();
-  };
-  ECHECK(CheckClash("_type", BASE_TYPE_UNION));
-  ECHECK(CheckClash("Type", BASE_TYPE_UNION));
-  ECHECK(CheckClash("_length", BASE_TYPE_VECTOR));
-  ECHECK(CheckClash("Length", BASE_TYPE_VECTOR));
-  ECHECK(CheckClash("_byte_vector", BASE_TYPE_STRING));
-  ECHECK(CheckClash("ByteVector", BASE_TYPE_STRING));
+
+  ECHECK(CheckClash(fields, struct_def, "_type", BASE_TYPE_UNION));
+  ECHECK(CheckClash(fields, struct_def, "Type", BASE_TYPE_UNION));
+  ECHECK(CheckClash(fields, struct_def, "_length", BASE_TYPE_VECTOR));
+  ECHECK(CheckClash(fields, struct_def, "Length", BASE_TYPE_VECTOR));
+  ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
+  ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
   return NoError();
 }
@@ -1233,6 +1262,10 @@ CheckedError Parser::ParseNamespace() {
   }
   EXPECT(';');
   return NoError();
+}
+
+static bool compareEnumVals(const EnumVal *a, const EnumVal* b) {
+  return a->value < b->value;
 }
 
 // Best effort parsing of .proto declarations, with the aim to turn them
@@ -1285,9 +1318,8 @@ CheckedError Parser::ParseProtoDecl() {
     if (Is(';')) NEXT();
     // Protobuf allows them to be specified in any order, so sort afterwards.
     auto &v = enum_def->vals.vec;
-    std::sort(v.begin(), v.end(), [](const EnumVal *a, const EnumVal *b) {
-      return a->value < b->value;
-    });
+    std::sort(v.begin(), v.end(), compareEnumVals);
+
     // Temp: remove any duplicates, as .fbs files can't handle them.
     for (auto it = v.begin(); it != v.end(); ) {
       if (it != v.begin() && it[0]->value == it[-1]->value) it = v.erase(it);
@@ -1513,7 +1545,7 @@ CheckedError Parser::SkipAnyJsonValue() {
       EXPECT(kTokenFloatConstant);
       break;
     default:
-      return Error(std::string("Unexpected token:") + std::string(1, token_));
+      return Error(std::string("Unexpected token:") + std::string(1, static_cast<char>(token_)));
   }
   return NoError();
 }
@@ -1522,7 +1554,7 @@ CheckedError Parser::SkipJsonObject() {
   EXPECT('{');
   size_t fieldn = 0;
 
-  while (true) {
+  for (;;) {
     if ((!opts.strict_json || !fieldn) && Is('}')) break;
 
     if (!Is(kTokenStringConstant))
@@ -1542,10 +1574,10 @@ CheckedError Parser::SkipJsonObject() {
 
 CheckedError Parser::SkipJsonArray() {
   EXPECT('[');
-  
-  while (true) {
+
+  for (;;) {
     if (Is(']')) break;
-        
+
     ECHECK(SkipAnyJsonValue());
 
     if (Is(']')) break;
@@ -1584,6 +1616,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   builder_.Clear();
   // Start with a blank namespace just in case this file doesn't have one.
   namespaces_.push_back(new Namespace());
+  ECHECK(SkipByteOrderMark());
   NEXT();
   // Includes must come before type declarations:
   for (;;) {
@@ -1735,11 +1768,14 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 
 // Schema serialization functionality:
 
+template<typename T> bool compareName(const T* a, const T* b) {
+    return a->name < b->name;
+}
+
 template<typename T> void AssignIndices(const std::vector<T *> &defvec) {
   // Pre-sort these vectors, such that we can set the correct indices for them.
   auto vec = defvec;
-  std::sort(vec.begin(), vec.end(),
-            [](const T *a, const T *b) { return a->name < b->name; });
+  std::sort(vec.begin(), vec.end(), compareName<T>);
   for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
 }
 

@@ -1,4 +1,5 @@
-# Using the schema compiler
+Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
+=========================
 
 Usage:
 

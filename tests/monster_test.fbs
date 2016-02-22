@@ -12,7 +12,7 @@ union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements
 
 struct Test { a:short; b:byte; }
 
-table TestSimpleTableWithEnum {
+table TestSimpleTableWithEnum (csharp_partial) {
   color: Color = Green;
 }
 
