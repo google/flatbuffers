@@ -67,6 +67,7 @@ function main() {
   // Test it:
   testBuffer(fbb.dataBuffer());
 
+  test64bit();
   testUnicode();
   fuzzTest1();
 
@@ -115,6 +116,52 @@ function testBuffer(bb) {
   assert.strictEqual(monster.testarrayofstring(1), 'test2');
 
   assert.strictEqual(monster.testbool(), false);
+}
+
+function test64bit() {
+  var fbb = new flatbuffers.Builder();
+  var required = fbb.createString('required');
+
+  MyGame.Example.Stat.startStat(fbb);
+  var stat2 = MyGame.Example.Stat.endStat(fbb);
+
+  MyGame.Example.Monster.startMonster(fbb);
+  MyGame.Example.Monster.addName(fbb, required);
+  MyGame.Example.Monster.addTestempty(fbb, stat2);
+  var mon2 = MyGame.Example.Monster.endMonster(fbb);
+
+  MyGame.Example.Stat.startStat(fbb);
+  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x12345678, 0x23456789));
+  var stat = MyGame.Example.Stat.endStat(fbb);
+
+  MyGame.Example.Monster.startMonster(fbb);
+  MyGame.Example.Monster.addName(fbb, required);
+  MyGame.Example.Monster.addEnemy(fbb, mon2);
+  MyGame.Example.Monster.addTestempty(fbb, stat);
+  var mon = MyGame.Example.Monster.endMonster(fbb);
+
+  MyGame.Example.Monster.finishMonsterBuffer(fbb, mon);
+  var bytes = fbb.asUint8Array();
+
+  ////////////////////////////////////////////////////////////////
+
+  var bb = new flatbuffers.ByteBuffer(bytes);
+  assert.ok(MyGame.Example.Monster.bufferHasIdentifier(bb));
+  var mon = MyGame.Example.Monster.getRootAsMonster(bb);
+
+  var stat = mon.testempty();
+  assert.strictEqual(stat != null, true);
+  assert.strictEqual(stat.val() != null, true);
+  assert.strictEqual(stat.val().low, 0x12345678);
+  assert.strictEqual(stat.val().high, 0x23456789);
+
+  var mon2 = mon.enemy();
+  assert.strictEqual(mon2 != null, true);
+  stat = mon2.testempty();
+  assert.strictEqual(stat != null, true);
+  assert.strictEqual(stat.val() != null, true);
+  assert.strictEqual(stat.val().low, 0); // default value
+  assert.strictEqual(stat.val().high, 0);
 }
 
 function testUnicode() {

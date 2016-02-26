@@ -189,7 +189,7 @@ static std::string GenGetter(const Type &type, const std::string &arguments) {
   }
 }
 
-static std::string GenDefaultValue(const Value &value) {
+static std::string GenDefaultValue(const Value &value, const std::string &context) {
   if (value.type.enum_def) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
@@ -205,13 +205,11 @@ static std::string GenDefaultValue(const Value &value) {
       return "null";
 
     case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
-      if (value.constant != "0") {
-        int64_t constant = StringToInt(value.constant.c_str());
-        return "new flatbuffers.Long(" + NumToString((int32_t)constant) +
-          ", " + NumToString((int32_t)(constant >> 32)) + ")";
-      }
-      return "flatbuffers.Long.ZERO";
+    case BASE_TYPE_ULONG: {
+      int64_t constant = StringToInt(value.constant.c_str());
+      return context + ".createLong(" + NumToString((int32_t)constant) +
+        ", " + NumToString((int32_t)(constant >> 32)) + ")";
+    }
 
     default:
       return value.constant;
@@ -417,7 +415,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
           index += ", optionalEncoding";
         }
         code += offset_prefix + GenGetter(field.value.type,
-          "(" + index + ")") + " : " + GenDefaultValue(field.value);
+          "(" + index + ")") + " : " + GenDefaultValue(field.value, "this.bb");
         code += ";\n";
       }
     }
@@ -485,7 +483,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
             code += "false";
           } else if (field.value.type.element == BASE_TYPE_LONG ||
               field.value.type.element == BASE_TYPE_ULONG) {
-            code += "flatbuffers.Long.ZERO";
+            code += "this.bb.createLong(0, 0)";
           } else if (IsScalar(field.value.type.element)) {
             code += "0";
           } else {
@@ -570,7 +568,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
         if (field.value.type.base_type == BASE_TYPE_BOOL) {
           code += "+";
         }
-        code += GenDefaultValue(field.value);
+        code += GenDefaultValue(field.value, "builder");
       }
       code += ");\n};\n\n";
 
