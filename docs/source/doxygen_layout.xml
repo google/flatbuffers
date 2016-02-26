@@ -45,7 +45,7 @@
     <tab type="user" url="@ref flatbuffers_internals"
         title="FlatBuffers internals"/>
     <tab type="user" url="@ref flatbuffers_grammar"
-        title="Grammar of the schema langauge"/>
+        title="Grammar of the schema language"/>
     <tab type="usergroup" url="" title="API Reference">
       <tab type="modules" visible="yes" title="APIs" intro=""/>
       <tab type="classes" visible="yes" title="">
