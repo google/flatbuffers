@@ -113,11 +113,13 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   mb3.add_name(wilma);
   mlocs[2] = mb3.Finish();
 
-  // Create an array of strings:
-  flatbuffers::Offset<flatbuffers::String> strings[2];
-  strings[0] = builder.CreateString("bob");
-  strings[1] = builder.CreateString("fred");
-  auto vecofstrings = builder.CreateVector(strings, 2);
+  // Create an array of strings. Also test string pooling.
+  flatbuffers::Offset<flatbuffers::String> strings[4];
+  strings[0] = builder.CreateSharedString("bob");
+  strings[1] = builder.CreateSharedString("fred");
+  strings[2] = builder.CreateSharedString("bob");
+  strings[3] = builder.CreateSharedString("fred");
+  auto vecofstrings = builder.CreateVector(strings, 4);
 
   // Create an array of sorted tables, can be used with binary search when read:
   auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
@@ -188,9 +190,12 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
 
   // Example of accessing a vector of strings:
   auto vecofstrings = monster->testarrayofstring();
-  TEST_EQ(vecofstrings->Length(), 2U);
+  TEST_EQ(vecofstrings->Length(), 4U);
   TEST_EQ_STR(vecofstrings->Get(0)->c_str(), "bob");
   TEST_EQ_STR(vecofstrings->Get(1)->c_str(), "fred");
+  // These should have pointer equality because of string pooling.
+  TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
+  TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
 
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
@@ -420,7 +425,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // either part or whole.
   flatbuffers::FlatBufferBuilder fbb;
   auto root_offset = flatbuffers::CopyTable(fbb, schema, *root_table,
-                                            *flatbuffers::GetAnyRoot(flatbuf));
+                                            *flatbuffers::GetAnyRoot(flatbuf),
+                                            true);
   fbb.Finish(root_offset, MonsterIdentifier());
   // Test that it was copied correctly:
   AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
