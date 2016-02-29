@@ -122,7 +122,8 @@ default to `NULL` when not present.
 
 You generally do not want to change default values after they're initially
 defined. Fields that have the default value are not actually stored in the
-serialized data but are generated in code, so when you change the default, you'd
+serialized data (see also Gotchas below) but are generated in code,
+so when you change the default, you'd
 now get a different value than from code generated from an older version of
 the schema. There are situations, however, where this may be
 desirable, especially if you can ensure a simultaneous rebuild of
@@ -424,5 +425,29 @@ files!) that use this schema, but as long as the change is obvious, this is not
 incompatible with the actual binary buffers, since those only ever address
 fields by id/offset.
 <br>
+
+### Testing whether a field is present in a table
+
+Most serialization formats (e.g. JSON or Protocol Buffers) make it very
+explicit in the format whether a field is present in an object or not,
+allowing you to use this as "extra" information.
+
+In FlatBuffers, this also holds for everything except scalar values.
+
+FlatBuffers by default will not write fields that are equal to the default
+value (for scalars), sometimes resulting in a significant space savings.
+
+However, this also means testing whether a field is "present" is somewhat
+meaningless, since it does not tell you if the field was actually written by
+calling `add_field` style calls, unless you're only interested in this
+information for non-default values.
+
+Some `FlatBufferBuilder` implementations have an option called `force_defaults`
+that circumvents this behavior, and writes fields even if they are equal to
+the default. You can then use `IsFieldPresent` to query this.
+
+Another option that works in all languages is to wrap a scalar field in a
+struct. This way it will return null if it is not present. The cool thing
+is that structs don't take up any more space than the scalar they represent.
 
    [Interface Definition Language]: https://en.wikipedia.org/wiki/Interface_description_language
