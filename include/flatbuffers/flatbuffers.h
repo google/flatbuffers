@@ -110,10 +110,6 @@ typedef uint16_t voffset_t;
 
 typedef uintmax_t largest_scalar_t;
 
-// Pointer to relinquished memory.
-typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
-          unique_ptr_t;
-
 // Wrapper for uoffset_t to allow safe template specialization.
 template<typename T> struct Offset {
   uoffset_t o;
@@ -418,9 +414,63 @@ struct String : public Vector<char> {
 class simple_allocator {
  public:
   virtual ~simple_allocator() {}
-  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
-  virtual void deallocate(uint8_t *p) const { delete[] p; }
+  virtual uint8_t *allocate(size_t size) const = 0;
+  virtual void deallocate(uint8_t *p) const = 0;
 };
+
+inline uint8_t* custom_allocate(const simple_allocator* allocator, size_t amt) {
+  if (allocator) {
+    return allocator->allocate(amt);
+  }
+  else {
+    return new uint8_t[amt];
+  }
+}
+inline void custom_free(const simple_allocator* allocator, uint8_t *ptr) {
+  if (allocator) {
+    allocator->deallocate(ptr);
+  }
+  else {
+    delete[] ptr;
+  }
+}
+
+// Pointer to relinquished memory with a custom deleter
+//
+class unique_ptr_deleter {
+  const simple_allocator* allocator_;
+  uint8_t* ptr_;
+  void Move(unique_ptr_deleter& o) {
+    allocator_ = o.allocator_;
+    ptr_ = o.ptr_;
+    o.allocator_ = nullptr;
+    o.ptr_ = nullptr;
+  }
+  unique_ptr_deleter(unique_ptr_deleter& );
+  unique_ptr_deleter& operator=(const unique_ptr_deleter&);
+
+public:
+  unique_ptr_deleter() : allocator_(nullptr), ptr_(nullptr) {}
+  unique_ptr_deleter(unique_ptr_deleter&& o) {
+    Move(o);
+  }
+  unique_ptr_deleter& operator=(unique_ptr_deleter&& o) {
+    Move(o);
+    return *this;
+  }
+  unique_ptr_deleter(const simple_allocator* allocator, uint8_t* ptr) :
+    allocator_(allocator), ptr_(ptr) {}
+
+  void operator()(uint8_t* /* unused */)  {
+    if (ptr_) {
+      custom_free(allocator_, ptr_);
+      ptr_ = nullptr;
+    }
+  }
+};
+
+typedef std::unique_ptr<uint8_t, unique_ptr_deleter> unique_ptr_t;
+
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
@@ -428,34 +478,32 @@ class simple_allocator {
 class vector_downward {
  public:
   explicit vector_downward(size_t initial_size,
-                           const simple_allocator &allocator)
+                           const simple_allocator *allocator)
     : reserved_(initial_size),
-      buf_(allocator.allocate(reserved_)),
+      buf_(custom_allocate(allocator, reserved_)),
       cur_(buf_ + reserved_),
       allocator_(allocator) {
     assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
   ~vector_downward() {
-    if (buf_)
-      allocator_.deallocate(buf_);
+    if (buf_) {
+      custom_free(allocator_, buf_);
+    }
   }
 
   void clear() {
-    if (buf_ == nullptr)
-      buf_ = allocator_.allocate(reserved_);
-
+    if (buf_ == nullptr) {
+      buf_ = custom_allocate(allocator_, reserved_);
+    }
     cur_ = buf_ + reserved_;
   }
 
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
     // Actually deallocate from the start of the allocated memory.
-    std::function<void(uint8_t *)> deleter(
-      std::bind(&simple_allocator::deallocate, allocator_, buf_));
-
     // Point to the desired offset.
-    unique_ptr_t retval(data(), deleter);
+    unique_ptr_t retval(data(), unique_ptr_deleter(allocator_, buf_));
 
     // Don't deallocate when this instance is destroyed.
     buf_ = nullptr;
@@ -475,11 +523,11 @@ class vector_downward {
       reserved_ += (std::max)(len, growth_policy(reserved_));
       // Round up to avoid undefined behavior from unaligned loads and stores.
       reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
-      auto new_buf = allocator_.allocate(reserved_);
+      auto new_buf = custom_allocate(allocator_, reserved_);
       auto new_cur = new_buf + reserved_ - old_size;
       memcpy(new_cur, cur_, old_size);
       cur_ = new_cur;
-      allocator_.deallocate(buf_);
+      custom_free(allocator_, buf_);
       buf_ = new_buf;
     }
     cur_ -= len;
@@ -523,7 +571,7 @@ class vector_downward {
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
-  const simple_allocator &allocator_;
+  const simple_allocator *allocator_;
 };
 
 // Converts a Field ID to a virtual table offset.
@@ -564,7 +612,7 @@ FLATBUFFERS_FINAL_CLASS
   /// be used.
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
                              const simple_allocator *allocator = nullptr)
-      : buf_(initial_size, allocator ? *allocator : default_allocator),
+      : buf_(initial_size, allocator),
         nested(false), finished(false), minalign_(1), force_defaults_(false) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
@@ -1029,8 +1077,6 @@ FLATBUFFERS_FINAL_CLASS
     uoffset_t off;
     voffset_t id;
   };
-
-  simple_allocator default_allocator;
 
   vector_downward buf_;
 

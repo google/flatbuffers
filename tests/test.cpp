@@ -77,9 +77,24 @@ uint32_t lcg_rand() {
 }
 void lcg_reset() { lcg_seed = 48271; }
 
+
+struct MyCustomAllocator : public flatbuffers::simple_allocator
+{
+  virtual uint8_t *allocate(size_t size) const {
+    uint8_t* p = (uint8_t*)malloc(size);
+    //printf("CustomAlloc(%p, %u)\n", p, (uint32_t)size);
+    return p;
+  }
+  virtual void deallocate(uint8_t *p) const {
+    //printf("CustomFree(%p)\n", p);
+    free(p);
+  }
+};
+
 // example of how to build up a serialized buffer algorithmically:
-flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
-  flatbuffers::FlatBufferBuilder builder;
+flatbuffers::unique_ptr_t CreateFlatBufferTest(MyCustomAllocator& customAlloc,
+   std::string &buffer) {
+  flatbuffers::FlatBufferBuilder builder(1024, &customAlloc);
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
 
@@ -847,9 +862,9 @@ void UnknownFieldsTest() {
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
-
+  MyCustomAllocator customAllocator;
   std::string rawbuf;
-  auto flatbuf = CreateFlatBufferTest(rawbuf);
+  auto flatbuf = CreateFlatBufferTest(customAllocator, rawbuf);
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
   AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
