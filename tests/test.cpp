@@ -836,10 +836,13 @@ void UnknownFieldsTest() {
   TEST_EQ(parser.Parse("table T { str:string; i:int;}"
                        "root_type T;"
                        "{ str:\"test\","
+                       "unknown_string:\"test\","
+                       "\"unknown_string\":\"test\","
                        "unknown_int:10,"
                        "unknown_float:1.0,"
                        "unknown_array: [ 1, 2, 3, 4],"
                        "unknown_object: { i: 10 },"
+                       "\"unknown_object\": { \"i\": 10 },"
                        "i:10}"), true);
 
   std::string jsongen;

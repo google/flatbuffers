@@ -1557,8 +1557,12 @@ CheckedError Parser::SkipJsonObject() {
   for (;;) {
     if ((!opts.strict_json || !fieldn) && Is('}')) break;
 
-    if (!Is(kTokenStringConstant))
+    if (!Is(kTokenStringConstant)) {
       EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+    }
+    else {
+      NEXT();
+    }
 
     EXPECT(':');
     ECHECK(SkipAnyJsonValue());

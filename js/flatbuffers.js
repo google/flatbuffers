@@ -89,6 +89,16 @@ flatbuffers.Long = function(low, high) {
 };
 
 /**
+ * @param {number} high
+ * @param {number} low
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.Long.create = function(low, high) {
+  // Special-case zero to avoid GC overhead for default values
+  return low == 0 && high == 0 ? flatbuffers.Long.ZERO : new flatbuffers.Long(low, high);
+};
+
+/**
  * @returns {number}
  */
 flatbuffers.Long.prototype.toFloat64 = function() {
@@ -751,6 +761,17 @@ flatbuffers.Builder.prototype.createString = function(s) {
   }
   return this.endVector();
 };
+
+/**
+ * A helper function to avoid generated code depending on this file directly.
+ *
+ * @param {number} low
+ * @param {number} high
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.Builder.prototype.createLong = function(low, high) {
+  return flatbuffers.Long.create(low, high);
+};
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
@@ -1099,6 +1120,17 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
     }
   }
   return true;
+};
+
+/**
+ * A helper function to avoid generated code depending on this file directly.
+ *
+ * @param {number} low
+ * @param {number} high
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
+  return flatbuffers.Long.create(low, high);
 };
 
 // Exports for Node.js and RequireJS
