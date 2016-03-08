@@ -470,7 +470,7 @@ private:
                                           BaseType req, bool *destmatch);
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR ParseSingleValue(Value &e);
-  FLATBUFFERS_CHECKED_ERROR ParseIntegerFromString(Type &type, int64_t *result);
+  FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);

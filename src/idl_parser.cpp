@@ -209,6 +209,10 @@ CheckedError Parser::SkipByteOrderMark() {
   return NoError();
 }
 
+bool IsIdentifierStart(char c) {
+  return isalpha(static_cast<unsigned char>(c)) || c == '_';
+}
+
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
@@ -288,7 +292,7 @@ CheckedError Parser::Next() {
         }
         // fall thru
       default:
-        if (isalpha(static_cast<unsigned char>(c)) || c == '_') {
+        if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (isalnum(static_cast<unsigned char>(*cursor_)) ||
@@ -880,7 +884,7 @@ CheckedError Parser::TryTypedValue(int dtoken, bool check, Value &e,
   return NoError();
 }
 
-CheckedError Parser::ParseIntegerFromString(Type &type, int64_t *result) {
+CheckedError Parser::ParseEnumFromString(Type &type, int64_t *result) {
   *result = 0;
   // Parse one or more enum identifiers, separated by spaces.
   const char *next = attribute_.c_str();
@@ -950,10 +954,22 @@ CheckedError Parser::ParseSingleValue(Value &e) {
   if (e.type.base_type != BASE_TYPE_STRING &&
       e.type.base_type != BASE_TYPE_NONE &&
       (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
-    int64_t val;
-    ECHECK(ParseIntegerFromString(e.type, &val));
-    e.constant = NumToString(val);
-    NEXT();
+    if (IsIdentifierStart(attribute_[0])) {  // Enum value.
+      int64_t val;
+      ECHECK(ParseEnumFromString(e.type, &val));
+      e.constant = NumToString(val);
+      NEXT();
+    } else {  // Numeric constant in string.
+      if (IsInteger(e.type.base_type)) {
+        // TODO(wvo): do we want to check for garbage after the number?
+        e.constant = NumToString(StringToInt(attribute_.c_str()));
+      } else if (IsFloat(e.type.base_type)) {
+        e.constant = NumToString(strtod(attribute_.c_str(), nullptr));
+      } else {
+        assert(0);  // Shouldn't happen, we covered all types.
+        e.constant = "0";
+      }
+    }
   } else {
     bool match = false;
     ECHECK(TryTypedValue(kTokenIntegerConstant,
