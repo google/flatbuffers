@@ -152,7 +152,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(FileExtension, 268, "file_extension") \
   TD(Include, 269, "include") \
   TD(Attribute, 270, "attribute") \
-  TD(Null, 271, "null")
+  TD(Null, 271, "null") \
+  TD(Service, 272, "rpc_service")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -358,6 +359,10 @@ CheckedError Parser::Next() {
           }
           if (attribute_ == "null") {
             token_ = kTokenNull;
+            return NoError();
+          }
+          if (attribute_ == "rpc_service") {
+            token_ = kTokenService;
             return NoError();
           }
           // If not, it is a user-defined identifier:
@@ -1243,6 +1248,45 @@ CheckedError Parser::ParseDecl() {
   return NoError();
 }
 
+CheckedError Parser::ParseService() {
+  std::vector<std::string> service_comment = doc_comment_;
+  NEXT();
+  auto service_name = attribute_;
+  EXPECT(kTokenIdentifier);
+  auto &service_def = *new ServiceDef();
+  service_def.name = service_name;
+  service_def.file = file_being_parsed_;
+  service_def.doc_comment = service_comment;
+  service_def.defined_namespace = namespaces_.back();
+  if (services_.Add(namespaces_.back()->GetFullyQualifiedName(service_name),
+                    &service_def))
+    return Error("service already exists: " + service_name);
+  ECHECK(ParseMetaData(service_def));
+  EXPECT('{');
+  do {
+    auto rpc_name = attribute_;
+    EXPECT(kTokenIdentifier);
+    EXPECT('(');
+    Type reqtype, resptype;
+    ECHECK(ParseTypeIdent(reqtype));
+    EXPECT(')');
+    EXPECT(':');
+    ECHECK(ParseTypeIdent(resptype));
+    if (reqtype.base_type != BASE_TYPE_STRUCT || reqtype.struct_def->fixed ||
+        resptype.base_type != BASE_TYPE_STRUCT || resptype.struct_def->fixed)
+        return Error("rpc request and response types must be tables");
+    auto &rpc = *new RPCCall();
+    rpc.name = rpc_name;
+    rpc.request = reqtype.struct_def;
+    rpc.response = resptype.struct_def;
+    if (service_def.calls.Add(rpc_name, &rpc))
+      return Error("rpc already exists: " + rpc_name);
+    EXPECT(';');
+  } while (token_ != '}');
+  NEXT();
+  return NoError();
+}
+
 bool Parser::SetRootType(const char *name) {
   root_struct_def_ = structs_.Lookup(name);
   if (!root_struct_def_)
@@ -1739,6 +1783,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       EXPECT(kTokenStringConstant);
       EXPECT(';');
       known_attributes_.insert(name);
+    } else if (token_ == kTokenService) {
+      ECHECK(ParseService());
     } else {
       ECHECK(ParseDecl());
     }

@@ -61,6 +61,11 @@ table Monster {
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
 }
 
+rpc_service MonsterStorage {
+  Store(Monster):Stat;
+  Retrieve(Stat):Monster;
+}
+
 root_type Monster;
 
 file_identifier "MONS";

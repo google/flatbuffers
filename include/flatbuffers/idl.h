@@ -306,6 +306,15 @@ struct EnumDef : public Definition {
   Type underlying_type;
 };
 
+struct RPCCall {
+  std::string name;
+  StructDef *request, *response;
+};
+
+struct ServiceDef : public Definition {
+  SymbolTable<RPCCall> calls;
+};
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   bool strict_json;
@@ -479,6 +488,7 @@ private:
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseDecl();
+  FLATBUFFERS_CHECKED_ERROR ParseService();
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
@@ -501,6 +511,7 @@ private:
  public:
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
+  SymbolTable<ServiceDef> services_;
   std::vector<Namespace *> namespaces_;
   std::string error_;         // User readable error_ if Parse() == false
 

@@ -225,6 +225,20 @@ This declaration in the schema will change that to whatever you want:
 
     file_extension "ext";
 
+### RPC interface declarations
+
+You can declare RPC calls in a schema, that define a set of functions
+that take a FlatBuffer as an argument (the request) and return a FlatBuffer
+as the response (both of which must be table types):
+
+    rpc_service MonsterStorage {
+      Store(Monster):StoreResponse;
+      Retrieve(MonsterId):Monster;
+    }
+
+What code this produces and how it is used depends on language and RPC system
+used, FlatBuffers itself does not offer this functionality.
+
 ### Comments & documentation
 
 May be written as in most C-based languages. Additionally, a triple
