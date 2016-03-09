@@ -401,7 +401,7 @@ class Builder(object):
 
         if isinstance(s, compat.string_types):
             x = s.encode(encoding, errors)
-        elif isinstance(s, compat.binary_type):
+        elif isinstance(s, compat.binary_types):
             x = s
         else:
             raise TypeError("non-string passed to CreateString")
