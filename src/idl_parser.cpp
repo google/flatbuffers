@@ -556,7 +556,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           field->value.constant);
 
   field->doc_comment = dc;
-  ECHECK(ParseMetaData(*field));
+  ECHECK(ParseMetaData(&field->attributes));
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
@@ -846,7 +846,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
   return NoError();
 }
 
-CheckedError Parser::ParseMetaData(Definition &def) {
+CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   if (Is('(')) {
     NEXT();
     for (;;) {
@@ -856,7 +856,7 @@ CheckedError Parser::ParseMetaData(Definition &def) {
         return Error("user define attributes must be declared before use: " +
                      name);
       auto e = new Value();
-      def.attributes.Add(name, e);
+      attributes->Add(name, e);
       if (Is(':')) {
         NEXT();
         ECHECK(ParseSingleValue(*e));
@@ -1089,7 +1089,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     // Make this type refer back to the enum it was derived from.
     enum_def.underlying_type.enum_def = &enum_def;
   }
-  ECHECK(ParseMetaData(enum_def));
+  ECHECK(ParseMetaData(&enum_def.attributes));
   EXPECT('{');
   if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
   for (;;) {
@@ -1195,7 +1195,7 @@ CheckedError Parser::ParseDecl() {
   ECHECK(StartStruct(name, &struct_def));
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
-  ECHECK(ParseMetaData(*struct_def));
+  ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
     struct_def->attributes.Lookup("original_order") == nullptr && !fixed;
   EXPECT('{');
@@ -1261,7 +1261,7 @@ CheckedError Parser::ParseService() {
   if (services_.Add(namespaces_.back()->GetFullyQualifiedName(service_name),
                     &service_def))
     return Error("service already exists: " + service_name);
-  ECHECK(ParseMetaData(service_def));
+  ECHECK(ParseMetaData(&service_def.attributes));
   EXPECT('{');
   do {
     auto rpc_name = attribute_;
@@ -1281,6 +1281,7 @@ CheckedError Parser::ParseService() {
     rpc.response = resptype.struct_def;
     if (service_def.calls.Add(rpc_name, &rpc))
       return Error("rpc already exists: " + rpc_name);
+    ECHECK(ParseMetaData(&rpc.attributes));
     EXPECT(';');
   } while (token_ != '}');
   NEXT();

@@ -308,6 +308,7 @@ struct EnumDef : public Definition {
 
 struct RPCCall {
   std::string name;
+  SymbolTable<Value> attributes;
   StructDef *request, *response;
 };
 
@@ -413,6 +414,8 @@ class Parser {
     known_attributes_.insert("original_order");
     known_attributes_.insert("nested_flatbuffer");
     known_attributes_.insert("csharp_partial");
+    known_attributes_.insert("stream");
+    known_attributes_.insert("idempotent");
   }
 
   ~Parser() {
@@ -474,7 +477,7 @@ private:
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
-  FLATBUFFERS_CHECKED_ERROR ParseMetaData(Definition &def);
+  FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
   FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
                                           BaseType req, bool *destmatch);
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
