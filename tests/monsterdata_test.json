@@ -21,7 +21,8 @@
   ],
   test_type: Monster,
   test: {
-    name: "Fred"
+    name: "Fred",
+    pos: null
   },
   test4: [
     {
@@ -29,14 +30,17 @@
       b: 20
     },
     {
-      a: 30,
-      b: 40
+      b: 40,
+      a: 30
     }
   ],
   testarrayofstring: [
     "test1",
     "test2"
   ],
+  enemy: {
+    name: "Fred"
+  },
   testarrayofbools:[
     true, false, true
   ],

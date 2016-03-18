@@ -7,6 +7,7 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
+@SuppressWarnings("unused")
 public final class TestSimpleTableWithEnum extends Table {
   public static TestSimpleTableWithEnum getRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return getRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
   public static TestSimpleTableWithEnum getRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__init(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }

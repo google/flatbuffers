@@ -23,7 +23,7 @@ include $(CLEAR_VARS)
 # Include the FlatBuffer utility function to generate header files from schemas.
 include $(FLATBUFFERS_ROOT_DIR)/android/jni/include.mk
 
-LOCAL_MODULE := sample_android_project
+LOCAL_MODULE := FlatBufferSample
 
 # Set up some useful variables to identify schema and output directories and
 # schema files.
