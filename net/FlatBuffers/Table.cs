@@ -27,6 +27,8 @@ namespace FlatBuffers
         protected int bb_pos;
         protected ByteBuffer bb;
 
+        public ByteBuffer ByteBuffer { get { return bb; } }
+
         // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
         // present.
         protected int __offset(int vtableOffset)
@@ -63,6 +65,21 @@ namespace FlatBuffers
         {
             offset += bb_pos;
             return offset + bb.GetInt(offset) + sizeof(int);  // data starts after the length
+        }
+
+        // Get the data of a vector whoses offset is stored at "offset" in this object as an
+        // ArraySegment&lt;byte&gt;. If the vector is not present in the ByteBuffer,
+        // then a null value will be returned.
+        protected ArraySegment<byte>? __vector_as_arraysegment(int offset) {
+            var o = this.__offset(offset);
+            if (0 == o)
+            {
+                return null;
+            }
+
+            var pos = this.__vector(o);
+            var len = this.__vector_len(o);
+            return new ArraySegment<byte>(this.bb.Data, pos, len);
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.
