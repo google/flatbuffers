@@ -70,10 +70,10 @@ func TestAll(t *testing.T) {
 
 	// Verify that panics are raised during exceptional conditions:
 	CheckNotInObjectError(t.Fatalf)
-	CheckObjectIsNestedError(t.Fatalf)
 	CheckStringIsNestedError(t.Fatalf)
 	CheckByteStringIsNestedError(t.Fatalf)
 	CheckStructIsNotInlineError(t.Fatalf)
+	CheckFinishedBytesError(t.Fatalf)
 
 	// Verify that using the generated Go code builds a buffer without
 	// returning errors:
@@ -1113,20 +1113,6 @@ func CheckNotInObjectError(fail func(string, ...interface{})) {
 	b.EndObject()
 }
 
-// CheckObjectIsNestedError verifies that an object can not be created inside
-// another object.
-func CheckObjectIsNestedError(fail func(string, ...interface{})) {
-	b := flatbuffers.NewBuilder(0)
-	b.StartObject(0)
-	defer func() {
-		r := recover()
-		if r == nil {
-			fail("expected panic in CheckObjectIsNestedError")
-		}
-	}()
-	b.StartObject(0)
-}
-
 // CheckStringIsNestedError verifies that a string can not be created inside
 // another object.
 func CheckStringIsNestedError(fail func(string, ...interface{})) {
@@ -1167,6 +1153,20 @@ func CheckStructIsNotInlineError(fail func(string, ...interface{})) {
 		}
 	}()
 	b.PrependStructSlot(0, 1, 0)
+}
+
+// CheckFinishedBytesError verifies that `FinishedBytes` panics if the table
+// is not finished.
+func CheckFinishedBytesError(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			fail("expected panic in CheckFinishedBytesError")
+		}
+	}()
+	b.FinishedBytes()
 }
 
 // CheckDocExample checks that the code given in FlatBuffers documentation

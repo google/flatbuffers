@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2014 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,8 +152,6 @@ def CheckReadBuffer(buf, offset):
     asserter(monster.TestarrayofstringLength() == 2)
     asserter(monster.Testarrayofstring(0) == b"test1")
     asserter(monster.Testarrayofstring(1) == b"test2")
-
-    asserter(monster.Enemy() is None)
 
     asserter(monster.TestarrayoftablesLength() == 0)
     asserter(monster.TestnestedflatbufferLength() == 0)
@@ -309,7 +308,7 @@ class TestByteLayout(unittest.TestCase):
 
         want_ints = list(map(integerize, want_chars_or_ints))
         want = bytearray(want_ints)
-        got = builder.Output()
+        got = builder.Bytes[builder.Head():] # use the buffer directly
         self.assertEqual(want, got)
 
     def test_numbers(self):
@@ -389,23 +388,36 @@ class TestByteLayout(unittest.TestCase):
 
     def test_create_ascii_string(self):
         b = flatbuffers.Builder(0)
-        b.CreateString(u"foo".encode('ascii'))
+        b.CreateString(u"foo", encoding='ascii')
+
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
-        b.CreateString(u"moop".encode('ascii'))
+        b.CreateString(u"moop", encoding='ascii')
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 'm', 'o', 'o', 'p',
                                      0, 0, 0, 0,
                                      3, 0, 0, 0, 'f', 'o', 'o', 0])
 
+    def test_create_utf8_string(self):
+        b = flatbuffers.Builder(0)
+        b.CreateString(u"Цлїςσδε")
+        self.assertBuilderEquals(b, "\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
+        b.CreateString(u"ﾌﾑｱﾑｶﾓｹﾓ")
+        self.assertBuilderEquals(b, "\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91" \
+            "\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef" \
+            "\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
     def test_create_arbitrary_string(self):
         b = flatbuffers.Builder(0)
-        s = "\x01\x02\x03".encode('utf-8')
-        b.CreateString(s)
+        s = "\x01\x02\x03"
+        b.CreateString(s) # Default encoding is utf-8.
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
-        s2 = "\x04\x05\x06\x07".encode('utf-8')
-        b.CreateString(s2)
+        s2 = "\x04\x05\x06\x07"
+        b.CreateString(s2) # Default encoding is utf-8.
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
@@ -878,24 +890,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b = flatbuffers.Builder(0)
 
         # make a child Monster within a vector of Monsters:
-        MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 1)
-
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddHp(b, 99)
         sub_monster = MyGame.Example.Monster.MonsterEnd(b)
-        b.Finish(sub_monster)
 
-        tables = b.EndVector(1)
+        # build the vector:
+        MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 1)
+        b.PrependUOffsetTRelative(sub_monster)
+        vec = b.EndVector(1)
 
         # make the parent monster and include the vector of Monster:
         MyGame.Example.Monster.MonsterStart(b)
-        MyGame.Example.Monster.MonsterAddTestarrayoftables(b, tables)
+        MyGame.Example.Monster.MonsterAddTestarrayoftables(b, vec)
         mon = MyGame.Example.Monster.MonsterEnd(b)
         b.Finish(mon)
 
         # inspect the resulting data:
-        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Bytes,
-                                                               b.Head())
+        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Output(), 0)
         self.assertEqual(99, mon2.Testarrayoftables(0).Hp())
         self.assertEqual(1, mon2.TestarrayoftablesLength())
 
@@ -1050,7 +1061,7 @@ class TestVtableDeduplication(unittest.TestCase):
         b.PrependInt16Slot(3, 99, 0)
         obj2 = b.EndObject()
 
-        got = b.Output()
+        got = b.Bytes[b.Head():]
 
         want = bytearray([
             240, 255, 255, 255,  # == -12. offset to dedupped vtable.
@@ -1107,17 +1118,16 @@ class TestVtableDeduplication(unittest.TestCase):
 
 
 class TestExceptions(unittest.TestCase):
-    def test_not_in_object_error(self):
-        b = flatbuffers.Builder(0)
-        exc = None
-        assertRaises(self, lambda: b.EndObject(),
-                     flatbuffers.builder.NotInObjectError)
-
     def test_object_is_nested_error(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
         assertRaises(self, lambda: b.StartObject(0),
-                     flatbuffers.builder.ObjectIsNestedError)
+                     flatbuffers.builder.IsNestedError)
+
+    def test_object_is_not_nested_error(self):
+        b = flatbuffers.Builder(0)
+        assertRaises(self, lambda: b.EndObject(),
+                     flatbuffers.builder.IsNotNestedError)
 
     def test_struct_is_not_inline_error(self):
         b = flatbuffers.Builder(0)
@@ -1129,6 +1139,18 @@ class TestExceptions(unittest.TestCase):
         b = flatbuffers.Builder(0)
         assertRaises(self, lambda: b.PrependUOffsetTRelative(1),
                      flatbuffers.builder.OffsetArithmeticError)
+
+    def test_create_string_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = 'test1'
+        assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.IsNestedError)
+
+    def test_finished_bytes_error(self):
+        b = flatbuffers.Builder(0)
+        assertRaises(self, lambda: b.Output(),
+                     flatbuffers.builder.BuilderNotFinishedError)
 
 
 def CheckAgainstGoldDataGo():
@@ -1264,7 +1286,7 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
 
 def backward_compatible_run_tests(**kwargs):
     if PY_VERSION < (2, 6):
-        sys.stderr.write("Python version less than 2.6 are not supported") 
+        sys.stderr.write("Python version less than 2.6 are not supported")
         sys.stderr.flush()
         return False
 
@@ -1277,7 +1299,7 @@ def backward_compatible_run_tests(**kwargs):
                 return False
         return True
 
-    # python2.7 and above let us not exit once unittest.main is run: 
+    # python2.7 and above let us not exit once unittest.main is run:
     kwargs['exit'] = False
     kwargs['verbosity'] = 0
     ret = unittest.main(**kwargs)

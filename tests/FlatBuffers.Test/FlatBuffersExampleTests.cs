@@ -15,10 +15,12 @@
  */
 
 using System.IO;
+using System.Text;
 using MyGame.Example;
 
 namespace FlatBuffers.Test
 {
+    [FlatBuffersTestClass]
     public class FlatBuffersExampleTests
     {
         public void RunTests()
@@ -28,6 +30,7 @@ namespace FlatBuffers.Test
             TestEnums();
         }
 
+        [FlatBuffersTestMethod]
         public void CanCreateNewFlatBufferFromScratch()
         {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
@@ -182,8 +185,21 @@ namespace FlatBuffers.Test
             Assert.AreEqual("test2", monster.GetTestarrayofstring(1));
 
             Assert.AreEqual(false, monster.Testbool);
+
+            var nameBytes = monster.GetNameBytes().Value;
+            Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
+
+            if (0 == monster.TestarrayofboolsLength)
+            {
+                Assert.IsFalse(monster.GetTestarrayofboolsBytes().HasValue);
+            }
+            else
+            {
+                Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
+            }
         }
 
+        [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
@@ -191,12 +207,52 @@ namespace FlatBuffers.Test
             TestBuffer(bb);
         }
 
+        [FlatBuffersTestMethod]
         public void TestEnums()
         {
             Assert.AreEqual("Red", Color.Red.ToString());
             Assert.AreEqual("Blue", Color.Blue.ToString());
             Assert.AreEqual("NONE", Any.NONE.ToString());
             Assert.AreEqual("Monster", Any.Monster.ToString());
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestNestedFlatBuffer()
+        {
+            const string nestedMonsterName = "NestedMonsterName";
+            const short nestedMonsterHp = 600;
+            const short nestedMonsterMana = 1024;
+            // Create nested buffer as a Monster type
+            var fbb1 = new FlatBufferBuilder(16);
+            var str1 = fbb1.CreateString(nestedMonsterName);
+            Monster.StartMonster(fbb1);
+            Monster.AddName(fbb1, str1);
+            Monster.AddHp(fbb1, nestedMonsterHp);
+            Monster.AddMana(fbb1, nestedMonsterMana);
+            var monster1 = Monster.EndMonster(fbb1);
+            Monster.FinishMonsterBuffer(fbb1, monster1);
+            var fbb1Bytes = fbb1.SizedByteArray();
+            fbb1 = null;
+
+            // Create a Monster which has the first buffer as a nested buffer
+            var fbb2 = new FlatBufferBuilder(16);
+            var str2 = fbb2.CreateString("My Monster");
+            var nestedBuffer = Monster.CreateTestnestedflatbufferVector(fbb2, fbb1Bytes);
+            Monster.StartMonster(fbb2);
+            Monster.AddName(fbb2, str2);
+            Monster.AddHp(fbb2, 50);
+            Monster.AddMana(fbb2, 32);
+            Monster.AddTestnestedflatbuffer(fbb2, nestedBuffer);
+            var monster = Monster.EndMonster(fbb2);
+            Monster.FinishMonsterBuffer(fbb2, monster);
+            
+            // Now test the data extracted from the nested buffer
+            var mons = Monster.GetRootAsMonster(fbb2.DataBuffer);
+            var nestedMonster = mons.TestnestedflatbufferAsMonster();
+
+            Assert.AreEqual(nestedMonsterMana, nestedMonster.Mana);
+            Assert.AreEqual(nestedMonsterHp, nestedMonster.Hp);
+            Assert.AreEqual(nestedMonsterName, nestedMonster.Name);
         }
     }
 }
