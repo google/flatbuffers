@@ -750,6 +750,7 @@ INPUT = "FlatBuffers.md" \
         "Compiler.md" \
         "Schemas.md" \
         "CppUsage.md" \
+        "CUsage.md" \
         "GoUsage.md" \
         "JavaCsharpUsage.md" \
         "JavaScriptUsage.md" \

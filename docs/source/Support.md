@@ -20,17 +20,17 @@ NOTE: this table is a start, it needs to be extended.
 
 Feature                        | C++    | Java   | C#     | Go     | Python | JS        | C    | PHP | Ruby
 ------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | ---- | --- | ----
-Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | WiP  | WiP | WiP
-JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No   | No  | No
+Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes  | WiP | WiP
+JSON parsing                   | Yes    | No     | No     | No     | No     | No        | Yes  | No  | No
 Simple mutation                | Yes    | WIP    | WIP    | No     | No     | No        | No   | No  | No
-Reflection                     | Yes    | No     | No     | No     | No     | No        | No   | No  | No
-Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No   | No  | No
-Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | ?    | ?   | ?
-Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | ?    | ?   | ?
+Reflection                     | Yes    | No     | No     | No     | No     | No        | Basic| No  | No
+Buffer verifier                | Yes    | No     | No     | No     | No     | No        | Yes  | No  | No
+Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes  | ?   | ?
+Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No   | ?   | ?
 Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         |Superb| ?   | ?
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | ?    | ?   | ?
-Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | ?    | ?   | ?
-Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | ?    | ?   | ?
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | No   | ?   | ?
+Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes  | ?   | ?
+Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes  | ?   | ?
 Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?    | ?   | ?
 Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?    | ?   | ?
 Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?    | ?   | ?
