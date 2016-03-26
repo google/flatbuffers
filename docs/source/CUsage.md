@@ -15,8 +15,8 @@ project.
 
 - [Tutorial](@ref flatbuffers_guide_tutorial) - select C as language
   when scrolling down
-- General Use in C (the README) <https://github.com/dvidelabs/flatcc/blob/master/README.md>
-- The C Builder Interface, advanced <https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md>
+- General Use in C (README) <https://github.com/dvidelabs/flatcc/blob/master/README.md>
+- The C Builder Interface (advanced) <https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md>
 
 
 ## Basic Reflection
@@ -25,7 +25,7 @@ The C-API does support reading binary schema (.bfbs)
 files via code generated from the `reflection.fbs` schema, and an
 [example usage](https://github.com/dvidelabs/flatcc/tree/master/samples/reflection)
 shows how to use this. The schema files are pre-generated
-in the [runtime distribution](https://github.com/dvidelabs/flatcc/tree/master/include/flatcc/reflection). Extended reflection
+in the [runtime distribution](https://github.com/dvidelabs/flatcc/tree/master/include/flatcc/reflection).
 
 
 ## Mutating Reflection
@@ -37,9 +37,12 @@ buffers using complex objects from existing buffers as source. This can
 be very efficient due to direct copy semantics without endian conversion or
 temporary stack allocation.
 
+Scalars, structs and strings can be used as source, as well vectors of
+these.
+
 It is currently not possible to use an existing table or vector of table
 as source, but it would be possible to add support for this at some
-point.
+point. Vectors of strings
 
 
 ## Why not integrate with the `flatc` tool?

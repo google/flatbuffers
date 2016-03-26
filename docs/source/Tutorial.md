@@ -1293,7 +1293,7 @@ like so:
   // The returned buffer must be deallocated using `free`.
   // NOTE: Finalizing the buffer does NOT change the builder, it
   // just creates a snapshot of the builder content.
-  buf = flatcc_builder_finalize_buffer(&builder, &size);
+  buf = flatcc_builder_finalize_buffer(B, &size);
   // use buf
   free(buf);
 
