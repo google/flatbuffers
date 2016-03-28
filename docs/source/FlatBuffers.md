@@ -131,7 +131,7 @@ sections provide a more in-depth usage guide.
     in your own programs.
 -   How to [use the generated Go code](@ref flatbuffers_guide_use_go) in your
     own programs.
--   How to [use the generated C code](@ref flatbuffers_guide_use_c) in your
+-   How to [use FlatBuffers in C with `flatcc`](@ref flatbuffers_guide_use_c) in your
     own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of

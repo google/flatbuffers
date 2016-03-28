@@ -28,7 +28,7 @@ Buffer verifier                | Yes    | No     | No     | No     | No     | No
 Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes  | ?   | ?
 Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No   | ?   | ?
 Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         |Superb| ?   | ?
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | No   | ?   | ?
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | ?    | ?   | ?
 Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes  | ?   | ?
 Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes  | ?   | ?
 Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?    | ?   | ?
