@@ -91,6 +91,14 @@
 #else
   #define FLATBUFFERS_FINAL_CLASS
 #endif
+
+#if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406))
+  #define FLATBUFFERS_CONSTEXPR constexpr
+#else
+  #define FLATBUFFERS_CONSTEXPR
+#endif
+
 /// @endcond
 
 /// @file

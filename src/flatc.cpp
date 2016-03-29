@@ -96,31 +96,32 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
                : "  ",
              generators[i].generator_help);
     printf(
-      "  -o PATH         Prefix PATH to all generated files.\n"
-      "  -I PATH         Search for includes in the specified path.\n"
-      "  -M              Print make rules for generated files.\n"
-      "  --version       Print the version number of flatc and exit.\n"
-      "  --strict-json   Strict JSON: field names must be / will be quoted,\n"
-      "                  no trailing commas in tables/vectors.\n"
-      "  --defaults-json Output fields whose value is the default when\n"
-      "                  writing JSON\n"
-      "  --unknown-json  Allow fields in JSON that are not defined in the\n"
-      "                  schema. These fields will be discared when generating\n"
-      "                  binaries.\n"
-      "  --no-prefix     Don\'t prefix enum values with the enum type in C++.\n"
-      "  --scoped-enums  Use C++11 style scoped and strongly typed enums.\n"
-      "                  also implies --no-prefix.\n"
-      "  --gen-includes  (deprecated), this is the default behavior.\n"
-      "                  If the original behavior is required (no include\n"
-      "                  statements) use --no-includes.\n"
-      "  --no-includes   Don\'t generate include statements for included\n"
-      "                  schemas the generated file depends on (C++).\n"
-      "  --gen-mutable   Generate accessors that can mutate buffers in-place.\n"
-      "  --gen-onefile   Generate single output file for C#\n"
-      "  --raw-binary    Allow binaries without file_indentifier to be read.\n"
-      "                  This may crash flatc given a mismatched schema.\n"
-      "  --proto         Input is a .proto, translate to .fbs.\n"
-      "  --schema        Serialize schemas instead of JSON (use with -b)\n"
+      "  -o PATH            Prefix PATH to all generated files.\n"
+      "  -I PATH            Search for includes in the specified path.\n"
+      "  -M                 Print make rules for generated files.\n"
+      "  --version          Print the version number of flatc and exit.\n"
+      "  --strict-json      Strict JSON: field names must be / will be quoted,\n"
+      "                     no trailing commas in tables/vectors.\n"
+      "  --defaults-json    Output fields whose value is the default when\n"
+      "                     writing JSON\n"
+      "  --unknown-json     Allow fields in JSON that are not defined in the\n"
+      "                     schema. These fields will be discared when generating\n"
+      "                     binaries.\n"
+      "  --no-prefix        Don\'t prefix enum values with the enum type in C++.\n"
+      "  --scoped-enums     Use C++11 style scoped and strongly typed enums.\n"
+      "                     also implies --no-prefix.\n"
+      "  --gen-includes     (deprecated), this is the default behavior.\n"
+      "                     If the original behavior is required (no include\n"
+      "                     statements) use --no-includes.\n"
+      "  --no-includes      Don\'t generate include statements for included\n"
+      "                     schemas the generated file depends on (C++).\n"
+      "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
+      "  --gen-onefile      Generate single output file for C#\n"
+      "  --gen-name-strings Generate type name functions for C++.\n"
+      "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
+      "                     This may crash flatc given a mismatched schema.\n"
+      "  --proto            Input is a .proto, translate to .fbs.\n"
+      "  --schema           Serialize schemas instead of JSON (use with -b)\n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -171,6 +172,8 @@ int main(int argc, const char *argv[]) {
         opts.scoped_enums = true;
       } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
+      } else if(arg == "--gen-name-strings") {
+        opts.generate_name_strings = true;
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
