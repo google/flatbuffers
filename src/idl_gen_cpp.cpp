@@ -267,6 +267,14 @@ std::string GenFieldOffsetName(const FieldDef &field) {
   return "VT_" + uname;
 }
 
+static void GenFullyQualifiedNameGetter(const Parser &parser, const std::string& name, std::string &code) {
+  if (parser.opts.generate_name_strings) {
+    code += "  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {\n";
+    code += "    return \"" + parser.namespaces_.back()->GetFullyQualifiedName(name) + "\";\n";
+    code += "  }\n";
+  }
+}
+
 // Generate an accessor struct, builder structs & function for a table.
 static void GenTable(const Parser &parser, StructDef &struct_def,
                      std::string *code_ptr) {
@@ -277,6 +285,8 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
   code += "struct " + struct_def.name;
   code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
   code += " {\n";
+  // Generate GetFullyQualifiedName
+  GenFullyQualifiedNameGetter(parser, struct_def.name, code);
   // Generate field id constants.
   if (struct_def.fields.vec.size() > 0) {
     code += "  enum {\n";
@@ -583,8 +593,12 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     GenPadding(field, code, padding_id, PaddingDefinition);
   }
 
+  // Generate GetFullyQualifiedName
+  code += "\n public:\n";
+  GenFullyQualifiedNameGetter(parser, struct_def.name, code);
+
   // Generate a constructor that takes all fields as arguments.
-  code += "\n public:\n  " + struct_def.name + "(";
+  code += "  " + struct_def.name + "(";
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
