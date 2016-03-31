@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #ifdef _WIN32
