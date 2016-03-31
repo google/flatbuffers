@@ -111,6 +111,9 @@ typedef uint16_t voffset_t;
 
 typedef uintmax_t largest_scalar_t;
 
+// In 32bits, this evaluates to 2GB - 1
+#define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(soffset_t) * 8 - 1)) - 1)
+
 // Pointer to relinquished memory.
 typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
           unique_ptr_t;
@@ -486,7 +489,7 @@ class vector_downward {
     cur_ -= len;
     // Beyond this, signed offsets may not have enough range:
     // (FlatBuffers > 2GB not supported).
-    assert(size() < (1UL << (sizeof(soffset_t) * 8 - 1)) - 1);
+    assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
     return cur_;
   }
 
@@ -1162,7 +1165,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
-    return Check(elem_len <= (size_t) (end_ - buf_) && elem >= buf_ && elem <= end_ - elem_len);
+    return Check(elem_len <= (size_t) (end_ - buf_) &&
+                 elem >= buf_ &&
+                 elem <= end_ - elem_len);
   }
 
   // Verify a range indicated by sizeof(T).
@@ -1205,6 +1210,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // Check the whole array. If this is a string, the byte past the array
     // must be 0.
     auto size = ReadScalar<uoffset_t>(vec);
+    auto max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;
+    Check(size < max_elems);  // Protect against byte_size overflowing.
     auto byte_size = sizeof(size) + elem_size * size;
     *end = vec + byte_size;
     return Verify(vec, byte_size);
