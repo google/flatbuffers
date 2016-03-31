@@ -33,7 +33,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := flatbuffers_extra
 LOCAL_SRC_FILES := src/idl_parser.cpp \
                    src/idl_gen_text.cpp \
-                   src/reflection.cpp
+                   src/reflection.cpp \
+                   src/util.cpp
 LOCAL_STATIC_LIBRARIES := flatbuffers
 include $(BUILD_STATIC_LIBRARY)
 

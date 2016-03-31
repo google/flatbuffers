@@ -111,33 +111,24 @@ inline int64_t StringToUInt(const char *str, int base = 10) {
   #endif
 }
 
+typedef bool (*LoadFileFunction)(const char *filename, bool binary,
+                                 std::string *dest);
+typedef bool (*FileExistsFunction)(const char *filename);
+
+LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function);
+
+FileExistsFunction SetFileExistsFunction(FileExistsFunction
+                                         file_exists_function);
+
+
 // Check if file "name" exists.
-inline bool FileExists(const char *name) {
-  std::ifstream ifs(name);
-  return ifs.good();
-}
+bool FileExists(const char *name);
 
 // Load file "name" into "buf" returning true if successful
 // false otherwise.  If "binary" is false data is read
 // using ifstream's text mode, otherwise data is read with
 // no transcoding.
-inline bool LoadFile(const char *name, bool binary, std::string *buf) {
-  std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
-  if (!ifs.is_open()) return false;
-  if (binary) {
-    // The fastest way to read a file into a string.
-    ifs.seekg(0, std::ios::end);
-    (*buf).resize(static_cast<size_t>(ifs.tellg()));
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(&(*buf)[0], (*buf).size());
-  } else {
-    // This is slower, but works correctly on all platforms for text files.
-    std::ostringstream oss;
-    oss << ifs.rdbuf();
-    *buf = oss.str();
-  }
-  return !ifs.bad();
-}
+bool LoadFile(const char *name, bool binary, std::string *buf);
 
 // Save data "buf" of length "len" bytes into a file
 // "name" returning true if successful, false otherwise.
