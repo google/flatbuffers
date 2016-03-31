@@ -534,7 +534,7 @@ class vector_downward {
 inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
   const int fixed_fields = 2;  // Vtable size and Object Size.
-  return (field_id + fixed_fields) * sizeof(voffset_t);
+  return static_cast<voffset_t>((field_id + fixed_fields) * sizeof(voffset_t));
 }
 
 // Computes how many bytes you'd have to pad to be able to write an
@@ -715,7 +715,7 @@ FLATBUFFERS_FINAL_CLASS
     Align(sizeof(uoffset_t));
     // Offset must refer to something already in buffer.
     assert(off && off <= GetSize());
-    return GetSize() - off + sizeof(uoffset_t);
+    return GetSize() - off + static_cast<uoffset_t>(sizeof(uoffset_t));
   }
 
   void NotNested() {
