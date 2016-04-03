@@ -7,7 +7,7 @@ The `flatcc` C schema compiler can generate code offline as well as
 online via a C library. It can also generate buffer verifiers and fast
 JSON parsers, printers.
 
-Great effort has been made to ensure compatibily with the main `flatc`
+Great care has been taken to ensure compatibily with the main `flatc`
 project.
 
 
@@ -21,13 +21,16 @@ project.
 
 ## Supported Platforms
 
-Ubuntu and OS-X are regularly tested during releases. Centos 7.1
-has also been tested. Cross compilation to little-endian ARM has been
-reported to work with warnings.
+Not all platforms are tested regularly but the following platforms have
+all successfully built and passed all tests:
 
-Windows has not been tested. The `include/flatcc/portable` library is
-intended to abstract platform differences, including Windows. User
-feedback and patches are welcome.
+- 64-bit Ubuntu 14.04, gcc, CMake with Ninja Build or GNU Make
+- 64-bit OS-X 10.11, Apple Clang, CMake with Ninja Build or GNU Make
+- 64-bit Centos 7.1, CMake with GNU Make
+- 32-bit Windows 10, CMake with MSVC 14 2015
+
+ARM cross compilation from Linux has been reported to work to some
+extend.
 
 Big endian platforms have not been tested and may contain bugs, but care
 has been taken to provide support for it.
@@ -167,7 +170,7 @@ point.
 
 The `FLATBUFFERS_WRAP_NAMESPACE` approach used in the tutorial is convenient
 when each function has a very long namespace prefix. But it isn't always
-we the best approach. If the namespace is absent, or very simple and
+the best approach. If the namespace is absent, or simple and
 informative, we might as well use the prefix directly. The
 [reflection example](https://github.com/dvidelabs/flatcc/blob/master/samples/reflection/bfbs2json.c)
 mentioned above uses this approach.
@@ -202,7 +205,7 @@ points in time.
    // or alternatively
    ns(Monster_equipped_Weapon_add(B, axe);
    // or alternatively
-   ns(Monster_equipped_type_add(B, ns(Equipment_Weapon));
+   ns(Monster_equipped_add_type(B, ns(Equipment_Weapon));
    ns(Monster_equipped_add_member(B, axe));
 ~~~
 </div>
