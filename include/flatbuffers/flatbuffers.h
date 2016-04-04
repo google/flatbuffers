@@ -1117,14 +1117,14 @@ FLATBUFFERS_FINAL_CLASS
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
 
   struct StringOffsetCompare {
-    StringOffsetCompare(const vector_downward &buf) : buf_(buf) {}
+    StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
     bool operator() (const Offset<String> &a, const Offset<String> &b) const {
-      auto stra = reinterpret_cast<const String *>(buf_.data_at(a.o));
-      auto strb = reinterpret_cast<const String *>(buf_.data_at(b.o));
+      auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
+      auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
       return strncmp(stra->c_str(), strb->c_str(),
                      std::min(stra->size(), strb->size()) + 1) < 0;
     }
-    const vector_downward &buf_;
+    const vector_downward *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
