@@ -18,23 +18,14 @@ project.
 - General Use in C (README) <https://github.com/dvidelabs/flatcc/blob/master/README.md>
 - The C Builder Interface (advanced) <https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md>
 
-
 ## Supported Platforms
 
-Not all platforms are tested regularly but the following platforms have
-all successfully built and passed all tests:
+- Ubuntu
+- OS-X
+- Windows
 
-- 64-bit Ubuntu 14.04, gcc, CMake with Ninja Build or GNU Make
-- 64-bit OS-X 10.11, Apple Clang, CMake with Ninja Build or GNU Make
-- 64-bit Centos 7.1, CMake with GNU Make
-- 32-bit Windows 10, CMake with MSVC 14 2015
-
-ARM cross compilation from Linux has been reported to work to some
-extend.
-
-Big endian platforms have not been tested and may contain bugs, but care
-has been taken to provide support for it.
-
+Centos has been tested at some point and ARM cross compilation has been reported to
+work to some extend, but these are not regularly tested.
 
 ## Modular Object Creation
 
