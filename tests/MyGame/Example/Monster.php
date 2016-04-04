@@ -99,6 +99,14 @@ class Monster extends Table
     }
 
     /**
+     * @return string
+     */
+    public function getInventoryBytes()
+    {
+        return $this->__vector_as_bytes(14);
+    }
+
+    /**
      * @return sbyte
      */
     public function getColor()
@@ -208,6 +216,14 @@ class Monster extends Table
     {
         $o = $this->__offset(30);
         return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTestnestedflatbufferBytes()
+    {
+        return $this->__vector_as_bytes(30);
     }
 
     public function getTestempty()

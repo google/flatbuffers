@@ -82,8 +82,15 @@ if(APPLE)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
+  if(CYGWIN)
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -std=gnu++11")
+  else(CYGWIN)
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -std=c++0x")
+  endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow")
+    "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
   if (GCC_VERSION VERSION_GREATER 4.4)
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")

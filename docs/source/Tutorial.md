@@ -432,10 +432,10 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 </div>
 <div class="language-java">
 ~~~{.java}
-  String weaponOneName = builder.createString("Sword")
+  int weaponOneName = builder.createString("Sword")
   short weaponOneDamage = 3;
 
-  String weaponTwoName = builder.createString("Axe");
+  int weaponTwoName = builder.createString("Axe");
   short weaponTwoDamage = 5;
 
   // Use the `createWeapon()` helper function to create the weapons, since we set every field.

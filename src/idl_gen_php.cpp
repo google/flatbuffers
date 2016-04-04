@@ -165,6 +165,22 @@ namespace php {
       code += Indent + "}\n\n";
     }
 
+    // Get a [ubyte] vector as a byte array.
+    static void GetUByte(const FieldDef &field,
+      std::string *code_ptr) {
+      std::string &code = *code_ptr;
+
+      code += Indent + "/**\n";
+      code += Indent + " * @return string\n";
+      code += Indent + " */\n";
+      code += Indent + "public function get";
+      code += MakeCamel(field.name) + "Bytes()\n";
+      code += Indent + "{\n";
+      code += Indent + Indent + "return $this->__vector_as_bytes(";
+      code += NumToString(field.value.offset) + ");\n";
+      code += Indent + "}\n\n";
+    }
+
     // Get the value of a struct's scalar.
     static void GetScalarFieldOfStruct(const FieldDef &field,
       std::string *code_ptr) {
@@ -250,7 +266,7 @@ namespace php {
         ");\n";
       code += Indent + Indent;
       code += "return $o != 0 ? $obj->init(";
-	  if (field.value.type.struct_def->fixed)
+      if (field.value.type.struct_def->fixed)
       {
         code += "$o + $this->bb_pos, $this->bb) : ";
       } else {
@@ -690,6 +706,9 @@ namespace php {
       }
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         GetVectorLen(field, code_ptr);
+        if (field.value.type.element == BASE_TYPE_UCHAR) {
+          GetUByte(field, code_ptr);
+        }
       }
     }
 
