@@ -263,6 +263,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\util.cpp" />
     <ClInclude Include="..\..\include\flatbuffers\flatbuffers.h" />
     <ClInclude Include="..\..\include\flatbuffers\idl.h" />
     <ClInclude Include="..\..\include\flatbuffers\util.h" />
