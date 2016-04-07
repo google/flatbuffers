@@ -18,7 +18,7 @@ var NAVTREE =
     [ "Benchmarks", "flatbuffers_benchmarks.html", null ],
     [ "FlatBuffers white paper", "flatbuffers_white_paper.html", null ],
     [ "FlatBuffers internals", "flatbuffers_internals.html", null ],
-    [ "Grammar of the schema langauge", "flatbuffers_grammar.html", null ],
+    [ "Grammar of the schema language", "flatbuffers_grammar.html", null ],
     [ "API Reference", "usergroup1.html", [
       [ "APIs", "modules.html", "modules" ],
       [ "Class List", null, [

@@ -19,5 +19,6 @@ var class_flat_buffers_1_1_flat_buffer_builder =
     [ "Finish", "class_flat_buffers_1_1_flat_buffer_builder.html#a1afc6853539aaff7ac6937ed03ff5c7b", null ],
     [ "Finish", "class_flat_buffers_1_1_flat_buffer_builder.html#ac7a48fd125d3f65f1bc1bc67d74eae73", null ],
     [ "SizedByteArray", "class_flat_buffers_1_1_flat_buffer_builder.html#abfd2f4e19cf51f62290a0272683f23b2", null ],
-    [ "DataBuffer", "class_flat_buffers_1_1_flat_buffer_builder.html#a6f0cbd075878e2c0f021c0947cc8a211", null ]
+    [ "DataBuffer", "class_flat_buffers_1_1_flat_buffer_builder.html#a6f0cbd075878e2c0f021c0947cc8a211", null ],
+    [ "ForceDefaults", "class_flat_buffers_1_1_flat_buffer_builder.html#a40d549b2db96b91b2345d1a44ff3fe13", null ]
 ];

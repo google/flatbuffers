@@ -58,7 +58,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="flatbuffers_benchmarks.html"><span>Benchmarks</span></a></li>
       <li><a href="flatbuffers_white_paper.html"><span>FlatBuffers&#160;white&#160;paper</span></a></li>
       <li><a href="flatbuffers_internals.html"><span>FlatBuffers&#160;internals</span></a></li>
-      <li><a href="flatbuffers_grammar.html"><span>Grammar&#160;of&#160;the&#160;schema&#160;langauge</span></a></li>
+      <li><a href="flatbuffers_grammar.html"><span>Grammar&#160;of&#160;the&#160;schema&#160;language</span></a></li>
       <li><a href="usergroup1.html"><span>API&#160;Reference</span></a></li>
       <li><a href="contributing.html"><span>Contributing</span></a></li>
       <li>
@@ -171,7 +171,7 @@ root_type Monster;
 <h3>(Default) Values</h3>
 <p>Values are a sequence of digits. Values may be optionally followed by a decimal point (<code>.</code>) and more digits, for float constants, or optionally prefixed by a <code>-</code>. Floats may also be in scientific notation; optionally ending with an <code>e</code> or <code>E</code>, followed by a <code>+</code> or <code>-</code> and more digits.</p>
 <p>Only scalar values can have defaults, non-scalar (string/vector/table) fields default to <code>NULL</code> when not present.</p>
-<p>You generally do not want to change default values after they're initially defined. Fields that have the default value are not actually stored in the serialized data but are generated in code, so when you change the default, you'd now get a different value than from code generated from an older version of the schema. There are situations, however, where this may be desirable, especially if you can ensure a simultaneous rebuild of all code.</p>
+<p>You generally do not want to change default values after they're initially defined. Fields that have the default value are not actually stored in the serialized data (see also Gotchas below) but are generated in code, so when you change the default, you'd now get a different value than from code generated from an older version of the schema. There are situations, however, where this may be desirable, especially if you can ensure a simultaneous rebuild of all code.</p>
 <h3>Enums</h3>
 <p>Define a sequence of named constants, each with a given value, or increasing by one from the previous one. The default first value is <code>0</code>. As you can see in the enum declaration, you specify the underlying integral type of the enum with <code>:</code> (in this case <code>byte</code>), which then determines the type of any fields declared with this enum type.</p>
 <p>Typically, enum values should only ever be added, never removed (there is no deprecation for enums). This requires code to handle forwards compatibility itself, by handling unknown enum values.</p>
@@ -196,7 +196,13 @@ root_type Monster;
 <p>After loading a buffer, you can use a call like <code>MonsterBufferHasIdentifier</code> to check if the identifier is present.</p>
 <p>Note that this is best for open-ended uses such as files. If you simply wanted to send one of a set of possible messages over a network for example, you'd be better off with a union.</p>
 <p>Additionally, by default <code>flatc</code> will output binary files as <code>.bin</code>. This declaration in the schema will change that to whatever you want: </p><pre class="fragment">file_extension "ext";
-</pre><h3>Comments &amp; documentation</h3>
+</pre><h3>RPC interface declarations</h3>
+<p>You can declare RPC calls in a schema, that define a set of functions that take a FlatBuffer as an argument (the request) and return a FlatBuffer as the response (both of which must be table types): </p><pre class="fragment">rpc_service MonsterStorage {
+  Store(Monster):StoreResponse;
+  Retrieve(MonsterId):Monster;
+}
+</pre><p>What code this produces and how it is used depends on language and RPC system used, FlatBuffers itself does not offer this functionality.</p>
+<h3>Comments &amp; documentation</h3>
 <p>May be written as in most C-based languages. Additionally, a triple comment (<code>///</code>) on a line by itself signals that a comment is documentation for whatever is declared on the line after it (table/struct/field/enum/union/element), and the comment is output in the corresponding C++ code. Multiple such lines per item are allowed.</p>
 <h3>Attributes</h3>
 <p>Attributes may be attached to a declaration, behind a field, or after the name of a table/struct/enum/union. These may either have a value or not. Some attributes like <code>deprecated</code> are understood by the compiler; user defined ones need to be declared with the attribute declaration (like <code>priority</code> in the example above), and are available to query if you parse the schema at runtime. This is useful if you write your own code generators/editors etc., and you wish to add additional information specific to your tool (such as a help text).</p>
@@ -251,7 +257,14 @@ root_type Monster;
 </pre><p>This is MAYBE ok, and only in the case where the type change is the same size, like here. If old data never contained any negative numbers, this will be safe to do. </p><pre class="fragment">table { a:int = 1; b:int = 2; }
 </pre><p>Generally NOT ok. Any older data written that had 0 values were not written to the buffer, and rely on the default value to be recreated. These will now have those values appear to <code>1</code> and <code>2</code> instead. There may be cases in which this is ok, but care must be taken. </p><pre class="fragment">table { aa:int; bb:int; }
 </pre><p>Occasionally ok. You've renamed fields, which will break all code (and JSON files!) that use this schema, but as long as the change is obvious, this is not incompatible with the actual binary buffers, since those only ever address fields by id/offset. <br />
- </p>
+</p>
+<h3>Testing whether a field is present in a table</h3>
+<p>Most serialization formats (e.g. JSON or Protocol Buffers) make it very explicit in the format whether a field is present in an object or not, allowing you to use this as "extra" information.</p>
+<p>In FlatBuffers, this also holds for everything except scalar values.</p>
+<p>FlatBuffers by default will not write fields that are equal to the default value (for scalars), sometimes resulting in a significant space savings.</p>
+<p>However, this also means testing whether a field is "present" is somewhat meaningless, since it does not tell you if the field was actually written by calling <code>add_field</code> style calls, unless you're only interested in this information for non-default values.</p>
+<p>Some <code>FlatBufferBuilder</code> implementations have an option called <code>force_defaults</code> that circumvents this behavior, and writes fields even if they are equal to the default. You can then use <code>IsFieldPresent</code> to query this.</p>
+<p>Another option that works in all languages is to wrap a scalar field in a struct. This way it will return null if it is not present. The cool thing is that structs don't take up any more space than the scalar they represent. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- Google Analytics -->

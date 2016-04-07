@@ -1,7 +1,12 @@
 var classflatbuffers_1_1_flat_buffer_builder =
 [
     [ "FlatBufferBuilder", "classflatbuffers_1_1_flat_buffer_builder.html#ac72b54a75e0c329e0ce0b8fab758e256", null ],
+    [ "~FlatBufferBuilder", "classflatbuffers_1_1_flat_buffer_builder.html#a01dabf5cdd6b1b2881337e1e84aa1683", null ],
     [ "Clear", "classflatbuffers_1_1_flat_buffer_builder.html#ae94b94ba71ea0aeb2d9a98c43b713412", null ],
+    [ "CreateSharedString", "classflatbuffers_1_1_flat_buffer_builder.html#ab478a645216d2d613fc7b7c29b0ff9d1", null ],
+    [ "CreateSharedString", "classflatbuffers_1_1_flat_buffer_builder.html#a3eb68613e5883dc4b8fff6cf7d1223d7", null ],
+    [ "CreateSharedString", "classflatbuffers_1_1_flat_buffer_builder.html#a10e8ec7d1c8fbdc21b1c7047bbbe38d9", null ],
+    [ "CreateSharedString", "classflatbuffers_1_1_flat_buffer_builder.html#a840b769fbb4148f97d3eed266e4690c3", null ],
     [ "CreateString", "classflatbuffers_1_1_flat_buffer_builder.html#aec6f9df2a0366b540b24822414d92cbe", null ],
     [ "CreateString", "classflatbuffers_1_1_flat_buffer_builder.html#aad93d113ac24e86ed04b5236b3f4c0c5", null ],
     [ "CreateString", "classflatbuffers_1_1_flat_buffer_builder.html#a8c3af55e64f5cda9aefa38ac5287ef9f", null ],

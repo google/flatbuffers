@@ -13,7 +13,7 @@ var indexSectionsWithContent =
   3: "f",
   4: "_acdefgirs",
   5: "$abcdfk",
-  6: "d",
+  6: "df",
   7: "cgjp",
   8: "bcfgptuw"
 };

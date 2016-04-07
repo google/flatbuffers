@@ -58,7 +58,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="flatbuffers_benchmarks.html"><span>Benchmarks</span></a></li>
       <li><a href="flatbuffers_white_paper.html"><span>FlatBuffers&#160;white&#160;paper</span></a></li>
       <li><a href="flatbuffers_internals.html"><span>FlatBuffers&#160;internals</span></a></li>
-      <li><a href="flatbuffers_grammar.html"><span>Grammar&#160;of&#160;the&#160;schema&#160;langauge</span></a></li>
+      <li><a href="flatbuffers_grammar.html"><span>Grammar&#160;of&#160;the&#160;schema&#160;language</span></a></li>
       <li class="current"><a href="usergroup1.html"><span>API&#160;Reference</span></a></li>
       <li><a href="contributing.html"><span>Contributing</span></a></li>
       <li>
@@ -145,11 +145,23 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae94b94ba71ea0aeb2d9a98c43b713412"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#ae94b94ba71ea0aeb2d9a98c43b713412">Clear</a> ()</td></tr>
 <tr class="memdesc:ae94b94ba71ea0aeb2d9a98c43b713412"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset all the state in this FlatBufferBuilder so it can be reused to construct another buffer.  <a href="#ae94b94ba71ea0aeb2d9a98c43b713412">More...</a><br /></td></tr>
 <tr class="separator:ae94b94ba71ea0aeb2d9a98c43b713412"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab478a645216d2d613fc7b7c29b0ff9d1"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#ab478a645216d2d613fc7b7c29b0ff9d1">CreateSharedString</a> (const char *str, size_t len)</td></tr>
+<tr class="memdesc:ab478a645216d2d613fc7b7c29b0ff9d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#ab478a645216d2d613fc7b7c29b0ff9d1">More...</a><br /></td></tr>
+<tr class="separator:ab478a645216d2d613fc7b7c29b0ff9d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eb68613e5883dc4b8fff6cf7d1223d7"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a3eb68613e5883dc4b8fff6cf7d1223d7">CreateSharedString</a> (const char *str)</td></tr>
+<tr class="memdesc:a3eb68613e5883dc4b8fff6cf7d1223d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which null-terminated.  <a href="#a3eb68613e5883dc4b8fff6cf7d1223d7">More...</a><br /></td></tr>
+<tr class="separator:a3eb68613e5883dc4b8fff6cf7d1223d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10e8ec7d1c8fbdc21b1c7047bbbe38d9"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a10e8ec7d1c8fbdc21b1c7047bbbe38d9">CreateSharedString</a> (const std::string &amp;str)</td></tr>
+<tr class="memdesc:a10e8ec7d1c8fbdc21b1c7047bbbe38d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#a10e8ec7d1c8fbdc21b1c7047bbbe38d9">More...</a><br /></td></tr>
+<tr class="separator:a10e8ec7d1c8fbdc21b1c7047bbbe38d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a840b769fbb4148f97d3eed266e4690c3"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a840b769fbb4148f97d3eed266e4690c3">CreateSharedString</a> (const String *str)</td></tr>
+<tr class="memdesc:a840b769fbb4148f97d3eed266e4690c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#a840b769fbb4148f97d3eed266e4690c3">More...</a><br /></td></tr>
+<tr class="separator:a840b769fbb4148f97d3eed266e4690c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec6f9df2a0366b540b24822414d92cbe"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#aec6f9df2a0366b540b24822414d92cbe">CreateString</a> (const char *str, size_t len)</td></tr>
 <tr class="memdesc:aec6f9df2a0366b540b24822414d92cbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#aec6f9df2a0366b540b24822414d92cbe">More...</a><br /></td></tr>
 <tr class="separator:aec6f9df2a0366b540b24822414d92cbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad93d113ac24e86ed04b5236b3f4c0c5"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#aad93d113ac24e86ed04b5236b3f4c0c5">CreateString</a> (const char *str)</td></tr>
-<tr class="memdesc:aad93d113ac24e86ed04b5236b3f4c0c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#aad93d113ac24e86ed04b5236b3f4c0c5">More...</a><br /></td></tr>
+<tr class="memdesc:aad93d113ac24e86ed04b5236b3f4c0c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which is null-terminated.  <a href="#aad93d113ac24e86ed04b5236b3f4c0c5">More...</a><br /></td></tr>
 <tr class="separator:aad93d113ac24e86ed04b5236b3f4c0c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c3af55e64f5cda9aefa38ac5287ef9f"><td class="memItemLeft" align="right" valign="top">Offset&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a8c3af55e64f5cda9aefa38ac5287ef9f">CreateString</a> (const std::string &amp;str)</td></tr>
 <tr class="memdesc:a8c3af55e64f5cda9aefa38ac5287ef9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a string in the buffer, which can contain any binary data.  <a href="#a8c3af55e64f5cda9aefa38ac5287ef9f">More...</a><br /></td></tr>
@@ -288,6 +300,149 @@ static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class=
 
 </div>
 </div>
+<a class="anchor" id="ab478a645216d2d613fc7b7c29b0ff9d1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;String&gt; flatbuffers::FlatBufferBuilder::CreateSharedString </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Store a string in the buffer, which can contain any binary data. </p>
+<p>If a string with this exact contents has already been serialized before, instead simply returns the offset of the existing string. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>A const char pointer to the data to be stored as a string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>The number of bytes that should be stored from <code>str</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the offset in the buffer where the string starts. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a3eb68613e5883dc4b8fff6cf7d1223d7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;String&gt; flatbuffers::FlatBufferBuilder::CreateSharedString </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Store a string in the buffer, which null-terminated. </p>
+<p>If a string with this exact contents has already been serialized before, instead simply returns the offset of the existing string. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>A const char pointer to a C-string to add to the buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the offset in the buffer where the string starts. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a10e8ec7d1c8fbdc21b1c7047bbbe38d9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;String&gt; flatbuffers::FlatBufferBuilder::CreateSharedString </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Store a string in the buffer, which can contain any binary data. </p>
+<p>If a string with this exact contents has already been serialized before, instead simply returns the offset of the existing string. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>A const reference to a std::string to store in the buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the offset in the buffer where the string starts. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a840b769fbb4148f97d3eed266e4690c3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;String&gt; flatbuffers::FlatBufferBuilder::CreateSharedString </td>
+          <td>(</td>
+          <td class="paramtype">const String *&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Store a string in the buffer, which can contain any binary data. </p>
+<p>If a string with this exact contents has already been serialized before, instead simply returns the offset of the existing string. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>A const pointer to a <code>String</code> struct to add to the buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the offset in the buffer where the string starts </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="aec6f9df2a0366b540b24822414d92cbe"></a>
 <div class="memitem">
 <div class="memproto">
@@ -354,7 +509,7 @@ static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class=
 </table>
 </div><div class="memdoc">
 
-<p>Store a string in the buffer, which can contain any binary data. </p>
+<p>Store a string in the buffer, which is null-terminated. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>A const char pointer to a C-string to add to the buffer. </td></tr>
