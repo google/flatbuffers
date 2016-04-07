@@ -4,9 +4,9 @@ FlatBuffers    {#flatbuffers_index}
 # Overview {#flatbuffers_overview}
 
 [FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
-serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python
-(Ruby and Swift in progress). It was originally created at Google for game
-development and other performance-critical applications.
+serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python.
+It was originally created at Google for game development and other
+performance-critical applications.
 
 It is available as Open Source on [GitHub](http://github.com/google/flatbuffers)
 under the Apache license, v2 (see LICENSE.txt).

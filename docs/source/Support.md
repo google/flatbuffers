@@ -18,23 +18,23 @@ In general:
 
 NOTE: this table is a start, it needs to be extended.
 
-Feature                        | C++    | Java   | C#     | Go     | Python | JS        | C    | PHP | Ruby
------------------------------- | ------ | ------ | ------ | ------ | ------ | --------- | ---- | --- | ----
-Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes  | WiP | WiP
-JSON parsing                   | Yes    | No     | No     | No     | No     | No        | Yes  | No  | No
-Simple mutation                | Yes    | WIP    | WIP    | No     | No     | No        | No   | No  | No
-Reflection                     | Yes    | No     | No     | No     | No     | No        | Basic| No  | No
-Buffer verifier                | Yes    | No     | No     | No     | No     | No        | Yes  | No  | No
-Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes  | ?   | ?
-Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No   | ?   | ?
-Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         |Superb| ?   | ?
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | Yes  | ?   | ?
-Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes  | ?   | ?
-Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes  | ?   | ?
-Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?    | ?   | ?
-Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?    | ?   | ?
-Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?    | ?   | ?
-Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | evanw/ev* | mik* | ch* | rw
+Feature                        | C++    | Java   | C#     | Go     | Python | JS        | C        | PHP | Ruby
+------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | ------  | --- | ----
+Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes     | WiP | WiP
+JSON parsing                   | Yes    | No     | No     | No     | No     | No        | Yes     | No  | No
+Simple mutation                | Yes    | WIP    | WIP    | No     | No     | No        | No      | No  | No
+Reflection                     | Yes    | No     | No     | No     | No     | No        | Basic   | No  | No
+Buffer verifier                | Yes    | No     | No     | No     | No     | No        | Yes     | No  | No
+Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes     | ?   | ?
+Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No      | ?   | ?
+Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | Superb  | ?   | ?
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | VS2010  | ?   | ?
+Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes     | ?   | ?
+Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes     | ?   | ?
+Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?       | ?   | ?
+Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?       | ?   | ?
+Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?       | ?   | ?
+Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | evanw/ev* | mik*    | ch* | rw
 
   * ev = evolutional
   * js = jonsimantov

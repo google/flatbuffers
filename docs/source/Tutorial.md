@@ -19,17 +19,16 @@ character, the hero of the story, needs to slay some `orc`s. We will walk
 through each step necessary to create this monster type using FlatBuffers.
 
 Please select your desired language for our quest:
-
 \htmlonly
 <form>
   <input type="radio" name="language" value="cpp" checked="checked">C++</input>
-  <input type="radio" name="language" value="csharp">C#</input>
-  <input type="radio" name="language" value="c">C</input>
-  <input type="radio" name="language" value="go">Go</input>
   <input type="radio" name="language" value="java">Java</input>
+  <input type="radio" name="language" value="csharp">C#</input>
+  <input type="radio" name="language" value="go">Go</input>
+  <input type="radio" name="language" value="python">Python</input>
   <input type="radio" name="language" value="javascript">JavaScript</input>
   <input type="radio" name="language" value="php">PHP</input>
-  <input type="radio" name="language" value="python">Python</input>
+  <input type="radio" name="language" value="c">C</input>
 </form>
 \endhtmlonly
 

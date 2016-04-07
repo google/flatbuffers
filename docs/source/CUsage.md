@@ -10,22 +10,31 @@ JSON parsers, printers.
 Great care has been taken to ensure compatibily with the main `flatc`
 project.
 
-
 ## General Documention
 
 - [Tutorial](@ref flatbuffers_guide_tutorial) - select C as language
   when scrolling down
-- General Use in C (README) <https://github.com/dvidelabs/flatcc/blob/master/README.md>
-- The C Builder Interface (advanced) <https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md>
+- [FlatCC Guide](https://github.com/dvidelabs/flatcc#flatcc-flatbuffers-in-c-for-c)
+- [The C Builder Interface](https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md#the-builder-interface)
+- [The Monster Sample in C](https://github.com/dvidelabs/flatcc/blob/master/samples/monster/monster.c)
+- [GitHub](https://github.com/dvidelabs/flatcc)
+
 
 ## Supported Platforms
 
-- Ubuntu
-- OS-X
-- Windows
+- Ubuntu (clang / gcc, ninja / gnu make)
+- OS-X (clang / gcc, ninja / gnu make)
+- Windows MSVC 2010, 2013, 2015
 
-Centos has been tested at some point and ARM cross compilation has been reported to
-work to some extend, but these are not regularly tested.
+CI builds recent versions of gcc, clang and MSVC on OS-X, Ubuntu, and
+Windows, and occasionally older compiler versions. See main project [Status](https://github.com/dvidelabs/flatcc#status).
+
+Other platforms may well work, including Centos, but are not tested
+regularly.
+
+The monster sample project was specifically written for C99 in order to
+follow the C++ version and for that reason it will not work with MSVC
+2010.
 
 ## Modular Object Creation
 
