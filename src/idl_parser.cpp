@@ -974,6 +974,7 @@ CheckedError Parser::ParseSingleValue(Value &e) {
         assert(0);  // Shouldn't happen, we covered all types.
         e.constant = "0";
       }
+      NEXT();
     }
   } else {
     bool match = false;
