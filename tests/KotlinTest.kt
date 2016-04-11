@@ -35,11 +35,11 @@ fun main(args: Array<String>) = try {
             with(Monster) {
 		val mon = monster(of("MyMonster"), 
                 	hp = 80.toShort(),
-                	inventory = inventory(0, 1, 2, 3, 4),
+                	inventory = inventory(intArrayOf(0, 1, 2, 3, 4)),
                 	testType = MyGame.Example.Any.Monster,
                 	test = monster(of("Fred")), 
                 	test4 = test4(2) {testRaw(10.toShort(), 20.toByte());testRaw(30.toShort(), 40.toByte())},
-                	testarrayofstring = testarrayofstring(of("test1"), of("test2")), 
+                	testarrayofstring = testarrayofstring(ofArrayOf("test1", "test2")), 
                 	testbool = false,
                 	testhashu32Fnv1 = Integer.MAX_VALUE + 1L, 
 			pos = vec3(1.0f, 2.0f, 3.0f, 3.0, Color.Green, test(5.toShort(), 6.toByte())))
@@ -155,8 +155,8 @@ fun main(args: Array<String>) = try {
         while (ibb.position() < ibb.limit()) invsum += ibb.get()
         testEq(invsum, 10)
 
-        val test_0 = monster.test4(0)!!
-        val test_1 = monster.test4(1)!!
+        val test_0 = monster.test4(0)
+        val test_1 = monster.test4(1)
         testEq(monster.test4Size, 2)
         testEq(test_0.a + test_0.b + test_1.a + test_1.b, 100)
 

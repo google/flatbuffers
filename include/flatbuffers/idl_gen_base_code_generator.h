@@ -18,6 +18,7 @@
 #define FLATBUFFERS_IDL_GEN_BASE_CODE_GENERATOR_H_
 
 #include <set>
+#include <stack>
 #include "flatbuffers/util.h"
 
 // This file defines a base abstract class, 
@@ -53,6 +54,13 @@ namespace flatbuffers {
       code for each generator
       
   */
+      struct CommentConfig {
+  const char *first_line;
+  const char *content_line_prefix;
+  const char *last_line;
+};
+  
+  
   class BaseGenerator {
     public:
       BaseGenerator(const Parser & parser_,const std::string & path_,const std::string & file_name_) : parser(parser_), path(path_), file_name(file_name_) {};
@@ -64,6 +72,132 @@ namespace flatbuffers {
       const std::string & path;
       const std::string & file_name;
   };
+          
+  struct Newline {
+      int indent;
+  };
+  
+  Newline NL  = {0};
+  Newline TAB = {1};
+  Newline BAT = {-1}; 
+  
+  class CodeWriter {
+  public:
+  	  CodeWriter(const char * indent_/*, CommentConfig const & commentConfig_*/, std::string namespace_dir_) : indent(indent_), namespace_dir(namespace_dir_)/*, commentConfig(commentConfig_)*/ {};
+
+          CodeWriter & operator+=(const std::string  & text) {
+            code.append(text);
+            return *this;
+          };
+          
+          CodeWriter& operator+=(const char * text) {
+            code.append(text);
+            return *this;
+          };         
+          
+          CodeWriter& operator+=( const std::vector<std::string> comments) {
+          	   if (comments.begin() == comments.end()) return *this; // Don't output empty comment blocks with 0 lines of comment content.
+  //if (config != nullptr && config->first_line != nullptr) code + NL + prefix + config->first_line;
+  std::string line_prefix = "///";//std::string(prefix) + ((config != nullptr && config->content_line_prefix != nullptr) ? config->content_line_prefix : "///");
+  for (auto it = comments.begin(); it != comments.end(); ++it) {
+  	  *this += NL;
+  	  *this += line_prefix;
+  	  *this +=*it;
+  }
+  //if (config != nullptr && config->last_line != nullptr) code + NL + prefix + config->last_line;
+          	  return *this;
+          }
+          
+          CodeWriter& operator+=( Newline nl) {
+            if (nl.indent > 0){
+            	    indents.push(nl.indent);
+                    lastNIndent += nl.indent;
+            } else if (nl.indent < 0) {
+            	    if (indents.size() == 0) code.append("/**UNBALANCED TAB-BAT*/"); else {
+            	      lastNIndent -= indents.top();
+                     indents.pop();
+                   }
+            } else {
+            	    code.append("\n");
+                   for (int a = 0; a < lastNIndent; ++a) code.append(indent);
+            }
+            return *this;
+          }; 
+          
+  // comment
+  
+   bool saveTextFile(const std::string name_, const std::string ext) {
+     return SaveFile((namespace_dir + name_ + ext).c_str(), code, false);
+   }
+
+  private:
+  	  std::string code;
+  	  std::stack<std::string> namespaces;
+  	  int lastNIndent = 0;
+  	  std::stack<int> indents;
+  	  const char * indent;
+  	  const char * newline = "\n";
+  	  std::string namespace_dir;
+  	 // CommentConfig const & commentConfig;
+  };
+
+  //and make `+` non-member and non-friend 
+  inline CodeWriter operator+(CodeWriter left, const std::string & right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  }
+  
+  inline CodeWriter operator+(CodeWriter left, const char * right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  }
+  
+    /*CodeWriter operator+(CodeWriter left, In const & right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  }*/
+  
+      CodeWriter operator+(CodeWriter left, Newline  right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  }
+  
+       CodeWriter operator+(CodeWriter left, const std::vector<std::string> &  right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  } 
+  
+      /*CodeWriter operator+(CodeWriter left, int right) {
+    left += right; //compute this in terms of `+=` which is a member function
+    return left;
+  }*/
+  
+    /*CodeWriter operator*(CodeWriter left, int right) {
+    left *= right; //compute this in terms of `*=` which is a member function
+    return left;
+  }*/
+
+  
+          /** Experimental */
+      // Generate a documentation comment, if available.
+CodeWriter comments(CodeWriter code, const std::vector<std::string> &dc) {
+  if (dc.begin() == dc.end()) return code; // Don't output empty comment blocks with 0 lines of comment content.
+  //if (config != nullptr && config->first_line != nullptr) code + NL + prefix + config->first_line;
+  std::string line_prefix = "///";//std::string(prefix) + ((config != nullptr && config->content_line_prefix != nullptr) ? config->content_line_prefix : "///");
+  for (auto it = dc.begin(); it != dc.end(); ++it) code + NL + line_prefix + *it;
+  //if (config != nullptr && config->last_line != nullptr) code + NL + prefix + config->last_line;
+  return code;
+}
+  
+/*CodeWriter comment(CodeWriter code, const std::vector<std::string> &dc, const CommentConfig *config, const char *prefix) {
+  if (dc.begin() == dc.end()) return code; // Don't output empty comment blocks with 0 lines of comment content.
+  if (config != nullptr && config->first_line != nullptr) code + NL + prefix + config->first_line;
+  std::string line_prefix = std::string(prefix) + ((config != nullptr && config->content_line_prefix != nullptr) ? config->content_line_prefix : "///");
+  for (auto it = dc.begin(); it != dc.end(); ++it) code + NL + line_prefix + *it;
+  if (config != nullptr && config->last_line != nullptr) code + NL + prefix + config->last_line;
+  return code;
+}*/
+
 
   /** maybee we should split the utilities among a few orthogonal interfaces (file & path, types, safeNames and safeTypes) ? */
   class StronglyTypedGenerator : public BaseGenerator {
@@ -121,12 +255,24 @@ namespace flatbuffers {
    	   return std::string(namespace_dir) + name_;
    }
    
+   /** Deprecated */
    virtual void atFileStart(std::string &code) {
      code += "// automatically generated, do not modify\n\n";
    }
    
+       /** Deprecated */
    virtual void startNamespace(std::string &code) {
      code += "package " + namespace_name + "\n\n";
+   }
+   
+      /** Experimental */
+   virtual void atFileStart(CodeWriter &code) {
+     code = code + "// automatically generated, do not modify";
+   }
+   
+    /** Experimental */
+      virtual void startNamespace(CodeWriter &code) {
+     code = code + NL + "package " + namespace_name + NL;
    }
    
    /*virtual void imports(std::string &code) {
@@ -161,6 +307,8 @@ namespace flatbuffers {
    bool saveTextFile(const std::string name_, const std::string ext, const std::string code) {
      return SaveFile((namespace_dir + name_ + ext).c_str(), code, false);
    }
+   
+
    
    std::string sanitize(const std::string name_, const bool isFirstLetterUpper) {
 	// transforms name with _ inside into camelCase
