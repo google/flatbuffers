@@ -43,7 +43,7 @@ static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
 
-
+  
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
 std::string OffsetPrefix(const FieldDef &field) {
@@ -391,6 +391,40 @@ static void GetStartOfTable(const StructDef &struct_def,
   code += ") }\n";
 }
 
+// Generate FieldIsSet() call for distinguishing null from default.
+static void GenerateFieldIsSetMethod(const StructDef &struct_def,
+                                std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  GenReceiver(struct_def, code_ptr);
+  code += " FieldIsSet(slot flatbuffers.VOffsetT) bool";
+  code += "{\n";
+  code += "\treturn rcv._tab.FieldIsSet(slot)\n";
+  code += "}\n\n";
+}
+
+  
+// Generate constants for FieldIsSet() calls.
+static void GenerateFieldIsSetConstants(const StructDef &struct_def,
+                              std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  
+  // Generate field id constants.
+  if (struct_def.fields.vec.size() > 0) {
+    code += "\n// constants for FieldIsSet() calls.\nconst (\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      auto &field = **it;
+      if (!field.deprecated) {  // Deprecated fields won't be accessible.
+        code += "    Vt" +  struct_def.name + MakeCamel(field.name) + " = ";
+        code += NumToString(field.value.offset) + "\n";
+      }
+    }
+    code += ")\n";
+  }
+}
+  
 // Set the value of a table's field.
 static void BuildFieldOfTable(const StructDef &struct_def,
                               const FieldDef &field,
@@ -518,6 +552,9 @@ static void GenTableBuilders(const StructDef &struct_def,
   }
 
   GetEndOffsetOnTable(struct_def, code_ptr);
+
+  GenerateFieldIsSetConstants(struct_def, code_ptr);
+  GenerateFieldIsSetMethod(struct_def, code_ptr);
 }
 
 // Generate struct or table methods.

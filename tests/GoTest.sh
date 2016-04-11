@@ -28,9 +28,9 @@ mkdir -p ${go_src}/MyGame/Example
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
 
-cp -u MyGame/Example/*.go ./go_gen/src/MyGame/Example/
-cp -u ../go/* ./go_gen/src/github.com/google/flatbuffers/go
-cp -u ./go_test.go ./go_gen/src/flatbuffers_test/
+cp  MyGame/Example/*.go ./go_gen/src/MyGame/Example/
+cp  ../go/* ./go_gen/src/github.com/google/flatbuffers/go
+cp  ./go_test.go ./go_gen/src/flatbuffers_test/
 
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag

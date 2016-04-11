@@ -313,7 +313,23 @@ func (rcv *Monster) TestarrayofboolsLength() int {
 	return 0
 }
 
-func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(25) }
+func (rcv *Monster) Haszerodefault() int64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(54))
+	if o != 0 {
+		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) Hasthreedefault() int64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(56))
+	if o != 0 {
+		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+	}
+	return 3
+}
+
+func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(27) }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) { builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0) }
 func MonsterAddMana(builder *flatbuffers.Builder, mana int16) { builder.PrependInt16Slot(1, mana, 150) }
 func MonsterAddHp(builder *flatbuffers.Builder, hp int16) { builder.PrependInt16Slot(2, hp, 100) }
@@ -350,4 +366,40 @@ func MonsterAddTesthashu64Fnv1a(builder *flatbuffers.Builder, testhashu64Fnv1a u
 func MonsterAddTestarrayofbools(builder *flatbuffers.Builder, testarrayofbools flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(24, flatbuffers.UOffsetT(testarrayofbools), 0) }
 func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT { return builder.StartVector(1, numElems, 1)
 }
+func MonsterAddHaszerodefault(builder *flatbuffers.Builder, haszerodefault int64) { builder.PrependInt64Slot(25, haszerodefault, 0) }
+func MonsterAddHasthreedefault(builder *flatbuffers.Builder, hasthreedefault int64) { builder.PrependInt64Slot(26, hasthreedefault, 3) }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+
+// constants for FieldIsSet() calls.
+const (
+    VtMonsterPos = 4
+    VtMonsterMana = 6
+    VtMonsterHp = 8
+    VtMonsterName = 10
+    VtMonsterInventory = 14
+    VtMonsterColor = 16
+    VtMonsterTestType = 18
+    VtMonsterTest = 20
+    VtMonsterTest4 = 22
+    VtMonsterTestarrayofstring = 24
+    VtMonsterTestarrayoftables = 26
+    VtMonsterEnemy = 28
+    VtMonsterTestnestedflatbuffer = 30
+    VtMonsterTestempty = 32
+    VtMonsterTestbool = 34
+    VtMonsterTesthashs32Fnv1 = 36
+    VtMonsterTesthashu32Fnv1 = 38
+    VtMonsterTesthashs64Fnv1 = 40
+    VtMonsterTesthashu64Fnv1 = 42
+    VtMonsterTesthashs32Fnv1a = 44
+    VtMonsterTesthashu32Fnv1a = 46
+    VtMonsterTesthashs64Fnv1a = 48
+    VtMonsterTesthashu64Fnv1a = 50
+    VtMonsterTestarrayofbools = 52
+    VtMonsterHaszerodefault = 54
+    VtMonsterHasthreedefault = 56
+)
+func (rcv *Monster) FieldIsSet(slot flatbuffers.VOffsetT) bool{
+	return rcv._tab.FieldIsSet(slot)
+}
+
