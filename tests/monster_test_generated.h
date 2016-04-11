@@ -6,14 +6,6 @@
 #include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
-namespace OtherNameSpace {
-
-struct Unused;
-
-}  // namespace OtherNameSpace
-}  // namespace MyGame
-
-namespace MyGame {
 namespace Example {
 
 struct Test;

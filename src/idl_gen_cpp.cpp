@@ -777,8 +777,10 @@ std::string GenerateCPP(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     auto &struct_def = **it;
-    CheckNameSpace(struct_def, &code);
-    code += "struct " + struct_def.name + ";\n\n";
+    if (!struct_def.generated) {
+      CheckNameSpace(struct_def, &code);
+      code += "struct " + struct_def.name + ";\n\n";
+    }
   }
 
   // Generate code for all the enum declarations.
