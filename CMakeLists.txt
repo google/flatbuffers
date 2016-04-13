@@ -20,6 +20,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
+  include/flatbuffers/idl_gen_base_code_generator.h
   include/flatbuffers/util.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
@@ -35,6 +36,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
   src/idl_gen_js.cpp
+  src/idl_gen_kotlin.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_fbs.cpp
