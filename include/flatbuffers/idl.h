@@ -112,7 +112,7 @@ inline size_t SizeOf(BaseType t) {
 
 struct StructDef;
 struct EnumDef;
-struct Parser;
+class Parser;
 
 // Represents any type in the IDL, which is a combination of the BaseType
 // and additional information for vectors/structs_.
