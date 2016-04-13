@@ -21,6 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -660,11 +661,12 @@ static void GenStructBuilder(const StructDef &struct_def,
   EndBuilderBody(code_ptr);
 }
 
-}  // namespace go
-
-bool GenerateGo(const Parser &parser,
-                const std::string &path,
-                const std::string & /*file_name*/) {
+class GoGenerator : public BaseGenerator {
+public:
+  GoGenerator(const Parser &parser_, const std::string &path_,
+              const std::string &file_name_)
+      : BaseGenerator(parser_, path_, file_name_){};
+  bool generate() {
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
@@ -682,6 +684,15 @@ bool GenerateGo(const Parser &parser,
   }
 
   return true;
+  }
+};
+}  // namespace go
+
+bool GenerateGo(const Parser &parser,
+                const std::string &path,
+                const std::string & file_name) {
+  go::GoGenerator *generator = new go::GoGenerator(parser, path, file_name);
+  return generator->generate();
 }
 
 }  // namespace flatbuffers

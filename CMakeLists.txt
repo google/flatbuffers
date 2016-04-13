@@ -17,6 +17,7 @@ if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
 endif()
 
 set(FlatBuffers_Library_SRCS
+  include/flatbuffers/code_generators.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h

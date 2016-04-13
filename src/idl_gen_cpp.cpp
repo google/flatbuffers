@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 namespace cpp {
@@ -708,10 +709,20 @@ struct IsAlnum {
   }
 };
 
-// Iterate through all definitions we haven't generate code for (enums, structs,
-// and tables) and output them to a single file.
-std::string GenerateCPP(const Parser &parser,
-                        const std::string &file_name) {
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.h";
+}
+
+namespace cpp {
+class CppGenerator : public BaseGenerator {
+public:
+  CppGenerator(const Parser &parser_, const std::string &path_,
+               const std::string &file_name_)
+      : BaseGenerator(parser_, path_, file_name_){};
+  // Iterate through all definitions we haven't generate code for (enums, structs,
+  // and tables) and output them to a single file.
+  bool generate() {
   // Check if we have any code to generate at all, to avoid an empty header.
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        ++it) {
@@ -722,7 +733,7 @@ std::string GenerateCPP(const Parser &parser,
     if (!(*it)->generated) goto generate_code;
   }
   // No code to generate, exit:
-  return std::string();
+  return true;
 
   generate_code:
 
@@ -885,20 +896,17 @@ std::string GenerateCPP(const Parser &parser,
   // Close the include guard.
   code += "\n#endif  // " + include_guard + "\n";
 
-  return code;
-}
+  return SaveFile(GeneratedFileName(path, file_name).c_str(), code, false);
+  }
+};
+} // namespace cpp
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.h";
-}
 
 bool GenerateCPP(const Parser &parser,
                  const std::string &path,
                  const std::string &file_name) {
-    auto code = GenerateCPP(parser, file_name);
-    return !code.length() ||
-           SaveFile(GeneratedFileName(path, file_name).c_str(), code, false);
+  cpp::CppGenerator *generator = new cpp::CppGenerator(parser, path, file_name);
+  return generator->generate();
 }
 
 std::string CPPMakeRule(const Parser &parser,
