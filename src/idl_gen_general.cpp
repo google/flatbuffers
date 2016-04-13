@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 #include <algorithm>
 
 namespace flatbuffers {
@@ -1146,11 +1147,15 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   return SaveFile(filename.c_str(), code, false);
 }
 
-bool GenerateGeneral(const Parser &parser,
-                     const std::string &path,
-                     const std::string & file_name) {
-
-  assert(parser.opts.lang <= IDLOptions::kMAX);
+/** it'll be split later in java/csharp... and moved to separate files */
+namespace general {
+  /** members methods signature will be simpler as they won't have to pass parser, filename & path */
+  /** more features coming through the JavaGenerator, CSharpGenerator ...*/
+  class GeneralGenerator : public BaseGenerator {
+  public:
+    GeneralGenerator(const Parser &parser_, const std::string &path_, const std::string &file_name_) : BaseGenerator(parser_, path_, file_name_){};
+    bool generate() {
+     assert(parser.opts.lang <= IDLOptions::kMAX);
   auto lang = language_parameters[parser.opts.lang];
   std::string one_file_code;
 
@@ -1184,6 +1189,16 @@ bool GenerateGeneral(const Parser &parser,
     return SaveClass(lang, parser, file_name, one_file_code,path, true, true);
   }
   return true;
+    }
+  };
+} // namespace general
+
+bool GenerateGeneral(const Parser &parser,
+                     const std::string &path,
+                     const std::string & file_name) {
+  general::GeneralGenerator *generator =
+      new general::GeneralGenerator(parser, path, file_name);
+  return generator->generate();
 }
 
 static std::string ClassFileName(const LanguageParameters &lang,
