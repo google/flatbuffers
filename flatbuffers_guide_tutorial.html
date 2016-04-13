@@ -122,8 +122,7 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <li>Use the generated files in many of the supported languages (such as C++, Java, and more.)</li>
 </ul>
 <p>During this example, imagine that you are creating a game where the main character, the hero of the story, needs to slay some <code>orc</code>s. We will walk through each step necessary to create this monster type using FlatBuffers.</p>
-<p>Please select your desired language for our quest:</p>
-<p> 
+<p>Please select your desired language for our quest:  
 <form>
   <input type="radio" name="language" value="cpp" checked="checked">C++</input>
   <input type="radio" name="language" value="java">Java</input>
@@ -132,6 +131,7 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
   <input type="radio" name="language" value="python">Python</input>
   <input type="radio" name="language" value="javascript">JavaScript</input>
   <input type="radio" name="language" value="php">PHP</input>
+  <input type="radio" name="language" value="c">C</input>
 </form>
 </p>
 <p> 
@@ -195,8 +195,8 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </p>
 <h2>Where to Find the Example Code</h2>
 <p>Samples demonstating the concepts in this example are located in the source code package, under the <code>samples</code> directory. You can browse the samples on GitHub <a href="https://github.com/google/flatbuffers/tree/master/samples">here</a>.</p>
-<p>For your chosen language, please cross-reference with:</p>
-<div class="language-cpp"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.cpp">sample_binary.cpp</a> </div> <div class="language-java"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.java">SampleBinary.java</a> </div> <div class="language-csharp"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.cs">SampleBinary.cs</a> </div> <div class="language-go"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.go">sample_binary.go</a> </div> <div class="language-python"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.py">sample_binary.py</a> </div> <div class="language-javascript"> <a href="https://github.com/google/flatbuffers/blob/master/samples/samplebinary.js">samplebinary.js</a> </div> <div class="language-php"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.php">SampleBinary.php</a> </div><h2>Writing the Monsters' FlatBuffer Schema</h2>
+<div class="language-c"> <em>Note: The above does not apply to C, instead <a href="https://github.com/dvidelabs/flatcc/tree/master/samples">look here</a>.</em> </div><p>For your chosen language, please cross-reference with:</p>
+<div class="language-cpp"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.cpp">sample_binary.cpp</a> </div> <div class="language-java"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.java">SampleBinary.java</a> </div> <div class="language-csharp"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.cs">SampleBinary.cs</a> </div> <div class="language-go"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.go">sample_binary.go</a> </div> <div class="language-python"> <a href="https://github.com/google/flatbuffers/blob/master/samples/sample_binary.py">sample_binary.py</a> </div> <div class="language-javascript"> <a href="https://github.com/google/flatbuffers/blob/master/samples/samplebinary.js">samplebinary.js</a> </div> <div class="language-php"> <a href="https://github.com/google/flatbuffers/blob/master/samples/SampleBinary.php">SampleBinary.php</a> </div> <div class="language-c"> <a href="https://github.com/dvidelabs/flatcc/blob/master/samples/monster/monster.c">monster.c</a> </div><h2>Writing the Monsters' FlatBuffer Schema</h2>
 <p>To start working with FlatBuffers, you first need to create a <code>schema</code> file, which defines the format for each data structure you wish to serialize. Here is the <code>schema</code> that defines the template for our monsters:</p>
 <div class="fragment"><div class="line"><span class="comment">// Example IDL file for our monster&#39;s schema.</span></div>
 <div class="line"></div>
@@ -244,7 +244,10 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <p>After you have written the FlatBuffers schema, the next step is to compile it.</p>
 <p>If you have not already done so, please follow <a class="el" href="flatbuffers_guide_building.html">these instructions</a> to build <code>flatc</code>, the FlatBuffer compiler.</p>
 <p>Once <code>flatc</code> is built successfully, compile the schema for your language:</p>
-<div class="language-cpp"> <div class="fragment"><div class="line">cd flatbuffers/sample</div>
+<div class="language-c"> <em>Note: If you're working in C, you need to use the separate project <a href="https://github.com/dvidelabs/flatcc">FlatCC</a> which contains a schema compiler and runtime library in C for C.</em> <br />
+ See <a href="https://github.com/dvidelabs/flatcc#building">flatcc build instructions</a>. <br />
+ Please be aware of the difference between <code>flatc</code> and <code>flatcc</code> tools. <br />
+ </div><div class="language-cpp"> <div class="fragment"><div class="line">cd flatbuffers/sample</div>
 <div class="line">./../flatc --cpp samples/monster.fbs</div>
 </div><!-- fragment --> </div> <div class="language-java"> <div class="fragment"><div class="line">cd flatbuffers/sample</div>
 <div class="line">./../flatc --java samples/monster.fbs</div>
@@ -258,7 +261,12 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">./../flatc --javascript samples/monster.fbs</div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">cd flatbuffers/sample</div>
 <div class="line">./../flatc --php samples/monster.fbs</div>
-</div><!-- fragment --> </div><p>For a more complete guide to using the <code>flatc</code> compiler, pleaes read the <a class="el" href="flatbuffers_guide_using_schema_compiler.html">Using the schema compiler</a> section of the Programmer's Guide.</p>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">cd flatcc</div>
+<div class="line">mkdir -p build/tmp/samples/monster</div>
+<div class="line">bin/flatcc -a -o build/tmp/samples/monster samples/monster/monster.fbs</div>
+<div class="line"><span class="preprocessor"># or just</span></div>
+<div class="line"><span class="preprocessor">flatcc/samples/monster/build.sh</span></div>
+</div><!-- fragment --> </div><p>For a more complete guide to using the <code>flatc</code> compiler, please read the <a class="el" href="flatbuffers_guide_using_schema_compiler.html">Using the schema compiler</a> section of the Programmer's Guide.</p>
 <h2>Reading and Writing Monster FlatBuffers</h2>
 <p>Now that we have compiled the schema for our programming language, we can start creating some monsters and serializing/deserializing them from FlatBuffers.</p>
 <h4>Creating and Writing Orc FlatBuffers</h4>
@@ -312,6 +320,14 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;monster_builder.h&quot;</span> <span class="comment">// Generated by `flatcc`.</span></div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Convenient namespace macro to manage long namespace prefix.</span></div>
+<div class="line"><span class="preprocessor">#undef ns</span></div>
+<div class="line"><span class="preprocessor">#define ns(x) FLATBUFFERS_WRAP_NAMESPACE(MyGame_Sample, x) // Specified in the schema.</span></div>
+<div class="line"></div>
+<div class="line"><span class="comment">// A helper to simplify creating vectors from C-arrays.</span></div>
+<div class="line"><span class="preprocessor">#define c_vec_len(V) (sizeof(V)/sizeof((V)[0]))</span></div>
 </div><!-- fragment --> </div><p>Now we are ready to start building some buffers. In order to start, we need to create an instance of the <code>FlatBufferBuilder</code>, which will contain the buffer as it grows:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// Create a `FlatBufferBuilder`, which will be used to create our</span></div>
 <div class="line"><span class="comment">// monsters&#39; FlatBuffers.</span></div>
@@ -334,6 +350,10 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line"><span class="comment">// Create a `FlatBufferBuilder`, which will be used to create our</span></div>
 <div class="line"><span class="comment">// monsters&#39; FlatBuffers.</span></div>
 <div class="line">$builder = <span class="keyword">new</span> <a class="code" href="class_google_1_1_flat_buffers_1_1_flatbuffer_builder.html">Google\FlatBuffers\FlatbufferBuilder</a>(0);</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">flatcc_builder_t builder, *B;</div>
+<div class="line">B = &amp;builder;</div>
+<div class="line"><span class="comment">// Initialize the builder object.</span></div>
+<div class="line">flatcc_builder_init(B);</div>
 </div><!-- fragment --> </div><p>After creating the <code>builder</code>, we can start serializing our data. Before we make our <code>orc</code> Monster, lets create some <code>Weapon</code>s: a <code>Sword</code> and an <code>Axe</code>.</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> weapon_one_name = builder.CreateString(<span class="stringliteral">&quot;Sword&quot;</span>);</div>
 <div class="line"><span class="keywordtype">short</span> weapon_one_damage = 3;</div>
@@ -415,6 +435,14 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line"><span class="comment">// `CreateWeaponsVector()` method to create a FlatBuffer vector.</span></div>
 <div class="line">$weaps = array($sword, $axe);</div>
 <div class="line">$weapons = \MyGame\Sample\Monster::CreateWeaponsVector($builder, $weaps);</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">ns(Weapon_ref_t) weapon_one_name = flatbuffers_string_create_str(B, &quot;Sword&quot;);</div>
+<div class="line">uint16_t weapon_one_damage = 3;</div>
+<div class="line"></div>
+<div class="line">ns(Weapon_ref_t) weapon_two_name = flatbuffers_string_create_str(B, &quot;Axe&quot;);</div>
+<div class="line">uint16_t weapon_two_damage = 5;</div>
+<div class="line"></div>
+<div class="line">ns(Weapon_ref_t) sword = ns(Weapon_create(B, weapon_one_name, weapon_one_damage));</div>
+<div class="line">ns(Weapon_ref_t) axe = ns(Weapon_create(B, weapon_two_name, weapon_two_damage));</div>
 </div><!-- fragment --> </div><p>Now let's create our monster, the <code>orc</code>. For this <code>orc</code>, lets make him <code>red</code> with rage, positioned at <code>(1.0, 2.0, 3.0)</code>, and give him a large pool of hit points with <code>300</code>. We can give him a vector of weapons to choose from (our <code>Sword</code> and <code>Axe</code> from earlier). In this case, we will equip him with the <code>Axe</code>, since it is the most powerful of the two. Lastly, let's fill his inventory with some potential treasures that can be taken once he is defeated.</p>
 <p>Before we serialize a monster, we need to first serialize any objects that are contained there-in, i.e. we serialize the data tree using depth-first, pre-order traversal. This is generally easy to do on any tree structures.</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// Serialize a name for our monster, called &quot;Orc&quot;.</span></div>
@@ -478,6 +506,16 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line"><span class="comment">// could correspond to an item that can be claimed after he is slain.</span></div>
 <div class="line">$treasure = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);</div>
 <div class="line">$inv = \MyGame\Sample\Monster::CreateInventoryVector($builder, $treasure);</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Serialize a name for our monster, called &quot;Orc&quot;.</span></div>
+<div class="line"><span class="comment">// The _str suffix indicates the source is an ascii-z string.</span></div>
+<div class="line">flatbuffers_string_ref_t name = flatbuffers_string_create_str(B, <span class="stringliteral">&quot;Orc&quot;</span>);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Create a `vector` representing the inventory of the Orc. Each number</span></div>
+<div class="line"><span class="comment">// could correspond to an item that can be claimed after he is slain.</span></div>
+<div class="line">uint8_t treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};</div>
+<div class="line">flatbuffers_uint8_vec_ref_t inventory;</div>
+<div class="line"><span class="comment">// `c_vec_len` is the convenience macro we defined earlier.</span></div>
+<div class="line">inventory = flatbuffers_uint8_vec_create(B, treasure, c_vec_len(treasure));</div>
 </div><!-- fragment --> </div><p>We serialized two built-in data types (<code>string</code> and <code>vector</code>) and captured their return values. These values are offsets into the serialized data, indicating where they are stored, such that we can refer to them below when adding fields to our monster.</p>
 <p><em>Note: To create a <code>vector</code> of nested objects (e.g. <code>table</code>s, <code>string</code>s, or other <code>vector</code>s), collect their offsets into a temporary data structure, and then create an additional <code>vector</code> containing their offsets.</em></p>
 <p>For example, take a look at the two <code>Weapon</code>s that we created earlier (<code>Sword</code> and <code>Axe</code>). These are both FlatBuffer <code>table</code>s, whose offsets we now store in memory. Therefore we can create a FlatBuffer <code>vector</code> to contain these offsets.</p>
@@ -520,7 +558,12 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line"><span class="comment">// `CreateWeaponsVector()` method to create a FlatBuffer vector.</span></div>
 <div class="line">$weaps = array($sword, $axe);</div>
 <div class="line">$weapons = \MyGame\Sample\Monster::CreateWeaponsVector($builder, $weaps);</div>
-</div><!-- fragment --> </div><p>To create a <code>struct</code>, use the <code>Vec3</code> class/struct that was generated by <code>flatc</code>:</p>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// We use the internal builder stack to implement a dynamic vector.</span></div>
+<div class="line">ns(Weapon_vec_start(B));</div>
+<div class="line">ns(Weapon_vec_push(B, sword));</div>
+<div class="line">ns(Weapon_vec_push(B, axe));</div>
+<div class="line">ns(Weapon_vec_ref_t) weapons = ns(Weapon_vec_end(B));</div>
+</div><!-- fragment --> </div><p>To create a <code>struct</code>, use the <code>Vec3</code> class/struct that was generated by the schema compiler:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// Create a `Vec3`, representing the Orc&#39;s position in 3-D space.</span></div>
 <div class="line"><span class="keyword">auto</span> pos = Vec3(1.0f, 2.0f, 3.0f);</div>
 </div><!-- fragment --> </div> <div class="language-java"> <div class="fragment"><div class="line"><span class="comment">// Create a `Vec3`, representing the Orc&#39;s position in 3-D space.</span></div>
@@ -535,6 +578,8 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">var pos = MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);</div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line"><span class="comment">// Create a `Vec3`, representing the Orc&#39;s position in 3-D space.</span></div>
 <div class="line">$pos = \MyGame\Sample\Vec3::CreateVec3($builder, 1.0, 2.0, 3.0);</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Create a `Vec3`, representing the Orc&#39;s position in 3-D space.</span></div>
+<div class="line">ns(Vec3_t) pos = { 1.0f, 2.0f, 3.0f };</div>
 </div><!-- fragment --> </div><p>We have now serialized the non-scalar components of the orc, so we can serialize the monster itself:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// Set his hit points to 300 and his mana to 150.</span></div>
 <div class="line"><span class="keywordtype">int</span> hp = 300;</div>
@@ -612,9 +657,17 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">\MyGame\Sample\Monster::AddEquippedType($builder, \MyGame\Sample\Equipment::Weapon);</div>
 <div class="line">\MyGame\Sample\Monster::AddEquipped($builder, $axe);</div>
 <div class="line">$orc = \MyGame\Sample\Monster::EndMonster($builder);</div>
-</div><!-- fragment --> </div><div class="language-cpp"> <br />
- <em>Note: Since we passing <code>150</code> as the <code>mana</code> field, which happens to be the default value, the field will not actually be written to the buffer, since the default value will be returned on query anyway. This is a nice space savings, especially if default values are common in your data. It also means that you do not need to be worried of adding a lot of fields that are only used in a small number of instances, as it will not bloat the buffer if unused.</em> <br />
-<br />
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Set his hit points to 300 and his mana to 150.</span></div>
+<div class="line">uint16_t hp = 300;</div>
+<div class="line">uint16_t mana = 150;</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Define an equipment union. `create` calls in C has a single</span></div>
+<div class="line"><span class="comment">// argument for unions where C++ has both a type and a data argument.</span></div>
+<div class="line">ns(Equipment_union_ref_t) equipped = ns(Equipment_as_Weapon(axe));</div>
+<div class="line">ns(Monster_create_as_root(B, &amp;pos, mana, hp, name, inventory, ns(Color_Red),</div>
+<div class="line">        weapons, equipped));</div>
+</div><!-- fragment --> </div><p><em>Note: Since we are passing <code>150</code> as the <code>mana</code> field, which happens to be the default value, the field will not actually be written to the buffer, since the default value will be returned on query anyway. This is a nice space savings, especially if default values are common in your data. It also means that you do not need to be worried of adding a lot of fields that are only used in a small number of instances, as it will not bloat the buffer if unused.</em></p>
+<div class="language-cpp"> <br />
  If you do not wish to set every field in a <code>table</code>, it may be more convenient to manually set each field of your monster, instead of calling <code>CreateMonster()</code>. The following snippet is functionally equivalent to the above code, but provides a bit more flexibility. <br />
  </p><div class="fragment"><div class="line"><span class="comment">// You can use this code instead of `CreateMonster()`, to create our orc</span></div>
 <div class="line"><span class="comment">// manually.</span></div>
@@ -628,6 +681,23 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">monster_builder.add_equipped_type(Equipment_Weapon);</div>
 <div class="line">monster_builder.add_equpped(axe);</div>
 <div class="line"><span class="keyword">auto</span> orc = monster_builder.Finish();</div>
+</div><!-- fragment --> </div> <div class="language-c"> If you do not wish to set every field in a <code>table</code>, it may be more convenient to manually set each field of your monster, instead of calling <code>create_monster_as_root()</code>. The following snippet is functionally equivalent to the above code, but provides a bit more flexibility. <br />
+ </p><div class="fragment"><div class="line"><span class="comment">// It is important to pair `start_as_root` with `end_as_root`.</span></div>
+<div class="line">ns(Monster_start_as_root(B));</div>
+<div class="line">ns(Monster_pos_create(B, 1.0f, 2.0f, 3.0f));</div>
+<div class="line"><span class="comment">// or alternatively</span></div>
+<div class="line"><span class="comment">//ns(Monster_pos_add(&amp;pos);</span></div>
+<div class="line"></div>
+<div class="line">ns(Monster_hp_add(B, hp));</div>
+<div class="line"><span class="comment">// Notice that `Monser_name_add` adds a string reference unlike the</span></div>
+<div class="line"><span class="comment">// add_str and add_strn variants.</span></div>
+<div class="line">ns(Monster_name_add(B, name));</div>
+<div class="line">ns(Monster_inventory_add(B, inventory));</div>
+<div class="line">ns(Monster_color_add(B, ns(Color_Red)));</div>
+<div class="line">ns(Monster_weapons_add(B, weapons));</div>
+<div class="line">ns(Monster_equipped_add(B, equipped));</div>
+<div class="line"><span class="comment">// Complete the monster object and make it the buffer root object.</span></div>
+<div class="line">ns(Monster_end_as_root(B));</div>
 </div><!-- fragment --> </div><p>Before finishing the serialization, let's take a quick look at FlatBuffer <code>union Equipped</code>. There are two parts to each FlatBuffer <code>union</code>. The first, is a hidden field <code>_type</code>, that is generated to hold the type of <code>table</code> referred to by the <code>union</code>. This allows you to know which type to cast to at runtime. Second, is the <code>union</code>'s data.</p>
 <p>In our example, the last two things we added to our <code>Monster</code> were the <code>Equipped Type</code> and the <code>Equipped</code> union itself.</p>
 <p>Here is a repetition these lines, to help highlight them more clearly:</p>
@@ -646,6 +716,8 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">MyGame.Sample.Monster.addEquipped(builder, axe); <span class="comment">// Union data</span></div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">\MyGame\Sample\Monster::AddEquippedType($builder, \MyGame\Sample\Equipment::Weapon); <span class="comment">// Union type</span></div>
 <div class="line">\MyGame\Sample\Monster::AddEquipped($builder, $axe); <span class="comment">// Union data</span></div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Add union type and data simultanously.</span></div>
+<div class="line">ns(Monster_equipped_Weapon_add(B, axe)); </div>
 </div><!-- fragment --> </div><p>After you have created your buffer, you will have the offset to the root of the data in the <code>orc</code> variable, so you can finish the buffer by calling the appropriate <code>finish</code> method.</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// Call `Finish()` to instruct the builder that this monster is complete.</span></div>
 <div class="line"><span class="comment">// Note: Regardless of how you created the `orc`, you still need to call</span></div>
@@ -666,6 +738,7 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line"><span class="comment">// Call `finish()` to instruct the builder that this monster is complete.</span></div>
 <div class="line"> $builder-&gt;finish($orc); <span class="comment">// You may also call `\MyGame\Sample\Monster::FinishMonsterBuffer(</span></div>
 <div class="line">                         <span class="comment">//                        $builder, $orc);`.</span></div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Because we used `Monster_create_as_root`, we do not need a `finish` call in C`.</span></div>
 </div><!-- fragment --> </div><p>The buffer is now ready to be stored somewhere, sent over the network, be compressed, or whatever you'd like to do with it. You can access the buffer like so:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// This must be called after `Finish()`.</span></div>
 <div class="line">uint8_t *buf = builder.GetBufferPointer();</div>
@@ -683,9 +756,28 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">var buf = builder.dataBuffer(); <span class="comment">// Of type `flatbuffers.ByteBuffer`.</span></div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line"><span class="comment">// This must be called after `finish()`.</span></div>
 <div class="line">$buf = $builder-&gt;dataBuffer(); <span class="comment">// Of type `Google\FlatBuffers\ByteBuffer`</span></div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">uint8_t *buf;</div>
+<div class="line"><span class="keywordtype">size_t</span> size;</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Allocate and extract a readable buffer from internal builder heap.</span></div>
+<div class="line"><span class="comment">// The returned buffer must be deallocated using `free`.</span></div>
+<div class="line"><span class="comment">// NOTE: Finalizing the buffer does NOT change the builder, it</span></div>
+<div class="line"><span class="comment">// just creates a snapshot of the builder content.</span></div>
+<div class="line">buf = flatcc_builder_finalize_buffer(B, &amp;size);</div>
+<div class="line"><span class="comment">// use buf</span></div>
+<div class="line">free(buf);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Optionally reset builder to reuse builder without deallocating</span></div>
+<div class="line"><span class="comment">// internal stack and heap.</span></div>
+<div class="line">flatcc_builder_reset(B);</div>
+<div class="line"><span class="comment">// build next buffer.</span></div>
+<div class="line"><span class="comment">// ...</span></div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Cleanup.</span></div>
+<div class="line">flatcc_builder_clear(B);</div>
 </div><!-- fragment --> </div><h4>Reading Orc FlatBuffers</h4>
 <p>Now that we have successfully created an <code>Orc</code> FlatBuffer, the monster data can be saved, sent over a network, etc. Let's now adventure into the inverse, and deserialize a FlatBuffer.</p>
-<p>This seciton requires the same import/include, namespace, etc. requirements as before:</p>
+<p>This section requires the same import/include, namespace, etc. requirements as before:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;monster_generate.h&quot;</span> <span class="comment">// This was generated by `flatc`.</span></div>
 <div class="line"></div>
 <div class="line"><span class="keyword">using namespace </span>MyGame::Sample; <span class="comment">// Specified in the schema.</span></div>
@@ -734,6 +826,11 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Only needed if we don&#39;t have `#include &quot;monster_builder.h&quot;`.</span></div>
+<div class="line"><span class="preprocessor">#include &quot;monster_reader.h&quot;</span></div>
+<div class="line"></div>
+<div class="line"><span class="preprocessor">#undef ns</span></div>
+<div class="line"><span class="preprocessor">#define ns(x) FLATBUFFERS_WRAP_NAMESPACE(MyGame_Sample, x) // Specified in the schema.</span></div>
 </div><!-- fragment --> </div><p>Then, assuming you have a variable containing to the bytes of data from disk, network, etc., you can create a monster from this data:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="comment">// We can access the buffer we just made directly. Pretend this came over a</span></div>
 <div class="line"><span class="comment">// network, was read off of disk, etc.</span></div>
@@ -793,7 +890,13 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line"></div>
 <div class="line"><span class="comment">// Deserialize the data from the buffer.</span></div>
 <div class="line">$monster = \MyGame\Sample\Monster::GetRootAsMonster($buf);</div>
-</div><!-- fragment --> </div><p>If you look in the generated files from <code>flatc</code>, you will see it generated accessors for all non-<code>deprecated</code> fields. For example:</p>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Note that we use the `table_t` suffix when reading a table object</span></div>
+<div class="line"><span class="comment">// as opposed to the `ref_t` suffix used during the construction of</span></div>
+<div class="line"><span class="comment">// the buffer.</span></div>
+<div class="line">ns(Monster_table_t) monster = ns(Monster_as_root(buffer));</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Note: root object pointers are NOT the same as the `buffer` pointer.</span></div>
+</div><!-- fragment --> </div><p>If you look in the generated files from the schema compiler, you will see it generated accessors for all non-<code>deprecated</code> fields. For example:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> hp = monster-&gt;hp();</div>
 <div class="line"><span class="keyword">auto</span> mana = monster-&gt;mana();</div>
 <div class="line"><span class="keyword">auto</span> name = monster-&gt;name()-&gt;c_str();</div>
@@ -817,8 +920,11 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">$hp = $monster-&gt;getHp();</div>
 <div class="line">$mana = $monster-&gt;getMana();</div>
 <div class="line">$name = monster-&gt;getName();</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">uint16_t hp = ns(Monster_hp(monster));</div>
+<div class="line">uint16_t mana = ns(Monster_mana(monster));</div>
+<div class="line">flatbuffers_string_t name = ns(Monster_name(monster));</div>
 </div><!-- fragment --> </div><p>These should hold <code>300</code>, <code>150</code>, and <code>"Orc"</code> respectively.</p>
-<p><em>Note: We never stored a value in <code>mp</code>, so we got the default value of <code>150</code>.</em></p>
+<p><em>Note: The default value <code>150</code> wasn't stored in <code>mana</code>, but we are still able to retrieve it.</em></p>
 <p>To access sub-objects, in the case of our <code>pos</code>, which is a <code>Vec3</code>:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> pos = monster-&gt;pos();</div>
 <div class="line"><span class="keyword">auto</span> x = pos-&gt;x();</div>
@@ -854,8 +960,12 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">$x = $pos-&gt;getX();</div>
 <div class="line">$y = $pos-&gt;getY();</div>
 <div class="line">$z = $pos-&gt;getZ();</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">ns(Vec3_struct_t) pos = ns(Monster_pos(monster));</div>
+<div class="line"><span class="keywordtype">float</span> x = ns(Vec3_x(pos));</div>
+<div class="line"><span class="keywordtype">float</span> y = ns(Vec3_y(pos));</div>
+<div class="line"><span class="keywordtype">float</span> z = ns(Vec3_z(pos));</div>
 </div><!-- fragment --> </div><p><code>x</code>, <code>y</code>, and <code>z</code> will contain <code>1.0</code>, <code>2.0</code>, and <code>3.0</code>, respectively.</p>
-<p><em>Note: Had we not set <code>pos</code> during serialization, it would be <code>NULL</code>-value.</em></p>
+<p><em>Note: Had we not set <code>pos</code> during serialization, it would be a <code>NULL</code>-value.</em></p>
 <p>Similarly, we can access elements of the inventory <code>vector</code> by indexing it. You can also iterate over the length of the array/vector representing the FlatBuffers <code>vector</code>.</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> inv = monster-&gt;inventory(); <span class="comment">// A pointer to a `flatbuffers::Vector&lt;&gt;`.</span></div>
 <div class="line"><span class="keyword">auto</span> inv_len = inv-&gt;Length();</div>
@@ -872,6 +982,10 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">var thirdItem = monster.inventory(2);</div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">$inv_len = $monster-&gt;getInventoryLength();</div>
 <div class="line">$third_item = $monster-&gt;getInventory(2);</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// If `inv` hasn&#39;t been set, it will be null. It is valid get</span></div>
+<div class="line"><span class="comment">// the length of null which will be 0, useful for iteration.</span></div>
+<div class="line">flatbuffers_uint8_vec_t inv = ns(Monster_inventory(monster));</div>
+<div class="line"><span class="keywordtype">size_t</span> inv_len = flatbuffers_uint8_vec_len(inv);</div>
 </div><!-- fragment --> </div><p>For <code>vector</code>s of <code>table</code>s, you can access the elements like any other vector, except your need to handle the result as a FlatBuffer <code>table</code>:</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> weapons = monster-&gt;weapons(); <span class="comment">// A pointer to a `flatbuffers::Vector&lt;&gt;`.</span></div>
 <div class="line"><span class="keyword">auto</span> weapon_len = weapons-&gt;Length();</div>
@@ -899,6 +1013,11 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">$weapons_len = $monster-&gt;getWeaponsLength();</div>
 <div class="line">$second_weapon_name = $monster-&gt;getWeapons(1)-&gt;getName();</div>
 <div class="line">$second_weapon_damage = $monster-&gt;getWeapons(1)-&gt;getDamage();</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">ns(Weapon_vec_t) weapons = ns(Monster_weapons(monster));</div>
+<div class="line"><span class="keywordtype">size_t</span> weapons_len = ns(Weapon_vec_len(weapons));</div>
+<div class="line"><span class="comment">// We can use `const char *` instead of `flatbuffers_string_t`.</span></div>
+<div class="line">const <span class="keywordtype">char</span> *second_weapon_name = ns(Weapon_name(ns(Weapon_vec_at(weapons, 1))));</div>
+<div class="line">uint16_t second_weapon_damage =  ns(Weapon_damage(ns(Weapon_vec_at(weapons, 1))));</div>
 </div><!-- fragment --> </div><p>Last, we can access our <code>Equipped</code> FlatBuffer <code>union</code>. Just like when we created the <code>union</code>, we need to get both parts of the <code>union</code>: the type and the data.</p>
 <p>We can access the type to dynamically cast the data as needed (since the <code>union</code> only stores a FlatBuffer <code>table</code>).</p>
 <div class="language-cpp"> <div class="fragment"><div class="line"><span class="keyword">auto</span> union_type = monster.equipped_type();</div>
@@ -968,6 +1087,14 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 <div class="line">  $weapon_name = $monster-&gt;getEquipped(<span class="keyword">new</span> \MyGame\Sample\Weapon())-&gt;getName();     <span class="comment">// &quot;Axe&quot;</span></div>
 <div class="line">  $weapon_damage = $monster-&gt;getEquipped(<span class="keyword">new</span> \MyGame\Sample\Weapon())-&gt;getDamage(); <span class="comment">// 5</span></div>
 <div class="line">}</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line"><span class="comment">// Access union type field.</span></div>
+<div class="line"><span class="keywordflow">if</span> (ns(Monster_equipped_type(monster)) == ns(Equipment_Weapon)) {</div>
+<div class="line">    <span class="comment">// Cast to appropriate type:</span></div>
+<div class="line">    <span class="comment">// C allows for silent void pointer assignment, so we need no explicit cast.</span></div>
+<div class="line">    ns(Weapon_table_t) weapon = ns(Monster_equipped(monster));</div>
+<div class="line">    const <span class="keywordtype">char</span> *weapon_name = ns(Weapon_name(weapon)); <span class="comment">// &quot;Axe&quot;</span></div>
+<div class="line">    uint16_t weapon_damage = ns(Weapon_damage(weapon)); <span class="comment">// 5</span></div>
+<div class="line">}</div>
 </div><!-- fragment --> </div><h2>Mutating FlatBuffers</h2>
 <p>As you saw above, typically once you have created a FlatBuffer, it is read-only from that moment on. There are, however, cases where you have just received a FlatBuffer, and you'd like to modify something about it before sending it on to another recipient. With the above functionality, you'd have to generate an entirely new FlatBuffer, while tracking what you modified in your own data structures. This is inconvenient.</p>
 <p>For this reason FlatBuffers can also be mutated in-place. While this is great for making small fixes to an existing buffer, you generally want to create buffers from scratch whenever possible, since it is much more efficient and the API is much more general purpose.</p>
@@ -989,6 +1116,8 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --> </div> <div class="language-python"> <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;&lt;API <span class="keywordflow">for</span> mutating FlatBuffers <span class="keywordflow">is</span> <span class="keywordflow">not</span> yet available <span class="keywordflow">in</span> Python.&gt;</div>
 </div><!-- fragment --> </div> <div class="language-javascript"> <div class="fragment"><div class="line">&lt;API <span class="keywordflow">for</span> mutating FlatBuffers is not yet support in JavaScript.&gt;</div>
 </div><!-- fragment --> </div> <div class="language-php"> <div class="fragment"><div class="line">&lt;API <span class="keywordflow">for</span> mutating FlatBuffers is not yet supported in PHP.&gt;</div>
+</div><!-- fragment --> </div> <div class="language-c"> <div class="fragment"><div class="line">&lt;API <span class="keywordflow">for</span> in-place mutating FlatBuffers will not be supported in C</div>
+<div class="line">(except in-place vector sorting is possible).&gt;</div>
 </div><!-- fragment --> </div><p>We use the somewhat verbose term <code>mutate</code> instead of <code>set</code> to indicate that this is a special use case, not to be confused with the default way of constructing FlatBuffer data.</p>
 <p>After the above mutations, you can send on the FlatBuffer to a new recipient without any further work!</p>
 <p>Note that any <code>mutate</code> functions on a table will return a boolean, which is <code>false</code> if the field we're trying to set is not present in the buffer. Fields that are not present if they weren't set, or even if they happen to be equal to the default value. For example, in the creation code above, the <code>mana</code> field is equal to <code>150</code>, which is the default value, so it was never stored in the buffer. Trying to call the corresponding <code>mutate</code> method for <code>mana</code> on such data will return <code>false</code>, and the value won't actually be modified!</p>
@@ -1010,10 +1139,10 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_tutorial.html','');}
 </div><!-- fragment --><p>You can run this file through the <code>flatc</code> compile with the <code>-b</code> flag and our <code>monster.fbs</code> schema to produce a FlatBuffer binary file.</p>
 <div class="fragment"><div class="line">./../flatc -b monster.fbs monsterdata.json</div>
 </div><!-- fragment --><p>The output of this will be a file <code>monsterdata.bin</code>, which will contain the FlatBuffer binary representation of the contents from our <code>.json</code> file.</p>
-<div class="language-cpp"> <em>Note: If you're working in C++, you can also parse JSON at runtime. See the <a class="el" href="flatbuffers_guide_use_cpp.html">Use in C++</a> section of the Programmer's Guide for more information.</em> </div><h2>Advanced Features for Each Language</h2>
+<div class="language-cpp"> <em>Note: If you're working in C++, you can also parse JSON at runtime. See the <a class="el" href="flatbuffers_guide_use_cpp.html">Use in C++</a> section of the Programmer's Guide for more information.</em> </div> <div class="language-c"> <em>Note: If you're working in C, the <code>flatcc --json</code> (not <code>flatc</code>) compiler will generate schema specific high performance json parsers and printers that you can compile and use at runtime. The <code>flatc</code> compiler (not <code>flatcc</code>) on the other hand, is still useful for general offline json to flatbuffer conversion from a given schema. There are no current plans for <code>flatcc</code> to support this.</em> </div><h2>Advanced Features for Each Language</h2>
 <p>Each language has a dedicated <code>Use in XXX</code> page in the Programmer's Guide to cover the nuances of FlatBuffers in that language.</p>
 <p>For your chosen language, see:</p>
-<div class="language-cpp"> <a class="el" href="flatbuffers_guide_use_cpp.html">Use in C++</a> </div> <div class="language-java"> <a class="el" href="flatbuffers_guide_use_java_c-sharp.html">Use in Java/C#</a> </div> <div class="language-csharp"> <a class="el" href="flatbuffers_guide_use_java_c-sharp.html">Use in Java/C#</a> </div> <div class="language-go"> <a class="el" href="flatbuffers_guide_use_go.html">Use in Go</a> </div> <div class="language-python"> <a class="el" href="flatbuffers_guide_use_python.html">Use in Python</a> </div> <div class="language-javascript"> <a class="el" href="flatbuffers_guide_use_javascript.html">Use in JavaScript</a> </div> <div class="language-php"> <a class="el" href="flatbuffers_guide_use_php.html">Use in PHP</a> </div><p><br />
+<div class="language-cpp"> <a class="el" href="flatbuffers_guide_use_cpp.html">Use in C++</a> </div> <div class="language-java"> <a class="el" href="flatbuffers_guide_use_java_c-sharp.html">Use in Java/C#</a> </div> <div class="language-csharp"> <a class="el" href="flatbuffers_guide_use_java_c-sharp.html">Use in Java/C#</a> </div> <div class="language-go"> <a class="el" href="flatbuffers_guide_use_go.html">Use in Go</a> </div> <div class="language-python"> <a class="el" href="flatbuffers_guide_use_python.html">Use in Python</a> </div> <div class="language-javascript"> <a class="el" href="flatbuffers_guide_use_javascript.html">Use in JavaScript</a> </div> <div class="language-php"> <a class="el" href="flatbuffers_guide_use_php.html">Use in PHP</a> </div> <div class="language-c"> <a class="el" href="flatbuffers_guide_use_c.html">Use in C</a> </div><p><br />
  </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

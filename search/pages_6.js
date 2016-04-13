@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['use_20in_20c',['Use in C',['../flatbuffers_guide_use_c.html',1,'']]],
   ['use_20in_20c_2b_2b',['Use in C++',['../flatbuffers_guide_use_cpp.html',1,'']]],
   ['use_20in_20go',['Use in Go',['../flatbuffers_guide_use_go.html',1,'']]],
   ['use_20in_20java_2fc_23',['Use in Java/C#',['../flatbuffers_guide_use_java_c-sharp.html',1,'']]],

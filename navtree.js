@@ -8,6 +8,7 @@ var NAVTREE =
       [ "Using the schema compiler", "flatbuffers_guide_using_schema_compiler.html", null ],
       [ "Writing a schema", "flatbuffers_guide_writing_schema.html", null ],
       [ "Use in C++", "flatbuffers_guide_use_cpp.html", null ],
+      [ "Use in C", "flatbuffers_guide_use_c.html", null ],
       [ "Use in Go", "flatbuffers_guide_use_go.html", null ],
       [ "Use in Java/C#", "flatbuffers_guide_use_java_c-sharp.html", null ],
       [ "Use in JavaScript", "flatbuffers_guide_use_javascript.html", null ],
