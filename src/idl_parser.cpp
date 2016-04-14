@@ -1423,6 +1423,10 @@ void Parser::MarkGenerated() {
            it != structs_.vec.end(); ++it) {
     (*it)->generated = true;
   }
+  for (auto it = services_.vec.begin();
+           it != services_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
 }
 
 CheckedError Parser::ParseNamespace() {

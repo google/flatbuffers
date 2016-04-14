@@ -237,7 +237,8 @@ as the response (both of which must be table types):
     }
 
 What code this produces and how it is used depends on language and RPC system
-used, FlatBuffers itself does not offer this functionality.
+used, there is preliminary support for GRPC through the `--grpc` code generator,
+see `grpc/tests` for an example.
 
 ### Comments & documentation
 
