@@ -275,6 +275,12 @@ static void GenFullyQualifiedNameGetter(const Parser &parser, const std::string&
   }
 }
 
+std::string GenDefaultConstant(const FieldDef &field) {
+  return field.value.type.base_type == BASE_TYPE_FLOAT
+      ? field.value.constant + "f"
+      : field.value.constant;
+}
+
 // Generate an accessor struct, builder structs & function for a table.
 static void GenTable(const Parser &parser, StructDef &struct_def,
                      std::string *code_ptr) {
@@ -331,7 +337,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
           ">(" + offsetstr;
       // Default value as second arg for non-pointer types.
       if (IsScalar(field.value.type.base_type))
-        call += ", " + field.value.constant;
+        call += ", " + GenDefaultConstant(field);
       call += ")";
       code += GenUnderlyingCast(field, true, call);
       code += "; }\n";
@@ -470,7 +476,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       code += "(" + struct_def.name + "::" + GenFieldOffsetName(field) + ", ";
       code += GenUnderlyingCast(field, false, field.name);
       if (IsScalar(field.value.type.base_type))
-        code += ", " + field.value.constant;
+        code += ", " + GenDefaultConstant(field);
       code += "); }\n";
     }
   }
@@ -520,7 +526,7 @@ static void GenTable(const Parser &parser, StructDef &struct_def,
       } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
         code += field.value.constant == "0" ? "false" : "true";
       } else {
-        code += field.value.constant;
+        code += GenDefaultConstant(field);
       }
     }
   }
@@ -777,8 +783,10 @@ std::string GenerateCPP(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     auto &struct_def = **it;
-    CheckNameSpace(struct_def, &code);
-    code += "struct " + struct_def.name + ";\n\n";
+    if (!struct_def.generated) {
+      CheckNameSpace(struct_def, &code);
+      code += "struct " + struct_def.name + ";\n\n";
+    }
   }
 
   // Generate code for all the enum declarations.

@@ -25,6 +25,8 @@
           title="Writing a schema"/>
       <tab type="user" url="@ref flatbuffers_guide_use_cpp"
           title="Use in C++"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_c"
+          title="Use in C"/>
       <tab type="user" url="@ref flatbuffers_guide_use_go"
           title="Use in Go"/>
       <tab type="user" url="@ref flatbuffers_guide_use_java_c-sharp"
