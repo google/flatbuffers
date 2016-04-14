@@ -12,7 +12,7 @@ public:
 	{
 		_buffer = buffer;
 		_pos = 0;
-		_bigEndian = false;
+		_bigEndian = true;
 	}
 
 	@property uint length()
