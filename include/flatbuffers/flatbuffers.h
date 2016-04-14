@@ -1051,8 +1051,11 @@ FLATBUFFERS_FINAL_CLASS
                                       uint8_t **buf) {
     NotNested();
     StartVector(len, elemsize);
-    *buf = buf_.make_space(len * elemsize);
-    return EndVector(len);
+    buf_.make_space(len * elemsize);
+    auto vec_start = GetSize();
+    auto vec_end = EndVector(len);
+    *buf = buf_.data_at(vec_start);
+    return vec_end;
   }
 
   /// @brief Specialized version of `CreateVector` for non-copying use cases.

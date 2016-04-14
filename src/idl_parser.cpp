@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 const char *const kTypeNames[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -31,7 +31,7 @@ const char *const kTypeNames[] = {
 };
 
 const char kTypeSizes[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
       sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -161,7 +161,7 @@ enum {
   #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
     FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
   #undef FLATBUFFERS_TOKEN
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
       kToken ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -172,7 +172,7 @@ static std::string TokenToString(int t) {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -302,7 +302,7 @@ CheckedError Parser::Next() {
           attribute_.append(start, cursor_);
           // First, see if it is a type keyword from the table of types:
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-            PTYPE) \
+            PTYPE, DTYPE) \
             if (attribute_ == IDLTYPE) { \
               token_ = kToken ## ENUM; \
               return NoError(); \
@@ -751,7 +751,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-            PTYPE) \
+            PTYPE, DTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -768,7 +768,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-            PTYPE) \
+            PTYPE, DTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -826,7 +826,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
@@ -1784,7 +1784,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       auto name = attribute_;
       EXPECT(kTokenStringConstant);
       EXPECT(';');
-      known_attributes_.insert(name);
+      known_attributes_[name] = false;
     } else if (token_ == kTokenService) {
       ECHECK(ParseService());
     } else {
@@ -1853,13 +1853,13 @@ void Parser::Serialize() {
   AssignIndices(enums_.vec);
   std::vector<Offset<reflection::Object>> object_offsets;
   for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
-    auto offset = (*it)->Serialize(&builder_);
+    auto offset = (*it)->Serialize(&builder_, *this);
     object_offsets.push_back(offset);
     (*it)->serialized_location = offset.o;
   }
   std::vector<Offset<reflection::Enum>> enum_offsets;
   for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
-    auto offset = (*it)->Serialize(&builder_);
+    auto offset = (*it)->Serialize(&builder_, *this);
     enum_offsets.push_back(offset);
     (*it)->serialized_location = offset.o;
   }
@@ -1875,13 +1875,13 @@ void Parser::Serialize() {
   builder_.Finish(schema_offset, reflection::SchemaIdentifier());
 }
 
-Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder)
-                                                                         const {
+Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
+                                                const Parser &parser) const {
   std::vector<Offset<reflection::Field>> field_offsets;
   for (auto it = fields.vec.begin(); it != fields.vec.end(); ++it) {
     field_offsets.push_back(
       (*it)->Serialize(builder,
-                       static_cast<uint16_t>(it - fields.vec.begin())));
+                       static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
   return reflection::CreateObject(*builder,
                                   builder->CreateString(name),
@@ -1889,11 +1889,13 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder)
                                     &field_offsets),
                                   fixed,
                                   static_cast<int>(minalign),
-                                  static_cast<int>(bytesize));
+                                  static_cast<int>(bytesize),
+                                  SerializeAttributes(builder, parser));
 }
 
 Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
-                                              uint16_t id) const {
+                                              uint16_t id,
+                                              const Parser &parser) const {
   return reflection::CreateField(*builder,
                                  builder->CreateString(name),
                                  value.type.Serialize(builder),
@@ -1907,12 +1909,14 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
                                    : 0.0,
                                  deprecated,
                                  required,
-                                 key);
+                                 key,
+                                 SerializeAttributes(builder, parser));
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
 
-Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder) const {
+Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
+                                            const Parser &parser) const {
   std::vector<Offset<reflection::EnumVal>> enumval_offsets;
   for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
     enumval_offsets.push_back((*it)->Serialize(builder));
@@ -1921,7 +1925,8 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder) const {
                                 builder->CreateString(name),
                                 builder->CreateVector(enumval_offsets),
                                 is_union,
-                                underlying_type.Serialize(builder));
+                                underlying_type.Serialize(builder),
+                                SerializeAttributes(builder, parser));
 }
 
 Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder) const
@@ -1940,6 +1945,28 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
                                 static_cast<reflection::BaseType>(element),
                                 struct_def ? struct_def->index :
                                              (enum_def ? enum_def->index : -1));
+}
+
+flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
+  reflection::KeyValue>>>
+    Definition::SerializeAttributes(FlatBufferBuilder *builder,
+                                    const Parser &parser) const {
+  std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
+  for (auto kv : attributes.dict) {
+    auto it = parser.known_attributes_.find(kv.first);
+    assert(it != parser.known_attributes_.end());
+    if (!it->second) {  // Custom attribute.
+      attrs.push_back(
+          reflection::CreateKeyValue(*builder, builder->CreateString(kv.first),
+                                     builder->CreateString(
+                                         kv.second->constant)));
+    }
+  }
+  if (attrs.size()) {
+    return builder->CreateVectorOfSortedTables(&attrs);
+  } else {
+    return 0;
+  }
 }
 
 }  // namespace flatbuffers

@@ -1,0 +1,7 @@
+{
+	"name": "flatbuffers",
+	"description": "D implementation of Google Flatbuffers.",
+	"copyright": "Apache License Version 2.0y",
+	"authors": ["dsby"],
+	"targetType": "library"
+}
