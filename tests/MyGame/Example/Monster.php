@@ -334,21 +334,30 @@ class Monster extends Table
     }
 
     /**
+     * @return float
+     */
+    public function getTestf()
+    {
+        $o = $this->__offset(54);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : 3.14159;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(25);
+        $builder->StartObject(26);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf)
     {
-        $builder->startObject(25);
+        $builder->startObject(26);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -373,6 +382,7 @@ class Monster extends Table
         self::addTesthashs64Fnv1a($builder, $testhashs64_fnv1a);
         self::addTesthashu64Fnv1a($builder, $testhashu64_fnv1a);
         self::addTestarrayofbools($builder, $testarrayofbools);
+        self::addTestf($builder, $testf);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -755,6 +765,16 @@ class Monster extends Table
     public static function startTestarrayofboolsVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addTestf(FlatBufferBuilder $builder, $testf)
+    {
+        $builder->addFloatX(25, $testf, 3.14159);
     }
 
     /**

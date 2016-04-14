@@ -15,6 +15,7 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 ## Supported programming languages
 * C++
 * C#
+* C
 * Go
 * Java
 * JavaScript

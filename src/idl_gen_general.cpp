@@ -293,7 +293,7 @@ static Type DestinationType(const LanguageParameters &lang, const Parser &parser
   }
 }
 
-static std::string GenOffsetType(const LanguageParameters &lang, const Parser &parser, 
+static std::string GenOffsetType(const LanguageParameters &lang, const Parser &parser,
                                  const StructDef &struct_def) {
   if(lang.language == IDLOptions::kCSharp) {
     return "Offset<" + WrapInNameSpace(parser, struct_def) + ">";
@@ -428,7 +428,7 @@ static std::string GenEnumDefaultValue(const Parser &parser, const Value &value)
   return result;
 }
 
-static std::string GenDefaultValue(const LanguageParameters &lang, const Parser &parser, 
+static std::string GenDefaultValue(const LanguageParameters &lang, const Parser &parser,
                                    const Value &value, bool enableLangOverrides) {
   if (enableLangOverrides) {
     // handles both enum case and vector of enum case
@@ -438,9 +438,11 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Parser 
       return GenEnumDefaultValue(parser, value);
     }
   }
-  return value.type.base_type == BASE_TYPE_BOOL
-           ? (value.constant == "0" ? "false" : "true")
-           : value.constant;
+  switch (value.type.base_type) {
+    case BASE_TYPE_FLOAT: return value.constant + "f";
+    case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+    default: return value.constant;
+  }
 }
 
 static std::string GenDefaultValue(const LanguageParameters &lang, const Parser &parser,
@@ -448,7 +450,7 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Parser 
   return GenDefaultValue(lang, parser, value, true);
 }
 
-static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser, 
+static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser,
                                         const Value &value, bool enableLangOverrides) {
   if (!IsScalar(value.type.base_type)) {
     if (enableLangOverrides) {
@@ -470,7 +472,7 @@ static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Pa
   return GenDefaultValue(lang, parser, value, enableLangOverrides);
 }
 
-static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser, 
+static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser,
                                         const Value &value) {
   return GenDefaultValueBasic(lang, parser, value, true);
 }
@@ -573,7 +575,7 @@ static std::string GenSetter(const LanguageParameters &lang, const Parser &parse
                              const Type &type) {
   if (IsScalar(type.base_type)) {
     std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
-    if (GenTypeBasic(lang, parser, type, false) != "byte" && 
+    if (GenTypeBasic(lang, parser, type, false) != "byte" &&
         type.base_type != BASE_TYPE_BOOL) {
       setter += MakeCamel(GenTypeBasic(lang, parser, type, false));
     }
@@ -884,27 +886,27 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           break;
       }
     }
-	// generate object accessors if is nested_flatbuffer
-	auto nested = field.attributes.Lookup("nested_flatbuffer");
-	if (nested) {
-		auto nested_qualified_name =
-			parser.namespaces_.back()->GetFullyQualifiedName(nested->constant);
-		auto nested_type = parser.structs_.Lookup(nested_qualified_name);
-		auto nested_type_name = WrapInNameSpace(parser, *nested_type);
-		auto nestedMethodName = MakeCamel(field.name, lang.first_camel_upper) 
-			+ "As" + nested_type_name;
-		auto getNestedMethodName = nestedMethodName;
-		if (lang.language == IDLOptions::kCSharp) {
-			getNestedMethodName = "Get" + nestedMethodName;
-		}
-		code += "  public " + nested_type_name + " ";
-		code += nestedMethodName + "() { return ";
-		code += getNestedMethodName + "(new " + nested_type_name + "()); }\n";
-		code += "  public " + nested_type_name + " " + getNestedMethodName;
-		code += "(" + nested_type_name + " obj) { ";
-		code += "int o = __offset(" + NumToString(field.value.offset) +"); ";
-		code += "return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }\n";
-	}
+  // generate object accessors if is nested_flatbuffer
+  auto nested = field.attributes.Lookup("nested_flatbuffer");
+  if (nested) {
+    auto nested_qualified_name =
+      parser.namespaces_.back()->GetFullyQualifiedName(nested->constant);
+    auto nested_type = parser.structs_.Lookup(nested_qualified_name);
+    auto nested_type_name = WrapInNameSpace(parser, *nested_type);
+    auto nestedMethodName = MakeCamel(field.name, lang.first_camel_upper)
+      + "As" + nested_type_name;
+    auto getNestedMethodName = nestedMethodName;
+    if (lang.language == IDLOptions::kCSharp) {
+      getNestedMethodName = "Get" + nestedMethodName;
+    }
+    code += "  public " + nested_type_name + " ";
+    code += nestedMethodName + "() { return ";
+    code += getNestedMethodName + "(new " + nested_type_name + "()); }\n";
+    code += "  public " + nested_type_name + " " + getNestedMethodName;
+    code += "(" + nested_type_name + " obj) { ";
+    code += "int o = __offset(" + NumToString(field.value.offset) +"); ";
+    code += "return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }\n";
+  }
     // generate mutators for scalar fields or vectors of scalars
     if (parser.opts.mutable_buffer) {
       auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR

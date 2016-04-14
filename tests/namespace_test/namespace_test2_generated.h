@@ -8,16 +8,6 @@
 #include "namespace_test1_generated.h"
 
 namespace NamespaceA {
-namespace NamespaceB {
-
-struct TableInNestedNS;
-
-struct StructInNestedNS;
-
-}  // namespace NamespaceB
-}  // namespace NamespaceA
-
-namespace NamespaceA {
 
 struct TableInFirstNS;
 

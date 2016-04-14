@@ -96,6 +96,12 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")
   endif()
+
+  # Certain platforms such as ARM do not use signed chars by default
+  # which causes issues with certain bounds checks.
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -fsigned-char")
+
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
@@ -103,6 +109,12 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
   endif()
+
+  # Certain platforms such as ARM do not use signed chars by default
+  # which causes issues with certain bounds checks.
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -fsigned-char")
+
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)

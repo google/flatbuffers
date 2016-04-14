@@ -322,6 +322,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ_STR(hp_field.name()->c_str(), "hp");
   TEST_EQ(hp_field.id(), 2);
   TEST_EQ(hp_field.type()->base_type(), reflection::Short);
+  auto friendly_field_ptr = fields->LookupByKey("friendly");
+  TEST_NOTNULL(friendly_field_ptr);
+  TEST_NOTNULL(friendly_field_ptr->attributes());
+  TEST_NOTNULL(friendly_field_ptr->attributes()->LookupByKey("priority"));
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
