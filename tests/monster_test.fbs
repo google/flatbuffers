@@ -70,7 +70,7 @@ table Monster {
 }
 
 rpc_service MonsterStorage {
-  Store(Monster):Stat (stream);
+  Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (idempotent);
 }
 

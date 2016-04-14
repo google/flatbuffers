@@ -74,10 +74,14 @@ const Generator generators[] = {
     flatbuffers::IDLOptions::kMAX,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
-    { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
+  { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
     flatbuffers::IDLOptions::kMAX,
     "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GenerateGRPC, nullptr, "--grpc", "GRPC",
+    flatbuffers::IDLOptions::kMAX,
+    "Generate GRPC interfaces",
+    flatbuffers::CPPMakeRule },
 };
 
 const char *program_name = nullptr;

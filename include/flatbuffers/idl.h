@@ -432,7 +432,7 @@ class Parser : public ParserState {
     known_attributes_["original_order"] = true;
     known_attributes_["nested_flatbuffer"] = true;
     known_attributes_["csharp_partial"] = true;
-    known_attributes_["stream"] = true;
+    known_attributes_["streaming"] = true;
     known_attributes_["idempotent"] = true;
   }
 
@@ -678,6 +678,12 @@ extern std::string TextMakeRule(const Parser &parser,
 extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
                                   const std::string &file_name);
+
+// Generate GRPC interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGRPC(const Parser &parser,
+                  const std::string &path,
+                  const std::string &file_name);
 
 }  // namespace flatbuffers
 

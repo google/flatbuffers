@@ -1334,6 +1334,29 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_tables_;
 };
 
+// Convenient way to bundle a buffer and its length, to pass it around
+// typed by its root.
+// A BufferRef does not own its buffer.
+struct BufferRefBase {};  // for std::is_base_of
+template<typename T> struct BufferRef : BufferRefBase {
+  BufferRef() : buf(nullptr), len(0), must_free(false) {}
+  BufferRef(uint8_t *_buf, uoffset_t _len)
+    : buf(_buf), len(_len), must_free(false) {}
+
+  ~BufferRef() { if (must_free) free(buf); }
+
+  const T *GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+
+  bool Verify() {
+    Verifier verifier(buf, len);
+    return verifier.VerifyBuffer<T>();
+  }
+
+  uint8_t *buf;
+  uoffset_t len;
+  bool must_free;
+};
+
 // "structs" are flat structures that do not have an offset table, thus
 // always have all members present and do not support forwards/backwards
 // compatible extensions.
