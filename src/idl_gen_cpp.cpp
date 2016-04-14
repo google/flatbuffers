@@ -63,7 +63,7 @@ static std::string TranslateNameSpace(const std::string &qualified_name) {
 // Return a C++ type from the table in idl.h
 static std::string GenTypeBasic(const Type &type, bool user_facing_type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
       #CTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
