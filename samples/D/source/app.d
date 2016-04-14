@@ -1,29 +1,33 @@
 import std.stdio;
 import myGame.sample;
 import std.file;
+import std.conv;
 
 void main()
 {
 	writeln("Edit source/app.d to start your project.");
 	
-	auto builder = new FlatBufferBuilder(64);
+	auto builder = new FlatBufferBuilder(512);
 	
 	auto name = builder.createString("MyMonster");
 	
-	name = builder.createString("hello world");
+	int[] weaps;
+	foreach ( i ; 0..3){
+            weaps ~= Weapon.createWeapon(builder,builder.createString("Weapon." ~ i.to!string()),cast(short)i);
+	}
+	int t = Monster.createWeaponsVector(builder,weaps);
 	
-	ubyte[] invData = cast(ubyte[])("MyMonster");
-	writeln("invdata : ",invData);
+	ubyte[] invData = cast(ubyte[])("MyMonster");	
 	auto inventory = Monster.createInventoryVector(builder, invData); //todo：数组错误
 	//Create monster:
 	Monster.startMonster(builder);
-	Monster.addBy(builder,'a');
 	Monster.addPos(builder, Vec3.createVec3(builder, 1, 2, 3));
 	Monster.addMana(builder, 150);
 	Monster.addHp(builder, 80);
 	Monster.addName(builder, name);
 	Monster.addInventory(builder, inventory);
 	Monster.addColor(builder, Color.blue);
+	Monster.addWeapons(builder,t);
 	auto mloc = Monster.endMonster(builder);
 	
 	builder.finish(mloc);
@@ -35,24 +39,30 @@ void main()
 	//Instead, we're going to access it straight away.
 	//Get access to the root:
 	auto data = builder.sizedByteArray();
-	auto monster = Monster.getRootAsMonster(new ByteBuffer(data));
+	std.file.write("data",data);
+	writeln("write serialized data in file data!");
 	
-	writeln("monster.by " , monster.by, "  'a' = ", cast(ubyte)('a'));
-	assert(monster.by == 'a');
+	auto rdata = cast(ubyte[])(std.file.read("data"));
+	auto monster = Monster.getRootAsMonster(new ByteBuffer(rdata));
+	
 	assert(monster.hp == 80);
 	assert(monster.mana == 150); //default
-	//assert(monster.name == "MyMonster");
+	assert(monster.name == "MyMonster");
 	
 	auto pos = monster.pos();
 	assert(!pos.isNull());
 	assert(pos.z == 3);
+	
 	auto hh = monster.inventory();
-	foreach (i;hh){
-            writeln(i);
-	}
-	writeln("\n\n");
-	 int len = monster.inventoryLength;
-	for (int i = 0; i < len; ++i) {
-	writeln(monster.inventory(i));
-	}
+	assert(hh.length ==  9);
+	assert(hh[2] == 'M');
+	
+	
+	auto weapons = monster.weapons();
+	assert(weapons.length ==  3);
+	Nullable!Weapon weap = weapons[1];
+	assert(!weap.isNull());
+	assert(weap.damage == 1);
+	assert(weap.name == "Weapon.1");
+	writeln("un serialize data over!");
 }
