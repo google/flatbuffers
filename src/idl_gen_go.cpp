@@ -662,35 +662,32 @@ static void GenStructBuilder(const StructDef &struct_def,
 }
 
 class GoGenerator : public BaseGenerator {
-public:
-  GoGenerator(const Parser &parser_, const std::string &path_,
-              const std::string &file_name_)
-      : BaseGenerator(parser_, path_, file_name_){};
+ public:
+  GoGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
   bool generate() {
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    std::string enumcode;
-    go::GenEnum(**it, &enumcode);
-    if (!go::SaveType(parser, **it, enumcode, path, false))
-      return false;
-  }
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      std::string enumcode;
+      go::GenEnum(**it, &enumcode);
+      if (!go::SaveType(parser_, **it, enumcode, path_, false)) return false;
+    }
 
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    std::string declcode;
-    go::GenStruct(**it, &declcode, parser.root_struct_def_);
-    if (!go::SaveType(parser, **it, declcode, path, true))
-      return false;
-  }
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      std::string declcode;
+      go::GenStruct(**it, &declcode, parser_.root_struct_def_);
+      if (!go::SaveType(parser_, **it, declcode, path_, true)) return false;
+    }
 
-  return true;
+    return true;
   }
 };
 }  // namespace go
 
-bool GenerateGo(const Parser &parser,
-                const std::string &path,
-                const std::string & file_name) {
+bool GenerateGo(const Parser &parser, const std::string &path,
+                const std::string &file_name) {
   go::GoGenerator *generator = new go::GoGenerator(parser, path, file_name);
   return generator->generate();
 }

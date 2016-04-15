@@ -17,48 +17,23 @@
 #ifndef FLATBUFFERS_CODE_GENERATORS_H_
 #define FLATBUFFERS_CODE_GENERATORS_H_
 
-/** This file defines some classes, that code generators should extend to gain
-   common functionalities :
-
-   BaseGenerator is the base class for all (binary, textual, strongly typed,
-   dynamically typed, whatever) generators.
-   It is really abstract, general and flexible and doesn't do much appart from
-   holding the parser, a path and a filename being processed.
-   Still, it brings a common structure (normalization) among generators
-
-   The many advantages of object based generators will come later from   :
-
-   A) the CodeWriter class (semi-automatic indentation (python), semi-automatic
-   (C++) namespace scopes, export to different files (classic, top level
-   methods),
-   simpler code to generate string from things (comments (vector of strings),
-   indentation commands (TAB BAT), newlines (NL), numbers, const char* or
-   std::string)
-
-   B) the Generator subclass (heritance for supporting different versions of a
-   language, avoid field name clash, write text/binary to file, types
-   management,
-   common computations and sctructures :  enum analysis (function, array, map,
-   ordered list + binarysearch),...)
-
-*/
 namespace flatbuffers {
 
 class BaseGenerator {
-public:
-  BaseGenerator(const Parser &parser_, const std::string &path_,
-                const std::string &file_name_)
-      : parser(parser_), path(path_), file_name(file_name_){};
+ public:
+  BaseGenerator(const Parser &parser, const std::string &path,
+                const std::string &file_name)
+      : parser_(parser), path_(path), file_name_(file_name){};
   virtual bool generate() = 0;
 
-protected:
+ protected:
   virtual ~BaseGenerator(){};
 
-  const Parser &parser;
-  const std::string &path;
-  const std::string &file_name;
+  const Parser &parser_;
+  const std::string &path_;
+  const std::string &file_name_;
 };
 
-} // namespace flatbuffers
+}  // namespace flatbuffers
 
-#endif // FLATBUFFERS_CODE_GENERATORS_H_
+#endif  // FLATBUFFERS_CODE_GENERATORS_H_
