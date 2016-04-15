@@ -1,6 +1,6 @@
 import std.stdio;
-import myGame.sample;
-import std.file;
+import mygame.sample;
+//import std.file;
 import std.conv;
 
 void main()
@@ -39,11 +39,11 @@ void main()
 	//Instead, we're going to access it straight away.
 	//Get access to the root:
 	auto data = builder.sizedByteArray();
-	std.file.write("data",data);
-	writeln("write serialized data in file data!");
+	//std.file.write("data",data);
+	//writeln("write serialized data in file data!");
 	
-	auto rdata = cast(ubyte[])(std.file.read("data"));
-	auto monster = Monster.getRootAsMonster(new ByteBuffer(rdata));
+	//auto rdata = cast(ubyte[])(std.file.read("data"));
+	auto monster = Monster.getRootAsMonster(new ByteBuffer(data));
 	
 	assert(monster.hp == 80);
 	assert(monster.mana == 150); //default

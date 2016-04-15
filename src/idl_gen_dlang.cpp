@@ -628,7 +628,7 @@ static bool SavePackage(const Parser &parser,
     transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     EnsureDirExists(namespace_dir);
     namespace_general += FunctionStart( (*(namespaces.end()-1))[0]) + (*(namespaces.end()-1)).substr(1);
-
+    transform (namespace_general.begin(),namespace_general.end(), namespace_general.begin(), tolower);
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
     code += "\n\n";
