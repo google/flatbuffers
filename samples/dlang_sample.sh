@@ -41,7 +41,7 @@ fi
 echo Compiling and running the D sample.
 
 # Compile and execute the sample.
-cd $sampledir/D
+cd $sampledir/dlang
 dub build -f
 ./samplesD
 #mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
