@@ -223,7 +223,7 @@ static std::string GenTypeBasic(const LanguageParameters &lang, const Parser &pa
                                 const Type &type,
                                 bool enableLangOverrides) {
   static const char *gtypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
         #JTYPE, #NTYPE, #GTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD

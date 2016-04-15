@@ -5,12 +5,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-
 namespace MyGame {
 namespace Sample {
 
 struct Vec3;
+
 struct Monster;
+
 struct Weapon;
 
 enum Color {
