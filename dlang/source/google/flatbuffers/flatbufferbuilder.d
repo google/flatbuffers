@@ -8,7 +8,7 @@ import std.exception;
 final class FlatBufferBuilder
 {
 public: 
-	this(int initsize,bool bigeEndian = true)
+	this(int initsize,bool bigeEndian = false)
 	{
 		if(initsize == 0)
 			throw new ArgumentOutOfRangeException("initsize", initsize, "Must be greater than zero");
