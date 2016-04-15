@@ -12,7 +12,7 @@ public:
 	{
 		_buffer = buffer;
 		_pos = 0;
-		_bigEndian = true;
+		_bigEndian = false; //faltbuffer 在（x86下）默认小端存储
 	}
 
 	@property uint length()

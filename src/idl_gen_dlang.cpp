@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <list>
+#include <algorithm>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -98,7 +99,7 @@ static void GenEnum( EnumDef &enum_def,
                      std::string *code_ptr) {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
-    printf("!generated %s\n", enum_def.name.c_str());
+    //printf("!generated %s\n", enum_def.name.c_str());
 
     // Generate enum definitions of the form:
     // public static (final) int name = value;
@@ -240,8 +241,11 @@ static void GenStruct(const Parser &parser,
             imports.push_back(field.value.type.enum_def->name);
     }
     imports.unique();
-    for (auto it = imports.begin(); it != imports.end(); ++it)
-        code += "import " + namespace_general + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+    for (auto it = imports.begin(); it != imports.end(); ++it) {
+        auto import = "import " + namespace_general + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+        transform (import.begin(),import.end(), import.begin(), tolower);
+        code += import;
+    }
     if (imports.size())
         code += "\n";
 
@@ -585,18 +589,23 @@ static bool SaveClass( const Parser &parser,
             namespace_general += ".";
         }
     }
-    printf("namespace_dir: %s\n", namespace_dir.c_str());
+
+    transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
+    //printf("namespace_dir: %s\n", namespace_dir.c_str());
     EnsureDirExists(namespace_dir);
     namespace_general += unit_name;
 
-    printf("namespace_general: %s\n", namespace_general.c_str());
+    //printf("namespace_general: %s\n", namespace_general.c_str());
 
     std::string code = "// automatically generated, do not modify\n\n";
-    code += "module " + namespace_general + ";";
+    auto module = "module " + namespace_general + ";";
+    transform (module.begin(),module.end(), module.begin(), tolower);
+    code += module;
     code += "\n\n";
     if (needs_includes) code += "import google.flatbuffers;\n\n";
     code += classcode;
     auto filename = namespace_dir + unit_name + ".d";
+    transform (filename.begin(),filename.end(), filename.begin(), tolower);
     return SaveFile(filename.c_str(), code, false);
 }
 
@@ -616,9 +625,10 @@ static bool SavePackage(const Parser &parser,
             namespace_general += ".";
         }
     }
+    transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     EnsureDirExists(namespace_dir);
     namespace_general += FunctionStart( (*(namespaces.end()-1))[0]) + (*(namespaces.end()-1)).substr(1);
-
+    transform (namespace_general.begin(),namespace_general.end(), namespace_general.begin(), tolower);
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
     code += "\n\n";
@@ -635,9 +645,12 @@ static bool SavePackage(const Parser &parser,
     modules.unique();
     for (auto it = modules.begin();
          it != modules.end(); ++it) {
-        code += "public import " + namespace_general + "." + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+        auto import = "public import " + namespace_general + "." + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+        transform (import.begin(),import.end(), import.begin(), tolower);
+        code += import;
     }
     auto filename = namespace_dir + unit_name + ".d";
+    transform (filename.begin(),filename.end(), filename.begin(), tolower);
     return SaveFile(filename.c_str(), code, false);
 }
 
@@ -649,10 +662,10 @@ bool GenerateDlang(const Parser &parser,
 
     for (auto it = parser.enums_.vec.begin();
          it != parser.enums_.vec.end(); ++it) {
-        printf("enum: %s, %s\n", (*it)->name.c_str(), (*it)->file.c_str());
+        //printf("enum: %s, %s\n", (*it)->name.c_str(), (*it)->file.c_str());
         std::string enumcode;
         dlang::GenEnum( **it, &enumcode);
-        printf("enumcode: %s\n", enumcode.c_str());
+        //printf("enumcode: %s\n", enumcode.c_str());
         if (!dlang::SaveClass( parser, **it, enumcode, path, false))
             return false;
     }
