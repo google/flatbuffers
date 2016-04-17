@@ -113,9 +113,13 @@ public class Table {
   /**
    * Get a whole vector as a ByteBuffer.
    *
-   * This is efficient, since it only allocates a new bytebuffer object, but does not actually copy
-   * the data, it still refers to the same bytes as the original ByteBuffer. Also useful with nested
-   * FlatBuffers, etc.
+   * This is efficient, since it only allocates a new {@link ByteBuffer} object,
+   * but does not actually copy the data, it still refers to the same bytes
+   * as the original ByteBuffer. Also useful with nested FlatBuffers, etc.
+   *
+   * @param vector_offset The position of the vector in the byte buffer
+   * @param elem_size The size of each element in the array
+   * @return The {@link ByteBuffer} for the array
    */
   protected ByteBuffer __vector_as_bytebuffer(int vector_offset, int elem_size) {
     int o = __offset(vector_offset);
@@ -142,10 +146,12 @@ public class Table {
   }
 
   /**
-   * Check if a ByteBuffer contains a file identifier.
+   * Check if a {@link ByteBuffer} contains a file identifier.
    *
-   * @param bb A `ByteBuffer` to check if it contains the identifier `ident`.
-   * @param ident A `String` identifier of the flatbuffer file.
+   * @param bb A {@code ByteBuffer} to check if it contains the identifier
+   * `ident`.
+   * @param ident A `String` identifier of the FlatBuffer file.
+   * @return True if the buffer contains the file identifier
    */
   protected static boolean __has_identifier(ByteBuffer bb, String ident) {
     if (ident.length() != FILE_IDENTIFIER_LENGTH)
