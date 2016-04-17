@@ -17,6 +17,11 @@
 package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
+
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 import java.util.Arrays;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -46,6 +51,8 @@ public class FlatBufferBuilder {
     int num_vtables = 0;            // Number of entries in `vtables` in use.
     int vector_num_elems = 0;       // For the current vector being built.
     boolean force_defaults = false; // False omits default values from the serialized data.
+    CharsetEncoder encoder = utf8charset.newEncoder();
+    ByteBuffer dst;
     /// @endcond
 
    /**
@@ -368,12 +375,26 @@ public class FlatBufferBuilder {
     * @return The offset in the buffer where the encoded string starts.
     */
     public int createString(String s) {
-        byte[] utf8 = s.getBytes(utf8charset);
-        addByte((byte)0);
-        startVector(1, utf8.length, 1);
-        bb.position(space -= utf8.length);
-        bb.put(utf8, 0, utf8.length);
-        return endVector();
+        int length = s.length();
+        int estimatedDstCapacity = (int) (length * encoder.maxBytesPerChar());
+        if (dst == null || dst.capacity() < estimatedDstCapacity) {
+            dst = ByteBuffer.allocate(Math.max(128, estimatedDstCapacity));
+        }
+
+        dst.clear();
+
+        CharBuffer src = CharBuffer.wrap(s);
+        CoderResult result = encoder.encode(src, dst, true);
+        if (result.isError()) {
+            try {
+                result.throwException();
+            } catch (CharacterCodingException x) {
+                throw new Error(x);
+            }
+        }
+
+        dst.flip();
+        return createString(dst);
     }
 
    /**
