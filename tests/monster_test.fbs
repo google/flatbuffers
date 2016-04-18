@@ -60,6 +60,7 @@ table Monster {
   testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
   testf:float = 3.14159 (id:25);
+  testf2:float = 3 (id:26);
 }
 
 rpc_service MonsterStorage {

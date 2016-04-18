@@ -269,7 +269,14 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 3.14159
 
-def MonsterStart(builder): builder.StartObject(26)
+    # Monster
+    def Testf2(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(56))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 3.0
+
+def MonsterStart(builder): builder.StartObject(27)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -301,4 +308,5 @@ def MonsterAddTesthashu64Fnv1a(builder, testhashu64Fnv1a): builder.PrependUint64
 def MonsterAddTestarrayofbools(builder, testarrayofbools): builder.PrependUOffsetTRelativeSlot(24, flatbuffers.number_types.UOffsetTFlags.py_type(testarrayofbools), 0)
 def MonsterStartTestarrayofboolsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterAddTestf(builder, testf): builder.PrependFloat32Slot(25, testf, 3.14159)
+def MonsterAddTestf2(builder, testf2): builder.PrependFloat32Slot(26, testf2, 3.0)
 def MonsterEnd(builder): return builder.EndObject()
