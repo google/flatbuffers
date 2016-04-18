@@ -602,7 +602,7 @@ static bool SaveClass( const Parser &parser,
     transform (module.begin(),module.end(), module.begin(), tolower);
     code += module;
     code += "\n\n";
-    if (needs_includes) code += "import google.flatbuffers;\n\n";
+    if (needs_includes) code += "import flatbuffers;\n\n";
     code += classcode;
     auto filename = namespace_dir + unit_name + ".d";
     transform (filename.begin(),filename.end(), filename.begin(), tolower);
@@ -632,7 +632,7 @@ static bool SavePackage(const Parser &parser,
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
     code += "\n\n";
-    if (needs_includes) code += std::string("public ") + "import google.flatbuffers;\n\n";
+    if (needs_includes) code += std::string("public ") + "import flatbuffers;\n\n";
     std::list<std::string> modules;
     for (auto it = parser.enums_.vec.begin();
          it != parser.enums_.vec.end(); ++it) {

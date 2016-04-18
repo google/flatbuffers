@@ -1,7 +1,7 @@
-module google.flatbuffers.flatbufferbuilder;
+module flatbuffers.flatbufferbuilder;
 
-import google.flatbuffers.exception;
-import google.flatbuffers.bytebuffer;
+import flatbuffers.exception;
+import flatbuffers.bytebuffer;
 
 import std.exception;
 

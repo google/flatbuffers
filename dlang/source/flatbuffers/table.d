@@ -1,7 +1,7 @@
-module google.flatbuffers.table; 
+module flatbuffers.table; 
 
-import google.flatbuffers.exception;
-import google.flatbuffers.bytebuffer;
+import flatbuffers.exception;
+import flatbuffers.bytebuffer;
 public import std.typecons;
 
 mixin template Struct(ParentType)

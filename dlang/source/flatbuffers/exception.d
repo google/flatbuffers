@@ -1,4 +1,4 @@
-﻿module google.flatbuffers.exception;
+﻿module flatbuffers.exception;
 
 enum fileIdentifierLength = 4;
 
