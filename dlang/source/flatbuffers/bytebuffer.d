@@ -1,4 +1,4 @@
-module google.flatbuffers.bytebuffer;
+module flatbuffers.bytebuffer;
 
 import std.exception;
 import std.bitmanip;
