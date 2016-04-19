@@ -95,7 +95,7 @@ public class Table {
     int required = (int)((float)length * decoder.maxCharsPerByte());
     CharBuffer dst = CHAR_BUFFER.get();
     if (dst == null || dst.capacity() < required) {
-      dst = CharBuffer.allocate(Math.max(required, 128));
+      dst = CharBuffer.allocate(required);
       CHAR_BUFFER.set(dst);
     }
 
