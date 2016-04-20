@@ -543,10 +543,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     if (!IsScalar(type.base_type))
       return Error("default values currently only supported for scalars");
     ECHECK(ParseSingleValue(field->value));
-    if (IsFloat(field->value.type.base_type)) {
-      if (!strpbrk(field->value.constant.c_str(), ".eE"))
-        field->value.constant += ".0";
-    }
+  }
+  if (IsFloat(field->value.type.base_type)) {
+    if (!strpbrk(field->value.constant.c_str(), ".eE"))
+      field->value.constant += ".0";
   }
 
   if (type.enum_def &&

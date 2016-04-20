@@ -694,10 +694,18 @@ MyGame.Example.Monster.prototype.testf2 = function() {
 };
 
 /**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testf3 = function() {
+  var offset = this.bb.__offset(this.bb_pos, 58);
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 0.0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(27);
+  builder.startObject(28);
 };
 
 /**
@@ -1019,6 +1027,14 @@ MyGame.Example.Monster.addTestf = function(builder, testf) {
  */
 MyGame.Example.Monster.addTestf2 = function(builder, testf2) {
   builder.addFieldFloat32(26, testf2, 3.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} testf3
+ */
+MyGame.Example.Monster.addTestf3 = function(builder, testf3) {
+  builder.addFieldFloat32(27, testf3, 0.0);
 };
 
 /**
