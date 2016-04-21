@@ -50,24 +50,26 @@ dmd -lib -of./libflatbuffers.a \
 ../dlang/source/flatbuffers/table.d \
 -vcolumns
 
-dmd -c -of./sample_binary.o \
+dmd -c -of./dlang_test.o \
 -I./ -I../dlang/source/  \
-mygame/sample/color.d \
-mygame/sample/equipment.d \
-mygame/sample/monster.d \
-mygame/sample/package.d \
-mygame/sample/vec3.d \
-mygame/sample/weapon.d \
-sample_binary.d -vcolumns
+mygame/example/color.d \
+mygame/example/any.d \
+mygame/example/monster.d \
+mygame/example/package.d \
+mygame/example/vec3.d \
+mygame/example/stat.d \
+mygame/example/test.d \
+mygame/example/testsimpletablewithenum.d \
+dlang_test.d -vcolumns
 
-dmd -of./sample_binary ./sample_binary.o ./libflatbuffers.a -L--no-as-needed
+dmd -of./dlang_test ./dlang_test.o ./libflatbuffers.a -L--no-as-needed
 
-./sample_binary
+./dlang_test
 #mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
 #mono SampleBinary.exe
 
 # Cleanup temporary files.
-rm libflatbuffers.a
-rm sample_binary
-rm sample_binary.o
-rm -rf mygame
+#rm libflatbuffers.a
+#rm sample_binary
+#rm sample_binary.o
+#rm -rf mygame

@@ -18,7 +18,7 @@ void main()
 	int t = Monster.createWeaponsVector(builder,weaps);
 	
 	ubyte[] invData = cast(ubyte[])("MyMonster");	
-	auto inventory = Monster.createInventoryVector(builder, invData); //todo：数组错误
+	auto inventory = Monster.createInventoryVector(builder, invData); 
 	//Create monster:
 	Monster.startMonster(builder);
 	Monster.addPos(builder, Vec3.createVec3(builder, 1, 2, 3));
@@ -26,7 +26,7 @@ void main()
 	Monster.addHp(builder, 80);
 	Monster.addName(builder, name);
 	Monster.addInventory(builder, inventory);
-	Monster.addColor(builder, Color.blue);
+	Monster.addColor(builder, Color.Blue);
 	Monster.addWeapons(builder,t);
 	auto mloc = Monster.endMonster(builder);
 	
@@ -49,6 +49,8 @@ void main()
 	assert(monster.mana == 150); //default
 	assert(monster.name == "MyMonster");
 	
+	assert(monster.color == Color.Blue);
+	
 	auto pos = monster.pos();
 	assert(!pos.isNull());
 	assert(pos.z == 3);
@@ -66,3 +68,5 @@ void main()
 	assert(weap.name == "Weapon.1");
 	writeln("un serialize data over!");
 }
+
+
