@@ -33,10 +33,6 @@ static std::string GenMethod( const Type &type);
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 
-static std::string FunctionStart(char upper) {
-    return std::string() + static_cast<char>(tolower(upper));
-}
-
 static std::string GenTypeBasic(const Type &type) {
     static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
@@ -63,8 +59,6 @@ static void GenComment(const std::vector<std::string> &dc, std::string *code_ptr
         code += line_prefix + *it + "\n";
     }
 }
-
-
 
 static std::string GenTypePointer(const Type &type) {
     switch (type.base_type) {
@@ -121,11 +115,7 @@ static void GenEnum( EnumDef &enum_def,
         GenComment(ev.doc_comment, code_ptr, "  ");
 
         code += "  ";
-
-        if ( ev.name != "NONE")
-            code += " " + FunctionStart(ev.name[0]) + ev.name.substr(1) + " = ";
-        else
-            code += " " + ev.name + " = ";
+        code += " " + ev.name + " = ";
         code += NumToString(ev.value);
         code += ",\n";
     }
@@ -142,7 +132,7 @@ static std::string GenGetter( const Type &type) {
     case BASE_TYPE_UNION:  return "__union!";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default: {
-        std::string getter = "_buffer." + FunctionStart( 'G') + "et!";
+        std::string getter = "_buffer." + "get!";
         if (type.base_type == BASE_TYPE_BOOL) {
             getter += "ubyte";
         } else {
@@ -192,21 +182,21 @@ static void GenStructArgs(const StructDef &struct_def,
 static void GenStructBody(const StructDef &struct_def,
                           std::string *code_ptr, const char *nameprefix) {
     std::string &code = *code_ptr;
-    code += "    builder." + FunctionStart( 'P') + "rep(";
+    code += "    builder." +  "prep(";
     code += NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
         auto &field = **it;
         if (field.padding) {
-            code += "    builder." + FunctionStart( 'P') + "ad(";
+            code += "    builder." + "pad(";
             code += NumToString(field.padding) + ");\n";
         }
         if (IsStruct(field.value.type)) {
             GenStructBody( *field.value.type.struct_def, code_ptr,
                            (field.value.type.struct_def->name + "_").c_str());
         } else {
-            code += "    builder." + FunctionStart( 'P') + "ut!";
+            code += "    builder." +  "put!";
             code += GenTypeBasic(field.value.type) + "(";
             code +=  nameprefix + MakeCamel(field.name, false);
             code += ");\n";
@@ -223,7 +213,7 @@ static void GenStruct(const Parser &parser,
     std::string namespace_general;
     auto &namespaces = parser.namespaces_.back()->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-        namespace_general += FunctionStart( (*it)[0]) + (*it).substr(1);
+        namespace_general += *it;
         if (namespace_general.length()) {
             namespace_general += ".";
         }
@@ -242,7 +232,7 @@ static void GenStruct(const Parser &parser,
     }
     imports.unique();
     for (auto it = imports.begin(); it != imports.end(); ++it) {
-        auto import = "import " + namespace_general + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+        auto import = "import " + namespace_general + (*it) + ";\n";
         transform (import.begin(),import.end(), import.begin(), tolower);
         code += import;
     }
@@ -261,7 +251,7 @@ static void GenStruct(const Parser &parser,
     if (!struct_def.fixed) {
         // Generate a special accessor for the table that when used as the root
         // of a FlatBuffer
-        std::string method_name = FunctionStart( 'G') + "etRootAs" + struct_def.name;
+        std::string method_name =  "getRootAs" + struct_def.name;
         // create convenience method that doesn't require an existing object
         code += std::string("  ")  + "static " + struct_def.name + " " + method_name + "(ByteBuffer _bb) ";
         code += "{  return " + struct_def.name + ".init_(_bb.get!int(_bb.position()) + _bb.position(), _bb); }\n";
@@ -421,7 +411,7 @@ static void GenStruct(const Parser &parser,
     code += "\n";
     if (struct_def.fixed) {
         // create a struct constructor function
-        code += std::string("  ")  + "static int " + FunctionStart( 'C') + "reate";
+        code += std::string("  ")  + "static int " +  "create";
         code += struct_def.name + "(FlatBufferBuilder builder";
         GenStructArgs( struct_def, code_ptr, "");
         code += ") {\n";
@@ -448,7 +438,7 @@ static void GenStruct(const Parser &parser,
         if (has_no_struct_fields && num_fields) {
             // Generate a table constructor of the form:
             // public static void createName(FlatBufferBuilder builder, args...)
-            code += std::string("  ")  + "static int " + FunctionStart( 'C') + "reate";
+            code += std::string("  ")  + "static int " +  "create";
             code += struct_def.name;
             code += "(FlatBufferBuilder builder";
             for (auto it = struct_def.fields.vec.begin();
@@ -461,7 +451,7 @@ static void GenStruct(const Parser &parser,
                 code += field.name;
             }
             code += ") {\n    builder.";
-            code += FunctionStart( 'S') + "tartObject(";
+            code += "startObject(";
             code += NumToString(struct_def.fields.vec.size()) + ");\n";
             for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
                  size;
@@ -473,13 +463,13 @@ static void GenStruct(const Parser &parser,
                             (!struct_def.sortbysize ||
                              size == SizeOf(field.value.type.base_type))) {
                         code += "    " + struct_def.name + ".";
-                        code += FunctionStart( 'A') + "dd";
+                        code += "add";
                         code += MakeCamel(field.name) + "(builder, " + field.name + ");\n";
                     }
                 }
             }
             code += "    return " + struct_def.name + ".";
-            code += FunctionStart( 'E') + "nd" + struct_def.name;
+            code += "end" + struct_def.name;
             code += "(builder);\n  }\n\n";
         }
         // Generate a set of static methods that allow table construction,
@@ -487,22 +477,22 @@ static void GenStruct(const Parser &parser,
         // public static void addName(FlatBufferBuilder builder, short name)
         // { builder.addShort(id, name, default); }
         // Unlike the Create function, these always work.
-        code += std::string("  ")  + "static void " + FunctionStart( 'S') + "tart";
+        code += std::string("  ")  + "static void " + "start";
         code += struct_def.name;
         code += "(FlatBufferBuilder builder) { builder.";
-        code += FunctionStart( 'S') + "tartObject(";
+        code += "startObject(";
         code += NumToString(struct_def.fields.vec.size()) + "); }\n";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
             auto &field = **it;
             if (field.deprecated) continue;
-            code += std::string("  ")  + "static void " + FunctionStart( 'A') + "dd";
+            code += std::string("  ")  + "static void " +  "add";
             code += MakeCamel(field.name);
             code += "(FlatBufferBuilder builder, ";
             code += GenTypeBasic(field.value.type);
             auto argname = MakeCamel(field.name, false);
             if (!IsScalar(field.value.type.base_type)) argname += "Offset";
-            code += " " + argname + ") { builder." + FunctionStart( 'A') + "dd";
+            code += " " + argname + ") { builder." + "add";
             code += GenMethod( field.value.type) + "(";
             code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
             code += argname;
@@ -514,41 +504,41 @@ static void GenStruct(const Parser &parser,
                 auto elem_size = InlineSize(vector_type);
                 if (!IsStruct(vector_type)) {
                     // Generate a method to create a vector from a Java array.
-                    code += std::string("  ")  + "static int " + FunctionStart( 'C') + "reate";
+                    code += std::string("  ")  + "static int " + "create";
                     code += MakeCamel(field.name);
                     code += "Vector(FlatBufferBuilder builder, ";
                     code += GenTypeBasic(vector_type) + "[] data) ";
-                    code += "{ builder." + FunctionStart( 'S') + "tartVector(";
+                    code += "{ builder." + "startVector(";
                     code += NumToString(elem_size) + ", ";
-                    code += std::string("") + "cast(int)" + "data." + FunctionStart( 'L') + "ength, ";
+                    code += std::string("") + "cast(int)" + "data." + "length, ";
                     code += NumToString(alignment);
                     code += "); for (int i = ";
-                    code += std::string("") + "cast(int)" + "data." + FunctionStart( 'L') + "ength - 1; i >= 0; i--) builder.";
-                    code += FunctionStart( 'A') + "dd";
+                    code += std::string("") + "cast(int)" + "data." + "length - 1; i >= 0; i--) builder.";
+                    code += "add";
                     code += GenMethod( vector_type);
                     code += "(data[i]); return builder.";
-                    code += FunctionStart( 'E') + "ndVector(); }\n";
+                    code += "endVector(); }\n";
                 }
                 // Generate a method to start a vector, data to be added manually after.
-                code += std::string("  ")  + "static void " + FunctionStart( 'S') + "tart";
+                code += std::string("  ")  + "static void " + "start";
                 code += MakeCamel(field.name);
                 code += "Vector(FlatBufferBuilder builder, int numElems) ";
-                code += "{ builder." + FunctionStart( 'S') + "tartVector(";
+                code += "{ builder." + "startVector(";
                 code += NumToString(elem_size);
                 code += ", numElems, " + NumToString(alignment);
                 code += "); }\n";
             }
         }
         code += std::string("  ")  + "static int ";
-        code += FunctionStart( 'E') + "nd" + struct_def.name;
+        code += "end" + struct_def.name;
         code += "(FlatBufferBuilder builder) {\n    int o = builder.";
-        code += FunctionStart( 'E') + "ndObject();\n";
+        code += "endObject();\n";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end();
              ++it) {
             auto &field = **it;
             if (!field.deprecated && field.required) {
-                code += "    builder." + FunctionStart( 'R') + "equired(o, ";
+                code += "    builder." + "required(o, ";
                 code += NumToString(field.value.offset);
                 code += ");  // " + field.name + "\n";
             }
@@ -556,9 +546,9 @@ static void GenStruct(const Parser &parser,
         code += "    return o;\n  }\n";
         if (parser.root_struct_def_ == &struct_def) {
             code += std::string("  ")  + "static void ";
-            code += FunctionStart( 'F') + "inish" + struct_def.name;
+            code += "finish" + struct_def.name;
             code += "Buffer(FlatBufferBuilder builder, int offset) { ";
-            code += "builder." + FunctionStart( 'F') + "inish(offset";
+            code += "builder." + "finish(offset";
             if (parser.file_identifier_.length())
                 code += ", \"" + parser.file_identifier_ + "\"";
             code += "); }\n";
@@ -576,15 +566,13 @@ static bool SaveClass( const Parser &parser,
 
     std::string unit_name = def.name;
 
-    unit_name = FunctionStart(unit_name[0]) + unit_name.substr(1);
-
 
     std::string namespace_general;
     std::string namespace_dir = path;  // Either empty or ends in separator.
     auto &namespaces = parser.namespaces_.back()->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-        namespace_general += FunctionStart( (*it)[0]) + (*it).substr(1);
-        namespace_dir += FunctionStart( (*it)[0]) + (*it).substr(1) + kPathSeparator;
+        namespace_general += (*it);
+        namespace_dir += (*it) + kPathSeparator;
         if (namespace_general.length()) {
             namespace_general += ".";
         }
@@ -618,16 +606,16 @@ static bool SavePackage(const Parser &parser,
     auto &namespaces = parser.namespaces_.back()->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
         if (it != namespaces.end()-1) {
-            namespace_general += FunctionStart( (*it)[0]) + (*it).substr(1);
+            namespace_general += (*it);
         }
-        namespace_dir += FunctionStart( (*it)[0]) + (*it).substr(1) + kPathSeparator;
+        namespace_dir += (*it) + kPathSeparator;
         if (namespace_general.length() && it != namespaces.end()-1) {
             namespace_general += ".";
         }
     }
     transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     EnsureDirExists(namespace_dir);
-    namespace_general += FunctionStart( (*(namespaces.end()-1))[0]) + (*(namespaces.end()-1)).substr(1);
+    namespace_general += (*(namespaces.end()-1));
     transform (namespace_general.begin(),namespace_general.end(), namespace_general.begin(), tolower);
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
@@ -645,7 +633,7 @@ static bool SavePackage(const Parser &parser,
     modules.unique();
     for (auto it = modules.begin();
          it != modules.end(); ++it) {
-        auto import = "public import " + namespace_general + "." + FunctionStart( (*it)[0]) + (*it).substr(1) + ";\n";
+        auto import = "public import " + namespace_general + "." +  (*it) + ";\n";
         transform (import.begin(),import.end(), import.begin(), tolower);
         code += import;
     }

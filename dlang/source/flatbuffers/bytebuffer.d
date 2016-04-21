@@ -40,15 +40,14 @@ public:
 	}
 
 
-	void put(T)(int offset, T value) if(is(T == byte) || is(T == ubyte))
+	void put(T)(int offset, T value) if(isByte!T)
 	{
 		mixin(verifyOffset("1"));
 		_buffer[offset] = value; 
 		_pos = offset;
 	}
 
-	void put(T)(int offset, T value) if(is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long) 
-		|| is(T == ulong) || is(T == float) || is(T == double)) 
+	void put(T)(int offset, T value) if(isNum!T)
 	{
 		mixin(verifyOffset("T.sizeof"));
 		if(_bigEndian) {
@@ -62,13 +61,12 @@ public:
 	}
 
 
-	T get(T)(int index) if( is(T == byte) || is(T == ubyte) )
+	T get(T)(int index) if( isByte!T )
 	{
 		return cast(T)_buffer[index];
 	}
 
-	T get(T)(int index) if (is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long) 
-		|| is(T == ulong) || is(T == float) || is(T == double)) 
+	T get(T)(int index) if(isNum!T)
 	{
 		ubyte[T.sizeof] buf = _buffer[index..(index + T.sizeof)];
 		if(_bigEndian)
@@ -86,4 +84,21 @@ private:
 string verifyOffset(string length)	
 {
 	return "if(offset < 0 || offset >= _buffer.length || (offset +" ~ length ~ ") > _buffer.length)   throw new RangeError(); ";
+}
+
+template isNum(T)
+{
+	static if (is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long) 
+		|| is(T == ulong) || is(T == float) || is(T == double)) 
+		enum isNum = true;
+	else 
+		enum isNum = false;
+}
+
+template isByte(T)
+{
+	static if( is(T == byte) || is(T == ubyte) )
+		enum isByte = true;
+	else
+		enum isByte = false;
 }
