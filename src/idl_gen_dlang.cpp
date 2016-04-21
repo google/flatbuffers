@@ -84,16 +84,23 @@ static std::string GenTypeGet(const Type &type) {
 
 
 static std::string GenDefaultValue(const Value &value) {
-    return value.type.base_type == BASE_TYPE_BOOL
-            ? (value.constant == "0" ? "false" : "true")
-            : value.constant;
+    switch (value.type.base_type) {
+    case BASE_TYPE_BOOL:
+        return (value.constant == "0" ? "false" : "true");
+    case BASE_TYPE_VECTOR:
+        return  value.type.element == BASE_TYPE_BOOL
+                ? (value.constant == "0" ? "false" : "true")
+                : value.constant;
+    default:
+        return value.constant;
+    }
 }
 
 static void GenEnum( EnumDef &enum_def,
                      std::string *code_ptr) {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
-    //printf("!generated %s\n", enum_def.name.c_str());
+    ////printf("!generated %s\n", enum_def.name.c_str());
 
     // Generate enum definitions of the form:
     // public static (final) int name = value;
@@ -319,6 +326,8 @@ static void GenStruct(const Parser &parser,
             } else {
                 code += offset_prefix + getter;
                 code += "(o + _pos)";
+                if(field.value.type.base_type == BASE_TYPE_BOOL)
+                    code += " != 0 ";
                 code +=  " : ";
                 code += GenDefaultValue(field.value);
             }
@@ -329,7 +338,7 @@ static void GenStruct(const Parser &parser,
                  code += method_start;
                 code += "(";
                 if (struct_def.fixed) {
-                    code += ") { return Nullable!" + type_name + "(" + type_name + "init_(_pos + ";
+                    code += ") { return Nullable!" + type_name + "(" + type_name + ".init_(_pos + ";
 
                     code += NumToString(field.value.offset) + ", _buffer)";
                     code += ")";
@@ -360,7 +369,10 @@ static void GenStruct(const Parser &parser,
                 if(IsScalar(field.value.type.element)){ //基本类型
                     code += getter;
                     code += "(__dvector(o) + j * " + NumToString(InlineSize(vectortype));
-                    code +=  ") : ";
+                    code +=  ") ";
+                    if(field.value.type.element == BASE_TYPE_BOOL)
+                        code += " != 0 ";
+                    code += " : ";
                     code += GenDefaultValue(field.value);
                 } else if(field.value.type.element == BASE_TYPE_STRING ){ //string 类型处理
                     code += getter;
@@ -603,6 +615,7 @@ static bool SavePackage(const Parser &parser,
 
     std::string namespace_general;
     std::string namespace_dir = path;  // Either empty or ends in separator.
+    std::string tmp_general = "";
     auto &namespaces = parser.namespaces_.back()->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
         if (it != namespaces.end()-1) {
@@ -616,19 +629,28 @@ static bool SavePackage(const Parser &parser,
     transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     EnsureDirExists(namespace_dir);
     namespace_general += (*(namespaces.end()-1));
+    tmp_general = namespace_general;
     transform (namespace_general.begin(),namespace_general.end(), namespace_general.begin(), tolower);
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
     code += "\n\n";
     if (needs_includes) code += std::string("public ") + "import flatbuffers;\n\n";
+    tmp_general += ".";
+    //printf("tmp_general : %s\n", tmp_general.c_str());
     std::list<std::string> modules;
     for (auto it = parser.enums_.vec.begin();
          it != parser.enums_.vec.end(); ++it) {
-        modules.push_back((**it).name);
+         auto str  = (**it).defined_namespace->GetFullyQualifiedName("");
+         //printf("full name : %s\n",str.c_str());
+         if(str == tmp_general)
+             modules.push_back((**it).name);
     }
     for (auto it = parser.structs_.vec.begin();
          it != parser.structs_.vec.end(); ++it) {
-        modules.push_back((**it).name);
+        auto str  = (**it).defined_namespace->GetFullyQualifiedName("");
+        //printf("full name : %s\n",str.c_str());
+        if(str == tmp_general)
+            modules.push_back((**it).name);
     }
     modules.unique();
     for (auto it = modules.begin();
@@ -639,6 +661,9 @@ static bool SavePackage(const Parser &parser,
     }
     auto filename = namespace_dir + unit_name + ".d";
     transform (filename.begin(),filename.end(), filename.begin(), tolower);
+
+    //printf("SaveFile: %s\n", filename.c_str());
+
     return SaveFile(filename.c_str(), code, false);
 }
 

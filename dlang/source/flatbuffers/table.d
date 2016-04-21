@@ -81,7 +81,7 @@ private: //Methods.
 	T __union(T)(int offset)
 	{
 		offset += _pos;
-		return T.init_((offset + _buffer.get!int(offset)), bb);
+		return T.init_((offset + _buffer.get!int(offset)), _buffer);
 	}
 	
 	static bool __has_identifier(ByteBuffer bb, string ident)
