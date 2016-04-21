@@ -29,9 +29,9 @@ fi
 # Run `flatc`. Note: This requires you to compile using `cmake` from the
 # root `/flatbuffers` directory.
 if [ -e ../flatc ]; then
-  ../flatc --dlang --gen-mutable monster.fbs
+  ../flatc --dlang monster_test.fbs
 elif [ -e ../Debug/flatc ]; then
-  ../Debug/flatc --dlang --gen-mutable monster.fbs 
+  ../Debug/flatc --dlang monster_test.fbs 
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.
