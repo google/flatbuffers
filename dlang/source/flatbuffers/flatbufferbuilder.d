@@ -8,13 +8,12 @@ import std.exception;
 final class FlatBufferBuilder
 {
 public: 
-	this(int initsize,bool bigeEndian = false)
+	this(int initsize)
 	{
 		if(initsize == 0)
 			throw new ArgumentOutOfRangeException("initsize", initsize, "Must be greater than zero");
 		_space = initsize;
 		_buffer = new ByteBuffer(new ubyte[initsize]);
-		_buffer.bigEndian = bigeEndian;
 	}
 	
 	int offset() { return _buffer.length - _space; }
@@ -209,22 +208,18 @@ public:
 		
 		///Search for an existing vtable that matches the current one.
 		int existingVtable = 0;
-		
-	frist: for(int i=0; i<_numVtables; i++)
+
+		ubyte[] data = _buffer.data();
+
+	     for(int i=0; i<_numVtables; i++)
 		{
 			int vt1 = _buffer.length - _vtables[i];
 			int vt2 = _space;
-			short len = _buffer.get!short(vt1);
-			if(len == _buffer.get!short(vt2))
-			{
-				for(int j=short.sizeof; j<len; j+=short.sizeof)
-				{
-					if(_buffer.get!short(vt1 + j) != _buffer.get!short(vt2 + j))
-						break frist;
-				}
-				existingVtable = _vtables[i];
-				break;
-			}
+			short vt1len = _buffer.get!short(vt1);
+			short vt2len = _buffer.get!short(vt2);
+
+			if(vt1len != vt2len || data[vt1..(vt1 + vt1len)] != data[vt2..(vt2 + vt2len)]) continue;
+			existingVtable = _vtables[i];
 		}
 		
 		if(existingVtable != 0)
