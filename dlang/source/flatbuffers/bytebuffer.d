@@ -75,6 +75,18 @@ private: //Variables.
 	int _pos;  //Must track start of the buffer.
 }
 
+unittest {
+	ByteBuffer buf = new ByteBuffer(new ubyte[50]);
+	int a = 10;
+	buf.put(5,a);
+	short t = 4;
+	buf.put(9,t);
+
+	assert(buf.get!int(5) == 10);
+	assert(buf.get!short(9) == 4);
+
+}
+
 private:
 string verifyOffset(string length)	
 {

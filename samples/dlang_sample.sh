@@ -41,16 +41,33 @@ fi
 echo Compiling and running the D sample.
 
 # Compile and execute the sample.
-cd $sampledir/dlang
-dub build -f
-./samplesD
+dmd -lib -of./libflatbuffers.a \
+-I../dlang/source/ \
+../dlang/source/flatbuffers/bytebuffer.d \
+../dlang/source/flatbuffers/exception.d \
+../dlang/source/flatbuffers/flatbufferbuilder.d \
+../dlang/source/flatbuffers/package.d \
+../dlang/source/flatbuffers/table.d \
+-vcolumns
+
+dmd -c -of./sample_binary.o \
+-I./ -I../dlang/source/  \
+mygame/sample/color.d \
+mygame/sample/equipment.d \
+mygame/sample/monster.d \
+mygame/sample/package.d \
+mygame/sample/vec3.d \
+mygame/sample/weapon.d \
+sample_binary.d -vcolumns
+
+dmd -of./sample_binary ./sample_binary.o ./libflatbuffers.a -L--no-as-needed
+
+./sample_binary
 #mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
 #mono SampleBinary.exe
 
 # Cleanup temporary files.
-
-rm -rf .dub
-rm dub.selections.json
-rm samplesD
-cd $sampledir
+rm libflatbuffers.a
+rm sample_binary
+rm sample_binary.o
 rm -rf mygame
