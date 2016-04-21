@@ -30,7 +30,6 @@ public:
 	///the end of the new buffer (since we build the buffer backwards).
 	void growBuffer()
 	{
-		bool bigendian = _buffer.bigEndian;
 		auto oldBuf = _buffer.data;
 		auto oldBufSize = oldBuf.length;
 		if((oldBufSize & 0xC0000000) != 0)
@@ -41,7 +40,6 @@ public:
 		newBuf[(newBufSize-oldBufSize)..$] = oldBuf[];
 		
 		_buffer = new ByteBuffer(newBuf);
-		_buffer.bigEndian = bigendian;
 	}
 	
 	///Prepare to write an element of `size` after `additional_bytes`

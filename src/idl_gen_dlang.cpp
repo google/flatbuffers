@@ -132,7 +132,7 @@ static std::string GenGetter( const Type &type) {
     case BASE_TYPE_UNION:  return "__union!";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default: {
-        std::string getter = "_buffer." + "get!";
+        std::string getter = std::string("_buffer.") + "get!";
         if (type.base_type == BASE_TYPE_BOOL) {
             getter += "ubyte";
         } else {
@@ -182,21 +182,21 @@ static void GenStructArgs(const StructDef &struct_def,
 static void GenStructBody(const StructDef &struct_def,
                           std::string *code_ptr, const char *nameprefix) {
     std::string &code = *code_ptr;
-    code += "    builder." +  "prep(";
+    code += std::string("    builder.") +  "prep(";
     code += NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
         auto &field = **it;
         if (field.padding) {
-            code += "    builder." + "pad(";
+            code += std::string("    builder.") + "pad(";
             code += NumToString(field.padding) + ");\n";
         }
         if (IsStruct(field.value.type)) {
             GenStructBody( *field.value.type.struct_def, code_ptr,
                            (field.value.type.struct_def->name + "_").c_str());
         } else {
-            code += "    builder." +  "put!";
+            code += std::string("    builder.") +  "put!";
             code += GenTypeBasic(field.value.type) + "(";
             code +=  nameprefix + MakeCamel(field.name, false);
             code += ");\n";
@@ -492,7 +492,7 @@ static void GenStruct(const Parser &parser,
             code += GenTypeBasic(field.value.type);
             auto argname = MakeCamel(field.name, false);
             if (!IsScalar(field.value.type.base_type)) argname += "Offset";
-            code += " " + argname + ") { builder." + "add";
+            code += std::string(" ") + argname + ") { builder." + "add";
             code += GenMethod( field.value.type) + "(";
             code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
             code += argname;
@@ -508,7 +508,7 @@ static void GenStruct(const Parser &parser,
                     code += MakeCamel(field.name);
                     code += "Vector(FlatBufferBuilder builder, ";
                     code += GenTypeBasic(vector_type) + "[] data) ";
-                    code += "{ builder." + "startVector(";
+                    code += std::string("{ builder.") + "startVector(";
                     code += NumToString(elem_size) + ", ";
                     code += std::string("") + "cast(int)" + "data." + "length, ";
                     code += NumToString(alignment);
@@ -523,7 +523,7 @@ static void GenStruct(const Parser &parser,
                 code += std::string("  ")  + "static void " + "start";
                 code += MakeCamel(field.name);
                 code += "Vector(FlatBufferBuilder builder, int numElems) ";
-                code += "{ builder." + "startVector(";
+                code += std::string("{ builder.") + "startVector(";
                 code += NumToString(elem_size);
                 code += ", numElems, " + NumToString(alignment);
                 code += "); }\n";
@@ -538,7 +538,7 @@ static void GenStruct(const Parser &parser,
              ++it) {
             auto &field = **it;
             if (!field.deprecated && field.required) {
-                code += "    builder." + "required(o, ";
+                code += std::string("    builder.") + "required(o, ";
                 code += NumToString(field.value.offset);
                 code += ");  // " + field.name + "\n";
             }
@@ -548,13 +548,13 @@ static void GenStruct(const Parser &parser,
             code += std::string("  ")  + "static void ";
             code += "finish" + struct_def.name;
             code += "Buffer(FlatBufferBuilder builder, int offset) { ";
-            code += "builder." + "finish(offset";
+            code += std::string("builder.") + "finish(offset";
             if (parser.file_identifier_.length())
                 code += ", \"" + parser.file_identifier_ + "\"";
             code += "); }\n";
         }
     }
-    code += std::string("") + "}" + "\n\n";
+    code += "}\n\n";
 }
 
 // Save out the generated code for a single class while adding

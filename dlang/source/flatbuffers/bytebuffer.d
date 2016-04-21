@@ -7,11 +7,6 @@ import core.exception;
 
 final class ByteBuffer
 {
-private:
-	bool _bigEndian = false; //faltbuffer in（x86） is Little Endian
-public:
-	@property bigEndian(){return _bigEndian;}
-	@property bigEndian(bool bigendian){_bigEndian = bigendian;}
 public: 
 	this(ubyte[] buffer)
 	{
@@ -50,7 +45,7 @@ public:
 	void put(T)(int offset, T value) if(isNum!T)
 	{
 		mixin(verifyOffset("T.sizeof"));
-		if(_bigEndian) {
+		version (FLATBUFFER_BIGENDIAN) {
 			auto array = nativeToBigEndian!T(value);
 			_buffer[offset..(offset + T.sizeof)] = array[];
 		} else {
@@ -69,9 +64,9 @@ public:
 	T get(T)(int index) if(isNum!T)
 	{
 		ubyte[T.sizeof] buf = _buffer[index..(index + T.sizeof)];
-		if(_bigEndian)
+		version (FLATBUFFER_BIGENDIAN) 
 			return bigEndianToNative!(T,T.sizeof)(buf);
-		else
+		else 
 			return  littleEndianToNative!(T,T.sizeof)(buf);
 	}
 

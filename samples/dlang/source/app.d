@@ -26,7 +26,7 @@ void main()
 	Monster.addHp(builder, 80);
 	Monster.addName(builder, name);
 	Monster.addInventory(builder, inventory);
-	Monster.addColor(builder, Color.blue);
+	Monster.addColor(builder, Color.Blue);
 	Monster.addWeapons(builder,t);
 	auto mloc = Monster.endMonster(builder);
 	
