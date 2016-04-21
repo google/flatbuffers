@@ -74,8 +74,10 @@ public sealed class Monster : Table {
   public bool MutateTestarrayofbools(int j, bool testarrayofbools) { int o = __offset(52); if (o != 0) { bb.Put(__vector(o) + j * 1, (byte)(testarrayofbools ? 1 : 0)); return true; } else { return false; } }
   public float Testf { get { int o = __offset(54); return o != 0 ? bb.GetFloat(o + bb_pos) : (float)3.14159f; } }
   public bool MutateTestf(float testf) { int o = __offset(54); if (o != 0) { bb.PutFloat(o + bb_pos, testf); return true; } else { return false; } }
+  public float Testf2 { get { int o = __offset(56); return o != 0 ? bb.GetFloat(o + bb_pos) : (float)3.0f; } }
+  public bool MutateTestf2(float testf2) { int o = __offset(56); if (o != 0) { bb.PutFloat(o + bb_pos, testf2); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(26); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(27); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -112,6 +114,7 @@ public sealed class Monster : Table {
   public static VectorOffset CreateTestarrayofboolsVector(FlatBufferBuilder builder, bool[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddBool(data[i]); return builder.EndVector(); }
   public static void StartTestarrayofboolsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTestf(FlatBufferBuilder builder, float testf) { builder.AddFloat(25, testf, 3.14159f); }
+  public static void AddTestf2(FlatBufferBuilder builder, float testf2) { builder.AddFloat(26, testf2, 3.0f); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name
