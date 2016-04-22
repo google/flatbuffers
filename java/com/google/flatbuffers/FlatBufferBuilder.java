@@ -28,8 +28,7 @@ import java.nio.charset.Charset;
 
 /**
  * Class that helps you build a FlatBuffer.  See the section
- * @ref flatbuffers_guide_use_java_c-sharp "Use in Java/C#" in the
- * main FlatBuffers documentation.
+ * "Use in Java/C#" in the main FlatBuffers documentation.
  */
 public class FlatBufferBuilder {
     /// @cond FLATBUFFERS_INTERNAL
@@ -428,8 +427,7 @@ public class FlatBufferBuilder {
     * call this directly. The `FlatBuffers` compiler will generate helper methods
     * that call this method internally.
     * <p>
-    * For example, using the "Monster" code found on the
-    * @ref flatbuffers_guide_use_java_c-sharp "landing page". An
+    * For example, using the "Monster" code found on the "landing page". An
     * object of type `Monster` can be created using the following code:
     *
     * <pre>{@code
@@ -708,6 +706,8 @@ public class FlatBufferBuilder {
      * Get the ByteBuffer representing the FlatBuffer. Only call this after you've
      * called `finish()`. The actual data starts at the ByteBuffer's current position,
      * not necessarily at `0`.
+     *
+     * @return The {@link ByteBuffer} representing the FlatBuffer
      */
     public ByteBuffer dataBuffer() {
         finished();
