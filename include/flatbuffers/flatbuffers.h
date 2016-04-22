@@ -1222,7 +1222,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // must be 0.
     auto size = ReadScalar<uoffset_t>(vec);
     auto max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;
-    Check(size < max_elems);  // Protect against byte_size overflowing.
+    if (!Check(size < max_elems))
+      return false;  // Protect against byte_size overflowing.
     auto byte_size = sizeof(size) + elem_size * size;
     *end = vec + byte_size;
     return Verify(vec, byte_size);
