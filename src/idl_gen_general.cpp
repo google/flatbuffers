@@ -180,7 +180,35 @@ LanguageParameters language_parameters[] = {
       "///",
       nullptr,
     },
-  }
+  },
+    // WARNING: this is currently only used for generating make rules for D.
+    {
+        IDLOptions::kDlang,
+        false,
+        ".d",
+        "string",
+        "bool",
+        "\n{\n",
+        "const ",
+        "",
+        "enum ",
+        ",\n",
+        "()",
+        "",
+        " : ",
+        "module ",
+        ";",
+        "",
+        "",
+        "position()",
+        "offset()",
+        "import std.typecons;\nimport flatbuffers;\n\n",
+        {
+          nullptr,
+          "///",
+          nullptr,
+        },
+      }
 };
 
 static_assert(sizeof(language_parameters) / sizeof(LanguageParameters) ==
@@ -224,7 +252,7 @@ static std::string GenTypeBasic(const LanguageParameters &lang, const Parser &pa
                                 bool enableLangOverrides) {
   static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, DTYPE) \
-        #JTYPE, #NTYPE, #GTYPE,
+    #JTYPE, #NTYPE, #GTYPE,#DTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
   };

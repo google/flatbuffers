@@ -340,7 +340,7 @@ struct IDLOptions {
   bool generate_name_strings;
 
   // Possible options for the more general generator below.
-  enum Language { kJava, kCSharp, kGo, kMAX ,kDlang};
+  enum Language { kJava, kCSharp, kGo, kDlang, kMAX};
 
   Language lang;
 
