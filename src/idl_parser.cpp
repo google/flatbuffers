@@ -205,8 +205,10 @@ CheckedError Parser::ParseHexNum(int nibbles, int64_t *val) {
 CheckedError Parser::SkipByteOrderMark() {
   if (static_cast<unsigned char>(*cursor_) != 0xef) return NoError();
   cursor_++;
-  if (static_cast<unsigned char>(*cursor_++) != 0xbb) return Error("invalid utf-8 byte order mark");
-  if (static_cast<unsigned char>(*cursor_++) != 0xbf) return Error("invalid utf-8 byte order mark");
+  if (static_cast<unsigned char>(*cursor_) != 0xbb) return Error("invalid utf-8 byte order mark");
+  cursor_++;
+  if (static_cast<unsigned char>(*cursor_) != 0xbf) return Error("invalid utf-8 byte order mark");
+  cursor_++;
   return NoError();
 }
 
