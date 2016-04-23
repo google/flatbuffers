@@ -7,7 +7,7 @@ import std.exception;
 
 final class FlatBufferBuilder
 {
-public: 
+public:
 	this(int initsize)
 	{
 		if(initsize == 0)
@@ -15,9 +15,9 @@ public:
 		_space = initsize;
 		_buffer = new ByteBuffer(new ubyte[initsize]);
 	}
-	
+
 	int offset() { return _buffer.length - _space; }
-	
+
 	void pad(int size)
 	{
 		for(int i=0; i<size; i++) {
@@ -25,7 +25,7 @@ public:
 			_buffer.put!ubyte(_space, 0x00);
 		}
 	}
-	
+
 	///Doubles the size of the ByteBuffer, and copies the old data towards
 	///the end of the new buffer (since we build the buffer backwards).
 	void growBuffer()
@@ -34,14 +34,14 @@ public:
 		auto oldBufSize = oldBuf.length;
 		if((oldBufSize & 0xC0000000) != 0)
 			throw new Exception("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
-		
+
 		auto newBufSize = oldBufSize * 2;
 		auto newBuf = new ubyte[](newBufSize);
 		newBuf[(newBufSize-oldBufSize)..$] = oldBuf[];
-		
+
 		_buffer = new ByteBuffer(newBuf);
 	}
-	
+
 	///Prepare to write an element of `size` after `additional_bytes`
 	///have been written, e.g. if you write a string, you need to align
 	///such the int length field is aligned to SIZEOF_INT, and the string
@@ -52,11 +52,11 @@ public:
 		//Track the biggest thing we've ever aligned to.
 		if(size > _minAlign)
 			_minAlign = size;
-		
+
 		//Find the amount of alignment needed such that `size` is properly
 		//aligned after `additional_bytes`.
 		auto alignSize = ((~(cast(int)_buffer.length - _space + additionalBytes)) + 1) & (size - 1);
-		
+
 		//Reallocate the buffer if needed.
 		while(_space < alignSize + size + additionalBytes)
 		{
@@ -69,8 +69,8 @@ public:
 	}
 
 	void put(T)(T x) if(is(T == bool) || is(T == byte) || is(T == ubyte) ||
-		is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long) 
-		|| is(T == ulong) || is(T == float) || is(T == double)) 
+		is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long)
+		|| is(T == ulong) || is(T == float) || is(T == double))
 	{
 		static if (is(T == bool)) {
 			_space -= 1;
@@ -92,14 +92,14 @@ public:
 	void addUlong(ulong x) { prep(ulong.sizeof, 0); put!ulong(x); }
 	void addFloat(float x) { prep(float.sizeof, 0); put!float(x); }
 	void addDouble(double x) { prep(double.sizeof, 0); put!double(x); }
-	
+
 	///Adds on offset, relative to where it will be written.
 	void addOffset(int off)
 	{
 		prep(int.sizeof, 0); //Ensure alignment is already done.
 		if(off > offset())
 			throw new ArgumentException("FlatBuffers: must be less than offset.", "off");
-		
+
 		off = offset() - off + cast(int)int.sizeof;
 		put!int(off);
 	}
@@ -111,13 +111,13 @@ public:
 		prep(int.sizeof, elemSize * count);
 		prep(alignment, elemSize * count); //Just in case alignment > int.
 	}
-	
+
 	int endVector()
 	{
 		put!int(_vectorNumElems);
 		return offset();
 	}
-	
+
 	void nested(int obj)
 	{
 		//Structs are always stored inline, so need to be created right
@@ -126,7 +126,7 @@ public:
 		if(obj != offset())
 			throw new Exception("FlatBuffers: struct must be serialized inline.");
 	}
-	
+
 	void notNested()
 	{
 		//You should not be creating any other objects or strings/vectors
@@ -134,20 +134,20 @@ public:
 		if(_vtable)
 			throw new Exception("FlatBuffers: object serialization must not be nested.");
 	}
-	
+
 	void startObject(int numfields)
 	{
 		notNested();
 		_vtable = new int[](numfields);
 		_objectStart = offset();
 	}
-	
+
 	///Set the current vtable at `voffset` to the current location in the buffer.
 	void slot(int voffset)
 	{
 		_vtable[voffset] = offset();
 	}
-	
+
 	///Add a scalar to a table at `o` into its vtable, with value `x` and default `d`.
 	void addBool(int o, bool x, bool d) { if(x != d) { addBool(x); slot(o); } }
 	void addByte(int o, byte x, byte d) { if(x != d) { addByte(x); slot(o); } }
@@ -161,7 +161,7 @@ public:
 	void addFloat(int o, float x, double d) { if(x != d) { addFloat(x); slot(o); } }
 	void addDouble(int o, double x, double d) { if(x != d) { addDouble(x); slot(o); } }
 	void addOffset(int o, int x, int d) { if(x != d) { addOffset(x); slot(o); } }
-	
+
 	int createString(string s)
 	{
 		notNested();
@@ -172,7 +172,7 @@ public:
 		_buffer.data[_space.._space + utf8.length] = utf8[];
 		return endVector();
 	}
-	
+
 	///Structs are stored inline, so nothing additional is being added.
 	///`d` is always 0.
 	void addStruct(int voffset, int x, int d)
@@ -183,15 +183,15 @@ public:
 			slot(voffset);
 		}
 	}
-	
+
 	int endObject()
 	{
 		if(!_vtable)
 			throw new InvalidOperationException("Flatbuffers: calling endObject without a startObject");
-		
+
 		addInt(cast(int)0);
 		auto vtableloc = offset();
-		
+
 		//Write out the current vtable.
 		for(int i=cast(int)_vtable.length-1; i>=0; i--)
 		{
@@ -199,11 +199,11 @@ public:
 			short off = cast(short)(_vtable[i] != 0? vtableloc - _vtable[i] : 0);
 			addShort(off);
 		}
-		
+
 		const int standardFields = 2; //The fields below:
 		addShort(cast(short)(vtableloc - _objectStart));
 		addShort(cast(short)((_vtable.length + standardFields) * short.sizeof));
-		
+
 		///Search for an existing vtable that matches the current one.
 		int existingVtable = 0;
 
@@ -219,7 +219,7 @@ public:
 			if(vt1len != vt2len || data[vt1..(vt1 + vt1len)] != data[vt2..(vt2 + vt2len)]) continue;
 			existingVtable = _vtables[i];
 		}
-		
+
 		if(existingVtable != 0)
 		{
 			//Found a match:
@@ -238,12 +238,12 @@ public:
 			//Point table to current vtable.
 			_buffer.put!int(_buffer.length - vtableloc, offset() - vtableloc);
 		}
-		
+
 		destroy(_vtable);
 		_vtable = null;
 		return vtableloc;
 	}
-	
+
 	///This checks a required field has been set in a given table that has
 	///just been constructed.
 	void required(int table, int field)
@@ -256,21 +256,21 @@ public:
 		if(!ok)
 			throw new InvalidOperationException(format("FlatBuffers: field %s must be set.", field));
 	}
-	
+
 	void finish(int rootTable)
 	{
 		prep(_minAlign, int.sizeof);
 		addOffset(rootTable);
 	}
-	
+
 	ByteBuffer dataBuffer() { return _buffer; }
-	
+
 	///Utility function for copying a byte array that starts at 0.
 	ubyte[] sizedByteArray()
 	{
 		return _buffer.data[_buffer.position..$];
 	}
-	
+
 	void finish(int rootTable, string fileIdentifier)
 	{
 		import std.string;
@@ -281,12 +281,12 @@ public:
 			addByte(cast(ubyte)fileIdentifier[i]);
 		addOffset(rootTable);
 	}
-	
-private: 
+
+private:
 	int _space;
 	ByteBuffer _buffer;
 	int _minAlign = 1;
-	
+
 	///The vtable for the current table, null otherwise.
 	int[] _vtable;
 	///Starting offset of the current struct/table.
