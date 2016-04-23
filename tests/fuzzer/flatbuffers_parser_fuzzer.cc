@@ -5,10 +5,12 @@
 #include <stdint.h>
 #include <string>
 
-#include "monster_test_generated.h"
+#include "flatbuffers/idl.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  flatbuffers::Verifier verifier(data, size);
-  MyGame::Example::VerifyMonsterBuffer(verifier);
+  flatbuffers::Parser parser;
+  // Guarantee 0-termination.
+  std::string s(reinterpret_cast<const char *>(data), size);
+  parser.Parse(s.c_str());
   return 0;
 }
