@@ -12,7 +12,7 @@ public:
 	this(int initsize)
 	{
 		if(initsize <= 0)
-			initsize = 1;
+			throw new ArgumentOutOfRangeException("initsize", initsize, "must be greater than zero");
 		_space = initsize;
 		_buffer = new ByteBuffer(new ubyte[initsize]);
 	}
@@ -146,6 +146,9 @@ public:
 
 	void startObject(int numfields)
 	{
+		if(numfields < 0)
+			throw new ArgumentOutOfRangeException("numfields", numfields, "must be greater than zero");
+
 		notNested();
 		_vtable = new int[](numfields);
 		_objectStart = offset();
