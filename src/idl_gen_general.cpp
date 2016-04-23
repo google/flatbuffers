@@ -659,7 +659,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
-  code += std::string("public ") + lang.unsubclassable_decl;
+  code += "public ";
+  if (lang.language == IDLOptions::kCSharp &&
+      struct_def.attributes.Lookup("csharp_partial")) {
+    // generate a partial class for this C# struct/table
+    code += "partial ";
+  }
+  else {
+    code += lang.unsubclassable_decl;
+  }
   code += "class " + struct_def.name + lang.inheritance_marker;
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
@@ -876,7 +884,27 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           break;
       }
     }
-
+	// generate object accessors if is nested_flatbuffer
+	auto nested = field.attributes.Lookup("nested_flatbuffer");
+	if (nested) {
+		auto nested_qualified_name =
+			parser.namespaces_.back()->GetFullyQualifiedName(nested->constant);
+		auto nested_type = parser.structs_.Lookup(nested_qualified_name);
+		auto nested_type_name = WrapInNameSpace(parser, *nested_type);
+		auto nestedMethodName = MakeCamel(field.name, lang.first_camel_upper) 
+			+ "As" + nested_type_name;
+		auto getNestedMethodName = nestedMethodName;
+		if (lang.language == IDLOptions::kCSharp) {
+			getNestedMethodName = "Get" + nestedMethodName;
+		}
+		code += "  public " + nested_type_name + " ";
+		code += nestedMethodName + "() { return ";
+		code += getNestedMethodName + "(new " + nested_type_name + "()); }\n";
+		code += "  public " + nested_type_name + " " + getNestedMethodName;
+		code += "(" + nested_type_name + " obj) { ";
+		code += "int o = __offset(" + NumToString(field.value.offset) +"); ";
+		code += "return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }\n";
+	}
     // generate mutators for scalar fields or vectors of scalars
     if (parser.opts.mutable_buffer) {
       auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR

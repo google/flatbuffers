@@ -5,17 +5,19 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-
 namespace NamespaceA {
 namespace NamespaceB {
 
 struct TableInNestedNS;
+
 struct StructInNestedNS;
 
 enum EnumInNestedNS {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
-  EnumInNestedNS_C = 2
+  EnumInNestedNS_C = 2,
+  EnumInNestedNS_MIN = EnumInNestedNS_A,
+  EnumInNestedNS_MAX = EnumInNestedNS_C
 };
 
 inline const char **EnumNamesEnumInNestedNS() {
@@ -43,7 +45,7 @@ STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_FOO = 4,
+    VT_FOO = 4
   };
   int32_t foo() const { return GetField<int32_t>(VT_FOO, 0); }
   bool mutate_foo(int32_t _foo) { return SetField(VT_FOO, _foo); }

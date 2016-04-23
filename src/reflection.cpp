@@ -289,7 +289,7 @@ void SetString(const reflection::Schema &schema, const std::string &val,
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
   auto str_start = static_cast<uoffset_t>(
                      reinterpret_cast<const uint8_t *>(str) - flatbuf->data());
-  auto start = str_start + sizeof(uoffset_t);
+  auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
     memset(flatbuf->data() + start, 0, str->Length());
@@ -354,7 +354,8 @@ void CopyInline(FlatBufferBuilder &fbb, const reflection::Field &fielddef,
 Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Schema &schema,
                                 const reflection::Object &objectdef,
-                                const Table &table) {
+                                const Table &table,
+                                bool use_string_pooling) {
   // Before we can construct the table, we have to first generate any
   // subobjects, and collect their offsets.
   std::vector<uoffset_t> offsets;
@@ -366,7 +367,9 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
     uoffset_t offset = 0;
     switch (fielddef.type()->base_type()) {
       case reflection::String: {
-        offset = fbb.CreateString(GetFieldS(table, fielddef)).o;
+        offset = use_string_pooling
+                 ? fbb.CreateSharedString(GetFieldS(table, fielddef)).o
+                 : fbb.CreateString(GetFieldS(table, fielddef)).o;
         break;
       }
       case reflection::Obj: {
@@ -395,7 +398,9 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
             std::vector<Offset<const String *>> elements(vec->size());
             auto vec_s = reinterpret_cast<const Vector<Offset<String>> *>(vec);
             for (uoffset_t i = 0; i < vec_s->size(); i++) {
-              elements[i] = fbb.CreateString(vec_s->Get(i)).o;
+              elements[i] = use_string_pooling
+                            ? fbb.CreateSharedString(vec_s->Get(i)).o
+                            : fbb.CreateString(vec_s->Get(i)).o;
             }
             offset = fbb.CreateVector(elements).o;
             break;

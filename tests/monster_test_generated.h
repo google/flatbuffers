@@ -7,7 +7,9 @@
 
 namespace MyGame {
 namespace OtherNameSpace {
+
 struct Unused;
+
 }  // namespace OtherNameSpace
 }  // namespace MyGame
 
@@ -15,15 +17,21 @@ namespace MyGame {
 namespace Example {
 
 struct Test;
+
 struct TestSimpleTableWithEnum;
+
 struct Vec3;
+
 struct Stat;
+
 struct Monster;
 
 enum Color {
   Color_Red = 1,
   Color_Green = 2,
-  Color_Blue = 8
+  Color_Blue = 8,
+  Color_MIN = Color_Red,
+  Color_MAX = Color_Blue
 };
 
 inline const char **EnumNamesColor() {
@@ -36,7 +44,9 @@ inline const char *EnumNameColor(Color e) { return EnumNamesColor()[static_cast<
 enum Any {
   Any_NONE = 0,
   Any_Monster = 1,
-  Any_TestSimpleTableWithEnum = 2
+  Any_TestSimpleTableWithEnum = 2,
+  Any_MIN = Any_NONE,
+  Any_MAX = Any_TestSimpleTableWithEnum
 };
 
 inline const char **EnumNamesAny() {
@@ -98,7 +108,7 @@ STRUCT_END(Vec3, 32);
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_COLOR = 4,
+    VT_COLOR = 4
   };
   Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2)); }
   bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
@@ -132,7 +142,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_ID = 4,
     VT_VAL = 6,
-    VT_COUNT = 8,
+    VT_COUNT = 8
   };
   const flatbuffers::String *id() const { return GetPointer<const flatbuffers::String *>(VT_ID); }
   flatbuffers::String *mutable_id() { return GetPointer<flatbuffers::String *>(VT_ID); }
@@ -201,7 +211,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TESTHASHU32_FNV1A = 46,
     VT_TESTHASHS64_FNV1A = 48,
     VT_TESTHASHU64_FNV1A = 50,
-    VT_TESTARRAYOFBOOLS = 52,
+    VT_TESTARRAYOFBOOLS = 52
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }

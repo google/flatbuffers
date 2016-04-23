@@ -15,15 +15,21 @@
  * limitations under the License.
  */
 
+/// @file
+/// @addtogroup flatbuffers_php_api
+/// @{
+
 namespace Google\FlatBuffers;
 
 class FlatbufferBuilder
 {
     /**
+     * Internal ByteBuffer for the FlatBuffer data.
      * @var ByteBuffer $bb
      */
     public $bb;
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * @var int $space
      */
@@ -73,9 +79,10 @@ class FlatbufferBuilder
      * @var bool $force_defaults
      */
     protected $force_defaults = false;
+    /// @endcond
 
     /**
-     * create flatbuffers builder
+     * Create a FlatBufferBuilder with a given initial size.
      *
      * @param $initial_size initial byte buffer size.
      */
@@ -88,6 +95,7 @@ class FlatbufferBuilder
         $this->bb = $this->newByteBuffer($initial_size);
     }
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * create new bytebuffer
      *
@@ -100,7 +108,7 @@ class FlatbufferBuilder
     }
 
     /**
-     * returns current bytebuffer offset
+     * Returns the current ByteBuffer offset.
      *
      * @return int
      */
@@ -270,9 +278,11 @@ class FlatbufferBuilder
     {
         $this->bb->putDouble($this->space -= 8, $x);
     }
+    /// @endcond
 
     /**
-     * @param $x
+     * Add a `bool` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `bool` to add to the buffer.
      */
     public function addBool($x)
     {
@@ -281,7 +291,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add a `byte` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `byte` to add to the buffer.
      */
     public function addByte($x)
     {
@@ -290,7 +301,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add a `signed byte` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `signed byte` to add to the buffer.
      */
     public function addSbyte($x)
     {
@@ -299,7 +311,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add a `short` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `short` to add to the buffer.
      */
     public function addShort($x)
     {
@@ -308,7 +321,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add an `unsigned short` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `unsigned short` to add to the buffer.
      */
     public function addUshort($x)
     {
@@ -317,7 +331,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `int` to add to the buffer.
      */
     public function addInt($x)
     {
@@ -326,7 +341,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add an `unsigned int` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `unsigned int` to add to the buffer.
      */
     public function addUint($x)
     {
@@ -334,9 +350,9 @@ class FlatbufferBuilder
         $this->putUint($x);
     }
 
-
     /**
-     * @param $x
+     * Add a `long` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `long` to add to the buffer.
      */
     public function addLong($x)
     {
@@ -345,7 +361,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add an `unsigned long` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `unsigned long` to add to the buffer.
      */
     public function addUlong($x)
     {
@@ -354,7 +371,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add a `float` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `float` to add to the buffer.
      */
     public function addFloat($x)
     {
@@ -363,7 +381,8 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * Add a `double` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param $x The `double` to add to the buffer.
      */
     public function addDouble($x)
     {
@@ -371,6 +390,7 @@ class FlatbufferBuilder
         $this->putDouble($x);
     }
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * @param $o
      * @param $x
@@ -528,10 +548,13 @@ class FlatbufferBuilder
             $this->slot($o);
         }
     }
+    /// @endcond
 
     /**
-     * @param $off
-     * @throws \Exception
+     * Adds on offset, relative to where it will be written.
+     * @param $off The offset to add to the buffer.
+     * @throws \Exception Throws an exception if `$off` is greater than the underlying ByteBuffer's
+     * offest.
      */
     public function addOffset($off)
     {
@@ -544,6 +567,7 @@ class FlatbufferBuilder
         $this->putInt($off);
     }
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * @param $elem_size
      * @param $num_elems
@@ -668,12 +692,14 @@ class FlatbufferBuilder
 
         return true;
     }
-
+    /// @endcond
 
     /**
-     * @param $s
-     * @return int
-     * @throws \Exception
+     * Encode the string `$s` in the buffer using UTF-8.
+     * @param string $s The string to encode.
+     * @return int The offset in the buffer where the encoded string starts.
+     * @throws InvalidArgumentException Thrown if the input string `$s` is not
+     *     UTF-8.
      */
     public function createString($s)
     {
@@ -691,6 +717,7 @@ class FlatbufferBuilder
         return $this->endVector();
     }
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * @throws \Exception
      */
@@ -850,10 +877,16 @@ class FlatbufferBuilder
             throw new \Exception("FlatBuffers: field "  . $field  .  " must be set");
         }
     }
+    /// @endcond
 
     /**
-     * @param $root_table
-     * @throws \Exception
+     * Finalize a buffer, pointing to the given `$root_table`.
+     * @param $root_table An offest to be added to the buffer.
+     * @param $file_identifier A FlatBuffer file identifier to be added to the
+     *     buffer before `$root_table`. This defaults to `null`.
+     * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
+     *     given, where its length is not equal to
+     *    `Constants::FILE_IDENTIFIER_LENGTH`.
      */
     public function finish($root_table, $identifier = null)
     {
@@ -878,7 +911,10 @@ class FlatbufferBuilder
     }
 
     /**
-     * @param bool $forceDefaults
+     * In order to save space, fields that are set to their default value don't
+     * get serialized into the buffer.
+     * @param bool $forceDefaults When set to `true`, always serializes default
+     *     values.
      */
     public function forceDefaults($forceDefaults)
     {
@@ -886,13 +922,15 @@ class FlatbufferBuilder
     }
 
     /**
-     * @return ByteBuffer
+     * Get the ByteBuffer representing the FlatBuffer.
+     * @return ByteBuffer The ByteBuffer containing the FlatBuffer data.
      */
     public function dataBuffer()
     {
         return $this->bb;
     }
 
+    /// @cond FLATBUFFERS_INTERNAL
     /**
      * @return int
      */
@@ -900,9 +938,13 @@ class FlatbufferBuilder
     {
         return $this->space;
     }
+    /// @endcond
 
     /**
-     * @return string
+     * Utility function to copy and return the FlatBuffer data from the
+     * underlying ByteBuffer.
+     * @return string A string (representing a byte[]) that contains a copy
+     * of the FlatBuffer data.
      */
     public function sizedByteArray()
     {
@@ -916,3 +958,5 @@ class FlatbufferBuilder
         return $result;
     }
 }
+
+/// @}

@@ -6,7 +6,7 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public sealed class TestSimpleTableWithEnum : Table {
+public partial class TestSimpleTableWithEnum : Table {
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return GetRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public TestSimpleTableWithEnum __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }

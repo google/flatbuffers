@@ -1,4 +1,5 @@
-# FlatBuffer Internals
+FlatBuffer Internals    {#flatbuffers_internals}
+====================
 
 This section is entirely optional for the use of FlatBuffers. In normal
 usage, you should never need the information contained herein. If you're
@@ -16,7 +17,7 @@ byte-swap intrinsics.
 
 On purpose, the format leaves a lot of details about where exactly
 things live in memory undefined, e.g. fields in a table can have any
-order, and objects to some extend can be stored in many orders. This is
+order, and objects to some extent can be stored in many orders. This is
 because the format doesn't need this information to be efficient, and it
 leaves room for optimization and extension (for example, fields can be
 packed in a way that is most compact). Instead, the format is defined in
@@ -228,7 +229,12 @@ Otherwise, it uses the entry as an offset into the table to locate the field.
 `FlatBufferBuilder`. You can add the fields in any order, and the `Finish`
 call will ensure the correct vtable gets generated.
 
-    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color) {
+    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+                                                      const Vec3 *pos, int16_t mana,
+                                                      int16_t hp,
+                                                      flatbuffers::Offset<flatbuffers::String> name,
+                                                      flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory,
+                                                      int8_t color) {
       MonsterBuilder builder_(_fbb);
       builder_.add_inventory(inventory);
       builder_.add_name(name);
@@ -285,3 +291,5 @@ Note that this not the only possible encoding, since the writer has some
 flexibility in which of the children of root object to write first (though in
 this case there's only one string), and what order to write the fields in.
 Different orders may also cause different alignments to happen.
+
+<br>
