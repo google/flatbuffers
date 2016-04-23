@@ -24,7 +24,7 @@ struct Monster {
   auto inventory() { return Iterator!(Monster, ubyte, "inventory")(this); }
     ubyte inventory(int j) { int o = __offset(14); return o != 0 ? _buffer.get!ubyte(__dvector(o) + j * 1)  : 0; }
   @property int inventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
-  @property   ubyte color() { int o = __offset(16); return o != 0 ? _buffer.get!ubyte(o + _pos) : 8; }
+  @property   byte color() { int o = __offset(16); return o != 0 ? _buffer.get!byte(o + _pos) : 8; }
   @property   ubyte testType() { int o = __offset(18); return o != 0 ? _buffer.get!ubyte(o + _pos) : 0; }
     Nullable!T test(T)() { int o = __offset(20); return o != 0 ? Nullable!T(__union!(T)(o)) : Nullable!T.init; }
   auto test4() { return Iterator!(Monster, Test, "test4")(this); }
@@ -66,7 +66,7 @@ struct Monster {
   static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   static int createInventoryVector(FlatBufferBuilder builder, ubyte[] data) { builder.startVector(1, cast(int)data.length, 1); for (int i = cast(int)data.length - 1; i >= 0; i--) builder.addUbyte(data[i]); return builder.endVector(); }
   static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
-  static void addColor(FlatBufferBuilder builder, ubyte color) { builder.addUbyte(6, color, 8); }
+  static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 8); }
   static void addTestType(FlatBufferBuilder builder, ubyte testType) { builder.addUbyte(7, testType, 0); }
   static void addTest(FlatBufferBuilder builder, int testOffset) { builder.addOffset(8, testOffset, 0); }
   static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }

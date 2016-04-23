@@ -2,7 +2,7 @@
 
 module MyGame.Example.Color;
 
-enum Color : ubyte
+enum Color : byte
 {
    Red = 1,
    Green = 2,
