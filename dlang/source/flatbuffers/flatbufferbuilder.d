@@ -81,15 +81,25 @@ public:
 
 	/// Adds a scalar to the buffer, properly aligned, and the buffer grown if needed.
 	void addBool(bool x) { prep(byte.sizeof, 0); put!bool(x); }
+	/// ditto
 	void addByte(byte x) { prep(byte.sizeof, 0); put!byte(x); }
+	/// ditto
 	void addUbyte(ubyte x) { prep(ubyte.sizeof, 0); put!ubyte(x); }
+	/// ditto
 	void addShort(short x) { prep(short.sizeof, 0); put!short(x); }
+	/// ditto
 	void addUshort(ushort x) { prep(ushort.sizeof, 0); put!ushort(x); }
+	/// ditto
 	void addInt(int x) { prep(int.sizeof, 0); put!int(x); }
+	/// ditto
 	void addUint(uint x) { prep(uint.sizeof, 0); put!uint(x); }
+	/// ditto
 	void addLong(long x) { prep(long.sizeof, 0); put!long(x); }
+	/// ditto
 	void addUlong(ulong x) { prep(ulong.sizeof, 0); put!ulong(x); }
+	/// ditto
 	void addFloat(float x) { prep(float.sizeof, 0); put!float(x); }
+	/// ditto
 	void addDouble(double x) { prep(double.sizeof, 0); put!double(x); }
 
 	/// Adds on offset, relative to where it will be written.
@@ -149,16 +159,27 @@ public:
 
 	/// Add a scalar to a table at `o` into its vtable, with value `x` and default `d`.
 	void addBool(int o, bool x, bool d) { if(x != d) { addBool(x); slot(o); } }
+	/// ditto
 	void addByte(int o, byte x, byte d) { if(x != d) { addByte(x); slot(o); } }
+	/// ditto
 	void addUbyte(int o, ubyte x, ubyte d) { if(x != d) { addUbyte(x); slot(o); } }
+	/// ditto
 	void addShort(int o, short x, int d) { if(x != d) { addShort(x); slot(o); } }
+	/// ditto
 	void addUshort(int o, ushort x, ushort d) { if(x != d) { addUshort(x); slot(o); } }
+	/// ditto
 	void addInt(int o, int x, int d) { if(x != d) { addInt(x); slot(o); } }
+	/// ditto
 	void addUint(int o, uint x, uint d) { if(x != d) { addUint(x); slot(o); } }
+	/// ditto
 	void addLong(int o, long x, long d) { if(x != d) { addLong(x); slot(o); } }
+	/// ditto
 	void addUlong(int o, ulong x, ulong d) { if(x != d) { addUlong(x); slot(o); } }
+	/// ditto
 	void addFloat(int o, float x, double d) { if(x != d) { addFloat(x); slot(o); } }
+	/// ditto
 	void addDouble(int o, double x, double d) { if(x != d) { addDouble(x); slot(o); } }
+	/// ditto
 	void addOffset(int o, int x, int d) { if(x != d) { addOffset(x); slot(o); } }
 
 	int createString(string s)
