@@ -52,12 +52,12 @@ dmd -lib -of./libflatbuffers.a \
 
 dmd -c -of./sample_binary.o \
 -I./ -I../dlang/source/  \
-mygame/sample/color.d \
-mygame/sample/equipment.d \
-mygame/sample/monster.d \
-mygame/sample/package.d \
-mygame/sample/vec3.d \
-mygame/sample/weapon.d \
+MyGame/Sample/Color.d \
+MyGame/Sample/Equipment.d \
+MyGame/Sample/Monster.d \
+MyGame/Sample/package.d \
+MyGame/Sample/Vec3.d \
+MyGame/Sample/Weapon.d \
 sample_binary.d -vcolumns
 
 dmd -of./sample_binary ./sample_binary.o ./libflatbuffers.a -L--no-as-needed
