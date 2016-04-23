@@ -14,7 +14,9 @@ class ArgumentOutOfRangeException : Error
 {
 	this(string argument, long value, string msg) pure nothrow @safe
 	{
-		super(msg);
+		import std.conv : to;
+
+		super(argument ~ ' ' ~ msg ~ " (instead: " ~ value.to!string ~ ")");
 	}
 }
 

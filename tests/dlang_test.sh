@@ -41,7 +41,7 @@ fi
 echo Compiling and running the D sample.
 
 # Compile and execute the sample.
-dmd -lib -of./libflatbuffers.a \
+dmd -debug -lib -of./libflatbuffers.a \
 -I../dlang/source/ \
 ../dlang/source/flatbuffers/bytebuffer.d \
 ../dlang/source/flatbuffers/exception.d \
@@ -50,19 +50,19 @@ dmd -lib -of./libflatbuffers.a \
 ../dlang/source/flatbuffers/table.d \
 -vcolumns
 
-dmd -c -of./dlang_test.o \
+dmd -debug -c -of./dlang_test.o \
 -I./ -I../dlang/source/  \
-mygame/example/color.d \
-mygame/example/any.d \
-mygame/example/monster.d \
-mygame/example/package.d \
-mygame/example/vec3.d \
-mygame/example/stat.d \
-mygame/example/test.d \
-mygame/example/testsimpletablewithenum.d \
+MyGame/Example/Color.d \
+MyGame/Example/Any.d \
+MyGame/Example/Monster.d \
+MyGame/Example/package.d \
+MyGame/Example/Vec3.d \
+MyGame/Example/Stat.d \
+MyGame/Example/Test.d \
+MyGame/Example/TestSimpleTableWithEnum.d \
 dlang_test.d -vcolumns
 
-dmd -of./dlang_test ./dlang_test.o ./libflatbuffers.a -L--no-as-needed
+dmd -debug -of./dlang_test ./dlang_test.o ./libflatbuffers.a -L--no-as-needed
 
 ./dlang_test
 #mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs

@@ -7,7 +7,7 @@ import core.exception;
 
 final class ByteBuffer
 {
-public: 
+public:
 	this(ubyte[] buffer)
 	{
 		_buffer = buffer;
@@ -18,7 +18,7 @@ public:
 	{
 		return cast(uint)_buffer.length;
 	}
-	
+
 	@property ubyte[] data()
 	{
 		return _buffer;
@@ -37,14 +37,14 @@ public:
 
 	void put(T)(int offset, T value) if(isByte!T)
 	{
-		mixin(verifyOffset("1"));
-		_buffer[offset] = value; 
+		mixin(verifyOffset!"1");
+		_buffer[offset] = value;
 		_pos = offset;
 	}
 
 	void put(T)(int offset, T value) if(isNum!T)
 	{
-		mixin(verifyOffset("T.sizeof"));
+		mixin(verifyOffset!"T.sizeof");
 		version (FLATBUFFER_BIGENDIAN) {
 			auto array = nativeToBigEndian!T(value);
 			_buffer[offset..(offset + T.sizeof)] = array[];
@@ -56,7 +56,7 @@ public:
 	}
 
 
-	T get(T)(int index) if( isByte!T )
+	T get(T)(int index) if(isByte!T)
 	{
 		return cast(T)_buffer[index];
 	}
@@ -64,15 +64,15 @@ public:
 	T get(T)(int index) if(isNum!T)
 	{
 		ubyte[T.sizeof] buf = _buffer[index..(index + T.sizeof)];
-		version (FLATBUFFER_BIGENDIAN) 
+		version (FLATBUFFER_BIGENDIAN)
 			return bigEndianToNative!(T,T.sizeof)(buf);
-		else 
-			return  littleEndianToNative!(T,T.sizeof)(buf);
+		else
+			return littleEndianToNative!(T,T.sizeof)(buf);
 	}
 
-private: //Variables.
+private: // Variables.
 	ubyte[] _buffer;
-	int _pos;  //Must track start of the buffer.
+	int _pos; // Must track start of the buffer.
 }
 
 unittest {
@@ -88,23 +88,23 @@ unittest {
 }
 
 private:
-string verifyOffset(string length)	
+template verifyOffset(string length)
 {
-	return "if(offset < 0 || offset >= _buffer.length || (offset +" ~ length ~ ") > _buffer.length)   throw new RangeError(); ";
+	enum verifyOffset = "if(offset < 0 || offset >= _buffer.length || (offset + " ~ length ~ ") > _buffer.length) throw new RangeError();";
 }
 
 template isNum(T)
 {
-	static if (is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long) 
-		|| is(T == ulong) || is(T == float) || is(T == double)) 
+	static if (is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long)
+		|| is(T == ulong) || is(T == float) || is(T == double))
 		enum isNum = true;
-	else 
+	else
 		enum isNum = false;
 }
 
 template isByte(T)
 {
-	static if( is(T == byte) || is(T == ubyte) )
+	static if (is(T == byte) || is(T == ubyte))
 		enum isByte = true;
 	else
 		enum isByte = false;
