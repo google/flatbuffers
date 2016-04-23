@@ -4,6 +4,7 @@ import flatbuffers.exception;
 import flatbuffers.bytebuffer;
 
 import std.exception;
+import std.traits : isNumeric;
 
 final class FlatBufferBuilder
 {
@@ -68,9 +69,7 @@ public:
 			pad(alignSize);
 	}
 
-	void put(T)(T x) if(is(T == bool) || is(T == byte) || is(T == ubyte) ||
-		is(T == short) || is(T == ushort) || is(T == int) || is(T == uint) || is(T == long)
-		|| is(T == ulong) || is(T == float) || is(T == double))
+	void put(T)(T x) if(is(T == bool) || isNumeric!T)
 	{
 		static if (is(T == bool)) {
 			_space -= 1;
