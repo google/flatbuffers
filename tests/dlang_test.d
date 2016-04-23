@@ -1,6 +1,6 @@
 import std.stdio;
 import std.file;
-import mygame.example;
+import MyGame.Example;
 
 void main()
 {

@@ -52,14 +52,14 @@ dmd -lib -of./libflatbuffers.a \
 
 dmd -c -of./dlang_test.o \
 -I./ -I../dlang/source/  \
-mygame/example/color.d \
-mygame/example/any.d \
-mygame/example/monster.d \
-mygame/example/package.d \
-mygame/example/vec3.d \
-mygame/example/stat.d \
-mygame/example/test.d \
-mygame/example/testsimpletablewithenum.d \
+MyGame/Example/Color.d \
+MyGame/Example/Any.d \
+MyGame/Example/Monster.d \
+MyGame/Example/package.d \
+MyGame/Example/Vec3.d \
+MyGame/Example/Stat.d \
+MyGame/Example/Test.d \
+MyGame/Example/TestSimpleTableWithEnum.d \
 dlang_test.d -vcolumns
 
 dmd -of./dlang_test ./dlang_test.o ./libflatbuffers.a -L--no-as-needed
