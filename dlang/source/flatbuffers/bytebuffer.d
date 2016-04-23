@@ -70,9 +70,9 @@ public:
 			return littleEndianToNative!(T,T.sizeof)(buf);
 	}
 
-private: //Variables.
+private: // Variables.
 	ubyte[] _buffer;
-	int _pos; //Must track start of the buffer.
+	int _pos; // Must track start of the buffer.
 }
 
 unittest {

@@ -11,7 +11,7 @@ mixin template Struct(ParentType)
 		return ParentType(buffer,pos);
 	}
 
-private: //Variables.
+private: // Variables.
 	@disable this();
 	this(ByteBuffer buffer,int pos) {
 		this._buffer = buffer;
@@ -32,7 +32,7 @@ private:
 	ByteBuffer _buffer;
 	int _pos;
 
-private: //Methods.
+private: // Methods.
 	@disable this();
 	this(ByteBuffer buffer,int pos) {
 		this._buffer = buffer;
@@ -40,20 +40,20 @@ private: //Methods.
 	}
 
 
-	///Look up a field in the vtable, return an offset into the object, or 0 if the field is not present.
+	/// Look up a field in the vtable, return an offset into the object, or 0 if the field is not present.
 	int __offset(int vtableOffset)
 	{
 		int vtable = _pos - _buffer.get!int(_pos);
 		return vtableOffset < _buffer.get!short(vtable)? cast(int)_buffer.get!short(vtable + vtableOffset) : 0;
 	}
 
-	///Retrieve the relative offset stored at "offset".
+	/// Retrieve the relative offset stored at "offset".
 	int __indirect(int offset)
 	{
 		return offset + _buffer.get!int(offset);
 	}
 
-	///Create a D string from UTF-8 data stored inside the flatbuffer.
+	/// Create a D string from UTF-8 data stored inside the flatbuffer.
 	string __string(int offset)
 	{
 		offset += _buffer.get!int(offset);
@@ -62,7 +62,7 @@ private: //Methods.
 		return cast(string)_buffer.data[startPos..startPos+len];
 	}
 
-	///Get the length of a vector whose offset is stored at "offset" in this object.
+	/// Get the length of a vector whose offset is stored at "offset" in this object.
 	int __vector_len(int offset)
 	{
 		offset += _pos;
@@ -70,14 +70,14 @@ private: //Methods.
 		return _buffer.get!int(offset);
 	}
 
-	///Get the start of data of a vector whose offset is stored at "offset" in this object.
+	/// Get the start of data of a vector whose offset is stored at "offset" in this object.
 	int __dvector(int offset)
 	{
 		offset += _pos;
-		return offset + _buffer.get!int(offset) + cast(int)int.sizeof; //Data starts after the length.
+		return offset + _buffer.get!int(offset) + cast(int)int.sizeof; // Data starts after the length.
 	}
 
-	///Initialize any Table-derived type to point to the union at the given offset.
+	/// Initialize any Table-derived type to point to the union at the given offset.
 	T __union(T)(int offset)
 	{
 		offset += _pos;
@@ -165,7 +165,7 @@ public:
 			static if(isScalarType!(ReturnType) || isSomeString!(ReturnType))
 				result = operations(number, opIndex(number));
 			else
-				mixin("result = operations(number,  parent."~accessor~"(number));");
+				mixin("result = operations(number, parent."~accessor~"(number));");
 			if(result)
 				break;
 		}

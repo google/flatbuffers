@@ -26,8 +26,8 @@ public:
 		}
 	}
 
-	///Doubles the size of the ByteBuffer, and copies the old data towards
-	///the end of the new buffer (since we build the buffer backwards).
+	/// Doubles the size of the ByteBuffer, and copies the old data towards
+	/// the end of the new buffer (since we build the buffer backwards).
 	void growBuffer()
 	{
 		auto oldBuf = _buffer.data;
@@ -42,22 +42,22 @@ public:
 		_buffer = new ByteBuffer(newBuf);
 	}
 
-	///Prepare to write an element of `size` after `additional_bytes`
-	///have been written, e.g. if you write a string, you need to align
-	///such the int length field is aligned to SIZEOF_INT, and the string
-	///data follows it directly.
-	///If all you need to do is align, `additional_bytes` will be 0.
+	/// Prepare to write an element of `size` after `additional_bytes`
+	/// have been written, e.g. if you write a string, you need to align
+	/// such the int length field is aligned to SIZEOF_INT, and the string
+	/// data follows it directly.
+	/// If all you need to do is align, `additional_bytes` will be 0.
 	void prep(int size, int additionalBytes)
 	{
-		//Track the biggest thing we've ever aligned to.
+		// Track the biggest thing we've ever aligned to.
 		if(size > _minAlign)
 			_minAlign = size;
 
-		//Find the amount of alignment needed such that `size` is properly
-		//aligned after `additional_bytes`.
+		// Find the amount of alignment needed such that `size` is properly
+		// aligned after `additional_bytes`.
 		auto alignSize = ((~(cast(int)_buffer.length - _space + additionalBytes)) + 1) & (size - 1);
 
-		//Reallocate the buffer if needed.
+		// Reallocate the buffer if needed.
 		while(_space < alignSize + size + additionalBytes)
 		{
 			auto oldBufSize = cast(int)_buffer.length;
@@ -80,7 +80,7 @@ public:
 		_buffer.put!T(_space, x);
 	}
 
-	///Adds a scalar to the buffer, properly aligned, and the buffer grown if needed.
+	/// Adds a scalar to the buffer, properly aligned, and the buffer grown if needed.
 	void addBool(bool x) { prep(byte.sizeof, 0); put!bool(x); }
 	void addByte(byte x) { prep(byte.sizeof, 0); put!byte(x); }
 	void addUbyte(ubyte x) { prep(ubyte.sizeof, 0); put!ubyte(x); }
@@ -93,10 +93,10 @@ public:
 	void addFloat(float x) { prep(float.sizeof, 0); put!float(x); }
 	void addDouble(double x) { prep(double.sizeof, 0); put!double(x); }
 
-	///Adds on offset, relative to where it will be written.
+	/// Adds on offset, relative to where it will be written.
 	void addOffset(int off)
 	{
-		prep(int.sizeof, 0); //Ensure alignment is already done.
+		prep(int.sizeof, 0); // Ensure alignment is already done.
 		if(off > offset())
 			throw new ArgumentException("FlatBuffers: must be less than offset.", "off");
 
@@ -109,7 +109,7 @@ public:
 		notNested();
 		_vectorNumElems = count;
 		prep(int.sizeof, elemSize * count);
-		prep(alignment, elemSize * count); //Just in case alignment > int.
+		prep(alignment, elemSize * count); // Just in case alignment > int.
 	}
 
 	int endVector()
@@ -120,17 +120,17 @@ public:
 
 	void nested(int obj)
 	{
-		//Structs are always stored inline, so need to be created right
-		//where they are used. You'll get this assert if you created it
-		//elsewhere.
+		// Structs are always stored inline, so need to be created right
+		// where they are used. You'll get this assert if you created it
+		// elsewhere.
 		if(obj != offset())
 			throw new Exception("FlatBuffers: struct must be serialized inline.");
 	}
 
 	void notNested()
 	{
-		//You should not be creating any other objects or strings/vectors
-		//while an object is being constructed.
+		// You should not be creating any other objects or strings/vectors
+		// while an object is being constructed.
 		if(_vtable)
 			throw new Exception("FlatBuffers: object serialization must not be nested.");
 	}
@@ -142,13 +142,13 @@ public:
 		_objectStart = offset();
 	}
 
-	///Set the current vtable at `voffset` to the current location in the buffer.
+	/// Set the current vtable at `voffset` to the current location in the buffer.
 	void slot(int voffset)
 	{
 		_vtable[voffset] = offset();
 	}
 
-	///Add a scalar to a table at `o` into its vtable, with value `x` and default `d`.
+	/// Add a scalar to a table at `o` into its vtable, with value `x` and default `d`.
 	void addBool(int o, bool x, bool d) { if(x != d) { addBool(x); slot(o); } }
 	void addByte(int o, byte x, byte d) { if(x != d) { addByte(x); slot(o); } }
 	void addUbyte(int o, ubyte x, ubyte d) { if(x != d) { addUbyte(x); slot(o); } }
@@ -173,8 +173,8 @@ public:
 		return endVector();
 	}
 
-	///Structs are stored inline, so nothing additional is being added.
-	///`d` is always 0.
+	/// Structs are stored inline, so nothing additional is being added.
+	/// `d` is always 0.
 	void addStruct(int voffset, int x, int d)
 	{
 		if(x != d)
@@ -192,24 +192,24 @@ public:
 		addInt(cast(int)0);
 		auto vtableloc = offset();
 
-		//Write out the current vtable.
+		// Write out the current vtable.
 		for(int i=cast(int)_vtable.length-1; i>=0; i--)
 		{
-			//Offset relative to the start of the table.
+			// Offset relative to the start of the table.
 			short off = cast(short)(_vtable[i] != 0? vtableloc - _vtable[i] : 0);
 			addShort(off);
 		}
 
-		const int standardFields = 2; //The fields below:
+		const int standardFields = 2; // The fields below:
 		addShort(cast(short)(vtableloc - _objectStart));
 		addShort(cast(short)((_vtable.length + standardFields) * short.sizeof));
 
-		///Search for an existing vtable that matches the current one.
+		/// Search for an existing vtable that matches the current one.
 		int existingVtable = 0;
 
 		ubyte[] data = _buffer.data();
 
-	     for(int i=0; i<_numVtables; i++)
+		for(int i=0; i<_numVtables; i++)
 		{
 			int vt1 = _buffer.length - _vtables[i];
 			int vt2 = _space;
@@ -222,20 +222,20 @@ public:
 
 		if(existingVtable != 0)
 		{
-			//Found a match:
-			//Remove the current vtable.
+			// Found a match:
+			// Remove the current vtable.
 			_space = _buffer.length - vtableloc;
-			//Point table to existing vtable.
+			// Point table to existing vtable.
 			_buffer.put!int(_space, existingVtable - vtableloc);
 		}
 		else
 		{
-			//No match:
-			//Add the location of the current vtable to the list of vtables.
+			// No match:
+			// Add the location of the current vtable to the list of vtables.
 			if(_numVtables == _vtables.length)
 				_vtables.length *= 2;
 			_vtables[_numVtables++] = offset();
-			//Point table to current vtable.
+			// Point table to current vtable.
 			_buffer.put!int(_buffer.length - vtableloc, offset() - vtableloc);
 		}
 
@@ -244,15 +244,15 @@ public:
 		return vtableloc;
 	}
 
-	///This checks a required field has been set in a given table that has
-	///just been constructed.
+	/// This checks a required field has been set in a given table that has
+	/// just been constructed.
 	void required(int table, int field)
 	{
 		import std.string;
 		int table_start = _buffer.length - table;
 		int vtable_start = table_start - _buffer.get!int(table_start);
 		bool ok = _buffer.get!short(vtable_start + field) != 0;
-		//If this fails, the caller will show what field needs to be set.
+		// If this fails, the caller will show what field needs to be set.
 		if(!ok)
 			throw new InvalidOperationException(format("FlatBuffers: field %s must be set.", field));
 	}
@@ -265,7 +265,7 @@ public:
 
 	ByteBuffer dataBuffer() { return _buffer; }
 
-	///Utility function for copying a byte array that starts at 0.
+	/// Utility function for copying a byte array that starts at 0.
 	ubyte[] sizedByteArray()
 	{
 		return _buffer.data[_buffer.position..$];
@@ -287,15 +287,15 @@ private:
 	ByteBuffer _buffer;
 	int _minAlign = 1;
 
-	///The vtable for the current table, null otherwise.
+	/// The vtable for the current table, null otherwise.
 	int[] _vtable;
-	///Starting offset of the current struct/table.
+	/// Starting offset of the current struct/table.
 	int _objectStart;
-	///List of offsets of all vtables.
+	/// List of offsets of all vtables.
 	int[] _vtables = new int[](16);
-	///Number of entries in `vtables` in use.
+	/// Number of entries in `vtables` in use.
 	int _numVtables = 0;
-	///For the current vector being built.
+	/// For the current vector being built.
 	int _vectorNumElems = 0;
 }
 
