@@ -37,14 +37,14 @@ public:
 
 	void put(T)(int offset, T value) if(isByte!T)
 	{
-		mixin(verifyOffset("1"));
+		mixin(verifyOffset!"1");
 		_buffer[offset] = value;
 		_pos = offset;
 	}
 
 	void put(T)(int offset, T value) if(isNum!T)
 	{
-		mixin(verifyOffset("T.sizeof"));
+		mixin(verifyOffset!"T.sizeof");
 		version (FLATBUFFER_BIGENDIAN) {
 			auto array = nativeToBigEndian!T(value);
 			_buffer[offset..(offset + T.sizeof)] = array[];
@@ -88,9 +88,9 @@ unittest {
 }
 
 private:
-string verifyOffset(string length)
+template verifyOffset(string length)
 {
-	return "if(offset < 0 || offset >= _buffer.length || (offset +" ~ length ~ ") > _buffer.length) throw new RangeError(); ";
+	enum verifyOffset = "if(offset < 0 || offset >= _buffer.length || (offset + " ~ length ~ ") > _buffer.length) throw new RangeError();";
 }
 
 template isNum(T)
