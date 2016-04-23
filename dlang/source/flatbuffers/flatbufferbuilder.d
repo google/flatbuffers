@@ -10,8 +10,8 @@ final class FlatBufferBuilder
 public:
 	this(int initsize)
 	{
-		if(initsize == 0)
-			throw new ArgumentOutOfRangeException("initsize", initsize, "Must be greater than zero");
+		if(initsize <= 0)
+			initsize = 1;
 		_space = initsize;
 		_buffer = new ByteBuffer(new ubyte[initsize]);
 	}
