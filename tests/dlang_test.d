@@ -1,18 +1,65 @@
 import std.stdio;
 import std.file;
-import mygame.example;
+import MyGame.Example;
 
 void main()
 {
 	assert(std.file.exists("monsterdata_test.mon"));
 	auto rdata = cast(ubyte[])(std.file.read("monsterdata_test.mon"));
 	testBuffer(new ByteBuffer(rdata));
+
+	FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+
+	// We set up the same values as monsterdata.json:
+	
+	int str = fbb.createString("MyMonster");
+	
+	int inv = Monster.createInventoryVector(fbb, cast(byte[]) [0, 1, 2, 3, 4]);
+	
+	int fred = fbb.createString("Fred");
+	Monster.startMonster(fbb);
+	Monster.addName(fbb, fred);
+	int mon2 = Monster.endMonster(fbb);
+	
+	Monster.startTest4Vector(fbb, 2);
+	Test.createTest(fbb, cast(short) 10, cast(short) 20);
+	Test.createTest(fbb, cast(short) 30, cast(short) 40);
+	int test4 = fbb.endVector();
+	
+	int testArrayOfString = Monster.createTestarrayofstringVector(fbb, [
+		fbb.createString("test1"),
+		fbb.createString("test2")
+	]);
+	
+	Monster.startMonster(fbb);
+	Monster.addPos(fbb, Vec3.createVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0, Color.Green, cast(short) 5, cast(byte) 6));
+	Monster.addHp(fbb, cast(short) 80);
+	Monster.addName(fbb, str);
+	Monster.addInventory(fbb, inv);
+	Monster.addTestType(fbb, cast(byte) Any.Monster);
+	Monster.addTest(fbb, mon2);
+	Monster.addTest4(fbb, test4);
+	Monster.addTestarrayofstring(fbb, testArrayOfString);
+	Monster.addTestbool(fbb, false);
+	Monster.addTesthashu32Fnv1(fbb, uint.max);
+	int mon = Monster.endMonster(fbb);
+	
+	Monster.finishMonsterBuffer(fbb, mon);
+	std.file.write("monsterdata_d_wire.mon", fbb.dataBuffer.data);
+	
+	testExtendedBuffer(fbb.dataBuffer);
+	
+	// test enums
+	static assert(__traits(hasMember, Color, "Red"));
+	static assert(__traits(hasMember, Color, "Blue"));
+	static assert(__traits(hasMember, Any, "NONE"));
+	static assert(__traits(hasMember, Any, "Monster"));
 }
 
 void testBuffer(ByteBuffer buf)
 {
 	auto monster = Monster.getRootAsMonster(buf);
-	
+
 	assert(monster.hp() == 80);
 	assert(monster.mana() == 150);  // default
 	assert(monster.name() == "MyMonster");
@@ -60,6 +107,15 @@ void testBuffer(ByteBuffer buf)
 	assert(monster.testarrayofstringLength() == 2);
 	assert(monster.testarrayofstring(0) == "test1");
 	assert(monster.testarrayofstring(1) == "test2");
-	
+
 	assert(monster.testbool() == false);
+}
+
+void testExtendedBuffer(ByteBuffer bb)
+{
+	testBuffer(bb);
+	
+	Monster monster = Monster.getRootAsMonster(bb);
+	
+	assert(monster.testhashu32Fnv1 == uint.max);
 }
