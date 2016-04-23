@@ -240,7 +240,6 @@ static void GenStruct(const Parser &parser,
     imports.unique();
     for (auto it = imports.begin(); it != imports.end(); ++it) {
         auto import = "import " + namespace_general + (*it) + ";\n";
-        transform (import.begin(),import.end(), import.begin(), tolower);
         code += import;
     }
     if (imports.size())
@@ -590,7 +589,6 @@ static bool SaveClass( const Parser &parser,
         }
     }
 
-    transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     //printf("namespace_dir: %s\n", namespace_dir.c_str());
     EnsureDirExists(namespace_dir);
     namespace_general += unit_name;
@@ -599,13 +597,11 @@ static bool SaveClass( const Parser &parser,
 
     std::string code = "// automatically generated, do not modify\n\n";
     auto module = "module " + namespace_general + ";";
-    transform (module.begin(),module.end(), module.begin(), tolower);
     code += module;
     code += "\n\n";
     if (needs_includes) code += "import flatbuffers;\n\n";
     code += classcode;
     auto filename = namespace_dir + unit_name + ".d";
-    transform (filename.begin(),filename.end(), filename.begin(), tolower);
     return SaveFile(filename.c_str(), code, false);
 }
 
@@ -626,11 +622,9 @@ static bool SavePackage(const Parser &parser,
             namespace_general += ".";
         }
     }
-    transform (namespace_dir.begin(),namespace_dir.end(), namespace_dir.begin(), tolower);
     EnsureDirExists(namespace_dir);
     namespace_general += (*(namespaces.end()-1));
     tmp_general = namespace_general;
-    transform (namespace_general.begin(),namespace_general.end(), namespace_general.begin(), tolower);
     std::string code = "// automatically generated, do not modify\n\n";
     code += "module " + namespace_general + ";";
     code += "\n\n";
@@ -656,11 +650,9 @@ static bool SavePackage(const Parser &parser,
     for (auto it = modules.begin();
          it != modules.end(); ++it) {
         auto import = "public import " + namespace_general + "." +  (*it) + ";\n";
-        transform (import.begin(),import.end(), import.begin(), tolower);
         code += import;
     }
     auto filename = namespace_dir + unit_name + ".d";
-    transform (filename.begin(),filename.end(), filename.begin(), tolower);
 
     //printf("SaveFile: %s\n", filename.c_str());
 
