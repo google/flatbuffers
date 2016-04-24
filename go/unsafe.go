@@ -43,3 +43,8 @@ var (
 	// SizeVOffsetT is the byte size of an VOffsetT.
 	SizeVOffsetT = int(unsafe.Sizeof(VOffsetT(0)))
 )
+
+// byteSliceToString converts a []byte to string without a heap allocation.
+func byteSliceToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
