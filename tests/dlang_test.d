@@ -45,7 +45,7 @@ void main()
 	int mon = Monster.endMonster(fbb);
 	
 	Monster.finishMonsterBuffer(fbb, mon);
-	std.file.write("monsterdata_d_wire.mon", fbb.dataBuffer.data);
+	std.file.write("monsterdata_d_wire.mon", fbb.sizedByteArray());
 	
 	testExtendedBuffer(fbb.dataBuffer);
 	
