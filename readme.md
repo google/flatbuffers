@@ -16,12 +16,12 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 * C++
 * C#
 * C
+* D
 * Go
 * Java
 * JavaScript
 * PHP
 * Python
-* D
 
 *and many more in progress...*
 
