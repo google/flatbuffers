@@ -21,6 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 namespace python {
@@ -634,28 +635,47 @@ static void GenStructBuilder(const StructDef &struct_def,
   EndBuilderBody(code_ptr);
 }
 
+class PythonGenerator : public BaseGenerator {
+ public:
+  PythonGenerator(const Parser &parser, const std::string &path,
+                  const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
+  bool generate() {
+    if (!generateEnums()) return false;
+    if (!generateStructs()) return false;
+    return true;
+  }
+
+ private:
+  bool generateEnums() {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      auto &enum_def = **it;
+      std::string enumcode;
+      GenEnum(enum_def, &enumcode);
+      if (!SaveType(parser_, enum_def, enumcode, path_, false)) return false;
+    }
+    return true;
+  }
+
+  bool generateStructs() {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      auto &struct_def = **it;
+      std::string declcode;
+      GenStruct(struct_def, &declcode, parser_.root_struct_def_);
+      if (!SaveType(parser_, struct_def, declcode, path_, true)) return false;
+    }
+    return true;
+  }
+};
+
 }  // namespace python
 
-bool GeneratePython(const Parser &parser,
-                    const std::string &path,
-                    const std::string & /*file_name*/) {
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    std::string enumcode;
-    python::GenEnum(**it, &enumcode);
-    if (!python::SaveType(parser, **it, enumcode, path, false))
-      return false;
-  }
-
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    std::string declcode;
-    python::GenStruct(**it, &declcode, parser.root_struct_def_);
-    if (!python::SaveType(parser, **it, declcode, path, true))
-      return false;
-  }
-
-  return true;
+bool GeneratePython(const Parser &parser, const std::string &path,
+                    const std::string &file_name) {
+  python::PythonGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 }  // namespace flatbuffers

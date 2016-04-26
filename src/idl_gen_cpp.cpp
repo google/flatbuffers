@@ -906,8 +906,8 @@ class CppGenerator : public BaseGenerator {
 
 bool GenerateCPP(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
-  cpp::CppGenerator *generator = new cpp::CppGenerator(parser, path, file_name);
-  return generator->generate();
+  cpp::CppGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 std::string CPPMakeRule(const Parser &parser,

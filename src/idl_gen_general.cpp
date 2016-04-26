@@ -1195,9 +1195,8 @@ class GeneralGenerator : public BaseGenerator {
 
 bool GenerateGeneral(const Parser &parser, const std::string &path,
                      const std::string &file_name) {
-  general::GeneralGenerator *generator =
-      new general::GeneralGenerator(parser, path, file_name);
-  return generator->generate();
+  general::GeneralGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 static std::string ClassFileName(const LanguageParameters &lang,

@@ -688,8 +688,8 @@ class GoGenerator : public BaseGenerator {
 
 bool GenerateGo(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  go::GoGenerator *generator = new go::GoGenerator(parser, path, file_name);
-  return generator->generate();
+  go::GoGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 }  // namespace flatbuffers
