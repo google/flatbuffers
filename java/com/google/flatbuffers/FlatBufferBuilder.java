@@ -373,7 +373,7 @@ public class FlatBufferBuilder {
     * @param s The string to encode.
     * @return The offset in the buffer where the encoded string starts.
     */
-    public int createString(String s) {
+    public int createString(CharSequence s) {
         int length = s.length();
         int estimatedDstCapacity = (int) (length * encoder.maxBytesPerChar());
         if (dst == null || dst.capacity() < estimatedDstCapacity) {
