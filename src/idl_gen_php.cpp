@@ -21,6 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 namespace php {
@@ -974,29 +975,47 @@ namespace php {
       code += Indent + "}\n";
     }
 
-}  // namespace php
+    class PhpGenerator : public BaseGenerator {
+     public:
+      PhpGenerator(const Parser &parser, const std::string &path,
+                   const std::string &file_name)
+          : BaseGenerator(parser, path, file_name){};
+      bool generate() {
+        if (!generateEnums()) return false;
+        if (!generateStructs()) return false;
+        return true;
+      }
 
-  bool GeneratePhp(const Parser &parser,
-    const std::string &path,
-    const std::string & /*file_name*/) {
-    for (auto it = parser.enums_.vec.begin();
-    it != parser.enums_.vec.end(); ++it) {
-      std::string enumcode;
-      php::GenEnum(**it, &enumcode);
+     private:
+      bool generateEnums() {
+        for (auto it = parser_.enums_.vec.begin();
+             it != parser_.enums_.vec.end(); ++it) {
+          auto &enum_def = **it;
+          std::string enumcode;
+          GenEnum(enum_def, &enumcode);
+          if (!SaveType(parser_, enum_def, enumcode, path_, false))
+            return false;
+        }
+        return true;
+      }
 
-      if (!php::SaveType(parser, **it, enumcode, path, false))
-        return false;
+      bool generateStructs() {
+        for (auto it = parser_.structs_.vec.begin();
+             it != parser_.structs_.vec.end(); ++it) {
+          auto &struct_def = **it;
+          std::string declcode;
+          GenStruct(parser_, struct_def, &declcode);
+          if (!SaveType(parser_, struct_def, declcode, path_, true))
+            return false;
+        }
+        return true;
+      }
+    };
+    }  // namespace php
+
+    bool GeneratePhp(const Parser &parser, const std::string &path,
+                     const std::string &file_name) {
+      php::PhpGenerator generator(parser, path, file_name);
+      return generator.generate();
     }
-
-    for (auto it = parser.structs_.vec.begin();
-    it != parser.structs_.vec.end(); ++it) {
-      std::string declcode;
-      php::GenStruct(parser, **it, &declcode);
-
-      if (!php::SaveType(parser, **it, declcode, path, true))
-        return false;
-    }
-
-    return true;
-}
-}  // namespace flatbuffers
+    }  // namespace flatbuffers

@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 #include <algorithm>
 
 namespace flatbuffers {
@@ -1148,44 +1149,56 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   return SaveFile(filename.c_str(), code, false);
 }
 
-bool GenerateGeneral(const Parser &parser,
-                     const std::string &path,
-                     const std::string & file_name) {
+namespace general {
+class GeneralGenerator : public BaseGenerator {
+ public:
+  GeneralGenerator(const Parser &parser, const std::string &path,
+                   const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
+  bool generate() {
+    assert(parser_.opts.lang <= IDLOptions::kMAX);
+    auto lang = language_parameters[parser_.opts.lang];
+    std::string one_file_code;
 
-  assert(parser.opts.lang <= IDLOptions::kMAX);
-  auto lang = language_parameters[parser.opts.lang];
-  std::string one_file_code;
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      std::string enumcode;
+      GenEnum(lang, parser_, **it, &enumcode);
+      if (parser_.opts.one_file) {
+        one_file_code += enumcode;
+      } else {
+        if (!SaveClass(lang, parser_, (**it).name, enumcode, path_, false,
+                       false))
+          return false;
+      }
+    }
 
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    std::string enumcode;
-    GenEnum(lang, parser, **it, &enumcode);
-    if (parser.opts.one_file) {
-      one_file_code += enumcode;
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      std::string declcode;
+      GenStruct(lang, parser_, **it, &declcode);
+      if (parser_.opts.one_file) {
+        one_file_code += declcode;
+      } else {
+        if (!SaveClass(lang, parser_, (**it).name, declcode, path_, true,
+                       false))
+          return false;
+      }
     }
-    else {
-      if (!SaveClass(lang, parser, (**it).name, enumcode, path, false, false))
-        return false;
+
+    if (parser_.opts.one_file) {
+      return SaveClass(lang, parser_, file_name_, one_file_code, path_, true,
+                       true);
     }
+    return true;
   }
+};
+}  // namespace general
 
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    std::string declcode;
-    GenStruct(lang, parser, **it, &declcode);
-    if (parser.opts.one_file) {
-      one_file_code += declcode;
-    }
-    else {
-      if (!SaveClass(lang, parser, (**it).name, declcode, path, true, false))
-        return false;
-    }
-  }
-
-  if (parser.opts.one_file) {
-    return SaveClass(lang, parser, file_name, one_file_code,path, true, true);
-  }
-  return true;
+bool GenerateGeneral(const Parser &parser, const std::string &path,
+                     const std::string &file_name) {
+  general::GeneralGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 static std::string ClassFileName(const LanguageParameters &lang,

@@ -21,6 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -660,28 +661,35 @@ static void GenStructBuilder(const StructDef &struct_def,
   EndBuilderBody(code_ptr);
 }
 
+class GoGenerator : public BaseGenerator {
+ public:
+  GoGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
+  bool generate() {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      std::string enumcode;
+      go::GenEnum(**it, &enumcode);
+      if (!go::SaveType(parser_, **it, enumcode, path_, false)) return false;
+    }
+
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      std::string declcode;
+      go::GenStruct(**it, &declcode, parser_.root_struct_def_);
+      if (!go::SaveType(parser_, **it, declcode, path_, true)) return false;
+    }
+
+    return true;
+  }
+};
 }  // namespace go
 
-bool GenerateGo(const Parser &parser,
-                const std::string &path,
-                const std::string & /*file_name*/) {
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    std::string enumcode;
-    go::GenEnum(**it, &enumcode);
-    if (!go::SaveType(parser, **it, enumcode, path, false))
-      return false;
-  }
-
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    std::string declcode;
-    go::GenStruct(**it, &declcode, parser.root_struct_def_);
-    if (!go::SaveType(parser, **it, declcode, path, true))
-      return false;
-  }
-
-  return true;
+bool GenerateGo(const Parser &parser, const std::string &path,
+                const std::string &file_name) {
+  go::GoGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 }  // namespace flatbuffers
