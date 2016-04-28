@@ -236,12 +236,19 @@ CheckedError Parser::Next() {
         if(!isdigit(static_cast<const unsigned char>(*cursor_))) return NoError();
         return Error("floating point constant can\'t start with \".\"");
       case '\"':
-      case '\'':
+      case '\'': {
+        int unicode_high_surrogate = -1;
+
         while (*cursor_ != c) {
           if (*cursor_ < ' ' && *cursor_ >= 0)
             return Error("illegal character in string constant");
           if (*cursor_ == '\\') {
             cursor_++;
+            if (unicode_high_surrogate != -1 &&
+                *cursor_ != 'u') {
+              return Error(
+                "illegal Unicode sequence (unpaired high surrogate)");
+            }
             switch (*cursor_) {
               case 'n':  attribute_ += '\n'; cursor_++; break;
               case 't':  attribute_ += '\t'; cursor_++; break;
@@ -263,18 +270,51 @@ CheckedError Parser::Next() {
                 cursor_++;
                 int64_t val;
                 ECHECK(ParseHexNum(4, &val));
-                ToUTF8(static_cast<int>(val), &attribute_);
+                if (val >= 0xD800 && val <= 0xDBFF) {
+                  if (unicode_high_surrogate != -1) {
+                    return Error(
+                      "illegal Unicode sequence (multiple high surrogates)");
+                  } else {
+                    unicode_high_surrogate = val;
+                  }
+                } else if (val >= 0xDC00 && val <= 0xDFFF) {
+                  if (unicode_high_surrogate == -1) {
+                    return Error(
+                      "illegal Unicode sequence (unpaired low surrogate)");
+                  } else {
+                    int code_point = 0x10000 +
+                      ((unicode_high_surrogate & 0x03FF) << 10) +
+                      (val & 0x03FF);
+                    ToUTF8(code_point, &attribute_);
+                    unicode_high_surrogate = -1;
+                  }
+                } else {
+                  if (unicode_high_surrogate != -1) {
+                    return Error(
+                      "illegal Unicode sequence (unpaired high surrogate)");
+                  }
+                  ToUTF8(static_cast<int>(val), &attribute_);
+                }
                 break;
               }
               default: return Error("unknown escape code in string constant");
             }
           } else { // printable chars + UTF-8 bytes
+            if (unicode_high_surrogate != -1) {
+              return Error(
+                "illegal Unicode sequence (unpaired high surrogate)");
+            }
             attribute_ += *cursor_++;
           }
+        }
+        if (unicode_high_surrogate != -1) {
+          return Error(
+            "illegal Unicode sequence (unpaired high surrogate)");
         }
         cursor_++;
         token_ = kTokenStringConstant;
         return NoError();
+      }
       case '/':
         if (*cursor_ == '/') {
           const char *start = ++cursor_;
