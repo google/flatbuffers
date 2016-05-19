@@ -1383,6 +1383,7 @@ class Table {
     // Check the vtable size field, then check vtable fits in its entirety.
     return verifier.VerifyComplexity() &&
            verifier.Verify<voffset_t>(vtable) &&
+           (ReadScalar<voffset_t>(vtable) & (sizeof(voffset_t) - 1)) == 0 &&
            verifier.Verify(vtable, ReadScalar<voffset_t>(vtable));
   }
 
