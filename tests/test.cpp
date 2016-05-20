@@ -819,6 +819,33 @@ void EnumStringsTest() {
                         "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"), true);
 }
 
+void IntegerOutOfRangeTest() {
+  TestError("table T { F:byte; } root_type T; { F:256 }",
+            "constant does not fit");
+  TestError("table T { F:byte; } root_type T; { F:-257 }",
+            "constant does not fit");
+  TestError("table T { F:ubyte; } root_type T; { F:256 }",
+            "constant does not fit");
+  TestError("table T { F:ubyte; } root_type T; { F:-257 }",
+            "constant does not fit");
+  TestError("table T { F:short; } root_type T; { F:65536 }",
+            "constant does not fit");
+  TestError("table T { F:short; } root_type T; { F:-65537 }",
+            "constant does not fit");
+  TestError("table T { F:ushort; } root_type T; { F:65536 }",
+            "constant does not fit");
+  TestError("table T { F:ushort; } root_type T; { F:-65537 }",
+            "constant does not fit");
+  TestError("table T { F:int; } root_type T; { F:4294967296 }",
+            "constant does not fit");
+  TestError("table T { F:int; } root_type T; { F:-4294967297 }",
+            "constant does not fit");
+  TestError("table T { F:uint; } root_type T; { F:4294967296 }",
+            "constant does not fit");
+  TestError("table T { F:uint; } root_type T; { F:-4294967297 }",
+            "constant does not fit");
+}
+
 void UnicodeTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { F:string; }"
@@ -878,6 +905,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ErrorTest();
   ScientificTest();
   EnumStringsTest();
+  IntegerOutOfRangeTest();
   UnicodeTest();
   UnknownFieldsTest();
 

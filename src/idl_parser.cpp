@@ -69,13 +69,16 @@ inline CheckedError NoError() { return CheckedError(false); }
 
 // Ensure that integer values we parse fit inside the declared integer type.
 CheckedError Parser::CheckBitsFit(int64_t val, size_t bits) {
-  // Bits we allow to be used.
-  auto mask = static_cast<int64_t>((1ull << bits) - 1);
-  if (bits < 64 &&
-      (val & ~mask) != 0 &&  // Positive or unsigned.
-      (val |  mask) != -1)   // Negative.
-    return Error("constant does not fit in a " + NumToString(bits) +
-                 "-bit field");
+  // Left-shifting a 64-bit value by 64 bits or more is undefined
+  // behavior (C99 6.5.7), so check *before* we shift.
+  if (bits < 64) {
+    // Bits we allow to be used.
+    auto mask = static_cast<int64_t>((1ull << bits) - 1);
+    if ((val & ~mask) != 0 &&  // Positive or unsigned.
+        (val |  mask) != -1)   // Negative.
+      return Error("constant does not fit in a " + NumToString(bits) +
+                   "-bit field");
+  }
   return NoError();
 }
 
