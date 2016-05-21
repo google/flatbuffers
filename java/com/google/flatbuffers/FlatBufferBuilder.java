@@ -382,7 +382,8 @@ public class FlatBufferBuilder {
 
         dst.clear();
 
-        CharBuffer src = CharBuffer.wrap(s);
+        CharBuffer src = s instanceof CharBuffer ? (CharBuffer) s :
+            CharBuffer.wrap(s);
         CoderResult result = encoder.encode(src, dst, true);
         if (result.isError()) {
             try {
