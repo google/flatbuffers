@@ -80,9 +80,9 @@ namespace FlatBuffers
         /// <summary>
         /// Gets and sets a Boolean to disable the optimization when serializing
         /// default values to a Table.
-        /// 
+        ///
         /// In order to save space, fields that are set to their default value
-        /// don't get serialized into the buffer. 
+        /// don't get serialized into the buffer.
         /// </summary>
         public bool ForceDefaults { get; set; }
 
@@ -349,7 +349,7 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddBool(int o, bool x, bool d) { if (ForceDefaults || x != d) { AddBool(x); Slot(o); } }
-        
+
         /// <summary>
         /// Adds a SByte to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
@@ -358,7 +358,7 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddSbyte(int o, sbyte x, sbyte d) { if (ForceDefaults || x != d) { AddSbyte(x); Slot(o); } }
-        
+
         /// <summary>
         /// Adds a Byte to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
