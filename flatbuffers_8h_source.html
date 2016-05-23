@@ -1166,439 +1166,444 @@ $(document).ready(function(){initNavTree('flatbuffers_8h_source.html','');});
 <div class="line"><a name="l01051"></a><span class="lineno"> 1051</span>&#160;                                      uint8_t **buf) {</div>
 <div class="line"><a name="l01052"></a><span class="lineno"> 1052</span>&#160;    NotNested();</div>
 <div class="line"><a name="l01053"></a><span class="lineno"> 1053</span>&#160;    StartVector(len, elemsize);</div>
-<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;    *buf = buf_.make_space(len * elemsize);</div>
-<div class="line"><a name="l01055"></a><span class="lineno"> 1055</span>&#160;    <span class="keywordflow">return</span> EndVector(len);</div>
-<div class="line"><a name="l01056"></a><span class="lineno"> 1056</span>&#160;  }</div>
-<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;<span class="comment">  /// @brief Specialized version of `CreateVector` for non-copying use cases.</span></div>
-<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;<span class="comment">  /// Write the data any time later to the returned buffer pointer `buf`.</span></div>
-<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;<span class="comment">  /// @tparam T The data type of the data that will be stored in the buffer</span></div>
-<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;<span class="comment">  /// as a `vector`.</span></div>
-<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;<span class="comment">  /// @param[in] len The number of elements to store in the `vector`.</span></div>
-<div class="line"><a name="l01063"></a><span class="lineno"> 1063</span>&#160;<span class="comment">  /// @param[out] buf A pointer to a pointer of type `T` that can be</span></div>
-<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;<span class="comment">  /// written to at a later time to serialize the data into a `vector`</span></div>
-<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;<span class="comment">  /// in the buffer.</span></div>
-<div class="line"><a name="l01066"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50"> 1066</a></span>&#160;<span class="comment"></span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; Offset&lt;Vector&lt;T&gt;&gt; <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50">CreateUninitializedVector</a>(</div>
-<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;                                                    <span class="keywordtype">size_t</span> len, T **buf) {</div>
-<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#ac2b96292fa0fb1534fe7fd218a094d0c">CreateUninitializedVector</a>(len, <span class="keyword">sizeof</span>(T),</div>
-<div class="line"><a name="l01069"></a><span class="lineno"> 1069</span>&#160;                                     reinterpret_cast&lt;uint8_t **&gt;(buf));</div>
-<div class="line"><a name="l01070"></a><span class="lineno"> 1070</span>&#160;  }</div>
-<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01072"></a><span class="lineno"> 1072</span>&#160;<span class="comment">  /// @brief The length of a FlatBuffer file header.</span></div>
-<div class="line"><a name="l01073"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19"> 1073</a></span>&#160;<span class="comment"></span>  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">size_t</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">kFileIdentifierLength</a> = 4;</div>
+<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;    buf_.make_space(len * elemsize);</div>
+<div class="line"><a name="l01055"></a><span class="lineno"> 1055</span>&#160;    <span class="keyword">auto</span> vec_start = <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#ac1bfd609f7f736e9a37cedae77448b63">GetSize</a>();</div>
+<div class="line"><a name="l01056"></a><span class="lineno"> 1056</span>&#160;    <span class="keyword">auto</span> vec_end = EndVector(len);</div>
+<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;    *buf = buf_.data_at(vec_start);</div>
+<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;    <span class="keywordflow">return</span> vec_end;</div>
+<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;  }</div>
+<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;<span class="comment">  /// @brief Specialized version of `CreateVector` for non-copying use cases.</span></div>
+<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;<span class="comment">  /// Write the data any time later to the returned buffer pointer `buf`.</span></div>
+<div class="line"><a name="l01063"></a><span class="lineno"> 1063</span>&#160;<span class="comment">  /// @tparam T The data type of the data that will be stored in the buffer</span></div>
+<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;<span class="comment">  /// as a `vector`.</span></div>
+<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;<span class="comment">  /// @param[in] len The number of elements to store in the `vector`.</span></div>
+<div class="line"><a name="l01066"></a><span class="lineno"> 1066</span>&#160;<span class="comment">  /// @param[out] buf A pointer to a pointer of type `T` that can be</span></div>
+<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;<span class="comment">  /// written to at a later time to serialize the data into a `vector`</span></div>
+<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;<span class="comment">  /// in the buffer.</span></div>
+<div class="line"><a name="l01069"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50"> 1069</a></span>&#160;<span class="comment"></span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; Offset&lt;Vector&lt;T&gt;&gt; <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50">CreateUninitializedVector</a>(</div>
+<div class="line"><a name="l01070"></a><span class="lineno"> 1070</span>&#160;                                                    <span class="keywordtype">size_t</span> len, T **buf) {</div>
+<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#ac2b96292fa0fb1534fe7fd218a094d0c">CreateUninitializedVector</a>(len, <span class="keyword">sizeof</span>(T),</div>
+<div class="line"><a name="l01072"></a><span class="lineno"> 1072</span>&#160;                                     reinterpret_cast&lt;uint8_t **&gt;(buf));</div>
+<div class="line"><a name="l01073"></a><span class="lineno"> 1073</span>&#160;  }</div>
 <div class="line"><a name="l01074"></a><span class="lineno"> 1074</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment">  /// @brief Finish serializing a buffer by writing the root offset.</span></div>
-<div class="line"><a name="l01076"></a><span class="lineno"> 1076</span>&#160;<span class="comment">  /// @param[in] file_identifier If a `file_identifier` is given, the buffer</span></div>
-<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment">  /// will be prefixed with a standard FlatBuffers file header.</span></div>
-<div class="line"><a name="l01078"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912"> 1078</a></span>&#160;<span class="comment"></span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">void</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912">Finish</a>(Offset&lt;T&gt; root,</div>
-<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;                                   <span class="keyword">const</span> <span class="keywordtype">char</span> *file_identifier = <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;    NotNested();</div>
-<div class="line"><a name="l01081"></a><span class="lineno"> 1081</span>&#160;    <span class="comment">// This will cause the whole buffer to be aligned.</span></div>
-<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;    PreAlign(<span class="keyword">sizeof</span>(uoffset_t) + (file_identifier ? <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">kFileIdentifierLength</a> : 0),</div>
-<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;             minalign_);</div>
-<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;    <span class="keywordflow">if</span> (file_identifier) {</div>
-<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;      assert(strlen(file_identifier) == kFileIdentifierLength);</div>
-<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;      buf_.push(reinterpret_cast&lt;const uint8_t *&gt;(file_identifier),</div>
-<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;                kFileIdentifierLength);</div>
-<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;    }</div>
-<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;    PushElement(ReferTo(root.o));  <span class="comment">// Location of root.</span></div>
-<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;    finished = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;  }</div>
-<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;</div>
-<div class="line"><a name="l01093"></a><span class="lineno"> 1093</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;  <span class="comment">// You shouldn&#39;t really be copying instances of this class.</span></div>
-<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;  <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#ac72b54a75e0c329e0ce0b8fab758e256">FlatBufferBuilder</a>(<span class="keyword">const</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;);</div>
-<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160;  <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;operator=(<span class="keyword">const</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;);</div>
-<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;</div>
-<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;  <span class="keyword">struct </span>FieldLoc {</div>
-<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;    uoffset_t off;</div>
-<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;    voffset_t id;</div>
-<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;  };</div>
-<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;</div>
-<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;  simple_allocator default_allocator;</div>
-<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;</div>
-<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;  vector_downward buf_;</div>
-<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;</div>
-<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;  <span class="comment">// Accumulating offsets of table members while it is being built.</span></div>
-<div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;  std::vector&lt;FieldLoc&gt; offsetbuf_;</div>
+<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment">  /// @brief The length of a FlatBuffer file header.</span></div>
+<div class="line"><a name="l01076"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19"> 1076</a></span>&#160;<span class="comment"></span>  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">size_t</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">kFileIdentifierLength</a> = 4;</div>
+<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01078"></a><span class="lineno"> 1078</span>&#160;<span class="comment">  /// @brief Finish serializing a buffer by writing the root offset.</span></div>
+<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;<span class="comment">  /// @param[in] file_identifier If a `file_identifier` is given, the buffer</span></div>
+<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;<span class="comment">  /// will be prefixed with a standard FlatBuffers file header.</span></div>
+<div class="line"><a name="l01081"></a><span class="lineno"><a class="line" href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912"> 1081</a></span>&#160;<span class="comment"></span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">void</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912">Finish</a>(Offset&lt;T&gt; root,</div>
+<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;                                   <span class="keyword">const</span> <span class="keywordtype">char</span> *file_identifier = <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;    NotNested();</div>
+<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;    <span class="comment">// This will cause the whole buffer to be aligned.</span></div>
+<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;    PreAlign(<span class="keyword">sizeof</span>(uoffset_t) + (file_identifier ? <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">kFileIdentifierLength</a> : 0),</div>
+<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;             minalign_);</div>
+<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;    <span class="keywordflow">if</span> (file_identifier) {</div>
+<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;      assert(strlen(file_identifier) == kFileIdentifierLength);</div>
+<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;      buf_.push(reinterpret_cast&lt;const uint8_t *&gt;(file_identifier),</div>
+<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;                kFileIdentifierLength);</div>
+<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;    }</div>
+<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;    PushElement(ReferTo(root.o));  <span class="comment">// Location of root.</span></div>
+<div class="line"><a name="l01093"></a><span class="lineno"> 1093</span>&#160;    finished = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;  }</div>
+<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;</div>
+<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;  <span class="comment">// You shouldn&#39;t really be copying instances of this class.</span></div>
+<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;  <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#ac72b54a75e0c329e0ce0b8fab758e256">FlatBufferBuilder</a>(<span class="keyword">const</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;);</div>
+<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;  <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;operator=(<span class="keyword">const</span> <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html">FlatBufferBuilder</a> &amp;);</div>
+<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;</div>
+<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;  <span class="keyword">struct </span>FieldLoc {</div>
+<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;    uoffset_t off;</div>
+<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;    voffset_t id;</div>
+<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;  };</div>
+<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;</div>
+<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;  simple_allocator default_allocator;</div>
+<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;</div>
+<div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;  vector_downward buf_;</div>
 <div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;</div>
-<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;  <span class="comment">// Ensure objects are not nested.</span></div>
-<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;  <span class="keywordtype">bool</span> nested;</div>
+<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;  <span class="comment">// Accumulating offsets of table members while it is being built.</span></div>
+<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;  std::vector&lt;FieldLoc&gt; offsetbuf_;</div>
 <div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;</div>
-<div class="line"><a name="l01113"></a><span class="lineno"> 1113</span>&#160;  <span class="comment">// Ensure the buffer is finished before it is being accessed.</span></div>
-<div class="line"><a name="l01114"></a><span class="lineno"> 1114</span>&#160;  <span class="keywordtype">bool</span> finished;</div>
+<div class="line"><a name="l01113"></a><span class="lineno"> 1113</span>&#160;  <span class="comment">// Ensure objects are not nested.</span></div>
+<div class="line"><a name="l01114"></a><span class="lineno"> 1114</span>&#160;  <span class="keywordtype">bool</span> nested;</div>
 <div class="line"><a name="l01115"></a><span class="lineno"> 1115</span>&#160;</div>
-<div class="line"><a name="l01116"></a><span class="lineno"> 1116</span>&#160;  std::vector&lt;uoffset_t&gt; vtables_;  <span class="comment">// todo: Could make this into a map?</span></div>
-<div class="line"><a name="l01117"></a><span class="lineno"> 1117</span>&#160;</div>
-<div class="line"><a name="l01118"></a><span class="lineno"> 1118</span>&#160;  <span class="keywordtype">size_t</span> minalign_;</div>
-<div class="line"><a name="l01119"></a><span class="lineno"> 1119</span>&#160;</div>
-<div class="line"><a name="l01120"></a><span class="lineno"> 1120</span>&#160;  <span class="keywordtype">bool</span> force_defaults_;  <span class="comment">// Serialize values equal to their defaults anyway.</span></div>
-<div class="line"><a name="l01121"></a><span class="lineno"> 1121</span>&#160;</div>
-<div class="line"><a name="l01122"></a><span class="lineno"> 1122</span>&#160;  <span class="keyword">struct </span>StringOffsetCompare {</div>
-<div class="line"><a name="l01123"></a><span class="lineno"> 1123</span>&#160;    StringOffsetCompare(<span class="keyword">const</span> vector_downward &amp;buf) : buf_(&amp;buf) {}</div>
-<div class="line"><a name="l01124"></a><span class="lineno"> 1124</span>&#160;    <span class="keywordtype">bool</span> operator() (<span class="keyword">const</span> Offset&lt;String&gt; &amp;a, <span class="keyword">const</span> Offset&lt;String&gt; &amp;b)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01125"></a><span class="lineno"> 1125</span>&#160;      <span class="keyword">auto</span> stra = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>String *<span class="keyword">&gt;</span>(buf_-&gt;data_at(a.o));</div>
-<div class="line"><a name="l01126"></a><span class="lineno"> 1126</span>&#160;      <span class="keyword">auto</span> strb = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>String *<span class="keyword">&gt;</span>(buf_-&gt;data_at(b.o));</div>
-<div class="line"><a name="l01127"></a><span class="lineno"> 1127</span>&#160;      <span class="keywordflow">return</span> strncmp(stra-&gt;c_str(), strb-&gt;c_str(),</div>
-<div class="line"><a name="l01128"></a><span class="lineno"> 1128</span>&#160;                     std::min(stra-&gt;size(), strb-&gt;size()) + 1) &lt; 0;</div>
-<div class="line"><a name="l01129"></a><span class="lineno"> 1129</span>&#160;    }</div>
-<div class="line"><a name="l01130"></a><span class="lineno"> 1130</span>&#160;    <span class="keyword">const</span> vector_downward *buf_;</div>
-<div class="line"><a name="l01131"></a><span class="lineno"> 1131</span>&#160;  };</div>
-<div class="line"><a name="l01132"></a><span class="lineno"> 1132</span>&#160;</div>
-<div class="line"><a name="l01133"></a><span class="lineno"> 1133</span>&#160;  <span class="comment">// For use with CreateSharedString. Instantiated on first use only.</span></div>
-<div class="line"><a name="l01134"></a><span class="lineno"> 1134</span>&#160;  <span class="keyword">typedef</span> std::set&lt;Offset&lt;String&gt;, StringOffsetCompare&gt; StringOffsetMap;</div>
-<div class="line"><a name="l01135"></a><span class="lineno"> 1135</span>&#160;  StringOffsetMap *string_pool;</div>
-<div class="line"><a name="l01136"></a><span class="lineno"> 1136</span>&#160;};<span class="comment"></span></div>
-<div class="line"><a name="l01137"></a><span class="lineno"> 1137</span>&#160;<span class="comment">/// @}</span></div>
-<div class="line"><a name="l01138"></a><span class="lineno"> 1138</span>&#160;<span class="comment"></span><span class="comment"></span></div>
-<div class="line"><a name="l01139"></a><span class="lineno"> 1139</span>&#160;<span class="comment">/// @cond FLATBUFFERS_INTERNAL</span></div>
-<div class="line"><a name="l01140"></a><span class="lineno"> 1140</span>&#160;<span class="comment"></span><span class="comment">// Helpers to get a typed pointer to the root object contained in the buffer.</span></div>
-<div class="line"><a name="l01141"></a><span class="lineno"> 1141</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T *GetMutableRoot(<span class="keywordtype">void</span> *buf) {</div>
-<div class="line"><a name="l01142"></a><span class="lineno"> 1142</span>&#160;  EndianCheck();</div>
-<div class="line"><a name="l01143"></a><span class="lineno"> 1143</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T *<span class="keyword">&gt;</span>(<span class="keyword">reinterpret_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(buf) +</div>
-<div class="line"><a name="l01144"></a><span class="lineno"> 1144</span>&#160;    EndianScalar(*reinterpret_cast&lt;uoffset_t *&gt;(buf)));</div>
-<div class="line"><a name="l01145"></a><span class="lineno"> 1145</span>&#160;}</div>
-<div class="line"><a name="l01146"></a><span class="lineno"> 1146</span>&#160;</div>
-<div class="line"><a name="l01147"></a><span class="lineno"> 1147</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keyword">const</span> T *GetRoot(<span class="keyword">const</span> <span class="keywordtype">void</span> *buf) {</div>
-<div class="line"><a name="l01148"></a><span class="lineno"> 1148</span>&#160;  <span class="keywordflow">return</span> GetMutableRoot&lt;T&gt;(<span class="keyword">const_cast&lt;</span><span class="keywordtype">void</span> *<span class="keyword">&gt;</span>(buf));</div>
-<div class="line"><a name="l01149"></a><span class="lineno"> 1149</span>&#160;}</div>
-<div class="line"><a name="l01150"></a><span class="lineno"> 1150</span>&#160;</div>
-<div class="line"><a name="l01151"></a><span class="lineno"> 1151</span>&#160;<span class="comment">// Helper to see if the identifier in a buffer has the expected value.</span></div>
-<div class="line"><a name="l01152"></a><span class="lineno"> 1152</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">bool</span> BufferHasIdentifier(<span class="keyword">const</span> <span class="keywordtype">void</span> *buf, <span class="keyword">const</span> <span class="keywordtype">char</span> *identifier) {</div>
-<div class="line"><a name="l01153"></a><span class="lineno"> 1153</span>&#160;  <span class="keywordflow">return</span> strncmp(reinterpret_cast&lt;const char *&gt;(buf) + <span class="keyword">sizeof</span>(uoffset_t),</div>
-<div class="line"><a name="l01154"></a><span class="lineno"> 1154</span>&#160;                 identifier, <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">FlatBufferBuilder::kFileIdentifierLength</a>) == 0;</div>
-<div class="line"><a name="l01155"></a><span class="lineno"> 1155</span>&#160;}</div>
-<div class="line"><a name="l01156"></a><span class="lineno"> 1156</span>&#160;</div>
-<div class="line"><a name="l01157"></a><span class="lineno"> 1157</span>&#160;<span class="comment">// Helper class to verify the integrity of a FlatBuffer</span></div>
-<div class="line"><a name="l01158"></a><span class="lineno"> 1158</span>&#160;<span class="keyword">class </span>Verifier FLATBUFFERS_FINAL_CLASS {</div>
-<div class="line"><a name="l01159"></a><span class="lineno"> 1159</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l01160"></a><span class="lineno"> 1160</span>&#160;  Verifier(<span class="keyword">const</span> uint8_t *buf, <span class="keywordtype">size_t</span> buf_len, <span class="keywordtype">size_t</span> _max_depth = 64,</div>
-<div class="line"><a name="l01161"></a><span class="lineno"> 1161</span>&#160;           <span class="keywordtype">size_t</span> _max_tables = 1000000)</div>
-<div class="line"><a name="l01162"></a><span class="lineno"> 1162</span>&#160;    : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),</div>
-<div class="line"><a name="l01163"></a><span class="lineno"> 1163</span>&#160;      num_tables_(0), max_tables_(_max_tables)</div>
-<div class="line"><a name="l01164"></a><span class="lineno"> 1164</span>&#160;    {}</div>
-<div class="line"><a name="l01165"></a><span class="lineno"> 1165</span>&#160;</div>
-<div class="line"><a name="l01166"></a><span class="lineno"> 1166</span>&#160;  <span class="comment">// Central location where any verification failures register.</span></div>
-<div class="line"><a name="l01167"></a><span class="lineno"> 1167</span>&#160;  <span class="keywordtype">bool</span> Check(<span class="keywordtype">bool</span> ok)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01168"></a><span class="lineno"> 1168</span>&#160;<span class="preprocessor">    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE</span></div>
-<div class="line"><a name="l01169"></a><span class="lineno"> 1169</span>&#160;      assert(ok);</div>
-<div class="line"><a name="l01170"></a><span class="lineno"> 1170</span>&#160;<span class="preprocessor">    #endif</span></div>
-<div class="line"><a name="l01171"></a><span class="lineno"> 1171</span>&#160;    <span class="keywordflow">return</span> ok;</div>
-<div class="line"><a name="l01172"></a><span class="lineno"> 1172</span>&#160;  }</div>
-<div class="line"><a name="l01173"></a><span class="lineno"> 1173</span>&#160;</div>
-<div class="line"><a name="l01174"></a><span class="lineno"> 1174</span>&#160;  <span class="comment">// Verify any range within the buffer.</span></div>
-<div class="line"><a name="l01175"></a><span class="lineno"> 1175</span>&#160;  <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> <span class="keywordtype">void</span> *elem, <span class="keywordtype">size_t</span> elem_len)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01176"></a><span class="lineno"> 1176</span>&#160;    <span class="keywordflow">return</span> Check(elem_len &lt;= (<span class="keywordtype">size_t</span>) (end_ - buf_) &amp;&amp;</div>
-<div class="line"><a name="l01177"></a><span class="lineno"> 1177</span>&#160;                 elem &gt;= buf_ &amp;&amp;</div>
-<div class="line"><a name="l01178"></a><span class="lineno"> 1178</span>&#160;                 elem &lt;= end_ - elem_len);</div>
-<div class="line"><a name="l01179"></a><span class="lineno"> 1179</span>&#160;  }</div>
-<div class="line"><a name="l01180"></a><span class="lineno"> 1180</span>&#160;</div>
-<div class="line"><a name="l01181"></a><span class="lineno"> 1181</span>&#160;  <span class="comment">// Verify a range indicated by sizeof(T).</span></div>
-<div class="line"><a name="l01182"></a><span class="lineno"> 1182</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> <span class="keywordtype">void</span> *elem)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01183"></a><span class="lineno"> 1183</span>&#160;    <span class="keywordflow">return</span> Verify(elem, <span class="keyword">sizeof</span>(T));</div>
-<div class="line"><a name="l01184"></a><span class="lineno"> 1184</span>&#160;  }</div>
-<div class="line"><a name="l01185"></a><span class="lineno"> 1185</span>&#160;</div>
-<div class="line"><a name="l01186"></a><span class="lineno"> 1186</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of a table type.</span></div>
-<div class="line"><a name="l01187"></a><span class="lineno"> 1187</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyTable(<span class="keyword">const</span> T *table) {</div>
-<div class="line"><a name="l01188"></a><span class="lineno"> 1188</span>&#160;    <span class="keywordflow">return</span> !table || table-&gt;Verify(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l01189"></a><span class="lineno"> 1189</span>&#160;  }</div>
-<div class="line"><a name="l01190"></a><span class="lineno"> 1190</span>&#160;</div>
-<div class="line"><a name="l01191"></a><span class="lineno"> 1191</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of any vector type.</span></div>
-<div class="line"><a name="l01192"></a><span class="lineno"> 1192</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> Vector&lt;T&gt; *vec)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01193"></a><span class="lineno"> 1193</span>&#160;    <span class="keyword">const</span> uint8_t *end;</div>
-<div class="line"><a name="l01194"></a><span class="lineno"> 1194</span>&#160;    <span class="keywordflow">return</span> !vec ||</div>
-<div class="line"><a name="l01195"></a><span class="lineno"> 1195</span>&#160;           VerifyVector(reinterpret_cast&lt;const uint8_t *&gt;(vec), <span class="keyword">sizeof</span>(T),</div>
-<div class="line"><a name="l01196"></a><span class="lineno"> 1196</span>&#160;                        &amp;end);</div>
-<div class="line"><a name="l01197"></a><span class="lineno"> 1197</span>&#160;  }</div>
-<div class="line"><a name="l01198"></a><span class="lineno"> 1198</span>&#160;</div>
-<div class="line"><a name="l01199"></a><span class="lineno"> 1199</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of a vector to struct.</span></div>
-<div class="line"><a name="l01200"></a><span class="lineno"> 1200</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> Vector&lt;const T *&gt; *vec)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01201"></a><span class="lineno"> 1201</span>&#160;    <span class="keywordflow">return</span> Verify(<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Vector&lt;T&gt; *<span class="keyword">&gt;</span>(vec));</div>
-<div class="line"><a name="l01202"></a><span class="lineno"> 1202</span>&#160;  }</div>
-<div class="line"><a name="l01203"></a><span class="lineno"> 1203</span>&#160;</div>
-<div class="line"><a name="l01204"></a><span class="lineno"> 1204</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) to string.</span></div>
-<div class="line"><a name="l01205"></a><span class="lineno"> 1205</span>&#160;  <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> String *str)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01206"></a><span class="lineno"> 1206</span>&#160;    <span class="keyword">const</span> uint8_t *end;</div>
-<div class="line"><a name="l01207"></a><span class="lineno"> 1207</span>&#160;    <span class="keywordflow">return</span> !str ||</div>
-<div class="line"><a name="l01208"></a><span class="lineno"> 1208</span>&#160;           (VerifyVector(reinterpret_cast&lt;const uint8_t *&gt;(str), 1, &amp;end) &amp;&amp;</div>
-<div class="line"><a name="l01209"></a><span class="lineno"> 1209</span>&#160;            Verify(end, 1) &amp;&amp;      <span class="comment">// Must have terminator</span></div>
-<div class="line"><a name="l01210"></a><span class="lineno"> 1210</span>&#160;            Check(*end == <span class="charliteral">&#39;\0&#39;</span>));  <span class="comment">// Terminating byte must be 0.</span></div>
-<div class="line"><a name="l01211"></a><span class="lineno"> 1211</span>&#160;  }</div>
-<div class="line"><a name="l01212"></a><span class="lineno"> 1212</span>&#160;</div>
-<div class="line"><a name="l01213"></a><span class="lineno"> 1213</span>&#160;  <span class="comment">// Common code between vectors and strings.</span></div>
-<div class="line"><a name="l01214"></a><span class="lineno"> 1214</span>&#160;  <span class="keywordtype">bool</span> VerifyVector(<span class="keyword">const</span> uint8_t *vec, <span class="keywordtype">size_t</span> elem_size,</div>
-<div class="line"><a name="l01215"></a><span class="lineno"> 1215</span>&#160;                    <span class="keyword">const</span> uint8_t **end)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01216"></a><span class="lineno"> 1216</span>&#160;    <span class="comment">// Check we can read the size field.</span></div>
-<div class="line"><a name="l01217"></a><span class="lineno"> 1217</span>&#160;    <span class="keywordflow">if</span> (!Verify&lt;uoffset_t&gt;(vec)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01218"></a><span class="lineno"> 1218</span>&#160;    <span class="comment">// Check the whole array. If this is a string, the byte past the array</span></div>
-<div class="line"><a name="l01219"></a><span class="lineno"> 1219</span>&#160;    <span class="comment">// must be 0.</span></div>
-<div class="line"><a name="l01220"></a><span class="lineno"> 1220</span>&#160;    <span class="keyword">auto</span> size = ReadScalar&lt;uoffset_t&gt;(vec);</div>
-<div class="line"><a name="l01221"></a><span class="lineno"> 1221</span>&#160;    <span class="keyword">auto</span> max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;</div>
-<div class="line"><a name="l01222"></a><span class="lineno"> 1222</span>&#160;    Check(size &lt; max_elems);  <span class="comment">// Protect against byte_size overflowing.</span></div>
-<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;    <span class="keyword">auto</span> byte_size = <span class="keyword">sizeof</span>(size) + elem_size * size;</div>
-<div class="line"><a name="l01224"></a><span class="lineno"> 1224</span>&#160;    *end = vec + byte_size;</div>
-<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;    <span class="keywordflow">return</span> Verify(vec, byte_size);</div>
-<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;  }</div>
-<div class="line"><a name="l01227"></a><span class="lineno"> 1227</span>&#160;</div>
-<div class="line"><a name="l01228"></a><span class="lineno"> 1228</span>&#160;  <span class="comment">// Special case for string contents, after the above has been called.</span></div>
-<div class="line"><a name="l01229"></a><span class="lineno"> 1229</span>&#160;  <span class="keywordtype">bool</span> VerifyVectorOfStrings(<span class="keyword">const</span> Vector&lt;Offset&lt;String&gt;&gt; *vec)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01230"></a><span class="lineno"> 1230</span>&#160;      <span class="keywordflow">if</span> (vec) {</div>
-<div class="line"><a name="l01231"></a><span class="lineno"> 1231</span>&#160;        <span class="keywordflow">for</span> (uoffset_t i = 0; i &lt; vec-&gt;size(); i++) {</div>
-<div class="line"><a name="l01232"></a><span class="lineno"> 1232</span>&#160;          <span class="keywordflow">if</span> (!Verify(vec-&gt;Get(i))) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01233"></a><span class="lineno"> 1233</span>&#160;        }</div>
-<div class="line"><a name="l01234"></a><span class="lineno"> 1234</span>&#160;      }</div>
-<div class="line"><a name="l01235"></a><span class="lineno"> 1235</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01236"></a><span class="lineno"> 1236</span>&#160;  }</div>
-<div class="line"><a name="l01237"></a><span class="lineno"> 1237</span>&#160;</div>
-<div class="line"><a name="l01238"></a><span class="lineno"> 1238</span>&#160;  <span class="comment">// Special case for table contents, after the above has been called.</span></div>
-<div class="line"><a name="l01239"></a><span class="lineno"> 1239</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyVectorOfTables(<span class="keyword">const</span> Vector&lt;Offset&lt;T&gt;&gt; *vec) {</div>
-<div class="line"><a name="l01240"></a><span class="lineno"> 1240</span>&#160;    <span class="keywordflow">if</span> (vec) {</div>
-<div class="line"><a name="l01241"></a><span class="lineno"> 1241</span>&#160;      <span class="keywordflow">for</span> (uoffset_t i = 0; i &lt; vec-&gt;size(); i++) {</div>
-<div class="line"><a name="l01242"></a><span class="lineno"> 1242</span>&#160;        <span class="keywordflow">if</span> (!vec-&gt;Get(i)-&gt;Verify(*<span class="keyword">this</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01243"></a><span class="lineno"> 1243</span>&#160;      }</div>
-<div class="line"><a name="l01244"></a><span class="lineno"> 1244</span>&#160;    }</div>
-<div class="line"><a name="l01245"></a><span class="lineno"> 1245</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01246"></a><span class="lineno"> 1246</span>&#160;  }</div>
-<div class="line"><a name="l01247"></a><span class="lineno"> 1247</span>&#160;</div>
-<div class="line"><a name="l01248"></a><span class="lineno"> 1248</span>&#160;  <span class="comment">// Verify this whole buffer, starting with root type T.</span></div>
-<div class="line"><a name="l01249"></a><span class="lineno"> 1249</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyBuffer() {</div>
-<div class="line"><a name="l01250"></a><span class="lineno"> 1250</span>&#160;    <span class="comment">// Call T::Verify, which must be in the generated code for this type.</span></div>
-<div class="line"><a name="l01251"></a><span class="lineno"> 1251</span>&#160;    <span class="keywordflow">return</span> Verify&lt;uoffset_t&gt;(buf_) &amp;&amp;</div>
-<div class="line"><a name="l01252"></a><span class="lineno"> 1252</span>&#160;      reinterpret_cast&lt;const T *&gt;(buf_ + ReadScalar&lt;uoffset_t&gt;(buf_))-&gt;</div>
-<div class="line"><a name="l01253"></a><span class="lineno"> 1253</span>&#160;        Verify(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l01254"></a><span class="lineno"> 1254</span>&#160;  }</div>
-<div class="line"><a name="l01255"></a><span class="lineno"> 1255</span>&#160;</div>
-<div class="line"><a name="l01256"></a><span class="lineno"> 1256</span>&#160;  <span class="comment">// Called at the start of a table to increase counters measuring data</span></div>
-<div class="line"><a name="l01257"></a><span class="lineno"> 1257</span>&#160;  <span class="comment">// structure depth and amount, and possibly bails out with false if</span></div>
-<div class="line"><a name="l01258"></a><span class="lineno"> 1258</span>&#160;  <span class="comment">// limits set by the constructor have been hit. Needs to be balanced</span></div>
-<div class="line"><a name="l01259"></a><span class="lineno"> 1259</span>&#160;  <span class="comment">// with EndTable().</span></div>
-<div class="line"><a name="l01260"></a><span class="lineno"> 1260</span>&#160;  <span class="keywordtype">bool</span> VerifyComplexity() {</div>
-<div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160;    depth_++;</div>
-<div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;    num_tables_++;</div>
-<div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;    <span class="keywordflow">return</span> Check(depth_ &lt;= max_depth_ &amp;&amp; num_tables_ &lt;= max_tables_);</div>
-<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;  }</div>
-<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;</div>
-<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;  <span class="comment">// Called at the end of a table to pop the depth count.</span></div>
-<div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;  <span class="keywordtype">bool</span> EndTable() {</div>
-<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;    depth_--;</div>
-<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;  }</div>
-<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;</div>
-<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;  <span class="keyword">const</span> uint8_t *buf_;</div>
-<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;  <span class="keyword">const</span> uint8_t *end_;</div>
-<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;  <span class="keywordtype">size_t</span> depth_;</div>
-<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160;  <span class="keywordtype">size_t</span> max_depth_;</div>
-<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;  <span class="keywordtype">size_t</span> num_tables_;</div>
-<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;  <span class="keywordtype">size_t</span> max_tables_;</div>
-<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;};</div>
-<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;</div>
-<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;<span class="comment">// &quot;structs&quot; are flat structures that do not have an offset table, thus</span></div>
-<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;<span class="comment">// always have all members present and do not support forwards/backwards</span></div>
-<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;<span class="comment">// compatible extensions.</span></div>
+<div class="line"><a name="l01116"></a><span class="lineno"> 1116</span>&#160;  <span class="comment">// Ensure the buffer is finished before it is being accessed.</span></div>
+<div class="line"><a name="l01117"></a><span class="lineno"> 1117</span>&#160;  <span class="keywordtype">bool</span> finished;</div>
+<div class="line"><a name="l01118"></a><span class="lineno"> 1118</span>&#160;</div>
+<div class="line"><a name="l01119"></a><span class="lineno"> 1119</span>&#160;  std::vector&lt;uoffset_t&gt; vtables_;  <span class="comment">// todo: Could make this into a map?</span></div>
+<div class="line"><a name="l01120"></a><span class="lineno"> 1120</span>&#160;</div>
+<div class="line"><a name="l01121"></a><span class="lineno"> 1121</span>&#160;  <span class="keywordtype">size_t</span> minalign_;</div>
+<div class="line"><a name="l01122"></a><span class="lineno"> 1122</span>&#160;</div>
+<div class="line"><a name="l01123"></a><span class="lineno"> 1123</span>&#160;  <span class="keywordtype">bool</span> force_defaults_;  <span class="comment">// Serialize values equal to their defaults anyway.</span></div>
+<div class="line"><a name="l01124"></a><span class="lineno"> 1124</span>&#160;</div>
+<div class="line"><a name="l01125"></a><span class="lineno"> 1125</span>&#160;  <span class="keyword">struct </span>StringOffsetCompare {</div>
+<div class="line"><a name="l01126"></a><span class="lineno"> 1126</span>&#160;    StringOffsetCompare(<span class="keyword">const</span> vector_downward &amp;buf) : buf_(&amp;buf) {}</div>
+<div class="line"><a name="l01127"></a><span class="lineno"> 1127</span>&#160;    <span class="keywordtype">bool</span> operator() (<span class="keyword">const</span> Offset&lt;String&gt; &amp;a, <span class="keyword">const</span> Offset&lt;String&gt; &amp;b)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01128"></a><span class="lineno"> 1128</span>&#160;      <span class="keyword">auto</span> stra = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>String *<span class="keyword">&gt;</span>(buf_-&gt;data_at(a.o));</div>
+<div class="line"><a name="l01129"></a><span class="lineno"> 1129</span>&#160;      <span class="keyword">auto</span> strb = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>String *<span class="keyword">&gt;</span>(buf_-&gt;data_at(b.o));</div>
+<div class="line"><a name="l01130"></a><span class="lineno"> 1130</span>&#160;      <span class="keywordflow">return</span> strncmp(stra-&gt;c_str(), strb-&gt;c_str(),</div>
+<div class="line"><a name="l01131"></a><span class="lineno"> 1131</span>&#160;                     std::min(stra-&gt;size(), strb-&gt;size()) + 1) &lt; 0;</div>
+<div class="line"><a name="l01132"></a><span class="lineno"> 1132</span>&#160;    }</div>
+<div class="line"><a name="l01133"></a><span class="lineno"> 1133</span>&#160;    <span class="keyword">const</span> vector_downward *buf_;</div>
+<div class="line"><a name="l01134"></a><span class="lineno"> 1134</span>&#160;  };</div>
+<div class="line"><a name="l01135"></a><span class="lineno"> 1135</span>&#160;</div>
+<div class="line"><a name="l01136"></a><span class="lineno"> 1136</span>&#160;  <span class="comment">// For use with CreateSharedString. Instantiated on first use only.</span></div>
+<div class="line"><a name="l01137"></a><span class="lineno"> 1137</span>&#160;  <span class="keyword">typedef</span> std::set&lt;Offset&lt;String&gt;, StringOffsetCompare&gt; StringOffsetMap;</div>
+<div class="line"><a name="l01138"></a><span class="lineno"> 1138</span>&#160;  StringOffsetMap *string_pool;</div>
+<div class="line"><a name="l01139"></a><span class="lineno"> 1139</span>&#160;};<span class="comment"></span></div>
+<div class="line"><a name="l01140"></a><span class="lineno"> 1140</span>&#160;<span class="comment">/// @}</span></div>
+<div class="line"><a name="l01141"></a><span class="lineno"> 1141</span>&#160;<span class="comment"></span><span class="comment"></span></div>
+<div class="line"><a name="l01142"></a><span class="lineno"> 1142</span>&#160;<span class="comment">/// @cond FLATBUFFERS_INTERNAL</span></div>
+<div class="line"><a name="l01143"></a><span class="lineno"> 1143</span>&#160;<span class="comment"></span><span class="comment">// Helpers to get a typed pointer to the root object contained in the buffer.</span></div>
+<div class="line"><a name="l01144"></a><span class="lineno"> 1144</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T *GetMutableRoot(<span class="keywordtype">void</span> *buf) {</div>
+<div class="line"><a name="l01145"></a><span class="lineno"> 1145</span>&#160;  EndianCheck();</div>
+<div class="line"><a name="l01146"></a><span class="lineno"> 1146</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T *<span class="keyword">&gt;</span>(<span class="keyword">reinterpret_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(buf) +</div>
+<div class="line"><a name="l01147"></a><span class="lineno"> 1147</span>&#160;    EndianScalar(*reinterpret_cast&lt;uoffset_t *&gt;(buf)));</div>
+<div class="line"><a name="l01148"></a><span class="lineno"> 1148</span>&#160;}</div>
+<div class="line"><a name="l01149"></a><span class="lineno"> 1149</span>&#160;</div>
+<div class="line"><a name="l01150"></a><span class="lineno"> 1150</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keyword">const</span> T *GetRoot(<span class="keyword">const</span> <span class="keywordtype">void</span> *buf) {</div>
+<div class="line"><a name="l01151"></a><span class="lineno"> 1151</span>&#160;  <span class="keywordflow">return</span> GetMutableRoot&lt;T&gt;(<span class="keyword">const_cast&lt;</span><span class="keywordtype">void</span> *<span class="keyword">&gt;</span>(buf));</div>
+<div class="line"><a name="l01152"></a><span class="lineno"> 1152</span>&#160;}</div>
+<div class="line"><a name="l01153"></a><span class="lineno"> 1153</span>&#160;</div>
+<div class="line"><a name="l01154"></a><span class="lineno"> 1154</span>&#160;<span class="comment">// Helper to see if the identifier in a buffer has the expected value.</span></div>
+<div class="line"><a name="l01155"></a><span class="lineno"> 1155</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">bool</span> BufferHasIdentifier(<span class="keyword">const</span> <span class="keywordtype">void</span> *buf, <span class="keyword">const</span> <span class="keywordtype">char</span> *identifier) {</div>
+<div class="line"><a name="l01156"></a><span class="lineno"> 1156</span>&#160;  <span class="keywordflow">return</span> strncmp(reinterpret_cast&lt;const char *&gt;(buf) + <span class="keyword">sizeof</span>(uoffset_t),</div>
+<div class="line"><a name="l01157"></a><span class="lineno"> 1157</span>&#160;                 identifier, <a class="code" href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">FlatBufferBuilder::kFileIdentifierLength</a>) == 0;</div>
+<div class="line"><a name="l01158"></a><span class="lineno"> 1158</span>&#160;}</div>
+<div class="line"><a name="l01159"></a><span class="lineno"> 1159</span>&#160;</div>
+<div class="line"><a name="l01160"></a><span class="lineno"> 1160</span>&#160;<span class="comment">// Helper class to verify the integrity of a FlatBuffer</span></div>
+<div class="line"><a name="l01161"></a><span class="lineno"> 1161</span>&#160;<span class="keyword">class </span>Verifier FLATBUFFERS_FINAL_CLASS {</div>
+<div class="line"><a name="l01162"></a><span class="lineno"> 1162</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l01163"></a><span class="lineno"> 1163</span>&#160;  Verifier(<span class="keyword">const</span> uint8_t *buf, <span class="keywordtype">size_t</span> buf_len, <span class="keywordtype">size_t</span> _max_depth = 64,</div>
+<div class="line"><a name="l01164"></a><span class="lineno"> 1164</span>&#160;           <span class="keywordtype">size_t</span> _max_tables = 1000000)</div>
+<div class="line"><a name="l01165"></a><span class="lineno"> 1165</span>&#160;    : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),</div>
+<div class="line"><a name="l01166"></a><span class="lineno"> 1166</span>&#160;      num_tables_(0), max_tables_(_max_tables)</div>
+<div class="line"><a name="l01167"></a><span class="lineno"> 1167</span>&#160;    {}</div>
+<div class="line"><a name="l01168"></a><span class="lineno"> 1168</span>&#160;</div>
+<div class="line"><a name="l01169"></a><span class="lineno"> 1169</span>&#160;  <span class="comment">// Central location where any verification failures register.</span></div>
+<div class="line"><a name="l01170"></a><span class="lineno"> 1170</span>&#160;  <span class="keywordtype">bool</span> Check(<span class="keywordtype">bool</span> ok)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01171"></a><span class="lineno"> 1171</span>&#160;<span class="preprocessor">    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE</span></div>
+<div class="line"><a name="l01172"></a><span class="lineno"> 1172</span>&#160;      assert(ok);</div>
+<div class="line"><a name="l01173"></a><span class="lineno"> 1173</span>&#160;<span class="preprocessor">    #endif</span></div>
+<div class="line"><a name="l01174"></a><span class="lineno"> 1174</span>&#160;    <span class="keywordflow">return</span> ok;</div>
+<div class="line"><a name="l01175"></a><span class="lineno"> 1175</span>&#160;  }</div>
+<div class="line"><a name="l01176"></a><span class="lineno"> 1176</span>&#160;</div>
+<div class="line"><a name="l01177"></a><span class="lineno"> 1177</span>&#160;  <span class="comment">// Verify any range within the buffer.</span></div>
+<div class="line"><a name="l01178"></a><span class="lineno"> 1178</span>&#160;  <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> <span class="keywordtype">void</span> *elem, <span class="keywordtype">size_t</span> elem_len)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01179"></a><span class="lineno"> 1179</span>&#160;    <span class="keywordflow">return</span> Check(elem_len &lt;= (<span class="keywordtype">size_t</span>) (end_ - buf_) &amp;&amp;</div>
+<div class="line"><a name="l01180"></a><span class="lineno"> 1180</span>&#160;                 elem &gt;= buf_ &amp;&amp;</div>
+<div class="line"><a name="l01181"></a><span class="lineno"> 1181</span>&#160;                 elem &lt;= end_ - elem_len);</div>
+<div class="line"><a name="l01182"></a><span class="lineno"> 1182</span>&#160;  }</div>
+<div class="line"><a name="l01183"></a><span class="lineno"> 1183</span>&#160;</div>
+<div class="line"><a name="l01184"></a><span class="lineno"> 1184</span>&#160;  <span class="comment">// Verify a range indicated by sizeof(T).</span></div>
+<div class="line"><a name="l01185"></a><span class="lineno"> 1185</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> <span class="keywordtype">void</span> *elem)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01186"></a><span class="lineno"> 1186</span>&#160;    <span class="keywordflow">return</span> Verify(elem, <span class="keyword">sizeof</span>(T));</div>
+<div class="line"><a name="l01187"></a><span class="lineno"> 1187</span>&#160;  }</div>
+<div class="line"><a name="l01188"></a><span class="lineno"> 1188</span>&#160;</div>
+<div class="line"><a name="l01189"></a><span class="lineno"> 1189</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of a table type.</span></div>
+<div class="line"><a name="l01190"></a><span class="lineno"> 1190</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyTable(<span class="keyword">const</span> T *table) {</div>
+<div class="line"><a name="l01191"></a><span class="lineno"> 1191</span>&#160;    <span class="keywordflow">return</span> !table || table-&gt;Verify(*<span class="keyword">this</span>);</div>
+<div class="line"><a name="l01192"></a><span class="lineno"> 1192</span>&#160;  }</div>
+<div class="line"><a name="l01193"></a><span class="lineno"> 1193</span>&#160;</div>
+<div class="line"><a name="l01194"></a><span class="lineno"> 1194</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of any vector type.</span></div>
+<div class="line"><a name="l01195"></a><span class="lineno"> 1195</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> Vector&lt;T&gt; *vec)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01196"></a><span class="lineno"> 1196</span>&#160;    <span class="keyword">const</span> uint8_t *end;</div>
+<div class="line"><a name="l01197"></a><span class="lineno"> 1197</span>&#160;    <span class="keywordflow">return</span> !vec ||</div>
+<div class="line"><a name="l01198"></a><span class="lineno"> 1198</span>&#160;           VerifyVector(reinterpret_cast&lt;const uint8_t *&gt;(vec), <span class="keyword">sizeof</span>(T),</div>
+<div class="line"><a name="l01199"></a><span class="lineno"> 1199</span>&#160;                        &amp;end);</div>
+<div class="line"><a name="l01200"></a><span class="lineno"> 1200</span>&#160;  }</div>
+<div class="line"><a name="l01201"></a><span class="lineno"> 1201</span>&#160;</div>
+<div class="line"><a name="l01202"></a><span class="lineno"> 1202</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) of a vector to struct.</span></div>
+<div class="line"><a name="l01203"></a><span class="lineno"> 1203</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> Vector&lt;const T *&gt; *vec)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01204"></a><span class="lineno"> 1204</span>&#160;    <span class="keywordflow">return</span> Verify(<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Vector&lt;T&gt; *<span class="keyword">&gt;</span>(vec));</div>
+<div class="line"><a name="l01205"></a><span class="lineno"> 1205</span>&#160;  }</div>
+<div class="line"><a name="l01206"></a><span class="lineno"> 1206</span>&#160;</div>
+<div class="line"><a name="l01207"></a><span class="lineno"> 1207</span>&#160;  <span class="comment">// Verify a pointer (may be NULL) to string.</span></div>
+<div class="line"><a name="l01208"></a><span class="lineno"> 1208</span>&#160;  <span class="keywordtype">bool</span> Verify(<span class="keyword">const</span> String *str)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01209"></a><span class="lineno"> 1209</span>&#160;    <span class="keyword">const</span> uint8_t *end;</div>
+<div class="line"><a name="l01210"></a><span class="lineno"> 1210</span>&#160;    <span class="keywordflow">return</span> !str ||</div>
+<div class="line"><a name="l01211"></a><span class="lineno"> 1211</span>&#160;           (VerifyVector(reinterpret_cast&lt;const uint8_t *&gt;(str), 1, &amp;end) &amp;&amp;</div>
+<div class="line"><a name="l01212"></a><span class="lineno"> 1212</span>&#160;            Verify(end, 1) &amp;&amp;      <span class="comment">// Must have terminator</span></div>
+<div class="line"><a name="l01213"></a><span class="lineno"> 1213</span>&#160;            Check(*end == <span class="charliteral">&#39;\0&#39;</span>));  <span class="comment">// Terminating byte must be 0.</span></div>
+<div class="line"><a name="l01214"></a><span class="lineno"> 1214</span>&#160;  }</div>
+<div class="line"><a name="l01215"></a><span class="lineno"> 1215</span>&#160;</div>
+<div class="line"><a name="l01216"></a><span class="lineno"> 1216</span>&#160;  <span class="comment">// Common code between vectors and strings.</span></div>
+<div class="line"><a name="l01217"></a><span class="lineno"> 1217</span>&#160;  <span class="keywordtype">bool</span> VerifyVector(<span class="keyword">const</span> uint8_t *vec, <span class="keywordtype">size_t</span> elem_size,</div>
+<div class="line"><a name="l01218"></a><span class="lineno"> 1218</span>&#160;                    <span class="keyword">const</span> uint8_t **end)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01219"></a><span class="lineno"> 1219</span>&#160;    <span class="comment">// Check we can read the size field.</span></div>
+<div class="line"><a name="l01220"></a><span class="lineno"> 1220</span>&#160;    <span class="keywordflow">if</span> (!Verify&lt;uoffset_t&gt;(vec)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01221"></a><span class="lineno"> 1221</span>&#160;    <span class="comment">// Check the whole array. If this is a string, the byte past the array</span></div>
+<div class="line"><a name="l01222"></a><span class="lineno"> 1222</span>&#160;    <span class="comment">// must be 0.</span></div>
+<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;    <span class="keyword">auto</span> size = ReadScalar&lt;uoffset_t&gt;(vec);</div>
+<div class="line"><a name="l01224"></a><span class="lineno"> 1224</span>&#160;    <span class="keyword">auto</span> max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;</div>
+<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;    <span class="keywordflow">if</span> (!Check(size &lt; max_elems))</div>
+<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">false</span>;  <span class="comment">// Protect against byte_size overflowing.</span></div>
+<div class="line"><a name="l01227"></a><span class="lineno"> 1227</span>&#160;    <span class="keyword">auto</span> byte_size = <span class="keyword">sizeof</span>(size) + elem_size * size;</div>
+<div class="line"><a name="l01228"></a><span class="lineno"> 1228</span>&#160;    *end = vec + byte_size;</div>
+<div class="line"><a name="l01229"></a><span class="lineno"> 1229</span>&#160;    <span class="keywordflow">return</span> Verify(vec, byte_size);</div>
+<div class="line"><a name="l01230"></a><span class="lineno"> 1230</span>&#160;  }</div>
+<div class="line"><a name="l01231"></a><span class="lineno"> 1231</span>&#160;</div>
+<div class="line"><a name="l01232"></a><span class="lineno"> 1232</span>&#160;  <span class="comment">// Special case for string contents, after the above has been called.</span></div>
+<div class="line"><a name="l01233"></a><span class="lineno"> 1233</span>&#160;  <span class="keywordtype">bool</span> VerifyVectorOfStrings(<span class="keyword">const</span> Vector&lt;Offset&lt;String&gt;&gt; *vec)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01234"></a><span class="lineno"> 1234</span>&#160;      <span class="keywordflow">if</span> (vec) {</div>
+<div class="line"><a name="l01235"></a><span class="lineno"> 1235</span>&#160;        <span class="keywordflow">for</span> (uoffset_t i = 0; i &lt; vec-&gt;size(); i++) {</div>
+<div class="line"><a name="l01236"></a><span class="lineno"> 1236</span>&#160;          <span class="keywordflow">if</span> (!Verify(vec-&gt;Get(i))) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01237"></a><span class="lineno"> 1237</span>&#160;        }</div>
+<div class="line"><a name="l01238"></a><span class="lineno"> 1238</span>&#160;      }</div>
+<div class="line"><a name="l01239"></a><span class="lineno"> 1239</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01240"></a><span class="lineno"> 1240</span>&#160;  }</div>
+<div class="line"><a name="l01241"></a><span class="lineno"> 1241</span>&#160;</div>
+<div class="line"><a name="l01242"></a><span class="lineno"> 1242</span>&#160;  <span class="comment">// Special case for table contents, after the above has been called.</span></div>
+<div class="line"><a name="l01243"></a><span class="lineno"> 1243</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyVectorOfTables(<span class="keyword">const</span> Vector&lt;Offset&lt;T&gt;&gt; *vec) {</div>
+<div class="line"><a name="l01244"></a><span class="lineno"> 1244</span>&#160;    <span class="keywordflow">if</span> (vec) {</div>
+<div class="line"><a name="l01245"></a><span class="lineno"> 1245</span>&#160;      <span class="keywordflow">for</span> (uoffset_t i = 0; i &lt; vec-&gt;size(); i++) {</div>
+<div class="line"><a name="l01246"></a><span class="lineno"> 1246</span>&#160;        <span class="keywordflow">if</span> (!vec-&gt;Get(i)-&gt;Verify(*<span class="keyword">this</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01247"></a><span class="lineno"> 1247</span>&#160;      }</div>
+<div class="line"><a name="l01248"></a><span class="lineno"> 1248</span>&#160;    }</div>
+<div class="line"><a name="l01249"></a><span class="lineno"> 1249</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01250"></a><span class="lineno"> 1250</span>&#160;  }</div>
+<div class="line"><a name="l01251"></a><span class="lineno"> 1251</span>&#160;</div>
+<div class="line"><a name="l01252"></a><span class="lineno"> 1252</span>&#160;  <span class="comment">// Verify this whole buffer, starting with root type T.</span></div>
+<div class="line"><a name="l01253"></a><span class="lineno"> 1253</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyBuffer() {</div>
+<div class="line"><a name="l01254"></a><span class="lineno"> 1254</span>&#160;    <span class="comment">// Call T::Verify, which must be in the generated code for this type.</span></div>
+<div class="line"><a name="l01255"></a><span class="lineno"> 1255</span>&#160;    <span class="keywordflow">return</span> Verify&lt;uoffset_t&gt;(buf_) &amp;&amp;</div>
+<div class="line"><a name="l01256"></a><span class="lineno"> 1256</span>&#160;      reinterpret_cast&lt;const T *&gt;(buf_ + ReadScalar&lt;uoffset_t&gt;(buf_))-&gt;</div>
+<div class="line"><a name="l01257"></a><span class="lineno"> 1257</span>&#160;        Verify(*<span class="keyword">this</span>);</div>
+<div class="line"><a name="l01258"></a><span class="lineno"> 1258</span>&#160;  }</div>
+<div class="line"><a name="l01259"></a><span class="lineno"> 1259</span>&#160;</div>
+<div class="line"><a name="l01260"></a><span class="lineno"> 1260</span>&#160;  <span class="comment">// Called at the start of a table to increase counters measuring data</span></div>
+<div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160;  <span class="comment">// structure depth and amount, and possibly bails out with false if</span></div>
+<div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;  <span class="comment">// limits set by the constructor have been hit. Needs to be balanced</span></div>
+<div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;  <span class="comment">// with EndTable().</span></div>
+<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;  <span class="keywordtype">bool</span> VerifyComplexity() {</div>
+<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;    depth_++;</div>
+<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;    num_tables_++;</div>
+<div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;    <span class="keywordflow">return</span> Check(depth_ &lt;= max_depth_ &amp;&amp; num_tables_ &lt;= max_tables_);</div>
+<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;  }</div>
+<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;</div>
+<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;  <span class="comment">// Called at the end of a table to pop the depth count.</span></div>
+<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;  <span class="keywordtype">bool</span> EndTable() {</div>
+<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;    depth_--;</div>
+<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;  }</div>
+<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;</div>
+<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;  <span class="keyword">const</span> uint8_t *buf_;</div>
+<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;  <span class="keyword">const</span> uint8_t *end_;</div>
+<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;  <span class="keywordtype">size_t</span> depth_;</div>
+<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;  <span class="keywordtype">size_t</span> max_depth_;</div>
+<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;  <span class="keywordtype">size_t</span> num_tables_;</div>
+<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;  <span class="keywordtype">size_t</span> max_tables_;</div>
+<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;};</div>
 <div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;</div>
-<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;<span class="keyword">class </span>Struct FLATBUFFERS_FINAL_CLASS {</div>
-<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetField(uoffset_t o)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;    <span class="keywordflow">return</span> ReadScalar&lt;T&gt;(&amp;data_[o]);</div>
-<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;  }</div>
-<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;</div>
-<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetPointer(uoffset_t o)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;    <span class="keyword">auto</span> p = &amp;data_[o];</div>
-<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T<span class="keyword">&gt;</span>(p + ReadScalar&lt;uoffset_t&gt;(p));</div>
-<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;  }</div>
-<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;</div>
-<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetStruct(uoffset_t o)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T<span class="keyword">&gt;</span>(&amp;data_[o]);</div>
+<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;<span class="comment">// &quot;structs&quot; are flat structures that do not have an offset table, thus</span></div>
+<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;<span class="comment">// always have all members present and do not support forwards/backwards</span></div>
+<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;<span class="comment">// compatible extensions.</span></div>
+<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;</div>
+<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;<span class="keyword">class </span>Struct FLATBUFFERS_FINAL_CLASS {</div>
+<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetField(uoffset_t o)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;    <span class="keywordflow">return</span> ReadScalar&lt;T&gt;(&amp;data_[o]);</div>
+<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;  }</div>
+<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;</div>
+<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetPointer(uoffset_t o)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;    <span class="keyword">auto</span> p = &amp;data_[o];</div>
+<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T<span class="keyword">&gt;</span>(p + ReadScalar&lt;uoffset_t&gt;(p));</div>
 <div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;  }</div>
 <div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;</div>
-<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;  <span class="keyword">const</span> uint8_t *GetAddressOf(uoffset_t o)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> &amp;data_[o]; }</div>
-<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;  uint8_t *GetAddressOf(uoffset_t o) { <span class="keywordflow">return</span> &amp;data_[o]; }</div>
-<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;</div>
-<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;  uint8_t data_[1];</div>
-<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;};</div>
+<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetStruct(uoffset_t o)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T<span class="keyword">&gt;</span>(&amp;data_[o]);</div>
+<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;  }</div>
+<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;</div>
+<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;  <span class="keyword">const</span> uint8_t *GetAddressOf(uoffset_t o)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> &amp;data_[o]; }</div>
+<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;  uint8_t *GetAddressOf(uoffset_t o) { <span class="keywordflow">return</span> &amp;data_[o]; }</div>
 <div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;</div>
-<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;<span class="comment">// &quot;tables&quot; use an offset table (possibly shared) that allows fields to be</span></div>
-<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;<span class="comment">// omitted and added at will, but uses an extra indirection to read.</span></div>
-<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;<span class="keyword">class </span>Table {</div>
-<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;  <span class="comment">// This gets the field offset for any of the functions below it, or 0</span></div>
-<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;  <span class="comment">// if the field was not present.</span></div>
-<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;  voffset_t GetOptionalFieldOffset(voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;    <span class="comment">// The vtable offset is always at the start.</span></div>
-<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;    <span class="keyword">auto</span> vtable = data_ - ReadScalar&lt;soffset_t&gt;(data_);</div>
-<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;    <span class="comment">// The first element is the size of the vtable (fields + type id + itself).</span></div>
-<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;    <span class="keyword">auto</span> vtsize = ReadScalar&lt;voffset_t&gt;(vtable);</div>
-<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;    <span class="comment">// If the field we&#39;re accessing is outside the vtable, we&#39;re reading older</span></div>
-<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;    <span class="comment">// data, so it&#39;s the same as if the offset was 0 (not present).</span></div>
-<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;    <span class="keywordflow">return</span> field &lt; vtsize ? ReadScalar&lt;voffset_t&gt;(vtable + field) : 0;</div>
-<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;  }</div>
-<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;</div>
-<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetField(voffset_t field, T defaultval)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;    <span class="keywordflow">return</span> field_offset ? ReadScalar&lt;T&gt;(data_ + field_offset) : defaultval;</div>
-<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;  }</div>
-<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;</div>
-<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetPointer(voffset_t field) {</div>
-<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;    <span class="keyword">auto</span> p = data_ + field_offset;</div>
-<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;    <span class="keywordflow">return</span> field_offset</div>
-<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;      ? <span class="keyword">reinterpret_cast&lt;</span>P<span class="keyword">&gt;</span>(p + ReadScalar&lt;uoffset_t&gt;(p))</div>
-<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;      : nullptr;</div>
-<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;  }</div>
-<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetPointer(voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">const_cast&lt;</span>Table *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;GetPointer&lt;P&gt;(field);</div>
-<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;  }</div>
-<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;</div>
-<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetStruct(voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;    <span class="keyword">auto</span> p = <span class="keyword">const_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(data_ + field_offset);</div>
-<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;    <span class="keywordflow">return</span> field_offset ? <span class="keyword">reinterpret_cast&lt;</span>P<span class="keyword">&gt;</span>(p) : <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;  }</div>
-<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;</div>
-<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> SetField(voffset_t field, T val) {</div>
-<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;    <span class="keywordflow">if</span> (!field_offset) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;    WriteScalar(data_ + field_offset, val);</div>
-<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;  }</div>
-<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;</div>
-<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;  <span class="keywordtype">bool</span> SetPointer(voffset_t field, <span class="keyword">const</span> uint8_t *val) {</div>
-<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;    <span class="keywordflow">if</span> (!field_offset) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;    WriteScalar(data_ + field_offset, val - (data_ + field_offset));</div>
-<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;  }</div>
-<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;</div>
-<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;  uint8_t *GetAddressOf(voffset_t field) {</div>
-<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160;    <span class="keywordflow">return</span> field_offset ? data_ + field_offset : <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;  }</div>
-<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;  <span class="keyword">const</span> uint8_t *GetAddressOf(voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">const_cast&lt;</span>Table *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;GetAddressOf(field);</div>
-<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;  }</div>
-<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;</div>
-<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;  uint8_t *GetVTable() { <span class="keywordflow">return</span> data_ - ReadScalar&lt;soffset_t&gt;(data_); }</div>
-<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160;</div>
-<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;  <span class="keywordtype">bool</span> CheckField(voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;    <span class="keywordflow">return</span> GetOptionalFieldOffset(field) != 0;</div>
-<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;  }</div>
+<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;  uint8_t data_[1];</div>
+<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;};</div>
+<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;</div>
+<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;<span class="comment">// &quot;tables&quot; use an offset table (possibly shared) that allows fields to be</span></div>
+<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;<span class="comment">// omitted and added at will, but uses an extra indirection to read.</span></div>
+<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;<span class="keyword">class </span>Table {</div>
+<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;  <span class="comment">// This gets the field offset for any of the functions below it, or 0</span></div>
+<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;  <span class="comment">// if the field was not present.</span></div>
+<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;  voffset_t GetOptionalFieldOffset(voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;    <span class="comment">// The vtable offset is always at the start.</span></div>
+<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;    <span class="keyword">auto</span> vtable = data_ - ReadScalar&lt;soffset_t&gt;(data_);</div>
+<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;    <span class="comment">// The first element is the size of the vtable (fields + type id + itself).</span></div>
+<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;    <span class="keyword">auto</span> vtsize = ReadScalar&lt;voffset_t&gt;(vtable);</div>
+<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;    <span class="comment">// If the field we&#39;re accessing is outside the vtable, we&#39;re reading older</span></div>
+<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;    <span class="comment">// data, so it&#39;s the same as if the offset was 0 (not present).</span></div>
+<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;    <span class="keywordflow">return</span> field &lt; vtsize ? ReadScalar&lt;voffset_t&gt;(vtable + field) : 0;</div>
+<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;  }</div>
+<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;</div>
+<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; T GetField(voffset_t field, T defaultval)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;    <span class="keywordflow">return</span> field_offset ? ReadScalar&lt;T&gt;(data_ + field_offset) : defaultval;</div>
+<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;  }</div>
+<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;</div>
+<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetPointer(voffset_t field) {</div>
+<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;    <span class="keyword">auto</span> p = data_ + field_offset;</div>
+<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;    <span class="keywordflow">return</span> field_offset</div>
+<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;      ? <span class="keyword">reinterpret_cast&lt;</span>P<span class="keyword">&gt;</span>(p + ReadScalar&lt;uoffset_t&gt;(p))</div>
+<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;      : nullptr;</div>
+<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;  }</div>
+<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetPointer(voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">const_cast&lt;</span>Table *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;GetPointer&lt;P&gt;(field);</div>
+<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;  }</div>
+<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;</div>
+<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> P&gt; P GetStruct(voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;    <span class="keyword">auto</span> p = <span class="keyword">const_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(data_ + field_offset);</div>
+<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;    <span class="keywordflow">return</span> field_offset ? <span class="keyword">reinterpret_cast&lt;</span>P<span class="keyword">&gt;</span>(p) : <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;  }</div>
+<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;</div>
+<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> SetField(voffset_t field, T val) {</div>
+<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;    <span class="keywordflow">if</span> (!field_offset) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;    WriteScalar(data_ + field_offset, val);</div>
+<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;  }</div>
+<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;</div>
+<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;  <span class="keywordtype">bool</span> SetPointer(voffset_t field, <span class="keyword">const</span> uint8_t *val) {</div>
+<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;    <span class="keywordflow">if</span> (!field_offset) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;    WriteScalar(data_ + field_offset, val - (data_ + field_offset));</div>
+<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160;  }</div>
+<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;</div>
+<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;  uint8_t *GetAddressOf(voffset_t field) {</div>
+<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;    <span class="keywordflow">return</span> field_offset ? data_ + field_offset : <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;  }</div>
+<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;  <span class="keyword">const</span> uint8_t *GetAddressOf(voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">const_cast&lt;</span>Table *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;GetAddressOf(field);</div>
+<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;  }</div>
+<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;</div>
+<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;  uint8_t *GetVTable() { <span class="keywordflow">return</span> data_ - ReadScalar&lt;soffset_t&gt;(data_); }</div>
 <div class="line"><a name="l01372"></a><span class="lineno"> 1372</span>&#160;</div>
-<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160;  <span class="comment">// Verify the vtable of this table.</span></div>
-<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;  <span class="comment">// Call this once per table, followed by VerifyField once per field.</span></div>
-<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;  <span class="keywordtype">bool</span> VerifyTableStart(Verifier &amp;verifier)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;    <span class="comment">// Check the vtable offset.</span></div>
-<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;    <span class="keywordflow">if</span> (!verifier.Verify&lt;soffset_t&gt;(data_)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160;    <span class="keyword">auto</span> vtable = data_ - ReadScalar&lt;soffset_t&gt;(data_);</div>
-<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;    <span class="comment">// Check the vtable size field, then check vtable fits in its entirety.</span></div>
-<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;    <span class="keywordflow">return</span> verifier.VerifyComplexity() &amp;&amp;</div>
-<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;           verifier.Verify&lt;voffset_t&gt;(vtable) &amp;&amp;</div>
-<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;           verifier.Verify(vtable, ReadScalar&lt;voffset_t&gt;(vtable));</div>
-<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;  }</div>
-<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;</div>
-<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;  <span class="comment">// Verify a particular field.</span></div>
-<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyField(<span class="keyword">const</span> Verifier &amp;verifier,</div>
-<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160;                                        voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;    <span class="comment">// Calling GetOptionalFieldOffset should be safe now thanks to</span></div>
-<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160;    <span class="comment">// VerifyTable().</span></div>
-<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160;    <span class="comment">// Check the actual field.</span></div>
-<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;    <span class="keywordflow">return</span> !field_offset || verifier.Verify&lt;T&gt;(data_ + field_offset);</div>
-<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;  }</div>
-<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;</div>
-<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;  <span class="comment">// VerifyField for required fields.</span></div>
-<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyFieldRequired(<span class="keyword">const</span> Verifier &amp;verifier,</div>
-<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;                                        voffset_t field)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
-<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;    <span class="keywordflow">return</span> verifier.Check(field_offset != 0) &amp;&amp;</div>
-<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;           verifier.Verify&lt;T&gt;(data_ + field_offset);</div>
-<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;  }</div>
-<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160;</div>
-<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;  <span class="comment">// private constructor &amp; copy constructor: you obtain instances of this</span></div>
-<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160;  <span class="comment">// class by pointing to existing data only</span></div>
-<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;  Table();</div>
-<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;  Table(<span class="keyword">const</span> Table &amp;other);</div>
-<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160;</div>
-<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;  uint8_t data_[1];</div>
-<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;};</div>
-<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;</div>
-<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;<span class="comment">// Helper function to test if a field is present, using any of the field</span></div>
-<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;<span class="comment">// enums in the generated code.</span></div>
-<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;<span class="comment">// `table` must be a generated table type. Since this is a template parameter,</span></div>
-<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;<span class="comment">// this is not typechecked to be a subclass of Table, so beware!</span></div>
-<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;<span class="comment">// Note: this function will return false for fields equal to the default</span></div>
-<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;<span class="comment">// value, since they&#39;re not stored in the buffer (unless force_defaults was</span></div>
-<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;<span class="comment">// used).</span></div>
-<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> IsFieldPresent(<span class="keyword">const</span> T *table, voffset_t field) {</div>
-<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;  <span class="comment">// Cast, since Table is a private baseclass of any table types.</span></div>
-<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Table *<span class="keyword">&gt;</span>(table)-&gt;CheckField(field);</div>
-<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;}</div>
-<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;</div>
-<div class="line"><a name="l01424"></a><span class="lineno"> 1424</span>&#160;<span class="comment">// Utility function for reverse lookups on the EnumNames*() functions</span></div>
-<div class="line"><a name="l01425"></a><span class="lineno"> 1425</span>&#160;<span class="comment">// (in the generated C++ code)</span></div>
-<div class="line"><a name="l01426"></a><span class="lineno"> 1426</span>&#160;<span class="comment">// names must be NULL terminated.</span></div>
-<div class="line"><a name="l01427"></a><span class="lineno"> 1427</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">int</span> LookupEnum(<span class="keyword">const</span> <span class="keywordtype">char</span> **names, <span class="keyword">const</span> <span class="keywordtype">char</span> *name) {</div>
-<div class="line"><a name="l01428"></a><span class="lineno"> 1428</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span> **p = names; *p; p++)</div>
-<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;    <span class="keywordflow">if</span> (!strcmp(*p, name))</div>
-<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(p - names);</div>
-<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160;  <span class="keywordflow">return</span> -1;</div>
-<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;}</div>
-<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160;</div>
-<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;<span class="comment">// These macros allow us to layout a struct with a guarantee that they&#39;ll end</span></div>
-<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;<span class="comment">// up looking the same on different compilers and platforms.</span></div>
-<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;<span class="comment">// It does this by disallowing the compiler to do any padding, and then</span></div>
-<div class="line"><a name="l01437"></a><span class="lineno"> 1437</span>&#160;<span class="comment">// does padding itself by inserting extra padding fields that make every</span></div>
-<div class="line"><a name="l01438"></a><span class="lineno"> 1438</span>&#160;<span class="comment">// element aligned to its own size.</span></div>
-<div class="line"><a name="l01439"></a><span class="lineno"> 1439</span>&#160;<span class="comment">// Additionally, it manually sets the alignment of the struct as a whole,</span></div>
-<div class="line"><a name="l01440"></a><span class="lineno"> 1440</span>&#160;<span class="comment">// which is typically its largest element, or a custom size set in the schema</span></div>
-<div class="line"><a name="l01441"></a><span class="lineno"> 1441</span>&#160;<span class="comment">// by the force_align attribute.</span></div>
-<div class="line"><a name="l01442"></a><span class="lineno"> 1442</span>&#160;<span class="comment">// These are used in the generated code only.</span></div>
-<div class="line"><a name="l01443"></a><span class="lineno"> 1443</span>&#160;</div>
-<div class="line"><a name="l01444"></a><span class="lineno"> 1444</span>&#160;<span class="preprocessor">#if defined(_MSC_VER)</span></div>
-<div class="line"><a name="l01445"></a><span class="lineno"> 1445</span>&#160;<span class="preprocessor">  #define MANUALLY_ALIGNED_STRUCT(alignment) \</span></div>
-<div class="line"><a name="l01446"></a><span class="lineno"> 1446</span>&#160;<span class="preprocessor">    __pragma(pack(1)); \</span></div>
-<div class="line"><a name="l01447"></a><span class="lineno"> 1447</span>&#160;<span class="preprocessor">    struct __declspec(align(alignment))</span></div>
-<div class="line"><a name="l01448"></a><span class="lineno"> 1448</span>&#160;<span class="preprocessor">  #define STRUCT_END(name, size) \</span></div>
-<div class="line"><a name="l01449"></a><span class="lineno"> 1449</span>&#160;<span class="preprocessor">    __pragma(pack()); \</span></div>
-<div class="line"><a name="l01450"></a><span class="lineno"> 1450</span>&#160;<span class="preprocessor">    static_assert(sizeof(name) == size, &quot;compiler breaks packing rules&quot;)</span></div>
-<div class="line"><a name="l01451"></a><span class="lineno"> 1451</span>&#160;<span class="preprocessor">#elif defined(__GNUC__) || defined(__clang__)</span></div>
-<div class="line"><a name="l01452"></a><span class="lineno"> 1452</span>&#160;<span class="preprocessor">  #define MANUALLY_ALIGNED_STRUCT(alignment) \</span></div>
-<div class="line"><a name="l01453"></a><span class="lineno"> 1453</span>&#160;<span class="preprocessor">    _Pragma(&quot;pack(1)&quot;) \</span></div>
-<div class="line"><a name="l01454"></a><span class="lineno"> 1454</span>&#160;<span class="preprocessor">    struct __attribute__((aligned(alignment)))</span></div>
-<div class="line"><a name="l01455"></a><span class="lineno"> 1455</span>&#160;<span class="preprocessor">  #define STRUCT_END(name, size) \</span></div>
-<div class="line"><a name="l01456"></a><span class="lineno"> 1456</span>&#160;<span class="preprocessor">    _Pragma(&quot;pack()&quot;) \</span></div>
-<div class="line"><a name="l01457"></a><span class="lineno"> 1457</span>&#160;<span class="preprocessor">    static_assert(sizeof(name) == size, &quot;compiler breaks packing rules&quot;)</span></div>
-<div class="line"><a name="l01458"></a><span class="lineno"> 1458</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l01459"></a><span class="lineno"> 1459</span>&#160;<span class="preprocessor">  #error Unknown compiler, please define structure alignment macros</span></div>
-<div class="line"><a name="l01460"></a><span class="lineno"> 1460</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l01461"></a><span class="lineno"> 1461</span>&#160;</div>
-<div class="line"><a name="l01462"></a><span class="lineno"> 1462</span>&#160;<span class="comment">// String which identifies the current version of FlatBuffers.</span></div>
-<div class="line"><a name="l01463"></a><span class="lineno"> 1463</span>&#160;<span class="comment">// flatbuffer_version_string is used by Google developers to identify which</span></div>
-<div class="line"><a name="l01464"></a><span class="lineno"> 1464</span>&#160;<span class="comment">// applications uploaded to Google Play are using this library.  This allows</span></div>
-<div class="line"><a name="l01465"></a><span class="lineno"> 1465</span>&#160;<span class="comment">// the development team at Google to determine the popularity of the library.</span></div>
-<div class="line"><a name="l01466"></a><span class="lineno"> 1466</span>&#160;<span class="comment">// How it works: Applications that are uploaded to the Google Play Store are</span></div>
-<div class="line"><a name="l01467"></a><span class="lineno"> 1467</span>&#160;<span class="comment">// scanned for this version string.  We track which applications are using it</span></div>
-<div class="line"><a name="l01468"></a><span class="lineno"> 1468</span>&#160;<span class="comment">// to measure popularity.  You are free to remove it (of course) but we would</span></div>
-<div class="line"><a name="l01469"></a><span class="lineno"> 1469</span>&#160;<span class="comment">// appreciate if you left it in.</span></div>
-<div class="line"><a name="l01470"></a><span class="lineno"> 1470</span>&#160;</div>
-<div class="line"><a name="l01471"></a><span class="lineno"> 1471</span>&#160;<span class="comment">// Weak linkage is culled by VS &amp; doesn&#39;t work on cygwin.</span></div>
-<div class="line"><a name="l01472"></a><span class="lineno"> 1472</span>&#160;<span class="preprocessor">#if !defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)</span></div>
-<div class="line"><a name="l01473"></a><span class="lineno"> 1473</span>&#160;</div>
-<div class="line"><a name="l01474"></a><span class="lineno"> 1474</span>&#160;<span class="keyword">extern</span> <span class="keyword">volatile</span> __attribute__((weak)) const <span class="keywordtype">char</span> *flatbuffer_version_string;</div>
-<div class="line"><a name="l01475"></a><span class="lineno"> 1475</span>&#160;volatile __attribute__((weak)) const <span class="keywordtype">char</span> *flatbuffer_version_string =</div>
-<div class="line"><a name="l01476"></a><span class="lineno"> 1476</span>&#160;  &quot;FlatBuffers &quot;</div>
-<div class="line"><a name="l01477"></a><span class="lineno"> 1477</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) &quot;.&quot;</div>
-<div class="line"><a name="l01478"></a><span class="lineno"> 1478</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) &quot;.&quot;</div>
-<div class="line"><a name="l01479"></a><span class="lineno"> 1479</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);</div>
-<div class="line"><a name="l01480"></a><span class="lineno"> 1480</span>&#160;</div>
-<div class="line"><a name="l01481"></a><span class="lineno"> 1481</span>&#160;<span class="preprocessor">#endif  // !defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)</span></div>
-<div class="line"><a name="l01482"></a><span class="lineno"> 1482</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01483"></a><span class="lineno"> 1483</span>&#160;<span class="comment">/// @endcond</span></div>
-<div class="line"><a name="l01484"></a><span class="lineno"> 1484</span>&#160;<span class="comment"></span>}  <span class="comment">// namespace flatbuffers</span></div>
+<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160;  <span class="keywordtype">bool</span> CheckField(voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;    <span class="keywordflow">return</span> GetOptionalFieldOffset(field) != 0;</div>
+<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;  }</div>
+<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;</div>
+<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;  <span class="comment">// Verify the vtable of this table.</span></div>
+<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160;  <span class="comment">// Call this once per table, followed by VerifyField once per field.</span></div>
+<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;  <span class="keywordtype">bool</span> VerifyTableStart(Verifier &amp;verifier)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;    <span class="comment">// Check the vtable offset.</span></div>
+<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;    <span class="keywordflow">if</span> (!verifier.Verify&lt;soffset_t&gt;(data_)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;    <span class="keyword">auto</span> vtable = data_ - ReadScalar&lt;soffset_t&gt;(data_);</div>
+<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;    <span class="comment">// Check the vtable size field, then check vtable fits in its entirety.</span></div>
+<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;    <span class="keywordflow">return</span> verifier.VerifyComplexity() &amp;&amp;</div>
+<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;           verifier.Verify&lt;voffset_t&gt;(vtable) &amp;&amp;</div>
+<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;           (ReadScalar&lt;voffset_t&gt;(vtable) &amp; (<span class="keyword">sizeof</span>(voffset_t) - 1)) == 0 &amp;&amp;</div>
+<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160;           verifier.Verify(vtable, ReadScalar&lt;voffset_t&gt;(vtable));</div>
+<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;  }</div>
+<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160;</div>
+<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;  <span class="comment">// Verify a particular field.</span></div>
+<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyField(<span class="keyword">const</span> Verifier &amp;verifier,</div>
+<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;                                        voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;    <span class="comment">// Calling GetOptionalFieldOffset should be safe now thanks to</span></div>
+<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;    <span class="comment">// VerifyTable().</span></div>
+<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;    <span class="comment">// Check the actual field.</span></div>
+<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;    <span class="keywordflow">return</span> !field_offset || verifier.Verify&lt;T&gt;(data_ + field_offset);</div>
+<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;  }</div>
+<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;</div>
+<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;  <span class="comment">// VerifyField for required fields.</span></div>
+<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> VerifyFieldRequired(<span class="keyword">const</span> Verifier &amp;verifier,</div>
+<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160;                                        voffset_t field)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160;    <span class="keyword">auto</span> field_offset = GetOptionalFieldOffset(field);</div>
+<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;    <span class="keywordflow">return</span> verifier.Check(field_offset != 0) &amp;&amp;</div>
+<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160;           verifier.Verify&lt;T&gt;(data_ + field_offset);</div>
+<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;  }</div>
+<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;</div>
+<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;  <span class="comment">// private constructor &amp; copy constructor: you obtain instances of this</span></div>
+<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;  <span class="comment">// class by pointing to existing data only</span></div>
+<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;  Table();</div>
+<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;  Table(<span class="keyword">const</span> Table &amp;other);</div>
+<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;</div>
+<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;  uint8_t data_[1];</div>
+<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;};</div>
+<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;</div>
+<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;<span class="comment">// Helper function to test if a field is present, using any of the field</span></div>
+<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;<span class="comment">// enums in the generated code.</span></div>
+<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160;<span class="comment">// `table` must be a generated table type. Since this is a template parameter,</span></div>
+<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;<span class="comment">// this is not typechecked to be a subclass of Table, so beware!</span></div>
+<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;<span class="comment">// Note: this function will return false for fields equal to the default</span></div>
+<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;<span class="comment">// value, since they&#39;re not stored in the buffer (unless force_defaults was</span></div>
+<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;<span class="comment">// used).</span></div>
+<div class="line"><a name="l01424"></a><span class="lineno"> 1424</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">bool</span> IsFieldPresent(<span class="keyword">const</span> T *table, voffset_t field) {</div>
+<div class="line"><a name="l01425"></a><span class="lineno"> 1425</span>&#160;  <span class="comment">// Cast, since Table is a private baseclass of any table types.</span></div>
+<div class="line"><a name="l01426"></a><span class="lineno"> 1426</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Table *<span class="keyword">&gt;</span>(table)-&gt;CheckField(field);</div>
+<div class="line"><a name="l01427"></a><span class="lineno"> 1427</span>&#160;}</div>
+<div class="line"><a name="l01428"></a><span class="lineno"> 1428</span>&#160;</div>
+<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;<span class="comment">// Utility function for reverse lookups on the EnumNames*() functions</span></div>
+<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;<span class="comment">// (in the generated C++ code)</span></div>
+<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160;<span class="comment">// names must be NULL terminated.</span></div>
+<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">int</span> LookupEnum(<span class="keyword">const</span> <span class="keywordtype">char</span> **names, <span class="keyword">const</span> <span class="keywordtype">char</span> *name) {</div>
+<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span> **p = names; *p; p++)</div>
+<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;    <span class="keywordflow">if</span> (!strcmp(*p, name))</div>
+<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(p - names);</div>
+<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;  <span class="keywordflow">return</span> -1;</div>
+<div class="line"><a name="l01437"></a><span class="lineno"> 1437</span>&#160;}</div>
+<div class="line"><a name="l01438"></a><span class="lineno"> 1438</span>&#160;</div>
+<div class="line"><a name="l01439"></a><span class="lineno"> 1439</span>&#160;<span class="comment">// These macros allow us to layout a struct with a guarantee that they&#39;ll end</span></div>
+<div class="line"><a name="l01440"></a><span class="lineno"> 1440</span>&#160;<span class="comment">// up looking the same on different compilers and platforms.</span></div>
+<div class="line"><a name="l01441"></a><span class="lineno"> 1441</span>&#160;<span class="comment">// It does this by disallowing the compiler to do any padding, and then</span></div>
+<div class="line"><a name="l01442"></a><span class="lineno"> 1442</span>&#160;<span class="comment">// does padding itself by inserting extra padding fields that make every</span></div>
+<div class="line"><a name="l01443"></a><span class="lineno"> 1443</span>&#160;<span class="comment">// element aligned to its own size.</span></div>
+<div class="line"><a name="l01444"></a><span class="lineno"> 1444</span>&#160;<span class="comment">// Additionally, it manually sets the alignment of the struct as a whole,</span></div>
+<div class="line"><a name="l01445"></a><span class="lineno"> 1445</span>&#160;<span class="comment">// which is typically its largest element, or a custom size set in the schema</span></div>
+<div class="line"><a name="l01446"></a><span class="lineno"> 1446</span>&#160;<span class="comment">// by the force_align attribute.</span></div>
+<div class="line"><a name="l01447"></a><span class="lineno"> 1447</span>&#160;<span class="comment">// These are used in the generated code only.</span></div>
+<div class="line"><a name="l01448"></a><span class="lineno"> 1448</span>&#160;</div>
+<div class="line"><a name="l01449"></a><span class="lineno"> 1449</span>&#160;<span class="preprocessor">#if defined(_MSC_VER)</span></div>
+<div class="line"><a name="l01450"></a><span class="lineno"> 1450</span>&#160;<span class="preprocessor">  #define MANUALLY_ALIGNED_STRUCT(alignment) \</span></div>
+<div class="line"><a name="l01451"></a><span class="lineno"> 1451</span>&#160;<span class="preprocessor">    __pragma(pack(1)); \</span></div>
+<div class="line"><a name="l01452"></a><span class="lineno"> 1452</span>&#160;<span class="preprocessor">    struct __declspec(align(alignment))</span></div>
+<div class="line"><a name="l01453"></a><span class="lineno"> 1453</span>&#160;<span class="preprocessor">  #define STRUCT_END(name, size) \</span></div>
+<div class="line"><a name="l01454"></a><span class="lineno"> 1454</span>&#160;<span class="preprocessor">    __pragma(pack()); \</span></div>
+<div class="line"><a name="l01455"></a><span class="lineno"> 1455</span>&#160;<span class="preprocessor">    static_assert(sizeof(name) == size, &quot;compiler breaks packing rules&quot;)</span></div>
+<div class="line"><a name="l01456"></a><span class="lineno"> 1456</span>&#160;<span class="preprocessor">#elif defined(__GNUC__) || defined(__clang__)</span></div>
+<div class="line"><a name="l01457"></a><span class="lineno"> 1457</span>&#160;<span class="preprocessor">  #define MANUALLY_ALIGNED_STRUCT(alignment) \</span></div>
+<div class="line"><a name="l01458"></a><span class="lineno"> 1458</span>&#160;<span class="preprocessor">    _Pragma(&quot;pack(1)&quot;) \</span></div>
+<div class="line"><a name="l01459"></a><span class="lineno"> 1459</span>&#160;<span class="preprocessor">    struct __attribute__((aligned(alignment)))</span></div>
+<div class="line"><a name="l01460"></a><span class="lineno"> 1460</span>&#160;<span class="preprocessor">  #define STRUCT_END(name, size) \</span></div>
+<div class="line"><a name="l01461"></a><span class="lineno"> 1461</span>&#160;<span class="preprocessor">    _Pragma(&quot;pack()&quot;) \</span></div>
+<div class="line"><a name="l01462"></a><span class="lineno"> 1462</span>&#160;<span class="preprocessor">    static_assert(sizeof(name) == size, &quot;compiler breaks packing rules&quot;)</span></div>
+<div class="line"><a name="l01463"></a><span class="lineno"> 1463</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l01464"></a><span class="lineno"> 1464</span>&#160;<span class="preprocessor">  #error Unknown compiler, please define structure alignment macros</span></div>
+<div class="line"><a name="l01465"></a><span class="lineno"> 1465</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l01466"></a><span class="lineno"> 1466</span>&#160;</div>
+<div class="line"><a name="l01467"></a><span class="lineno"> 1467</span>&#160;<span class="comment">// String which identifies the current version of FlatBuffers.</span></div>
+<div class="line"><a name="l01468"></a><span class="lineno"> 1468</span>&#160;<span class="comment">// flatbuffer_version_string is used by Google developers to identify which</span></div>
+<div class="line"><a name="l01469"></a><span class="lineno"> 1469</span>&#160;<span class="comment">// applications uploaded to Google Play are using this library.  This allows</span></div>
+<div class="line"><a name="l01470"></a><span class="lineno"> 1470</span>&#160;<span class="comment">// the development team at Google to determine the popularity of the library.</span></div>
+<div class="line"><a name="l01471"></a><span class="lineno"> 1471</span>&#160;<span class="comment">// How it works: Applications that are uploaded to the Google Play Store are</span></div>
+<div class="line"><a name="l01472"></a><span class="lineno"> 1472</span>&#160;<span class="comment">// scanned for this version string.  We track which applications are using it</span></div>
+<div class="line"><a name="l01473"></a><span class="lineno"> 1473</span>&#160;<span class="comment">// to measure popularity.  You are free to remove it (of course) but we would</span></div>
+<div class="line"><a name="l01474"></a><span class="lineno"> 1474</span>&#160;<span class="comment">// appreciate if you left it in.</span></div>
+<div class="line"><a name="l01475"></a><span class="lineno"> 1475</span>&#160;</div>
+<div class="line"><a name="l01476"></a><span class="lineno"> 1476</span>&#160;<span class="comment">// Weak linkage is culled by VS &amp; doesn&#39;t work on cygwin.</span></div>
+<div class="line"><a name="l01477"></a><span class="lineno"> 1477</span>&#160;<span class="preprocessor">#if !defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)</span></div>
+<div class="line"><a name="l01478"></a><span class="lineno"> 1478</span>&#160;</div>
+<div class="line"><a name="l01479"></a><span class="lineno"> 1479</span>&#160;<span class="keyword">extern</span> <span class="keyword">volatile</span> __attribute__((weak)) const <span class="keywordtype">char</span> *flatbuffer_version_string;</div>
+<div class="line"><a name="l01480"></a><span class="lineno"> 1480</span>&#160;volatile __attribute__((weak)) const <span class="keywordtype">char</span> *flatbuffer_version_string =</div>
+<div class="line"><a name="l01481"></a><span class="lineno"> 1481</span>&#160;  &quot;FlatBuffers &quot;</div>
+<div class="line"><a name="l01482"></a><span class="lineno"> 1482</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) &quot;.&quot;</div>
+<div class="line"><a name="l01483"></a><span class="lineno"> 1483</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) &quot;.&quot;</div>
+<div class="line"><a name="l01484"></a><span class="lineno"> 1484</span>&#160;  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);</div>
 <div class="line"><a name="l01485"></a><span class="lineno"> 1485</span>&#160;</div>
-<div class="line"><a name="l01486"></a><span class="lineno"> 1486</span>&#160;<span class="preprocessor">#endif  // FLATBUFFERS_H_</span></div>
+<div class="line"><a name="l01486"></a><span class="lineno"> 1486</span>&#160;<span class="preprocessor">#endif  // !defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)</span></div>
+<div class="line"><a name="l01487"></a><span class="lineno"> 1487</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01488"></a><span class="lineno"> 1488</span>&#160;<span class="comment">/// @endcond</span></div>
+<div class="line"><a name="l01489"></a><span class="lineno"> 1489</span>&#160;<span class="comment"></span>}  <span class="comment">// namespace flatbuffers</span></div>
+<div class="line"><a name="l01490"></a><span class="lineno"> 1490</span>&#160;</div>
+<div class="line"><a name="l01491"></a><span class="lineno"> 1491</span>&#160;<span class="preprocessor">#endif  // FLATBUFFERS_H_</span></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_ac2b96292fa0fb1534fe7fd218a094d0c"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#ac2b96292fa0fb1534fe7fd218a094d0c">flatbuffers::FlatBufferBuilder::CreateUninitializedVector</a></div><div class="ttdeci">uoffset_t CreateUninitializedVector(size_t len, size_t elemsize, uint8_t **buf)</div><div class="ttdoc">Specialized version of CreateVector for non-copying use cases. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1050</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_ac64d11c219559ea51567eab556e13135"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#ac64d11c219559ea51567eab556e13135">flatbuffers::FlatBufferBuilder::CreateVectorOfSortedTables</a></div><div class="ttdeci">Offset&lt; Vector&lt; Offset&lt; T &gt; &gt; &gt; CreateVectorOfSortedTables(std::vector&lt; Offset&lt; T &gt;&gt; *v)</div><div class="ttdoc">Serialize an array of table offsets as a vector in the buffer in sorted order. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1038</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html">flatbuffers::FlatBufferBuilder</a></div><div class="ttdoc">Helper class to hold data needed in creation of a FlatBuffer. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:565</div></div>
@@ -1609,21 +1614,21 @@ $(document).ready(function(){initNavTree('flatbuffers_8h_source.html','');});
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a3eb68613e5883dc4b8fff6cf7d1223d7"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a3eb68613e5883dc4b8fff6cf7d1223d7">flatbuffers::FlatBufferBuilder::CreateSharedString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateSharedString(const char *str)</div><div class="ttdoc">Store a string in the buffer, which null-terminated. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:901</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_aec6f9df2a0366b540b24822414d92cbe"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#aec6f9df2a0366b540b24822414d92cbe">flatbuffers::FlatBufferBuilder::CreateString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateString(const char *str, size_t len)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:841</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a16a8fd46b34ad7727406c37b65b6b27a"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a16a8fd46b34ad7727406c37b65b6b27a">flatbuffers::FlatBufferBuilder::ForceDefaults</a></div><div class="ttdeci">void ForceDefaults(bool fd)</div><div class="ttdoc">In order to save space, fields that are set to their default value don&#39;t get serialized into the buff...</div><div class="ttdef"><b>Definition:</b> flatbuffers.h:644</div></div>
-<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_af8c7583c92e1d1d6f438977da5158d19"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">flatbuffers::FlatBufferBuilder::kFileIdentifierLength</a></div><div class="ttdeci">static const size_t kFileIdentifierLength</div><div class="ttdoc">The length of a FlatBuffer file header. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1073</div></div>
+<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_af8c7583c92e1d1d6f438977da5158d19"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#af8c7583c92e1d1d6f438977da5158d19">flatbuffers::FlatBufferBuilder::kFileIdentifierLength</a></div><div class="ttdeci">static const size_t kFileIdentifierLength</div><div class="ttdoc">The length of a FlatBuffer file header. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1076</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_ac0b6a1c5d949f20ad84367fc0f9e1506"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#ac0b6a1c5d949f20ad84367fc0f9e1506">flatbuffers::FlatBufferBuilder::CreateString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateString(const String *str)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:867</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a840b769fbb4148f97d3eed266e4690c3"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a840b769fbb4148f97d3eed266e4690c3">flatbuffers::FlatBufferBuilder::CreateSharedString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateSharedString(const String *str)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:919</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_afede51fd9c32d146cbb1832f57c5e1b7"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#afede51fd9c32d146cbb1832f57c5e1b7">flatbuffers::FlatBufferBuilder::CreateVectorOfStructs</a></div><div class="ttdeci">Offset&lt; Vector&lt; const T * &gt; &gt; CreateVectorOfStructs(const T *v, size_t len)</div><div class="ttdoc">Serialize an array of structs into a FlatBuffer vector. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:983</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_aad93d113ac24e86ed04b5236b3f4c0c5"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#aad93d113ac24e86ed04b5236b3f4c0c5">flatbuffers::FlatBufferBuilder::CreateString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateString(const char *str)</div><div class="ttdoc">Store a string in the buffer, which is null-terminated. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:853</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a8c3af55e64f5cda9aefa38ac5287ef9f"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a8c3af55e64f5cda9aefa38ac5287ef9f">flatbuffers::FlatBufferBuilder::CreateString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateString(const std::string &amp;str)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:860</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_af715dd24dd37cb0151dc7a980ad0f207"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#af715dd24dd37cb0151dc7a980ad0f207">flatbuffers::FlatBufferBuilder::CreateVector</a></div><div class="ttdeci">Offset&lt; Vector&lt; T &gt; &gt; CreateVector(const std::vector&lt; T &gt; &amp;v)</div><div class="ttdoc">Serialize a std::vector into a FlatBuffer vector. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:972</div></div>
-<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a2305b63d367845972b51669dd995cc50"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50">flatbuffers::FlatBufferBuilder::CreateUninitializedVector</a></div><div class="ttdeci">Offset&lt; Vector&lt; T &gt; &gt; CreateUninitializedVector(size_t len, T **buf)</div><div class="ttdoc">Specialized version of CreateVector for non-copying use cases. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1066</div></div>
+<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a2305b63d367845972b51669dd995cc50"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a2305b63d367845972b51669dd995cc50">flatbuffers::FlatBufferBuilder::CreateUninitializedVector</a></div><div class="ttdeci">Offset&lt; Vector&lt; T &gt; &gt; CreateUninitializedVector(size_t len, T **buf)</div><div class="ttdoc">Specialized version of CreateVector for non-copying use cases. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1069</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a3f4252e9bc005ba6c700469544fdccc9"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a3f4252e9bc005ba6c700469544fdccc9">flatbuffers::FlatBufferBuilder::GetCurrentBufferPointer</a></div><div class="ttdeci">uint8_t * GetCurrentBufferPointer() const </div><div class="ttdoc">Get a pointer to an unfinished buffer. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:617</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a2cca5c89246a53e80e6ad9487f4c36f3"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a2cca5c89246a53e80e6ad9487f4c36f3">flatbuffers::FlatBufferBuilder::CreateVector</a></div><div class="ttdeci">Offset&lt; Vector&lt; T &gt; &gt; CreateVector(const T *v, size_t len)</div><div class="ttdoc">Serialize an array into a FlatBuffer vector. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:958</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a10e8ec7d1c8fbdc21b1c7047bbbe38d9"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a10e8ec7d1c8fbdc21b1c7047bbbe38d9">flatbuffers::FlatBufferBuilder::CreateSharedString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateSharedString(const std::string &amp;str)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:910</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a2130ef232ff405eebe2e7f184ecd06e6"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a2130ef232ff405eebe2e7f184ecd06e6">flatbuffers::FlatBufferBuilder::CreateVectorOfSortedTables</a></div><div class="ttdeci">Offset&lt; Vector&lt; Offset&lt; T &gt; &gt; &gt; CreateVectorOfSortedTables(Offset&lt; T &gt; *v, size_t len)</div><div class="ttdoc">Serialize an array of table offsets as a vector in the buffer in sorted order. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1025</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_ab478a645216d2d613fc7b7c29b0ff9d1"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#ab478a645216d2d613fc7b7c29b0ff9d1">flatbuffers::FlatBufferBuilder::CreateSharedString</a></div><div class="ttdeci">Offset&lt; String &gt; CreateSharedString(const char *str, size_t len)</div><div class="ttdoc">Store a string in the buffer, which can contain any binary data. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:877</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a8704709a2e25ad04679212ee4126b1a1"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a8704709a2e25ad04679212ee4126b1a1">flatbuffers::FlatBufferBuilder::CreateVectorOfStructs</a></div><div class="ttdeci">Offset&lt; Vector&lt; const T * &gt; &gt; CreateVectorOfStructs(const std::vector&lt; T &gt; &amp;v)</div><div class="ttdoc">Serialize a std::vector of structs into a FlatBuffer vector. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:996</div></div>
-<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a0c9e507b373d598b51052fab4fa34912"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912">flatbuffers::FlatBufferBuilder::Finish</a></div><div class="ttdeci">void Finish(Offset&lt; T &gt; root, const char *file_identifier=nullptr)</div><div class="ttdoc">Finish serializing a buffer by writing the root offset. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1078</div></div>
+<div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a0c9e507b373d598b51052fab4fa34912"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a0c9e507b373d598b51052fab4fa34912">flatbuffers::FlatBufferBuilder::Finish</a></div><div class="ttdeci">void Finish(Offset&lt; T &gt; root, const char *file_identifier=nullptr)</div><div class="ttdoc">Finish serializing a buffer by writing the root offset. </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:1081</div></div>
 <div class="ttc" id="classflatbuffers_1_1_flat_buffer_builder_html_a8dc35f792179df4ca850492c1796d8b8"><div class="ttname"><a href="classflatbuffers_1_1_flat_buffer_builder.html#a8dc35f792179df4ca850492c1796d8b8">flatbuffers::FlatBufferBuilder::GetBufferPointer</a></div><div class="ttdeci">uint8_t * GetBufferPointer() const </div><div class="ttdoc">Get the serialized buffer (after you call Finish()). </div><div class="ttdef"><b>Definition:</b> flatbuffers.h:610</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

@@ -119,8 +119,7 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_use_cpp.html','');})
 <p>This page assumes you have written a FlatBuffers schema and compiled it with the Schema Compiler. If you have not, please see <a class="el" href="flatbuffers_guide_using_schema_compiler.html">Using the schema compiler</a> and <a class="el" href="flatbuffers_guide_writing_schema.html">Writing a schema</a>.</p>
 <p>Assuming you wrote a schema, say <code>mygame.fbs</code> (though the extension doesn't matter), you've generated a C++ header called <code>mygame_generated.h</code> using the compiler (e.g. <code>flatc -c mygame.fbs</code>), you can now start using this in your program by including the header. As noted, this header relies on <code>flatbuffers/flatbuffers.h</code>, which should be in your include path.</p>
 <h2>FlatBuffers C++ library code location</h2>
-<p>The code for the FlatBuffers C++ library can be found at <code>flatbuffers/include/flatbuffers</code>. You can browse the library code on the <a href="https://github.com/google/flatbuffers/tree/master/
-include/flatbuffers">FlatBuffers GitHub page</a>.</p>
+<p>The code for the FlatBuffers C++ library can be found at <code>flatbuffers/include/flatbuffers</code>. You can browse the library code on the <a href="https://github.com/google/flatbuffers/tree/master/include/flatbuffers">FlatBuffers GitHub page</a>.</p>
 <h2>Testing the FlatBuffers C++ library</h2>
 <p>The code to test the C++ library can be found at <code>flatbuffers/tests</code>. The test code itself is located in <a href="https://github.com/google/flatbuffers/blob/master/tests/test.cpp">test.cpp</a>.</p>
 <p>This test file is built alongside <code>flatc</code>. To review how to build the project, please read the <a class="el" href="flatbuffers_guide_building.html">Building</a> documenation.</p>

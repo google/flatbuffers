@@ -134,7 +134,7 @@ $(document).ready(function(){initNavTree('classcom_1_1google_1_1flatbuffers_1_1_
  <a href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class that helps you build a FlatBuffer. </p>
-<p>See the section <a class="el" href="flatbuffers_guide_use_java_c-sharp.html">Use in Java/C#</a> in the main FlatBuffers documentation. </p>
+<p>See the section "Use in Java/C#" in the main FlatBuffers documentation. </p>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -162,9 +162,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a67a9f5dcd251735d6b96e1ad46de9d94">addShort</a> (short x)</td></tr>
 <tr class="memdesc:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a <code>short</code> to the buffer, properly aligned, and grows the buffer (if necessary).  <a href="#a67a9f5dcd251735d6b96e1ad46de9d94">More...</a><br /></td></tr>
 <tr class="separator:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0cd613dda628a2723925eda5f4d5e74"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#ab0cd613dda628a2723925eda5f4d5e74">createString</a> (String s)</td></tr>
-<tr class="memdesc:ab0cd613dda628a2723925eda5f4d5e74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode the string <code>s</code> in the buffer using UTF-8.  <a href="#ab0cd613dda628a2723925eda5f4d5e74">More...</a><br /></td></tr>
-<tr class="separator:ab0cd613dda628a2723925eda5f4d5e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#abd3b2f9b239a702ffaa8a1e97894f09e">createString</a> (CharSequence s)</td></tr>
+<tr class="memdesc:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode the string <code>s</code> in the buffer using UTF-8.  <a href="#abd3b2f9b239a702ffaa8a1e97894f09e">More...</a><br /></td></tr>
+<tr class="separator:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d676eb9973ecba574a220cdef725577"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a8d676eb9973ecba574a220cdef725577">createString</a> (ByteBuffer s)</td></tr>
 <tr class="memdesc:a8d676eb9973ecba574a220cdef725577"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a string in the buffer from an already encoded UTF-8 string in a ByteBuffer.  <a href="#a8d676eb9973ecba574a220cdef725577">More...</a><br /></td></tr>
 <tr class="separator:a8d676eb9973ecba574a220cdef725577"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -523,7 +523,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ab0cd613dda628a2723925eda5f4d5e74"></a>
+<a class="anchor" id="abd3b2f9b239a702ffaa8a1e97894f09e"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -533,7 +533,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">int com.google.flatbuffers.FlatBufferBuilder.createString </td>
           <td>(</td>
-          <td class="paramtype">String&#160;</td>
+          <td class="paramtype">CharSequence&#160;</td>
           <td class="paramname"><em>s</em></td><td>)</td>
           <td></td>
         </tr>
@@ -546,6 +546,8 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Encode the string <code>s</code> in the buffer using UTF-8. </p>
+<p>If</p><div class="fragment"><div class="line">s </div>
+</div><!-- fragment --><p> is already a <a class="el" href="">CharBuffer</a>, this method is allocation free.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">s</td><td>The string to encode. </td></tr>
@@ -611,7 +613,8 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the ByteBuffer representing the FlatBuffer. </p>
-<p>Only call this after you've called <code>finish()</code>. The actual data starts at the ByteBuffer's current position, not necessarily at <code>0</code>. </p>
+<p>Only call this after you've called <code>finish()</code>. The actual data starts at the ByteBuffer's current position, not necessarily at <code>0</code>.</p>
+<dl class="section return"><dt>Returns</dt><dd>The <a class="el" href="">ByteBuffer</a> representing the FlatBuffer </dd></dl>
 
 </div>
 </div>
