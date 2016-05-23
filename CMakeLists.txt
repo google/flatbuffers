@@ -136,6 +136,9 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+  if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
+    set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
