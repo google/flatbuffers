@@ -368,7 +368,8 @@ public class FlatBufferBuilder {
     /// @endcond
 
    /**
-    * Encode the string `s` in the buffer using UTF-8.
+    * Encode the string `s` in the buffer using UTF-8.  If {@code s} is
+    * already a {@link CharBuffer}, this method is allocation free.
     *
     * @param s The string to encode.
     * @return The offset in the buffer where the encoded string starts.
