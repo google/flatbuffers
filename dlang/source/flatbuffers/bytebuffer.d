@@ -8,32 +8,37 @@ import core.exception;
 final class ByteBuffer
 {
 public:
+    /// init ByteBuffer obj with buffer data
     this(ubyte[] buffer)
     {
         _buffer = buffer;
         _pos = 0;
     }
 
+    /// Returns buffer length
     @property uint length()
     {
         return cast(uint) _buffer.length;
     }
 
+    /// Returns buffer data
     @property ubyte[] data()
     {
         return _buffer;
     }
 
+    /// Returns buffer position
     @property int position()
     {
         return _pos;
     }
-
+    /// put boolen value into buffer
     void put(T)(int offset, T value) if (is(T == bool))
     {
         put!ubyte(offset, (value ? 0x01 : 0x00));
     }
 
+    /// put byte value into buffer
     void put(T)(int offset, T value) if (isByte!T)
     {
         mixin(verifyOffset!1);
@@ -41,6 +46,7 @@ public:
         _pos = offset;
     }
 
+    /// put numbirc value into buffer
     void put(T)(int offset, T value) if (isNum!T)
     {
         mixin(verifyOffset!(T.sizeof));
@@ -57,9 +63,16 @@ public:
         _pos = offset;
     }
 
+    ///get Byte value in buffer from index
     T get(T)(int index) if (isByte!T)
     {
         return cast(T) _buffer[index];
+    }
+
+    T get(T)(int index) if(is(T == bool))
+    {
+        ubyte value = get!ubyte(index);
+        return (value ==0x01 ? true : false);
     }
 
     T get(T)(int index) if (isNum!T)
@@ -71,9 +84,9 @@ public:
             return littleEndianToNative!(T, T.sizeof)(buf);
     }
 
-private: // Variables.
+private: /// Variables.
     ubyte[] _buffer;
-    int _pos; // Must track start of the buffer.
+    int _pos; /// Must track start of the buffer.
 }
 
 unittest
@@ -88,7 +101,20 @@ unittest
     assert(buf.get!short(9) == 4);
 
 }
+/***********************************
+ * test for boolen value
+ */
+unittest
+{
+    ByteBuffer buf = new ByteBuffer(new ubyte[50]);
+    bool a = true;
+    buf.put(5, a);
+    bool b = false;
+    buf.put(9, b);
+    assert(buf.get!bool(5) == true);
+    assert(buf.get!bool(9) == false);
 
+}
 private:
 template verifyOffset(size_t length)
 {

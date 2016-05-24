@@ -1,8 +1,12 @@
 module flatbuffers.exception;
 
+import std.exception;
+
+///The number of bytes in a file identifier.
 enum fileIdentifierLength = 4;
 
-class ArgumentException : Error
+///ArgumentException
+class ArgumentException : Exception
 {
     this(string msg, string argument) pure nothrow @safe
     {
@@ -10,7 +14,8 @@ class ArgumentException : Error
     }
 }
 
-class ArgumentOutOfRangeException : Error
+///ArgumentOutOfRangeException
+class ArgumentOutOfRangeException : Exception
 {
     this(string argument, long value, string msg) pure nothrow @safe
     {
@@ -20,7 +25,8 @@ class ArgumentOutOfRangeException : Error
     }
 }
 
-class InvalidOperationException : Error
+///InvalidOperationException
+class InvalidOperationException : Exception
 {
     this(string msg) pure nothrow @safe
     {
