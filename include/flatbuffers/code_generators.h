@@ -26,6 +26,18 @@ class BaseGenerator {
       : parser_(parser), path_(path), file_name_(file_name){};
   virtual bool generate() = 0;
 
+  bool isEverythingGenerated() {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      if (!(*it)->generated) return false;
+    }
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      if (!(*it)->generated) return false;
+    }
+    return true;
+  }
+
  protected:
   virtual ~BaseGenerator(){};
 
