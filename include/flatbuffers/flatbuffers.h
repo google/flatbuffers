@@ -333,7 +333,7 @@ public:
 
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
-  void Mutate(uoffset_t i, T val) {
+  void Mutate(uoffset_t i, const T& val) {
     assert(i < size());
     WriteScalar(data() + i, val);
   }
