@@ -741,7 +741,7 @@ class CppGenerator : public BaseGenerator {
     using namespace cpp;
 
     std::string code;
-    code = code + "// " + g_flatbuffers_warning;
+    code = code + "// " + FlatBuffersGeneratedWarning();
 
     // Generate include guard.
     std::string include_guard_ident = file_name_;

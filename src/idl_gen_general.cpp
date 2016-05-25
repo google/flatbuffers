@@ -1113,40 +1113,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   code += "};\n\n";
 }
 
-// Save out the generated code for a single class while adding
-// declaration boilerplate.
-static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
-                      const std::string &defname, const std::string &classcode,
-                      const std::string &path, bool needs_includes, bool onefile) {
-  if (!classcode.length()) return true;
 
-  std::string namespace_general;
-  std::string namespace_dir = path;  // Either empty or ends in separator.
-  auto &namespaces = parser.namespaces_.back()->components;
-  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    if (namespace_general.length()) {
-      namespace_general += ".";
-    }
-    namespace_general += *it;
-    if (!onefile) {
-      namespace_dir += *it + kPathSeparator;
-    }
-
-  }
-  EnsureDirExists(namespace_dir);
-
-  std::string code;
-  code = code + "// " + g_flatbuffers_warning;
-  if (!namespace_general.empty()) {
-    code += lang.namespace_ident + namespace_general + lang.namespace_begin;
-    code += "\n\n";
-  }
-  if (needs_includes) code += lang.includes;
-  code += classcode;
-  if (!namespace_general.empty()) code += lang.namespace_end;
-  auto filename = namespace_dir + defname + lang.file_extension;
-  return SaveFile(filename.c_str(), code, false);
-}
 
 namespace general {
 class GeneralGenerator : public BaseGenerator {
@@ -1166,9 +1133,7 @@ class GeneralGenerator : public BaseGenerator {
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
-        if (!SaveClass(lang, parser_, (**it).name, enumcode, path_, false,
-                       false))
-          return false;
+        if (!SaveClass(lang, (**it).name, enumcode, false, false)) return false;
       }
     }
 
@@ -1179,17 +1144,49 @@ class GeneralGenerator : public BaseGenerator {
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
-        if (!SaveClass(lang, parser_, (**it).name, declcode, path_, true,
-                       false))
-          return false;
+        if (!SaveClass(lang, (**it).name, declcode, true, false)) return false;
       }
     }
 
     if (parser_.opts.one_file) {
-      return SaveClass(lang, parser_, file_name_, one_file_code, path_, true,
-                       true);
+      return SaveClass(lang, file_name_, one_file_code, true, true);
     }
     return true;
+  }
+
+ private:
+  // Save out the generated code for a single class while adding
+  // declaration boilerplate.
+  bool SaveClass(const LanguageParameters &lang, const std::string &defname,
+                 const std::string &classcode, bool needs_includes,
+                 bool onefile) {
+    if (!classcode.length()) return true;
+
+    std::string namespace_general;
+    std::string namespace_dir = path_;  // Either empty or ends in separator.
+    auto &namespaces = parser_.namespaces_.back()->components;
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+      if (namespace_general.length()) {
+        namespace_general += ".";
+      }
+      namespace_general += *it;
+      if (!onefile) {
+        namespace_dir += *it + kPathSeparator;
+      }
+    }
+    EnsureDirExists(namespace_dir);
+
+    std::string code;
+    code = code + "// " + FlatBuffersGeneratedWarning();
+    if (!namespace_general.empty()) {
+      code += lang.namespace_ident + namespace_general + lang.namespace_begin;
+      code += "\n\n";
+    }
+    if (needs_includes) code += lang.includes;
+    code += classcode;
+    if (!namespace_general.empty()) code += lang.namespace_end;
+    auto filename = namespace_dir + defname + lang.file_extension;
+    return SaveFile(filename.c_str(), code, false);
   }
 };
 }  // namespace general

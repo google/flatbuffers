@@ -684,7 +684,7 @@ class JsGenerator : public BaseGenerator {
 
     // Only output file-level code if there were any declarations.
     if (enum_code.length() || struct_code.length()) {
-      code = code + "// " + g_flatbuffers_warning;
+      code = code + "// " + FlatBuffersGeneratedWarning();
 
       // Generate code for all the namespace declarations.
       GenNamespaces(parser_, &code, &exports_code);
