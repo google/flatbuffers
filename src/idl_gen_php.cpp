@@ -60,7 +60,7 @@ namespace php {
       std::string *code_ptr) {
       std::string &code = *code_ptr;
       code += "<?php\n";
-      code += "// automatically generated, do not modify\n\n";
+      code = code + "// " + g_flatbuffers_warning;
       code += "namespace " + name_space_name + ";\n\n";
 
       if (needs_imports) {

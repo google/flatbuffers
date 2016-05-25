@@ -1135,7 +1135,8 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
   }
   EnsureDirExists(namespace_dir);
 
-  std::string code = "// automatically generated, do not modify\n\n";
+  std::string code;
+  code = code + "// " + g_flatbuffers_warning;
   if (!namespace_general.empty()) {
     code += lang.namespace_ident + namespace_general + lang.namespace_begin;
     code += "\n\n";
