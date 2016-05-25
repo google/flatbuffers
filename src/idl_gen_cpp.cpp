@@ -730,21 +730,7 @@ class CppGenerator : public BaseGenerator {
   // structs,
   // and tables) and output them to a single file.
   bool generate() {
-    // Check if we have any code to generate at all, to avoid an empty header.
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      if (!(*it)->generated) goto generate_code;
-    }
-    for (auto it = parser_.structs_.vec.begin(); it != parser_.structs_.vec.end();
-         ++it) {
-      if (!(*it)->generated) goto generate_code;
-    }
-    // No code to generate, exit:
-    return true;
-
-  generate_code:
-
-    using namespace cpp;
+    if (IsEverythingGenerated()) return true;
 
     std::string code;
     code =
