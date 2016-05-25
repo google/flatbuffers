@@ -29,6 +29,18 @@ class BaseGenerator {
  protected:
   virtual ~BaseGenerator(){};
 
+  bool IsEverythingGenerated() {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      if (!(*it)->generated) return false;
+    }
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      if (!(*it)->generated) return false;
+    }
+    return true;
+  }
+
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
