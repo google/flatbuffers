@@ -58,7 +58,7 @@ static void BeginFile(const std::string name_space_name,
                       const bool needs_imports,
                       std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "// automatically generated, do not modify\n\n";
+  code = code + "// " + g_flatbuffers_warning;
   code += "package " + name_space_name + "\n\n";
   if (needs_imports) {
     code += "import (\n";
