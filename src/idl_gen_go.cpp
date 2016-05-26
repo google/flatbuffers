@@ -53,20 +53,6 @@ std::string OffsetPrefix(const FieldDef &field) {
          "))\n\tif o != 0 {\n";
 }
 
-// Begin by declaring namespace and imports.
-static void BeginFile(const std::string name_space_name,
-                      const bool needs_imports,
-                      std::string *code_ptr) {
-  std::string &code = *code_ptr;
-  code += "// automatically generated, do not modify\n\n";
-  code += "package " + name_space_name + "\n\n";
-  if (needs_imports) {
-    code += "import (\n";
-    code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
-    code += ")\n";
-  }
-}
-
 // Begin a class declaration.
 static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -589,32 +575,6 @@ static std::string GenMethod(const FieldDef &field) {
     : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
 }
 
-
-// Save out the generated code for a Go Table type.
-static bool SaveType(const Parser &parser, const Definition &def,
-                     const std::string &classcode, const std::string &path,
-                     bool needs_imports) {
-  if (!classcode.length()) return true;
-
-  std::string namespace_name;
-  std::string namespace_dir = path;  // Either empty or ends in separator.
-  auto &namespaces = parser.namespaces_.back()->components;
-  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    if (namespace_name.length()) {
-      namespace_name += ".";
-    }
-    namespace_name = *it;
-    namespace_dir += *it + kPathSeparator;
-  }
-  EnsureDirExists(namespace_dir);
-
-  std::string code = "";
-  BeginFile(namespace_name, needs_imports, &code);
-  code += classcode;
-  std::string filename = namespace_dir + def.name + ".go";
-  return SaveFile(filename.c_str(), code, false);
-}
-
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
@@ -671,17 +631,55 @@ class GoGenerator : public BaseGenerator {
          ++it) {
       std::string enumcode;
       go::GenEnum(**it, &enumcode);
-      if (!go::SaveType(parser_, **it, enumcode, path_, false)) return false;
+      if (!SaveType(**it, enumcode, false)) return false;
     }
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
       go::GenStruct(**it, &declcode, parser_.root_struct_def_);
-      if (!go::SaveType(parser_, **it, declcode, path_, true)) return false;
+      if (!SaveType(**it, declcode, true)) return false;
     }
 
     return true;
+  }
+
+ private:
+  // Begin by declaring namespace and imports.
+  void BeginFile(const std::string name_space_name, const bool needs_imports,
+                 std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code = code + "// " + FlatBuffersGeneratedWarning();
+    code += "package " + name_space_name + "\n\n";
+    if (needs_imports) {
+      code += "import (\n";
+      code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
+      code += ")\n";
+    }
+  }
+
+  // Save out the generated code for a Go Table type.
+  bool SaveType(const Definition &def, const std::string &classcode,
+                bool needs_imports) {
+    if (!classcode.length()) return true;
+
+    std::string namespace_name;
+    std::string namespace_dir = path_;  // Either empty or ends in separator.
+    auto &namespaces = parser_.namespaces_.back()->components;
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+      if (namespace_name.length()) {
+        namespace_name += ".";
+      }
+      namespace_name = *it;
+      namespace_dir += *it + kPathSeparator;
+    }
+    EnsureDirExists(namespace_dir);
+
+    std::string code = "";
+    BeginFile(namespace_name, needs_imports, &code);
+    code += classcode;
+    std::string filename = namespace_dir + def.name + ".go";
+    return SaveFile(filename.c_str(), code, false);
   }
 };
 }  // namespace go
