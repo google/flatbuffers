@@ -5,12 +5,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-
 namespace MyGame {
 namespace Sample {
 
 struct Vec3;
+
 struct Monster;
+
 struct Weapon;
 
 enum Color {
@@ -55,8 +56,11 @@ MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
     : x_(flatbuffers::EndianScalar(_x)), y_(flatbuffers::EndianScalar(_y)), z_(flatbuffers::EndianScalar(_z)) { }
 
   float x() const { return flatbuffers::EndianScalar(x_); }
+  void mutate_x(float _x) { flatbuffers::WriteScalar(&x_, _x); }
   float y() const { return flatbuffers::EndianScalar(y_); }
+  void mutate_y(float _y) { flatbuffers::WriteScalar(&y_, _y); }
   float z() const { return flatbuffers::EndianScalar(z_); }
+  void mutate_z(float _z) { flatbuffers::WriteScalar(&z_, _z); }
 };
 STRUCT_END(Vec3, 12);
 
@@ -73,14 +77,23 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_EQUIPPED = 22
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
+  Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }
   int16_t mana() const { return GetField<int16_t>(VT_MANA, 150); }
+  bool mutate_mana(int16_t _mana) { return SetField(VT_MANA, _mana); }
   int16_t hp() const { return GetField<int16_t>(VT_HP, 100); }
+  bool mutate_hp(int16_t _hp) { return SetField(VT_HP, _hp); }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
+  flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(VT_NAME); }
   const flatbuffers::Vector<uint8_t> *inventory() const { return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY); }
+  flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY); }
   Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2)); }
+  bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
   const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *weapons() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS); }
+  flatbuffers::Vector<flatbuffers::Offset<Weapon>> *mutable_weapons() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS); }
   Equipment equipped_type() const { return static_cast<Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0)); }
+  bool mutate_equipped_type(Equipment _equipped_type) { return SetField(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type)); }
   const void *equipped() const { return GetPointer<const void *>(VT_EQUIPPED); }
+  void *mutable_equipped() { return GetPointer<void *>(VT_EQUIPPED); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -150,7 +163,9 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DAMAGE = 6
   };
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
+  flatbuffers::String *mutable_name() { return GetPointer<flatbuffers::String *>(VT_NAME); }
   int16_t damage() const { return GetField<int16_t>(VT_DAMAGE, 0); }
+  bool mutate_damage(int16_t _damage) { return SetField(VT_DAMAGE, _damage); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
@@ -191,6 +206,8 @@ inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *union_o
 }
 
 inline const MyGame::Sample::Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<MyGame::Sample::Monster>(buf); }
+
+inline Monster *GetMutableMonster(void *buf) { return flatbuffers::GetMutableRoot<Monster>(buf); }
 
 inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Sample::Monster>(); }
 

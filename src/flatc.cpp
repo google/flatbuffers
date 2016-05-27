@@ -78,6 +78,11 @@ const Generator generators[] = {
     flatbuffers::IDLOptions::kMAX,
     "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
+  { flatbuffers::GenerateRust, "-r", "--rust", "Rust",
+    flatbuffers::IDLOptions::kMAX,
+    "Generate Rust files for tables/structs",
+    flatbuffers::GeneralMakeRule },
+
 };
 
 const char *program_name = nullptr;
@@ -122,6 +127,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
       "  --schema           Serialize schemas instead of JSON (use with -b)\n"
+      "  --strict-rust      Follow naming conventions for Rust.\n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -197,6 +203,8 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION);
         exit(0);
+      } else if(arg == "--strict-rust") {
+          opts.strict_rust = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
           if (arg == generators[i].generator_opt_long ||

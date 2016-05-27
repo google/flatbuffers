@@ -13,6 +13,7 @@
 *.suo
 *.keystore
 **/bin/**
+!rust/src/bin/**
 **/gen/**
 **/libs/**
 **/obj/**
@@ -42,6 +43,7 @@ flatsampletext
 flatsampletext.exe
 snapshot.sh
 tests/go_gen
+tests/rust_gen
 tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
@@ -61,3 +63,4 @@ java/target
 build/VS2010/FlatBuffers.sdf
 build/VS2010/FlatBuffers.opensdf
 build/VS2010/ipch/**/*.ipch
+.editorconfig
