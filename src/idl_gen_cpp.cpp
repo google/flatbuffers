@@ -725,7 +725,7 @@ class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, ""){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs,
   // and tables) and output them to a single file.
