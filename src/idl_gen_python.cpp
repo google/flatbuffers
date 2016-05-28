@@ -647,8 +647,6 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (it != namespaces.begin()) namespace_dir += kPathSeparator;
       namespace_dir += *it;
-      EnsureDirExists(namespace_dir.c_str());
-
       std::string init_py_filename = namespace_dir + "/__init__.py";
       SaveFile(init_py_filename.c_str(), "", false);
     }

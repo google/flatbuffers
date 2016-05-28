@@ -36,11 +36,13 @@ class BaseGenerator {
 
   static const std::string NamespaceDir(const Parser &parser,
                                         const std::string &path) {
+    EnsureDirExists(path.c_str());
     if (parser.opts.one_file) return path;
     std::string namespace_dir = path;  // Either empty or ends in separator.
     auto &namespaces = parser.namespaces_.back()->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       namespace_dir += *it + kPathSeparator;
+      EnsureDirExists(namespace_dir.c_str());
     }
     return namespace_dir;
   }
