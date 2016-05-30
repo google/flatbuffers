@@ -182,7 +182,10 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   code += GenEnumVal(enum_def, minv->name, parser.opts) + ",\n";
   code += "  " + GenEnumVal(enum_def, "MAX", parser.opts) + " = ";
   code += GenEnumVal(enum_def, maxv->name, parser.opts) + "\n";
-  code += "};\n\n";
+  code += "};\n";
+  if (parser.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
+    code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ")\n";
+  code += "\n";
 
   // Generate a generate string table for enum values.
   // Problem is, if values are very sparse that could generate really big

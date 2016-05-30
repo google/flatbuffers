@@ -1485,6 +1485,35 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 #endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
+#define DEFINE_BITMASK_OPERATORS(E)\
+    inline E operator | (E lhs, E rhs){\
+        using T = std::underlying_type<E>::type;\
+        return E(T(lhs) | T(rhs));\
+    }\
+    inline E operator & (E lhs, E rhs){\
+        using T = std::underlying_type<E>::type;\
+        return E(T(lhs) & T(rhs));\
+    }\
+    inline E operator ^ (E lhs, E rhs){\
+        using T = std::underlying_type<E>::type;\
+        return E(T(lhs) ^ T(rhs));\
+    }\
+    inline E operator ~ (E lhs){\
+        using T = std::underlying_type<E>::type;\
+        return E(~T(lhs));\
+    }\
+    inline E operator |= (E &lhs, E rhs){\
+        lhs = lhs | rhs;\
+        return lhs;\
+    }\
+    inline E operator &= (E &lhs, E rhs){\
+        lhs = lhs & rhs;\
+        return lhs;\
+    }\
+    inline E operator ^= (E &lhs, E rhs){\
+        lhs = lhs ^ rhs;\
+        return lhs;\
+    }
 /// @endcond
 }  // namespace flatbuffers
 
