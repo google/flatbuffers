@@ -166,6 +166,7 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   if (parser.opts.scoped_enums)
     code += " : " + GenTypeBasic(enum_def.underlying_type, false);
   code += " {\n";
+  int64_t anyv = 0;
   EnumVal *minv = nullptr, *maxv = nullptr;
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
@@ -176,12 +177,20 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
     code += NumToString(ev.value) + ",\n";
     minv = !minv || minv->value > ev.value ? &ev : minv;
     maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
+    anyv |= ev.value;
   }
   assert(minv && maxv);
-  code += "  " + GenEnumVal(enum_def, "MIN", parser.opts) + " = ";
-  code += GenEnumVal(enum_def, minv->name, parser.opts) + ",\n";
-  code += "  " + GenEnumVal(enum_def, "MAX", parser.opts) + " = ";
-  code += GenEnumVal(enum_def, maxv->name, parser.opts) + "\n";
+  if (enum_def.attributes.Lookup("bit_flags")) {
+    if (minv->value != 0) // If the user didn't defined NONE value
+      code += "  " + GenEnumVal(enum_def, "NONE", parser.opts) + " = 0,\n";
+    if (maxv->value != anyv) // If the user didn't defined ANY value
+      code += "  " + GenEnumVal(enum_def, "ANY", parser.opts) + " = " + NumToString(anyv) + "\n";
+  } else { // MIN & MAX are useless for bit_flags
+    code += "  " + GenEnumVal(enum_def, "MIN", parser.opts) + " = ";
+    code += GenEnumVal(enum_def, minv->name, parser.opts) + ",\n";
+    code += "  " + GenEnumVal(enum_def, "MAX", parser.opts) + " = ";
+    code += GenEnumVal(enum_def, maxv->name, parser.opts) + "\n";
+  }
   code += "};\n";
   if (parser.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
     code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ", " +  GenTypeBasic(enum_def.underlying_type, false) + ")\n";
