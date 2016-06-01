@@ -1153,13 +1153,13 @@ template<typename T> const T *GetRoot(const void *buf) {
 
 /// Helpers to get a typed pointer to objects that are currently beeing built.
 /// @warning Creating new objects will lead to reallocations and invalidates the pointer!
-template<typename T> T *GetMutableObject(FlatBufferBuilder &fbb, Offset<T> offset) {
+template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
   return reinterpret_cast<T *>(fbb.GetCurrentBufferPointer() +
     fbb.GetSize() - offset.o);
 }
 
-template<typename T> const T *GetObject(FlatBufferBuilder &fbb, Offset<T> offset) {
-  return GetMutableObject<T>(fbb, offset);
+template<typename T> const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+  return GetMutableTemporaryPointer<T>(fbb, offset);
 }
 
 // Helper to see if the identifier in a buffer has the expected value.
