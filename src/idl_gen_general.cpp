@@ -69,10 +69,10 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
   }
 }
 
-// These arrays need to correspond to the GeneratorOptions::k enum.
+// These arrays need to correspond to the IDLOptions::k enum.
 
 struct LanguageParameters {
-  GeneratorOptions::Language language;
+  IDLOptions::Language language;
   // Whether function names in the language typically start with uppercase.
   bool first_camel_upper;
   const char *file_extension;
@@ -98,7 +98,7 @@ struct LanguageParameters {
 
 LanguageParameters language_parameters[] = {
   {
-    GeneratorOptions::kJava,
+    IDLOptions::kJava,
     false,
     ".java",
     "String",
@@ -126,7 +126,7 @@ LanguageParameters language_parameters[] = {
     },
   },
   {
-    GeneratorOptions::kCSharp,
+    IDLOptions::kCSharp,
     true,
     ".cs",
     "string",
@@ -145,7 +145,7 @@ LanguageParameters language_parameters[] = {
     "",
     "Position",
     "Offset",
-    "using FlatBuffers;\n\n",
+    "using System;\nusing FlatBuffers;\n\n",
     {
       nullptr,
       "///",
@@ -155,7 +155,7 @@ LanguageParameters language_parameters[] = {
   // TODO: add Go support to the general generator.
   // WARNING: this is currently only used for generating make rules for Go.
   {
-    GeneratorOptions::kGo,
+    IDLOptions::kGo,
     true,
     ".go",
     "string",
@@ -184,18 +184,44 @@ LanguageParameters language_parameters[] = {
 };
 
 static_assert(sizeof(language_parameters) / sizeof(LanguageParameters) ==
-              GeneratorOptions::kMAX,
+              IDLOptions::kMAX,
               "Please add extra elements to the arrays above.");
 
 static std::string FunctionStart(const LanguageParameters &lang, char upper) {
   return std::string() +
-      (lang.language == GeneratorOptions::kJava
+      (lang.language == IDLOptions::kJava
          ? static_cast<char>(tolower(upper))
          : upper);
 }
 
-static std::string GenTypeBasic(const LanguageParameters &lang,
-                                const Type &type) {
+static bool IsEnum(const Type& type) {
+  return type.enum_def != nullptr && IsInteger(type.base_type);
+}
+
+// Ensure that a type is prefixed with its namespace whenever it is used
+// outside of its namespace.
+static std::string WrapInNameSpace(const Parser &parser, const Namespace *ns,
+    const std::string &name) {
+        if (parser.namespaces_.back() != ns) {
+            std::string qualified_name;
+            for (auto it = ns->components.begin();
+                it != ns->components.end(); ++it) {
+                    qualified_name += *it + ".";
+            }
+            return qualified_name + name;
+        } else {
+            return name;
+        }
+}
+
+static std::string WrapInNameSpace(const Parser &parser,
+    const Definition &def) {
+        return WrapInNameSpace(parser, def.defined_namespace, def.name);
+}
+
+static std::string GenTypeBasic(const LanguageParameters &lang, const Parser &parser,
+                                const Type &type,
+                                bool enableLangOverrides) {
   static const char *gtypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #JTYPE, #NTYPE, #GTYPE,
@@ -203,54 +229,56 @@ static std::string GenTypeBasic(const LanguageParameters &lang,
     #undef FLATBUFFERS_TD
   };
 
-  if(lang.language == GeneratorOptions::kCSharp && type.base_type == BASE_TYPE_STRUCT) {
-    return "Offset<" + type.struct_def->name + ">";
+  if (enableLangOverrides) {
+    if (lang.language == IDLOptions::kCSharp) {
+      if (IsEnum(type)) return WrapInNameSpace(parser, *type.enum_def);
+      if (type.base_type == BASE_TYPE_STRUCT) {
+          return "Offset<" + WrapInNameSpace(parser, *type.struct_def) + ">";
+      }
+    }
   }
 
-  return gtypename[type.base_type * GeneratorOptions::kMAX + lang.language];
+  return gtypename[type.base_type * IDLOptions::kMAX + lang.language];
 }
 
-// Generate type to be used in user-facing API
-static std::string GenTypeForUser(const LanguageParameters &lang,
-                                  const Type &type) {
-  if (lang.language == GeneratorOptions::kCSharp) {
-    if (type.enum_def != nullptr &&
-          type.base_type != BASE_TYPE_UNION) return type.enum_def->name;
-  }
-  return GenTypeBasic(lang, type);
+static std::string GenTypeBasic(const LanguageParameters &lang, const Parser &parser,
+                                const Type &type) {
+  return GenTypeBasic(lang, parser, type, true);
 }
 
-static std::string GenTypeGet(const LanguageParameters &lang,
+static std::string GenTypeGet(const LanguageParameters &lang, const Parser &parser,
                               const Type &type);
 
-static std::string GenTypePointer(const LanguageParameters &lang,
+static std::string GenTypePointer(const LanguageParameters &lang, const Parser &parser,
                                   const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING:
       return lang.string_type;
     case BASE_TYPE_VECTOR:
-      return GenTypeGet(lang, type.VectorType());
+      return GenTypeGet(lang, parser, type.VectorType());
     case BASE_TYPE_STRUCT:
-      return type.struct_def->name;
+      return WrapInNameSpace(parser, *type.struct_def);
     case BASE_TYPE_UNION:
+      // Unions in C# use a generic Table-derived type for better type safety
+      if (lang.language == IDLOptions::kCSharp) return "TTable";
       // fall through
     default:
       return "Table";
   }
 }
 
-static std::string GenTypeGet(const LanguageParameters &lang,
+static std::string GenTypeGet(const LanguageParameters &lang, const Parser &parser,
                               const Type &type) {
   return IsScalar(type.base_type)
-    ? GenTypeBasic(lang, type)
-    : GenTypePointer(lang, type);
+    ? GenTypeBasic(lang, parser, type)
+    : GenTypePointer(lang, parser, type);
 }
 
 // Find the destination type the user wants to receive the value in (e.g.
 // one size higher signed types for unsigned serialized values in Java).
-static Type DestinationType(const LanguageParameters &lang, const Type &type,
+static Type DestinationType(const LanguageParameters &lang, const Parser &parser, const Type &type,
                             bool vectorelem) {
-  if (lang.language != GeneratorOptions::kJava) return type;
+  if (lang.language != IDLOptions::kJava) return type;
   switch (type.base_type) {
     // We use int for both uchar/ushort, since that generally means less casting
     // than using short for uchar.
@@ -259,32 +287,33 @@ static Type DestinationType(const LanguageParameters &lang, const Type &type,
     case BASE_TYPE_UINT:   return Type(BASE_TYPE_LONG);
     case BASE_TYPE_VECTOR:
       if (vectorelem)
-        return DestinationType(lang, type.VectorType(), vectorelem);
+        return DestinationType(lang, parser, type.VectorType(), vectorelem);
       // else fall thru:
     default: return type;
   }
 }
 
-static std::string GenOffsetType(const LanguageParameters &lang, const StructDef &struct_def) {
-  if(lang.language == GeneratorOptions::kCSharp) {
-    return "Offset<" + struct_def.name + ">";
+static std::string GenOffsetType(const LanguageParameters &lang, const Parser &parser, 
+                                 const StructDef &struct_def) {
+  if(lang.language == IDLOptions::kCSharp) {
+    return "Offset<" + WrapInNameSpace(parser, struct_def) + ">";
   } else {
     return "int";
   }
 }
 
-static std::string GenOffsetConstruct(const LanguageParameters &lang,
+static std::string GenOffsetConstruct(const LanguageParameters &lang, const Parser &parser,
                                       const StructDef &struct_def,
                                       const std::string &variable_name)
 {
-  if(lang.language == GeneratorOptions::kCSharp) {
-    return "new Offset<" + struct_def.name + ">(" + variable_name + ")";
+  if(lang.language == IDLOptions::kCSharp) {
+    return "new Offset<" + WrapInNameSpace(parser, struct_def) + ">(" + variable_name + ")";
   }
   return variable_name;
 }
 
 static std::string GenVectorOffsetType(const LanguageParameters &lang) {
-  if(lang.language == GeneratorOptions::kCSharp) {
+  if(lang.language == IDLOptions::kCSharp) {
     return "VectorOffset";
   } else {
     return "int";
@@ -292,26 +321,15 @@ static std::string GenVectorOffsetType(const LanguageParameters &lang) {
 }
 
 // Generate destination type name
-static std::string GenTypeNameDest(const LanguageParameters &lang, const Type &type)
+static std::string GenTypeNameDest(const LanguageParameters &lang, const Parser &parser, const Type &type)
 {
-  if (lang.language == GeneratorOptions::kCSharp) {
-    // C# enums are represented by themselves
-    if (type.enum_def != nullptr && type.base_type != BASE_TYPE_UNION)
-      return type.enum_def->name;
-
-    // Unions in C# use a generic Table-derived type for better type safety
-    if (type.base_type == BASE_TYPE_UNION)
-      return "TTable";
-  }
-
-  // default behavior
-  return GenTypeGet(lang, DestinationType(lang, type, true));
+  return GenTypeGet(lang, parser, DestinationType(lang, parser, type, true));
 }
 
 // Mask to turn serialized value into destination type value.
 static std::string DestinationMask(const LanguageParameters &lang,
                                    const Type &type, bool vectorelem) {
-  if (lang.language != GeneratorOptions::kJava) return "";
+  if (lang.language != IDLOptions::kJava) return "";
   switch (type.base_type) {
     case BASE_TYPE_UCHAR:  return " & 0xFF";
     case BASE_TYPE_USHORT: return " & 0xFFFF";
@@ -325,91 +343,139 @@ static std::string DestinationMask(const LanguageParameters &lang,
 }
 
 // Casts necessary to correctly read serialized data
-static std::string DestinationCast(const LanguageParameters &lang,
+static std::string DestinationCast(const LanguageParameters &lang, const Parser &parser,
                                    const Type &type) {
-  switch (lang.language) {
-    case GeneratorOptions::kJava:
+  if (type.base_type == BASE_TYPE_VECTOR) {
+    return DestinationCast(lang, parser, type.VectorType());
+  } else {
+    switch (lang.language) {
+    case IDLOptions::kJava:
       // Cast necessary to correctly read serialized unsigned values.
-      if (type.base_type == BASE_TYPE_UINT ||
-          (type.base_type == BASE_TYPE_VECTOR &&
-           type.element == BASE_TYPE_UINT)) return "(long)";
+      if (type.base_type == BASE_TYPE_UINT) return "(long)";
       break;
 
-    case GeneratorOptions::kCSharp:
-      // Cast from raw integral types to enum
-      if (type.enum_def != nullptr &&
-        type.base_type != BASE_TYPE_UNION) return "(" + type.enum_def->name + ")";
-        break;
+    case IDLOptions::kCSharp:
+      // Cast from raw integral types to enum.
+      if (IsEnum(type)) return "(" + WrapInNameSpace(parser, *type.enum_def) + ")";
+      break;
 
     default:
       break;
+    }
   }
   return "";
-}
-
-// Read value and possibly process it to get proper value
-static std::string DestinationValue(const LanguageParameters &lang,
-  const std::string &name,
-  const Type &type) {
-  std::string type_mask = DestinationMask(lang, type, false);
-  // is a typecast needed? (for C# enums and unsigned values in Java)
-  if (type_mask.length() ||
-    (lang.language == GeneratorOptions::kCSharp &&
-    type.enum_def != nullptr &&
-    type.base_type != BASE_TYPE_UNION)) {
-    return "(" + GenTypeBasic(lang, type) + ")(" + name + type_mask + ")";
-  } else {
-    return name;
-  }
 }
 
 // Cast statements for mutator method parameters.
 // In Java, parameters representing unsigned numbers need to be cast down to their respective type.
 // For example, a long holding an unsigned int value would be cast down to int before being put onto the buffer.
 // In C#, one cast directly cast an Enum to its underlying type, which is essential before putting it onto the buffer.
-static std::string SourceCast(const LanguageParameters &lang,
-                              const Type &type) {
+static std::string SourceCast(const LanguageParameters &lang, const Parser &parser,
+                              const Type &type,
+                              bool castFromDest) {
   if (type.base_type == BASE_TYPE_VECTOR) {
-    return SourceCast(lang, type.VectorType());
+    return SourceCast(lang, parser, type.VectorType(), castFromDest);
   } else {
     switch (lang.language) {
-      case GeneratorOptions::kJava:
-        if (type.base_type == BASE_TYPE_UINT) return "(int)";
-        else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
-        else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+      case IDLOptions::kJava:
+        if (castFromDest) {
+          if (type.base_type == BASE_TYPE_UINT) return "(int)";
+          else if (type.base_type == BASE_TYPE_USHORT) return "(short)";
+          else if (type.base_type == BASE_TYPE_UCHAR) return "(byte)";
+        }
         break;
-      case GeneratorOptions::kCSharp:
-        if (type.enum_def != nullptr && 
-            type.base_type != BASE_TYPE_UNION) 
-          return "(" + GenTypeGet(lang, type) + ")";
+      case IDLOptions::kCSharp:
+        if (IsEnum(type)) return "(" + GenTypeBasic(lang, parser, type, false) + ")";
         break;
       default:
         break;
     }
-    return "";
   }
+  return "";
 }
 
-static std::string GenDefaultValue(const LanguageParameters &lang, const Value &value, bool for_buffer) {
-  if(lang.language == GeneratorOptions::kCSharp && !for_buffer) {
-    switch(value.type.base_type) {
-      case BASE_TYPE_STRING:
-        return "default(StringOffset)";
-      case BASE_TYPE_STRUCT:
-        return "default(Offset<" + value.type.struct_def->name + ">)";
-      case BASE_TYPE_VECTOR:
-        return "default(VectorOffset)";
-      default:
-        break;
+static std::string SourceCast(const LanguageParameters &lang, const Parser &parser,
+                              const Type &type) {
+  return SourceCast(lang, parser, type, true);
+}
+
+static std::string SourceCastBasic(const LanguageParameters &lang, const Parser &parser,
+                                   const Type &type,
+                                   bool castFromDest) {
+  return IsScalar(type.base_type) ? SourceCast(lang, parser, type, castFromDest) : "";
+}
+
+static std::string SourceCastBasic(const LanguageParameters &lang, const Parser &parser,
+                                   const Type &type) {
+  return SourceCastBasic(lang, parser, type, true);
+}
+
+
+static std::string GenEnumDefaultValue(const Parser &parser, const Value &value) {
+  auto enum_def = value.type.enum_def;
+  auto vec = enum_def->vals.vec;
+  auto default_value = StringToInt(value.constant.c_str());
+
+  auto result = value.constant;
+  for (auto it = vec.begin(); it != vec.end(); ++it) {
+    auto enum_val = **it;
+    if (enum_val.value == default_value) {
+      result = WrapInNameSpace(parser, *enum_def) + "." + enum_val.name;
+      break;
     }
   }
 
+  return result;
+}
+
+static std::string GenDefaultValue(const LanguageParameters &lang, const Parser &parser, 
+                                   const Value &value, bool enableLangOverrides) {
+  if (enableLangOverrides) {
+    // handles both enum case and vector of enum case
+    if (lang.language == IDLOptions::kCSharp &&
+        value.type.enum_def != nullptr &&
+        value.type.base_type != BASE_TYPE_UNION) {
+      return GenEnumDefaultValue(parser, value);
+    }
+  }
   return value.type.base_type == BASE_TYPE_BOOL
            ? (value.constant == "0" ? "false" : "true")
            : value.constant;
 }
 
-static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
+static std::string GenDefaultValue(const LanguageParameters &lang, const Parser &parser,
+                                   const Value &value) {
+  return GenDefaultValue(lang, parser, value, true);
+}
+
+static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser, 
+                                        const Value &value, bool enableLangOverrides) {
+  if (!IsScalar(value.type.base_type)) {
+    if (enableLangOverrides) {
+      if (lang.language == IDLOptions::kCSharp) {
+        switch (value.type.base_type) {
+        case BASE_TYPE_STRING:
+          return "default(StringOffset)";
+        case BASE_TYPE_STRUCT:
+          return "default(Offset<" + WrapInNameSpace(parser, *value.type.struct_def) + ">)";
+        case BASE_TYPE_VECTOR:
+          return "default(VectorOffset)";
+        default:
+          break;
+        }
+      }
+    }
+    return "0";
+  }
+  return GenDefaultValue(lang, parser, value, enableLangOverrides);
+}
+
+static std::string GenDefaultValueBasic(const LanguageParameters &lang, const Parser &parser, 
+                                        const Value &value) {
+  return GenDefaultValueBasic(lang, parser, value, true);
+}
+
+static void GenEnum(const LanguageParameters &lang, const Parser &parser, EnumDef &enum_def,
                     std::string *code_ptr) {
   std::string &code = *code_ptr;
   if (enum_def.generated) return;
@@ -421,11 +487,11 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
   // That, and Java Enums are expensive, and not universally liked.
   GenComment(enum_def.doc_comment, code_ptr, &lang.comment_config);
   code += std::string("public ") + lang.enum_decl + enum_def.name;
-  if (lang.language == GeneratorOptions::kCSharp) {
-    code += lang.inheritance_marker + GenTypeBasic(lang, enum_def.underlying_type);
+  if (lang.language == IDLOptions::kCSharp) {
+    code += lang.inheritance_marker + GenTypeBasic(lang, parser, enum_def.underlying_type, false);
   }
   code += lang.open_curly;
-  if (lang.language == GeneratorOptions::kJava) {
+  if (lang.language == IDLOptions::kJava) {
     code += "  private " + enum_def.name + "() { }\n";
   }
   for (auto it = enum_def.vals.vec.begin();
@@ -433,10 +499,10 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
        ++it) {
     auto &ev = **it;
     GenComment(ev.doc_comment, code_ptr, &lang.comment_config, "  ");
-    if (lang.language != GeneratorOptions::kCSharp) {
+    if (lang.language != IDLOptions::kCSharp) {
       code += "  public static";
       code += lang.const_decl;
-      code += GenTypeBasic(lang, enum_def.underlying_type);
+      code += GenTypeBasic(lang, parser, enum_def.underlying_type, false);
     }
     code += " " + ev.name + " = ";
     code += NumToString(ev.value);
@@ -445,7 +511,7 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
 
   // Generate a generate string table for enum values.
   // We do not do that for C# where this functionality is native.
-  if (lang.language != GeneratorOptions::kCSharp) {
+  if (lang.language != IDLOptions::kCSharp) {
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
     // the moment we simply don't output a table at all.
@@ -482,19 +548,19 @@ static void GenEnum(const LanguageParameters &lang, EnumDef &enum_def,
 }
 
 // Returns the function name that is able to read a value of the given type.
-static std::string GenGetter(const LanguageParameters &lang,
+static std::string GenGetter(const LanguageParameters &lang, const Parser &parser,
                              const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "__string";
     case BASE_TYPE_STRUCT: return "__struct";
     case BASE_TYPE_UNION:  return "__union";
-    case BASE_TYPE_VECTOR: return GenGetter(lang, type.VectorType());
+    case BASE_TYPE_VECTOR: return GenGetter(lang, parser, type.VectorType());
     default: {
       std::string getter = "bb." + FunctionStart(lang, 'G') + "et";
       if (type.base_type == BASE_TYPE_BOOL) {
         getter = "0!=" + getter;
-      } else if (GenTypeBasic(lang, type) != "byte") {
-        getter += MakeCamel(GenTypeGet(lang, type));
+      } else if (GenTypeBasic(lang, parser, type, false) != "byte") {
+        getter += MakeCamel(GenTypeBasic(lang, parser, type, false));
       }
       return getter;
     }
@@ -503,13 +569,13 @@ static std::string GenGetter(const LanguageParameters &lang,
 
 // Direct mutation is only allowed for scalar fields.
 // Hence a setter method will only be generated for such fields.
-static std::string GenSetter(const LanguageParameters &lang,
+static std::string GenSetter(const LanguageParameters &lang, const Parser &parser,
                              const Type &type) {
   if (IsScalar(type.base_type)) {
     std::string setter = "bb." + FunctionStart(lang, 'P') + "ut";
-    if (GenTypeBasic(lang, type) != "byte" && 
+    if (GenTypeBasic(lang, parser, type, false) != "byte" && 
         type.base_type != BASE_TYPE_BOOL) {
-      setter += MakeCamel(GenTypeGet(lang, type));
+      setter += MakeCamel(GenTypeBasic(lang, parser, type, false));
     }
     return setter;
   } else {
@@ -518,15 +584,15 @@ static std::string GenSetter(const LanguageParameters &lang,
 }
 
 // Returns the method name for use with add/put calls.
-static std::string GenMethod(const LanguageParameters &lang, const Type &type) {
+static std::string GenMethod(const LanguageParameters &lang, const Parser &parser, const Type &type) {
   return IsScalar(type.base_type)
-    ? MakeCamel(GenTypeBasic(lang, type))
+    ? MakeCamel(GenTypeBasic(lang, parser, type, false))
     : (IsStruct(type) ? "Struct" : "Offset");
 }
 
 // Recursively generate arguments for a constructor, to deal with nested
 // structs.
-static void GenStructArgs(const LanguageParameters &lang,
+static void GenStructArgs(const LanguageParameters &lang, const Parser &parser,
                           const StructDef &struct_def,
                           std::string *code_ptr, const char *nameprefix) {
   std::string &code = *code_ptr;
@@ -538,12 +604,11 @@ static void GenStructArgs(const LanguageParameters &lang,
       // Generate arguments for a struct inside a struct. To ensure names
       // don't clash, and to make it obvious these arguments are constructing
       // a nested struct, prefix the name with the field name.
-      GenStructArgs(lang, *field.value.type.struct_def, code_ptr,
+      GenStructArgs(lang, parser, *field.value.type.struct_def, code_ptr,
                     (nameprefix + (field.name + "_")).c_str());
     } else {
       code += ", ";
-      code += GenTypeForUser(lang,
-                             DestinationType(lang, field.value.type, false));
+      code += GenTypeBasic(lang, parser, DestinationType(lang, parser, field.value.type, false));
       code += " ";
       code += nameprefix;
       code += MakeCamel(field.name, lang.first_camel_upper);
@@ -554,7 +619,7 @@ static void GenStructArgs(const LanguageParameters &lang,
 // Recusively generate struct construction statements of the form:
 // builder.putType(name);
 // and insert manual padding.
-static void GenStructBody(const LanguageParameters &lang,
+static void GenStructBody(const LanguageParameters &lang, const Parser &parser,
                           const StructDef &struct_def,
                           std::string *code_ptr, const char *nameprefix) {
   std::string &code = *code_ptr;
@@ -569,21 +634,21 @@ static void GenStructBody(const LanguageParameters &lang,
       code += NumToString(field.padding) + ");\n";
     }
     if (IsStruct(field.value.type)) {
-      GenStructBody(lang, *field.value.type.struct_def, code_ptr,
+      GenStructBody(lang, parser, *field.value.type.struct_def, code_ptr,
                     (nameprefix + (field.name + "_")).c_str());
     } else {
       code += "    builder." + FunctionStart(lang, 'P') + "ut";
-      code += GenMethod(lang, field.value.type) + "(";
+      code += GenMethod(lang, parser, field.value.type) + "(";
+      code += SourceCast(lang, parser, field.value.type);
       auto argname = nameprefix + MakeCamel(field.name, lang.first_camel_upper);
-      code += DestinationValue(lang, argname, field.value.type);
+      code += argname;
       code += ");\n";
     }
   }
 }
 
 static void GenStruct(const LanguageParameters &lang, const Parser &parser,
-                      StructDef &struct_def, const GeneratorOptions &opts,
-                      std::string *code_ptr) {
+                      StructDef &struct_def, std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
 
@@ -594,7 +659,15 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
   // }
   GenComment(struct_def.doc_comment, code_ptr, &lang.comment_config);
-  code += std::string("public ") + lang.unsubclassable_decl;
+  code += "public ";
+  if (lang.language == IDLOptions::kCSharp &&
+      struct_def.attributes.Lookup("csharp_partial")) {
+    // generate a partial class for this C# struct/table
+    code += "partial ";
+  }
+  else {
+    code += lang.unsubclassable_decl;
+  }
   code += "class " + struct_def.name + lang.inheritance_marker;
   code += struct_def.fixed ? "Struct" : "Table";
   code += " {\n";
@@ -639,11 +712,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     auto &field = **it;
     if (field.deprecated) continue;
     GenComment(field.doc_comment, code_ptr, &lang.comment_config, "  ");
-    std::string type_name = GenTypeGet(lang, field.value.type);
-    std::string type_name_dest = GenTypeNameDest(lang, field.value.type);
+    std::string type_name = GenTypeGet(lang, parser, field.value.type);
+    std::string type_name_dest = GenTypeNameDest(lang, parser, field.value.type);
     std::string dest_mask = DestinationMask(lang, field.value.type, true);
-    std::string dest_cast = DestinationCast(lang, field.value.type);
-    std::string src_cast = SourceCast(lang, field.value.type);
+    std::string dest_cast = DestinationCast(lang, parser, field.value.type);
+    std::string src_cast = SourceCast(lang, parser, field.value.type);
     std::string method_start = "  public " + type_name_dest + " " +
                                MakeCamel(field.name, lang.first_camel_upper);
 
@@ -655,7 +728,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     // Generate the accessors that don't do object reuse.
     if (field.value.type.base_type == BASE_TYPE_STRUCT) {
       // Calls the accessor that takes an accessor object with a new object.
-      if (lang.language == GeneratorOptions::kCSharp) {
+      if (lang.language == IDLOptions::kCSharp) {
         code += method_start + " { get { return Get";
         code += MakeCamel(field.name, lang.first_camel_upper);
         code += "(new ";
@@ -672,7 +745,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
                field.value.type.element == BASE_TYPE_STRUCT) {
       // Accessors for vectors of structs also take accessor objects, this
       // generates a variant without that argument.
-      if (lang.language == GeneratorOptions::kCSharp) {
+      if (lang.language == IDLOptions::kCSharp) {
         method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
         code += method_start + "(int j) { return Get";
       } else {
@@ -682,22 +755,31 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "(new ";
       code += type_name + "(), j); }\n";
     } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-      if (lang.language == GeneratorOptions::kCSharp) {
+      if (lang.language == IDLOptions::kCSharp) {
         method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper);
       }
     } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-      if (lang.language == GeneratorOptions::kCSharp) {
+      if (lang.language == IDLOptions::kCSharp) {
         // union types in C# use generic Table-derived type for better type safety
         method_start = "  public " + type_name_dest + " Get" + MakeCamel(field.name, lang.first_camel_upper) + "<TTable>";
         offset_prefix = " where TTable : Table" + offset_prefix;
         type_name = type_name_dest;
       }
     }
-    std::string getter = dest_cast + GenGetter(lang, field.value.type);
+    std::string getter = dest_cast + GenGetter(lang, parser, field.value.type);
     code += method_start;
     std::string default_cast = "";
-    if (lang.language == GeneratorOptions::kCSharp)
-      default_cast = "(" + type_name_dest + ")";
+    // only create default casts for c# scalars or vectors of scalars
+    if (lang.language == IDLOptions::kCSharp &&
+        (IsScalar(field.value.type.base_type) ||
+         (field.value.type.base_type == BASE_TYPE_VECTOR && IsScalar(field.value.type.element)))) {
+      // For scalars, default value will be returned by GetDefaultValue(). If the scalar is an enum, GetDefaultValue()
+      // returns an actual c# enum that doesn't need to be casted. However, default values for enum elements of
+      // vectors are integer literals ("0") and are still casted for clarity.
+      if (field.value.type.enum_def == nullptr || field.value.type.base_type == BASE_TYPE_VECTOR) {
+          default_cast = "(" + type_name_dest + ")";
+      }
+    }
     std::string member_suffix = "";
     if (IsScalar(field.value.type.base_type)) {
       code += lang.getter_prefix;
@@ -709,7 +791,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       } else {
         code += offset_prefix + getter;
         code += "(o + bb_pos)" + dest_mask + " : " + default_cast;
-        code += GenDefaultValue(lang, field.value, false);
+        code += GenDefaultValue(lang, parser, field.value);
       }
     } else {
       switch (field.value.type.base_type) {
@@ -778,21 +860,53 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "}\n";
     }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
-    if (((field.value.type.base_type == BASE_TYPE_VECTOR &&
-          IsScalar(field.value.type.VectorType().base_type)) ||
-         field.value.type.base_type == BASE_TYPE_STRING) &&
-        lang.language == GeneratorOptions::kJava) {
-      code += "  public ByteBuffer ";
-      code += MakeCamel(field.name, lang.first_camel_upper);
-      code += "AsByteBuffer() { return __vector_as_bytebuffer(";
-      code += NumToString(field.value.offset) + ", ";
-      code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
-                          InlineSize(field.value.type.VectorType()));
-      code += "); }\n";
+    if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
+         IsScalar(field.value.type.VectorType().base_type)) ||
+         field.value.type.base_type == BASE_TYPE_STRING) {
+      switch (lang.language) {
+        case IDLOptions::kJava:
+          code += "  public ByteBuffer ";
+          code += MakeCamel(field.name, lang.first_camel_upper);
+          code += "AsByteBuffer() { return __vector_as_bytebuffer(";
+          code += NumToString(field.value.offset) + ", ";
+          code += NumToString(field.value.type.base_type == BASE_TYPE_STRING ? 1 :
+                              InlineSize(field.value.type.VectorType()));
+          code += "); }\n";
+          break;
+        case IDLOptions::kCSharp:
+          code += "  public ArraySegment<byte>? Get";
+          code += MakeCamel(field.name, lang.first_camel_upper);
+          code += "Bytes() { return __vector_as_arraysegment(";
+          code += NumToString(field.value.offset);
+          code += "); }\n";
+          break;
+        default:
+          break;
+      }
     }
-
+	// generate object accessors if is nested_flatbuffer
+	auto nested = field.attributes.Lookup("nested_flatbuffer");
+	if (nested) {
+		auto nested_qualified_name =
+			parser.namespaces_.back()->GetFullyQualifiedName(nested->constant);
+		auto nested_type = parser.structs_.Lookup(nested_qualified_name);
+		auto nested_type_name = WrapInNameSpace(parser, *nested_type);
+		auto nestedMethodName = MakeCamel(field.name, lang.first_camel_upper) 
+			+ "As" + nested_type_name;
+		auto getNestedMethodName = nestedMethodName;
+		if (lang.language == IDLOptions::kCSharp) {
+			getNestedMethodName = "Get" + nestedMethodName;
+		}
+		code += "  public " + nested_type_name + " ";
+		code += nestedMethodName + "() { return ";
+		code += getNestedMethodName + "(new " + nested_type_name + "()); }\n";
+		code += "  public " + nested_type_name + " " + getNestedMethodName;
+		code += "(" + nested_type_name + " obj) { ";
+		code += "int o = __offset(" + NumToString(field.value.offset) +"); ";
+		code += "return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }\n";
+	}
     // generate mutators for scalar fields or vectors of scalars
-    if (opts.mutable_buffer) {
+    if (parser.opts.mutable_buffer) {
       auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR
                     ? field.value.type.VectorType()
                     : field.value.type;
@@ -801,14 +915,12 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       auto mutator_prefix = MakeCamel("mutate", lang.first_camel_upper);
       //a vector mutator also needs the index of the vector element it should mutate
       auto mutator_params = (field.value.type.base_type == BASE_TYPE_VECTOR ? "(int j, " : "(") +
-                            GenTypeNameDest(lang, underlying_type) + " " + 
+                            GenTypeNameDest(lang, parser, underlying_type) + " " +
                             field.name + ") { ";
       auto setter_index = field.value.type.base_type == BASE_TYPE_VECTOR
                     ? "__vector(o) + j * " + NumToString(InlineSize(underlying_type))
                     : (struct_def.fixed ? "bb_pos + " + NumToString(field.value.offset) : "o + bb_pos");
-      
-
-      if (IsScalar(field.value.type.base_type) || 
+      if (IsScalar(field.value.type.base_type) ||
           (field.value.type.base_type == BASE_TYPE_VECTOR &&
           IsScalar(field.value.type.VectorType().base_type))) {
         code += "  public ";
@@ -816,11 +928,11 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += mutator_prefix + MakeCamel(field.name, true);
         code += mutator_params;
         if (struct_def.fixed) {
-          code += GenSetter(lang, underlying_type) + "(" + setter_index + ", ";
+          code += GenSetter(lang, parser, underlying_type) + "(" + setter_index + ", ";
           code += src_cast + setter_parameter + "); }\n";
         } else {
           code += "int o = __offset(" + NumToString(field.value.offset) + ");";
-          code += " if (o != 0) { " + GenSetter(lang, underlying_type);
+          code += " if (o != 0) { " + GenSetter(lang, parser, underlying_type);
           code += "(" + setter_index + ", " + src_cast + setter_parameter + "); return true; } else { return false; } }\n";
         }
       }
@@ -829,14 +941,14 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
   code += "\n";
   if (struct_def.fixed) {
     // create a struct constructor function
-    code += "  public static " + GenOffsetType(lang, struct_def) + " ";
+    code += "  public static " + GenOffsetType(lang, parser, struct_def) + " ";
     code += FunctionStart(lang, 'C') + "reate";
     code += struct_def.name + "(FlatBufferBuilder builder";
-    GenStructArgs(lang, struct_def, code_ptr, "");
+    GenStructArgs(lang, parser, struct_def, code_ptr, "");
     code += ") {\n";
-    GenStructBody(lang, struct_def, code_ptr, "");
+    GenStructBody(lang, parser, struct_def, code_ptr, "");
     code += "    return ";
-    code += GenOffsetConstruct(lang, struct_def, "builder." + std::string(lang.get_fbb_offset));
+    code += GenOffsetConstruct(lang, parser, struct_def, "builder." + std::string(lang.get_fbb_offset));
     code += ";\n  }\n";
   } else {
     // Generate a method that creates a table in one go. This is only possible
@@ -857,7 +969,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     if (has_no_struct_fields && num_fields) {
       // Generate a table constructor of the form:
       // public static int createName(FlatBufferBuilder builder, args...)
-      code += "  public static " + GenOffsetType(lang, struct_def) + " ";
+      code += "  public static " + GenOffsetType(lang, parser, struct_def) + " ";
       code += FunctionStart(lang, 'C') + "reate" + struct_def.name;
       code += "(FlatBufferBuilder builder";
       for (auto it = struct_def.fields.vec.begin();
@@ -865,22 +977,16 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         auto &field = **it;
         if (field.deprecated) continue;
         code += ",\n      ";
-        code += GenTypeForUser(lang,
-                               DestinationType(lang, field.value.type, false));
+        code += GenTypeBasic(lang, parser, DestinationType(lang, parser, field.value.type, false));
         code += " ";
         code += field.name;
+        if (!IsScalar(field.value.type.base_type)) code += "Offset";
+
         // Java doesn't have defaults, which means this method must always
         // supply all arguments, and thus won't compile when fields are added.
-        if (lang.language != GeneratorOptions::kJava) {
+        if (lang.language != IDLOptions::kJava) {
           code += " = ";
-          // in C#, enum values have their own type, so we need to cast the
-          // numeric value to the proper type
-          if (lang.language == GeneratorOptions::kCSharp &&
-            field.value.type.enum_def != nullptr &&
-            field.value.type.base_type != BASE_TYPE_UNION) {
-            code += "(" + field.value.type.enum_def->name + ")";
-          }
-          code += GenDefaultValue(lang, field.value, false);
+          code += GenDefaultValueBasic(lang, parser, field.value);
         }
       }
       code += ") {\n    builder.";
@@ -897,7 +1003,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
                size == SizeOf(field.value.type.base_type))) {
             code += "    " + struct_def.name + ".";
             code += FunctionStart(lang, 'A') + "dd";
-            code += MakeCamel(field.name) + "(builder, " + field.name + ");\n";
+            code += MakeCamel(field.name) + "(builder, " + field.name;
+            if (!IsScalar(field.value.type.base_type)) code += "Offset";
+            code += ");\n";
           }
         }
       }
@@ -922,18 +1030,18 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       code += "  public static void " + FunctionStart(lang, 'A') + "dd";
       code += MakeCamel(field.name);
       code += "(FlatBufferBuilder builder, ";
-      code += GenTypeForUser(lang,
-                             DestinationType(lang, field.value.type, false));
+      code += GenTypeBasic(lang, parser, DestinationType(lang, parser, field.value.type, false));
       auto argname = MakeCamel(field.name, false);
       if (!IsScalar(field.value.type.base_type)) argname += "Offset";
       code += " " + argname + ") { builder." + FunctionStart(lang, 'A') + "dd";
-      code += GenMethod(lang, field.value.type) + "(";
+      code += GenMethod(lang, parser, field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-      code += DestinationValue(lang, argname, field.value.type);
-      if(!IsScalar(field.value.type.base_type) && field.value.type.base_type != BASE_TYPE_UNION && lang.language == GeneratorOptions::kCSharp) {
+      code += SourceCastBasic(lang, parser, field.value.type);
+      code += argname;
+      if(!IsScalar(field.value.type.base_type) && field.value.type.base_type != BASE_TYPE_UNION && lang.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + GenDefaultValue(lang, field.value, true);
+      code += ", " + GenDefaultValue(lang, parser, field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
@@ -944,7 +1052,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           code += "  public static " + GenVectorOffsetType(lang) + " " + FunctionStart(lang, 'C') + "reate";
           code += MakeCamel(field.name);
           code += "Vector(FlatBufferBuilder builder, ";
-          code += GenTypeBasic(lang, vector_type) + "[] data) ";
+          code += GenTypeBasic(lang, parser, vector_type) + "[] data) ";
           code += "{ builder." + FunctionStart(lang, 'S') + "tartVector(";
           code += NumToString(elem_size);
           code += ", data." + FunctionStart(lang, 'L') + "ength, ";
@@ -952,11 +1060,13 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
           code += "); for (int i = data.";
           code += FunctionStart(lang, 'L') + "ength - 1; i >= 0; i--) builder.";
           code += FunctionStart(lang, 'A') + "dd";
-          code += GenMethod(lang, vector_type);
-          code += "(data[i]";
-          if(lang.language == GeneratorOptions::kCSharp &&
-              (vector_type.base_type == BASE_TYPE_STRUCT || vector_type.base_type == BASE_TYPE_STRING))
-              code += ".Value";
+          code += GenMethod(lang, parser, vector_type);
+          code += "(";
+          code += SourceCastBasic(lang, parser, vector_type, false);
+          code += "data[i]";
+          if (lang.language == IDLOptions::kCSharp &&
+            (vector_type.base_type == BASE_TYPE_STRUCT || vector_type.base_type == BASE_TYPE_STRING))
+            code += ".Value";
           code += "); return ";
           code += "builder." + FunctionStart(lang, 'E') + "ndVector(); }\n";
         }
@@ -970,7 +1080,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += "); }\n";
       }
     }
-    code += "  public static " + GenOffsetType(lang, struct_def) + " ";
+    code += "  public static " + GenOffsetType(lang, parser, struct_def) + " ";
     code += FunctionStart(lang, 'E') + "nd" + struct_def.name;
     code += "(FlatBufferBuilder builder) {\n    int o = builder.";
     code += FunctionStart(lang, 'E') + "ndObject();\n";
@@ -984,13 +1094,13 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
         code += ");  // " + field.name + "\n";
       }
     }
-    code += "    return " + GenOffsetConstruct(lang, struct_def, "o") + ";\n  }\n";
+    code += "    return " + GenOffsetConstruct(lang, parser, struct_def, "o") + ";\n  }\n";
     if (parser.root_struct_def_ == &struct_def) {
       code += "  public static void ";
       code += FunctionStart(lang, 'F') + "inish" + struct_def.name;
-      code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType(lang, struct_def) + " offset) {";
+      code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType(lang, parser, struct_def) + " offset) {";
       code += " builder." + FunctionStart(lang, 'F') + "inish(offset";
-      if (lang.language == GeneratorOptions::kCSharp) {
+      if (lang.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
 
@@ -1038,18 +1148,17 @@ static bool SaveClass(const LanguageParameters &lang, const Parser &parser,
 
 bool GenerateGeneral(const Parser &parser,
                      const std::string &path,
-                     const std::string & file_name,
-                     const GeneratorOptions &opts) {
+                     const std::string & file_name) {
 
-  assert(opts.lang <= GeneratorOptions::kMAX);
-  auto lang = language_parameters[opts.lang];
+  assert(parser.opts.lang <= IDLOptions::kMAX);
+  auto lang = language_parameters[parser.opts.lang];
   std::string one_file_code;
 
   for (auto it = parser.enums_.vec.begin();
        it != parser.enums_.vec.end(); ++it) {
     std::string enumcode;
-    GenEnum(lang, **it, &enumcode);
-    if (opts.one_file) {
+    GenEnum(lang, parser, **it, &enumcode);
+    if (parser.opts.one_file) {
       one_file_code += enumcode;
     }
     else {
@@ -1061,8 +1170,8 @@ bool GenerateGeneral(const Parser &parser,
   for (auto it = parser.structs_.vec.begin();
        it != parser.structs_.vec.end(); ++it) {
     std::string declcode;
-    GenStruct(lang, parser, **it, opts, &declcode);
-    if (opts.one_file) {
+    GenStruct(lang, parser, **it, &declcode);
+    if (parser.opts.one_file) {
       one_file_code += declcode;
     }
     else {
@@ -1071,7 +1180,7 @@ bool GenerateGeneral(const Parser &parser,
     }
   }
 
-  if (opts.one_file) {
+  if (parser.opts.one_file) {
     return SaveClass(lang, parser, file_name, one_file_code,path, true, true);
   }
   return true;
@@ -1097,10 +1206,9 @@ static std::string ClassFileName(const LanguageParameters &lang,
 
 std::string GeneralMakeRule(const Parser &parser,
                             const std::string &path,
-                            const std::string &file_name,
-                            const GeneratorOptions &opts) {
-  assert(opts.lang <= GeneratorOptions::kMAX);
-  auto lang = language_parameters[opts.lang];
+                            const std::string &file_name) {
+  assert(parser.opts.lang <= IDLOptions::kMAX);
+  auto lang = language_parameters[parser.opts.lang];
 
   std::string make_rule;
 
@@ -1136,8 +1244,7 @@ std::string BinaryFileName(const Parser &parser,
 
 bool GenerateBinary(const Parser &parser,
                     const std::string &path,
-                    const std::string &file_name,
-                    const GeneratorOptions & /*opts*/) {
+                    const std::string &file_name) {
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
            BinaryFileName(parser, path, file_name).c_str(),
@@ -1148,8 +1255,7 @@ bool GenerateBinary(const Parser &parser,
 
 std::string BinaryMakeRule(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions & /*opts*/) {
+                           const std::string &file_name) {
   if (!parser.builder_.GetSize()) return "";
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));

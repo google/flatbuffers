@@ -12,8 +12,9 @@ env:
   matrix:
     - BUILD_TYPE=Debug BIICODE=false
     - BUILD_TYPE=Release BIICODE=false
-    - BUILD_TYPE=Release BIICODE=true
-    - BUILD_TYPE=Debug BIICODE=true
+    # biicode .deb files no longer available.
+    # - BUILD_TYPE=Release BIICODE=true
+    # - BUILD_TYPE=Debug BIICODE=true
   global:
     - GCC_VERSION="4.9"
 

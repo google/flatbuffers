@@ -1,4 +1,5 @@
-# FlatBuffer Internals
+FlatBuffer Internals    {#flatbuffers_internals}
+====================
 
 This section is entirely optional for the use of FlatBuffers. In normal
 usage, you should never need the information contained herein. If you're
@@ -16,7 +17,7 @@ byte-swap intrinsics.
 
 On purpose, the format leaves a lot of details about where exactly
 things live in memory undefined, e.g. fields in a table can have any
-order, and objects to some extend can be stored in many orders. This is
+order, and objects to some extent can be stored in many orders. This is
 because the format doesn't need this information to be efficient, and it
 leaves room for optimization and extension (for example, fields can be
 packed in a way that is most compact). Instead, the format is defined in
@@ -73,7 +74,10 @@ code.
 
 ### Tables
 
-These start with an `soffset_t` to a vtable. This is a signed version of
+Unlike structs, these are not stored in inline in their parent, but are
+referred to by offset.
+
+They start with an `soffset_t` to a vtable. This is a signed version of
 `uoffset_t`, since vtables may be stored anywhere relative to the object.
 This offset is substracted (not added) from the object start to arrive at
 the vtable start. This offset is followed by all the
@@ -88,7 +92,7 @@ The elements of a vtable are all of type `voffset_t`, which is
 a `uint16_t`. The first element is the size of the vtable in bytes,
 including the size element. The second one is the size of the object, in bytes
 (including the vtable offset). This size could be used for streaming, to know
-how many bytes to read to be able to access all fields of the object.
+how many bytes to read to be able to access all *inline* fields of the object.
 The remaining elements are the N offsets, where N is the amount of fields
 declared in the schema when the code that constructed this buffer was
 compiled (thus, the size of the table is N + 2).
@@ -106,7 +110,8 @@ field to be read.
 Strings are simply a vector of bytes, and are always
 null-terminated. Vectors are stored as contiguous aligned scalar
 elements prefixed by a 32bit element count (not including any
-null termination).
+null termination). Neither is stored inline in their parent, but are referred to
+by offset.
 
 ### Construction
 
@@ -224,7 +229,12 @@ Otherwise, it uses the entry as an offset into the table to locate the field.
 `FlatBufferBuilder`. You can add the fields in any order, and the `Finish`
 call will ensure the correct vtable gets generated.
 
-    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color) {
+    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+                                                      const Vec3 *pos, int16_t mana,
+                                                      int16_t hp,
+                                                      flatbuffers::Offset<flatbuffers::String> name,
+                                                      flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory,
+                                                      int8_t color) {
       MonsterBuilder builder_(_fbb);
       builder_.add_inventory(inventory);
       builder_.add_name(name);
@@ -249,4 +259,37 @@ start traversing a FlatBuffer from a raw buffer pointer.
     }; // namespace MyGame
     }; // namespace Sample
 
+### Encoding example.
 
+Below is a sample encoding for the following JSON corresponding to the above
+schema:
+
+    { pos: { x: 1, y: 2, z: 3 }, name: "fred", hp: 50 }
+
+Resulting in this binary buffer:
+
+    // Start of the buffer:
+    uint32_t 20  // Offset to the root table.
+
+    // Start of the vtable. Not shared in this example, but could be:
+    uint16_t 16 // Size of table, starting from here.
+    uint16_t 22 // Size of object inline data.
+    uint16_t 4, 0, 20, 16, 0, 0  // Offsets to fields from start of (root) table, 0 for not present.
+
+    // Start of the root table:
+    int32_t 16     // Offset to vtable used (default negative direction)
+    float 1, 2, 3  // the Vec3 struct, inline.
+    uint32_t 8     // Offset to the name string.
+    int16_t 50     // hp field.
+    int16_t 0      // Padding for alignment.
+
+    // Start of name string:
+    uint32_t 4  // Length of string.
+    int8_t 'f', 'r', 'e', 'd', 0, 0, 0, 0  // Text + 0 termination + padding.
+
+Note that this not the only possible encoding, since the writer has some
+flexibility in which of the children of root object to write first (though in
+this case there's only one string), and what order to write the fields in.
+Different orders may also cause different alignments to happen.
+
+<br>

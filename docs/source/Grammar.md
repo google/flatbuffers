@@ -1,4 +1,5 @@
-# Grammar of the schema language
+Grammar of the schema language    {#flatbuffers_grammar}
+==============================
 
 schema = include*
          ( namespace\_decl | type\_decl | enum\_decl | root\_decl |

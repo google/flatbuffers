@@ -5,6 +5,7 @@ package Example
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
+/// an example documentation comment: monster object
 type Monster struct {
 	_tab flatbuffers.Table
 }

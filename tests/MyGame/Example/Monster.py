@@ -4,6 +4,7 @@
 
 import flatbuffers
 
+# /// an example documentation comment: monster object
 class Monster(object):
     __slots__ = ['_tab']
 

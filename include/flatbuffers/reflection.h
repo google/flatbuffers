@@ -415,12 +415,14 @@ inline bool SetFieldT(Table *table, const reflection::Field &field,
 // above resizing functionality has introduced garbage in a buffer you want
 // to remove.
 // Note: this does not deal with DAGs correctly. If the table passed forms a
-// DAG, the copy will be a tree instead (with duplicates).
+// DAG, the copy will be a tree instead (with duplicates). Strings can be
+// shared however, by passing true for use_string_pooling.
 
 Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Schema &schema,
                                 const reflection::Object &objectdef,
-                                const Table &table);
+                                const Table &table,
+                                bool use_string_pooling = false);
 
 }  // namespace flatbuffers
 
