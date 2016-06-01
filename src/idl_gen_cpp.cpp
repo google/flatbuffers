@@ -184,7 +184,7 @@ static void GenEnum(const Parser &parser, EnumDef &enum_def,
   code += GenEnumVal(enum_def, maxv->name, parser.opts) + "\n";
   code += "};\n";
   if (parser.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
-    code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ")\n";
+    code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ", " +  GenTypeBasic(enum_def.underlying_type, false) + ")\n";
   code += "\n";
 
   // Generate a generate string table for enum values.
