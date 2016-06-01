@@ -1509,6 +1509,10 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
     inline E operator ^= (E &lhs, E rhs){\
         lhs = lhs ^ rhs;\
         return lhs;\
+    }\
+    inline bool operator !(E rhs) \
+    {\
+        return !bool(T(rhs)); \
     }
 /// @endcond
 }  // namespace flatbuffers
