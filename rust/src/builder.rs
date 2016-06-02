@@ -14,7 +14,7 @@ use types::*;
 #[derive(Debug)]
 pub struct Builder {
     // Where the FlatBuffer is constructed.
-    bytes: Vec<u8>,
+    pub bytes: Vec<u8>,
     // Minimum alignment encountered so far.
     min_align: usize,
     // Starting offset of the current struct/table.
@@ -123,7 +123,6 @@ impl Builder {
 
     /// Consume the builder and return the finished flatbuffer.
     pub fn get_bytes(&self) -> &[u8] {
-        assert!(self.finished, "Flatbuffer is not been finished");
         &self.bytes
     }
 
