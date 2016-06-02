@@ -36,14 +36,23 @@ namespace flatbuffers {
 namespace go {
 
 static std::string GenGetter(const Type &type);
-static std::string GenMethod(const FieldDef &field);
+static std::string GenMethod(const FieldDef &field, const bool lower = true);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
+static bool IsEnum(const FieldDef &field);
+static std::string EnumName(const FieldDef &field);
 
+static bool IsEnum(const FieldDef &field) {
+  return field.value.type.enum_def;
+}
+
+static std::string EnumName(const FieldDef &field) {
+  return field.value.type.enum_def->name;
+}
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -80,9 +89,10 @@ static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
 }
 
 // Begin enum code with a class declaration.
-static void BeginEnum(std::string *code_ptr) {
+static void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += "const (\n";
+  code += "type " + enum_def.name + " " + GenTypeGet(enum_def.underlying_type);
+  code += "\n\nconst (\n";
 }
 
 // A single enum member.
@@ -92,6 +102,8 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
   code += "\t";
   code += enum_def.name;
   code += ev.name;
+  code += " ";
+  code += enum_def.name;
   code += " = ";
   code += NumToString(ev.value) + "\n";
 }
@@ -166,9 +178,14 @@ static void GetScalarFieldOfStruct(const StructDef &struct_def,
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name);
-  code += "() " + TypeName(field) + " { return " + getter;
+  code += "() " + TypeName(field);
+  code += " { return " + getter;
   code += "(rcv._tab.Pos + flatbuffers.UOffsetT(";
-  code += NumToString(field.value.offset) + ")) }\n";
+  code += NumToString(field.value.offset) + "))";
+  if (IsEnum(field)) {
+    code += ")";
+  }
+  code += "}\n";
 }
 
 // Get the value of a table's scalar.
@@ -179,10 +196,13 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name);
-  code += "() " + TypeName(field) + " ";
+  code += "() " + TypeName(field);
   code += OffsetPrefix(field) + "\t\treturn " + getter;
-  code += "(o + rcv._tab.Pos)\n\t}\n";
-  code += "\treturn " + field.value.constant + "\n";
+  code += "(o + rcv._tab.Pos)";
+  if (IsEnum(field)) {
+    code += ")";
+  }
+  code += "\n\t}\n\treturn " + field.value.constant + "\n";
   code += "}\n\n";
 }
 
@@ -339,7 +359,10 @@ static void StructBuilderArgs(const StructDef &struct_def,
       std::string &code = *code_ptr;
       code += (std::string)", " + nameprefix;
       code += MakeCamel(field.name, false);
-      code += " " + GenTypeBasic(field.value.type);
+      code += " ";
+      code += IsEnum(field)
+           ? EnumName(field)
+           : GenTypeBasic(field.value.type);
     }
   }
 }
@@ -370,7 +393,13 @@ static void StructBuilderBody(const StructDef &struct_def,
                         code_ptr);
     } else {
       code += "    builder.Prepend" + GenMethod(field) + "(";
-      code += nameprefix + MakeCamel(field.name, false) + ")\n";
+        
+      auto is_enum = IsEnum(field);
+      if (is_enum) {
+        code += GenMethod(field, false) + "(";
+      }
+      code += nameprefix + MakeCamel(field.name, false) + ")";
+      code += is_enum ? ")\n" : "\n";
     }
   }
 }
@@ -404,7 +433,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "flatbuffers.UOffsetT";
   } else {
-    code += GenTypeBasic(field.value.type);
+    code += TypeName(field);
   }
   code += ") ";
   code += "{ builder.Prepend";
@@ -415,7 +444,10 @@ static void BuildFieldOfTable(const StructDef &struct_def,
     code += "(";
     code += MakeCamel(field.name, false) + ")";
   } else {
-    code += MakeCamel(field.name, false);
+    auto name = MakeCamel(field.name, false);
+    code += IsEnum(field)
+          ? GenTypeGet(field.value.type) + "(" + name + ")"
+          : name;
   }
   code += ", " + field.value.constant;
   code += ") }\n";
@@ -560,7 +592,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
-  BeginEnum(code_ptr);
+  BeginEnum(enum_def, code_ptr);
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
@@ -578,17 +610,17 @@ static std::string GenGetter(const Type &type) {
     case BASE_TYPE_UNION: return "rcv._tab.Union";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
     default:
-      return "rcv._tab.Get" + MakeCamel(GenTypeGet(type));
+      auto ret = "rcv._tab.Get" + MakeCamel(GenTypeGet(type));
+      return (type.enum_def ? type.enum_def->name + "(" + ret : ret);
   }
 }
 
-// Returns the method name for use with add/put calls.
-static std::string GenMethod(const FieldDef &field) {
+// Returns the method name for use with add/put calls + "("
+static std::string GenMethod(const FieldDef &field, const bool lower) {
   return IsScalar(field.value.type.base_type)
-    ? MakeCamel(GenTypeBasic(field.value.type))
-    : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
+         ? MakeCamel(GenTypeBasic(field.value.type), lower)
+         : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
 }
-
 
 // Save out the generated code for a Go Table type.
 static bool SaveType(const Parser &parser, const Definition &def,
@@ -647,7 +679,9 @@ static std::string GenTypeGet(const Type &type) {
 }
 
 static std::string TypeName(const FieldDef &field) {
-  return GenTypeGet(field.value.type);
+  return IsEnum(field)
+        ? EnumName(field)
+        : GenTypeGet(field.value.type);
 }
 
 // Create a struct with a builder and the struct's arguments.
