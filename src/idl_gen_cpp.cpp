@@ -86,7 +86,7 @@ class CppGenerator : public BaseGenerator {
       if (num_includes) code += "\n";
     }
 
-    assert(!code_generator_cur_name_space);
+    assert(!cur_name_space_);
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -94,7 +94,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (!struct_def.generated) {
-        CheckNameSpace(struct_def, &code);
+        CheckNameSpace(struct_def.defined_namespace, &code);
         code += "struct " + struct_def.name + ";\n\n";
       }
     }
@@ -104,7 +104,7 @@ class CppGenerator : public BaseGenerator {
          ++it) {
       auto &enum_def = **it;
       if (!enum_def.generated) {
-        CheckNameSpace(**it, &code);
+        CheckNameSpace((**it).defined_namespace, &code);
         GenEnum(**it, &code);
       }
     }
@@ -114,7 +114,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
-        CheckNameSpace(struct_def, &code);
+        CheckNameSpace(struct_def.defined_namespace, &code);
         GenStruct(struct_def, &code);
       }
     }
@@ -122,7 +122,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
-        CheckNameSpace(struct_def, &code);
+        CheckNameSpace(struct_def.defined_namespace, &code);
         GenTable(struct_def, &code);
       }
     }
@@ -132,14 +132,14 @@ class CppGenerator : public BaseGenerator {
          ++it) {
       auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        CheckNameSpace(enum_def, &code);
+        CheckNameSpace(enum_def.defined_namespace, &code);
         GenEnumPost(enum_def, &code);
       }
     }
 
     // Generate convenient global helper functions:
     if (parser_.root_struct_def_) {
-      CheckNameSpace(*parser_.root_struct_def_, &code);
+      CheckNameSpace((*parser_.root_struct_def_).defined_namespace, &code);
       auto &name = parser_.root_struct_def_->name;
       std::string qualified_name =
           parser_.namespaces_.back()->GetFullyQualifiedName(name);
@@ -195,25 +195,23 @@ class CppGenerator : public BaseGenerator {
       code += "); }\n\n";
     }
 
-    assert(code_generator_cur_name_space);
-    CloseNestedNameSpaces(code_generator_cur_name_space, &code);
-
-    code_generator_cur_name_space = nullptr;
+    assert(cur_name_space_);
+    CheckNameSpace(nullptr, &code);
 
     // Close the include guard.
-    code += "\n#endif  // " + include_guard + "\n";
+    code += "#endif  // " + include_guard + "\n";
 
     return SaveFile(GeneratedFileName(path_, file_name_).c_str(), code, false);
   }
 
  private:
   // This tracks the current namespace so we can insert namespace declarations.
-  const Namespace *code_generator_cur_name_space = nullptr;
+  const Namespace *cur_name_space_ = nullptr;
 
   // Ensure that a type is prefixed with its namespace whenever it is used
   // outside of its namespace.
   std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
-    if (code_generator_cur_name_space != ns) {
+    if (cur_name_space_ != ns) {
       std::string qualified_name;
       for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
         qualified_name += *it + "::";
@@ -863,33 +861,25 @@ class CppGenerator : public BaseGenerator {
     code += NumToString(struct_def.bytesize) + ");\n\n";
   }
 
-  void GenerateNestedNameSpaces(const Namespace *ns, std::string *code_ptr) {
-    for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
-      *code_ptr += "namespace " + *it + " {\n";
-    }
-  }
-
-  void CloseNestedNameSpaces(const Namespace *ns, std::string *code_ptr) {
-    for (auto it = ns->components.rbegin(); it != ns->components.rend(); ++it) {
-      *code_ptr += "}  // namespace " + *it + "\n";
-    }
-  }
-
-  void CheckNameSpace(const Definition &def, std::string *code_ptr) {
-    // Set up the correct namespace. Only open a namespace if
-    // the existing one is different.
-    // TODO: this could be done more intelligently, by sorting to
-    // namespace path and only opening/closing what is necessary, but that's
-    // quite a bit more complexity.
-    if (code_generator_cur_name_space != def.defined_namespace) {
-      if (code_generator_cur_name_space) {
-        CloseNestedNameSpaces(code_generator_cur_name_space, code_ptr);
-        if (code_generator_cur_name_space->components.size()) *code_ptr += "\n";
-      }
-      GenerateNestedNameSpaces(def.defined_namespace, code_ptr);
-      code_generator_cur_name_space = def.defined_namespace;
-      if (code_generator_cur_name_space->components.size()) *code_ptr += "\n";
-    }
+  // Set up the correct namespace. Only open a namespace if
+  // the existing one is different (opening/closing only what is necessary)
+  // the file must start and end with an empty namespace
+  void CheckNameSpace(const Namespace *ns, std::string *code_ptr) {
+    if (cur_name_space_ == ns) return;
+    auto s1 = cur_name_space_ == nullptr ? 0 : cur_name_space_->components.size();
+    auto s2 = ns == nullptr ? 0 : ns->components.size();
+    std::vector<std::string>::size_type limit = 0;
+    while (limit < s1 && limit < s2 &&
+           ns->components[limit] == cur_name_space_->components[limit])
+      limit++;
+    for (auto j = s1; j > limit; --j)
+      *code_ptr +=
+          "}  // namespace " + cur_name_space_->components[j - 1] + "\n";
+    if (s1 != limit) *code_ptr += "\n";
+    for (auto j = limit; j != s2; ++j)
+      *code_ptr += "namespace " + ns->components[j] + " {\n";
+    if (s2 != limit) *code_ptr += "\n";
+    cur_name_space_ = ns;
   }
 };
 }  // namespace cpp
