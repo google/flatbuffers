@@ -22,8 +22,8 @@ enum Color {
   Color_Red = 1,
   Color_Green = 2,
   Color_Blue = 8,
-  Color_MIN = Color_Red,
-  Color_MAX = Color_Blue
+  Color_NONE = 0,
+  Color_ANY = 11
 };
 
 inline const char **EnumNamesColor() {
