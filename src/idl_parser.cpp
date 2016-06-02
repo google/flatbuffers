@@ -275,7 +275,7 @@ CheckedError Parser::Next() {
                     return Error(
                       "illegal Unicode sequence (multiple high surrogates)");
                   } else {
-                    unicode_high_surrogate = val;
+                    unicode_high_surrogate = static_cast<int>(val);
                   }
                 } else if (val >= 0xDC00 && val <= 0xDFFF) {
                   if (unicode_high_surrogate == -1) {
@@ -2001,14 +2001,14 @@ flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
     Definition::SerializeAttributes(FlatBufferBuilder *builder,
                                     const Parser &parser) const {
   std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
-  for (auto kv : attributes.dict) {
-    auto it = parser.known_attributes_.find(kv.first);
+  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
+    auto it = parser.known_attributes_.find(kv->first);
     assert(it != parser.known_attributes_.end());
     if (!it->second) {  // Custom attribute.
       attrs.push_back(
-          reflection::CreateKeyValue(*builder, builder->CreateString(kv.first),
+          reflection::CreateKeyValue(*builder, builder->CreateString(kv->first),
                                      builder->CreateString(
-                                         kv.second->constant)));
+                                         kv->second->constant)));
     }
   }
   if (attrs.size()) {
