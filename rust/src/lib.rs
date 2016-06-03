@@ -17,7 +17,10 @@ mod types;
 mod table;
 mod iter;
 
-pub use self::builder::{Builder,ObjectBuilder};
+#[macro_use]
+pub mod macros;
+
+pub use self::builder::Builder;
 pub use self::types::{UOffsetT, VOffsetT, SOffsetT};
 pub use self::table::Table;
 pub use self::iter::*;

@@ -1,3 +1,5 @@
+
+#[macro_use]
 extern crate flatbuffers;
 
 fn main() {
@@ -7,10 +9,9 @@ fn main() {
 #[cfg(test)]
 #[cfg(feature = "test_idl_gen")]
 mod test {
+
     #[allow(non_snake_case,dead_code,unused_imports, non_camel_case_types)]
     mod MyGame;
-
-    extern crate flatbuffers;
 
     use flatbuffers::*;
     use self::MyGame::*;
@@ -78,11 +79,13 @@ mod test {
         b.add_slot_uoffset(9, test4 as u32, 0);
         let mon = b.end_object();
         
-        b.finish(mon);
+        b.finish_table(mon);
     }
 
     fn build_monster() {
-        let mut b = example::monster::Builder::with_capacity(0);
+        use self::MyGame::example::monster::MonsterBuilder;
+
+        let mut b = Builder::with_capacity(0);
         let name = b.create_string("MyMonster");
         let test1 = b.create_string("test1");
         let test2 = b.create_string("test2");
@@ -95,10 +98,12 @@ mod test {
         b.add_u8(0);
         let inv = b.end_vector();
 
-        b.start();
+        b.start_monster();
         b.add_name(fred);
-        let mon2 = b.end();
+        let mon2 = b.end_object();
 
+
+        use self::MyGame::example::test::TestBuilder;
         b.start_test4_vector(2);
         b.build_test(10, 20);
         b.build_test(30, 40);
@@ -108,18 +113,19 @@ mod test {
         b.add_uoffset(test2);
         b.add_uoffset(test1);
         let test_array = b.end_vector();
-
-        let mut stat = example::stat::Builder::from_other(b);
+        use self::MyGame::example::stat::StatBuilder;
+        let mut stat = b;
         let stat_id = stat.create_string("way out..statistical");
-        stat.start();
+        stat.start_stat();
         stat.add_id(stat_id);
         stat.add_val(20);
         stat.add_count(0);
-        let stat_offset = stat.end();
+        let stat_offset = stat.end_object();
+        b = stat;
 
-        b = example::monster::Builder::from_other(stat);
 
-        b.start();
+        use self::MyGame::example::vec3::Vec3Builder;
+        b.start_monster();
         let pos = b.build_vec3(1.0, 2.0, 3.0, 3.0, 2, 5, 6);
         b.add_pos(pos);
 
@@ -131,9 +137,9 @@ mod test {
         b.add_test4(test4);
         b.add_testempty(stat_offset);
         b.add_testarrayofstring(test_array);
-        let mon = b.end();
+        let mon = b.end_object();
 
-        b.finish(mon);
+        b.finish_table(mon);
     }
 
     #[test]
@@ -156,7 +162,8 @@ mod test {
         let mut reader = BufReader::new(f1);
         let mut buf: Vec<u8> = Vec::new();
         reader.read_to_end(&mut buf).unwrap();
-        let monster = example::monster::Monster::new(&buf, 0);
+        let table = Table::from_offset(&buf, 0);
+        let monster = example::monster::Monster::new(table);
         let got = monster.hp();
         assert!(got == 80, "bad {}: want {:?} got {:?}", "HP", 80, got);
         let got = monster.mana(); 
@@ -176,7 +183,7 @@ mod test {
         let got = vec3.test1();
         assert!(got == 3.0, "bad {}: want {:?} got {:?}", "Vec3.test1", "3.0", got);
         let got = vec3.test2();
-        assert!(got == example::Color::Green, "bad {}: want {:?} got {:?}",
+        assert!(got == Some(example::Color::Green), "bad {}: want {:?} got {:?}",
                 "Vec3.test2", "Color::Green", got);
         // Verify properties of test3
         let test3 = vec3.test3();
@@ -186,10 +193,10 @@ mod test {
         assert!(got == 6, "bad {}: want {:?} got {:?}", "Test.b", "6", got);
         // Verify test type
         let got = monster.test_type();
-        assert!(got == example::Any::Monster, "bad {}: want {:?} got {:?}", "TestType", "Monster", got);
+        assert!(got == Some(example::AnyType::Monster), "bad {}: want {:?} got {:?}", "TestType", "Monster", got);
         // initialize a Table from a union field
         let got = monster.test();
-        if let  example::AnyUnion::Monster(monster2) = got {
+        if let Some(example::Any::Monster(monster2)) = got {
             let got = monster2.name();
             assert!(got == "Fred", "bad {}: want {:?} got {:?}", "Name", "Fred", got);
         } else {
@@ -199,7 +206,7 @@ mod test {
         assert!(got.len() == 5, "bad {}: want {:?} got {:?}",
                 "Inventory", "Byte Vector of length 5", got);
         use std::ops::Add;
-        let got: u8 = got.iter().fold(0, Add::add);
+        let got: u8 = got.fold(0, Add::add);
         assert!(got == 10, "bad {}: want {:?} got {:?}", "Inventory Sum", "10", got);
         // Test4
         let mut got = monster.test4();

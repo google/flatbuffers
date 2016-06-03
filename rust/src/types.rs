@@ -14,6 +14,7 @@ pub const VOFFSETT_SIZE: usize = 2;
 pub const UOFFSETT_SIZE: usize = 4;
 
 /// Number of metadata fields in a `VTable`.
+/// Vtable Len and Object Size.
 pub const VTABLE_METADATA_FIEDS: usize = 2;
 /// Byte size of `Vtable` metadata.
 pub const VTABLE_METADATA_SIZE: usize = VTABLE_METADATA_FIEDS * VOFFSETT_SIZE;

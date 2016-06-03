@@ -2,23 +2,23 @@
 //!
 //! Builder is a state machine for creating FlatBuffer objects.
 //! Use a Builder to construct object(s) starting from leaf nodes.
-use std::mem;
 use byteorder::{ByteOrder, LittleEndian};
 
 use types::*;
+use table::Table;
 
-/// Flatbuffer builder.
+/// Builder provides functions to build Flatbuffer data.
 ///
 /// A Builder constructs byte buffers in a last-first manner for simplicity and
 /// performance.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Builder {
     // Where the FlatBuffer is constructed.
-    pub bytes: Vec<u8>,
+    bytes: Vec<u8>,
     // Minimum alignment encountered so far.
     min_align: usize,
     // Starting offset of the current struct/table.
-    object_start: usize,
+    object_start: UOffsetT,
     // Whether we are currently serializing a table.
     nested: bool,
     // Whether the buffer is finished.
@@ -76,6 +76,20 @@ impl Builder {
         self.write_vtable()
     }
 
+    /// Read a completed object at offset.
+    ///
+    /// The offset is the `UOffsetT` returned by `end_object`.
+    pub fn read_object(&self, offset: UOffsetT) -> Table {
+        Table::with_pos(&self.bytes, self.bytes.len() - offset as usize)
+    }
+
+    /// Read a completed object at offset.
+    ///
+    /// The offset is the `UOffsetT` returned by `end_table`.
+    pub fn read_table(&self, offset: UOffsetT) -> Table {
+        Table::from_offset(&self.bytes, self.bytes.len() - offset as usize)
+    }
+
     /// Initializes bookkeeping for writing a new vector.
     pub fn start_vector(&mut self, elem_size: usize, num_elems: usize, alignment: usize) {
         self.assert_not_nested();
@@ -88,11 +102,16 @@ impl Builder {
 
     /// finish off writing the current vector.
     pub fn end_vector(&mut self) -> UOffsetT {
-        self.assert_nested();
-
         let len = self.vector_len;
-        self.put_u32(len as u32);
+        self.end_vector_with(len as u32)
+    }
 
+    /// Finish off writing the current vector of length `len`.
+    ///
+    /// Useful if you dont know the exact size of the vector when you start it.
+    pub fn end_vector_with(&mut self, len: u32) -> UOffsetT {
+        self.assert_nested();
+        self.put_u32(len);
         self.nested = false;
         self.offset() as UOffsetT
     }
@@ -110,33 +129,57 @@ impl Builder {
         self.end_vector()
     }
 
-    /// Finalize a buffer, pointing to the given `root_table`.
-    pub fn finish(&mut self, root_table: UOffsetT) {
-        if !self.finished {
-            self.assert_not_nested();
-            let align = self.min_align;
-            self.prep(align, UOFFSETT_SIZE);
-            self.add_uoffset(root_table);
-            self.finished = true;
+    /// Create a vector in the buffer from an already encoded
+    /// byte vector.
+    pub fn create_vector(&mut self, value: &[u8]) -> UOffsetT {
+        let len = value.len();
+        self.start_vector(1, len, 0);
+        self.space -= len;
+        for (i, c) in value.iter().enumerate() {
+            let pos = self.space + i;
+            self.place_u8(pos, *c);
         }
+        self.end_vector()
     }
 
-    /// Consume the builder and return the finished flatbuffer.
+    /// Create a vector of `UOffsetT` in the buffer.
+    /// This function will encode the values to `LittleEndian`.
+    pub fn create_uoffset_vector(&mut self, value: &[UOffsetT]) -> UOffsetT {
+        let len = value.len();
+        self.start_vector(UOFFSETT_SIZE, len, 0);
+        self.space -= len;
+        for (i, c) in value.iter().enumerate() {
+            let pos = self.space + i;
+            self.place_u32(pos, *c);
+        }
+        self.end_vector()
+    }
+
+    /// Finalize a table, pointing to the given `root_table`.
+    pub fn finish_table(&mut self, root_table: UOffsetT) -> UOffsetT {
+        self.assert_not_nested();
+        let align = self.min_align;
+        self.prep(align, UOFFSETT_SIZE);
+        self.add_uoffset(root_table);
+        self.finished = true;
+        self.offset()
+    }
+
+    /// Get a reference to the underlying buffer.
+    /// Buffer starts from the first byte of useful data
+    /// i.e. `&[pos..]`.
     pub fn get_bytes(&self) -> &[u8] {
-        &self.bytes
+        let pos = self.pos();
+        &self.bytes[pos..]
     }
-
-    /// Returns the length of the buffer.
-    pub fn len(&self) -> usize {
-        self.bytes.len()
-    }
-
-    /// Returns the current finished buffer and replaces it with
+    
+    /// Returns the current buffer and replaces it with
     /// a `new_buffer`.
     ///
     /// Thie function facilitates some reuse of the `Builder` object.
     /// Use `into()` if the `Builder` is no longer required.
     pub fn swap_out(&mut self, mut new_buffer: Vec<u8>) -> Vec<u8> {
+        use std::mem;
         mem::swap(&mut self.bytes, &mut new_buffer);
         self.reset();
         new_buffer
@@ -160,10 +203,21 @@ impl Builder {
         self.vector_len = 0;
     }
 
-    /// Offset relative to the end of the buffer
+    /// Returns the length of the buffer.
+    pub fn len(&self) -> usize {
+        self.bytes.len()
+    }
+
+    /// Offset relative to the end of the buffer.
     #[inline(always)]
-    pub fn offset(&self) -> usize {
-        self.bytes.len() - self.space
+    pub fn offset(&self) -> UOffsetT {
+        (self.bytes.len() - self.space) as UOffsetT
+    }
+    
+    /// Returns the offset relative to the beggining
+    /// of the buffer.
+    pub fn pos(&self) -> usize {
+        self.space
     }
 
     /// prepare to write an element of `size` after `additional_bytes`
@@ -172,7 +226,7 @@ impl Builder {
         if size > self.min_align {
             self.min_align = size
         }
-        let align_size = self.offset() + additional_bytes + 1; 
+        let align_size = self.offset() as usize + additional_bytes + 1; 
         let align_size = ((align_size ^ 1)) & (size - 1);
         while self.space <= align_size + size + additional_bytes {
             self.grow();
@@ -493,82 +547,70 @@ impl Builder {
         }
     }
 
-    // helper method to read a VOffsetT
-    fn get_u16(&self, pos: usize) -> VOffsetT {
+    /// Place a `u8` at `pos` relative to the beginning
+    /// of the underlaying buffer.
+    pub fn place_u8(&mut self, pos: usize, value: u8) {
+        self.bytes[pos] = value;
+    }
+
+    /// Place a `u32` with `LittleEndian` encoding at `pos`
+    /// relative to the beginning of the underlaying buffer.
+    pub fn place_u32(&mut self, pos: usize, value: u32) {
+        LittleEndian::write_u32(&mut self.bytes[pos..pos + 4], value);
+    }
+
+    /// Place a `i32` with `LittleEndian` encoding at `pos`
+    /// relative to the beginning of the underlaying buffer.
+    pub fn place_i32(&mut self, pos: usize, value: i32) {
+        LittleEndian::write_i32(&mut self.bytes[pos..pos + 4], value);
+    }
+
+    /// Place a `u64` with `LittleEndian` encoding at `pos`
+    /// relative to the beginning of the underlaying buffer.
+    pub fn place_u64(&mut self, pos: usize, value: u64) {
+        LittleEndian::write_u64(&mut self.bytes[pos..pos + 8], value);
+    }
+
+    /// Check to assert `finish` has not been called.
+    pub fn assert_not_finished(&self) {
+        assert!(!self.finished,
+                "FlatBuffers: root table is not finished.");
+    }
+
+    /// Check to assert `start_object` has not been called.
+    pub fn assert_not_nested(&self) {
+        assert!(!self.nested,
+                "FlatBuffers: object serialization must not be nested.");
+    }
+    
+    /// Check to assert `start_object` has been called.
+    pub fn assert_nested(&self) {
+        assert!(self.nested,
+                "FlatBuffers: struct must be serialized inline.");
+    }
+
+    /// Helper method to read a VOffsetT at `pos` relative to the
+    /// beginning of the underlying buffer - this may not be the start
+    /// of any useful data. Use with `offset()` to get the `UOffsetT`
+    /// of useful data.
+    pub fn get_u16(&self, pos: usize) -> VOffsetT {
         LittleEndian::read_u16(&self.bytes[pos..pos + 2])
     }
-}
 
-impl Builder {
-    // WriteVtable serializes the vtable for the current object.
-    //
-    // Before writing out the vtable, this checks pre-existing vtables for
-    // equality to this one. If an equal vtable is found, point the object to
-    // the existing vtable and return.
-    //
-    // Because vtable values are sensitive to alignment of object data, not all
-    // logically-equal vtables will be deduplicated.
-    fn write_vtable(&mut self) -> UOffsetT {
-        self.add_uoffset(0);
-        let vtableloc = self.offset();
-        // Write out the current vtable.
-        for i in (0..self.vtable_in_use).rev() {
-            // Offset relative to the start of the table.
-            let offset = if self.vtable[i] != 0 {
-                vtableloc - self.vtable[i] as usize
-            } else {
-                0
-            };
-            self.add_u16(offset as u16);
-        }
-        // write the metadata
-        let total_obj_size = vtableloc - self.object_start;
-        let vtable_size = (self.vtable_in_use + VTABLE_METADATA_FIEDS) * VOFFSETT_SIZE;
-        self.add_u16(total_obj_size as u16);
-        self.add_u16(vtable_size as u16);
-        // check for identical vtable
-        let mut existing_vt = 0;
-        let mut this_vt = self.space;
-        'outer: for (i, vt_offset) in self.vtables.iter().rev().enumerate() {
-            let vt_start = self.bytes.capacity() - *vt_offset as usize;
-            let vt_len = self.get_u16(vt_start);
-            if vt_len != self.get_u16(this_vt) {
-                continue;
-            }
-            let vt_end = vt_start + vt_len as usize;
-            let vt_bytes = &self.bytes[vt_start + VTABLE_METADATA_SIZE..vt_end];
-            for (j, chunk) in vt_bytes.chunks(2).enumerate() {
-
-                let this_start = this_vt + (j * VOFFSETT_SIZE) as usize;
-                let this_end = this_start + VOFFSETT_SIZE;
-                let this_chunk = &self.bytes[this_start..this_end];
-                if chunk != this_chunk {
-                    continue 'outer;
-                }
-            }
-            existing_vt = self.vtables[i] as usize;
-            break 'outer;
-        }
-
-        if existing_vt != 0 {
-            // found a match
-            self.space = self.bytes.capacity() - vtableloc;
-            let pos = self.space;
-            self.place_u32(pos, (existing_vt - vtableloc) as u32);
-        } else {
-            // no match
-            this_vt = self.offset();
-            self.vtables.push(this_vt as u32);
-            let capacity = self.bytes.capacity();
-            self.place_u32(capacity - vtableloc, (this_vt - vtableloc) as u32);
-        }
-        vtableloc as UOffsetT
+    /// Helper method to read a UOffsetT at `pos` relative to the
+    /// beginning of the underlying buffer - this may not be the start
+    /// of any useful data. Use with `offset()` to get the `UOffsetT`
+    /// of useful data.
+    pub fn get_32(&self, pos: usize) -> UOffsetT {
+        LittleEndian::read_u32(&self.bytes[pos..pos + 4])
     }
 
     /// Doubles the size of the buffer.
     ///
-    /// copies the old data towards the end of the new buffer (since we build
+    /// Copies the old data towards the end of the new buffer (since we build
     /// the buffer backwards).
+    /// Max buffer size is 2 Gigabytes - otherwise u16 index values might
+    /// be invalid.
     pub fn grow(&mut self) {
         let old_capacity = if self.bytes.capacity() == 0 {
             1
@@ -583,29 +625,75 @@ impl Builder {
         for _ in 0..old_capacity {
             nbytes.push(0)
         }
-        self.space = new_capacity - self.offset();
+        self.space = new_capacity - self.offset() as usize;
         nbytes.extend_from_slice(&self.bytes);
         unsafe { nbytes.set_len(new_capacity) };
         self.bytes = nbytes;
     }
 
+    // WriteVtable serializes the vtable for the current object.
+    //
+    // Before writing out the vtable, this checks pre-existing vtables for
+    // equality to this one. If an equal vtable is found, point the object to
+    // the existing vtable and return.
+    //
+    // Because vtable values are sensitive to alignment of object data, not all
+    // logically-equal vtables will be deduplicated.
+    fn write_vtable(&mut self) -> UOffsetT {
+        self.add_uoffset(0);
+        let vtableloc = self.offset() as usize;
+        // Write out the current vtable.
+        for i in (0..self.vtable_in_use).rev() {
+            // Offset relative to the start of the table.
+            let offset = if self.vtable[i] != 0 {
+                vtableloc - self.vtable[i] as usize
+            } else {
+                0
+            };
+            self.add_u16(offset as u16);
+        }
+        // write the metadata
+        let total_obj_size = vtableloc - self.object_start as usize;
+        let vtable_size = (self.vtable_in_use + VTABLE_METADATA_FIEDS) * VOFFSETT_SIZE;
+        self.add_u16(total_obj_size as u16);
+        self.add_u16(vtable_size as u16);
+        // check for identical vtable
+        let mut existing_vt = 0;
+        let mut this_vt = self.space;
+        'outer: for (i, vt_offset) in self.vtables.iter().rev().enumerate() {
+            let vt_start = self.bytes.len() - *vt_offset as usize;
+            let vt_len = self.get_u16(vt_start);
+            if vt_len != self.get_u16(this_vt) {
+                continue;
+            }
+            let vt_end = vt_start + vt_len as usize;
+            let vt_bytes = &self.bytes[vt_start + VTABLE_METADATA_SIZE..vt_end];
+            for (j, chunk) in vt_bytes.chunks(VOFFSETT_SIZE).enumerate() {
+                let this_start = this_vt + VTABLE_METADATA_SIZE + (j * VOFFSETT_SIZE) as usize;
+                let this_end = this_start + VOFFSETT_SIZE;
+                let this_chunk = &self.bytes[this_start..this_end];
+                if chunk != this_chunk {
+                    continue 'outer;
+                }
+            }
+            existing_vt = self.vtables[i] as usize;
+            break 'outer;
+        }
 
-    fn place_u8(&mut self, pos: usize, value: u8) {
-        self.bytes[pos] = value;
-    }
-
-    fn place_u32(&mut self, pos: usize, value: u32) {
-        LittleEndian::write_u32(&mut self.bytes[pos..pos + 4], value);
-    }
-
-    fn assert_not_nested(&self) {
-        assert!(!self.nested,
-                "FlatBuffers: object serialization must not be nested.");
-    }
-
-    fn assert_nested(&self) {
-        assert!(self.nested,
-                "FlatBuffers: struct must be serialized inline.");
+        if existing_vt != 0 {
+            // found a match
+            self.space = self.bytes.capacity() - vtableloc;
+            let pos = self.space;
+            self.place_i32(pos, (existing_vt as i32 - vtableloc as i32));
+        } else {
+            // no match
+            this_vt = self.offset() as usize;
+            self.vtables.push(this_vt as u32);
+            let capacity = self.bytes.capacity();
+            self.place_i32(capacity - vtableloc, (this_vt - vtableloc) as i32);
+        }
+        self.vtable.clear();
+        vtableloc as UOffsetT
     }
 }
 
@@ -621,19 +709,11 @@ impl Into<Vec<u8>> for Builder {
     }
 }
 
-/// A trait used by generated object builders to facilitate
-/// using the same flatbuffer `Builder`.
-pub trait ObjectBuilder: Into<Builder> + From<Builder> {
-    /// Convert from one `ObjectBuilder` instance to another.
-    #[inline(always)]
-    fn from_other<T: ObjectBuilder>(x: T) -> Self {
-        x.into().into()
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::Builder;
+    use types::*;
+    use table::Table;
 
     #[test]
     fn grow_buffer() {
@@ -780,7 +860,7 @@ mod test {
         b.start_object(1);
         check(&b, 30, &[]);
         b.add_slot_bool(0, true, false);
-        b.end_object();
+        let obj = b.end_object();
         check(&b, 31, &[
             6, 0, // vtable bytes
             8, 0, // length of object including vtable offset
@@ -789,6 +869,15 @@ mod test {
             0, 0, 0, // padded to 4 bytes
             1, // bool value
         ]);
+        {
+            let read_obj = b.read_object(obj);
+            let o = read_obj.field_offset(4);
+            let got = read_obj.get_bool(o);
+            assert!(got == true, "Failed to read back last object - got {:?} expected true", got);
+            let got = read_obj.get_u8(o);
+            assert!(got == 1, "Failed to read back last object. wrong value expected 1 got {}", got);
+        }
+        
 
         // test 9: vtable with one default bool
         b = Builder::with_capacity(0);
@@ -884,6 +973,19 @@ mod test {
             0, 0, 55, 0, // value 0    
             0, 0, 0, 0, // length of vector (not in struct)
         ]);
+        {
+            let buffer = b.get_bytes();
+            assert_eq!(buffer, &[
+                8, 0, // vtable bytes
+                12, 0,
+                10, 0, // offset to value 0
+                4, 0, // offset to vector offset
+                8, 0, 0, 0, // vtable loc
+                8, 0, 0, 0, // value 1
+                0, 0, 55, 0, // value 0    
+                0, 0, 0, 0, // length of vector (not in struct)
+            ]);
+        }
 
         // test 13: vtable with 1 int16 and 2-vector of int16
         b = Builder::with_capacity(0);
@@ -964,7 +1066,7 @@ mod test {
         b.add_slot_i8(0, 33, 0);
         b.add_slot_i16(1, 66, 0);
         let off = b.end_object();
-        b.finish(off);
+        b.finish_table(off);
 
         check(&b, 42, &[
                 12, 0, 0, 0, // root of table: points to vtable offset
@@ -986,15 +1088,15 @@ mod test {
         b.start_object(2);
         b.add_slot_i8(0, 33, 0);
         b.add_slot_i8(1, 44, 0);
-        let off = b.end_object();
-        b.finish(off);
+        let obj1 = b.end_object();
+        let table1 = b.finish_table(obj1);
 
         b.start_object(3);
         b.add_slot_i8(0, 55, 0);
         b.add_slot_i8(1, 66, 0);
         b.add_slot_i8(2, 77, 0);
-        let off = b.end_object();
-        b.finish(off);
+        let obj2 = b.end_object();
+        let table2 = b.finish_table(obj2);
 
         check(&b, 43, &[
                 16, 0, 0, 0, // root of table: points to object
@@ -1022,6 +1124,30 @@ mod test {
                 44, // value 1
                 33, // value 0
         ]);
+        assert!(b.offset() as usize + b.pos() == b.len());
+        {
+            let read_obj = b.read_object(obj1);
+            let o = read_obj.field_offset(4);
+            let got = read_obj.get_u8(o);
+            assert!(got == 33, "Failed to read back last object - got {:?} expected 33", got);
+            let read_table = b.read_table(table1);
+            let o = read_table.field_offset(6);
+            let got = read_table.get_u8(o);
+            assert!(got == 44, "Failed to read back last object - got {:?} expected 44", got);
+
+            let read_obj = b.read_object(obj2);
+            let o = read_obj.field_offset(4);
+            let got = read_obj.get_u8(o);
+            assert!(got == 55, "Failed to read back last object - got {:?} expected 55", got);
+            let read_table = b.read_table(table2);
+            let o = read_table.field_offset(6);
+            let got = read_table.get_u8(o);
+            assert!(got == 66, "Failed to read back last object - got {:?} expected 66", got);
+            let o = read_table.field_offset(8);
+            let got = read_table.get_u8(o);
+            assert!(got == 77, "Failed to read back last object - got {:?} expected 77", got);
+        }
+
 
         // test 18: a bunch of bools
         b = Builder::with_capacity(0);
@@ -1035,7 +1161,7 @@ mod test {
         b.add_slot_bool(6, true, false);
         b.add_slot_bool(7, true, false);
         let off = b.end_object();
-        b.finish(off);
+        b.finish_table(off);
 
         check(&b, 44, &[
                 24, 0, 0, 0, // root of table: points to vtable offset
@@ -1070,7 +1196,7 @@ mod test {
         b.add_slot_bool(1, true, false);
         b.add_slot_bool(2, true, false);
         let off = b.end_object();
-        b.finish(off);
+        b.finish_table(off);
 
         check(&b, 45, &[
                 16, 0, 0, 0, // root of table: points to vtable offset
@@ -1104,5 +1230,94 @@ mod test {
 
                 0, 0, 128, 63, // value 0
         ]);
+    }
+
+    #[test]
+    fn duplicate_vtable() {
+        let mut b = Builder::with_capacity(0);
+        
+	    b.start_object(4);
+	    b.add_slot_u8(0, 0, 0);
+	    b.add_slot_u8(1, 11, 0);
+	    b.add_slot_u8(2, 22, 0);
+	    b.add_slot_i16(3, 33, 0);
+	    let obj0 = b.end_object();
+        
+	    b.start_object(4);
+	    b.add_slot_u8(0, 0, 0);
+	    b.add_slot_u8(1, 44, 0);
+	    b.add_slot_u8(2, 55, 0);
+	    b.add_slot_i16(3, 66, 0);
+	    let obj1 = b.end_object();
+
+	    b.start_object(4);
+	    b.add_slot_u8(0, 0, 0);
+	    b.add_slot_u8(1, 77, 0);
+	    b.add_slot_u8(2, 88, 0);
+	    b.add_slot_i16(3, 99, 0);
+	    let obj2 = b.end_object();
+
+        let got = b.get_bytes();
+
+        let want: &[u8] = &[
+		    240, 255, 255, 255, // == -12. offset to dedupped vtable.
+		    99, 0,
+		    88,
+		    77,
+		    248, 255, 255, 255, // == -8. offset to dedupped vtable.
+		    66, 0,
+		    55,
+		    44,
+		    12, 0,
+		    8, 0,
+		    0, 0,
+		    7, 0,
+		    6, 0,
+		    4, 0,
+		    12, 0, 0, 0,
+		    33, 0,
+		    22,
+		    11,
+	    ];
+        assert!(got == want, "testVtableDeduplication want:\n{} {:?}\nbut got:\n{} {:?}\n",
+			    want.len(), want, got.len(), got);
+
+        let len = got.len();
+        let table0 = Table::with_pos(got, len - obj0 as usize);
+        let table1 = Table::with_pos(got, len - obj1 as usize);
+        let table2 = Table::with_pos(got, len - obj2 as usize);
+        fn test_table(tab: &Table, a: VOffsetT, b: u8, c: u8, d: u8) {
+            let got = tab.read_voffset_slot(0, 0); 
+            if 12 != got {
+			    panic!("failed 0, 0: {}", got)
+		    }
+		    // object size
+            let got = tab.read_voffset_slot(2, 0);
+		    if  8 != got {
+			    panic!("failed 2, 0: {}", got)
+		    }
+		    // default value
+            let got = tab.read_voffset_slot(4, 0);
+		    if  a != got {
+			    panic!("failed 4, 0: {}", got)
+		    }
+            let got = tab.get_slot_u8(6, 0);
+		    if  b != got as u8 {
+			    panic!("failed 6, 0: {}", got)
+		    }
+            let val = tab.get_slot_u8(8, 0);
+		    if  c != val as u8 {
+			    panic!("failed 8, 0: {}", got)
+		    }
+            let got = tab.get_slot_u8(10, 0); 
+		    if d != got as u8 {
+			    panic!("failed 10, 0: {}", got)
+		    }
+
+        }
+        test_table(&table0, 0, 11, 22, 33);
+	    test_table(&table1, 0, 44, 55, 66);
+	    test_table(&table2, 0, 77, 88, 99);
+
     }
 }
