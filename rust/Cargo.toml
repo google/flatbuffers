@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Joseph Dunne <jd@lambda.tech>"]
 description = "Memory Efficient Serialization Library. Flatbuffers runtime for Rust."
 keywords = ["flatbuffers", "serialization", "deserialization"]

@@ -22,7 +22,7 @@ pub mod macros;
 
 pub use self::builder::Builder;
 pub use self::types::{UOffsetT, VOffsetT, SOffsetT};
-pub use self::table::Table;
+pub use self::table::*;
 pub use self::iter::*;
 
 

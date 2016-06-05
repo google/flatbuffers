@@ -3,6 +3,15 @@ use byteorder::{ByteOrder, LittleEndian};
 use types::*;
 use iter::Iterator;
 
+/// A trait for Structs and Tables to implement.
+pub trait TableObject<'a>: From<Table<'a>> {
+    /// Table Objects require indirection. Structs do not.
+    fn is_struct() -> bool;
+    /// The size of the object in the vector.
+    fn inline_size() -> usize;
+}
+
+
 /// Table provides functions to read Flatbuffer data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Table<'a> {
@@ -217,8 +226,6 @@ impl<'a> Table<'a> {
         }
         ""
     }
-
-
 
     /// Returns the struct `T` value of the field at the offset written in the
     /// vtable `slot`.

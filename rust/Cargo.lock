@@ -1,6 +1,6 @@
 [root]
 name = "flatbuffers"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

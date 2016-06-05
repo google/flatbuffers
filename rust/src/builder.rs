@@ -236,10 +236,14 @@ impl Builder {
 
     /// pad places zeros at the current offset.
     pub fn pad(&mut self, n: usize) {
-        for _ in 0..n {
-            self.space -= 1;
-            let pos = self.space;
-            self.place_u8(pos, 0)
+        use std::ptr;
+        unsafe {
+            let mut ptr = self.bytes.as_mut_ptr().offset(self.space as isize);
+            for _ in 0..n {
+                self.space -= 1;
+                ptr = ptr.offset(-1);
+                ptr::write(ptr, 0);
+            }
         }
     }
 }
@@ -542,7 +546,9 @@ impl Builder {
     pub fn add_slot_struct(&mut self, o: usize, value: UOffsetT, d: UOffsetT) {
         if value != d {
             self.assert_nested();
-		    assert!(value == self.offset() as u32, "Inline data write outside of object");
+		    assert!(value == self.offset() as u32, "Inline data write outside of object.\
+                                                    Write the slot_struct immediatly after \
+                                                    writing the struct slot.");
 		    self.slot(o)
         }
     }
@@ -550,7 +556,11 @@ impl Builder {
     /// Place a `u8` at `pos` relative to the beginning
     /// of the underlaying buffer.
     pub fn place_u8(&mut self, pos: usize, value: u8) {
-        self.bytes[pos] = value;
+        use std::ptr;
+        unsafe {
+            let ptr = self.bytes.as_mut_ptr().offset(pos as isize);
+            ptr::write(ptr,value)
+        }
     }
 
     /// Place a `u32` with `LittleEndian` encoding at `pos`

@@ -1,4 +1,4 @@
-//! TODO
+//! Macros to generate code for Flatbuffer objects.
 
 #[macro_export]
 macro_rules! table_fn {
@@ -93,10 +93,16 @@ macro_rules! struct_get_fn {
 }
 
 #[macro_export]
-macro_rules! table_struct {
+macro_rules! basic_struct_def {
     ($name:ident) => {
         #[derive(Debug)]
         pub struct $name<'a>($crate::Table<'a>);
+
+        impl<'a> $name<'a> {
+            pub fn new(table: $crate::Table) -> $name {
+                $name ( table )
+            }
+        }
 
         impl<'a> From<$crate::Table<'a>> for $name<'a> {
             fn from(table: $crate::Table) -> $name {
@@ -107,10 +113,10 @@ macro_rules! table_struct {
 }
 
 #[macro_export]
-macro_rules! vector_item {
+macro_rules! table_object_trait {
     ($name:ident, $indirect:expr, $inline_size:expr) => {
-        impl<'a> $crate::VectorItem for $name<'a> {
-            fn indirect_lookup() -> bool {
+        impl<'a> $crate::TableObject<'a> for $name<'a> {
+            fn is_struct() -> bool {
                 $indirect
             }
 
@@ -124,28 +130,24 @@ macro_rules! vector_item {
 #[macro_export]
 macro_rules! table_object {
     ($name:ident, $inline_size:expr, [ $( $f:tt ),* ]) => {
-        table_struct!{$name}
+
+        basic_struct_def!{$name}
         impl<'a> $name<'a> {
-            pub fn new(table: $crate::Table) -> $name {
-                $name ( table )
-            }
             $( table_get_fn!{$f} )*
         }
-        vector_item!{ $name, true, $inline_size } 
+        table_object_trait!{ $name, false, $inline_size } 
     }
 }
 
 #[macro_export]
 macro_rules! struct_object {
     ($name:ident, $inline_size:expr, [ $( $f:tt ),* ]) => {
-        table_struct!{$name}
+
+        basic_struct_def!{$name}
         impl<'a> $name<'a> {
-            pub fn new(table: $crate::Table) -> $name {
-                $name ( table )
-            }
             $( struct_get_fn!{$f} )*
         }
-        vector_item!{ $name, false, $inline_size }        
+        table_object_trait!{ $name, true, $inline_size }        
     }
 }
 
@@ -153,6 +155,7 @@ macro_rules! struct_object {
 macro_rules! simple_enum {
     ($type_name:ident, $repr:ident,
      [ $( ($e_name:ident, $value:expr) ),+ ]) => {
+
         #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
         #[repr($repr)]
         pub enum $type_name {
@@ -172,7 +175,11 @@ macro_rules! simple_enum {
 
 #[macro_export]
 macro_rules! union {
-    ($name:ident, $type_name:ident, $repr:ident, [ $( ($e_name:ident, $value:expr, $ty:ty) ),+ ]) => {
+    ($name:ident,
+     $type_name:ident,
+     $repr:ident,
+     [ $( ($e_name:ident, $value:expr, $ty:ty) ),+ ]) => {
+
         #[derive(Debug)]
         pub enum $name<'a> {
             None,
@@ -191,16 +198,3 @@ macro_rules! union {
         simple_enum!($type_name, $repr, [ $( ($e_name, $value) ),+ ]);
     };
 }
-
-// union!{Any, AnyType, u8, [(Monster, 1, Monster<'a>)]}
-
-
-// table!{Monster, [ (get_u16, u16, hp, 8, 150),
-//                    (get_i16, i16, mana, 10, 150),
-//                    (byte_vector, u8, test, 11),
-//                    (ibyte_vector, i8, test2, 11),
-//                    (bool_vector, bool, test3, 11)
-//                 ]}
-
-// simple_struct!{Vec3, BuildVec3, build_vec3, [ (get_u16, u16, hp, 8, 150),
-//                                                (get_i16, i16, mana, 10, 150)]}
