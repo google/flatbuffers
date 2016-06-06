@@ -9,6 +9,7 @@ fn main() {
 #[cfg(test)]
 #[cfg(feature = "test_idl_gen")]
 mod test {
+    use std::rc::Rc;
 
     #[allow(non_snake_case,dead_code,unused_imports, non_camel_case_types)]
     mod MyGame;
@@ -162,7 +163,8 @@ mod test {
         let mut reader = BufReader::new(f1);
         let mut buf: Vec<u8> = Vec::new();
         reader.read_to_end(&mut buf).unwrap();
-        let table = Table::from_offset(&buf, 0);
+        let rc = Rc::new(buf);
+        let table = Table::from_offset(rc.clone(), 0);
         let monster = example::monster::Monster::new(table);
         let got = monster.hp();
         assert!(got == 80, "bad {}: want {:?} got {:?}", "HP", 80, got);
@@ -203,14 +205,15 @@ mod test {
             panic!( "bad {}: want {:?} got {:?}", "Test", "Monster Union", got)
         }
         let got = monster.inventory();
-        assert!(got.len() == 5, "bad {}: want {:?} got {:?}",
+
+        assert!(got.size_hint() == (5, Some(5)), "bad {}: want {:?} got {:?}",
                 "Inventory", "Byte Vector of length 5", got);
         use std::ops::Add;
         let got: u8 = got.fold(0, Add::add);
         assert!(got == 10, "bad {}: want {:?} got {:?}", "Inventory Sum", "10", got);
         // Test4
         let mut got = monster.test4();
-        assert!(got.len() == 2, "bad {}: want {:?} got {:?}", "Test4 vector length", "4", got.len());
+        assert!(got.size_hint() == (2, Some(2)), "bad {}: want {:?} got {:?}", "Test4 vector length", "4", got.size_hint());
         let test1 = got.next().unwrap();
         let test2 = got.next().unwrap();
         assert!(test1.a() == 10, "bad {}: want {:?} got {:?}", "Test4 array test1.a", "10", test1.a());
@@ -219,14 +222,14 @@ mod test {
         assert!(test2.b() == 40, "bad {}: want {:?} got {:?}", "Test4 array test2.b", "40", test2.b());
         // Test Array of string
         let mut got = monster.testarrayofstring();
-        assert!(got.len() == 2, "bad {}: want {:?} got {:?}", "Test4 string vector length", "2", got.len());
+        assert!(got.size_hint() == (2, Some(2)), "bad {}: want {:?} got {:?}", "Test4 string vector length", "2", got.size_hint());
         let str1 = got.next().unwrap();
         let str2 = got.next().unwrap();
         assert!(str1 == "test1",  "bad {}: want {:?} got {:?}", "Test string array 1", "test1", str1);
         assert!(str2 == "test2",  "bad {}: want {:?} got {:?}", "Test string array 2", "test2", str2);
         // array of tables
         let got = monster.testarrayoftables();
-        assert_eq!(got.len(),0);      
+        assert_eq!(got.size_hint(),(0, Some(0)));
     }
 
     

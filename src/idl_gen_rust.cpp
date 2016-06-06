@@ -482,7 +482,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     }
     if (enum_def.is_union) {
       code += Indent + "(" + ev.name +", "+NumToString(ev.value);
-      code += ", " + ev.name + "<'a>";
+      code += ", " + ev.name;
       code += ")";
     }
     else {

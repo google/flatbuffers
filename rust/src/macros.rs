@@ -96,15 +96,15 @@ macro_rules! struct_get_fn {
 macro_rules! basic_struct_def {
     ($name:ident) => {
         #[derive(Debug)]
-        pub struct $name<'a>($crate::Table<'a>);
+        pub struct $name($crate::Table);
 
-        impl<'a> $name<'a> {
+        impl $name {
             pub fn new(table: $crate::Table) -> $name {
                 $name ( table )
             }
         }
 
-        impl<'a> From<$crate::Table<'a>> for $name<'a> {
+        impl From<$crate::Table> for $name {
             fn from(table: $crate::Table) -> $name {
                 $name(table)
             }
@@ -115,7 +115,7 @@ macro_rules! basic_struct_def {
 #[macro_export]
 macro_rules! table_object_trait {
     ($name:ident, $indirect:expr, $inline_size:expr) => {
-        impl<'a> $crate::TableObject<'a> for $name<'a> {
+        impl $crate::TableObject for $name {
             fn is_struct() -> bool {
                 $indirect
             }
@@ -132,7 +132,7 @@ macro_rules! table_object {
     ($name:ident, $inline_size:expr, [ $( $f:tt ),* ]) => {
 
         basic_struct_def!{$name}
-        impl<'a> $name<'a> {
+        impl $name {
             $( table_get_fn!{$f} )*
         }
         table_object_trait!{ $name, false, $inline_size } 
@@ -144,7 +144,7 @@ macro_rules! struct_object {
     ($name:ident, $inline_size:expr, [ $( $f:tt ),* ]) => {
 
         basic_struct_def!{$name}
-        impl<'a> $name<'a> {
+        impl $name {
             $( struct_get_fn!{$f} )*
         }
         table_object_trait!{ $name, true, $inline_size }        
@@ -181,12 +181,12 @@ macro_rules! union {
      [ $( ($e_name:ident, $value:expr, $ty:ty) ),+ ]) => {
 
         #[derive(Debug)]
-        pub enum $name<'a> {
+        pub enum $name {
             None,
             $( $e_name( $ty ) ),+
         }
 
-        impl<'a> $name<'a> {
+        impl $name {
             pub fn new(table: $crate::Table, utype: Option<$type_name>) -> Option<$name> {
                 match utype {
                     $( Some($type_name::$e_name) => Some( $name::$e_name( table.into() ) ), )*

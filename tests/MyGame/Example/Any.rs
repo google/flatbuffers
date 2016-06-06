@@ -4,6 +4,6 @@ use flatbuffers;
 use super::*;
 
 union!{Any,AnyType,u8, [
-    (Monster, 1, Monster<'a>), 
-    (TestSimpleTableWithEnum, 2, TestSimpleTableWithEnum<'a>)]}
+    (Monster, 1, Monster), 
+    (TestSimpleTableWithEnum, 2, TestSimpleTableWithEnum)]}
 

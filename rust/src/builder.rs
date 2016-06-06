@@ -5,7 +5,6 @@
 use byteorder::{ByteOrder, LittleEndian};
 
 use types::*;
-use table::Table;
 
 /// Builder provides functions to build Flatbuffer data.
 ///
@@ -74,20 +73,6 @@ impl Builder {
         self.assert_nested();
         self.nested = false;
         self.write_vtable()
-    }
-
-    /// Read a completed object at offset.
-    ///
-    /// The offset is the `UOffsetT` returned by `end_object`.
-    pub fn read_object(&self, offset: UOffsetT) -> Table {
-        Table::with_pos(&self.bytes, self.bytes.len() - offset as usize)
-    }
-
-    /// Read a completed object at offset.
-    ///
-    /// The offset is the `UOffsetT` returned by `end_table`.
-    pub fn read_table(&self, offset: UOffsetT) -> Table {
-        Table::from_offset(&self.bytes, self.bytes.len() - offset as usize)
     }
 
     /// Initializes bookkeeping for writing a new vector.
@@ -870,7 +855,7 @@ mod test {
         b.start_object(1);
         check(&b, 30, &[]);
         b.add_slot_bool(0, true, false);
-        let obj = b.end_object();
+        b.end_object();
         check(&b, 31, &[
             6, 0, // vtable bytes
             8, 0, // length of object including vtable offset
@@ -879,14 +864,6 @@ mod test {
             0, 0, 0, // padded to 4 bytes
             1, // bool value
         ]);
-        {
-            let read_obj = b.read_object(obj);
-            let o = read_obj.field_offset(4);
-            let got = read_obj.get_bool(o);
-            assert!(got == true, "Failed to read back last object - got {:?} expected true", got);
-            let got = read_obj.get_u8(o);
-            assert!(got == 1, "Failed to read back last object. wrong value expected 1 got {}", got);
-        }
         
 
         // test 9: vtable with one default bool
@@ -1099,14 +1076,14 @@ mod test {
         b.add_slot_i8(0, 33, 0);
         b.add_slot_i8(1, 44, 0);
         let obj1 = b.end_object();
-        let table1 = b.finish_table(obj1);
+        b.finish_table(obj1);
 
         b.start_object(3);
         b.add_slot_i8(0, 55, 0);
         b.add_slot_i8(1, 66, 0);
         b.add_slot_i8(2, 77, 0);
         let obj2 = b.end_object();
-        let table2 = b.finish_table(obj2);
+        b.finish_table(obj2);
 
         check(&b, 43, &[
                 16, 0, 0, 0, // root of table: points to object
@@ -1135,29 +1112,6 @@ mod test {
                 33, // value 0
         ]);
         assert!(b.offset() as usize + b.pos() == b.len());
-        {
-            let read_obj = b.read_object(obj1);
-            let o = read_obj.field_offset(4);
-            let got = read_obj.get_u8(o);
-            assert!(got == 33, "Failed to read back last object - got {:?} expected 33", got);
-            let read_table = b.read_table(table1);
-            let o = read_table.field_offset(6);
-            let got = read_table.get_u8(o);
-            assert!(got == 44, "Failed to read back last object - got {:?} expected 44", got);
-
-            let read_obj = b.read_object(obj2);
-            let o = read_obj.field_offset(4);
-            let got = read_obj.get_u8(o);
-            assert!(got == 55, "Failed to read back last object - got {:?} expected 55", got);
-            let read_table = b.read_table(table2);
-            let o = read_table.field_offset(6);
-            let got = read_table.get_u8(o);
-            assert!(got == 66, "Failed to read back last object - got {:?} expected 66", got);
-            let o = read_table.field_offset(8);
-            let got = read_table.get_u8(o);
-            assert!(got == 77, "Failed to read back last object - got {:?} expected 77", got);
-        }
-
 
         // test 18: a bunch of bools
         b = Builder::with_capacity(0);
@@ -1291,11 +1245,12 @@ mod test {
 	    ];
         assert!(got == want, "testVtableDeduplication want:\n{} {:?}\nbut got:\n{} {:?}\n",
 			    want.len(), want, got.len(), got);
-
+        use std::rc::Rc;
         let len = got.len();
-        let table0 = Table::with_pos(got, len - obj0 as usize);
-        let table1 = Table::with_pos(got, len - obj1 as usize);
-        let table2 = Table::with_pos(got, len - obj2 as usize);
+        let rc = Rc::new(got.to_vec());
+        let table0 = Table::with_pos(rc.clone(), len - obj0 as usize);
+        let table1 = Table::with_pos(rc.clone(), len - obj1 as usize);
+        let table2 = Table::with_pos(rc, len - obj2 as usize);
         fn test_table(tab: &Table, a: VOffsetT, b: u8, c: u8, d: u8) {
             let got = tab.read_voffset_slot(0, 0); 
             if 12 != got {

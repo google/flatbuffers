@@ -1,10 +1,11 @@
+use std::rc::Rc;
 use byteorder::{ByteOrder, LittleEndian};
 
 use types::*;
 use iter::Iterator;
 
 /// A trait for Structs and Tables to implement.
-pub trait TableObject<'a>: From<Table<'a>> {
+pub trait TableObject: From<Table> {
     /// Table Objects require indirection. Structs do not.
     fn is_struct() -> bool;
     /// The size of the object in the vector.
@@ -13,13 +14,13 @@ pub trait TableObject<'a>: From<Table<'a>> {
 
 
 /// Table provides functions to read Flatbuffer data.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Table<'a> {
-    buffer: &'a [u8],
-    pos: usize
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Table {
+    buffer: Rc<Vec<u8>>,
+    pos: usize,
 }
 
-impl<'a> Table<'a> {
+impl Table {
     /// Create a table using from a slice using data starting at `pos`.
     /// First `UOffsetT` should indicate the offset from the root
     /// of the table to the begining of the object.
@@ -39,11 +40,11 @@ impl<'a> Table<'a> {
     /// 66,          // value 1
     /// 55,          // value 0
     /// ```
-    pub fn from_offset(buffer: &[u8], pos: usize) -> Table {
+    pub fn from_offset(buffer: Rc<Vec<u8>>, pos: usize) -> Table {
         let n = read_uoffset(&buffer, pos);
 	    Table {
             buffer: buffer,
-            pos: n as usize + pos 
+            pos: n as usize + pos
         }
     }
 
@@ -66,7 +67,7 @@ impl<'a> Table<'a> {
     /// 66,          // value 1
     /// 55,          // value 0
     /// ```
-    pub fn with_pos(buffer: &[u8], pos: usize) -> Table {
+    pub fn with_pos(buffer: Rc<Vec<u8>>, pos: usize) -> Table {
         Table {
             buffer: buffer,
             pos: pos
@@ -76,13 +77,13 @@ impl<'a> Table<'a> {
     /// Return an object table at offset.
     /// See `from_offset`.
     pub fn get_root(&self, offset: UOffsetT) -> Table {
-        Table::from_offset(self.buffer, self.pos + offset as usize)
+        Table::from_offset(self.buffer.clone(), self.pos + offset as usize)
     }
 
     /// Return an object table at offset specified by offset.
     pub fn get_indirect_root(&self, offset: UOffsetT) -> Table {
         let actual_offset = self.pos as u32 + offset + self.get_u32(offset);
-        Table::with_pos(&self.buffer, actual_offset as usize)
+        Table::with_pos(self.buffer.clone(), actual_offset as usize)
     }
 
 
@@ -229,7 +230,7 @@ impl<'a> Table<'a> {
 
     /// Returns the struct `T` value of the field at the offset written in the
     /// vtable `slot`.
-    pub fn get_slot_struct<T: From<Table<'a>>>(&self, slot: VOffsetT) -> Option<T> {
+    pub fn get_slot_struct<T: From<Table>>(&self, slot: VOffsetT) -> Option<T> {
         let offset = self.field_offset(slot);
         if offset != 0 {
             return Some(self.get_struct(offset))
@@ -239,7 +240,7 @@ impl<'a> Table<'a> {
 
     /// Returns the unsigned byte vector value of the field at the offset written in the
     /// vtable `slot`.
-    pub fn get_slot_vector<T>(&self, slot: VOffsetT) -> Iterator<'a, T> {
+    pub fn get_slot_vector<T>(&self, slot: VOffsetT) -> Iterator<T> {
         let offset = self.field_offset(slot);
         if offset != 0 {
             return self.get_vector::<T>(offset)
@@ -249,11 +250,11 @@ impl<'a> Table<'a> {
 
     /// ByteVector gets an unsigned byte slice from data stored inside
     /// the flatbuffer.
-    pub fn get_vector<T>(&self, offset: UOffsetT) ->  Iterator<'a, T> {
+    pub fn get_vector<T>(&self, offset: UOffsetT) ->  Iterator<T> {
         let mut offset = offset as usize + self.pos;
-	    offset += read_uoffset(self.buffer, offset) as usize;
+	    offset += read_uoffset(&*self.buffer, offset) as usize;
 	    let start =  offset + UOFFSETT_SIZE;
-	    let length = read_uoffset(self.buffer, offset) as usize;
+	    let length = read_uoffset(&*self.buffer, offset) as usize;
 	    Iterator::new(&self.buffer, start, length)
     }
 
@@ -327,18 +328,18 @@ impl<'a> Table<'a> {
     pub fn get_str(&self, offset: UOffsetT) -> &str {
         use std::str;
         let mut offset = offset + self.pos as UOffsetT;
-        offset += read_uoffset(self.buffer, offset as usize);
+        offset += read_uoffset(&*self.buffer, offset as usize);
         let start =  offset as usize + 4 as usize;
-        let length = read_uoffset(self.buffer, offset as usize) as usize;
+        let length = read_uoffset(&*self.buffer, offset as usize) as usize;
         let s = &self.buffer[start..start+length];
         unsafe { str::from_utf8_unchecked(s) }
     }
 
     /// Retrieve a struct table from offset. Offset should point to then
     /// first usable byte of data i.e. the Vtable offset.
-    pub fn get_struct<T: From<Table<'a>>>(&self, offset: UOffsetT) -> T {
+    pub fn get_struct<T: From<Table>>(&self, offset: UOffsetT) -> T {
         let pos = self.pos as UOffsetT + offset;
-        let table = Table::with_pos(self.buffer, pos  as usize);
+        let table = Table::with_pos(self.buffer.clone(), pos  as usize);
         table.into()
     }
 
@@ -350,12 +351,12 @@ impl<'a> Table<'a> {
 
     /// Reads an `UOffsetT` at exact position.
     pub fn read_uoffset(&self, offset: UOffsetT) -> UOffsetT {
-        read_uoffset(self.buffer, offset as usize)
+        read_uoffset(&*self.buffer, offset as usize)
     }
 
     /// Reads an `VOffsetT` at exact position.
     pub fn read_voffset(&self, offset: UOffsetT) -> VOffsetT {
-        read_voffset(self.buffer, offset as usize)
+        read_voffset(&*self.buffer, offset as usize)
     }
 
     /// Retrieves the `VOffsetT` in the vtable `slot`.
@@ -371,7 +372,7 @@ impl<'a> Table<'a> {
     /// Get a reference to the raw buffer
     #[inline]
     pub fn get_bytes(&self) -> &[u8] {
-        self.buffer
+        &*self.buffer
     }
 }
 
@@ -390,8 +391,8 @@ pub fn read_voffset(buf: &[u8], offset: usize) -> VOffsetT {
     LittleEndian::read_u16(&buf[offset as usize..])
 }
 
-impl<'a> From<&'a [u8]> for Table<'a> {
-    fn from(buf: &[u8]) -> Table {
+impl From<Rc<Vec<u8>>> for Table {
+    fn from(buf: Rc<Vec<u8>>,) -> Table {
         Table::from_offset(buf, 0)
     }
 }
