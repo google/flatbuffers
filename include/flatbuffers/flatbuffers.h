@@ -207,6 +207,7 @@ template<typename T> size_t AlignOf() {
 // (avoiding the need for a trailing return decltype)
 template<typename T> struct IndirectHelper {
   typedef T return_type;
+  typedef T mutable_return_type;
   static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return EndianScalar((reinterpret_cast<const T *>(p))[i]);
@@ -214,6 +215,7 @@ template<typename T> struct IndirectHelper {
 };
 template<typename T> struct IndirectHelper<Offset<T>> {
   typedef const T *return_type;
+  typedef T *mutable_return_type;
   static const size_t element_stride = sizeof(uoffset_t);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     p += i * sizeof(uoffset_t);
@@ -222,6 +224,7 @@ template<typename T> struct IndirectHelper<Offset<T>> {
 };
 template<typename T> struct IndirectHelper<const T *> {
   typedef const T *return_type;
+  typedef T *mutable_return_type;
   static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return reinterpret_cast<const T *>(p + i * sizeof(T));
@@ -306,6 +309,7 @@ public:
   uoffset_t Length() const { return size(); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
+  typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
 
   return_type Get(uoffset_t i) const {
     assert(i < size());
@@ -345,6 +349,12 @@ public:
     assert(i < size());
     assert(sizeof(T) == sizeof(uoffset_t));
     WriteScalar(data() + i, val - (Data() + i * sizeof(uoffset_t)));
+  }
+
+  // Get a mutable pointer to tables/strings inside this vector.
+  mutable_return_type GetMutableObject(uoffset_t i) const {
+    assert(i < size());
+    return const_cast<mutable_return_type>(IndirectHelper<T>::Read(Data(), i));
   }
 
   // The raw data in little endian format. Use with care.

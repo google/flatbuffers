@@ -108,6 +108,7 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   mlocs[0] = mb1.Finish();
   MonsterBuilder mb2(builder);
   mb2.add_name(barney);
+  mb2.add_hp(1000);
   mlocs[1] = mb2.Finish();
   MonsterBuilder mb3(builder);
   mb3.add_name(wilma);
@@ -203,6 +204,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
     TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
   TEST_EQ_STR(vecoftables->Get(0)->name()->c_str(), "Barney");
+  TEST_EQ(vecoftables->Get(0)->hp(), 1000);
   TEST_EQ_STR(vecoftables->Get(1)->name()->c_str(), "Fred");
   TEST_EQ_STR(vecoftables->Get(2)->name()->c_str(), "Wilma");
   TEST_NOTNULL(vecoftables->LookupByKey("Barney"));
@@ -259,6 +261,13 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   inventory->Mutate(9, 100);
   TEST_EQ(inventory->Get(9), 100);
   inventory->Mutate(9, 9);
+
+  auto tables = monster->mutable_testarrayoftables();
+  auto first = tables->GetMutableObject(0);
+  TEST_EQ(first->hp(), 1000);
+  first->mutate_hp(0);
+  TEST_EQ(first->hp(), 0);
+  first->mutate_hp(1000);
 
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
