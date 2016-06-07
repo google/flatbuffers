@@ -54,8 +54,8 @@ build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
 FlatBuffers.xcodeproj/
 java/.idea
-java/*.iml
-java/target
+*.iml
+target
 **/*.pyc
 .idea
 build/VS2010/FlatBuffers.sdf
