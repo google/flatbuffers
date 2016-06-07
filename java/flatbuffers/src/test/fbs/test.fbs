@@ -1,0 +1,19 @@
+namespace com.google.flatbuffer.test;
+
+table MyTable
+{
+    foo:int;
+}
+
+enum MyEnum:byte
+{
+    A, B, C
+}
+
+struct MyStruct
+{
+    a:int;
+    b:int;
+}
+
+root_type MyTable;
