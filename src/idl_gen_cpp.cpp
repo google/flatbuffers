@@ -94,7 +94,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (!struct_def.generated) {
-        CheckNameSpace(struct_def.defined_namespace, &code);
+        SetNameSpace(struct_def.defined_namespace, &code);
         code += "struct " + struct_def.name + ";\n\n";
       }
     }
@@ -104,7 +104,7 @@ class CppGenerator : public BaseGenerator {
          ++it) {
       auto &enum_def = **it;
       if (!enum_def.generated) {
-        CheckNameSpace((**it).defined_namespace, &code);
+        SetNameSpace((**it).defined_namespace, &code);
         GenEnum(**it, &code);
       }
     }
@@ -114,7 +114,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
-        CheckNameSpace(struct_def.defined_namespace, &code);
+        SetNameSpace(struct_def.defined_namespace, &code);
         GenStruct(struct_def, &code);
       }
     }
@@ -122,7 +122,7 @@ class CppGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
-        CheckNameSpace(struct_def.defined_namespace, &code);
+        SetNameSpace(struct_def.defined_namespace, &code);
         GenTable(struct_def, &code);
       }
     }
@@ -132,14 +132,14 @@ class CppGenerator : public BaseGenerator {
          ++it) {
       auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        CheckNameSpace(enum_def.defined_namespace, &code);
+        SetNameSpace(enum_def.defined_namespace, &code);
         GenEnumPost(enum_def, &code);
       }
     }
 
     // Generate convenient global helper functions:
     if (parser_.root_struct_def_) {
-      CheckNameSpace((*parser_.root_struct_def_).defined_namespace, &code);
+      SetNameSpace((*parser_.root_struct_def_).defined_namespace, &code);
       auto &name = parser_.root_struct_def_->name;
       std::string qualified_name =
           parser_.namespaces_.back()->GetFullyQualifiedName(name);
@@ -196,7 +196,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     assert(cur_name_space_);
-    CheckNameSpace(nullptr, &code);
+    SetNameSpace(nullptr, &code);
 
     // Close the include guard.
     code += "#endif  // " + include_guard + "\n";
@@ -862,23 +862,35 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Set up the correct namespace. Only open a namespace if
-  // the existing one is different (opening/closing only what is necessary)
-  // the file must start and end with an empty namespace
-  void CheckNameSpace(const Namespace *ns, std::string *code_ptr) {
+  // the existing one is different (closing/opening only what is necessary) :
+  //
+  // the file must start and end with an empty (or null) namespace
+  // so that namespaces are properly opened and closed
+  void SetNameSpace(const Namespace *ns, std::string *code_ptr) {
     if (cur_name_space_ == ns) return;
-    auto s1 = cur_name_space_ == nullptr ? 0 : cur_name_space_->components.size();
-    auto s2 = ns == nullptr ? 0 : ns->components.size();
-    std::vector<std::string>::size_type limit = 0;
-    while (limit < s1 && limit < s2 &&
-           ns->components[limit] == cur_name_space_->components[limit])
-      limit++;
-    for (auto j = s1; j > limit; --j)
+    // compute the size of the longest common namespace prefix.  
+    // if cur_name_space is A::B::C::D and ns is A::B::E::F::G, 
+    // the common prefix is A::B:: and we have old_size = 4, new_size = 5
+    // and common_prefix_size = 2
+    auto old_size =
+        cur_name_space_ == nullptr ? 0 : cur_name_space_->components.size();
+    auto new_size = ns == nullptr ? 0 : ns->components.size();
+    std::vector<std::string>::size_type common_prefix_size = 0;
+    while (common_prefix_size < old_size && common_prefix_size < new_size &&
+           ns->components[common_prefix_size] ==
+               cur_name_space_->components[common_prefix_size])
+      common_prefix_size++;
+    // close cur_name_space in reverse order to reach the common prefix
+    // in the previous example, D then C are closed  
+    for (auto j = old_size; j > common_prefix_size; --j)
       *code_ptr +=
           "}  // namespace " + cur_name_space_->components[j - 1] + "\n";
-    if (s1 != limit) *code_ptr += "\n";
-    for (auto j = limit; j != s2; ++j)
+    if (old_size != common_prefix_size) *code_ptr += "\n";
+    // open namespace parts to reach the ns namespace
+    // in the previous example, E, then F, then G are opened  
+    for (auto j = common_prefix_size; j != new_size; ++j)
       *code_ptr += "namespace " + ns->components[j] + " {\n";
-    if (s2 != limit) *code_ptr += "\n";
+    if (new_size != common_prefix_size) *code_ptr += "\n";
     cur_name_space_ = ns;
   }
 };
