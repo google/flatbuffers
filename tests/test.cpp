@@ -819,6 +819,33 @@ void EnumStringsTest() {
                         "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"), true);
 }
 
+void IntegerOutOfRangeTest() {
+  TestError("table T { F:byte; } root_type T; { F:256 }",
+            "constant does not fit");
+  TestError("table T { F:byte; } root_type T; { F:-257 }",
+            "constant does not fit");
+  TestError("table T { F:ubyte; } root_type T; { F:256 }",
+            "constant does not fit");
+  TestError("table T { F:ubyte; } root_type T; { F:-257 }",
+            "constant does not fit");
+  TestError("table T { F:short; } root_type T; { F:65536 }",
+            "constant does not fit");
+  TestError("table T { F:short; } root_type T; { F:-65537 }",
+            "constant does not fit");
+  TestError("table T { F:ushort; } root_type T; { F:65536 }",
+            "constant does not fit");
+  TestError("table T { F:ushort; } root_type T; { F:-65537 }",
+            "constant does not fit");
+  TestError("table T { F:int; } root_type T; { F:4294967296 }",
+            "constant does not fit");
+  TestError("table T { F:int; } root_type T; { F:-4294967297 }",
+            "constant does not fit");
+  TestError("table T { F:uint; } root_type T; { F:4294967296 }",
+            "constant does not fit");
+  TestError("table T { F:uint; } root_type T; { F:-4294967297 }",
+            "constant does not fit");
+}
+
 void UnicodeTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { F:string; }"
@@ -830,6 +857,44 @@ void UnicodeTest() {
   GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
                      "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+}
+
+void UnicodeSurrogatesTest() {
+  flatbuffers::Parser parser;
+
+  TEST_EQ(
+    parser.Parse(
+      "table T { F:string (id: 0); }"
+      "root_type T;"
+      "{ F:\"\\uD83D\\uDCA9\"}"), true);
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(
+    parser.builder_.GetBufferPointer());
+  auto string = root->GetPointer<flatbuffers::String *>(
+    flatbuffers::FieldIndexToOffset(0));
+  TEST_EQ(strcmp(string->c_str(), "\xF0\x9F\x92\xA9"), 0);
+}
+
+void UnicodeInvalidSurrogatesTest() {
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\\uD800\"}", "unpaired high surrogate");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\\uD800abcd\"}", "unpaired high surrogate");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\\uD800\\n\"}", "unpaired high surrogate");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\\uD800\\uD800\"}", "multiple high surrogates");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\\uDC00\"}", "unpaired low surrogate");
 }
 
 void UnknownFieldsTest() {
@@ -878,7 +943,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ErrorTest();
   ScientificTest();
   EnumStringsTest();
+  IntegerOutOfRangeTest();
   UnicodeTest();
+  UnicodeSurrogatesTest();
+  UnicodeInvalidSurrogatesTest();
   UnknownFieldsTest();
 
   if (!testing_fails) {

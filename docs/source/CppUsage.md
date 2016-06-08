@@ -26,8 +26,7 @@ your program by including the header. As noted, this header relies on
 
 The code for the FlatBuffers C++ library can be found at
 `flatbuffers/include/flatbuffers`. You can browse the library code on the
-[FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/
-include/flatbuffers).
+[FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/include/flatbuffers).
 
 ## Testing the FlatBuffers C++ library
 

@@ -145,7 +145,7 @@ sections provide a more in-depth usage guide.
 
 -   [GitHub repository](http://github.com/google/flatbuffers)
 -   [Landing page](http://google.github.io/flatbuffers)
--   [FlatBuffers Google Group](http://group.google.com/group/flatbuffers)
+-   [FlatBuffers Google Group](https://groups.google.com/forum/#!forum/flatbuffers)
 -   [FlatBuffers Issues Tracker](http://github.com/google/flatbuffers/issues)
 -   Independent implementations & tools:
     - [FlatCC](https://github.com/dvidelabs/flatcc) Alternative FlatBuffers

@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # Copyright 2015 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 # Note: This script requires the Android NDK and Android SDK to be installed.
 #       It also requires an Android device to be connected for installing and
 #       running the applicaton.

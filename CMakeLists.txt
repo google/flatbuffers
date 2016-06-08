@@ -17,6 +17,7 @@ if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
 endif()
 
 set(FlatBuffers_Library_SRCS
+  include/flatbuffers/code_generators.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
@@ -136,6 +137,9 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+  if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
+    set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
