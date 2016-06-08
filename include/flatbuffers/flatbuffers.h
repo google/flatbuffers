@@ -337,7 +337,7 @@ public:
 
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
-  void Mutate(uoffset_t i, T val) {
+  void Mutate(uoffset_t i, const T& val) {
     assert(i < size());
     WriteScalar(data() + i, val);
   }
@@ -1161,6 +1161,17 @@ template<typename T> const T *GetRoot(const void *buf) {
   return GetMutableRoot<T>(const_cast<void *>(buf));
 }
 
+/// Helpers to get a typed pointer to objects that are currently beeing built.
+/// @warning Creating new objects will lead to reallocations and invalidates the pointer!
+template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+  return reinterpret_cast<T *>(fbb.GetCurrentBufferPointer() +
+    fbb.GetSize() - offset.o);
+}
+
+template<typename T> const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+  return GetMutableTemporaryPointer<T>(fbb, offset);
+}
+
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
   return strncmp(reinterpret_cast<const char *>(buf) + sizeof(uoffset_t),
@@ -1495,6 +1506,35 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 #endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
+#define DEFINE_BITMASK_OPERATORS(E, T)\
+    inline E operator | (E lhs, E rhs){\
+        return E(T(lhs) | T(rhs));\
+    }\
+    inline E operator & (E lhs, E rhs){\
+        return E(T(lhs) & T(rhs));\
+    }\
+    inline E operator ^ (E lhs, E rhs){\
+        return E(T(lhs) ^ T(rhs));\
+    }\
+    inline E operator ~ (E lhs){\
+        return E(~T(lhs));\
+    }\
+    inline E operator |= (E &lhs, E rhs){\
+        lhs = lhs | rhs;\
+        return lhs;\
+    }\
+    inline E operator &= (E &lhs, E rhs){\
+        lhs = lhs & rhs;\
+        return lhs;\
+    }\
+    inline E operator ^= (E &lhs, E rhs){\
+        lhs = lhs ^ rhs;\
+        return lhs;\
+    }\
+    inline bool operator !(E rhs) \
+    {\
+        return !bool(T(rhs)); \
+    }
 /// @endcond
 }  // namespace flatbuffers
 
