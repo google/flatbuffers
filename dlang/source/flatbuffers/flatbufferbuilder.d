@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 module flatbuffers.flatbufferbuilder;
 
 import flatbuffers.exception;
@@ -6,9 +22,17 @@ import flatbuffers.bytebuffer;
 import std.exception;
 import std.traits : isNumeric;
 
+/**
+    Responsible for building up and accessing a FlatBuffer formatted byte
+*/
+    
 final class FlatBufferBuilder
 {
-public:
+    /**
+        Create a FlatBufferBuilder with a given initial size.
+        Params:
+            initsize = The initial size to use for the internal buffer.
+    */
     this(int initsize)
     {
         if (initsize <= 0)
@@ -32,8 +56,9 @@ public:
         }
     }
 
-    /// Doubles the size of the ByteBuffer, and copies the old data towards
-    /// the end of the new buffer (since we build the buffer backwards).
+    /** Doubles the size of the ByteBuffer, and copies the old data towards
+        the end of the new buffer (since we build the buffer backwards).
+    */
     void growBuffer()
     {
         auto oldBuf = _buffer.data;
@@ -48,11 +73,13 @@ public:
         _buffer = new ByteBuffer(newBuf);
     }
 
-    /// Prepare to write an element of `size` after `additional_bytes`
-    /// have been written, e.g. if you write a string, you need to align
-    /// such the int length field is aligned to SIZEOF_INT, and the string
-    /// data follows it directly.
-    /// If all you need to do is align, `additional_bytes` will be 0.
+    /**
+        Prepare to write an element of `size` after `additional_bytes`
+        have been written, e.g. if you write a string, you need to align
+        such the int length field is aligned to SIZEOF_INT, and the string
+        data follows it directly.
+        If all you need to do is align, `additional_bytes` will be 0.
+    */
     void prep(int size, int additionalBytes)
     {
         // Track the biggest thing we've ever aligned to.
@@ -74,6 +101,9 @@ public:
             pad(alignSize);
     }
 
+    /**
+        put a value into the buffer.
+    */
     void put(T)(T x) if (is(T == bool) || isNumeric!T)
     {
         static if (is(T == bool))
@@ -322,6 +352,13 @@ public:
         }
     }
 
+    /**
+        Encode the string `s` in the buffer using UTF-8.
+        Params:
+            s = The string to encode.
+        Returns:
+            The offset in the buffer where the encoded string starts.
+    */
     int createString(string s)
     {
         notNested();
@@ -333,8 +370,9 @@ public:
         return endVector();
     }
 
-    /// Structs are stored inline, so nothing additional is being added.
-    /// `d` is always 0.
+    /** Structs are stored inline, so nothing additional is being added.
+        `d` is always 0.
+    */
     void addStruct(int voffset, int x, int d)
     {
         if (x != d)
@@ -406,8 +444,9 @@ public:
         return vtableloc;
     }
 
-    /// This checks a required field has been set in a given table that has
-    /// just been constructed.
+    /** This checks a required field has been set in a given table that has
+        just been constructed.
+    */
     void required(int table, int field)
     {
         import std.string;
@@ -420,24 +459,45 @@ public:
             throw new InvalidOperationException(format("FlatBuffers: field %s must be set.",
                 field));
     }
-
+    
+    /**
+        Finalize a buffer, pointing to the given `root_table`.
+        Params:
+            rootTable = An offset to be added to the buffer.
+    */
     void finish(int rootTable)
     {
         prep(_minAlign, int.sizeof);
         addOffset(rootTable);
     }
 
+    /**
+        Get the ByteBuffer representing the FlatBuffer.
+        Notes: his is typically only called after you call `Finish()`.
+        Returns:
+            Returns the ByteBuffer for this FlatBuffer.
+    */
     ByteBuffer dataBuffer()
     {
         return _buffer;
     }
 
-    /// Utility function for copying a byte array that starts at 0.
+    /** 
+        A utility function to copy and return the ByteBuffer data as a `ubyte[]`
+        Retuens:
+            the byte used in FlatBuffer data, it is not copy.
+    */
     ubyte[] sizedByteArray()
     {
         return _buffer.data[_buffer.position .. $];
     }
 
+    /**
+        Finalize a buffer, pointing to the given `rootTable`.
+        Params:
+            rootTable = An offset to be added to the buffer.
+            fileIdentifier = A FlatBuffer file identifier to be added to the buffer before `root_table`.
+    */
     void finish(int rootTable, string fileIdentifier)
     {
         import std.string;

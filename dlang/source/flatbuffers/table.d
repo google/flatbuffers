@@ -1,17 +1,40 @@
+/*
+ * Copyright 2016 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 module flatbuffers.table;
 
 import flatbuffers.exception;
 import flatbuffers.bytebuffer;
 public import std.typecons;
 
+/// Mixin this template to all structs in the generated code derive , and add their own accessors.
 mixin template Struct(ParentType)
 {
+    /**
+        Create this Struct.
+    */
     static ParentType init_(int pos, ByteBuffer buffer)
     {
         return ParentType(buffer, pos);
     }
 
 private: // Variables.
+    /**
+        disable the constor.
+    */
     @disable this();
     this(ByteBuffer buffer, int pos)
     {
@@ -23,8 +46,12 @@ private: // Variables.
     int _pos;
 }
 
+/// Mixin this template to all  tables in the generated code derive , and add their own accessors.
 mixin template Table(ParentType)
 {
+    /**
+        Create this Struct as a Table.
+    */
     static ParentType init_(int pos, ByteBuffer buffer)
     {
         return ParentType(buffer, pos);
@@ -108,6 +135,9 @@ private: // Methods.
 
 import std.traits;
 
+/**
+    Iterator for the vector.
+*/
 struct Iterator(ParentType, ReturnType, string accessor)
 {
     static if (isScalarType!(ReturnType) || isSomeString!(ReturnType))
