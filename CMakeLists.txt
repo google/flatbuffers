@@ -221,14 +221,6 @@ if(NOT FLATBUFFERS_INSTALL)
   return()
 endif()
 
-install(DIRECTORY include/flatbuffers DESTINATION include)
-if(FLATBUFFERS_BUILD_FLATLIB)
-  install(TARGETS flatbuffers DESTINATION lib)
-endif()
-if(FLATBUFFERS_BUILD_FLATC)
-  install(TARGETS flatc DESTINATION bin)
-endif()
-
 ## install
 
 set(TARGET_NAME flatbuffers)
@@ -257,7 +249,7 @@ configure_package_config_file(
   )
 
 install(
-  TARGETS flatbuffers
+  TARGETS ${TARGET_NAME}
   EXPORT "${targets_export_name}"
   LIBRARY DESTINATION "lib"
   ARCHIVE DESTINATION "lib"
@@ -265,12 +257,14 @@ install(
   INCLUDES DESTINATION "${include_install_dir}"
   )
 
-foreach(HEADER ${TARGET_PUBLIC_HDRS})
-  install(
-    FILES "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}"
-    DESTINATION "${include_install_dir}/${TARGET_NAME}"
-    )
-endforeach()
+if(FLATBUFFERS_BUILD_FLATC)
+  install(TARGETS flatc DESTINATION bin)
+endif()
+
+install(
+  DIRECTORY include/flatbuffers
+  DESTINATION "${include_install_dir}"
+  )
 
 install(
   FILES "${project_config}" "${version_config}"
