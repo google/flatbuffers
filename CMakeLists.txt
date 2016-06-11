@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(FlatBuffers VERSION 1.0.0)
+# Latest release is 1.3.0, but internal flatbuffers header is 1.0.0
+project(FlatBuffers VERSION 1.3.0) 
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
