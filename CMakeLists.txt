@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
-project(FlatBuffers)
+project(FlatBuffers VERSION 1.4.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -149,9 +149,12 @@ include_directories(include)
 include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers ${FlatBuffers_Library_SRCS})
+else()
+  # http://stackoverflow.com/a/11583676
+  add_library(flatbuffers INTERFACE) 
 endif()
-
+  
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
@@ -203,16 +206,6 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   target_link_libraries(grpctest grpc++_unsecure grpc pthread dl)
 endif()
 
-if(FLATBUFFERS_INSTALL)
-  install(DIRECTORY include/flatbuffers DESTINATION include)
-  if(FLATBUFFERS_BUILD_FLATLIB)
-    install(TARGETS flatbuffers DESTINATION lib)
-  endif()
-  if(FLATBUFFERS_BUILD_FLATC)
-    install(TARGETS flatc DESTINATION bin)
-  endif()
-endif()
-
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
@@ -222,3 +215,69 @@ if(FLATBUFFERS_BUILD_TESTS)
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)
+
+if(NOT FLATBUFFERS_INSTALL)
+  return()
+endif()
+
+install(DIRECTORY include/flatbuffers DESTINATION include)
+if(FLATBUFFERS_BUILD_FLATLIB)
+  install(TARGETS flatbuffers DESTINATION lib)
+endif()
+if(FLATBUFFERS_BUILD_FLATC)
+  install(TARGETS flatc DESTINATION bin)
+endif()
+
+## install
+
+set(TARGET_NAME flatbuffers)
+
+set(config_install_dir "lib/cmake/${TARGET_NAME}")
+set(include_install_dir "include")
+
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+# Configuration
+set(version_config "${generated_dir}/${TARGET_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${TARGET_NAME}Config.cmake")
+set(targets_export_name "${TARGET_NAME}Targets")
+set(namespace "${TARGET_NAME}::")
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  "${version_config}" COMPATIBILITY SameMajorVersion
+  )
+
+configure_package_config_file(
+  "CMake/Config.cmake.in"
+  "${project_config}"
+  INSTALL_DESTINATION "${config_install_dir}"
+  )
+
+install(
+  TARGETS flatbuffers
+  EXPORT "${targets_export_name}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
+  )
+
+foreach(HEADER ${TARGET_PUBLIC_HDRS})
+  install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}"
+    DESTINATION "${include_install_dir}/${TARGET_NAME}"
+    )
+endforeach()
+
+install(
+  FILES "${project_config}" "${version_config}"
+  DESTINATION "${config_install_dir}"
+  )
+
+install(
+  EXPORT "${targets_export_name}"
+  NAMESPACE "${namespace}"
+  DESTINATION "${config_install_dir}"
+  )
