@@ -48,7 +48,7 @@ class JsGenerator : public BaseGenerator {
     code = code + "// " + FlatBuffersGeneratedWarning();
 
     // Generate code for all the namespace declarations.
-    GenNamespaces(parser_, &code, &exports_code);
+    GenNamespaces(&code, &exports_code);
 
     // Output the main declaration code from above.
     code += enum_code;
@@ -79,15 +79,14 @@ class JsGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr);
+      GenStruct(struct_def, decl_code_ptr, exports_code_ptr);
     }
   }
-  static void GenNamespaces(const Parser &parser, std::string *code_ptr,
-                          std::string *exports_ptr) {
+  void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
   std::set<std::string> namespaces;
 
-  for (auto it = parser.namespaces_.begin();
-       it != parser.namespaces_.end(); ++it) {
+  for (auto it = parser_.namespaces_.begin();
+       it != parser_.namespaces_.end(); ++it) {
     std::string namespace_so_far;
 
     // Gather all parent namespaces for this namespace
@@ -378,8 +377,7 @@ static void GenStructBody(const StructDef &struct_def,
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
-static void GenStruct(const Parser &parser, StructDef &struct_def,
-                      std::string *code_ptr, std::string *exports_ptr) {
+void GenStruct(StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
@@ -433,13 +431,13 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "};\n\n";
 
     // Generate the identifier check method
-    if (parser.root_struct_def_ == &struct_def &&
-        !parser.file_identifier_.empty()) {
+    if (parser_.root_struct_def_ == &struct_def &&
+        !parser_.file_identifier_.empty()) {
       GenDocComment(code_ptr,
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
       code += object_name + ".bufferHasIdentifier = function(bb) {\n";
-      code += "  return bb.__has_identifier('" + parser.file_identifier_;
+      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
       code += "');\n};\n\n";
     }
   }
@@ -702,15 +700,15 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "};\n\n";
 
     // Generate the method to complete buffer construction
-    if (parser.root_struct_def_ == &struct_def) {
+    if (parser_.root_struct_def_ == &struct_def) {
       GenDocComment(code_ptr,
         "@param {flatbuffers.Builder} builder\n"
         "@param {flatbuffers.Offset} offset");
       code += object_name + ".finish" + struct_def.name + "Buffer";
       code += " = function(builder, offset) {\n";
       code += "  builder.finish(offset";
-      if (!parser.file_identifier_.empty()) {
-        code += ", '" + parser.file_identifier_ + "'";
+      if (!parser_.file_identifier_.empty()) {
+        code += ", '" + parser_.file_identifier_ + "'";
       }
       code += ");\n";
       code += "};\n\n";
