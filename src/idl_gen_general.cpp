@@ -188,6 +188,72 @@ static_assert(sizeof(language_parameters) / sizeof(LanguageParameters) ==
               IDLOptions::kMAX,
               "Please add extra elements to the arrays above.");
 
+namespace general {
+class GeneralGenerator : public BaseGenerator {
+ public:
+  GeneralGenerator(const Parser &parser, const std::string &path,
+                   const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
+  bool generate() {
+    assert(parser_.opts.lang <= IDLOptions::kMAX);
+    auto lang = language_parameters[parser_.opts.lang];
+    std::string one_file_code;
+
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      std::string enumcode;
+      auto &enum_def = **it;
+      GenEnum(lang, parser_, enum_def, &enumcode);
+      if (parser_.opts.one_file) {
+        one_file_code += enumcode;
+      } else {
+        if (!SaveType(lang, enum_def.name, *enum_def.defined_namespace,
+                      enumcode, false)) return false;
+      }
+    }
+
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      std::string declcode;
+      auto &struct_def = **it;
+      GenStruct(lang, parser_, struct_def, &declcode);
+      if (parser_.opts.one_file) {
+        one_file_code += declcode;
+      } else {
+        if (!SaveType(lang, struct_def.name, *struct_def.defined_namespace,
+                      declcode, true)) return false;
+      }
+    }
+
+    if (parser_.opts.one_file) {
+      return SaveType(lang, file_name_, *parser_.namespaces_.back(),
+                      one_file_code, true);
+    }
+    return true;
+  }
+
+  // Save out the generated code for a single class while adding
+  // declaration boilerplate.
+  bool SaveType(const LanguageParameters &lang, const std::string &defname,
+                const Namespace &ns, const std::string &classcode,
+                bool needs_includes) {
+    if (!classcode.length()) return true;
+
+    std::string code;
+    code = code + "// " + FlatBuffersGeneratedWarning();
+    std::string namespace_name = FullNamespace(".", ns);
+    if (!namespace_name.empty()) {
+      code += lang.namespace_ident + namespace_name + lang.namespace_begin;
+      code += "\n\n";
+    }
+    if (needs_includes) code += lang.includes;
+    code += classcode;
+    if (!namespace_name.empty()) code += lang.namespace_end;
+    auto filename = NamespaceDir(ns) + defname + lang.file_extension;
+    return SaveFile(filename.c_str(), code, false);
+  }
+  
+
 static std::string FunctionStart(const LanguageParameters &lang, char upper) {
   return std::string() +
       (lang.language == IDLOptions::kJava
@@ -246,9 +312,6 @@ static std::string GenTypeBasic(const LanguageParameters &lang, const Parser &pa
                                 const Type &type) {
   return GenTypeBasic(lang, parser, type, true);
 }
-
-static std::string GenTypeGet(const LanguageParameters &lang, const Parser &parser,
-                              const Type &type);
 
 static std::string GenTypePointer(const LanguageParameters &lang, const Parser &parser,
                                   const Type &type) {
@@ -1113,72 +1176,7 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
     }
   }
   code += "};\n\n";
-}
-
-namespace general {
-class GeneralGenerator : public BaseGenerator {
- public:
-  GeneralGenerator(const Parser &parser, const std::string &path,
-                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
-  bool generate() {
-    assert(parser_.opts.lang <= IDLOptions::kMAX);
-    auto lang = language_parameters[parser_.opts.lang];
-    std::string one_file_code;
-
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      std::string enumcode;
-      auto &enum_def = **it;
-      GenEnum(lang, parser_, enum_def, &enumcode);
-      if (parser_.opts.one_file) {
-        one_file_code += enumcode;
-      } else {
-        if (!SaveType(lang, enum_def.name, *enum_def.defined_namespace,
-                      enumcode, false)) return false;
-      }
-    }
-
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      std::string declcode;
-      auto &struct_def = **it;
-      GenStruct(lang, parser_, struct_def, &declcode);
-      if (parser_.opts.one_file) {
-        one_file_code += declcode;
-      } else {
-        if (!SaveType(lang, struct_def.name, *struct_def.defined_namespace,
-                      declcode, true)) return false;
-      }
-    }
-
-    if (parser_.opts.one_file) {
-      return SaveType(lang, file_name_, *parser_.namespaces_.back(),
-                      one_file_code, true);
-    }
-    return true;
-  }
-
-  // Save out the generated code for a single class while adding
-  // declaration boilerplate.
-  bool SaveType(const LanguageParameters &lang, const std::string &defname,
-                const Namespace &ns, const std::string &classcode,
-                bool needs_includes) {
-    if (!classcode.length()) return true;
-
-    std::string code;
-    code = code + "// " + FlatBuffersGeneratedWarning();
-    std::string namespace_name = FullNamespace(".", ns);
-    if (!namespace_name.empty()) {
-      code += lang.namespace_ident + namespace_name + lang.namespace_begin;
-      code += "\n\n";
-    }
-    if (needs_includes) code += lang.includes;
-    code += classcode;
-    if (!namespace_name.empty()) code += lang.namespace_end;
-    auto filename = NamespaceDir(ns) + defname + lang.file_extension;
-    return SaveFile(filename.c_str(), code, false);
-  }
+}  
 };
 }  // namespace general
 
