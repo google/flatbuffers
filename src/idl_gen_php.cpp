@@ -55,7 +55,7 @@ namespace php {
              it != parser_.structs_.vec.end(); ++it) {
           auto &struct_def = **it;
           std::string declcode;
-          GenStruct(parser_, struct_def, &declcode);
+          GenStruct(struct_def, &declcode);
           if (!SaveType(struct_def, declcode, true)) return false;
         }
         return true;
@@ -96,8 +96,7 @@ namespace php {
 
     // Ensure that a type is prefixed with its namespace whenever it is used
     // outside of its namespace.
-    static std::string WrapInNameSpace(const Namespace *ns,
-      const std::string &name) {
+    std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
       std::string qualified_name = "\\";
       for (auto it = ns->components.begin();
       it != ns->components.end(); ++it) {
@@ -106,7 +105,7 @@ namespace php {
       return qualified_name + name;
     }
 
-    static std::string WrapInNameSpace(const Definition &def) {
+    std::string WrapInNameSpace(const Definition &def) {
       return WrapInNameSpace(def.defined_namespace, def.name);
     }
 
@@ -246,8 +245,7 @@ namespace php {
     }
 
     // Get the value of a table's scalar.
-    static void GetScalarFieldOfTable(const FieldDef &field,
-      std::string *code_ptr) {
+    void GetScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
       std::string getter = GenGetter(field.value.type);
 
@@ -270,8 +268,7 @@ namespace php {
 
     // Get a struct by initializing an existing struct.
     // Specific to Struct.
-    static void GetStructFieldOfStruct(const FieldDef &field,
-      std::string *code_ptr) {
+    void GetStructFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
 
       code += Indent + "/**\n";
@@ -290,8 +287,7 @@ namespace php {
 
     // Get a struct by initializing an existing struct.
     // Specific to Table.
-    static void GetStructFieldOfTable(const FieldDef &field,
-      std::string *code_ptr) {
+    void GetStructFieldOfTable(const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
 
       code += Indent + "public function get";
@@ -317,8 +313,7 @@ namespace php {
     }
 
     // Get the value of a string.
-    static void GetStringField(const FieldDef &field,
-      std::string *code_ptr) {
+    void GetStringField(const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
       code += Indent + "public function get";
       code += MakeCamel(field.name);
@@ -335,8 +330,7 @@ namespace php {
     }
 
     // Get the value of a union from an object.
-    static void GetUnionField(const FieldDef &field,
-      std::string *code_ptr) {
+    void GetUnionField(const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
 
       code += Indent + "/**\n";
@@ -355,9 +349,8 @@ namespace php {
     }
 
     // Get the value of a vector's struct member.
-    static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
-      const FieldDef &field,
-      std::string *code_ptr) {
+    void GetMemberOfVectorOfStruct(const StructDef &struct_def,
+      const FieldDef &field, std::string *code_ptr) {
       std::string &code = *code_ptr;
       auto vectortype = field.value.type.VectorType();
 
@@ -419,7 +412,7 @@ namespace php {
 
     // Get the value of a vector's non-struct member. Uses a named return
     // argument to conveniently set the zero value for the result.
-    static void GetMemberOfVectorOfNonStruct(const FieldDef &field,
+    void GetMemberOfVectorOfNonStruct(const FieldDef &field,
       std::string *code_ptr) {
       std::string &code = *code_ptr;
       auto vectortype = field.value.type.VectorType();
@@ -660,9 +653,7 @@ namespace php {
     }
 
     // Get the offset of the end of a table.
-    static void GetEndOffsetOnTable(const Parser &parser,
-      const StructDef &struct_def,
-      std::string *code_ptr) {
+    void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
       std::string &code = *code_ptr;
 
 
@@ -689,7 +680,7 @@ namespace php {
       code += Indent + Indent + "return $o;\n";
       code += Indent + "}\n";
 
-      if (parser.root_struct_def_ == &struct_def) {
+      if (parser_.root_struct_def_ == &struct_def) {
         code += "\n";
         code += Indent + "public static function finish";
         code += struct_def.name;
@@ -697,16 +688,15 @@ namespace php {
         code += Indent + "{\n";
         code += Indent + Indent + "$builder->finish($offset";
 
-        if (parser.file_identifier_.length())
-          code += ", \"" + parser.file_identifier_ + "\"";
+        if (parser_.file_identifier_.length())
+          code += ", \"" + parser_.file_identifier_ + "\"";
         code += ");\n";
         code += Indent + "}\n";
       }
     }
 
   // Generate a struct field, conditioned on its child type(s).
-    static void GenStructAccessor(const StructDef &struct_def,
-      const FieldDef &field,
+    void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
       std::string *code_ptr) {
       GenComment(field.doc_comment, code_ptr, nullptr);
 
@@ -753,9 +743,7 @@ namespace php {
     }
 
     // Generate table constructors, conditioned on its members' types.
-    static void GenTableBuilders(const Parser &parser,
-      const StructDef &struct_def,
-      std::string *code_ptr) {
+    void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
       GetStartOfTable(struct_def, code_ptr);
 
       for (auto it = struct_def.fields.vec.begin();
@@ -782,11 +770,11 @@ namespace php {
         }
       }
 
-      GetEndOffsetOnTable(parser, struct_def, code_ptr);
+      GetEndOffsetOnTable(struct_def, code_ptr);
     }
 
     // Generate struct or table methods.
-    static void GenStruct(const Parser &parser, const StructDef &struct_def,
+    void GenStruct(const StructDef &struct_def,
       std::string *code_ptr) {
       if (struct_def.generated) return;
 
@@ -801,13 +789,13 @@ namespace php {
 
       std::string &code = *code_ptr;
       if (!struct_def.fixed) {
-        if (parser.file_identifier_.length()) {
+        if (parser_.file_identifier_.length()) {
           // Return the identifier
           code += Indent + "public static function " + struct_def.name;
           code += "Identifier()\n";
           code += Indent + "{\n";
           code += Indent + Indent + "return \"";
-          code += parser.file_identifier_ + "\";\n";
+          code += parser_.file_identifier_ + "\";\n";
           code += Indent + "}\n\n";
 
           // Check if a buffer has the identifier.
@@ -820,12 +808,12 @@ namespace php {
           code += Indent + "}\n\n";
         }
 
-        if (parser.file_extension_.length()) {
+        if (parser_.file_extension_.length()) {
           // Return the extension
           code += Indent + "public static function " + struct_def.name;
           code += "Extension()\n";
           code += Indent + "{\n";
-          code += Indent + Indent + "return \"" + parser.file_extension_;
+          code += Indent + Indent + "return \"" + parser_.file_extension_;
           code += "\";\n";
           code += Indent + "}\n\n";
         }
@@ -848,7 +836,7 @@ namespace php {
         GenStructBuilder(struct_def, code_ptr);
       } else {
         // Create a set of functions that allow table construction.
-        GenTableBuilders(parser, struct_def, code_ptr);
+        GenTableBuilders(struct_def, code_ptr);
       }
       EndClass(code_ptr);
     }
@@ -916,7 +904,7 @@ namespace php {
       return ctypename[type.base_type];
     }
 
-    static std::string GenDefaultValue(const Value &value) {
+    std::string GenDefaultValue(const Value &value) {
       if (value.type.enum_def) {
         if (auto val = value.type.enum_def->ReverseLookup(
           atoi(value.constant.c_str()), false)) {
