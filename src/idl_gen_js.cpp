@@ -121,7 +121,7 @@ class JsGenerator : public BaseGenerator {
 
 // Ensure that a type is prefixed with its namespace whenever it is used
 // outside of its namespace.
-static std::string WrapInNameSpace(const Namespace *ns,
+std::string WrapInNameSpace(const Namespace *ns,
                                    const std::string &name) {
   std::string qualified_name;
   for (auto it = ns->components.begin();
@@ -131,7 +131,7 @@ static std::string WrapInNameSpace(const Namespace *ns,
   return qualified_name + name;
 }
 
-static std::string WrapInNameSpace(const Definition &def) {
+std::string WrapInNameSpace(const Definition &def) {
   return WrapInNameSpace(def.defined_namespace, def.name);
 }
 
@@ -180,7 +180,7 @@ static void GenDocComment(std::string *code_ptr,
 }
 
 // Generate an enum declaration and an enum string lookup table.
-static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+void GenEnum(EnumDef &enum_def, std::string *code_ptr,
                     std::string *exports_ptr) {
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
@@ -227,7 +227,7 @@ static std::string GenType(const Type &type) {
   }
 }
 
-static std::string GenGetter(const Type &type, const std::string &arguments) {
+std::string GenGetter(const Type &type, const std::string &arguments) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "this.bb.__string" + arguments;
     case BASE_TYPE_STRUCT: return "this.bb.__struct" + arguments;
@@ -247,7 +247,7 @@ static std::string GenGetter(const Type &type, const std::string &arguments) {
   }
 }
 
-static std::string GenDefaultValue(const Value &value, const std::string &context) {
+std::string GenDefaultValue(const Value &value, const std::string &context) {
   if (value.type.enum_def) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
@@ -274,7 +274,7 @@ static std::string GenDefaultValue(const Value &value, const std::string &contex
   }
 }
 
-static std::string GenTypeName(const Type &type, bool input) {
+std::string GenTypeName(const Type &type, bool input) {
   if (!input) {
     if (type.base_type == BASE_TYPE_STRING) {
       return "string|Uint8Array";
@@ -326,7 +326,7 @@ static std::string MaybeScale(T value) {
   return value != 1 ? " * " + NumToString(value) : "";
 }
 
-static void GenStructArgs(const StructDef &struct_def,
+void GenStructArgs(const StructDef &struct_def,
                           std::string *annotations,
                           std::string *arguments,
                           const std::string &nameprefix) {
