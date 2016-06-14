@@ -25,14 +25,74 @@
 
 namespace flatbuffers {
 namespace php {
+    // Hardcode spaces per indentation.
+    const std::string Indent = "    ";
+    class PhpGenerator : public BaseGenerator {
+     public:
+      PhpGenerator(const Parser &parser, const std::string &path,
+                   const std::string &file_name)
+          : BaseGenerator(parser, path, file_name){};
+      bool generate() {
+        if (!generateEnums()) return false;
+        if (!generateStructs()) return false;
+        return true;
+      }
 
-    static std::string GenGetter(const Type &type);
-    static std::string GenDefaultValue(const Value &value);
-    static std::string GenMethod(const FieldDef &field);
-    static void GenStructBuilder(const StructDef &struct_def,
-      std::string *code_ptr);
-    static std::string GenTypeBasic(const Type &type);
-    static std::string GenTypeGet(const Type &type);
+     private:
+      bool generateEnums() {
+        for (auto it = parser_.enums_.vec.begin();
+             it != parser_.enums_.vec.end(); ++it) {
+          auto &enum_def = **it;
+          std::string enumcode;
+          GenEnum(enum_def, &enumcode);
+          if (!SaveType(enum_def, enumcode, false)) return false;
+        }
+        return true;
+      }
+
+      bool generateStructs() {
+        for (auto it = parser_.structs_.vec.begin();
+             it != parser_.structs_.vec.end(); ++it) {
+          auto &struct_def = **it;
+          std::string declcode;
+          GenStruct(parser_, struct_def, &declcode);
+          if (!SaveType(struct_def, declcode, true)) return false;
+        }
+        return true;
+      }
+
+      // Begin by declaring namespace and imports.
+      void BeginFile(const std::string name_space_name,
+                     const bool needs_imports, std::string *code_ptr) {
+        std::string &code = *code_ptr;
+        code += "<?php\n";
+        code = code + "// " + FlatBuffersGeneratedWarning();
+        code += "namespace " + name_space_name + ";\n\n";
+
+        if (needs_imports) {
+          code += "use \\Google\\FlatBuffers\\Struct;\n";
+          code += "use \\Google\\FlatBuffers\\Table;\n";
+          code += "use \\Google\\FlatBuffers\\ByteBuffer;\n";
+          code += "use \\Google\\FlatBuffers\\FlatBufferBuilder;\n";
+          code += "\n";
+        }
+      }
+
+      // Save out the generated code for a Php Table type.
+      bool SaveType(const Definition &def, const std::string &classcode,
+                    bool needs_imports) {
+        if (!classcode.length()) return true;
+
+        std::string code = "";
+        BeginFile(FullNamespace("\\", *def.defined_namespace),
+                  needs_imports, &code);
+        code += classcode;
+
+        std::string filename = NamespaceDir(*def.defined_namespace) +
+                               kPathSeparator + def.name + ".php";
+        return SaveFile(filename.c_str(), code, false);
+      }
+      
 
     // Ensure that a type is prefixed with its namespace whenever it is used
     // outside of its namespace.
@@ -50,9 +110,6 @@ namespace php {
       return WrapInNameSpace(def.defined_namespace, def.name);
     }
 
-
-    // Hardcode spaces per indentation.
-    const std::string Indent = "    ";
 
     // Begin a class declaration.
     static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
@@ -927,72 +984,7 @@ namespace php {
       code += Indent + Indent + "return $builder->offset();\n";
       code += Indent + "}\n";
     }
-
-    class PhpGenerator : public BaseGenerator {
-     public:
-      PhpGenerator(const Parser &parser, const std::string &path,
-                   const std::string &file_name)
-          : BaseGenerator(parser, path, file_name){};
-      bool generate() {
-        if (!generateEnums()) return false;
-        if (!generateStructs()) return false;
-        return true;
-      }
-
-     private:
-      bool generateEnums() {
-        for (auto it = parser_.enums_.vec.begin();
-             it != parser_.enums_.vec.end(); ++it) {
-          auto &enum_def = **it;
-          std::string enumcode;
-          GenEnum(enum_def, &enumcode);
-          if (!SaveType(enum_def, enumcode, false)) return false;
-        }
-        return true;
-      }
-
-      bool generateStructs() {
-        for (auto it = parser_.structs_.vec.begin();
-             it != parser_.structs_.vec.end(); ++it) {
-          auto &struct_def = **it;
-          std::string declcode;
-          GenStruct(parser_, struct_def, &declcode);
-          if (!SaveType(struct_def, declcode, true)) return false;
-        }
-        return true;
-      }
-
-      // Begin by declaring namespace and imports.
-      void BeginFile(const std::string name_space_name,
-                     const bool needs_imports, std::string *code_ptr) {
-        std::string &code = *code_ptr;
-        code += "<?php\n";
-        code = code + "// " + FlatBuffersGeneratedWarning();
-        code += "namespace " + name_space_name + ";\n\n";
-
-        if (needs_imports) {
-          code += "use \\Google\\FlatBuffers\\Struct;\n";
-          code += "use \\Google\\FlatBuffers\\Table;\n";
-          code += "use \\Google\\FlatBuffers\\ByteBuffer;\n";
-          code += "use \\Google\\FlatBuffers\\FlatBufferBuilder;\n";
-          code += "\n";
-        }
-      }
-
-      // Save out the generated code for a Php Table type.
-      bool SaveType(const Definition &def, const std::string &classcode,
-                    bool needs_imports) {
-        if (!classcode.length()) return true;
-
-        std::string code = "";
-        BeginFile(FullNamespace("\\", *def.defined_namespace),
-                  needs_imports, &code);
-        code += classcode;
-
-        std::string filename = NamespaceDir(*def.defined_namespace) +
-                               kPathSeparator + def.name + ".php";
-        return SaveFile(filename.c_str(), code, false);
-      }
+      
     };
     }  // namespace php
 
