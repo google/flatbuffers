@@ -22,9 +22,67 @@
 #include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
-namespace js {
 
-static void GenNamespaces(const Parser &parser, std::string *code_ptr,
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.js";
+}
+
+namespace js {
+// Iterate through all definitions we haven't generate code for (enums, structs,
+// and tables) and output them to a single file.
+class JsGenerator : public BaseGenerator {
+ public:
+  JsGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name){};
+  // Iterate through all definitions we haven't generate code for (enums,
+  // structs, and tables) and output them to a single file.
+  bool generate() {
+    if (IsEverythingGenerated()) return true;
+
+    std::string enum_code, struct_code, exports_code, code;
+    generateEnums(&enum_code, &exports_code);
+    generateStructs(&struct_code, &exports_code);
+
+    code = code + "// " + FlatBuffersGeneratedWarning();
+
+    // Generate code for all the namespace declarations.
+    GenNamespaces(parser_, &code, &exports_code);
+
+    // Output the main declaration code from above.
+    code += enum_code;
+    code += struct_code;
+
+    if (!exports_code.empty() && !parser_.opts.skip_js_exports) {
+      code += "// Exports for Node.js and RequireJS\n";
+      code += exports_code;
+    }
+
+    return SaveFile(GeneratedFileName(path_, file_name_).c_str(), code, false);
+  }
+
+ private:
+  // Generate code for all enums.
+  void generateEnums(std::string *enum_code_ptr,
+                     std::string *exports_code_ptr) {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      auto &enum_def = **it;
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr);
+    }
+  }
+
+  // Generate code for all structs.
+  void generateStructs(std::string *decl_code_ptr,
+                       std::string *exports_code_ptr) {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      auto &struct_def = **it;
+      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr);
+    }
+  }
+  static void GenNamespaces(const Parser &parser, std::string *code_ptr,
                           std::string *exports_ptr) {
   std::set<std::string> namespaces;
 
@@ -659,68 +717,6 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     }
   }
 }
-
-}  // namespace js
-
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.js";
-}
-
-namespace js {
-// Iterate through all definitions we haven't generate code for (enums, structs,
-// and tables) and output them to a single file.
-class JsGenerator : public BaseGenerator {
- public:
-  JsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
-  // Iterate through all definitions we haven't generate code for (enums,
-  // structs, and tables) and output them to a single file.
-  bool generate() {
-    if (IsEverythingGenerated()) return true;
-
-    std::string enum_code, struct_code, exports_code, code;
-    generateEnums(&enum_code, &exports_code);
-    generateStructs(&struct_code, &exports_code);
-
-    code = code + "// " + FlatBuffersGeneratedWarning();
-
-    // Generate code for all the namespace declarations.
-    GenNamespaces(parser_, &code, &exports_code);
-
-    // Output the main declaration code from above.
-    code += enum_code;
-    code += struct_code;
-
-    if (!exports_code.empty() && !parser_.opts.skip_js_exports) {
-      code += "// Exports for Node.js and RequireJS\n";
-      code += exports_code;
-    }
-
-    return SaveFile(GeneratedFileName(path_, file_name_).c_str(), code, false);
-  }
-
- private:
-  // Generate code for all enums.
-  void generateEnums(std::string *enum_code_ptr,
-                     std::string *exports_code_ptr) {
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr);
-    }
-  }
-
-  // Generate code for all structs.
-  void generateStructs(std::string *decl_code_ptr,
-                       std::string *exports_code_ptr) {
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr);
-    }
-  }
 };
 }  // namespace js
 
