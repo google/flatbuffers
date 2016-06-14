@@ -596,7 +596,8 @@ class PythonGenerator : public BaseGenerator {
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "" /* not used */,
+                      "" /* not used */){};
   bool generate() {
     if (!generateEnums()) return false;
     if (!generateStructs()) return false;

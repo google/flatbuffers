@@ -193,7 +193,7 @@ class GeneralGenerator : public BaseGenerator {
  public:
   GeneralGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){
+      : BaseGenerator(parser, path, file_name, "", "."){
       assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
   bool generate() {
@@ -251,36 +251,17 @@ class GeneralGenerator : public BaseGenerator {
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
     return SaveFile(filename.c_str(), code, false);
   }
-  
 
-std::string FunctionStart(char upper) {
-  return std::string() +
-      (lang_.language == IDLOptions::kJava
-         ? static_cast<char>(tolower(upper))
-         : upper);
+  const Namespace *CurrentNameSpace() { return parser_.namespaces_.back(); }
+
+  std::string FunctionStart(char upper) {
+    return std::string() + (lang_.language == IDLOptions::kJava
+                                ? static_cast<char>(tolower(upper))
+                                : upper);
 }
 
 static bool IsEnum(const Type& type) {
   return type.enum_def != nullptr && IsInteger(type.base_type);
-}
-
-// Ensure that a type is prefixed with its namespace whenever it is used
-// outside of its namespace.
-std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
-        if (parser_.namespaces_.back() != ns) {
-            std::string qualified_name;
-            for (auto it = ns->components.begin();
-                it != ns->components.end(); ++it) {
-                    qualified_name += *it + ".";
-            }
-            return qualified_name + name;
-        } else {
-            return name;
-        }
-}
-
-std::string WrapInNameSpace(const Definition &def) {
-        return WrapInNameSpace(def.defined_namespace, def.name);
 }
 
 std::string GenTypeBasic(const Type &type, bool enableLangOverrides) {
