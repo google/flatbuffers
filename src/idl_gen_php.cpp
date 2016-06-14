@@ -31,7 +31,7 @@ namespace php {
      public:
       PhpGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
-          : BaseGenerator(parser, path, file_name){};
+          : BaseGenerator(parser, path, file_name, "\\", "\\"){};
       bool generate() {
         if (!generateEnums()) return false;
         if (!generateStructs()) return false;
@@ -93,23 +93,6 @@ namespace php {
         return SaveFile(filename.c_str(), code, false);
       }
       
-
-    // Ensure that a type is prefixed with its namespace whenever it is used
-    // outside of its namespace.
-    std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
-      std::string qualified_name = "\\";
-      for (auto it = ns->components.begin();
-      it != ns->components.end(); ++it) {
-        qualified_name += *it + "\\";
-      }
-      return qualified_name + name;
-    }
-
-    std::string WrapInNameSpace(const Definition &def) {
-      return WrapInNameSpace(def.defined_namespace, def.name);
-    }
-
-
     // Begin a class declaration.
     static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
       std::string &code = *code_ptr;

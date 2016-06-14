@@ -35,7 +35,7 @@ class JsGenerator : public BaseGenerator {
  public:
   JsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "", "."){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -117,22 +117,6 @@ class JsGenerator : public BaseGenerator {
     }
     code += *it + " = " + *it + " || {};\n\n";
   }
-}
-
-// Ensure that a type is prefixed with its namespace whenever it is used
-// outside of its namespace.
-std::string WrapInNameSpace(const Namespace *ns,
-                                   const std::string &name) {
-  std::string qualified_name;
-  for (auto it = ns->components.begin();
-           it != ns->components.end(); ++it) {
-    qualified_name += *it + ".";
-  }
-  return qualified_name + name;
-}
-
-std::string WrapInNameSpace(const Definition &def) {
-  return WrapInNameSpace(def.defined_namespace, def.name);
 }
 
 // Generate a documentation comment, if available.

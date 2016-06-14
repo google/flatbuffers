@@ -39,7 +39,7 @@ class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "", "::"){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs,
   // and tables) and output them to a single file.
@@ -208,23 +208,7 @@ class CppGenerator : public BaseGenerator {
   // This tracks the current namespace so we can insert namespace declarations.
   const Namespace *cur_name_space_ = nullptr;
 
-  // Ensure that a type is prefixed with its namespace whenever it is used
-  // outside of its namespace.
-  std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
-    if (cur_name_space_ != ns) {
-      std::string qualified_name;
-      for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
-        qualified_name += *it + "::";
-      }
-      return qualified_name + name;
-    } else {
-      return name;
-    }
-  }
-
-  std::string WrapInNameSpace(const Definition &def) {
-    return WrapInNameSpace(def.defined_namespace, def.name);
-  }
+  const Namespace * CurrentNameSpace() {return cur_name_space_;}
 
   // Translates a qualified name in flatbuffer text format to the same name in
   // the equivalent C++ namespace.
