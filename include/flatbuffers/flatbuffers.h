@@ -36,16 +36,17 @@
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
     (!defined(__GNUC__) || \
       (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40400))
-  #error A C++11 compatible compiler with support for the auto typing is required for FlatBuffers.
+  #error A C++11 compatible compiler with support for the auto typing is \
+         required for FlatBuffers.
   #error __cplusplus _MSC_VER __GNUC__  __GNUC_MINOR__  __GNUC_PATCHLEVEL__
 #endif
 
 #if !defined(__clang__) && \
     defined(__GNUC__) && \
     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40600)
-  // Backwards compatability for g++ 4.4, and 4.5 which don't have the nullptr and constexpr
-  // keywords. Note the __clang__ check is needed, because clang presents itself as an older GNUC
-  // compiler.
+  // Backwards compatability for g++ 4.4, and 4.5 which don't have the nullptr
+  // and constexpr keywords. Note the __clang__ check is needed, because clang
+  // presents itself as an older GNUC compiler.
   #ifndef nullptr_t
     const class nullptr_t {
     public:
@@ -983,6 +984,33 @@ FLATBUFFERS_FINAL_CLASS
     return CreateVector(v.data(), v.size());
   }
 
+  /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
+  /// This is a convenience function that takes care of iteration for you.
+  /// @tparam T The data type of the `std::vector` elements.
+  /// @param f A function that takes the current iteration 0..vector_size-1 and
+  /// returns any type that you can construct a FlatBuffers vector out of.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
+      const std::function<T (size_t i)> &f) {
+    std::vector<T> elems(vector_size);
+    for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
+    return CreateVector(elems.data(), elems.size());
+  }
+
+  /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
+  /// This is a convenience function for a common case.
+  /// @param v A const reference to the `std::vector` to serialize into the
+  /// buffer as a `vector`.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  Offset<Vector<Offset<String>>> CreateVectorOfStrings(
+      const std::vector<std::string> &v) {
+    std::vector<Offset<String>> offsets(v.size());
+    for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
+    return CreateVector(offsets.data(), offsets.size());
+  }
+
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
   /// @param[in] v A pointer to the array of type `T` to serialize into the
@@ -991,7 +1019,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
-                                                       const T *v, size_t len) {
+      const T *v, size_t len) {
     StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
     PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     return Offset<Vector<const T *>>(EndVector(len));
@@ -1004,7 +1032,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
-                                                      const std::vector<T> &v) {
+      const std::vector<T> &v) {
     return CreateVectorOfStructs(v.data(), v.size());
   }
 
@@ -1033,7 +1061,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
-                                                     Offset<T> *v, size_t len) {
+      Offset<T> *v, size_t len) {
     std::sort(v, v + len, TableKeyComparator<T>(buf_));
     return CreateVector(v, len);
   }
@@ -1046,7 +1074,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
-                                                    std::vector<Offset<T>> *v) {
+      std::vector<Offset<T>> *v) {
     return CreateVectorOfSortedTables(v->data(), v->size());
   }
 
@@ -1077,7 +1105,7 @@ FLATBUFFERS_FINAL_CLASS
   /// written to at a later time to serialize the data into a `vector`
   /// in the buffer.
   template<typename T> Offset<Vector<T>> CreateUninitializedVector(
-                                                    size_t len, T **buf) {
+      size_t len, T **buf) {
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
   }
@@ -1162,13 +1190,16 @@ template<typename T> const T *GetRoot(const void *buf) {
 }
 
 /// Helpers to get a typed pointer to objects that are currently beeing built.
-/// @warning Creating new objects will lead to reallocations and invalidates the pointer!
-template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+/// @warning Creating new objects will lead to reallocations and invalidates
+/// the pointer!
+template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb,
+                                                   Offset<T> offset) {
   return reinterpret_cast<T *>(fbb.GetCurrentBufferPointer() +
     fbb.GetSize() - offset.o);
 }
 
-template<typename T> const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+template<typename T> const T *GetTemporaryPointer(FlatBufferBuilder &fbb,
+                                                  Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
 }
 

@@ -337,7 +337,24 @@ func (rcv *Monster) Testf3() float32 {
 	return 0.0
 }
 
-func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(28) }
+func (rcv *Monster) Testarrayofstring2(j int) []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.ByteVector(a + flatbuffers.UOffsetT(j * 4))
+	}
+	return nil
+}
+
+func (rcv *Monster) Testarrayofstring2Length() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(29) }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) { builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0) }
 func MonsterAddMana(builder *flatbuffers.Builder, mana int16) { builder.PrependInt16Slot(1, mana, 150) }
 func MonsterAddHp(builder *flatbuffers.Builder, hp int16) { builder.PrependInt16Slot(2, hp, 100) }
@@ -377,4 +394,7 @@ func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems i
 func MonsterAddTestf(builder *flatbuffers.Builder, testf float32) { builder.PrependFloat32Slot(25, testf, 3.14159) }
 func MonsterAddTestf2(builder *flatbuffers.Builder, testf2 float32) { builder.PrependFloat32Slot(26, testf2, 3.0) }
 func MonsterAddTestf3(builder *flatbuffers.Builder, testf3 float32) { builder.PrependFloat32Slot(27, testf3, 0.0) }
+func MonsterAddTestarrayofstring2(builder *flatbuffers.Builder, testarrayofstring2 flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(28, flatbuffers.UOffsetT(testarrayofstring2), 0) }
+func MonsterStartTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT { return builder.StartVector(4, numElems, 4)
+}
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

@@ -78,8 +78,10 @@ public sealed class Monster : Table {
   public bool MutateTestf2(float testf2) { int o = __offset(56); if (o != 0) { bb.PutFloat(o + bb_pos, testf2); return true; } else { return false; } }
   public float Testf3 { get { int o = __offset(58); return o != 0 ? bb.GetFloat(o + bb_pos) : (float)0.0f; } }
   public bool MutateTestf3(float testf3) { int o = __offset(58); if (o != 0) { bb.PutFloat(o + bb_pos, testf3); return true; } else { return false; } }
+  public string GetTestarrayofstring2(int j) { int o = __offset(60); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int Testarrayofstring2Length { get { int o = __offset(60); return o != 0 ? __vector_len(o) : 0; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(28); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(29); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -118,6 +120,9 @@ public sealed class Monster : Table {
   public static void AddTestf(FlatBufferBuilder builder, float testf) { builder.AddFloat(25, testf, 3.14159f); }
   public static void AddTestf2(FlatBufferBuilder builder, float testf2) { builder.AddFloat(26, testf2, 3.0f); }
   public static void AddTestf3(FlatBufferBuilder builder, float testf3) { builder.AddFloat(27, testf3, 0.0f); }
+  public static void AddTestarrayofstring2(FlatBufferBuilder builder, VectorOffset testarrayofstring2Offset) { builder.AddOffset(28, testarrayofstring2Offset.Value, 0); }
+  public static VectorOffset CreateTestarrayofstring2Vector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static void StartTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

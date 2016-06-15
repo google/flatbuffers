@@ -114,13 +114,17 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   mb3.add_name(wilma);
   mlocs[2] = mb3.Finish();
 
-  // Create an array of strings. Also test string pooling.
-  flatbuffers::Offset<flatbuffers::String> strings[4];
-  strings[0] = builder.CreateSharedString("bob");
-  strings[1] = builder.CreateSharedString("fred");
-  strings[2] = builder.CreateSharedString("bob");
-  strings[3] = builder.CreateSharedString("fred");
-  auto vecofstrings = builder.CreateVector(strings, 4);
+  // Create an array of strings. Also test string pooling, and lambdas.
+  const char *names[] = { "bob", "fred", "bob", "fred" };
+  auto vecofstrings =
+      builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(4,
+        [&](size_t i) {
+    return builder.CreateSharedString(names[i]);
+  });
+
+  // Creating vectors of strings in one convenient call.
+  std::vector<std::string> names2 = { "jane", "mary" };
+  auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Create an array of sorted tables, can be used with binary search when read:
   auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
@@ -128,7 +132,9 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(), // Store a union.
-                            testv, vecofstrings, vecoftables, 0);
+                            testv, vecofstrings, vecoftables, 0, 0, 0, false,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
+                            vecofstrings2);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -197,6 +203,13 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   // These should have pointer equality because of string pooling.
   TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
   TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
+
+  auto vecofstrings2 = monster->testarrayofstring2();
+  if (vecofstrings2) {
+    TEST_EQ(vecofstrings2->Length(), 2U);
+    TEST_EQ_STR(vecofstrings2->Get(0)->c_str(), "jane");
+    TEST_EQ_STR(vecofstrings2->Get(1)->c_str(), "mary");
+  }
 
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();

@@ -702,10 +702,28 @@ MyGame.Example.Monster.prototype.testf3 = function() {
 };
 
 /**
+ * @param {number} index
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
+ */
+MyGame.Example.Monster.prototype.testarrayofstring2 = function(index, optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 60);
+  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testarrayofstring2Length = function() {
+  var offset = this.bb.__offset(this.bb_pos, 60);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(28);
+  builder.startObject(29);
 };
 
 /**
@@ -1035,6 +1053,35 @@ MyGame.Example.Monster.addTestf2 = function(builder, testf2) {
  */
 MyGame.Example.Monster.addTestf3 = function(builder, testf3) {
   builder.addFieldFloat32(27, testf3, 0.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testarrayofstring2Offset
+ */
+MyGame.Example.Monster.addTestarrayofstring2 = function(builder, testarrayofstring2Offset) {
+  builder.addFieldOffset(28, testarrayofstring2Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createTestarrayofstring2Vector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestarrayofstring2Vector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
 };
 
 /**
