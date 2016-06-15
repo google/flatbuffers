@@ -17,6 +17,14 @@
 #include <algorithm>
 #include <list>
 
+#ifdef _WIN32
+#if !defined(_USE_MATH_DEFINES)
+#define _USE_MATH_DEFINES  // For M_PI.
+#endif                     // !defined(_USE_MATH_DEFINES)
+#endif                     // _WIN32
+
+#include <math.h>
+
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -1004,8 +1012,30 @@ CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
 }
 
 CheckedError Parser::ParseSingleValue(Value &e) {
-  // First check if this could be a string/identifier enum value:
-  if (e.type.base_type != BASE_TYPE_STRING &&
+  // First see if this could be a conversion function:
+  if (token_ == kTokenIdentifier && *cursor_ == '(') {
+    auto functionname = attribute_;
+    NEXT();
+    EXPECT('(');
+    ECHECK(ParseSingleValue(e));
+    EXPECT(')');
+    #define FLATBUFFERS_FN_DOUBLE(name, op) \
+      if (functionname == name) { \
+        auto x = strtod(e.constant.c_str(), nullptr); \
+        e.constant = NumToString(op); \
+      }
+    FLATBUFFERS_FN_DOUBLE("deg", x / M_PI * 180);
+    FLATBUFFERS_FN_DOUBLE("rad", x * M_PI / 180);
+    FLATBUFFERS_FN_DOUBLE("sin", sin(x));
+    FLATBUFFERS_FN_DOUBLE("cos", cos(x));
+    FLATBUFFERS_FN_DOUBLE("tan", tan(x));
+    FLATBUFFERS_FN_DOUBLE("asin", asin(x));
+    FLATBUFFERS_FN_DOUBLE("acos", acos(x));
+    FLATBUFFERS_FN_DOUBLE("atan", atan(x));
+    // TODO(wvo): add more useful conversion functions here.
+    #undef FLATBUFFERS_FN_DOUBLE
+  // Then check if this could be a string/identifier enum value:
+  } else if (e.type.base_type != BASE_TYPE_STRING &&
       e.type.base_type != BASE_TYPE_NONE &&
       (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
     if (IsIdentifierStart(attribute_[0])) {  // Enum value.
