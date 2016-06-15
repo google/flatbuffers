@@ -333,6 +333,10 @@ JSON:
 -   A field that has the value `null` (e.g. `field: null`) is intended to
     have the default value for that field (thus has the same effect as if
     that field wasn't specified at all).
+-   It has some built in conversion functions, so you can write for example
+    `rad(180)` where ever you'd normally write `3.14159`.
+    Currently supports the following functions: `rad`, `deg`, `cos`, `sin`,
+    `tan`, `acos`, `asin`, `atan`.
 
 When parsing JSON, it recognizes the following escape codes in strings:
 
