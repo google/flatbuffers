@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <string>
+#include <iostream>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -36,6 +37,9 @@ static std::string TypeName(const FieldDef &field);
 
 // Hardcode spaces per indentation.
 const std::string Indent = "    ";
+const std::string TwoIndent = Indent + Indent;
+const std::string ThreeIndent = Indent + Indent + Indent;
+
 
 // Format a module name from struct/enum definitions.
 static std::string ModName(std::string &def_name) {
@@ -71,13 +75,14 @@ static void TableStructDefinition(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
   if (!struct_def.fixed) {
-    code += "table_object!{" + struct_def.name;
-    code += ", 4"; //mmmm assuming type.base_type is UOFFSET
+    code += "flatbuffers_object!{Table => " + struct_def.name;
   } else {
-    code += "struct_object!{" + struct_def.name;
-    code += ", " + NumToString(struct_def.bytesize);
+    code += "flatbuffers_object!{Struct => " + struct_def.name;
+    code += " ( size:";
+    code += NumToString(struct_def.bytesize) + ",";
+    code += " align: " + NumToString(struct_def.minalign) + ")";
   }
-  code += ", [";
+  code += " [";
   bool first = true;
   for (auto it = struct_def.fields.vec.begin();
         it != struct_def.fields.vec.end();
@@ -90,76 +95,106 @@ static void TableStructDefinition(const StructDef &struct_def,
      } else {
        code += ", \n";
      }
+     code += " field => { ";
      //GenComment(field.doc_comment, code_ptr, nullptr, "");
     if ( (IsScalar(field.value.type.base_type))
          && !(field.value.type.enum_def)) {
-        code += Indent + "(";
-        code += field.name + ",";
-        code += "get_" + TypeName(field);
-        code += ", " + TypeName(field);
-        code += ", " + NumToString(field.value.offset);
-        code += ", " + MapConstant(field);
-          code += ")";
+        code += "name = ";
+        code += field.name + ",\n";
+        code += ThreeIndent +"typeOf = " + TypeName(field);
+        code += ",\n"; 
+        code += ThreeIndent + "slot = " + NumToString(field.value.offset);
+        code += ",\n"; 
+        code += ThreeIndent + "default = " + MapConstant(field);
+        if (field.padding) {
+          code += ",\n"; 
+          code += ThreeIndent + "padding = " + NumToString(field.padding);
+        }
+        code += " }";
         continue;
     }
     if ( (IsScalar(field.value.type.base_type))
          && (field.value.type.enum_def) ) {
-        code += Indent +  "(";
-        code += field.name + ",";
-        code += "simple_enum,";
-        code += "get_" + TypeName(field);
-        code += ", " + TypeName(field);
+        code += "name = " + field.name;
+        code += ",\n"; 
+        code += ThreeIndent +"typeOf = enum";
         if (field.value.type.enum_def->is_union) {
-          code += ", " + field.value.type.enum_def->name;
+          code += " " + field.value.type.enum_def->name;
           code += "Type";
         } else {
-          code += ", " + field.value.type.enum_def->name;
+          code += " " + field.value.type.enum_def->name;
         }
-        code += ", " + NumToString(field.value.offset);
-        code += ", " + MapConstant(field);
-        code += ")";
+        code += " " + TypeName(field);
+        code += ",\n"; 
+        code += ThreeIndent + "slot = " + NumToString(field.value.offset);
+        code += ",\n"; 
+        code += ThreeIndent + "default = " + MapConstant(field);
+        if (field.padding) {
+          code += ",\n"; 
+          code += ThreeIndent + "padding = " + NumToString(field.padding);
+        }
+        code += " }";
         continue;
     }
     switch (field.value.type.base_type) {
     case BASE_TYPE_STRUCT: {
-      code += Indent +  "(";
-      code += field.name + ",";
-      code += "get_struct";
-      code += ", " + TypeName(field);
-      code += ", " + NumToString(field.value.offset);
-      code += ")";
+      code += "name = ";
+      code += field.name + ",\n";
+      code += ThreeIndent +"typeOf = ";
+      code += TypeName(field);
+      code += ",\n";
+      code += ThreeIndent + "slot = " + NumToString(field.value.offset);
+      if (field.padding) {
+        code += ",\n"; 
+        code += ThreeIndent + "padding = " + NumToString(field.padding);
+      }
+      code += " }";
       break;
     }
     case BASE_TYPE_STRING: {
-      code += Indent +  "(";
-      code += field.name + ",";
-      code += "get_str";
-      code += ", " + TypeName(field);
-      code += ", " + NumToString(field.value.offset);
-      code += ", " + MapConstant(field);
-      code += ")";
+      code += "name = ";
+      code += field.name + ",\n";
+      code += ThreeIndent + "typeOf = string";
+      code += ",\n";
+      code += ThreeIndent + "slot = " + NumToString(field.value.offset);
+      code += ",\n";
+      code += ThreeIndent + "default = " + MapConstant(field);
+      if (field.padding) {
+        code += ",\n"; 
+        code += ThreeIndent + "padding = " + NumToString(field.padding);
+      }
+      code += " }";
       break;
     }
     case BASE_TYPE_VECTOR: {
-      code += Indent +  "(";
-      code += field.name + ",";
-      code += "vector";
-      code += ", " + TypeName(field);
-      code += ", " + NumToString(field.value.offset);
-      code += ")";
-      break;
+      code += "name = ";
+      code += field.name + ",\n";
+      code += ThreeIndent +"typeOf = ";
+      code += TypeName(field);
+      code += ",\n";
+      code += ThreeIndent + "slot = ";
+      code += NumToString(field.value.offset);
+      if (field.padding) {
+        code += ",\n";
+        code += ThreeIndent + "padding = " + NumToString(field.padding);
+      }
+      code += " }";
       break;
     }
     case BASE_TYPE_UNION:
-      code += Indent +  "(";
-      code += field.name + ",";
-      code += "union,";
-      code += field.name + "_type";
-      code += ", " + TypeName(field);
-      code += ", " + field.value.type.enum_def->name;
-      code += ", " + NumToString(field.value.offset);
-      code += ", " + MapConstant(field);
-      code += ")";
+      code += "name = ";
+      code += field.name + ",\n";
+      code += ThreeIndent +"typeOf = union ";
+      code += TypeName(field);
+      code += ",\n";
+      code += ThreeIndent + "slot = " + NumToString(field.value.offset);
+      code += ",\n";
+      code += ThreeIndent + "default = " + MapConstant(field);
+      if (field.padding) {
+        code += ",\n"; 
+        code += ThreeIndent + "padding = " + NumToString(field.padding);
+      }
+      code += " }";
       break;
     default:
       assert(0);
@@ -439,8 +474,7 @@ static void GenTableBuilders(const StructDef &struct_def,
 static void GenStruct(const StructDef &struct_def,
                       std::string *code_ptr) {
   if (struct_def.generated) return;
-  GenComment(struct_def.doc_comment, code_ptr, nullptr);
-   
+  GenComment(struct_def.doc_comment, code_ptr, nullptr); 
   TableStructDefinition(struct_def, code_ptr);
  
   if (struct_def.fixed) {
@@ -458,38 +492,30 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
   if (enum_def.is_union) {
-    code += "union!{" + enum_def.name +",";
-    code += enum_def.name + "Type,";
+    code += "flatbuffers_object!{Union =>" + enum_def.name;
   } else {
-    code += "simple_enum!{" + enum_def.name +",";
+    code += "flatbuffers_object!{Enum =>" + enum_def.name;
   }
-  code += GenTypeGet(enum_def.underlying_type);
-  code += ", [";
+  code += "{ ";
   bool first = true;
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
     auto &ev = **it;
     //GenComment(ev.doc_comment, code_ptr, nullptr, Indent.c_str());
-    if  (ev.name.compare("NONE") == 0) {
-      continue;
-    }
+    //    if  (ev.name.compare("NONE") == 0) {
+    //  continue;
+    // }
     if (first) {
-      code += "\n";
       first = false;
     } else {
-      code += ", \n";
+      code += ", ";
     }
-    if (enum_def.is_union) {
-      code += Indent + "(" + ev.name +", "+NumToString(ev.value);
-      code += ", " + ev.name;
-      code += ")";
-    }
-    else {
-      code += Indent + "(" + ev.name +", "+NumToString(ev.value) +")";
-    }
+    code += ev.name + " = "+ NumToString(ev.value);
   }
-  code += "]}\n\n";
+  code += "} as ";
+  code += GenTypeGet(enum_def.underlying_type);
+  code += "}\n\n";
   
 }
 
@@ -598,12 +624,12 @@ static std::string GenTypeBasic(const Type &type) {
 
 static std::string GenTypePointer(const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING:
-      return "&str";
     case BASE_TYPE_VECTOR:
-      return GenTypeGet(type.VectorType());
+      return "[" + GenTypeGet(type.VectorType()) + "]";
     case BASE_TYPE_STRUCT:
       return type.struct_def->name;
+    case BASE_TYPE_STRING:
+      return "string";
     case BASE_TYPE_UNION:
       // fall through
   default:
@@ -618,13 +644,14 @@ static std::string GenTypeGet(const Type &type) {
 }
 
 static std::string TypeName(const FieldDef &field) {
-  return GenTypeGet(field.value.type);
+  std::string ty = GenTypeGet(field.value.type);
+  ty.erase(remove( ty.begin(), ty.end(), '\"' ), ty.end());
+  return ty;
 }
 
 // Create a struct with a builder and the struct's arguments.
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr) {
-
   BeginBuilderTraitArgs(struct_def, code_ptr);
   StructBuilderArgs(struct_def, "", code_ptr);
   EndBuilderTraitArgs(struct_def, code_ptr);

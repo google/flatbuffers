@@ -1,0 +1,22 @@
+[package]
+name = "flatbuffers_macros"
+version = "0.1.0"
+authors = ["Joseph Dunne <jd@lambda.tech>"]
+license = "Apache-2.0"
+description = "Macros for generating flatbuffer objects"
+keywords = ["flatbuffers"]
+
+
+[lib]
+plugin = true
+
+[dependencies]
+regex = "*"
+
+[dev-dependencies]
+compiletest_rs = "*"
+
+[dev-dependencies.flatbuffers]
+path = "../"
+version = ">=0.0"
+

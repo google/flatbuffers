@@ -9,7 +9,7 @@
 
 #![deny(unused_qualifications, missing_debug_implementations, trivial_casts,
         missing_copy_implementations, unused_import_braces, missing_docs)]
-
+#![feature(trace_macros)]
 extern crate byteorder;
 
 mod builder;
@@ -17,11 +17,8 @@ mod types;
 mod table;
 mod iter;
 
-#[macro_use]
-pub mod macros;
-
 pub use self::builder::Builder;
-pub use self::types::{UOffsetT, VOffsetT, SOffsetT};
+pub use self::types::*;
 pub use self::table::*;
 pub use self::iter::*;
 

@@ -3,9 +3,16 @@
 use flatbuffers;
 use super::*;
 
-struct_object!{Test, 4, [
-    (a,get_i16, i16, 0, 0), 
-    (b,get_i8, i8, 2, 0)]}
+flatbuffers_object!{Struct => Test ( size:4, align: 2) [
+ field => { name = a,
+            typeOf = i16,
+            slot = 0,
+            default = 0 }, 
+ field => { name = b,
+            typeOf = i8,
+            slot = 2,
+            default = 0,
+            padding = 1 }]}
 
 pub trait TestBuilder {
     fn build_test(&mut self, a: i16, b: i8) -> flatbuffers::UOffsetT;
