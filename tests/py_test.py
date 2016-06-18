@@ -162,9 +162,10 @@ class TestFuzz(unittest.TestCase):
     ''' Low level stress/fuzz test: serialize/deserialize a variety of
         different kinds of data in different combinations '''
 
-    ofInt32Bytes = compat.binary_type([0x83, 0x33, 0x33, 0x33])
-    ofInt64Bytes = compat.binary_type([0x84, 0x44, 0x44, 0x44,
-                                       0x44, 0x44, 0x44, 0x44])
+    binary_type = compat.binary_types[0] # this will always exist
+    ofInt32Bytes = binary_type([0x83, 0x33, 0x33, 0x33])
+    ofInt64Bytes = binary_type([0x84, 0x44, 0x44, 0x44,
+                                0x44, 0x44, 0x44, 0x44])
     overflowingInt32Val = flatbuffers.encode.Get(flatbuffers.packer.int32,
                                                  ofInt32Bytes, 0)
     overflowingInt64Val = flatbuffers.encode.Get(flatbuffers.packer.int64,
