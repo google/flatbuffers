@@ -652,9 +652,10 @@ class PythonGenerator : public BaseGenerator {
     }
 
     std::string code = "";
-    BeginFile(LastNamespacePart(), needs_imports, &code);
+    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
     code += classcode;
-    std::string filename = namespace_dir_ + kPathSeparator + def.name + ".py";
+    std::string filename = NamespaceDir(*def.defined_namespace) +
+                           kPathSeparator + def.name + ".py";
     return SaveFile(filename.c_str(), code, false);
   }
 };

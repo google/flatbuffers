@@ -985,11 +985,12 @@ namespace php {
         if (!classcode.length()) return true;
 
         std::string code = "";
-        BeginFile(FullNamespace("\\"), needs_imports, &code);
+        BeginFile(FullNamespace("\\", *def.defined_namespace),
+                  needs_imports, &code);
         code += classcode;
 
-        std::string filename =
-            namespace_dir_ + kPathSeparator + def.name + ".php";
+        std::string filename = NamespaceDir(*def.defined_namespace) +
+                               kPathSeparator + def.name + ".php";
         return SaveFile(filename.c_str(), code, false);
       }
     };

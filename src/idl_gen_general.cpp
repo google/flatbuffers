@@ -1129,27 +1129,32 @@ class GeneralGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
-      GenEnum(lang, parser_, **it, &enumcode);
+      auto &enum_def = **it;
+      GenEnum(lang, parser_, enum_def, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
-        if (!SaveType(lang, (**it).name, enumcode, false)) return false;
+        if (!SaveType(lang, enum_def.name, *enum_def.defined_namespace,
+                      enumcode, false)) return false;
       }
     }
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
-      GenStruct(lang, parser_, **it, &declcode);
+      auto &struct_def = **it;
+      GenStruct(lang, parser_, struct_def, &declcode);
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
-        if (!SaveType(lang, (**it).name, declcode, true)) return false;
+        if (!SaveType(lang, struct_def.name, *struct_def.defined_namespace,
+                      declcode, true)) return false;
       }
     }
 
     if (parser_.opts.one_file) {
-      return SaveType(lang, file_name_, one_file_code, true);
+      return SaveType(lang, file_name_, *parser_.namespaces_.back(),
+                      one_file_code, true);
     }
     return true;
   }
@@ -1157,12 +1162,13 @@ class GeneralGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const LanguageParameters &lang, const std::string &defname,
-                const std::string &classcode, bool needs_includes) {
+                const Namespace &ns, const std::string &classcode,
+                bool needs_includes) {
     if (!classcode.length()) return true;
 
     std::string code;
     code = code + "// " + FlatBuffersGeneratedWarning();
-    std::string namespace_name = FullNamespace(".");
+    std::string namespace_name = FullNamespace(".", ns);
     if (!namespace_name.empty()) {
       code += lang.namespace_ident + namespace_name + lang.namespace_begin;
       code += "\n\n";
@@ -1170,7 +1176,7 @@ class GeneralGenerator : public BaseGenerator {
     if (needs_includes) code += lang.includes;
     code += classcode;
     if (!namespace_name.empty()) code += lang.namespace_end;
-    auto filename = namespace_dir_ + defname + lang.file_extension;
+    auto filename = NamespaceDir(ns) + defname + lang.file_extension;
     return SaveFile(filename.c_str(), code, false);
   }
 };
@@ -1188,19 +1194,25 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
   auto lang = language_parameters[parser.opts.lang];
 
   std::string make_rule;
-  std::string directory =
-      BaseGenerator::NamespaceDir(parser, path) + kPathSeparator;
 
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        ++it) {
+    auto &enum_def = **it;
     if (make_rule != "") make_rule += " ";
-    make_rule += directory + (**it).name + lang.file_extension;
+    std::string directory =
+        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace) +
+        kPathSeparator;
+    make_rule += directory + enum_def.name + lang.file_extension;
   }
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
+    auto &struct_def = **it;
     if (make_rule != "") make_rule += " ";
-    make_rule += directory + (**it).name + lang.file_extension;
+    std::string directory =
+        BaseGenerator::NamespaceDir(parser, path, *struct_def.defined_namespace) +
+        kPathSeparator;
+    make_rule += directory + struct_def.name + lang.file_extension;
   }
 
   make_rule += ": ";

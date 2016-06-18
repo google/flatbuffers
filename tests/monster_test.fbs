@@ -2,13 +2,17 @@
 
 include "include_test1.fbs";
 
+namespace MyGame.Example2;
+
+table Monster {}  // Test having same name as below, but in different namespace.
+
 namespace MyGame.Example;
 
 attribute "priority";
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
-union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements
+union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
 struct Test { a:short; b:byte; }
 
