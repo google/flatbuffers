@@ -6,6 +6,12 @@
 #include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
+namespace Example2 {
+
+struct Monster;
+
+}  // namespace Example2
+
 namespace Example {
 
 struct Test;
@@ -37,12 +43,13 @@ enum Any {
   Any_NONE = 0,
   Any_Monster = 1,
   Any_TestSimpleTableWithEnum = 2,
+  Any_MyGame_Example2_Monster = 3,
   Any_MIN = Any_NONE,
-  Any_MAX = Any_TestSimpleTableWithEnum
+  Any_MAX = Any_MyGame_Example2_Monster
 };
 
 inline const char **EnumNamesAny() {
-  static const char *names[] = { "NONE", "Monster", "TestSimpleTableWithEnum", nullptr };
+  static const char *names[] = { "NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster", nullptr };
   return names;
 }
 
@@ -97,6 +104,37 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   Test &mutable_test3() { return test3_; }
 };
 STRUCT_END(Vec3, 32);
+
+}  // namespace Example
+
+namespace Example2 {
+
+struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct MonsterBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  MonsterBuilder &operator=(const MonsterBuilder &);
+  flatbuffers::Offset<Monster> Finish() {
+    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 0));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb) {
+  MonsterBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+}  // namespace Example2
+
+namespace Example {
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
@@ -424,6 +462,7 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, An
     case Any_NONE: return true;
     case Any_Monster: return verifier.VerifyTable(reinterpret_cast<const Monster *>(union_obj));
     case Any_TestSimpleTableWithEnum: return verifier.VerifyTable(reinterpret_cast<const TestSimpleTableWithEnum *>(union_obj));
+    case Any_MyGame_Example2_Monster: return verifier.VerifyTable(reinterpret_cast<const MyGame::Example2::Monster *>(union_obj));
     default: return false;
   }
 }

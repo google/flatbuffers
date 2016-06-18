@@ -664,9 +664,10 @@ class GoGenerator : public BaseGenerator {
     if (!classcode.length()) return true;
 
     std::string code = "";
-    BeginFile(LastNamespacePart(), needs_imports, &code);
+    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
     code += classcode;
-    std::string filename = namespace_dir_ + def.name + ".go";
+    std::string filename =
+        NamespaceDir(*def.defined_namespace) + def.name + ".go";
     return SaveFile(filename.c_str(), code, false);
   }
 };

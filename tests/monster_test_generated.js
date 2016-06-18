@@ -13,6 +13,11 @@ MyGame.Example = MyGame.Example || {};
 /**
  * @const
 */
+MyGame.Example2 = MyGame.Example2 || {};
+
+/**
+ * @const
+*/
 MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
 
 /**
@@ -30,7 +35,59 @@ MyGame.Example.Color = {
 MyGame.Example.Any = {
   NONE: 0,
   Monster: 1,
-  TestSimpleTableWithEnum: 2
+  TestSimpleTableWithEnum: 2,
+  MyGame_Example2_Monster: 3
+};
+
+/**
+ * @constructor
+ */
+MyGame.Example2.Monster = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example2.Monster}
+ */
+MyGame.Example2.Monster.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example2.Monster=} obj
+ * @returns {MyGame.Example2.Monster}
+ */
+MyGame.Example2.Monster.getRootAsMonster = function(bb, obj) {
+  return (obj || new MyGame.Example2.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example2.Monster.startMonster = function(builder) {
+  builder.startObject(0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example2.Monster.endMonster = function(builder) {
+  var offset = builder.endObject();
+  return offset;
 };
 
 /**
