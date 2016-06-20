@@ -783,7 +783,7 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("struct X { Y:string; }", "only scalar");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
-  TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {",
+  TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
             "missing type field");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y_type: 99, Y: {",
             "type id");
@@ -951,6 +951,16 @@ void UnknownFieldsTest() {
   TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
 }
 
+void ParseUnionTest() {
+  // Unions must be parseable with the type field following the object.
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { A:int; }"
+                       "union U { T }"
+                       "table V { X:U; }"
+                       "root_type V;"
+                       "{ X:{ A:1 }, X_type: T }"), true);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -979,6 +989,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();
   UnknownFieldsTest();
+  ParseUnionTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

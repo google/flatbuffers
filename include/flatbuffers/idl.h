@@ -359,6 +359,19 @@ struct IDLOptions {
       lang(IDLOptions::kJava) {}
 };
 
+// This encapsulates where the parser is in the current source file.
+struct ParserState {
+  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+
+ protected:
+  const char *cursor_;
+  int line_;  // the current line being parsed
+  int token_;
+
+  std::string attribute_;
+  std::vector<std::string> doc_comment_;
+};
+
 // A way to make error propagation less error prone by requiring values to be
 // checked.
 // Once you create a value of this type you must either:
@@ -400,14 +413,12 @@ class CheckedError {
 #define FLATBUFFERS_CHECKED_ERROR CheckedError
 #endif
 
-class Parser {
+class Parser : public ParserState {
  public:
   explicit Parser(const IDLOptions &options = IDLOptions())
     : root_struct_def_(nullptr),
       opts(options),
       source_(nullptr),
-      cursor_(nullptr),
-      line_(1),
       anonymous_counter(0) {
     // Just in case none are declared:
     namespaces_.push_back(new Namespace());
@@ -478,7 +489,8 @@ private:
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
-                                          size_t parent_fieldn);
+                                          size_t parent_fieldn,
+                                          const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
@@ -538,13 +550,9 @@ private:
   IDLOptions opts;
 
  private:
-  const char *source_, *cursor_;
-  int line_;  // the current line being parsed
-  int token_;
-  std::string file_being_parsed_;
+  const char *source_;
 
-  std::string attribute_;
-  std::vector<std::string> doc_comment_;
+  std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 

@@ -604,8 +604,8 @@ class CppGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_UNION:
             code += prefix + "Verify" + field.value.type.enum_def->name;
-            code +=
-                "(verifier, " + field.name + "(), " + field.name + "_type())";
+            code += "(verifier, " + field.name + "(), " + field.name +
+                    UnionTypeFieldSuffix() + "())";
             break;
           case BASE_TYPE_STRUCT:
             if (!field.value.type.struct_def->fixed) {
@@ -868,8 +868,8 @@ class CppGenerator : public BaseGenerator {
   // so that namespaces are properly opened and closed
   void SetNameSpace(const Namespace *ns, std::string *code_ptr) {
     if (cur_name_space_ == ns) return;
-    // compute the size of the longest common namespace prefix.  
-    // if cur_name_space is A::B::C::D and ns is A::B::E::F::G, 
+    // compute the size of the longest common namespace prefix.
+    // if cur_name_space is A::B::C::D and ns is A::B::E::F::G,
     // the common prefix is A::B:: and we have old_size = 4, new_size = 5
     // and common_prefix_size = 2
     auto old_size =
@@ -881,13 +881,13 @@ class CppGenerator : public BaseGenerator {
                cur_name_space_->components[common_prefix_size])
       common_prefix_size++;
     // close cur_name_space in reverse order to reach the common prefix
-    // in the previous example, D then C are closed  
+    // in the previous example, D then C are closed
     for (auto j = old_size; j > common_prefix_size; --j)
       *code_ptr +=
           "}  // namespace " + cur_name_space_->components[j - 1] + "\n";
     if (old_size != common_prefix_size) *code_ptr += "\n";
     // open namespace parts to reach the ns namespace
-    // in the previous example, E, then F, then G are opened  
+    // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j)
       *code_ptr += "namespace " + ns->components[j] + " {\n";
     if (new_size != common_prefix_size) *code_ptr += "\n";

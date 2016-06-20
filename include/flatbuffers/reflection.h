@@ -335,6 +335,8 @@ template<typename T, typename U> pointer_inside_vector<T, U> piv(T *ptr,
   return pointer_inside_vector<T, U>(ptr, vec);
 }
 
+inline const char *UnionTypeFieldSuffix() { return "_type"; }
+
 // Helper to figure out the actual table type a union refers to.
 inline const reflection::Object &GetUnionType(
     const reflection::Schema &schema, const reflection::Object &parent,
@@ -342,7 +344,7 @@ inline const reflection::Object &GetUnionType(
   auto enumdef = schema.enums()->Get(unionfield.type()->index());
   // TODO: this is clumsy and slow, but no other way to find it?
   auto type_field = parent.fields()->LookupByKey(
-            (unionfield.name()->str() + "_type").c_str());
+            (unionfield.name()->str() + UnionTypeFieldSuffix()).c_str());
   assert(type_field);
   auto union_type = GetFieldI<uint8_t>(table, *type_field);
   auto enumval = enumdef->values()->LookupByKey(union_type);
