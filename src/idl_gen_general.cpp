@@ -433,10 +433,13 @@ static std::string GenDefaultValue(const LanguageParameters &lang, const Parser 
                                    const Value &value, bool enableLangOverrides) {
   if (enableLangOverrides) {
     // handles both enum case and vector of enum case
-    if (lang.language == IDLOptions::kCSharp &&
-        value.type.enum_def != nullptr &&
+    if (lang.language == IDLOptions::kCSharp) {
+      if (value.type.enum_def != nullptr &&
         value.type.base_type != BASE_TYPE_UNION) {
-      return GenEnumDefaultValue(parser, value);
+        return GenEnumDefaultValue(parser, value);
+      } else if (value.type.base_type == BASE_TYPE_FLOAT) {
+        return value.constant + "f";
+      }
     }
   }
   switch (value.type.base_type) {
@@ -780,7 +783,9 @@ static void GenStruct(const LanguageParameters &lang, const Parser &parser,
       // returns an actual c# enum that doesn't need to be casted. However, default values for enum elements of
       // vectors are integer literals ("0") and are still casted for clarity.
       if (field.value.type.enum_def == nullptr || field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (field.value.type.base_type != BASE_TYPE_FLOAT) {
           default_cast = "(" + type_name_dest + ")";
+        }
       }
     }
     std::string member_suffix = "";
