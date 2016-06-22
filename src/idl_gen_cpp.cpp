@@ -208,7 +208,7 @@ class CppGenerator : public BaseGenerator {
   // This tracks the current namespace so we can insert namespace declarations.
   const Namespace *cur_name_space_ = nullptr;
 
-  const Namespace * CurrentNameSpace() {return cur_name_space_;}
+  const Namespace *CurrentNameSpace() { return cur_name_space_; }
 
   // Translates a qualified name in flatbuffer text format to the same name in
   // the equivalent C++ namespace.
