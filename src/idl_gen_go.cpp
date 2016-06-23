@@ -625,7 +625,8 @@ class GoGenerator : public BaseGenerator {
  public:
   GoGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "" /* not used*/,
+                      "" /* not used */){};
   bool generate() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {

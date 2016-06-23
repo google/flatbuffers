@@ -39,11 +39,15 @@ class BaseGenerator {
 
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name)
+                const std::string &file_name, 
+                const std::string qualifying_start, 
+                const std::string qualifying_separator)
       : parser_(parser),
         path_(path),
-        file_name_(file_name) {};
-  virtual ~BaseGenerator() {};
+        file_name_(file_name),
+        qualifying_start_(qualifying_start),
+        qualifying_separator_(qualifying_separator){};
+  virtual ~BaseGenerator(){};
 
   // No copy/assign.
   BaseGenerator &operator=(const BaseGenerator &);
@@ -85,9 +89,31 @@ class BaseGenerator {
     if (namespaces.size()) return *(namespaces.end() - 1); else return std::string("");
   }
 
+  // tracks the current namespace for early exit in WrapInNameSpace
+  // c++, java and csharp returns a different namespace from 
+  // the following default (no early exit, always fully qualify), 
+  // which works for js and php
+  virtual const Namespace *CurrentNameSpace() { return nullptr; }
+  
+  // Ensure that a type is prefixed with its namespace whenever it is used
+  // outside of its namespace.
+  std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
+    if (CurrentNameSpace() == ns) return name;
+    std::string qualified_name = qualifying_start_;
+    for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+      qualified_name += *it + qualifying_separator_;
+    return qualified_name + name;
+  }
+
+  std::string WrapInNameSpace(const Definition &def) {
+    return WrapInNameSpace(def.defined_namespace, def.name);
+  }
+
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
+  const std::string qualifying_start_;
+  const std::string qualifying_separator_;
 };
 
 }  // namespace flatbuffers
