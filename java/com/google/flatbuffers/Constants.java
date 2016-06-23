@@ -34,7 +34,7 @@ public class Constants {
     /** The number of bytes in an `long`. */
     static final int SIZEOF_LONG = 8;
     /** The number of bytes in an `double`. */
-    static final int SIZEOF_DOUBLE = 4;
+    static final int SIZEOF_DOUBLE = 8;
     /** The number of bytes in a file identifier. */
     static final int FILE_IDENTIFIER_LENGTH = 4;
 }
