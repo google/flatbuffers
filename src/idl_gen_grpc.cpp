@@ -114,7 +114,8 @@ class FlatBufPrinter : public grpc_cpp_generator::Printer {
       // See if this contains more than one line.
       const char * lf = strchr(s, '\n');
       if (lf) {
-        (*str_) += std::string(s, lf + 1);
+        auto index = (int)(lf-s)+1;
+        (*str_) += std::string(s, index);
         s = lf + 1;
         if (!*s) break;  // Only continue if there's more lines.
       } else {
