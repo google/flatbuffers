@@ -33,11 +33,8 @@ For any schema input files, one or more generators can be specified:
 
 -   `--php`: Generate PHP code.
 
-<<<<<<< HEAD
-=======
 -   `--grpc`: Generate RPC stub code for GRPC.
 
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
 For any data input files:
 
 -   `--binary`, `-b` : If data is contained in this file, generate a

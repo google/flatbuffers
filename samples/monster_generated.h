@@ -72,12 +72,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 10,
     VT_INVENTORY = 14,
     VT_COLOR = 16,
-<<<<<<< HEAD
-=======
     VT_WEAPONS = 18,
     VT_EQUIPPED_TYPE = 20,
     VT_EQUIPPED = 22
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }
@@ -91,15 +88,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<uint8_t> *mutable_inventory() { return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY); }
   Color color() const { return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2)); }
   bool mutate_color(Color _color) { return SetField(VT_COLOR, static_cast<int8_t>(_color)); }
-<<<<<<< HEAD
-=======
   const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *weapons() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS); }
   flatbuffers::Vector<flatbuffers::Offset<Weapon>> *mutable_weapons() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS); }
   Equipment equipped_type() const { return static_cast<Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0)); }
   bool mutate_equipped_type(Equipment _equipped_type) { return SetField(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type)); }
   const void *equipped() const { return GetPointer<const void *>(VT_EQUIPPED); }
   void *mutable_equipped() { return GetPointer<void *>(VT_EQUIPPED); }
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -110,15 +104,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_INVENTORY) &&
            verifier.Verify(inventory()) &&
            VerifyField<int8_t>(verifier, VT_COLOR) &&
-<<<<<<< HEAD
-=======
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_WEAPONS) &&
            verifier.Verify(weapons()) &&
            verifier.VerifyVectorOfTables(weapons()) &&
            VerifyField<uint8_t>(verifier, VT_EQUIPPED_TYPE) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_EQUIPPED) &&
            VerifyEquipment(verifier, equipped(), equipped_type()) &&
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
            verifier.EndTable();
   }
 };
@@ -132,12 +123,9 @@ struct MonsterBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(Monster::VT_NAME, name); }
   void add_inventory(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory) { fbb_.AddOffset(Monster::VT_INVENTORY, inventory); }
   void add_color(Color color) { fbb_.AddElement<int8_t>(Monster::VT_COLOR, static_cast<int8_t>(color), 2); }
-<<<<<<< HEAD
-=======
   void add_weapons(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Weapon>>> weapons) { fbb_.AddOffset(Monster::VT_WEAPONS, weapons); }
   void add_equipped_type(Equipment equipped_type) { fbb_.AddElement<uint8_t>(Monster::VT_EQUIPPED_TYPE, static_cast<uint8_t>(equipped_type), 0); }
   void add_equipped(flatbuffers::Offset<void> equipped) { fbb_.AddOffset(Monster::VT_EQUIPPED, equipped); }
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {

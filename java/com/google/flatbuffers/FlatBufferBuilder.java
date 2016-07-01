@@ -36,21 +36,6 @@ import java.nio.charset.Charset;
  * "Use in Java/C#" in the main FlatBuffers documentation.
  */
 public class FlatBufferBuilder {
-<<<<<<< HEAD
-    ByteBuffer bb;                   // Where we construct the FlatBuffer.
-    int space;                       // Remaining space in the ByteBuffer.
-    static final Charset utf8charset = Charset.forName("UTF-8");
-    int minalign = 1;                // Minimum alignment encountered so far.
-    int[] vtable = null;             // The vtable for the current table.
-    int vtable_in_use = 0;           // The amount of fields we're actually using.
-    boolean nested = false;          // Whether we are currently serializing a table.
-    boolean finished = false;        // Whether the buffer is finished.
-    int object_start;                // Starting offset of the current struct/table.
-    int[] vtables = new int[16];     // List of offsets of all vtables.
-    int num_vtables = 0;             // Number of entries in `vtables` in use.
-    int vector_num_elems = 0;        // For the current vector being built.
-    boolean force_defaults = false;  // False omits default values from the serialized data
-=======
     /// @cond FLATBUFFERS_INTERNAL
     ByteBuffer bb;                  // Where we construct the FlatBuffer.
     int space;                      // Remaining space in the ByteBuffer.
@@ -68,7 +53,6 @@ public class FlatBufferBuilder {
     CharsetEncoder encoder = utf8charset.newEncoder();
     ByteBuffer dst;
     /// @endcond
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
 
    /**
     * Start with a buffer of size `initial_size`, then grow as required.
@@ -441,16 +425,6 @@ public class FlatBufferBuilder {
     }
 
    /**
-    * Should not be accessing the final buffer before it is finished.
-    */
-    public void finished() {
-        if (!finished)
-            throw new AssertionError(
-                "FlatBuffers: you can only access the serialized buffer after it has been" +
-                " finished by FlatBufferBuilder.finish().");
-    }
-
-   /**
     * Should not be creating any other object, string or vector
     * while an object is being constructed.
     */
@@ -751,11 +725,6 @@ public class FlatBufferBuilder {
         return this;
     }
 
-<<<<<<< HEAD
-    // Get the ByteBuffer representing the FlatBuffer. Only call this after you've
-    // called finish(). The actual data starts at the ByteBuffer's current position,
-    // not necessarily at 0.
-=======
     /**
      * Get the ByteBuffer representing the FlatBuffer. Only call this after you've
      * called `finish()`. The actual data starts at the ByteBuffer's current position,
@@ -763,7 +732,6 @@ public class FlatBufferBuilder {
      *
      * @return The {@link ByteBuffer} representing the FlatBuffer
      */
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
     public ByteBuffer dataBuffer() {
         finished();
         return bb;
