@@ -272,7 +272,7 @@ Current understood attributes:
     the union field should have id 8, and the unions type field will
     implicitly be 7.
     IDs allow the fields to be placed in any order in the schema.
-    When a new field is added to the schema is must use the next available ID.
+    When a new field is added to the schema it must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `required` (on a non-scalar table field): this field must always be set.
