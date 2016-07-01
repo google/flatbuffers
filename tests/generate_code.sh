@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable --no-includes monster_test.fbs monsterdata_test.json
-../flatc --binary --schema monster_test.fbs
-=======
 #!/bin/bash
 #
 # Copyright 2015 Google Inc. All rights reserved.
@@ -22,4 +18,3 @@
 ../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 ../flatc --binary --schema monster_test.fbs
 
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70

@@ -1167,11 +1167,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
   EXPECT(kTokenIdentifier);
   auto &enum_def = *new EnumDef();
   enum_def.name = enum_name;
-<<<<<<< HEAD
-  enum_def.file = files_being_parsed_;
-=======
   enum_def.file = file_being_parsed_;
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   enum_def.doc_comment = enum_comment;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = namespaces_.back();
@@ -1268,11 +1264,7 @@ CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   if (!struct_def.predecl) return Error("datatype already exists: " + name);
   struct_def.predecl = false;
   struct_def.name = name;
-<<<<<<< HEAD
-  struct_def.file = files_being_parsed_;
-=======
   struct_def.file = file_being_parsed_;
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   // Move this struct to the back of the vector just in case it was predeclared,
   // to preserve declaration order.
   *remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
@@ -1787,16 +1779,12 @@ CheckedError Parser::SkipJsonString() {
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-<<<<<<< HEAD
-  files_being_parsed_ = source_filename ? source_filename : "";
-=======
   return !DoParse(source, include_paths, source_filename).Check();
 }
 
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
   if (source_filename &&
       included_files_.find(source_filename) == included_files_.end()) {
     included_files_[source_filename] = true;
@@ -1937,23 +1925,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
           return Error("only tables can be union elements: " + val.name);
       }
     }
-<<<<<<< HEAD
-  } catch (const std::string &msg) {
-    error_ = source_filename ? AbsolutePath(source_filename) : "";
-    #ifdef _WIN32
-      error_ += "(" + NumToString(line_) + ")";  // MSVC alike
-    #else
-      if (source_filename) error_ += ":";
-      error_ += NumToString(line_) + ":0";  // gcc alike
-    #endif
-    error_ += ": error: " + msg;
-    return false;
-  }
-  return true;
-=======
   }
   return NoError();
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
 }
 
 std::set<std::string> Parser::GetIncludedFilesRecursive(

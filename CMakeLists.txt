@@ -105,14 +105,6 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
       "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
-<<<<<<< HEAD
-    "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Werror=shadow")
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
-  set(CMAKE_EXE_LINKER_FLAGS
-      "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
-=======
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
   if (GCC_VERSION VERSION_GREATER 4.4)
     set(CMAKE_CXX_FLAGS
@@ -137,7 +129,6 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
->>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
