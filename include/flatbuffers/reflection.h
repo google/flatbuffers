@@ -335,6 +335,8 @@ template<typename T, typename U> pointer_inside_vector<T, U> piv(T *ptr,
   return pointer_inside_vector<T, U>(ptr, vec);
 }
 
+inline const char *UnionTypeFieldSuffix() { return "_type"; }
+
 // Helper to figure out the actual table type a union refers to.
 inline const reflection::Object &GetUnionType(
     const reflection::Schema &schema, const reflection::Object &parent,
@@ -342,7 +344,7 @@ inline const reflection::Object &GetUnionType(
   auto enumdef = schema.enums()->Get(unionfield.type()->index());
   // TODO: this is clumsy and slow, but no other way to find it?
   auto type_field = parent.fields()->LookupByKey(
-            (unionfield.name()->str() + "_type").c_str());
+            (unionfield.name()->str() + UnionTypeFieldSuffix()).c_str());
   assert(type_field);
   auto union_type = GetFieldI<uint8_t>(table, *type_field);
   auto enumval = enumdef->values()->LookupByKey(union_type);
@@ -415,12 +417,14 @@ inline bool SetFieldT(Table *table, const reflection::Field &field,
 // above resizing functionality has introduced garbage in a buffer you want
 // to remove.
 // Note: this does not deal with DAGs correctly. If the table passed forms a
-// DAG, the copy will be a tree instead (with duplicates).
+// DAG, the copy will be a tree instead (with duplicates). Strings can be
+// shared however, by passing true for use_string_pooling.
 
 Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Schema &schema,
                                 const reflection::Object &objectdef,
-                                const Table &table);
+                                const Table &table,
+                                bool use_string_pooling = false);
 
 }  // namespace flatbuffers
 

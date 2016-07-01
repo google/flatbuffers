@@ -19,16 +19,74 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
-namespace js {
 
-static void GenNamespaces(const Parser &parser, std::string *code_ptr,
-                          std::string *exports_ptr) {
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.js";
+}
+
+namespace js {
+// Iterate through all definitions we haven't generate code for (enums, structs,
+// and tables) and output them to a single file.
+class JsGenerator : public BaseGenerator {
+ public:
+  JsGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", "."){};
+  // Iterate through all definitions we haven't generate code for (enums,
+  // structs, and tables) and output them to a single file.
+  bool generate() {
+    if (IsEverythingGenerated()) return true;
+
+    std::string enum_code, struct_code, exports_code, code;
+    generateEnums(&enum_code, &exports_code);
+    generateStructs(&struct_code, &exports_code);
+
+    code = code + "// " + FlatBuffersGeneratedWarning();
+
+    // Generate code for all the namespace declarations.
+    GenNamespaces(&code, &exports_code);
+
+    // Output the main declaration code from above.
+    code += enum_code;
+    code += struct_code;
+
+    if (!exports_code.empty() && !parser_.opts.skip_js_exports) {
+      code += "// Exports for Node.js and RequireJS\n";
+      code += exports_code;
+    }
+
+    return SaveFile(GeneratedFileName(path_, file_name_).c_str(), code, false);
+  }
+
+ private:
+  // Generate code for all enums.
+  void generateEnums(std::string *enum_code_ptr,
+                     std::string *exports_code_ptr) {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      auto &enum_def = **it;
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr);
+    }
+  }
+
+  // Generate code for all structs.
+  void generateStructs(std::string *decl_code_ptr,
+                       std::string *exports_code_ptr) {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      auto &struct_def = **it;
+      GenStruct(struct_def, decl_code_ptr, exports_code_ptr);
+    }
+  }
+  void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
   std::set<std::string> namespaces;
 
-  for (auto it = parser.namespaces_.begin();
-       it != parser.namespaces_.end(); ++it) {
+  for (auto it = parser_.namespaces_.begin();
+       it != parser_.namespaces_.end(); ++it) {
     std::string namespace_so_far;
 
     // Gather all parent namespaces for this namespace
@@ -59,22 +117,6 @@ static void GenNamespaces(const Parser &parser, std::string *code_ptr,
     }
     code += *it + " = " + *it + " || {};\n\n";
   }
-}
-
-// Ensure that a type is prefixed with its namespace whenever it is used
-// outside of its namespace.
-static std::string WrapInNameSpace(const Namespace *ns,
-                                   const std::string &name) {
-  std::string qualified_name;
-  for (auto it = ns->components.begin();
-           it != ns->components.end(); ++it) {
-    qualified_name += *it + ".";
-  }
-  return qualified_name + name;
-}
-
-static std::string WrapInNameSpace(const Definition &def) {
-  return WrapInNameSpace(def.defined_namespace, def.name);
 }
 
 // Generate a documentation comment, if available.
@@ -122,7 +164,7 @@ static void GenDocComment(std::string *code_ptr,
 }
 
 // Generate an enum declaration and an enum string lookup table.
-static void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+void GenEnum(EnumDef &enum_def, std::string *code_ptr,
                     std::string *exports_ptr) {
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
@@ -169,7 +211,7 @@ static std::string GenType(const Type &type) {
   }
 }
 
-static std::string GenGetter(const Type &type, const std::string &arguments) {
+std::string GenGetter(const Type &type, const std::string &arguments) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "this.bb.__string" + arguments;
     case BASE_TYPE_STRUCT: return "this.bb.__struct" + arguments;
@@ -189,7 +231,7 @@ static std::string GenGetter(const Type &type, const std::string &arguments) {
   }
 }
 
-static std::string GenDefaultValue(const Value &value) {
+std::string GenDefaultValue(const Value &value, const std::string &context) {
   if (value.type.enum_def) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
@@ -205,20 +247,18 @@ static std::string GenDefaultValue(const Value &value) {
       return "null";
 
     case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
-      if (value.constant != "0") {
-        int64_t constant = StringToInt(value.constant.c_str());
-        return "new flatbuffers.Long(" + NumToString((int32_t)constant) +
-          ", " + NumToString((int32_t)(constant >> 32)) + ")";
-      }
-      return "flatbuffers.Long.ZERO";
+    case BASE_TYPE_ULONG: {
+      int64_t constant = StringToInt(value.constant.c_str());
+      return context + ".createLong(" + NumToString((int32_t)constant) +
+        ", " + NumToString((int32_t)(constant >> 32)) + ")";
+    }
 
     default:
       return value.constant;
   }
 }
 
-static std::string GenTypeName(const Type &type, bool input) {
+std::string GenTypeName(const Type &type, bool input) {
   if (!input) {
     if (type.base_type == BASE_TYPE_STRING) {
       return "string|Uint8Array";
@@ -270,7 +310,7 @@ static std::string MaybeScale(T value) {
   return value != 1 ? " * " + NumToString(value) : "";
 }
 
-static void GenStructArgs(const StructDef &struct_def,
+void GenStructArgs(const StructDef &struct_def,
                           std::string *annotations,
                           std::string *arguments,
                           const std::string &nameprefix) {
@@ -321,8 +361,7 @@ static void GenStructBody(const StructDef &struct_def,
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
-static void GenStruct(const Parser &parser, StructDef &struct_def,
-                      std::string *code_ptr, std::string *exports_ptr) {
+void GenStruct(StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
@@ -376,13 +415,13 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "};\n\n";
 
     // Generate the identifier check method
-    if (parser.root_struct_def_ == &struct_def &&
-        !parser.file_identifier_.empty()) {
+    if (parser_.root_struct_def_ == &struct_def &&
+        !parser_.file_identifier_.empty()) {
       GenDocComment(code_ptr,
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
       code += object_name + ".bufferHasIdentifier = function(bb) {\n";
-      code += "  return bb.__has_identifier('" + parser.file_identifier_;
+      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
       code += "');\n};\n\n";
     }
   }
@@ -417,7 +456,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
           index += ", optionalEncoding";
         }
         code += offset_prefix + GenGetter(field.value.type,
-          "(" + index + ")") + " : " + GenDefaultValue(field.value);
+          "(" + index + ")") + " : " + GenDefaultValue(field.value, "this.bb");
         code += ";\n";
       }
     }
@@ -485,7 +524,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
             code += "false";
           } else if (field.value.type.element == BASE_TYPE_LONG ||
               field.value.type.element == BASE_TYPE_ULONG) {
-            code += "flatbuffers.Long.ZERO";
+            code += "this.bb.createLong(0, 0)";
           } else if (IsScalar(field.value.type.element)) {
             code += "0";
           } else {
@@ -511,12 +550,24 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     }
     code += "};\n\n";
 
-    // Emit a length helper
+    // Emit vector helpers
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      // Emit a length helper
       GenDocComment(code_ptr, "@returns {number}");
       code += object_name + ".prototype." + MakeCamel(field.name, false);
       code += "Length = function() {\n" + offset_prefix;
       code += "this.bb.__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
+
+      // For scalar types, emit a typed array helper
+      auto vectorType = field.value.type.VectorType();
+      if (IsScalar(vectorType.base_type)) {
+        GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
+        code += object_name + ".prototype." + MakeCamel(field.name, false);
+        code += "Array = function() {\n" + offset_prefix;
+        code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
+          "this.bb.__vector(this.bb_pos + offset), "
+          "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+      }
     }
   }
 
@@ -570,7 +621,7 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
         if (field.value.type.base_type == BASE_TYPE_BOOL) {
           code += "+";
         }
-        code += GenDefaultValue(field.value);
+        code += GenDefaultValue(field.value, "builder");
       }
       code += ");\n};\n\n";
 
@@ -633,86 +684,33 @@ static void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "};\n\n";
 
     // Generate the method to complete buffer construction
-    if (parser.root_struct_def_ == &struct_def) {
+    if (parser_.root_struct_def_ == &struct_def) {
       GenDocComment(code_ptr,
         "@param {flatbuffers.Builder} builder\n"
         "@param {flatbuffers.Offset} offset");
       code += object_name + ".finish" + struct_def.name + "Buffer";
       code += " = function(builder, offset) {\n";
       code += "  builder.finish(offset";
-      if (!parser.file_identifier_.empty()) {
-        code += ", '" + parser.file_identifier_ + "'";
+      if (!parser_.file_identifier_.empty()) {
+        code += ", '" + parser_.file_identifier_ + "'";
       }
       code += ");\n";
       code += "};\n\n";
     }
   }
 }
-
+};
 }  // namespace js
 
-// Iterate through all definitions we haven't generate code for (enums, structs,
-// and tables) and output them to a single file.
-std::string GenerateJS(const Parser &parser,
-                       const GeneratorOptions &opts) {
-  using namespace js;
-
-  // Generate code for all the enum declarations.
-  std::string enum_code, exports_code;
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    GenEnum(**it, &enum_code, &exports_code);
-  }
-
-  // Generate code for all structs, then all tables.
-  std::string decl_code;
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    GenStruct(parser, **it, &decl_code, &exports_code);
-  }
-
-  // Only output file-level code if there were any declarations.
-  if (enum_code.length() || decl_code.length()) {
-    std::string code;
-    code = "// automatically generated by the FlatBuffers compiler,"
-           " do not modify\n\n";
-
-    // Generate code for all the namespace declarations.
-    GenNamespaces(parser, &code, &exports_code);
-
-    // Output the main declaration code from above.
-    code += enum_code;
-    code += decl_code;
-
-    if (!exports_code.empty() && !opts.skip_js_exports) {
-      code += "// Exports for Node.js and RequireJS\n";
-      code += exports_code;
-    }
-
-    return code;
-  }
-
-  return std::string();
-}
-
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.js";
-}
-
-bool GenerateJS(const Parser &parser,
-                const std::string &path,
-                const std::string &file_name,
-                const GeneratorOptions &opts) {
-    auto code = GenerateJS(parser, opts);
-    return !code.length() ||
-           SaveFile(GeneratedFileName(path, file_name).c_str(), code, false);
+bool GenerateJS(const Parser &parser, const std::string &path,
+                const std::string &file_name) {
+  js::JsGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 std::string JSMakeRule(const Parser &parser,
                        const std::string &path,
-                       const std::string &file_name,
-                       const GeneratorOptions & /*opts*/) {
+                       const std::string &file_name) {
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));
   std::string make_rule = GeneratedFileName(path, filebase) + ": ";

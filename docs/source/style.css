@@ -1,13 +1,13 @@
-body, 
+body,
 #projectname,
-table, 
-div, 
-p, 
-dl, 
-.title, 
-.tabs, 
-.tabs2, 
-.tabs3, 
+table,
+div,
+p,
+dl,
+.title,
+.tabs,
+.tabs2,
+.tabs3,
 #nav-tree .label {
   font-family: roboto, sans-serif;
 }
@@ -44,12 +44,12 @@ dl,
   font-size: 14px;
 }
 
-.tabs, 
-.tabs2, 
-.tabs3, 
-.tablist li, 
+.tabs,
+.tabs2,
+.tabs3,
+.tablist li,
 .tablist li.current a {
-  background-image: none;	
+  background-image: none;
 }
 
 .tablist {
@@ -106,8 +106,8 @@ div.header {
   right: 10px;
 }
 
-#MSearchBox .left, 
-#MSearchBox .right, 
+#MSearchBox .left,
+#MSearchBox .right,
 #MSearchField {
   background: none;
 }
@@ -165,9 +165,9 @@ a.SelectItem:hover {
   margin-bottom: 8px;
 }
 
-a:link, 
-a:visited, 
-.contents a:link, 
+a:link,
+a:visited,
+.contents a:link,
 .contents a:visited,
 a.el {
   color: #0288d1;
@@ -197,7 +197,7 @@ div.contents {
 }
 
 .directory tr#row_0_ {
-  border-top-color: #7cb342;	
+  border-top-color: #7cb342;
 }
 
 .directory tr#row_0_ td {
@@ -276,7 +276,7 @@ table.doxtable td {
 }
 
 .memberdecls tr:not(.heading) td {
-  background-color: rgba(255,255,255,.95);  
+  background-color: rgba(255,255,255,.95);
 }
 
 h1, h2, h2.groupheader, h3, h4, h5, h6 {
@@ -366,7 +366,7 @@ div.line {
 code, pre {
   color: #455a64;
   background: #f7f7f7;
-  font: 400 100%/1 Roboto Mono,monospace;
+  font: 400 100% Roboto Mono,monospace;
   padding: 1px 4px;
 }
 
@@ -375,7 +375,7 @@ span.preprocessor, span.comment {
 }
 
 span.keywordtype {
-  color: #0097a7;  
+  color: #0097a7;
 }
 
 .paramname {
@@ -383,7 +383,7 @@ span.keywordtype {
 }
 
 .memTemplParams {
-  color: #ef6c00;	
+  color: #ef6c00;
 }
 
 span.mlabel {

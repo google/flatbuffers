@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #ifdef _WIN32
@@ -34,9 +35,12 @@
 #include <winbase.h>
 #include <direct.h>
 #else
-#include <sys/stat.h>
 #include <limits.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "flatbuffers/flatbuffers.h"
 
 namespace flatbuffers {
 
@@ -68,7 +72,7 @@ template<> inline std::string NumToString<double>(double t) {
   auto p = s.find_last_not_of('0');
   if (p != std::string::npos) {
     s.resize(p + 1);  // Strip trailing zeroes.
-    if (s.back() == '.')
+    if (s[s.size() - 1] == '.')
       s.erase(s.size() - 1, 1);  // Strip '.' if a whole number.
   }
   return s;
@@ -108,33 +112,27 @@ inline int64_t StringToUInt(const char *str, int base = 10) {
   #endif
 }
 
+typedef bool (*LoadFileFunction)(const char *filename, bool binary,
+                                 std::string *dest);
+typedef bool (*FileExistsFunction)(const char *filename);
+
+LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function);
+
+FileExistsFunction SetFileExistsFunction(FileExistsFunction
+                                         file_exists_function);
+
+
 // Check if file "name" exists.
-inline bool FileExists(const char *name) {
-  std::ifstream ifs(name);
-  return ifs.good();
-}
+bool FileExists(const char *name);
+
+// Check if "name" exists and it is also a directory.
+bool DirExists(const char *name);
 
 // Load file "name" into "buf" returning true if successful
 // false otherwise.  If "binary" is false data is read
 // using ifstream's text mode, otherwise data is read with
 // no transcoding.
-inline bool LoadFile(const char *name, bool binary, std::string *buf) {
-  std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
-  if (!ifs.is_open()) return false;
-  if (binary) {
-    // The fastest way to read a file into a string.
-    ifs.seekg(0, std::ios::end);
-    (*buf).resize(static_cast<size_t>(ifs.tellg()));
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(&(*buf)[0], (*buf).size());
-  } else {
-    // This is slower, but works correctly on all platforms for text files.
-    std::ostringstream oss;
-    oss << ifs.rdbuf();
-    *buf = oss.str();
-  }
-  return !ifs.bad();
-}
+bool LoadFile(const char *name, bool binary, std::string *buf);
 
 // Save data "buf" of length "len" bytes into a file
 // "name" returning true if successful, false otherwise.
@@ -197,8 +195,8 @@ inline std::string StripFileName(const std::string &filepath) {
 inline std::string ConCatPathFileName(const std::string &path,
                                       const std::string &filename) {
   std::string filepath = path;
-  if (path.length() && path.back() != kPathSeparator &&
-                       path.back() != kPosixPathSeparator)
+  if (path.length() && path[path.size() - 1] != kPathSeparator &&
+                       path[path.size() - 1] != kPosixPathSeparator)
     filepath += kPathSeparator;
   filepath += filename;
   return filepath;
@@ -210,7 +208,7 @@ inline void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
   #ifdef _WIN32
-    _mkdir(filepath.c_str());
+    (void)_mkdir(filepath.c_str());
   #else
     mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
   #endif
@@ -219,15 +217,19 @@ inline void EnsureDirExists(const std::string &filepath) {
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
 inline std::string AbsolutePath(const std::string &filepath) {
-  #ifdef _WIN32
-    char abs_path[MAX_PATH];
-    return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+    return filepath;
   #else
-    char abs_path[PATH_MAX];
-    return realpath(filepath.c_str(), abs_path)
-  #endif
-    ? abs_path
-    : filepath;
+    #ifdef _WIN32
+      char abs_path[MAX_PATH];
+      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+    #else
+      char abs_path[PATH_MAX];
+      return realpath(filepath.c_str(), abs_path)
+    #endif
+      ? abs_path
+      : filepath;
+  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
 }
 
 // To and from UTF-8 unicode conversion functions
