@@ -112,7 +112,7 @@ class FlatBufPrinter : public grpc_cpp_generator::Printer {
       // Current indentation.
       str_->insert(str_->end(), indent_ * 2, ' ');
       // See if this contains more than one line.
-      auto lf = strchr(s, '\n');
+      const char * lf = strchr(s, '\n');
       if (lf) {
         (*str_) += std::string(s, lf + 1);
         s = lf + 1;
