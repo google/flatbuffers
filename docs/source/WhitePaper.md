@@ -1,4 +1,5 @@
-# FlatBuffers white paper
+FlatBuffers white paper    {#flatbuffers_white_paper}
+=======================
 
 This document tries to shed some light on to the "why" of FlatBuffers, a
 new serialization library.
@@ -124,4 +125,4 @@ offered by .proto files in the following ways:
 -   A parser that can deal with both schemas and data definitions (JSON
     compatible) uniformly.
 
-
+<br>

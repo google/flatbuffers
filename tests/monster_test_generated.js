@@ -13,6 +13,11 @@ MyGame.Example = MyGame.Example || {};
 /**
  * @const
 */
+MyGame.Example2 = MyGame.Example2 || {};
+
+/**
+ * @const
+*/
 MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
 
 /**
@@ -30,7 +35,59 @@ MyGame.Example.Color = {
 MyGame.Example.Any = {
   NONE: 0,
   Monster: 1,
-  TestSimpleTableWithEnum: 2
+  TestSimpleTableWithEnum: 2,
+  MyGame_Example2_Monster: 3
+};
+
+/**
+ * @constructor
+ */
+MyGame.Example2.Monster = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example2.Monster}
+ */
+MyGame.Example2.Monster.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example2.Monster=} obj
+ * @returns {MyGame.Example2.Monster}
+ */
+MyGame.Example2.Monster.getRootAsMonster = function(bb, obj) {
+  return (obj || new MyGame.Example2.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example2.Monster.startMonster = function(builder) {
+  builder.startObject(0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example2.Monster.endMonster = function(builder) {
+  var offset = builder.endObject();
+  return offset;
 };
 
 /**
@@ -300,7 +357,7 @@ MyGame.Example.Stat.prototype.id = function(optionalEncoding) {
  */
 MyGame.Example.Stat.prototype.val = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : flatbuffers.Long.ZERO;
+  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
 };
 
 /**
@@ -331,7 +388,7 @@ MyGame.Example.Stat.addId = function(builder, idOffset) {
  * @param {flatbuffers.Long} val
  */
 MyGame.Example.Stat.addVal = function(builder, val) {
-  builder.addFieldInt64(1, val, flatbuffers.Long.ZERO);
+  builder.addFieldInt64(1, val, builder.createLong(0, 0));
 };
 
 /**
@@ -448,6 +505,14 @@ MyGame.Example.Monster.prototype.inventoryLength = function() {
 };
 
 /**
+ * @returns {Uint8Array}
+ */
+MyGame.Example.Monster.prototype.inventoryArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @returns {MyGame.Example.Color}
  */
 MyGame.Example.Monster.prototype.color = function() {
@@ -556,6 +621,14 @@ MyGame.Example.Monster.prototype.testnestedflatbufferLength = function() {
 };
 
 /**
+ * @returns {Uint8Array}
+ */
+MyGame.Example.Monster.prototype.testnestedflatbufferArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 30);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {MyGame.Example.Stat=} obj
  * @returns {MyGame.Example.Stat}
  */
@@ -593,7 +666,7 @@ MyGame.Example.Monster.prototype.testhashu32Fnv1 = function() {
  */
 MyGame.Example.Monster.prototype.testhashs64Fnv1 = function() {
   var offset = this.bb.__offset(this.bb_pos, 40);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : flatbuffers.Long.ZERO;
+  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
 };
 
 /**
@@ -601,7 +674,7 @@ MyGame.Example.Monster.prototype.testhashs64Fnv1 = function() {
  */
 MyGame.Example.Monster.prototype.testhashu64Fnv1 = function() {
   var offset = this.bb.__offset(this.bb_pos, 42);
-  return offset ? this.bb.readUint64(this.bb_pos + offset) : flatbuffers.Long.ZERO;
+  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
 };
 
 /**
@@ -625,7 +698,7 @@ MyGame.Example.Monster.prototype.testhashu32Fnv1a = function() {
  */
 MyGame.Example.Monster.prototype.testhashs64Fnv1a = function() {
   var offset = this.bb.__offset(this.bb_pos, 48);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : flatbuffers.Long.ZERO;
+  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
 };
 
 /**
@@ -633,7 +706,7 @@ MyGame.Example.Monster.prototype.testhashs64Fnv1a = function() {
  */
 MyGame.Example.Monster.prototype.testhashu64Fnv1a = function() {
   var offset = this.bb.__offset(this.bb_pos, 50);
-  return offset ? this.bb.readUint64(this.bb_pos + offset) : flatbuffers.Long.ZERO;
+  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
 };
 
 /**
@@ -654,10 +727,60 @@ MyGame.Example.Monster.prototype.testarrayofboolsLength = function() {
 };
 
 /**
+ * @returns {Int8Array}
+ */
+MyGame.Example.Monster.prototype.testarrayofboolsArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 52);
+  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testf = function() {
+  var offset = this.bb.__offset(this.bb_pos, 54);
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 3.14159;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testf2 = function() {
+  var offset = this.bb.__offset(this.bb_pos, 56);
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 3.0;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testf3 = function() {
+  var offset = this.bb.__offset(this.bb_pos, 58);
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @param {number} index
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
+ */
+MyGame.Example.Monster.prototype.testarrayofstring2 = function(index, optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 60);
+  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testarrayofstring2Length = function() {
+  var offset = this.bb.__offset(this.bb_pos, 60);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(25);
+  builder.startObject(29);
 };
 
 /**
@@ -893,7 +1016,7 @@ MyGame.Example.Monster.addTesthashu32Fnv1 = function(builder, testhashu32Fnv1) {
  * @param {flatbuffers.Long} testhashs64Fnv1
  */
 MyGame.Example.Monster.addTesthashs64Fnv1 = function(builder, testhashs64Fnv1) {
-  builder.addFieldInt64(18, testhashs64Fnv1, flatbuffers.Long.ZERO);
+  builder.addFieldInt64(18, testhashs64Fnv1, builder.createLong(0, 0));
 };
 
 /**
@@ -901,7 +1024,7 @@ MyGame.Example.Monster.addTesthashs64Fnv1 = function(builder, testhashs64Fnv1) {
  * @param {flatbuffers.Long} testhashu64Fnv1
  */
 MyGame.Example.Monster.addTesthashu64Fnv1 = function(builder, testhashu64Fnv1) {
-  builder.addFieldInt64(19, testhashu64Fnv1, flatbuffers.Long.ZERO);
+  builder.addFieldInt64(19, testhashu64Fnv1, builder.createLong(0, 0));
 };
 
 /**
@@ -925,7 +1048,7 @@ MyGame.Example.Monster.addTesthashu32Fnv1a = function(builder, testhashu32Fnv1a)
  * @param {flatbuffers.Long} testhashs64Fnv1a
  */
 MyGame.Example.Monster.addTesthashs64Fnv1a = function(builder, testhashs64Fnv1a) {
-  builder.addFieldInt64(22, testhashs64Fnv1a, flatbuffers.Long.ZERO);
+  builder.addFieldInt64(22, testhashs64Fnv1a, builder.createLong(0, 0));
 };
 
 /**
@@ -933,7 +1056,7 @@ MyGame.Example.Monster.addTesthashs64Fnv1a = function(builder, testhashs64Fnv1a)
  * @param {flatbuffers.Long} testhashu64Fnv1a
  */
 MyGame.Example.Monster.addTesthashu64Fnv1a = function(builder, testhashu64Fnv1a) {
-  builder.addFieldInt64(23, testhashu64Fnv1a, flatbuffers.Long.ZERO);
+  builder.addFieldInt64(23, testhashu64Fnv1a, builder.createLong(0, 0));
 };
 
 /**
@@ -963,6 +1086,59 @@ MyGame.Example.Monster.createTestarrayofboolsVector = function(builder, data) {
  */
 MyGame.Example.Monster.startTestarrayofboolsVector = function(builder, numElems) {
   builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} testf
+ */
+MyGame.Example.Monster.addTestf = function(builder, testf) {
+  builder.addFieldFloat32(25, testf, 3.14159);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} testf2
+ */
+MyGame.Example.Monster.addTestf2 = function(builder, testf2) {
+  builder.addFieldFloat32(26, testf2, 3.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} testf3
+ */
+MyGame.Example.Monster.addTestf3 = function(builder, testf3) {
+  builder.addFieldFloat32(27, testf3, 0.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testarrayofstring2Offset
+ */
+MyGame.Example.Monster.addTestarrayofstring2 = function(builder, testarrayofstring2Offset) {
+  builder.addFieldOffset(28, testarrayofstring2Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createTestarrayofstring2Vector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestarrayofstring2Vector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
 };
 
 /**

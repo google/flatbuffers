@@ -89,9 +89,15 @@ abstract class Table
         return $offset + $this->bb->getInt($offset) + Constants::SIZEOF_INT;
     }
 
-//    protected function __vector_as_bytebuffer($vector_offset, $elem_size)
-//    {
-//    }
+    protected function __vector_as_bytes($vector_offset, $elem_size=1)
+    {
+        $o = $this->__offset($vector_offset);
+        if ($o == 0) {
+            return null;
+        }
+
+        return substr($this->bb->_buffer, $this->__vector($o), $this->__vector_len($o) * $elem_size);
+    }
 
     /**
      * @param Table $table

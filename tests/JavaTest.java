@@ -17,6 +17,8 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import MyGame.Example.*;
+import NamespaceA.*;
+import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -155,6 +157,10 @@ class JavaTest {
 
         TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
+        TestNamespaceNesting();
+
+        TestNestedFlatBuffer();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -224,6 +230,55 @@ class JavaTest {
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
+    }
+    
+    static void TestNamespaceNesting() {
+        // reference / manipulate these to verify compilation
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        
+        TableInNestedNS.startTableInNestedNS(fbb);
+        TableInNestedNS.addFoo(fbb, 1234);
+        int nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb);
+        
+        TableInFirstNS.startTableInFirstNS(fbb);      
+        TableInFirstNS.addFooTable(fbb, nestedTableOff);
+        int off = TableInFirstNS.endTableInFirstNS(fbb);
+    }
+    
+    static void TestNestedFlatBuffer() {
+        final String nestedMonsterName = "NestedMonsterName";
+        final short nestedMonsterHp = 600;
+        final short nestedMonsterMana = 1024;
+        
+        FlatBufferBuilder fbb1 = new FlatBufferBuilder(16);
+        int str1 = fbb1.createString(nestedMonsterName);
+        Monster.startMonster(fbb1);
+        Monster.addName(fbb1, str1);
+        Monster.addHp(fbb1, nestedMonsterHp);
+        Monster.addMana(fbb1, nestedMonsterMana);
+        int monster1 = Monster.endMonster(fbb1);
+        Monster.finishMonsterBuffer(fbb1, monster1);
+        byte[] fbb1Bytes = fbb1.sizedByteArray();
+        fbb1 = null;
+        
+        FlatBufferBuilder fbb2 = new FlatBufferBuilder(16);        
+        int str2 = fbb2.createString("My Monster");
+        int nestedBuffer = Monster.createTestnestedflatbufferVector(fbb2, fbb1Bytes);
+        Monster.startMonster(fbb2);
+        Monster.addName(fbb2, str2);
+        Monster.addHp(fbb2, (short)50);
+        Monster.addMana(fbb2, (short)32);
+        Monster.addTestnestedflatbuffer(fbb2, nestedBuffer);
+        int monster = Monster.endMonster(fbb2);
+        Monster.finishMonsterBuffer(fbb2, monster);
+        
+        // Now test the data extracted from the nested buffer
+        Monster mons = Monster.getRootAsMonster(fbb2.dataBuffer());
+        Monster nestedMonster = mons.testnestedflatbufferAsMonster();
+
+        TestEq(nestedMonsterMana, nestedMonster.mana());
+        TestEq(nestedMonsterHp, nestedMonster.hp());
+        TestEq(nestedMonsterName, nestedMonster.name());
     }
 
     static <T> void TestEq(T a, T b) {

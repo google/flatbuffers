@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,8 +129,7 @@ namespace FlatBuffers
         private void AssertOffsetAndLength(int offset, int length)
         {
             if (offset < 0 ||
-                offset >= _buffer.Length ||
-                offset + length > _buffer.Length)
+                offset > _buffer.Length - length)
                 throw new ArgumentOutOfRangeException();
         }
 
@@ -144,6 +143,13 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(byte));
             _buffer[offset] = value;
+        }
+
+        public void PutByte(int offset, byte value, int count)
+        {
+            AssertOffsetAndLength(offset, sizeof(byte) * count);
+            for (var i = 0; i < count; ++i)
+                _buffer[offset + i] = value;
         }
 
         // this method exists in order to conform with Java ByteBuffer standards
@@ -168,7 +174,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public void PutInt(int offset, int value)
@@ -185,7 +190,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public unsafe void PutLong(int offset, long value)
@@ -203,7 +207,6 @@ namespace FlatBuffers
                     ? value
                     : ReverseBytes(value);
             }
-            _pos = offset;
         }
 
         public unsafe void PutFloat(int offset, float value)
@@ -220,7 +223,6 @@ namespace FlatBuffers
                     *(uint*)(ptr + offset) = ReverseBytes(*(uint*)(&value));
                 }
             }
-            _pos = offset;
         }
 
         public unsafe void PutDouble(int offset, double value)
@@ -238,7 +240,6 @@ namespace FlatBuffers
                     *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(ptr + offset));
                 }
             }
-            _pos = offset;
         }
 #else // !UNSAFE_BYTEBUFFER
         // Slower versions of Put* for when unsafe code is not allowed.

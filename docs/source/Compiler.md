@@ -1,4 +1,5 @@
-# Using the schema compiler
+Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
+=========================
 
 Usage:
 
@@ -32,6 +33,11 @@ For any schema input files, one or more generators can be specified:
 
 -   `--php`: Generate PHP code.
 
+<<<<<<< HEAD
+=======
+-   `--grpc`: Generate RPC stub code for GRPC.
+
+>>>>>>> 48f37f9e0a04f2b60046dda7fef20a8b0ebc1a70
 For any data input files:
 
 -   `--binary`, `-b` : If data is contained in this file, generate a
@@ -79,6 +85,11 @@ Additional options:
     FlatBuffers in-place.
 
 -   `--gen-onefile` :  Generate single output file (useful for C#)
+
+-   `--gen-all`: Generate not just code for the current schema files, but
+    for all files it includes as well. If the language uses a single file for
+    output (by default the case for C++ and JS), all code will end up in
+    this one file.
 
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.

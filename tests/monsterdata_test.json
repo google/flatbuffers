@@ -1,7 +1,7 @@
 {
   pos: {
     x: 1,
-    y: 2,
+    y: "2",
     z: 3,
     test1: 3,
     test2: Green,
@@ -21,7 +21,8 @@
   ],
   test_type: Monster,
   test: {
-    name: "Fred"
+    name: "Fred",
+    pos: null
   },
   test4: [
     {
@@ -29,7 +30,7 @@
       b: 20
     },
     {
-      b: 40,
+      b: "40",
       a: 30
     }
   ],
@@ -37,6 +38,9 @@
     "test1",
     "test2"
   ],
+  enemy: {
+    name: "Fred"
+  },
   testarrayofbools:[
     true, false, true
   ],

@@ -1,227 +1,99 @@
-# Use in C++
+Use in C++    {#flatbuffers_guide_use_cpp}
+==========
 
-Assuming you have written a schema using the above language in say
-`mygame.fbs` (FlatBuffer Schema, though the extension doesn't matter),
-you've generated a C++ header called `mygame_generated.h` using the
+## Before you get started
+
+Before diving into the FlatBuffers usage in C++, it should be noted that
+the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide
+to general FlatBuffers usage in all of the supported languages (including C++).
+This page is designed to cover the nuances of FlatBuffers usage, specific to
+C++.
+
+#### Prerequisites
+
+This page assumes you have written a FlatBuffers schema and compiled it
+with the Schema Compiler. If you have not, please see
+[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler)
+and [Writing a schema](@ref flatbuffers_guide_writing_schema).
+
+Assuming you wrote a schema, say `mygame.fbs` (though the extension doesn't
+matter), you've generated a C++ header called `mygame_generated.h` using the
 compiler (e.g. `flatc -c mygame.fbs`), you can now start using this in
 your program by including the header. As noted, this header relies on
 `flatbuffers/flatbuffers.h`, which should be in your include path.
 
-### Writing in C++
+## FlatBuffers C++ library code location
 
-To start creating a buffer, create an instance of `FlatBufferBuilder`
-which will contain the buffer as it grows:
+The code for the FlatBuffers C++ library can be found at
+`flatbuffers/include/flatbuffers`. You can browse the library code on the
+[FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/include/flatbuffers).
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    FlatBufferBuilder fbb;
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Testing the FlatBuffers C++ library
 
-Before we serialize a Monster, we need to first serialize any objects
-that are contained there-in, i.e. we serialize the data tree using
-depth first, pre-order traversal. This is generally easy to do on
-any tree structures. For example:
+The code to test the C++ library can be found at `flatbuffers/tests`.
+The test code itself is located in
+[test.cpp](https://github.com/google/flatbuffers/blob/master/tests/test.cpp).
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto name = fbb.CreateString("MyMonster");
+This test file is built alongside `flatc`. To review how to build the project,
+please read the [Building](@ref flatbuffers_guide_building) documenation.
 
-    unsigned char inv[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    auto inventory = fbb.CreateVector(inv, 10);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To run the tests, execute `flattests` from the root `flatbuffers/` directory.
+For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
+run: `./flattests`.
 
-`CreateString` and `CreateVector` serialize these two built-in
-datatypes, and return offsets into the serialized data indicating where
-they are stored, such that `Monster` below can refer to them.
+## Using the FlatBuffers C++ library
 
-`CreateString` can also take an `std::string`, or a `const char *` with
-an explicit length, and is suitable for holding UTF-8 and binary
-data if needed.
+*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+example of how to use FlatBuffers in C++.*
 
-`CreateVector` can also take an `std::vector`. The
-offset it returns is typed, i.e. can only be used to set fields of the
-correct type below. To create a vector of struct objects (which will
-be stored as contiguous memory in the buffer, use `CreateVectorOfStructs`
-instead.
+FlatBuffers supports both reading and writing FlatBuffers in C++.
 
-To create a vector of nested objects (e.g. tables, strings or other vectors)
-collect their offsets in a temporary array/vector, then call `CreateVector`
-on that (see e.g. the array of strings example in `test.cpp`
-`CreateFlatBufferTest`).
+To use FlatBuffers in your code, first generate the C++ classes from your
+schema with the `--cpp` option to `flatc`. Then you can include both FlatBuffers
+and the generated code to read or write FlatBuffers.
+
+For example, here is how you would read a FlatBuffer binary file in C++:
+First, include the library and generated code. Then read the file into
+a `char *` array, which you pass to `GetMonster()`.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    Vec3 vec(1, 2, 3);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #include "flatbuffers/flatbuffers.h"
+    #include "monster_test_generate.h"
+    #include <cstdio> // For printing and file access.
 
-`Vec3` is the first example of code from our generated
-header. Structs (unlike tables) translate to simple structs in C++, so
-we can construct them in a familiar way.
+    FILE* file = fopen("monsterdata_test.mon", "rb");
+    fseek(file, 0L, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0L, SEEK_SET);
+    char *data = new char[length];
+    fread(data, sizeof(char), length, file);
+    fclose(file);
 
-We have now serialized the non-scalar components of of the monster
-example, so we could create the monster something like this:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto mloc = CreateMonster(fbb, &vec, 150, 80, name, inventory, Color_Red, 0, Any_NONE);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Note that we're passing `150` for the `mana` field, which happens to be the
-default value: this means the field will not actually be written to the buffer,
-since we'll get that value anyway when we query it. This is a nice space
-savings, since it is very common for fields to be at their default. It means
-we also don't need to be scared to add fields only used in a minority of cases,
-since they won't bloat up the buffer sizes if they're not actually used.
-
-We do something similarly for the union field `test` by specifying a `0` offset
-and the `NONE` enum value (part of every union) to indicate we don't actually
-want to write this field. You can use `0` also as a default for other
-non-scalar types, such as strings, vectors and tables. To pass an actual
-table, pass a preconstructed table as `mytable.Union()` that corresponds to
-union enum you're passing.
-
-Tables (like `Monster`) give you full flexibility on what fields you write
-(unlike `Vec3`, which always has all fields set because it is a `struct`).
-If you want even more control over this (i.e. skip fields even when they are
-not default), instead of the convenient `CreateMonster` call we can also
-build the object field-by-field manually:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    MonsterBuilder mb(fbb);
-    mb.add_pos(&vec);
-    mb.add_hp(80);
-    mb.add_name(name);
-    mb.add_inventory(inventory);
-    auto mloc = mb.Finish();
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We start with a temporary helper class `MonsterBuilder` (which is
-defined in our generated code also), then call the various `add_`
-methods to set fields, and `Finish` to complete the object. This is
-pretty much the same code as you find inside `CreateMonster`, except
-we're leaving out a few fields. Fields may also be added in any order,
-though orderings with fields of the same size adjacent
-to each other most efficient in size, due to alignment. You should
-not nest these Builder classes (serialize your
-data in pre-order).
-
-Regardless of whether you used `CreateMonster` or `MonsterBuilder`, you
-now have an offset to the root of your data, and you can finish the
-buffer using:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    FinishMonsterBuffer(fbb, mloc);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The buffer is now ready to be stored somewhere, sent over the network,
-be compressed, or whatever you'd like to do with it. You can access the
-start of the buffer with `fbb.GetBufferPointer()`, and it's size from
-`fbb.GetSize()`.
-
-Calling code may take ownership of the buffer with `fbb.ReleaseBufferPointer()`.
-Should you do it, the `FlatBufferBuilder` will be in an invalid state,
-and *must* be cleared before it can be used again.
-However, it also means you are able to destroy the builder while keeping
-the buffer in your application.
-
-`samples/sample_binary.cpp` is a complete code sample similar to
-the code above, that also includes the reading code below.
-
-### Reading in C++
-
-If you've received a buffer from somewhere (disk, network, etc.) you can
-directly start traversing it using:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto monster = GetMonster(buffer_pointer);
+    auto monster = GetMonster(data);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `monster` is of type `Monster *`, and points to somewhere *inside* your
 buffer (root object pointers are not the same as `buffer_pointer` !).
 If you look in your generated header, you'll see it has
-convenient accessors for all fields, e.g.
+convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    assert(monster->hp() == 80);
-    assert(monster->mana() == 150);  // default
-    assert(strcmp(monster->name()->c_str(), "MyMonster") == 0);
+    printf("%d\n", monster->hp());            // `80`
+    printf("%d\n", monster->mana());          // default value of `150`
+    printf("%s\n", monster->name()->c_str()); // "MyMonster"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These should all be true. Note that we never stored a `mana` value, so
-it will return the default.
+*Note: That we never stored a `mana` value, so it will return the default.*
 
-To access sub-objects, in this case the `Vec3`:
+## Reflection (& Resizing)
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto pos = monster->pos();
-    assert(pos);
-    assert(pos->z() == 3);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There is experimental support for reflection in FlatBuffers, allowing you to
+read and write data even if you don't know the exact format of a buffer, and
+even allows you to change sizes of strings and vectors in-place.
 
-If we had not set the `pos` field during serialization, it would be
-`NULL`.
-
-Similarly, we can access elements of the inventory array:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto inv = monster->inventory();
-    assert(inv);
-    assert(inv->Get(9) == 9);
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-### Mutating FlatBuffers
-
-As you saw above, typically once you have created a FlatBuffer, it is
-read-only from that moment on. There are however cases where you have just
-received a FlatBuffer, and you'd like to modify something about it before
-sending it on to another recipient. With the above functionality, you'd have
-to generate an entirely new FlatBuffer, while tracking what you modify in your
-own data structures. This is inconvenient.
-
-For this reason FlatBuffers can also be mutated in-place. While this is great
-for making small fixes to an existing buffer, you generally want to create
-buffers from scratch whenever possible, since it is much more efficient and
-the API is much more general purpose.
-
-To get non-const accessors, invoke `flatc` with `--gen-mutable`.
-
-Similar to the reading API above, you now can:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto monster = GetMutableMonster(buffer_pointer);  // non-const
-    monster->mutate_hp(10);                      // Set table field.
-    monster->mutable_pos()->mutate_z(4);         // Set struct field.
-    monster->mutable_inventory()->Mutate(0, 1);  // Set vector element.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We use the somewhat verbose term `mutate` instead of `set` to indicate that
-this is a special use case, not to be confused with the default way of
-constructing FlatBuffer data.
-
-After the above mutations, you can send on the FlatBuffer to a new recipient
-without any further work!
-
-Note that any `mutate_` functions on tables return a bool, which is false
-if the field we're trying to set isn't present in the buffer. Fields are not
-present if they weren't set, or even if they happen to be equal to the
-default value. For example, in the creation code above we set the `mana` field
-to `150`, which is the default value, so it was never stored in the buffer.
-Trying to call mutate_mana() on such data will return false, and the value won't
-actually be modified!
-
-One way to solve this is to call `ForceDefaults()` on a
-`FlatBufferBuilder` to force all fields you set to actually be written. This
-of course increases the size of the buffer somewhat, but this may be
-acceptable for a mutable buffer.
-
-Alternatively, you can use the more powerful reflection functionality:
-
-### Reflection (& Resizing)
-
-If the above ways of accessing a buffer are still too static for you, there is
-experimental support for reflection in FlatBuffers, allowing you to read and
-write data even if you don't know the exact format of a buffer, and even allows
-you to change sizes of strings and vectors in-place.
-
-The way this works is very elegant, there is actually a FlatBuffer schema that
+The way this works is very elegant; there is actually a FlatBuffer schema that
 describes schemas (!) which you can find in `reflection/reflection.fbs`.
-The compiler `flatc` can write out any schemas it has just parsed as a binary
+The compiler, `flatc`, can write out any schemas it has just parsed as a binary
 FlatBuffer, corresponding to this meta-schema.
 
 Loading in one of these binary schemas at runtime allows you traverse any
@@ -232,9 +104,10 @@ For convenient field manipulation, you can include the header
 `flatbuffers/reflection.h` which includes both the generated code from the meta
 schema, as well as a lot of helper functions.
 
-And example of usage for the moment you can find in `test.cpp/ReflectionTest()`.
+And example of usage, for the time being, can be found in
+`test.cpp/ReflectionTest()`.
 
-### Storing maps / dictionaries in a FlatBuffer
+## Storing maps / dictionaries in a FlatBuffer
 
 FlatBuffers doesn't support maps natively, but there is support to
 emulate their behavior with vectors and binary search, which means you
@@ -260,7 +133,7 @@ To use it:
     only works if the vector has been sorted, it will likely not find elements
     if it hasn't been sorted.
 
-### Direct memory access
+## Direct memory access
 
 As you can see from the above examples, all elements in a buffer are
 accessed through generated accessors. This is because everything is
@@ -285,7 +158,7 @@ machines, so only use tricks like this if you can guarantee you're not
 shipping on a big endian machine (an `assert(FLATBUFFERS_LITTLEENDIAN)`
 would be wise).
 
-### Access of untrusted buffers
+## Access of untrusted buffers
 
 The generated accessor functions access fields over offsets, which is
 very quick. These offsets are not verified at run-time, so a malformed
@@ -342,7 +215,7 @@ accepted).
 
 There are two ways to use text formats:
 
-### Using the compiler as a conversion tool
+#### Using the compiler as a conversion tool
 
 This is the preferred path, as it doesn't require you to add any new
 code to your program, and is maximally efficient since you can ship with
@@ -354,7 +227,7 @@ users/developers to perform, though you might be able to automate it.
 This will generate the binary file `mydata_wire.bin` which can be loaded
 as before.
 
-### Making your program capable of loading text directly
+#### Making your program capable of loading text directly
 
 This gives you maximum flexibility. You could even opt to support both,
 i.e. check for both files, and regenerate the binary from text when
@@ -400,7 +273,7 @@ file, that you can access as described above.
 
 `samples/sample_text.cpp` is a code sample showing the above operations.
 
-### Threading
+## Threading
 
 Reading a FlatBuffer does not touch any memory outside the original buffer,
 and is entirely read-only (all const), so is safe to access from multiple
@@ -413,3 +286,5 @@ share instances of FlatBufferBuilder between threads (recommended), or
 manually wrap it in synchronisation primites. There's no automatic way to
 accomplish this, by design, as we feel multithreaded construction
 of a single buffer will be rare, and synchronisation overhead would be costly.
+
+<br>

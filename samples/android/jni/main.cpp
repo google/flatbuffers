@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <android/log.h>
+
 #include "android_native_app_glue.h"
-#include "animal_generated.h"
-#include "flatbuffers/flatbuffers.h"
+#include "animal_generated.h" // Includes "flatbuffers/flatbuffers.h".
 
 void android_main(android_app *app) {
   app_dummy();
@@ -24,5 +25,19 @@ void android_main(android_app *app) {
   auto sound = builder.CreateString("Bark");
   auto animal_buffer = sample::CreateAnimal(builder, name, sound);
   builder.Finish(animal_buffer);
-}
 
+  // We now have a FlatBuffer that can be stored on disk or sent over a network.
+
+  // ...Code to store on disk or send over a network goes here...
+
+  // Instead, we're going to access it immediately, as if we just recieved this.
+
+  auto animal = sample::GetAnimal(builder.GetBufferPointer());
+
+  assert(animal->name()->str() == "Dog");
+  assert(animal->sound()->str() == "Bark");
+  (void)animal; // To silence "Unused Variable" warnings.
+
+  __android_log_print(ANDROID_LOG_INFO, "FlatBufferSample",
+      "FlatBuffer successfully created and verified.");
+}
