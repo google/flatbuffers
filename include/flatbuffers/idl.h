@@ -338,7 +338,8 @@ struct IDLOptions {
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
   bool escape_proto_identifiers;
-  
+  bool generate_object_based_api;
+
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
 
@@ -358,6 +359,7 @@ struct IDLOptions {
       skip_unexpected_fields_in_json(false),
       generate_name_strings(false),
       escape_proto_identifiers(false),
+      generate_object_based_api(false),
       lang(IDLOptions::kJava) {}
 };
 

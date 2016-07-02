@@ -155,7 +155,8 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
 }
 
 //  example of accessing a buffer loaded in memory:
-void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
+void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
+                          bool pooled = true) {
 
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
@@ -218,9 +219,11 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   TEST_EQ(vecofstrings->Length(), 4U);
   TEST_EQ_STR(vecofstrings->Get(0)->c_str(), "bob");
   TEST_EQ_STR(vecofstrings->Get(1)->c_str(), "fred");
-  // These should have pointer equality because of string pooling.
-  TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
-  TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
+  if (pooled) {
+    // These should have pointer equality because of string pooling.
+    TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
+    TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
+  }
 
   auto vecofstrings2 = monster->testarrayofstring2();
   if (vecofstrings2) {
@@ -303,6 +306,77 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
   AccessFlatBufferTest(flatbuf, length);
+}
+
+// Unpack a FlatBuffer into objects.
+void ObjectFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
+  // Turn a buffer into C++ objects.
+  auto monster1 = GetMonster(flatbuf)->UnPack();
+
+  // Re-serialize the data.
+  flatbuffers::FlatBufferBuilder fbb1;
+  fbb1.Finish(CreateMonster(fbb1, monster1.get()), MonsterIdentifier());
+
+  // Unpack again, and re-serialize again.
+  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack();
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(CreateMonster(fbb2, monster2.get()), MonsterIdentifier());
+
+  // Now we've gone full round-trip, the two buffers should match.
+  auto len1 = fbb1.GetSize();
+  auto len2 = fbb2.GetSize();
+  TEST_EQ(len1, len2);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(),
+                 len1), 0);
+
+  // Test it with the original buffer test to make sure all data survived.
+  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
+
+  // Test accessing fields, similar to AccessFlatBufferTest above.
+  TEST_EQ(monster2->hp, 80);
+  TEST_EQ(monster2->mana, 150);  // default
+  TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
+
+  auto &pos = monster2->pos;
+  TEST_NOTNULL(pos);
+  TEST_EQ(pos->z(), 3);
+  TEST_EQ(pos->test3().a(), 10);
+  TEST_EQ(pos->test3().b(), 20);
+
+  auto &inventory = monster2->inventory;
+  TEST_EQ(inventory.size(), 10UL);
+  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  for (auto it = inventory.begin(); it != inventory.end(); ++it)
+    TEST_EQ(*it, inv_data[it - inventory.begin()]);
+
+  TEST_EQ(monster2->color, Color_Blue);
+
+  auto monster3 = monster2->test.AsMonster();
+  TEST_NOTNULL(monster3);
+  TEST_EQ_STR(monster3->name.c_str(), "Fred");
+
+  auto &vecofstrings = monster2->testarrayofstring;
+  TEST_EQ(vecofstrings.size(), 4U);
+  TEST_EQ_STR(vecofstrings[0].c_str(), "bob");
+  TEST_EQ_STR(vecofstrings[1].c_str(), "fred");
+
+  auto &vecofstrings2 = monster2->testarrayofstring2;
+  TEST_EQ(vecofstrings2.size(), 2U);
+  TEST_EQ_STR(vecofstrings2[0].c_str(), "jane");
+  TEST_EQ_STR(vecofstrings2[1].c_str(), "mary");
+
+  auto &vecoftables = monster2->testarrayoftables;
+  TEST_EQ(vecoftables.size(), 3U);
+  TEST_EQ_STR(vecoftables[0]->name.c_str(), "Barney");
+  TEST_EQ(vecoftables[0]->hp, 1000);
+  TEST_EQ_STR(vecoftables[1]->name.c_str(), "Fred");
+  TEST_EQ_STR(vecoftables[2]->name.c_str(), "Wilma");
+
+  auto &tests = monster2->test4;
+  TEST_EQ(tests[0].a(), 10);
+  TEST_EQ(tests[0].b(), 20);
+  TEST_EQ(tests[1].a(), 30);
+  TEST_EQ(tests[1].b(), 40);
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -855,7 +929,7 @@ void ValueTest() {
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }","float"), -1), true);
-  
+
   // Test negative hex constant.
   TEST_EQ(TestValue<int>("{ Y:-0x80 }","int") == -128, true);
 }
@@ -992,6 +1066,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
 
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
+
+  ObjectFlatBuffersTest(flatbuf.get(), rawbuf.length());
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();

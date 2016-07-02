@@ -1881,6 +1881,9 @@ One way to solve this is to call `ForceDefaults` on a FlatBufferBuilder to
 force all fields you set to actually be written. This, of course, increases the
 size of the buffer somewhat, but this may be acceptable for a mutable buffer.
 
+If this is not sufficient, other ways of mutating FlatBuffers may be supported
+in your language through an object based API (`--gen-object-api`) or reflection.
+See the individual language documents for support.
 
 ## JSON with FlatBuffers
 

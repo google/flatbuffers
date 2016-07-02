@@ -984,6 +984,17 @@ FLATBUFFERS_FINAL_CLASS
     return CreateVector(v.data(), v.size());
   }
 
+  // vector<bool> may be implemented using a bit-set, so we can't access it as
+  // an array. Instead, read elements manually.
+  // Background: https://isocpp.org/blog/2012/11/on-vectorbool
+  Offset<Vector<uint8_t>> CreateVector(const std::vector<bool> &v) {
+    StartVector(v.size(), sizeof(uint8_t));
+    for (auto i = v.size(); i > 0; ) {
+      PushElement(static_cast<uint8_t>(v[--i]));
+    }
+    return Offset<Vector<uint8_t>>(EndVector(v.size()));
+  }
+
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you.
   /// @tparam T The data type of the `std::vector` elements.
@@ -1521,6 +1532,12 @@ class Table {
   Table(const Table &other);
 
   uint8_t data_[1];
+};
+
+// Base class for native objects (FlatBuffer data de-serialized into native
+// C++ data structures).
+// Contains no functionality, purely documentative.
+struct NativeTable {
 };
 
 // Helper function to test if a field is present, using any of the field

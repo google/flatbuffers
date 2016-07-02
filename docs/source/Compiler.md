@@ -81,6 +81,11 @@ Additional options:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+    `--gen-object-api` : Generate an additional object-based API. This API is
+    more convenient for object construction and mutation than the base API,
+    at the cost of efficiency (object allocation). Recommended only to be used
+    if other options are insufficient.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
 -   `--gen-all`: Generate not just code for the current schema files, but
