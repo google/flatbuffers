@@ -154,4 +154,12 @@ inline flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(flatbuffers::Fla
 
 }  // namespace NamespaceA
 
+namespace NamespaceC {
+
+}  // namespace NamespaceC
+
+namespace NamespaceA {
+
+}  // namespace NamespaceA
+
 #endif  // FLATBUFFERS_GENERATED_NAMESPACETEST2_NAMESPACEA_H_

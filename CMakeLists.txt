@@ -6,8 +6,10 @@ project(FlatBuffers)
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
-option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library" ON)
-option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler" ON)
+option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library"
+       ON)
+option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
+       ON)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 
@@ -95,7 +97,8 @@ set(FlatBuffers_GRPCTest_SRCS
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -pedantic -Werror
+                        -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   if(CYGWIN)
     set(CMAKE_CXX_FLAGS
@@ -118,7 +121,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror -Wextra")
+      "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror
+                          -Wextra")
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD")
     set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
@@ -165,7 +169,9 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
+            --gen-object-api -o "${SRC_FBS_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
 
@@ -174,7 +180,8 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -b --schema -o "${SRC_FBS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -b --schema -o "${SRC_FBS_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
 
