@@ -679,6 +679,9 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a convenient CreateX function that uses the above builder
     // to create a table in one go.
+
+    std::vector<FieldDef*>vect_pars;
+
     code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
     code += struct_def.name;
     code += "(flatbuffers::FlatBufferBuilder &_fbb";
@@ -686,6 +689,7 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (!field.deprecated) {
+        if (field.value.type.base_type == BASE_TYPE_STRING || field.value.type.base_type == BASE_TYPE_VECTOR) vect_pars.push_back(*it);
         code += ",\n   " + GenTypeWire(field.value.type, " ", true);
         code += field.name + " = ";
         if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
@@ -721,81 +725,79 @@ class CppGenerator : public BaseGenerator {
     code += "  return builder_.Finish();\n}\n\n";
 
     //Generate a CreateX function with vector types as parameters
-    std::vector<FieldDef*>vect_pars_ids;
-    code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
-    code += struct_def.name;
-    code += "(flatbuffers::FlatBufferBuilder &_fbb";
-    for (auto it = struct_def.fields.vec.begin();
-    it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (!field.deprecated) {
-        if (field.value.type.base_type == BASE_TYPE_STRING) {
-          vect_pars_ids.push_back(*it);
-          code += ",\n   const char *";
-          code += field.name + " = \"\"";
-        }
-        else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-          vect_pars_ids.push_back(*it);
-          code += ",\n   std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + "> " + field.name;
-          code += " = std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">()";
-        }
-        else {
-          code += ",\n   " + GenTypeWire(field.value.type, " ", true);
-          code += field.name + " = ";
-          if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-            auto ev = field.value.type.enum_def->ReverseLookup(
-              static_cast<int>(StringToInt(field.value.constant.c_str())),
-              false);
-            if (ev) {
-              code += WrapInNameSpace(
-                field.value.type.enum_def->defined_namespace,
-                GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
-            }
-            else {
-              code += GenUnderlyingCast(field, true, field.value.constant);
-            }
+    if (vect_pars.size()) {
+      code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
+      code += struct_def.name;
+      code += "(flatbuffers::FlatBufferBuilder &_fbb";
+      for (auto it = struct_def.fields.vec.begin();
+      it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (!field.deprecated) {
+          if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += ",\n   const char *";
+            code += field.name + " = \"\"";
           }
-          else if (field.value.type.base_type == BASE_TYPE_BOOL) {
-            code += field.value.constant == "0" ? "false" : "true";
+          else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            code += ",\n   std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + "> " + field.name;
+            code += " = std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">()";
           }
           else {
-            code += GenDefaultConstant(field);
+            code += ",\n   " + GenTypeWire(field.value.type, " ", true);
+            code += field.name + " = ";
+            if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
+              auto ev = field.value.type.enum_def->ReverseLookup(
+                static_cast<int>(StringToInt(field.value.constant.c_str())),
+                false);
+              if (ev) {
+                code += WrapInNameSpace(
+                  field.value.type.enum_def->defined_namespace,
+                  GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
+              }
+              else {
+                code += GenUnderlyingCast(field, true, field.value.constant);
+              }
+            }
+            else if (field.value.type.base_type == BASE_TYPE_BOOL) {
+              code += field.value.constant == "0" ? "false" : "true";
+            }
+            else {
+              code += GenDefaultConstant(field);
+            }
           }
         }
       }
-    }
-    code += ") {\n  ";
-    //getting offsets
+      code += ") {\n  ";
+      //getting offsets
 
-    for (auto it = vect_pars_ids.begin();
-    it != vect_pars_ids.end(); ++it) {
-      auto&field = **it;
-      code += "auto " + field.name + "_off = ";
-      if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += "_fbb.CreateString(" + field.name + ");\n  ";
-      }
-      else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-        code += "_fbb.CreateVector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">(" + field.name + ");\n  ";
-      }
-    }
-
-    //...
-    code += struct_def.name + "Builder builder_(_fbb);\n";
-    for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
-    size; size /= 2) {
-      for (auto it = struct_def.fields.vec.rbegin();
-      it != struct_def.fields.vec.rend(); ++it) {
-        auto &field = **it;
-        if (!field.deprecated && (!struct_def.sortbysize ||
-          size == SizeOf(field.value.type.base_type))) {
-          code += "  builder_.add_" + field.name + "(";
-          code += (!IsScalar(field.value.type.base_type) && (!IsStruct(field.value.type))) ? //if vector or string
-            (field.name + "_off") : field.name;
-          code += ");\n";
+      for (auto it = vect_pars.begin();
+      it != vect_pars.end(); ++it) {
+        auto&field = **it;
+        code += "auto " + field.name + "_off = ";
+        if (field.value.type.base_type == BASE_TYPE_STRING) {
+          code += "_fbb.CreateString(" + field.name + ");\n  ";
+        }
+        else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          code += "_fbb.CreateVector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">(" + field.name + ");\n  ";
         }
       }
+
+      code += struct_def.name + "Builder builder_(_fbb);\n";
+      for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
+      size; size /= 2) {
+        for (auto it = struct_def.fields.vec.rbegin();
+        it != struct_def.fields.vec.rend(); ++it) {
+          auto &field = **it;
+          if (!field.deprecated && (!struct_def.sortbysize ||
+            size == SizeOf(field.value.type.base_type))) {
+            code += "  builder_.add_" + field.name + "(";
+            code += (field.value.type.base_type == BASE_TYPE_STRING || field.value.type.base_type == BASE_TYPE_VECTOR) ? //if vector or string
+              (field.name + "_off") : field.name;
+            code += ");\n";
+          }
+        }
+      }
+      code += "  return builder_.Finish();\n}\n\n";
     }
-    code += "  return builder_.Finish();\n}\n\n";
   }
 
   static void GenPadding(const FieldDef &field, std::string &code,
