@@ -194,7 +194,9 @@ int main(int argc, const char *argv[]) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-      } else if(arg == "--schema") {
+	    } else if (arg == "--escape-proto-identifiers") {
+		    opts.escape_proto_identifiers = true;
+	    } else if (arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
         print_make_rules = true;
@@ -314,7 +316,7 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      if (opts.proto_mode) GenerateFBS(*parser, output_path, filebase);
+      if (opts.proto_mode) GenerateFBS(*parser, output_path, filebase, opts.escape_proto_identifiers)
 
       // We do not want to generate code for the definitions in this file
       // in any files coming up next.
