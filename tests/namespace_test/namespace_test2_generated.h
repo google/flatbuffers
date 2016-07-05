@@ -23,10 +23,6 @@ namespace NamespaceA {
 
 struct SecondTableInA;
 
-}  // namespace NamespaceA
-
-namespace NamespaceA {
-
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_FOO_TABLE = 4,

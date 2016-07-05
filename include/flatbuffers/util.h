@@ -35,9 +35,10 @@
 #include <winbase.h>
 #include <direct.h>
 #else
-#include <sys/stat.h>
 #include <limits.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "flatbuffers/flatbuffers.h"
 
@@ -123,6 +124,9 @@ FileExistsFunction SetFileExistsFunction(FileExistsFunction
 
 // Check if file "name" exists.
 bool FileExists(const char *name);
+
+// Check if "name" exists and it is also a directory.
+bool DirExists(const char *name);
 
 // Load file "name" into "buf" returning true if successful
 // false otherwise.  If "binary" is false data is read

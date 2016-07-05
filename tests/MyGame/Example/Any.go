@@ -6,4 +6,5 @@ const (
 	AnyNONE = 0
 	AnyMonster = 1
 	AnyTestSimpleTableWithEnum = 2
+	AnyMyGame_Example2_Monster = 3
 )

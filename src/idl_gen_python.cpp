@@ -596,7 +596,8 @@ class PythonGenerator : public BaseGenerator {
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "" /* not used */,
+                      "" /* not used */){};
   bool generate() {
     if (!generateEnums()) return false;
     if (!generateStructs()) return false;
@@ -652,9 +653,10 @@ class PythonGenerator : public BaseGenerator {
     }
 
     std::string code = "";
-    BeginFile(LastNamespacePart(), needs_imports, &code);
+    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
     code += classcode;
-    std::string filename = namespace_dir_ + kPathSeparator + def.name + ".py";
+    std::string filename = NamespaceDir(*def.defined_namespace) +
+                           kPathSeparator + def.name + ".py";
     return SaveFile(filename.c_str(), code, false);
   }
 };
