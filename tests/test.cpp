@@ -108,18 +108,23 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   mlocs[0] = mb1.Finish();
   MonsterBuilder mb2(builder);
   mb2.add_name(barney);
+  mb2.add_hp(1000);
   mlocs[1] = mb2.Finish();
   MonsterBuilder mb3(builder);
   mb3.add_name(wilma);
   mlocs[2] = mb3.Finish();
 
-  // Create an array of strings. Also test string pooling.
-  flatbuffers::Offset<flatbuffers::String> strings[4];
-  strings[0] = builder.CreateSharedString("bob");
-  strings[1] = builder.CreateSharedString("fred");
-  strings[2] = builder.CreateSharedString("bob");
-  strings[3] = builder.CreateSharedString("fred");
-  auto vecofstrings = builder.CreateVector(strings, 4);
+  // Create an array of strings. Also test string pooling, and lambdas.
+  const char *names[] = { "bob", "fred", "bob", "fred" };
+  auto vecofstrings =
+      builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(4,
+        [&](size_t i) {
+    return builder.CreateSharedString(names[i]);
+  });
+
+  // Creating vectors of strings in one convenient call.
+  std::vector<std::string> names2 = { "jane", "mary" };
+  auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Create an array of sorted tables, can be used with binary search when read:
   auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
@@ -127,7 +132,9 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(), // Store a union.
-                            testv, vecofstrings, vecoftables, 0);
+                            testv, vecofstrings, vecoftables, 0, 0, 0, false,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
+                            vecofstrings2);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -197,12 +204,20 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
   TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
 
+  auto vecofstrings2 = monster->testarrayofstring2();
+  if (vecofstrings2) {
+    TEST_EQ(vecofstrings2->Length(), 2U);
+    TEST_EQ_STR(vecofstrings2->Get(0)->c_str(), "jane");
+    TEST_EQ_STR(vecofstrings2->Get(1)->c_str(), "mary");
+  }
+
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->Length(), 3U);
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
     TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
   TEST_EQ_STR(vecoftables->Get(0)->name()->c_str(), "Barney");
+  TEST_EQ(vecoftables->Get(0)->hp(), 1000);
   TEST_EQ_STR(vecoftables->Get(1)->name()->c_str(), "Fred");
   TEST_EQ_STR(vecoftables->Get(2)->name()->c_str(), "Wilma");
   TEST_NOTNULL(vecoftables->LookupByKey("Barney"));
@@ -259,6 +274,13 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   inventory->Mutate(9, 100);
   TEST_EQ(inventory->Get(9), 100);
   inventory->Mutate(9, 9);
+
+  auto tables = monster->mutable_testarrayoftables();
+  auto first = tables->GetMutableObject(0);
+  TEST_EQ(first->hp(), 1000);
+  first->mutate_hp(0);
+  TEST_EQ(first->hp(), 0);
+  first->mutate_hp(1000);
 
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
@@ -761,7 +783,7 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("struct X { Y:string; }", "only scalar");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
-  TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {",
+  TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
             "missing type field");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y_type: 99, Y: {",
             "type id");
@@ -792,20 +814,29 @@ void ErrorTest() {
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
 }
 
-// Additional parser testing not covered elsewhere.
-void ScientificTest() {
+float TestValue(const char *json) {
   flatbuffers::Parser parser;
 
   // Simple schema.
   TEST_EQ(parser.Parse("table X { Y:float; } root_type X;"), true);
 
-  // Test scientific notation numbers.
-  TEST_EQ(parser.Parse("{ Y:0.0314159e+2 }"), true);
+  TEST_EQ(parser.Parse(json), true);
   auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
   // root will point to the table, which is a 32bit vtable offset followed
   // by a float:
-  TEST_EQ(sizeof(flatbuffers::soffset_t) == 4 &&  // Test assumes 32bit offsets
-          fabs(root[1] - 3.14159) < 0.001, true);
+  TEST_EQ(sizeof(flatbuffers::soffset_t), 4);  // Test assumes 32bit offsets
+  return root[1];
+}
+
+bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
+
+// Additional parser testing not covered elsewhere.
+void ValueTest() {
+  // Test scientific notation numbers.
+  TEST_EQ(FloatCompare(TestValue("{ Y:0.0314159e+2 }"), 3.14159), true);
+
+  // Test conversion functions.
+  TEST_EQ(FloatCompare(TestValue("{ Y:cos(rad(180)) }"), -1), true);
 }
 
 void EnumStringsTest() {
@@ -920,6 +951,16 @@ void UnknownFieldsTest() {
   TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
 }
 
+void ParseUnionTest() {
+  // Unions must be parseable with the type field following the object.
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { A:int; }"
+                       "union U { T }"
+                       "table V { X:U; }"
+                       "root_type V;"
+                       "{ X:{ A:1 }, X_type: T }"), true);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -941,13 +982,14 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   FuzzTest2();
 
   ErrorTest();
-  ScientificTest();
+  ValueTest();
   EnumStringsTest();
   IntegerOutOfRangeTest();
   UnicodeTest();
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();
   UnknownFieldsTest();
+  ParseUnionTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

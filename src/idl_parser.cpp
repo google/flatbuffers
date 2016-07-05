@@ -17,6 +17,14 @@
 #include <algorithm>
 #include <list>
 
+#ifdef _WIN32
+#if !defined(_USE_MATH_DEFINES)
+#define _USE_MATH_DEFINES  // For M_PI.
+#endif                     // !defined(_USE_MATH_DEFINES)
+#endif                     // _WIN32
+
+#include <math.h>
+
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -575,9 +583,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   FieldDef *typefield = nullptr;
   if (type.base_type == BASE_TYPE_UNION) {
     // For union fields, add a second auto-generated field to hold the type,
-    // with _type appended as the name.
-    ECHECK(AddField(struct_def, name + "_type", type.enum_def->underlying_type,
-                    &typefield));
+    // with a special suffix.
+    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
+                    type.enum_def->underlying_type, &typefield));
   }
 
   FieldDef *field;
@@ -678,17 +686,45 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 }
 
 CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
-                                   size_t parent_fieldn) {
+                                   size_t parent_fieldn,
+                                   const StructDef *parent_struct_def) {
   switch (val.type.base_type) {
     case BASE_TYPE_UNION: {
       assert(field);
+      std::string constant;
       if (!parent_fieldn ||
-          field_stack_.back().second->value.type.base_type != BASE_TYPE_UTYPE)
-        return Error("missing type field before this union value: " +
-                     field->name);
+          field_stack_.back().second->value.type.base_type != BASE_TYPE_UTYPE) {
+        // We haven't seen the type field yet. Sadly a lot of JSON writers
+        // output these in alphabetical order, meaning it comes after this
+        // value. So we scan past the value to find it, then come back here.
+        auto type_name = field->name + UnionTypeFieldSuffix();
+        assert(parent_struct_def);
+        auto type_field = parent_struct_def->fields.Lookup(type_name);
+        assert(type_field);  // Guaranteed by ParseField().
+        // Remember where we are in the source file, so we can come back here.
+        auto backup = *static_cast<ParserState *>(this);
+        ECHECK(SkipAnyJsonValue());  // The table.
+        EXPECT(',');
+        auto next_name = attribute_;
+        if (Is(kTokenStringConstant)) {
+          NEXT();
+        } else {
+          EXPECT(kTokenIdentifier);
+        }
+        if (next_name != type_name)
+          return Error("missing type field after this union value: " +
+                       type_name);
+        EXPECT(':');
+        Value type_val = type_field->value;
+        ECHECK(ParseAnyValue(type_val, type_field, 0, nullptr));
+        constant = type_val.constant;
+        // Got the information we needed, now rewind:
+        *static_cast<ParserState *>(this) = backup;
+      } else {
+        constant = field_stack_.back().first.constant;
+      }
       uint8_t enum_idx;
-      ECHECK(atot(field_stack_.back().first.constant.c_str(), *this,
-                  &enum_idx));
+      ECHECK(atot(constant.c_str(), *this, &enum_idx));
       auto enum_val = val.type.enum_def->ReverseLookup(enum_idx);
       if (!enum_val) return Error("illegal type id for: " + field->name);
       ECHECK(ParseTable(*enum_val->struct_def, &val.constant, nullptr));
@@ -763,7 +799,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         NEXT(); // Ignore this field.
       } else {
         Value val = field->value;
-        ECHECK(ParseAnyValue(val, field, fieldn));
+        ECHECK(ParseAnyValue(val, field, fieldn, &struct_def));
         size_t i = field_stack_.size();
         // Hardcoded insertion-sort with error-check.
         // If fields are specified in order, then this loop exits immediately.
@@ -862,7 +898,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
     if ((!opts.strict_json || !count) && Is(']')) { NEXT(); break; }
     Value val;
     val.type = type;
-    ECHECK(ParseAnyValue(val, nullptr, 0));
+    ECHECK(ParseAnyValue(val, nullptr, 0, nullptr));
     field_stack_.push_back(std::make_pair(val, nullptr));
     count++;
     if (Is(']')) { NEXT(); break; }
@@ -1004,8 +1040,30 @@ CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
 }
 
 CheckedError Parser::ParseSingleValue(Value &e) {
-  // First check if this could be a string/identifier enum value:
-  if (e.type.base_type != BASE_TYPE_STRING &&
+  // First see if this could be a conversion function:
+  if (token_ == kTokenIdentifier && *cursor_ == '(') {
+    auto functionname = attribute_;
+    NEXT();
+    EXPECT('(');
+    ECHECK(ParseSingleValue(e));
+    EXPECT(')');
+    #define FLATBUFFERS_FN_DOUBLE(name, op) \
+      if (functionname == name) { \
+        auto x = strtod(e.constant.c_str(), nullptr); \
+        e.constant = NumToString(op); \
+      }
+    FLATBUFFERS_FN_DOUBLE("deg", x / M_PI * 180);
+    FLATBUFFERS_FN_DOUBLE("rad", x * M_PI / 180);
+    FLATBUFFERS_FN_DOUBLE("sin", sin(x));
+    FLATBUFFERS_FN_DOUBLE("cos", cos(x));
+    FLATBUFFERS_FN_DOUBLE("tan", tan(x));
+    FLATBUFFERS_FN_DOUBLE("asin", asin(x));
+    FLATBUFFERS_FN_DOUBLE("acos", acos(x));
+    FLATBUFFERS_FN_DOUBLE("atan", atan(x));
+    // TODO(wvo): add more useful conversion functions here.
+    #undef FLATBUFFERS_FN_DOUBLE
+  // Then check if this could be a string/identifier enum value:
+  } else if (e.type.base_type != BASE_TYPE_STRING &&
       e.type.base_type != BASE_TYPE_NONE &&
       (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
     if (IsIdentifierStart(attribute_[0])) {  // Enum value.
@@ -1150,7 +1208,13 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       auto full_name = value_name;
       std::vector<std::string> value_comment = doc_comment_;
       EXPECT(kTokenIdentifier);
-      if (is_union) ECHECK(ParseNamespacing(&full_name, &value_name));
+      if (is_union) {
+        ECHECK(ParseNamespacing(&full_name, &value_name));
+        // Since we can't namespace the actual enum identifiers, turn
+        // namespace parts into part of the identifier.
+        value_name = full_name;
+        std::replace(value_name.begin(), value_name.end(), '.', '_');
+      }
       auto prevsize = enum_def.vals.vec.size();
       auto value = enum_def.vals.vec.size()
         ? enum_def.vals.vec.back()->value + 1
@@ -1288,7 +1352,8 @@ CheckedError Parser::ParseDecl() {
     }
   }
 
-  ECHECK(CheckClash(fields, struct_def, "_type", BASE_TYPE_UNION));
+  ECHECK(CheckClash(fields, struct_def, UnionTypeFieldSuffix(),
+                    BASE_TYPE_UNION));
   ECHECK(CheckClash(fields, struct_def, "Type", BASE_TYPE_UNION));
   ECHECK(CheckClash(fields, struct_def, "_length", BASE_TYPE_VECTOR));
   ECHECK(CheckClash(fields, struct_def, "Length", BASE_TYPE_VECTOR));
@@ -1356,6 +1421,10 @@ void Parser::MarkGenerated() {
   }
   for (auto it = structs_.vec.begin();
            it != structs_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
+  for (auto it = services_.vec.begin();
+           it != services_.vec.end(); ++it) {
     (*it)->generated = true;
   }
 }

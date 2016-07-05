@@ -8,11 +8,13 @@ class Any
     const NONE = 0;
     const Monster = 1;
     const TestSimpleTableWithEnum = 2;
+    const MyGame_Example2_Monster = 3;
 
     private static $names = array(
         "NONE",
         "Monster",
         "TestSimpleTableWithEnum",
+        "MyGame_Example2_Monster",
     );
 
     public static function Name($e)

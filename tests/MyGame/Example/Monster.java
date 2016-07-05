@@ -84,8 +84,10 @@ public final class Monster extends Table {
   public boolean mutateTestf2(float testf2) { int o = __offset(56); if (o != 0) { bb.putFloat(o + bb_pos, testf2); return true; } else { return false; } }
   public float testf3() { int o = __offset(58); return o != 0 ? bb.getFloat(o + bb_pos) : 0.0f; }
   public boolean mutateTestf3(float testf3) { int o = __offset(58); if (o != 0) { bb.putFloat(o + bb_pos, testf3); return true; } else { return false; } }
+  public String testarrayofstring2(int j) { int o = __offset(60); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int testarrayofstring2Length() { int o = __offset(60); return o != 0 ? __vector_len(o) : 0; }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(28); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(29); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -124,6 +126,9 @@ public final class Monster extends Table {
   public static void addTestf(FlatBufferBuilder builder, float testf) { builder.addFloat(25, testf, 3.14159f); }
   public static void addTestf2(FlatBufferBuilder builder, float testf2) { builder.addFloat(26, testf2, 3.0f); }
   public static void addTestf3(FlatBufferBuilder builder, float testf3) { builder.addFloat(27, testf3, 0.0f); }
+  public static void addTestarrayofstring2(FlatBufferBuilder builder, int testarrayofstring2Offset) { builder.addOffset(28, testarrayofstring2Offset, 0); }
+  public static int createTestarrayofstring2Vector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name

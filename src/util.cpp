@@ -24,12 +24,14 @@ bool FileExistsRaw(const char *name) {
 }
 
 bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
+  if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
   if (binary) {
     // The fastest way to read a file into a string.
     ifs.seekg(0, std::ios::end);
-    (*buf).resize(static_cast<size_t>(ifs.tellg()));
+    auto size = ifs.tellg();
+    (*buf).resize(static_cast<size_t>(size));
     ifs.seekg(0, std::ios::beg);
     ifs.read(&(*buf)[0], (*buf).size());
   } else {
@@ -52,6 +54,19 @@ bool LoadFile(const char *name, bool binary, std::string *buf) {
 bool FileExists(const char *name) {
   assert(g_file_exists_function);
   return g_file_exists_function(name);
+}
+
+bool DirExists(const char *name) {
+  #ifdef _WIN32
+    #define flatbuffers_stat _stat
+    #define FLATBUFFERS_S_IFDIR _S_IFDIR
+  #else
+    #define flatbuffers_stat stat
+    #define FLATBUFFERS_S_IFDIR S_IFDIR
+  #endif
+  struct flatbuffers_stat file_info;
+  if (flatbuffers_stat(name, &file_info) != 0) return false;
+  return (file_info.st_mode & FLATBUFFERS_S_IFDIR) != 0;
 }
 
 LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function) {
