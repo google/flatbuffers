@@ -122,7 +122,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name, cons
 bool GenerateFBS(const Parser &parser,
                  const std::string &path,
                  const std::string &file_name,
-				         const bool &escape_proto_identifiers) {
+                 const bool &escape_proto_identifiers) {
   return SaveFile((path + file_name + ".fbs").c_str(),
                   GenerateFBS(parser, file_name, escape_proto_identifiers), false);
 }
