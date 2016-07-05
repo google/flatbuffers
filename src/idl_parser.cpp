@@ -423,6 +423,13 @@ CheckedError Parser::Next() {
           return NoError();
         } else if (isdigit(static_cast<unsigned char>(c)) || c == '-') {
           const char *start = cursor_ - 1;
+          const char *start_2 = cursor_ + 1;
+          if (c == '-' && *cursor_ == '0' && (*start_2 == 'x' || *start_2 == 'X')) {
+            ++start;
+            ++cursor_;
+            attribute_.append(&c, &c + 1);
+            c = '0';
+          }
           if (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X')) {
               cursor_++;
               while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
