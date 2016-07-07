@@ -22,6 +22,10 @@ func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *Monster) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
 	builder.StartObject(0)
 }

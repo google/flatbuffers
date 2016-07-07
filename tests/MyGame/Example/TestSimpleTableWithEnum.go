@@ -22,6 +22,10 @@ func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *TestSimpleTableWithEnum) Color() int8 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
