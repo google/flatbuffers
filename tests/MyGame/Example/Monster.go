@@ -23,6 +23,10 @@ func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *Monster) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *Monster) Pos(obj *Vec3) *Vec3 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
