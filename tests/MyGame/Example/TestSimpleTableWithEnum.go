@@ -5,6 +5,7 @@ package Example
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
+
 type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
@@ -12,7 +13,7 @@ type TestSimpleTableWithEnum struct {
 func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TestSimpleTableWithEnum{}
-	x.Init(buf, n + offset)
+	x.Init(buf, n+offset)
 	return x
 }
 
@@ -33,6 +34,12 @@ func (rcv *TestSimpleTableWithEnum) MutateColor(n int8) bool {
 	return rcv._tab.MutateInt8Slot(4, n)
 }
 
-func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) { builder.StartObject(1) }
-func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color int8) { builder.PrependInt8Slot(0, color, 2) }
-func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {
+	builder.StartObject(1)
+}
+func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color int8) {
+	builder.PrependInt8Slot(0, color, 2)
+}
+func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+	return builder.EndObject()
+}
