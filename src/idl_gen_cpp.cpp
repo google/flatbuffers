@@ -39,7 +39,8 @@ class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "::"){};
+      : BaseGenerator(parser, path, file_name, "", "::"),
+        cur_name_space_(nullptr){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs,
   // and tables) and output them to a single file.
@@ -206,7 +207,7 @@ class CppGenerator : public BaseGenerator {
 
  private:
   // This tracks the current namespace so we can insert namespace declarations.
-  const Namespace *cur_name_space_ = nullptr;
+  const Namespace *cur_name_space_;
 
   const Namespace *CurrentNameSpace() { return cur_name_space_; }
 
