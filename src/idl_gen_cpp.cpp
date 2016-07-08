@@ -680,7 +680,7 @@ class CppGenerator : public BaseGenerator {
     // Generate a convenient CreateX function that uses the above builder
     // to create a table in one go.
 
-    std::vector<FieldDef*>vect_pars;
+    bool gen_vector_pars = false;
 
     code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
     code += struct_def.name;
@@ -689,7 +689,7 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (!field.deprecated) {
-        if (field.value.type.base_type == BASE_TYPE_STRING || field.value.type.base_type == BASE_TYPE_VECTOR) vect_pars.push_back(*it);
+        if (field.value.type.base_type == BASE_TYPE_STRING || field.value.type.base_type == BASE_TYPE_VECTOR) gen_vector_pars = true;
         code += ",\n   " + GenTypeWire(field.value.type, " ", true);
         code += field.name + " = ";
         if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
@@ -725,7 +725,7 @@ class CppGenerator : public BaseGenerator {
     code += "  return builder_.Finish();\n}\n\n";
 
     //Generate a CreateX function with vector types as parameters
-    if (vect_pars.size()) {
+    if (gen_vector_pars) {
       code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
       code += struct_def.name;
       code += "(flatbuffers::FlatBufferBuilder &_fbb";
@@ -735,11 +735,11 @@ class CppGenerator : public BaseGenerator {
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
             code += ",\n   const char *";
-            code += field.name + " = \"\"";
+            code += field.name + " = nullptr";
           }
           else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ",\n   std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + "> " + field.name;
-            code += " = std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">()";
+            code += ",\n   std::vector<" + GenTypeWire(field.value.type.VectorType(), "", false) + "> *" + field.name;
+            code += " = nullptr";
           }
           else {
             code += ",\n   " + GenTypeWire(field.value.type, " ", true);
@@ -767,36 +767,26 @@ class CppGenerator : public BaseGenerator {
         }
       }
       code += ") {\n  ";
-      //getting offsets
 
-      for (auto it = vect_pars.begin();
-      it != vect_pars.end(); ++it) {
-        auto&field = **it;
-        code += "auto " + field.name + "_off = ";
-        if (field.value.type.base_type == BASE_TYPE_STRING) {
-          code += "_fbb.CreateString(" + field.name + ");\n  ";
-        }
-        else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-          code += "_fbb.CreateVector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">(" + field.name + ");\n  ";
+      code += "return Create";
+      code += struct_def.name;
+      code += "(_fbb";
+      for (auto it = struct_def.fields.vec.begin();
+      it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (!field.deprecated) {
+          if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += ", " + field.name + "==nullptr? 0 : ";
+            code += "_fbb.CreateString(" + field.name + ")";
+          } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            code += ", " + field.name + "==nullptr? 0 : ";
+            code += "_fbb.CreateVector<" + GenTypeWire(field.value.type.VectorType(), "", false) + ">(*" + field.name + ")";
+          } else code += ", " + field.name;
         }
       }
-
-      code += struct_def.name + "Builder builder_(_fbb);\n";
-      for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
-      size; size /= 2) {
-        for (auto it = struct_def.fields.vec.rbegin();
-        it != struct_def.fields.vec.rend(); ++it) {
-          auto &field = **it;
-          if (!field.deprecated && (!struct_def.sortbysize ||
-            size == SizeOf(field.value.type.base_type))) {
-            code += "  builder_.add_" + field.name + "(";
-            code += (field.value.type.base_type == BASE_TYPE_STRING || field.value.type.base_type == BASE_TYPE_VECTOR) ? //if vector or string
-              (field.name + "_off") : field.name;
-            code += ");\n";
-          }
-        }
-      }
-      code += "  return builder_.Finish();\n}\n\n";
+        
+        
+      code += ");\n}\n\n";
     }
   }
 
