@@ -193,8 +193,9 @@ class GeneralGenerator : public BaseGenerator {
  public:
   GeneralGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."){
-      assert(parser_.opts.lang <= IDLOptions::kMAX);
+      : BaseGenerator(parser, path, file_name, "", "."),
+        lang_(language_parameters[parser_.opts.lang]) {
+    assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
   bool generate() {
     std::string one_file_code;
@@ -1127,7 +1128,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   }
   code += "};\n\n";
 }  
-    const LanguageParameters & lang_ = language_parameters[parser_.opts.lang];
+    const LanguageParameters & lang_;
 };
 }  // namespace general
 
