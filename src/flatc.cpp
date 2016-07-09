@@ -121,8 +121,8 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "                     schemas the generated file depends on (C++).\n"
       "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
       "  --gen-onefile      Generate single output file for C#.\n"
-      "  --gen-name-strings		 Generate type name functions for C++.\n"
-      "  --escape-proto-identifiers      Disable appending '_' in namespaces names.\n"
+      "  --gen-name-strings Generate type name functions for C++.\n"
+      "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
@@ -195,8 +195,8 @@ int main(int argc, const char *argv[]) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-      } else if (arg == "--escape-proto-identifiers") {
-	opts.escape_proto_identifiers = true;
+      } else if (arg == "--escape-proto-ids") {
+        opts.escape_proto_identifiers = true;
       } else if (arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
@@ -317,7 +317,7 @@ int main(int argc, const char *argv[]) {
         }
       }
 
-      if (opts.proto_mode) GenerateFBS(*parser, output_path, filebase, opts.escape_proto_identifiers);
+      if (opts.proto_mode) GenerateFBS(*parser, output_path, filebase);
 
       // We do not want to generate code for the definitions in this file
       // in any files coming up next.
