@@ -215,6 +215,13 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb,
+   const char *id = nullptr,
+   int64_t val = 0,
+   uint16_t count = 0) {
+  return CreateStat(_fbb, id == nullptr ? 0 : _fbb.CreateString(id), val, count);
+}
+
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
@@ -455,6 +462,38 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   builder_.add_test_type(test_type);
   builder_.add_color(color);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+   const Vec3 *pos = 0,
+   int16_t mana = 150,
+   int16_t hp = 100,
+   const char *name = nullptr,
+   std::vector<uint8_t> *inventory = nullptr,
+   Color color = Color_Blue,
+   Any test_type = Any_NONE,
+   flatbuffers::Offset<void> test = 0,
+   std::vector<const Test *> *test4 = nullptr,
+   std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring = nullptr,
+   std::vector<flatbuffers::Offset<Monster>> *testarrayoftables = nullptr,
+   flatbuffers::Offset<Monster> enemy = 0,
+   std::vector<uint8_t> *testnestedflatbuffer = nullptr,
+   flatbuffers::Offset<Stat> testempty = 0,
+   bool testbool = false,
+   int32_t testhashs32_fnv1 = 0,
+   uint32_t testhashu32_fnv1 = 0,
+   int64_t testhashs64_fnv1 = 0,
+   uint64_t testhashu64_fnv1 = 0,
+   int32_t testhashs32_fnv1a = 0,
+   uint32_t testhashu32_fnv1a = 0,
+   int64_t testhashs64_fnv1a = 0,
+   uint64_t testhashu64_fnv1a = 0,
+   std::vector<uint8_t> *testarrayofbools = nullptr,
+   float testf = 3.14159f,
+   float testf2 = 3.0f,
+   float testf3 = 0.0f,
+   std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr) {
+  return CreateMonster(_fbb, pos, mana, hp, name == nullptr ? 0 : _fbb.CreateString(name), inventory == nullptr ? 0 : _fbb.CreateVector<uint8_t>(*inventory), color, test_type, test, test4 == nullptr ? 0 : _fbb.CreateVector<const Test *>(*test4), testarrayofstring == nullptr ? 0 : _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring), testarrayoftables == nullptr ? 0 : _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables), enemy, testnestedflatbuffer == nullptr ? 0 : _fbb.CreateVector<uint8_t>(*testnestedflatbuffer), testempty, testbool, testhashs32_fnv1, testhashu32_fnv1, testhashs64_fnv1, testhashu64_fnv1, testhashs32_fnv1a, testhashu32_fnv1a, testhashs64_fnv1a, testhashu64_fnv1a, testarrayofbools == nullptr ? 0 : _fbb.CreateVector<uint8_t>(*testarrayofbools), testf, testf2, testf3, testarrayofstring2 == nullptr ? 0 : _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2));
 }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type) {
