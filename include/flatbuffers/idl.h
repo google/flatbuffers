@@ -646,12 +646,10 @@ extern bool GenerateGeneral(const Parser &parser,
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name,
-                               const bool &escape_proto_identifiers);
+                               const std::string &file_name);
 extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
-                        const std::string &file_name,
-                        const bool &escape_proto_identifiers);
+                        const std::string &file_name);
 
 // Generate a make rule for the generated JavaScript code.
 // See idl_gen_js.cpp.
