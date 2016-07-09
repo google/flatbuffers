@@ -79,7 +79,7 @@ class JsGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
-      GenStruct(struct_def, decl_code_ptr, exports_code_ptr);
+      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr);
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
@@ -110,7 +110,7 @@ class JsGenerator : public BaseGenerator {
   std::string &exports = *exports_ptr;
   for (auto it = sorted_namespaces.begin();
        it != sorted_namespaces.end(); it++) {
-    code += "/**\n * @const\n*/\n";
+    code += "/**\n * @const\n * @namespace\n */\n";
     if (it->find('.') == std::string::npos) {
       code += "var ";
       exports += "this." + *it + " = " + *it + ";\n";
@@ -361,7 +361,7 @@ static void GenStructBody(const StructDef &struct_def,
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
-void GenStruct(StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr) {
+void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
@@ -549,6 +549,22 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr, std::string *export
       }
     }
     code += "};\n\n";
+
+    // Adds the mutable scalar value to the output
+    if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer) {
+      std::string annotations = "@param {" + GenTypeName(field.value.type, true) + "} value\n";
+      GenDocComment(code_ptr, annotations +
+        "@returns {boolean}");
+
+      code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
+      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ")\n\n";
+      code += "  if (offset === 0) {\n";
+      code += "    return false;\n";
+      code += "  }\n\n";
+      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
+      code += "  return true;\n";
+      code += "}\n\n";
+    }
 
     // Emit vector helpers
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {

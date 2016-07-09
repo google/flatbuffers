@@ -15,6 +15,7 @@
  */
 
 #define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
+#define FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -24,7 +25,9 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 
-#include <random>
+#ifndef FLATBUFFERS_CPP98_STL
+  #include <random>
+#endif
 
 using namespace MyGame::Example;
 
@@ -123,7 +126,9 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   });
 
   // Creating vectors of strings in one convenient call.
-  std::vector<std::string> names2 = { "jane", "mary" };
+  std::vector<std::string> names2;
+  names2.push_back("jane");
+  names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Create an array of sorted tables, can be used with binary search when read:
@@ -154,11 +159,29 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
 }
 
 //  example of accessing a buffer loaded in memory:
-void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
+void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
+                          bool pooled = true) {
 
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  std::vector<uint8_t> test_buff;
+  test_buff.resize(length * 2);
+  std::memcpy(&test_buff[0], flatbuf , length);
+  std::memcpy(&test_buff[length], flatbuf , length);
+
+  flatbuffers::Verifier verifierl(&test_buff[0], length - 1);
+  TEST_EQ(VerifyMonsterBuffer(verifierl), false);
+  TEST_EQ(verifierl.GetComputedSize(), 0);
+
+  flatbuffers::Verifier verifier1(&test_buff[0], length);
+  TEST_EQ(VerifyMonsterBuffer(verifier1), true);
+  TEST_EQ(verifier1.GetComputedSize(), length);
+
+  flatbuffers::Verifier verifier2(&test_buff[length], length);
+  TEST_EQ(VerifyMonsterBuffer(verifier2), true);
+  TEST_EQ(verifier2.GetComputedSize(), length);
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
@@ -200,9 +223,11 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   TEST_EQ(vecofstrings->Length(), 4U);
   TEST_EQ_STR(vecofstrings->Get(0)->c_str(), "bob");
   TEST_EQ_STR(vecofstrings->Get(1)->c_str(), "fred");
-  // These should have pointer equality because of string pooling.
-  TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
-  TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
+  if (pooled) {
+    // These should have pointer equality because of string pooling.
+    TEST_EQ(vecofstrings->Get(0)->c_str(), vecofstrings->Get(2)->c_str());
+    TEST_EQ(vecofstrings->Get(1)->c_str(), vecofstrings->Get(3)->c_str());
+  }
 
   auto vecofstrings2 = monster->testarrayofstring2();
   if (vecofstrings2) {
@@ -285,6 +310,77 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
   AccessFlatBufferTest(flatbuf, length);
+}
+
+// Unpack a FlatBuffer into objects.
+void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+  // Turn a buffer into C++ objects.
+  auto monster1 = GetMonster(flatbuf)->UnPack();
+
+  // Re-serialize the data.
+  flatbuffers::FlatBufferBuilder fbb1;
+  fbb1.Finish(CreateMonster(fbb1, monster1.get()), MonsterIdentifier());
+
+  // Unpack again, and re-serialize again.
+  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack();
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(CreateMonster(fbb2, monster2.get()), MonsterIdentifier());
+
+  // Now we've gone full round-trip, the two buffers should match.
+  auto len1 = fbb1.GetSize();
+  auto len2 = fbb2.GetSize();
+  TEST_EQ(len1, len2);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(),
+                 len1), 0);
+
+  // Test it with the original buffer test to make sure all data survived.
+  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
+
+  // Test accessing fields, similar to AccessFlatBufferTest above.
+  TEST_EQ(monster2->hp, 80);
+  TEST_EQ(monster2->mana, 150);  // default
+  TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
+
+  auto &pos = monster2->pos;
+  TEST_NOTNULL(pos);
+  TEST_EQ(pos->z(), 3);
+  TEST_EQ(pos->test3().a(), 10);
+  TEST_EQ(pos->test3().b(), 20);
+
+  auto &inventory = monster2->inventory;
+  TEST_EQ(inventory.size(), 10UL);
+  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  for (auto it = inventory.begin(); it != inventory.end(); ++it)
+    TEST_EQ(*it, inv_data[it - inventory.begin()]);
+
+  TEST_EQ(monster2->color, Color_Blue);
+
+  auto monster3 = monster2->test.AsMonster();
+  TEST_NOTNULL(monster3);
+  TEST_EQ_STR(monster3->name.c_str(), "Fred");
+
+  auto &vecofstrings = monster2->testarrayofstring;
+  TEST_EQ(vecofstrings.size(), 4U);
+  TEST_EQ_STR(vecofstrings[0].c_str(), "bob");
+  TEST_EQ_STR(vecofstrings[1].c_str(), "fred");
+
+  auto &vecofstrings2 = monster2->testarrayofstring2;
+  TEST_EQ(vecofstrings2.size(), 2U);
+  TEST_EQ_STR(vecofstrings2[0].c_str(), "jane");
+  TEST_EQ_STR(vecofstrings2[1].c_str(), "mary");
+
+  auto &vecoftables = monster2->testarrayoftables;
+  TEST_EQ(vecoftables.size(), 3U);
+  TEST_EQ_STR(vecoftables[0]->name.c_str(), "Barney");
+  TEST_EQ(vecoftables[0]->hp, 1000);
+  TEST_EQ_STR(vecoftables[1]->name.c_str(), "Fred");
+  TEST_EQ_STR(vecoftables[2]->name.c_str(), "Wilma");
+
+  auto &tests = monster2->test4;
+  TEST_EQ(tests[0].a(), 10);
+  TEST_EQ(tests[0].b(), 20);
+  TEST_EQ(tests[1].a(), 30);
+  TEST_EQ(tests[1].b(), 40);
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -814,14 +910,14 @@ void ErrorTest() {
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
 }
 
-float TestValue(const char *json) {
+template<typename T> T TestValue(const char *json, const char *type_name) {
   flatbuffers::Parser parser;
 
   // Simple schema.
-  TEST_EQ(parser.Parse("table X { Y:float; } root_type X;"), true);
+  TEST_EQ(parser.Parse(std::string("table X { Y:" + std::string(type_name) + "; } root_type X;").c_str()), true);
 
   TEST_EQ(parser.Parse(json), true);
-  auto root = flatbuffers::GetRoot<float>(parser.builder_.GetBufferPointer());
+  auto root = flatbuffers::GetRoot<T>(parser.builder_.GetBufferPointer());
   // root will point to the table, which is a 32bit vtable offset followed
   // by a float:
   TEST_EQ(sizeof(flatbuffers::soffset_t), 4);  // Test assumes 32bit offsets
@@ -833,10 +929,13 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 // Additional parser testing not covered elsewhere.
 void ValueTest() {
   // Test scientific notation numbers.
-  TEST_EQ(FloatCompare(TestValue("{ Y:0.0314159e+2 }"), 3.14159), true);
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }","float"), (float)3.14159), true);
 
   // Test conversion functions.
-  TEST_EQ(FloatCompare(TestValue("{ Y:cos(rad(180)) }"), -1), true);
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }","float"), -1), true);
+
+  // Test negative hex constant.
+  TEST_EQ(TestValue<int>("{ Y:-0x80 }","int") == -128, true);
 }
 
 void EnumStringsTest() {
@@ -879,15 +978,36 @@ void IntegerOutOfRangeTest() {
 
 void UnicodeTest() {
   flatbuffers::Parser parser;
+  // Without setting allow_non_utf8 = true, we treat \x sequences as byte sequences
+  // which are then validated as UTF-8.
   TEST_EQ(parser.Parse("table T { F:string; }"
                        "root_type T;"
                        "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }"), true);
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\xE2\\x82\\xAC\\u0080\\uD83D\\uDE0E\" }"),
+          true);
   std::string jsongen;
   parser.opts.indent_step = -1;
   GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-                     "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+  TEST_EQ(jsongen,
+          std::string(
+            "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}"));
+}
+
+void UnicodeTestAllowNonUTF8() {
+  flatbuffers::Parser parser;
+  parser.opts.allow_non_utf8 = true;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"), true);
+  std::string jsongen;
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(jsongen,
+          std::string(
+            "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u0001\\x80\\u0080\\uD83D\\uDE0E\"}"));
 }
 
 void UnicodeSurrogatesTest() {
@@ -928,6 +1048,96 @@ void UnicodeInvalidSurrogatesTest() {
     "{ F:\"\\uDC00\"}", "unpaired low surrogate");
 }
 
+void InvalidUTF8Test() {
+  // "1 byte" pattern, under min length of 2 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\x80\"}", "illegal UTF-8 sequence");
+  // 2 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xDF\"}", "illegal UTF-8 sequence");
+  // 3 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xEF\xBF\"}", "illegal UTF-8 sequence");
+  // 4 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF7\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "5 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFB\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "6 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFD\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "7 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFE\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "5 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFB\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "6 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFD\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "7 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFE\xBF\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+
+  // Three invalid encodings for U+000A (\n, aka NEWLINE)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xC0\x8A\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xE0\x80\x8A\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x80\x80\x8A\"}", "illegal UTF-8 sequence");
+
+  // Two invalid encodings for U+00A9 (COPYRIGHT SYMBOL)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xE0\x81\xA9\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x80\x81\xA9\"}", "illegal UTF-8 sequence");
+
+  // Invalid encoding for U+20AC (EURO SYMBOL)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x82\x82\xAC\"}", "illegal UTF-8 sequence");
+
+  // UTF-16 surrogate values between U+D800 and U+DFFF cannot be encoded in UTF-8
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    // U+10400 "encoded" as U+D801 U+DC00
+    "{ F:\"\xED\xA0\x81\xED\xB0\x80\"}", "illegal UTF-8 sequence");
+}
+
 void UnknownFieldsTest() {
   flatbuffers::IDLOptions opts;
   opts.skip_unexpected_fields_in_json = true;
@@ -961,6 +1171,24 @@ void ParseUnionTest() {
                        "{ X:{ A:1 }, X_type: T }"), true);
 }
 
+void ConformTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
+
+  auto test_conform = [&](const char *test, const char *expected_err) {
+    flatbuffers::Parser parser2;
+    TEST_EQ(parser2.Parse(test), true);
+    auto err = parser2.ConformTo(parser);
+    TEST_NOTNULL(strstr(err.c_str(), expected_err));
+  };
+
+  test_conform("table T { A:byte; }", "types differ for field");
+  test_conform("table T { B:int; A:int; }", "offsets differ for field");
+  test_conform("table T { A:int = 1; }", "defaults differ for field");
+  test_conform("table T { B:float; }", "field renamed to different type");
+  test_conform("enum E:byte { B, A }", "values differ for enum");
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -971,6 +1199,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
 
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
+
+  ObjectFlatBuffersTest(flatbuf.get());
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
@@ -986,10 +1216,13 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   EnumStringsTest();
   IntegerOutOfRangeTest();
   UnicodeTest();
+  UnicodeTestAllowNonUTF8();
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();
+  InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
+  ConformTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

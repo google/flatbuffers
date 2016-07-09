@@ -15,7 +15,6 @@ class Monster(object):
         x.Init(buf, n + offset)
         return x
 
-
     # Monster
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

@@ -9,6 +9,13 @@ type TableInFirstNS struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFirstNS {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TableInFirstNS{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *TableInFirstNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
@@ -33,6 +40,10 @@ func (rcv *TableInFirstNS) FooEnum() int8 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *TableInFirstNS) MutateFooEnum(n int8) bool {
+	return rcv._tab.MutateInt8Slot(6, n)
 }
 
 func (rcv *TableInFirstNS) FooStruct(obj *StructInNestedNS) *StructInNestedNS {

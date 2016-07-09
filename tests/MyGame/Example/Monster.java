@@ -135,5 +135,5 @@ public final class Monster extends Table {
     return o;
   }
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
-};
+}
 

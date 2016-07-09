@@ -85,7 +85,33 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
 // End enum code.
 static void EndEnum(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += ")\n";
+  code += ")\n\n";
+}
+
+// Begin enum name code.
+static void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "var EnumNames";
+  code += enum_def.name;
+  code += " = map[int]string{\n";
+}
+
+// A single enum name member.
+static void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
+                           std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "\t";
+  code += enum_def.name;
+  code += ev.name;
+  code += ":\"";
+  code += ev.name;
+  code += "\",\n";
+}
+
+// End enum name code.
+static void EndEnumNames(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "}\n\n";
 }
 
 // Initialize a new struct or table from existing data.
@@ -439,7 +465,7 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
   code += "func (rcv *" + struct_def.name + ")";
 }
 
-// Generate a struct field, conditioned on its child type(s).
+// Generate a struct field getter, conditioned on its child type(s).
 static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
                               std::string *code_ptr) {
@@ -486,6 +512,48 @@ static void GenStructAccessor(const StructDef &struct_def,
   }
 }
 
+// Mutate the value of a struct's scalar.
+static void MutateScalarFieldOfStruct(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  std::string type = MakeCamel(GenTypeBasic(field.value.type));
+  std::string setter = "rcv._tab.Mutate" + type;
+  GenReceiver(struct_def, code_ptr);
+  code += " Mutate" + MakeCamel(field.name);
+  code += "(n " + TypeName(field) + ") bool { return " + setter;
+  code += "(rcv._tab.Pos + flatbuffers.UOffsetT(";
+  code += NumToString(field.value.offset) + "), n) }\n\n";
+}
+
+// Mutate the value of a table's scalar.
+static void MutateScalarFieldOfTable(const StructDef &struct_def,
+                                  const FieldDef &field,
+                                  std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  std::string type = MakeCamel(GenTypeBasic(field.value.type));
+  std::string setter = "rcv._tab.Mutate" + type + "Slot";
+  GenReceiver(struct_def, code_ptr);
+  code += " Mutate" + MakeCamel(field.name);
+  code += "(n " + TypeName(field) + ") bool {\n\treturn ";
+  code += setter + "(" + NumToString(field.value.offset) + ", n)\n";
+  code += "}\n\n";
+}
+
+// Generate a struct field setter, conditioned on its child type(s).
+static void GenStructMutator(const StructDef &struct_def,
+                              const FieldDef &field,
+                              std::string *code_ptr) {
+  GenComment(field.doc_comment, code_ptr, nullptr, "");
+  if (IsScalar(field.value.type.base_type)) {
+    if (struct_def.fixed) {
+      MutateScalarFieldOfStruct(struct_def, field, code_ptr);
+    } else {
+      MutateScalarFieldOfTable(struct_def, field, code_ptr);
+    }
+  }
+}
+
 // Generate table constructors, conditioned on its members' types.
 static void GenTableBuilders(const StructDef &struct_def,
                              std::string *code_ptr) {
@@ -509,13 +577,12 @@ static void GenTableBuilders(const StructDef &struct_def,
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
   BeginClass(struct_def, code_ptr);
-  if (&struct_def == root_struct_def) {
+  if (!struct_def.fixed) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
@@ -530,6 +597,7 @@ static void GenStruct(const StructDef &struct_def,
     if (field.deprecated) continue;
 
     GenStructAccessor(struct_def, field, code_ptr);
+    GenStructMutator(struct_def, field, code_ptr);
   }
 
   if (struct_def.fixed) {
@@ -555,6 +623,15 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     EnumMember(enum_def, ev, code_ptr);
   }
   EndEnum(code_ptr);
+
+  BeginEnumNames(enum_def, code_ptr);
+  for (auto it = enum_def.vals.vec.begin();
+       it != enum_def.vals.vec.end();
+       ++it) {
+    auto &ev = **it;
+    EnumNameMember(enum_def, ev, code_ptr);
+  }
+  EndEnumNames(code_ptr);
 }
 
 // Returns the function name that is able to read a value of the given type.
@@ -638,7 +715,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
-      go::GenStruct(**it, &declcode, parser_.root_struct_def_);
+      go::GenStruct(**it, &declcode);
       if (!SaveType(**it, declcode, true)) return false;
     }
 
@@ -681,4 +758,3 @@ bool GenerateGo(const Parser &parser, const std::string &path,
 }
 
 }  // namespace flatbuffers
-

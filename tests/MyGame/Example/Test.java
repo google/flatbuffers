@@ -23,5 +23,5 @@ public final class Test extends Struct {
     builder.putShort(a);
     return builder.offset();
   }
-};
+}
 

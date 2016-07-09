@@ -40,5 +40,5 @@ public final class Vec3 extends Struct {
     builder.putFloat(x);
     return builder.offset();
   }
-};
+}
 

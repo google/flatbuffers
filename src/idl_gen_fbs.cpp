@@ -63,7 +63,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       }
     }
   }
-  
+
   std::string schema;
   schema += "// Generated from " + file_name + ".proto\n\n";
   if (parser.opts.include_dependence_headers) {
