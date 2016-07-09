@@ -52,18 +52,18 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 }
 
 // Generate a flatbuffer schema from the Parser's internal representation.
-std::string GenerateFBS(const Parser &parser, const std::string &file_name, const bool &escape_proto_identifiers) {
+std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
  // Proto namespaces may clash with table names, so we have to prefix all:
-
-  if (!escape_proto_identifiers) {
-	for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
-		++it) {
-		for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
-			++comp) {
-			(*comp) = "_" + (*comp);
-		}
-   	}
+  if (!parser.opts.escape_proto_identifiers) {
+    for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
+         ++it) {
+      for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
+           ++comp) {
+        (*comp) = "_" + (*comp);
+      }
+    }
   }
+  
   std::string schema;
   schema += "// Generated from " + file_name + ".proto\n\n";
   if (parser.opts.include_dependence_headers) {
@@ -121,10 +121,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name, cons
 
 bool GenerateFBS(const Parser &parser,
                  const std::string &path,
-                 const std::string &file_name,
-                 const bool &escape_proto_identifiers) {
+                 const std::string &file_name) {
   return SaveFile((path + file_name + ".fbs").c_str(),
-                  GenerateFBS(parser, file_name, escape_proto_identifiers), false);
+                  GenerateFBS(parser, file_name), false);
 }
 
 }  // namespace flatbuffers
