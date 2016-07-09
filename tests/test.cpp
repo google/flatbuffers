@@ -478,7 +478,7 @@ void ParseProtoTest() {
   TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
 
   // Generate fbs.
-  auto fbs = flatbuffers::GenerateFBS(parser, "test", false);
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
