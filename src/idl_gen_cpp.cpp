@@ -458,7 +458,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenSimpleParam(std::string &code, FieldDef &field) {
-    code += ",\n   " + GenTypeWire(field.value.type, " ", true);
+    code += ",\n    " + GenTypeWire(field.value.type, " ", true);
     code += field.name + " = ";
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
@@ -742,11 +742,11 @@ class CppGenerator : public BaseGenerator {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            code += ",\n   const char *";
+            code += ",\n    const char *";
             code += field.name + " = nullptr";
           }
           else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ",\n   std::vector<";
+            code += ",\n    const std::vector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
             code += "> *" + field.name + " = nullptr";
           } else {
@@ -755,7 +755,6 @@ class CppGenerator : public BaseGenerator {
         }
       }
       code += ") {\n  ";
-
       code += "return Create";
       code += struct_def.name;
       code += "(_fbb";
@@ -764,18 +763,16 @@ class CppGenerator : public BaseGenerator {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            code += ", " + field.name + " == nullptr ? 0 : ";
+            code += ", " + field.name + " ? 0 : ";
             code += "_fbb.CreateString(" + field.name + ")";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ", " + field.name + " == nullptr ? 0 : ";
+            code += ", " + field.name + " ? 0 : ";
             code += "_fbb.CreateVector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
             code += ">(*" + field.name + ")";
           } else code += ", " + field.name;
         }
       }
-        
-        
       code += ");\n}\n\n";
     }
   }
