@@ -545,7 +545,7 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
     // "too sparse". Change at will.
     static const int kMaxSparseness = 5;
     if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
-      code += "\n  private static";
+      code += "\n  public static";
       code += lang_.const_decl;
       code += lang_.string_type;
       code += "[] names = { ";
@@ -568,7 +568,10 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
   }
 
   // Close the class
-  code += "};\n\n";
+  code += "}";
+  // Java does not need the closing semi-colon on class definitions.
+  code += (lang_.language != IDLOptions::kJava) ? ";" : "";
+  code += "\n\n";
 }
 
 // Returns the function name that is able to read a value of the given type.
@@ -1126,7 +1129,10 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  code += "};\n\n";
+  code += "}";
+  // Java does not need the closing semi-colon on class definitions.
+  code += (lang_.language != IDLOptions::kJava) ? ";" : "";
+  code += "\n\n";
 }  
     const LanguageParameters & lang_;
 };
