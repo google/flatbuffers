@@ -288,7 +288,7 @@ public:
   }
 
   VectorIterator operator++(int) {
-    VectorIterator temp(data_);
+    VectorIterator temp(data_,0);
     data_ += IndirectHelper<T>::element_stride;
     return temp;
   }
