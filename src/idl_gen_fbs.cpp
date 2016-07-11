@@ -53,12 +53,14 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 
 // Generate a flatbuffer schema from the Parser's internal representation.
 std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
-  // Proto namespaces may clash with table names, so we have to prefix all:
-  for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
-       ++it) {
-    for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
-         ++comp) {
-      (*comp) = "_" + (*comp);
+ // Proto namespaces may clash with table names, so we have to prefix all:
+  if (!parser.opts.escape_proto_identifiers) {
+    for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
+         ++it) {
+      for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
+           ++comp) {
+        (*comp) = "_" + (*comp);
+      }
     }
   }
 
