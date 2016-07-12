@@ -837,6 +837,9 @@ void ValueTest() {
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue("{ Y:cos(rad(180)) }"), -1), true);
+  
+  // Test negative hex constant.
+  TEST_EQ(TestValue("{ Y:-0x80 }") == -128, true);
 }
 
 void EnumStringsTest() {
