@@ -116,7 +116,19 @@ typedef int32_t soffset_t;
 
 // Offset/index used in v-tables, can be changed to uint8_t in
 // format forks to save a bit of space if desired.
-typedef uint16_t voffset_t;
+#if defined FLATBUFFERS_V_TABLE_INDEX_U32
+  typedef uint32_t voffset_t;
+  #define FLATBUFFERS_V_TABLE_OFFSET  0xFFFFFFFF
+#elif defined FLATBUFFERS_V_TABLE_INDEX_U16
+  typedef uint16_t voffset_t;
+  #define FLATBUFFERS_V_TABLE_OFFSET  0x10000
+#elif defined FLATBUFFERS_V_TABLE_INDEX_U8
+  typedef uint8_t voffset_t;
+  #define FLATBUFFERS_V_TABLE_OFFSET  0x100
+#else
+  typedef uint16_t voffset_t;
+  #define FLATBUFFERS_V_TABLE_OFFSET  0x10000
+#endif
 
 typedef uintmax_t largest_scalar_t;
 
@@ -771,7 +783,8 @@ FLATBUFFERS_FINAL_CLASS
     // by the offsets themselves. In reverse:
     buf_.fill(numfields * sizeof(voffset_t));
     auto table_object_size = vtableoffsetloc - start;
-    assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
+    // assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
+    assert(table_object_size < FLATBUFFERS_V_TABLE_OFFSET);  // Vtable use 16bit offsets.
     PushElement<voffset_t>(static_cast<voffset_t>(table_object_size));
     PushElement<voffset_t>(FieldIndexToOffset(numfields));
     // Write the offsets into the table
