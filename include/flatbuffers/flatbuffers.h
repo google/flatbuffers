@@ -876,7 +876,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateString(const String *str) {
-    return CreateString(str->c_str(), str->Length());
+    return str ? CreateString(str->c_str(), str->Length()) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
