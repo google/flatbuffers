@@ -1314,7 +1314,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() {
+  template<typename T> bool VerifyBuffer(const char *identifier) {
+    if (identifier && (size_t(end_ - buf_) < 2 * sizeof(flatbuffers::uoffset_t) ||
+                       !BufferHasIdentifier(buf_, identifier))) {
+      return false;
+    }
+
     // Call T::Verify, which must be in the generated code for this type.
     return Verify<uoffset_t>(buf_) &&
       reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
