@@ -833,7 +833,7 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 // Additional parser testing not covered elsewhere.
 void ValueTest() {
   // Test scientific notation numbers.
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }"), 3.14159), true);
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }"), (float)3.14159), true);
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }"), -1), true);
