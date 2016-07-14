@@ -15,6 +15,7 @@
  */
 
 #define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
+#define FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -159,6 +160,23 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length) {
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  std::vector<uint8_t> test_buff;
+  test_buff.resize(length * 2);
+  std::memcpy(&test_buff[0], flatbuf , length);
+  std::memcpy(&test_buff[length], flatbuf , length);
+
+  flatbuffers::Verifier verifierl(&test_buff[0], length - 1);
+  TEST_EQ(VerifyMonsterBuffer(verifierl), false);
+  TEST_EQ(verifierl.GetComputedSize(), 0);
+
+  flatbuffers::Verifier verifier1(&test_buff[0], length);
+  TEST_EQ(VerifyMonsterBuffer(verifier1), true);
+  TEST_EQ(verifier1.GetComputedSize(), length);
+
+  flatbuffers::Verifier verifier2(&test_buff[length], length);
+  TEST_EQ(VerifyMonsterBuffer(verifier2), true);
+  TEST_EQ(verifier2.GetComputedSize(), length);
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
