@@ -1216,6 +1216,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            size_t _max_tables = 1000000)
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      , upper_bound_(buf)
+    #endif
     {}
 
   // Central location where any verification failures register.
@@ -1223,11 +1226,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       assert(ok);
     #endif
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      if (!ok)
+        upper_bound_ = buf_;
+    #endif
     return ok;
   }
 
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      auto upper_bound = reinterpret_cast<const uint8_t *>(elem) + elem_len;
+      if (upper_bound_ < upper_bound)
+        upper_bound_ =  upper_bound;
+    #endif
     return Check(elem_len <= (size_t) (end_ - buf_) &&
                  elem >= buf_ &&
                  elem <= end_ - elem_len);
@@ -1302,11 +1314,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() {
+  template<typename T> bool VerifyBuffer(const char *identifier) {
+    if (identifier && (size_t(end_ - buf_) < 2 * sizeof(flatbuffers::uoffset_t) ||
+                       !BufferHasIdentifier(buf_, identifier))) {
+      return false;
+    }
+
     // Call T::Verify, which must be in the generated code for this type.
     return Verify<uoffset_t>(buf_) &&
       reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
-        Verify(*this);
+        Verify(*this)
+        #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+          && GetComputedSize()
+        #endif
+            ;
   }
 
   // Called at the start of a table to increase counters measuring data
@@ -1325,6 +1346,16 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+  // Returns the message size in bytes
+  size_t GetComputedSize() const {
+    uintptr_t size = upper_bound_ - buf_;
+    // Align the size to uoffset_t
+    size = (size - 1 + sizeof(uoffset_t)) & -uintptr_t(sizeof(uoffset_t));
+    return (buf_  + size > end_) ?  0 : size;
+  }
+  #endif
+
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
@@ -1332,6 +1363,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_depth_;
   size_t num_tables_;
   size_t max_tables_;
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+  mutable const uint8_t *upper_bound_;
+  #endif
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around

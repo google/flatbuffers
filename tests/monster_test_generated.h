@@ -510,11 +510,11 @@ inline const MyGame::Example::Monster *GetMonster(const void *buf) { return flat
 
 inline Monster *GetMutableMonster(void *buf) { return flatbuffers::GetMutableRoot<Monster>(buf); }
 
-inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Example::Monster>(); }
-
 inline const char *MonsterIdentifier() { return "MONS"; }
 
 inline bool MonsterBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, MonsterIdentifier()); }
+
+inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier()); }
 
 inline const char *MonsterExtension() { return "mon"; }
 

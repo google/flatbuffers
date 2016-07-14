@@ -69,7 +69,7 @@ struct TableInNestedNSBuilder {
 };
 
 inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(flatbuffers::FlatBufferBuilder &_fbb,
-   int32_t foo = 0) {
+    int32_t foo = 0) {
   TableInNestedNSBuilder builder_(_fbb);
   builder_.add_foo(foo);
   return builder_.Finish();
