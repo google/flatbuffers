@@ -158,14 +158,6 @@ class CppGenerator : public BaseGenerator {
         code += name + ">(buf); }\n\n";
       }
 
-      // The root verifier:
-      code += "inline bool Verify";
-      code += name;
-      code +=
-          "Buffer(flatbuffers::Verifier &verifier) { "
-          "return verifier.VerifyBuffer<";
-      code += cpp_qualified_name + ">(); }\n\n";
-
       if (parser_.file_identifier_.length()) {
         // Return the identifier
         code += "inline const char *" + name;
@@ -178,6 +170,20 @@ class CppGenerator : public BaseGenerator {
         code += "BufferHasIdentifier(buf, ";
         code += name + "Identifier()); }\n\n";
       }
+
+      // The root verifier:
+      code += "inline bool Verify";
+      code += name;
+      code +=
+          "Buffer(flatbuffers::Verifier &verifier) { "
+          "return verifier.VerifyBuffer<";
+      code += cpp_qualified_name + ">(";
+      if (parser_.file_identifier_.length())
+        code += name + "Identifier()";
+      else
+        code += "nullptr";
+      code += "); }\n\n";
+
 
       if (parser_.file_extension_.length()) {
         // Return the extension
