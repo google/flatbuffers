@@ -39,8 +39,8 @@ class BaseGenerator {
 
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name, 
-                const std::string qualifying_start, 
+                const std::string &file_name,
+                const std::string qualifying_start,
                 const std::string qualifying_separator)
       : parser_(parser),
         path_(path),
@@ -86,15 +86,18 @@ class BaseGenerator {
 
   const std::string LastNamespacePart(const Namespace &ns) {
     auto &namespaces = ns.components;
-    if (namespaces.size()) return *(namespaces.end() - 1); else return std::string("");
+    if (namespaces.size())
+      return *(namespaces.end() - 1);
+    else
+      return std::string("");
   }
 
   // tracks the current namespace for early exit in WrapInNameSpace
-  // c++, java and csharp returns a different namespace from 
-  // the following default (no early exit, always fully qualify), 
+  // c++, java and csharp returns a different namespace from
+  // the following default (no early exit, always fully qualify),
   // which works for js and php
   virtual const Namespace *CurrentNameSpace() { return nullptr; }
-  
+
   // Ensure that a type is prefixed with its namespace whenever it is used
   // outside of its namespace.
   std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
