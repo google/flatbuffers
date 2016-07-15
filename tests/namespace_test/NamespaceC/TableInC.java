@@ -34,5 +34,5 @@ public final class TableInC extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 
