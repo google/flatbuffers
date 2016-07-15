@@ -135,15 +135,15 @@ struct MonsterBuilder {
 };
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
-   const Vec3 *pos = 0,
-   int16_t mana = 150,
-   int16_t hp = 100,
-   flatbuffers::Offset<flatbuffers::String> name = 0,
-   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
-   Color color = Color_Blue,
-   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Weapon>>> weapons = 0,
-   Equipment equipped_type = Equipment_NONE,
-   flatbuffers::Offset<void> equipped = 0) {
+    const Vec3 *pos = 0,
+    int16_t mana = 150,
+    int16_t hp = 100,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
+    Color color = Color_Blue,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Weapon>>> weapons = 0,
+    Equipment equipped_type = Equipment_NONE,
+    flatbuffers::Offset<void> equipped = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_equipped(equipped);
   builder_.add_weapons(weapons);
@@ -155,6 +155,19 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   builder_.add_equipped_type(equipped_type);
   builder_.add_color(color);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+    const Vec3 *pos = 0,
+    int16_t mana = 150,
+    int16_t hp = 100,
+    const char *name = nullptr,
+    const std::vector<uint8_t> *inventory = nullptr,
+    Color color = Color_Blue,
+    const std::vector<flatbuffers::Offset<Weapon>> *weapons = nullptr,
+    Equipment equipped_type = Equipment_NONE,
+    flatbuffers::Offset<void> equipped = 0) {
+  return CreateMonster(_fbb, pos, mana, hp, name ? 0 : _fbb.CreateString(name), inventory ? 0 : _fbb.CreateVector<uint8_t>(*inventory), color, weapons ? 0 : _fbb.CreateVector<flatbuffers::Offset<Weapon>>(*weapons), equipped_type, equipped);
 }
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -189,12 +202,18 @@ struct WeaponBuilder {
 };
 
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb,
-   flatbuffers::Offset<flatbuffers::String> name = 0,
-   int16_t damage = 0) {
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    int16_t damage = 0) {
   WeaponBuilder builder_(_fbb);
   builder_.add_name(name);
   builder_.add_damage(damage);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    int16_t damage = 0) {
+  return CreateWeapon(_fbb, name ? 0 : _fbb.CreateString(name), damage);
 }
 
 inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *union_obj, Equipment type) {
@@ -209,7 +228,7 @@ inline const MyGame::Sample::Monster *GetMonster(const void *buf) { return flatb
 
 inline Monster *GetMutableMonster(void *buf) { return flatbuffers::GetMutableRoot<Monster>(buf); }
 
-inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Sample::Monster>(); }
+inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Sample::Monster>(nullptr); }
 
 inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<MyGame::Sample::Monster> root) { fbb.Finish(root); }
 

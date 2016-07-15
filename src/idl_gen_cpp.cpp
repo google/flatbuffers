@@ -39,7 +39,8 @@ class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "::"){};
+      : BaseGenerator(parser, path, file_name, "", "::"),
+        cur_name_space_(nullptr){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs,
   // and tables) and output them to a single file.
@@ -157,14 +158,6 @@ class CppGenerator : public BaseGenerator {
         code += name + ">(buf); }\n\n";
       }
 
-      // The root verifier:
-      code += "inline bool Verify";
-      code += name;
-      code +=
-          "Buffer(flatbuffers::Verifier &verifier) { "
-          "return verifier.VerifyBuffer<";
-      code += cpp_qualified_name + ">(); }\n\n";
-
       if (parser_.file_identifier_.length()) {
         // Return the identifier
         code += "inline const char *" + name;
@@ -177,6 +170,20 @@ class CppGenerator : public BaseGenerator {
         code += "BufferHasIdentifier(buf, ";
         code += name + "Identifier()); }\n\n";
       }
+
+      // The root verifier:
+      code += "inline bool Verify";
+      code += name;
+      code +=
+          "Buffer(flatbuffers::Verifier &verifier) { "
+          "return verifier.VerifyBuffer<";
+      code += cpp_qualified_name + ">(";
+      if (parser_.file_identifier_.length())
+        code += name + "Identifier()";
+      else
+        code += "nullptr";
+      code += "); }\n\n";
+
 
       if (parser_.file_extension_.length()) {
         // Return the extension
@@ -206,7 +213,7 @@ class CppGenerator : public BaseGenerator {
 
  private:
   // This tracks the current namespace so we can insert namespace declarations.
-  const Namespace *cur_name_space_ = nullptr;
+  const Namespace *cur_name_space_;
 
   const Namespace *CurrentNameSpace() { return cur_name_space_; }
 
@@ -457,6 +464,30 @@ class CppGenerator : public BaseGenerator {
                : field.value.constant;
   }
 
+  void GenSimpleParam(std::string &code, FieldDef &field) {
+    code += ",\n    " + GenTypeWire(field.value.type, " ", true);
+    code += field.name + " = ";
+    if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
+      auto ev = field.value.type.enum_def->ReverseLookup(
+        static_cast<int>(StringToInt(field.value.constant.c_str())),
+        false);
+      if (ev) {
+        code += WrapInNameSpace(
+          field.value.type.enum_def->defined_namespace,
+          GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
+      }
+      else {
+        code += GenUnderlyingCast(field, true, field.value.constant);
+      }
+    }
+    else if (field.value.type.base_type == BASE_TYPE_BOOL) {
+      code += field.value.constant == "0" ? "false" : "true";
+    }
+    else {
+      code += GenDefaultConstant(field);
+    }
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
@@ -679,6 +710,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a convenient CreateX function that uses the above builder
     // to create a table in one go.
+    bool gen_vector_pars = false;
     code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
     code += struct_def.name;
     code += "(flatbuffers::FlatBufferBuilder &_fbb";
@@ -686,24 +718,11 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (!field.deprecated) {
-        code += ",\n   " + GenTypeWire(field.value.type, " ", true);
-        code += field.name + " = ";
-        if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-          auto ev = field.value.type.enum_def->ReverseLookup(
-              static_cast<int>(StringToInt(field.value.constant.c_str())),
-              false);
-          if (ev) {
-            code += WrapInNameSpace(
-                field.value.type.enum_def->defined_namespace,
-                GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
-          } else {
-            code += GenUnderlyingCast(field, true, field.value.constant);
-          }
-        } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
-          code += field.value.constant == "0" ? "false" : "true";
-        } else {
-          code += GenDefaultConstant(field);
+        if (field.value.type.base_type == BASE_TYPE_STRING ||
+            field.value.type.base_type == BASE_TYPE_VECTOR) {
+          gen_vector_pars = true;
         }
+        GenSimpleParam(code, field);
       }
     }
     code += ") {\n  " + struct_def.name + "Builder builder_(_fbb);\n";
@@ -719,6 +738,50 @@ class CppGenerator : public BaseGenerator {
       }
     }
     code += "  return builder_.Finish();\n}\n\n";
+
+    //Generate a CreateX function with vector types as parameters
+    if (gen_vector_pars) {
+      code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
+      code += struct_def.name;
+      code += "(flatbuffers::FlatBufferBuilder &_fbb";
+      for (auto it = struct_def.fields.vec.begin();
+      it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (!field.deprecated) {
+          if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += ",\n    const char *";
+            code += field.name + " = nullptr";
+          }
+          else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            code += ",\n    const std::vector<";
+            code += GenTypeWire(field.value.type.VectorType(), "", false);
+            code += "> *" + field.name + " = nullptr";
+          } else {
+            GenSimpleParam(code, field);
+          }
+        }
+      }
+      code += ") {\n  ";
+      code += "return Create";
+      code += struct_def.name;
+      code += "(_fbb";
+      for (auto it = struct_def.fields.vec.begin();
+      it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (!field.deprecated) {
+          if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += ", " + field.name + " ? 0 : ";
+            code += "_fbb.CreateString(" + field.name + ")";
+          } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            code += ", " + field.name + " ? 0 : ";
+            code += "_fbb.CreateVector<";
+            code += GenTypeWire(field.value.type.VectorType(), "", false);
+            code += ">(*" + field.name + ")";
+          } else code += ", " + field.name;
+        }
+      }
+      code += ");\n}\n\n";
+    }
   }
 
   static void GenPadding(const FieldDef &field, std::string &code,
