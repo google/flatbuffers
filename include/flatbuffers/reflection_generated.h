@@ -478,11 +478,11 @@ inline flatbuffers::Offset<Schema> CreateSchema(flatbuffers::FlatBufferBuilder &
 
 inline const reflection::Schema *GetSchema(const void *buf) { return flatbuffers::GetRoot<reflection::Schema>(buf); }
 
-inline bool VerifySchemaBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<reflection::Schema>(); }
-
 inline const char *SchemaIdentifier() { return "BFBS"; }
 
 inline bool SchemaBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, SchemaIdentifier()); }
+
+inline bool VerifySchemaBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier()); }
 
 inline const char *SchemaExtension() { return "bfbs"; }
 
