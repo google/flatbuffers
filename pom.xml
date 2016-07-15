@@ -6,7 +6,7 @@
   <groupId>com.google.flatbuffers</groupId>
   <artifactId>flatbuffers-java</artifactId>
   <version>1.3.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <name>FlatBuffers Java API</name>
   <description>
     Memory Efficient Serialization Library
@@ -77,6 +77,12 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.0.1</version>
+        <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>
