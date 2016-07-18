@@ -46,7 +46,7 @@ you would leave it in.
 
 <br>
 
-   [CONTRIBUTING]: http://github.com/google/flatbuffers/blob/master/CONTRIBUTING
+   [CONTRIBUTING]: http://github.com/google/flatbuffers/blob/master/CONTRIBUTING.md
    [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers
    [FlatBuffers Google Group]: https://groups.google.com/forum/#!forum/flatbuffers
    [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
