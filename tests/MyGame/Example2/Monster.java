@@ -19,5 +19,5 @@ public final class Monster extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 

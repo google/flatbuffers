@@ -29,5 +29,5 @@ public final class TestSimpleTableWithEnum extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 
