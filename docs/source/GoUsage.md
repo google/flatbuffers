@@ -67,6 +67,29 @@ Now you can access values like this:
     pos := monster.Pos(nil)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+In some cases it's necessary to modify values in an existing FlatBuffer in place (without creating a copy). For this reason, scalar fields of a Flatbuffer table or struct can be mutated.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
+    monster := example.GetRootAsMonster(buf, 0)
+
+    // Set table field.
+    if ok := monster.MutateHp(10); !ok {
+      panic("failed to mutate Hp")
+    }
+
+    // Set struct field.
+    monster.Pos().MutateZ(4)
+
+    // This mutation will fail because the mana field is not available in
+    // the buffer. It should be set when creating the buffer.
+    if ok := monster.MutateMana(20); !ok {
+      panic("failed to mutate Hp")
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The term `mutate` is used instead of `set` to indicate that this is a special use case. All mutate functions return a boolean value which is false if the field we're trying to mutate is not available in the buffer.
+
 ## Text Parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly
