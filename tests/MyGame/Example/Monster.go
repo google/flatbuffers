@@ -43,12 +43,20 @@ func (rcv *Monster) Mana() int16 {
 	return 150
 }
 
+func (rcv *Monster) MutateMana(n int16) bool {
+	return rcv._tab.MutateInt16Slot(6, n)
+}
+
 func (rcv *Monster) Hp() int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		return rcv._tab.GetInt16(o + rcv._tab.Pos)
 	}
 	return 100
+}
+
+func (rcv *Monster) MutateHp(n int16) bool {
+	return rcv._tab.MutateInt16Slot(8, n)
 }
 
 func (rcv *Monster) Name() []byte {
@@ -92,12 +100,20 @@ func (rcv *Monster) Color() int8 {
 	return 8
 }
 
+func (rcv *Monster) MutateColor(n int8) bool {
+	return rcv._tab.MutateInt8Slot(16, n)
+}
+
 func (rcv *Monster) TestType() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
 	if o != 0 {
 		return rcv._tab.GetByte(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *Monster) MutateTestType(n byte) bool {
+	return rcv._tab.MutateByteSlot(18, n)
 }
 
 func (rcv *Monster) Test(obj *flatbuffers.Table) bool {
@@ -173,6 +189,8 @@ func (rcv *Monster) TestarrayoftablesLength() int {
 	return 0
 }
 
+/// an example documentation comment: this will end up in the generated code
+/// multiline too
 func (rcv *Monster) Enemy(obj *Monster) *Monster {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
 	if o != 0 {
@@ -232,12 +250,20 @@ func (rcv *Monster) Testbool() byte {
 	return 0
 }
 
+func (rcv *Monster) MutateTestbool(n byte) bool {
+	return rcv._tab.MutateByteSlot(34, n)
+}
+
 func (rcv *Monster) Testhashs32Fnv1() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(36))
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *Monster) MutateTesthashs32Fnv1(n int32) bool {
+	return rcv._tab.MutateInt32Slot(36, n)
 }
 
 func (rcv *Monster) Testhashu32Fnv1() uint32 {
@@ -248,12 +274,20 @@ func (rcv *Monster) Testhashu32Fnv1() uint32 {
 	return 0
 }
 
+func (rcv *Monster) MutateTesthashu32Fnv1(n uint32) bool {
+	return rcv._tab.MutateUint32Slot(38, n)
+}
+
 func (rcv *Monster) Testhashs64Fnv1() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(40))
 	if o != 0 {
 		return rcv._tab.GetInt64(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *Monster) MutateTesthashs64Fnv1(n int64) bool {
+	return rcv._tab.MutateInt64Slot(40, n)
 }
 
 func (rcv *Monster) Testhashu64Fnv1() uint64 {
@@ -264,12 +298,20 @@ func (rcv *Monster) Testhashu64Fnv1() uint64 {
 	return 0
 }
 
+func (rcv *Monster) MutateTesthashu64Fnv1(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(42, n)
+}
+
 func (rcv *Monster) Testhashs32Fnv1a() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(44))
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *Monster) MutateTesthashs32Fnv1a(n int32) bool {
+	return rcv._tab.MutateInt32Slot(44, n)
 }
 
 func (rcv *Monster) Testhashu32Fnv1a() uint32 {
@@ -280,6 +322,10 @@ func (rcv *Monster) Testhashu32Fnv1a() uint32 {
 	return 0
 }
 
+func (rcv *Monster) MutateTesthashu32Fnv1a(n uint32) bool {
+	return rcv._tab.MutateUint32Slot(46, n)
+}
+
 func (rcv *Monster) Testhashs64Fnv1a() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(48))
 	if o != 0 {
@@ -288,12 +334,20 @@ func (rcv *Monster) Testhashs64Fnv1a() int64 {
 	return 0
 }
 
+func (rcv *Monster) MutateTesthashs64Fnv1a(n int64) bool {
+	return rcv._tab.MutateInt64Slot(48, n)
+}
+
 func (rcv *Monster) Testhashu64Fnv1a() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(50))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
 	}
 	return 0
+}
+
+func (rcv *Monster) MutateTesthashu64Fnv1a(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(50, n)
 }
 
 func (rcv *Monster) Testarrayofbools(j int) byte {
@@ -321,6 +375,10 @@ func (rcv *Monster) Testf() float32 {
 	return 3.14159
 }
 
+func (rcv *Monster) MutateTestf(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(54, n)
+}
+
 func (rcv *Monster) Testf2() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(56))
 	if o != 0 {
@@ -329,12 +387,20 @@ func (rcv *Monster) Testf2() float32 {
 	return 3.0
 }
 
+func (rcv *Monster) MutateTestf2(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(56, n)
+}
+
 func (rcv *Monster) Testf3() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(58))
 	if o != 0 {
 		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
 	}
 	return 0.0
+}
+
+func (rcv *Monster) MutateTestf3(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(58, n)
 }
 
 func (rcv *Monster) Testarrayofstring2(j int) []byte {
