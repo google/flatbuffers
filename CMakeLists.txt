@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Latest release is 1.3.0, but internal flatbuffers header is 1.0.0
-project(FlatBuffers VERSION 1.3.0) 
+project(FlatBuffers VERSION 1.3.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -135,9 +135,9 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers ${FlatBuffers_Library_SRCS})
 else()
   # http://stackoverflow.com/a/11583676
-  add_library(flatbuffers INTERFACE) 
+  add_library(flatbuffers INTERFACE)
 endif()
-  
+
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
