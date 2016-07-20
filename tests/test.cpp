@@ -124,7 +124,9 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   });
 
   // Creating vectors of strings in one convenient call.
-  std::vector<std::string> names2 = { "jane", "mary" };
+  std::vector<std::string> names2;
+  names2.push_back("jane");
+  names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Create an array of sorted tables, can be used with binary search when read:
@@ -855,7 +857,7 @@ void ValueTest() {
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }","float"), -1), true);
-  
+
   // Test negative hex constant.
   TEST_EQ(TestValue<int>("{ Y:-0x80 }","int") == -128, true);
 }
