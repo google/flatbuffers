@@ -1351,7 +1351,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t GetComputedSize() const {
     uintptr_t size = upper_bound_ - buf_;
     // Align the size to uoffset_t
-    size = (size - 1 + sizeof(uoffset_t)) & -uintptr_t(sizeof(uoffset_t));
+    size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
     return (buf_  + size > end_) ?  0 : size;
   }
   #endif
