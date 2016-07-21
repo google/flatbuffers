@@ -197,6 +197,7 @@ class GeneralGenerator : public BaseGenerator {
         lang_(language_parameters[parser_.opts.lang]) {
     assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
+  GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
 
@@ -235,7 +236,7 @@ class GeneralGenerator : public BaseGenerator {
 
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
-  bool SaveType(const std::string &defname, const Namespace &ns, 
+  bool SaveType(const std::string &defname, const Namespace &ns,
   	  const std::string &classcode, bool needs_includes) {
     if (!classcode.length()) return true;
 
@@ -1133,7 +1134,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   // Java does not need the closing semi-colon on class definitions.
   code += (lang_.language != IDLOptions::kJava) ? ";" : "";
   code += "\n\n";
-}  
+}
     const LanguageParameters & lang_;
 };
 }  // namespace general

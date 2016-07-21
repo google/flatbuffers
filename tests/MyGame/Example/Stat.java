@@ -39,5 +39,5 @@ public final class Stat extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 

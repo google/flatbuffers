@@ -24,9 +24,7 @@
 namespace flatbuffers {
 
 struct IsAlnum {
-  bool operator()(char c) {
-    return !isalnum(c);
-  }
+  bool operator()(char c) { return !isalnum(c); }
 };
 
 static std::string GeneratedFileName(const std::string &path,
@@ -196,7 +194,6 @@ class CppGenerator : public BaseGenerator {
         code += "nullptr";
       code += "); }\n\n";
 
-
       if (parser_.file_extension_.length()) {
         // Return the extension
         code += "inline const char *" + name;
@@ -276,23 +273,21 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type for any type (scalar/pointer) specifically for
   // building a flatbuffer.
-  std::string GenTypeWire(const Type &type,
-                          const char *postfix, bool user_facing_type) {
+  std::string GenTypeWire(const Type &type, const char *postfix,
+                          bool user_facing_type) {
     return IsScalar(type.base_type)
                ? GenTypeBasic(type, user_facing_type) + postfix
-               : IsStruct(type)
-                     ? "const " + GenTypePointer(type) + " *"
-                     : "flatbuffers::Offset<" + GenTypePointer(type) +
-                           ">" + postfix;
+               : IsStruct(type) ? "const " + GenTypePointer(type) + " *"
+                                : "flatbuffers::Offset<" +
+                                      GenTypePointer(type) + ">" + postfix;
   }
 
   // Return a C++ type for any type (scalar/pointer) that reflects its
   // serialized size.
   std::string GenTypeSize(const Type &type) {
-    return IsScalar(type.base_type)
-               ? GenTypeBasic(type, false)
-               : IsStruct(type) ? GenTypePointer(type)
-                                : "flatbuffers::uoffset_t";
+    return IsScalar(type.base_type) ? GenTypeBasic(type, false)
+                                    : IsStruct(type) ? GenTypePointer(type)
+                                                     : "flatbuffers::uoffset_t";
   }
 
   // TODO(wvo): make this configurable.
@@ -325,9 +320,9 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type for any type (scalar/pointer) specifically for
   // using a flatbuffer.
-  std::string GenTypeGet(const Type &type,
-                         const char *afterbasic, const char *beforeptr,
-                         const char *afterptr, bool user_facing_type) {
+  std::string GenTypeGet(const Type &type, const char *afterbasic,
+                         const char *beforeptr, const char *afterptr,
+                         bool user_facing_type) {
     return IsScalar(type.base_type)
                ? GenTypeBasic(type, user_facing_type) + afterbasic
                : beforeptr + GenTypePointer(type) + afterptr;
@@ -483,8 +478,8 @@ class CppGenerator : public BaseGenerator {
       code += "()[static_cast<int>(e)";
       if (enum_def.vals.vec.front()->value) {
         code += " - static_cast<int>(";
-        code +=
-            GetEnumVal(enum_def, *enum_def.vals.vec.front(), parser_.opts) + ")";
+        code += GetEnumVal(enum_def, *enum_def.vals.vec.front(), parser_.opts) +
+                ")";
       }
       code += "]; }\n\n";
     }
@@ -592,8 +587,7 @@ class CppGenerator : public BaseGenerator {
     return "VT_" + uname;
   }
 
-  void GenFullyQualifiedNameGetter(const std::string &name,
-                                          std::string &code) {
+  void GenFullyQualifiedNameGetter(const std::string &name, std::string &code) {
     if (parser_.opts.generate_name_strings) {
       code +=
           "  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() "
@@ -615,21 +609,17 @@ class CppGenerator : public BaseGenerator {
     code += field.name + " = ";
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
-        static_cast<int>(StringToInt(field.value.constant.c_str())),
-        false);
+          static_cast<int>(StringToInt(field.value.constant.c_str())), false);
       if (ev) {
         code += WrapInNameSpace(
-          field.value.type.enum_def->defined_namespace,
-          GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
-      }
-      else {
+            field.value.type.enum_def->defined_namespace,
+            GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
+      } else {
         code += GenUnderlyingCast(field, true, field.value.constant);
       }
-    }
-    else if (field.value.type.base_type == BASE_TYPE_BOOL) {
+    } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
       code += field.value.constant == "0" ? "false" : "true";
-    }
-    else {
+    } else {
       code += GenDefaultConstant(field);
     }
   }
@@ -693,8 +683,7 @@ class CppGenerator : public BaseGenerator {
       if (!field.deprecated) {  // Deprecated fields won't be accessible.
         auto is_scalar = IsScalar(field.value.type.base_type);
         GenComment(field.doc_comment, code_ptr, nullptr, "  ");
-        code += "  " +
-                GenTypeGet(field.value.type, " ", "const ", " *", true);
+        code += "  " + GenTypeGet(field.value.type, " ", "const ", " *", true);
         code += field.name + "() const { return ";
         // Call a different accessor for pointers, that indirects.
         auto accessor =
@@ -702,8 +691,8 @@ class CppGenerator : public BaseGenerator {
                 ? "GetField<"
                 : (IsStruct(field.value.type) ? "GetStruct<" : "GetPointer<");
         auto offsetstr = GenFieldOffsetName(field);
-        auto call = accessor + GenTypeGet(field.value.type, "",
-                                          "const ", " *", false) +
+        auto call = accessor +
+                    GenTypeGet(field.value.type, "", "const ", " *", false) +
                     ">(" + offsetstr;
         // Default value as second arg for non-pointer types.
         if (IsScalar(field.value.type.base_type))
@@ -720,8 +709,7 @@ class CppGenerator : public BaseGenerator {
             code += GenUnderlyingCast(field, false, "_" + field.name);
             code += "); }\n";
           } else {
-            auto type =
-                GenTypeGet(field.value.type, " ", "", " *", true);
+            auto type = GenTypeGet(field.value.type, " ", "", " *", true);
             code += "  " + type + "mutable_" + field.name + "() { return ";
             code += GenUnderlyingCast(field, true,
                                       accessor + type + ">(" + offsetstr + ")");
@@ -909,20 +897,19 @@ class CppGenerator : public BaseGenerator {
     }
     code += "  return builder_.Finish();\n}\n\n";
 
-    //Generate a CreateX function with vector types as parameters
+    // Generate a CreateX function with vector types as parameters
     if (gen_vector_pars) {
       code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
       code += struct_def.name;
       code += "(flatbuffers::FlatBufferBuilder &_fbb";
       for (auto it = struct_def.fields.vec.begin();
-      it != struct_def.fields.vec.end(); ++it) {
+           it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
             code += ",\n    const char *";
             code += field.name + " = nullptr";
-          }
-          else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
             code += ",\n    const std::vector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
             code += "> *" + field.name + " = nullptr";
@@ -936,7 +923,7 @@ class CppGenerator : public BaseGenerator {
       code += struct_def.name;
       code += "(_fbb";
       for (auto it = struct_def.fields.vec.begin();
-      it != struct_def.fields.vec.end(); ++it) {
+           it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
@@ -947,7 +934,8 @@ class CppGenerator : public BaseGenerator {
             code += "_fbb.CreateVector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
             code += ">(*" + field.name + ")";
-          } else code += ", " + field.name;
+          } else
+            code += ", " + field.name;
         }
       }
       code += ");\n}\n\n";
@@ -1216,8 +1204,7 @@ class CppGenerator : public BaseGenerator {
       auto &field = **it;
       GenComment(field.doc_comment, code_ptr, nullptr, "  ");
       auto is_scalar = IsScalar(field.value.type.base_type);
-      code += "  " +
-              GenTypeGet(field.value.type, " ", "const ", " &", true);
+      code += "  " + GenTypeGet(field.value.type, " ", "const ", " &", true);
       code += field.name + "() const { return ";
       code += GenUnderlyingCast(
           field, true, is_scalar
@@ -1286,19 +1273,16 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   return generator.generate();
 }
 
-std::string CPPMakeRule(const Parser &parser,
-                        const std::string &path,
+std::string CPPMakeRule(const Parser &parser, const std::string &path,
                         const std::string &file_name) {
-  std::string filebase = flatbuffers::StripPath(
-      flatbuffers::StripExtension(file_name));
+  std::string filebase =
+      flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   std::string make_rule = GeneratedFileName(path, filebase) + ": ";
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
-  for (auto it = included_files.begin();
-       it != included_files.end(); ++it) {
+  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
     make_rule += " " + *it;
   }
   return make_rule;
 }
 
 }  // namespace flatbuffers
-

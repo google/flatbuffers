@@ -22,5 +22,5 @@ public final class StructInNestedNS extends Struct {
     builder.putInt(a);
     return builder.offset();
   }
-};
+}
 
