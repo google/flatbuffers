@@ -25,7 +25,9 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 
-#include <random>
+#ifndef FLATBUFFERS_CPP98_STL
+  #include <random>
+#endif
 
 using namespace MyGame::Example;
 
