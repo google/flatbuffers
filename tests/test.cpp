@@ -311,7 +311,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 }
 
 // Unpack a FlatBuffer into objects.
-void ObjectFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
+void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   // Turn a buffer into C++ objects.
   auto monster1 = GetMonster(flatbuf)->UnPack();
 
@@ -1069,7 +1069,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
 
-  ObjectFlatBuffersTest(flatbuf.get(), rawbuf.length());
+  ObjectFlatBuffersTest(flatbuf.get());
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
