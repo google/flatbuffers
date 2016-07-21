@@ -35,6 +35,10 @@ func (rcv *TableInFirstNS) FooEnum() int8 {
 	return 0
 }
 
+func (rcv *TableInFirstNS) MutateFooEnum(n int8) bool {
+	return rcv._tab.MutateInt8Slot(6, n)
+}
+
 func (rcv *TableInFirstNS) FooStruct(obj *StructInNestedNS) *StructInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
