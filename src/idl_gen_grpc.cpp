@@ -137,6 +137,7 @@ class FlatBufFile : public grpc_cpp_generator::File {
  public:
   FlatBufFile(const Parser &parser, const std::string &file_name)
     : parser_(parser), file_name_(file_name) {}
+  FlatBufFile &operator=(const FlatBufFile &);
 
   std::string filename() const { return file_name_; }
   std::string filename_without_ext() const {

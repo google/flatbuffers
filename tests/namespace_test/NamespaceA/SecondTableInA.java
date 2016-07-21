@@ -29,5 +29,5 @@ public final class SecondTableInA extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 

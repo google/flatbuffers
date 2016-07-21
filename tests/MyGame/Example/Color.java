@@ -8,8 +8,8 @@ public final class Color {
   public static final byte Green = 2;
   public static final byte Blue = 8;
 
-  private static final String[] names = { "Red", "Green", "", "", "", "", "", "Blue", };
+  public static final String[] names = { "Red", "Green", "", "", "", "", "", "Blue", };
 
   public static String name(int e) { return names[e - Red]; }
-};
+}
 

@@ -22,6 +22,10 @@ func (rcv *TestSimpleTableWithEnum) Color() int8 {
 	return 2
 }
 
+func (rcv *TestSimpleTableWithEnum) MutateColor(n int8) bool {
+	return rcv._tab.MutateInt8Slot(4, n)
+}
+
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) { builder.StartObject(1) }
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color int8) { builder.PrependInt8Slot(0, color, 2) }
 func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

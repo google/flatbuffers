@@ -727,8 +727,8 @@ offsets.
   // Place the two weapons into an array, and pass it to the `createWeaponsVector()` method to
   // create a FlatBuffer vector.
   int[] weaps = new int[2];
-  weaps[1] = sword;
-  weaps[2] = axe;
+  weaps[0] = sword;
+  weaps[1] = axe;
 
   // Pass the `weaps` array into the `createWeaponsVector()` method to create a FlatBuffer vector.
   int weapons = Monster.createWeaponsVector(builder, weaps);

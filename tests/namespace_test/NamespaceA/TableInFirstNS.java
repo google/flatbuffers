@@ -28,5 +28,5 @@ public final class TableInFirstNS extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 
