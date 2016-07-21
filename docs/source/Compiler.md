@@ -108,5 +108,9 @@ Additional options:
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
 
+-   `--conform FILE` : Specify a schema the following schemas should be
+    an evolution of. Gives errors if not. Useful to check if schema
+    modifications don't break schema evolution rules.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

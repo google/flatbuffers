@@ -1060,6 +1060,24 @@ void ParseUnionTest() {
                        "{ X:{ A:1 }, X_type: T }"), true);
 }
 
+void ConformTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
+
+  auto test_conform = [&](const char *test, const char *expected_err) {
+    flatbuffers::Parser parser2;
+    TEST_EQ(parser2.Parse(test), true);
+    auto err = parser2.ConformTo(parser);
+    TEST_NOTNULL(strstr(err.c_str(), expected_err));
+  };
+
+  test_conform("table T { A:byte; }", "types differ for field");
+  test_conform("table T { B:int; A:int; }", "offsets differ for field");
+  test_conform("table T { A:int = 1; }", "defaults differ for field");
+  test_conform("table T { B:float; }", "field renamed to different type");
+  test_conform("enum E:byte { B, A }", "values differ for enum");
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1091,6 +1109,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnicodeInvalidSurrogatesTest();
   UnknownFieldsTest();
   ParseUnionTest();
+  ConformTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

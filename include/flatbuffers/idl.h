@@ -311,6 +311,14 @@ struct EnumDef : public Definition {
   Type underlying_type;
 };
 
+inline bool EqualByName(const Type &a, const Type &b) {
+  return a.base_type == b.base_type && a.element == b.element &&
+         (a.struct_def == b.struct_def ||
+          a.struct_def->name == b.struct_def->name) &&
+         (a.enum_def == b.enum_def ||
+          a.enum_def->name == b.enum_def->name);
+}
+
 struct RPCCall {
   std::string name;
   SymbolTable<Value> attributes;
@@ -472,6 +480,10 @@ class Parser : public ParserState {
   // Fills builder_ with a binary version of the schema parsed.
   // See reflection/reflection.fbs
   void Serialize();
+
+  // Checks that the schema represented by this parser is a safe evolution
+  // of the schema provided. Returns non-empty error on any problems.
+  std::string ConformTo(const Parser &base);
 
   FLATBUFFERS_CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
 
