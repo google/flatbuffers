@@ -645,7 +645,7 @@ inline std::unique_ptr<MonsterT> Monster::UnPack() const {
   { auto _e = testhashu32_fnv1a(); _o->testhashu32_fnv1a = _e; };
   { auto _e = testhashs64_fnv1a(); _o->testhashs64_fnv1a = _e; };
   { auto _e = testhashu64_fnv1a(); _o->testhashu64_fnv1a = _e; };
-  { auto _e = testarrayofbools(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofbools(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools.push_back(_e->Get(_i)!=0); } } };
   { auto _e = testf(); _o->testf = _e; };
   { auto _e = testf2(); _o->testf2 = _e; };
   { auto _e = testf3(); _o->testf3 = _e; };

@@ -966,7 +966,7 @@ class CppGenerator : public BaseGenerator {
           auto dest = deref + field.name;
           auto assign = prefix + dest + " = ";
           auto gen_unpack_val = [&](const Type &type, const std::string &val,
-                                    bool invector) {
+                                    bool invector) -> std::string {
             switch (type.base_type) {
               case BASE_TYPE_STRING:
                 return val + "->str()";
@@ -987,14 +987,18 @@ class CppGenerator : public BaseGenerator {
             }
           };
           switch (field.value.type.base_type) {
-            case BASE_TYPE_VECTOR:
+            case BASE_TYPE_VECTOR: {
               code += prefix;
               code += "{ for (size_t _i = 0; _i < _e->size(); _i++) { ";
               code += dest + ".push_back(";
+              std::string indexing = "_e->Get(_i)";
+              if (field.value.type.element == BASE_TYPE_BOOL)
+                indexing += "!=0";
               code += gen_unpack_val(field.value.type.VectorType(),
-                                     "_e->Get(_i)", true);
+                                     indexing, true);
               code += "); } }";
               break;
+            }
             case BASE_TYPE_UTYPE: {
               auto &union_field = **(it + 1);
               assert(union_field.value.type.base_type == BASE_TYPE_UNION);
