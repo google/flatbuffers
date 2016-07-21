@@ -626,15 +626,15 @@ inline std::unique_ptr<MonsterT> Monster::UnPack() const {
   { auto _e = mana(); _o->mana = _e; };
   { auto _e = hp(); _o->hp = _e; };
   { auto _e = name(); if (_e) _o->name = _e->str(); };
-  { auto _e = inventory(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->inventory.push_back(_e->Get(_i)); } } };
+  { auto _e = inventory(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory.push_back(_e->Get(_i)); } } };
   { auto _e = color(); _o->color = _e; };
   { auto _e = test_type(); _o->test.type = _e; };
   { auto _e = test(); if (_e) _o->test.table = AnyUnion::UnPack(_e, test_type()); };
-  { auto _e = test4(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->test4.push_back(*_e->Get(_i)); } } };
-  { auto _e = testarrayofstring(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring.push_back(_e->Get(_i)->str()); } } };
-  { auto _e = testarrayoftables(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables.push_back(_e->Get(_i)->UnPack()); } } };
+  { auto _e = test4(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4.push_back(*_e->Get(_i)); } } };
+  { auto _e = testarrayofstring(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring.push_back(_e->Get(_i)->str()); } } };
+  { auto _e = testarrayoftables(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables.push_back(_e->Get(_i)->UnPack()); } } };
   { auto _e = enemy(); if (_e) _o->enemy = _e->UnPack(); };
-  { auto _e = testnestedflatbuffer(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testnestedflatbuffer.push_back(_e->Get(_i)); } } };
+  { auto _e = testnestedflatbuffer(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testnestedflatbuffer.push_back(_e->Get(_i)); } } };
   { auto _e = testempty(); if (_e) _o->testempty = _e->UnPack(); };
   { auto _e = testbool(); _o->testbool = _e; };
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; };
@@ -645,11 +645,11 @@ inline std::unique_ptr<MonsterT> Monster::UnPack() const {
   { auto _e = testhashu32_fnv1a(); _o->testhashu32_fnv1a = _e; };
   { auto _e = testhashs64_fnv1a(); _o->testhashs64_fnv1a = _e; };
   { auto _e = testhashu64_fnv1a(); _o->testhashu64_fnv1a = _e; };
-  { auto _e = testarrayofbools(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools.push_back(_e->Get(_i)!=0); } } };
+  { auto _e = testarrayofbools(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools.push_back(_e->Get(_i)!=0); } } };
   { auto _e = testf(); _o->testf = _e; };
   { auto _e = testf2(); _o->testf2 = _e; };
   { auto _e = testf3(); _o->testf3 = _e; };
-  { auto _e = testarrayofstring2(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2.push_back(_e->Get(_i)->str()); } } };
+  { auto _e = testarrayofstring2(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2.push_back(_e->Get(_i)->str()); } } };
   return std::unique_ptr<MonsterT>(_o);
 }
 

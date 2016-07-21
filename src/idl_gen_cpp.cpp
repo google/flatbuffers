@@ -989,7 +989,8 @@ class CppGenerator : public BaseGenerator {
           switch (field.value.type.base_type) {
             case BASE_TYPE_VECTOR: {
               code += prefix;
-              code += "{ for (size_t _i = 0; _i < _e->size(); _i++) { ";
+              code += "{ for (flatbuffers::uoffset_t _i = 0;";
+              code += " _i < _e->size(); _i++) { ";
               code += dest + ".push_back(";
               std::string indexing = "_e->Get(_i)";
               if (field.value.type.element == BASE_TYPE_BOOL)
