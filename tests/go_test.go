@@ -76,6 +76,9 @@ func TestAll(t *testing.T) {
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
 
+	// Verify that GetRootAs works for non-root tables
+	CheckGetRootAsForNonRootTable(t.Fatalf)
+
 	// Verify that using the generated Go code builds a buffer without
 	// returning errors:
 	generated, off := CheckGeneratedBuild(t.Fatalf)
@@ -1079,6 +1082,31 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 	b.Finish(mon)
 
 	return b.Bytes, b.Head()
+}
+
+func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+	str := b.CreateString("MyStat")
+	example.StatStart(b)
+	example.StatAddId(b, str)
+	example.StatAddVal(b, 12345678)
+	example.StatAddCount(b, 12345)
+	stat_end := example.StatEnd(b)
+	b.Finish(stat_end)
+
+	stat := example.GetRootAsStat(b.Bytes, b.Head())
+
+	if got := stat.Id(); !bytes.Equal([]byte("MyStat"), got) {
+		fail(FailString("stat.Id()", "MyStat", got))
+	}
+
+	if got := stat.Val(); 12345678 != got {
+		fail(FailString("stat.Val()", 12345678, got))
+	}
+
+	if got := stat.Count(); 12345 != got {
+		fail(FailString("stat.Count()", 12345, got))
+	}
 }
 
 // CheckGeneratedBuild uses generated code to build the example Monster.

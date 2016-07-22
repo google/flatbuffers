@@ -1034,6 +1034,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(7, mon2.Testhashs64Fnv1a())
         self.assertEqual(8, mon2.Testhashu64Fnv1a())
 
+    def test_getrootas_for_nonroot_table(self):
+        b = flatbuffers.Builder(0)
+        string = b.CreateString("MyStat")
+
+        MyGame.Example.Stat.StatStart(b)
+        MyGame.Example.Stat.StatAddId(b, string)
+        MyGame.Example.Stat.StatAddVal(b, 12345678)
+        MyGame.Example.Stat.StatAddCount(b, 12345)
+        stat = MyGame.Example.Stat.StatEnd(b)
+        b.Finish(stat)
+
+        stat2 = MyGame.Example.Stat.Stat.GetRootAsStat(b.Bytes, b.Head())
+
+        self.assertEqual(b"MyStat", stat2.Id())
+        self.assertEqual(12345678, stat2.Val())
+        self.assertEqual(12345, stat2.Count())
+
 
 class TestVtableDeduplication(unittest.TestCase):
     ''' TestVtableDeduplication verifies that vtables are deduplicated. '''
