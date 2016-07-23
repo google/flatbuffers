@@ -258,14 +258,15 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o);
 
 inline std::unique_ptr<MonsterT> Monster::UnPack() const {
+  using flatbuffers::uoffset_t;
   auto _o = new MonsterT();
   { auto _e = pos(); if (_e) _o->pos = std::unique_ptr<Vec3>(new Vec3(*_e)); };
   { auto _e = mana(); _o->mana = _e; };
   { auto _e = hp(); _o->hp = _e; };
   { auto _e = name(); if (_e) _o->name = _e->str(); };
-  { auto _e = inventory(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->inventory.push_back(_e->Get(_i)); } } };
+  { auto _e = inventory(); if (_e) { for (uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory.push_back(_e->Get(_i)); } } };
   { auto _e = color(); _o->color = _e; };
-  { auto _e = weapons(); if (_e) { for (size_t _i = 0; _i < _e->size(); _i++) { _o->weapons.push_back(_e->Get(_i)->UnPack()); } } };
+  { auto _e = weapons(); if (_e) { for (uoffset_t _i = 0; _i < _e->size(); _i++) { _o->weapons.push_back(_e->Get(_i)->UnPack()); } } };
   { auto _e = equipped_type(); _o->equipped.type = _e; };
   { auto _e = equipped(); if (_e) _o->equipped.table = EquipmentUnion::UnPack(_e, equipped_type()); };
   return std::unique_ptr<MonsterT>(_o);
