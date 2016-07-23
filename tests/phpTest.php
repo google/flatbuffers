@@ -30,6 +30,10 @@ function main()
 
     // We set up the same values as monsterdata.json:
     $str = $fbb->createString("MyMonster");
+    $name = $fbb->createString('Fred');
+    \MyGame\Example\Monster::startMonster($fbb);
+    \MyGame\Example\Monster::addName($fbb, $name);
+    $enemy = \MyGame\Example\Monster::endMonster($fbb);
 
     $inv = \MyGame\Example\Monster::CreateInventoryVector($fbb, array(0, 1, 2, 3, 4));
 
@@ -62,6 +66,7 @@ function main()
     \MyGame\Example\Monster::AddTest($fbb, $mon2);
     \MyGame\Example\Monster::AddTest4($fbb, $test4);
     \MyGame\Example\Monster::AddTestarrayofstring($fbb, $testArrayOfString);
+    \MyGame\Example\Monster::AddEnemy($fbb, $enemy);
     \MyGame\Example\Monster::AddTestbool($fbb, false);
     $mon = \MyGame\Example\Monster::EndMonster($fbb);
 
@@ -123,6 +128,7 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     }
     $assert->strictEqual($invsum, 10);
 
+    $assert->strictEqual(bin2hex($monster->GetInventoryBytes()), "0001020304");
 
     $test_0 = $monster->GetTest4(0);
     $test_1 = $monster->GetTest4(1);
@@ -132,6 +138,10 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     $assert->strictEqual($monster->GetTestarrayofstringLength(), 2);
     $assert->strictEqual($monster->GetTestarrayofstring(0), 'test1');
     $assert->strictEqual($monster->GetTestarrayofstring(1), 'test2');
+
+    $fred = $monster->getEnemy();
+    $assert->Equal('Fred', $fred->getName());
+
     $assert->strictEqual($monster->GetTestbool(), false);
 }
 
@@ -192,7 +202,7 @@ function fuzzTest1(Assert $assert)
     $uchar_val = 0xFF;
     $short_val = -32222; // 0x8222;
     $ushort_val = 0xFEEE;
-    $int_val = 0x83333333 | 0;
+    $int_val = 0x7fffffff | 0;
     // for now
     $uint_val = 1;
     $long_val = 2;
@@ -539,6 +549,19 @@ function testByteBuffer(Assert $assert) {
         $buffer[7] = chr(0x01);
         $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
         $assert->Equal(0x010203040A0B0C0D, $uut->getLong(0));
+
+        //Test: Signed Long
+        $buffer = str_repeat("\0", 8);
+        $buffer[0] = chr(0x00);
+        $buffer[1] = chr(0x00);
+        $buffer[2] = chr(0x00);
+        $buffer[3] = chr(0x00);
+        $buffer[4] = chr(0x00);
+        $buffer[5] = chr(0x00);
+        $buffer[6] = chr(0x00);
+        $buffer[7] = chr(0x80);
+        $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
+        $assert->Equal(-1 << 63, $uut->getLong(0));
     }
 
     //Test: ByteBuffer_GetLongChecksOffset

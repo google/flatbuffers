@@ -26,7 +26,8 @@ func (t *Table) Indirect(off UOffsetT) UOffsetT {
 
 // String gets a string from data stored inside the flatbuffer.
 func (t *Table) String(off UOffsetT) string {
-	return string(t.ByteVector(off))
+	b := t.ByteVector(off)
+	return byteSliceToString(b)
 }
 
 // ByteVector gets a byte slice from data stored inside the flatbuffer.
@@ -291,4 +292,214 @@ func (t *Table) GetVOffsetTSlot(slot VOffsetT, d VOffsetT) VOffsetT {
 		return d
 	}
 	return VOffsetT(off)
+}
+
+// MutateBool updates a bool at the given offset.
+func (t *Table) MutateBool(off UOffsetT, n bool) bool {
+	WriteBool(t.Bytes[off:], n)
+	return true
+}
+
+// MutateByte updates a Byte at the given offset.
+func (t *Table) MutateByte(off UOffsetT, n byte) bool {
+	WriteByte(t.Bytes[off:], n)
+	return true
+}
+
+// MutateUint8 updates a Uint8 at the given offset.
+func (t *Table) MutateUint8(off UOffsetT, n uint8) bool {
+	WriteUint8(t.Bytes[off:], n)
+	return true
+}
+
+// MutateUint16 updates a Uint16 at the given offset.
+func (t *Table) MutateUint16(off UOffsetT, n uint16) bool {
+	WriteUint16(t.Bytes[off:], n)
+	return true
+}
+
+// MutateUint32 updates a Uint32 at the given offset.
+func (t *Table) MutateUint32(off UOffsetT, n uint32) bool {
+	WriteUint32(t.Bytes[off:], n)
+	return true
+}
+
+// MutateUint64 updates a Uint64 at the given offset.
+func (t *Table) MutateUint64(off UOffsetT, n uint64) bool {
+	WriteUint64(t.Bytes[off:], n)
+	return true
+}
+
+// MutateInt8 updates a Int8 at the given offset.
+func (t *Table) MutateInt8(off UOffsetT, n int8) bool {
+	WriteInt8(t.Bytes[off:], n)
+	return true
+}
+
+// MutateInt16 updates a Int16 at the given offset.
+func (t *Table) MutateInt16(off UOffsetT, n int16) bool {
+	WriteInt16(t.Bytes[off:], n)
+	return true
+}
+
+// MutateInt32 updates a Int32 at the given offset.
+func (t *Table) MutateInt32(off UOffsetT, n int32) bool {
+	WriteInt32(t.Bytes[off:], n)
+	return true
+}
+
+// MutateInt64 updates a Int64 at the given offset.
+func (t *Table) MutateInt64(off UOffsetT, n int64) bool {
+	WriteInt64(t.Bytes[off:], n)
+	return true
+}
+
+// MutateFloat32 updates a Float32 at the given offset.
+func (t *Table) MutateFloat32(off UOffsetT, n float32) bool {
+	WriteFloat32(t.Bytes[off:], n)
+	return true
+}
+
+// MutateFloat64 updates a Float64 at the given offset.
+func (t *Table) MutateFloat64(off UOffsetT, n float64) bool {
+	WriteFloat64(t.Bytes[off:], n)
+	return true
+}
+
+// MutateUOffsetT updates a UOffsetT at the given offset.
+func (t *Table) MutateUOffsetT(off UOffsetT, n UOffsetT) bool {
+	WriteUOffsetT(t.Bytes[off:], n)
+	return true
+}
+
+// MutateVOffsetT updates a VOffsetT at the given offset.
+func (t *Table) MutateVOffsetT(off UOffsetT, n VOffsetT) bool {
+	WriteVOffsetT(t.Bytes[off:], n)
+	return true
+}
+
+// MutateSOffsetT updates a SOffsetT at the given offset.
+func (t *Table) MutateSOffsetT(off UOffsetT, n SOffsetT) bool {
+	WriteSOffsetT(t.Bytes[off:], n)
+	return true
+}
+
+// MutateBoolSlot updates the bool at given vtable location
+func (t *Table) MutateBoolSlot(slot VOffsetT, n bool) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateBool(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateByteSlot updates the byte at given vtable location
+func (t *Table) MutateByteSlot(slot VOffsetT, n byte) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateByte(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateInt8Slot updates the int8 at given vtable location
+func (t *Table) MutateInt8Slot(slot VOffsetT, n int8) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateInt8(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateUint8Slot updates the uint8 at given vtable location
+func (t *Table) MutateUint8Slot(slot VOffsetT, n uint8) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateUint8(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateInt16Slot updates the int16 at given vtable location
+func (t *Table) MutateInt16Slot(slot VOffsetT, n int16) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateInt16(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateUint16Slot updates the uint16 at given vtable location
+func (t *Table) MutateUint16Slot(slot VOffsetT, n uint16) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateUint16(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateInt32Slot updates the int32 at given vtable location
+func (t *Table) MutateInt32Slot(slot VOffsetT, n int32) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateInt32(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateUint32Slot updates the uint32 at given vtable location
+func (t *Table) MutateUint32Slot(slot VOffsetT, n uint32) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateUint32(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateInt64Slot updates the int64 at given vtable location
+func (t *Table) MutateInt64Slot(slot VOffsetT, n int64) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateInt64(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateUint64Slot updates the uint64 at given vtable location
+func (t *Table) MutateUint64Slot(slot VOffsetT, n uint64) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateUint64(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateFloat32Slot updates the float32 at given vtable location
+func (t *Table) MutateFloat32Slot(slot VOffsetT, n float32) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateFloat32(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
+}
+
+// MutateFloat64Slot updates the float64 at given vtable location
+func (t *Table) MutateFloat64Slot(slot VOffsetT, n float64) bool {
+	if off := t.Offset(slot); off != 0 {
+		t.MutateFloat64(t.Pos+UOffsetT(off), n)
+		return true
+	}
+
+	return false
 }

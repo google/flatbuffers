@@ -1,7 +1,10 @@
-# FlatBuffers
+FlatBuffers    {#flatbuffers_index}
+===========
 
-FlatBuffers is an efficient cross platform serialization library for C++, Java,
-C#, Go, Python and JavaScript (C, PHP & Ruby in progress).
+# Overview {#flatbuffers_overview}
+
+[FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
+serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python.
 It was originally created at Google for game development and other
 performance-critical applications.
 
@@ -26,7 +29,7 @@ under the Apache license, v2 (see LICENSE.txt).
     projects where spending time and space (many memory allocations) to
     be able to access or construct serialized data is undesirable, such
     as in games or any other performance sensitive applications. See the
-    [benchmarks](md__benchmarks.html) for details.
+    [benchmarks](@ref flatbuffers_benchmarks) for details.
 
 -   **Flexible** - Optional fields means not only do you get great
     forwards and backwards compatibility (increasingly important for
@@ -76,7 +79,7 @@ In this context, it is only a better choice for systems that have very
 little to no information ahead of time about what data needs to be stored.
 
 Read more about the "why" of FlatBuffers in the
-[white paper](md__white_paper.html).
+[white paper](@ref flatbuffers_white_paper).
 
 ### Who uses FlatBuffers?
 -   [Cocos2d-x](http://www.cocos2d-x.org/), the #1 open source mobile game
@@ -118,28 +121,31 @@ sections provide a more in-depth usage guide.
 
 ## In-depth documentation
 
--   How to [build the compiler](md__building.html) and samples on various
-    platforms.
--   How to [use the compiler](md__compiler.html).
--   How to [write a schema](md__schemas.html).
--   How to [use the generated C++ code](md__cpp_usage.html) in your own
-    programs.
--   How to [use the generated Java/C# code](md__java_usage.html) in your own
-    programs.
--   How to [use the generated Go code](md__go_usage.html) in your own
-    programs.
--   [Support matrix](md__support.html) for platforms/languages/features.
--   Some [benchmarks](md__benchmarks.html) showing the advantage of using
+-   How to [build the compiler](@ref flatbuffers_guide_building) and samples on
+    various platforms.
+-   How to [use the compiler](@ref flatbuffers_guide_using_schema_compiler).
+-   How to [write a schema](@ref flatbuffers_guide_writing_schema).
+-   How to [use the generated C++ code](@ref flatbuffers_guide_use_cpp) in your
+    own programs.
+-   How to [use the generated Java/C# code](@ref flatbuffers_guide_use_java_c-sharp)
+    in your own programs.
+-   How to [use the generated Go code](@ref flatbuffers_guide_use_go) in your
+    own programs.
+-   How to [use FlatBuffers in C with `flatcc`](@ref flatbuffers_guide_use_c) in your
+    own programs.
+-   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
+-   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of
+    using FlatBuffers.
+-   A [white paper](@ref flatbuffers_white_paper) explaining the "why" of
     FlatBuffers.
--   A [white paper](md__white_paper.html) explaining the "why" of FlatBuffers.
--   A description of the [internals](md__internals.html) of FlatBuffers.
--   A formal [grammar](md__grammar.html) of the schema language.
+-   A description of the [internals](@ref flatbuffers_internals) of FlatBuffers.
+-   A formal [grammar](@ref flatbuffers_grammar) of the schema language.
 
 ## Online resources
 
 -   [GitHub repository](http://github.com/google/flatbuffers)
 -   [Landing page](http://google.github.io/flatbuffers)
--   [FlatBuffers Google Group](http://group.google.com/group/flatbuffers)
+-   [FlatBuffers Google Group](https://groups.google.com/forum/#!forum/flatbuffers)
 -   [FlatBuffers Issues Tracker](http://github.com/google/flatbuffers/issues)
 -   Independent implementations & tools:
     - [FlatCC](https://github.com/dvidelabs/flatcc) Alternative FlatBuffers

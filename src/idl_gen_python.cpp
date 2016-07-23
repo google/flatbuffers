@@ -21,6 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 namespace python {
@@ -46,18 +47,6 @@ std::string OffsetPrefix(const FieldDef &field) {
          "(self._tab.Offset(" +
          NumToString(field.value.offset) +
          "))\n" + Indent + Indent + "if o != 0:\n";
-}
-
-// Begin by declaring namespace and imports.
-static void BeginFile(const std::string name_space_name,
-                      const bool needs_imports,
-                      std::string *code_ptr) {
-  std::string &code = *code_ptr;
-  code += "# automatically generated, do not modify\n\n";
-  code += "# namespace: " + name_space_name + "\n\n";
-  if (needs_imports) {
-    code += "import flatbuffers\n\n";
-  }
 }
 
 // Begin a class declaration.
@@ -105,7 +94,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += Indent + Indent + "x = " + struct_def.name + "()\n";
   code += Indent + Indent + "x.Init(buf, n + offset)\n";
   code += Indent + Indent + "return x\n";
-  code += "\n\n";
+  code += "\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
@@ -489,13 +478,12 @@ static void GenTableBuilders(const StructDef &struct_def,
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
   BeginClass(struct_def, code_ptr);
-  if (&struct_def == root_struct_def) {
+  if (!struct_def.fixed) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
@@ -557,37 +545,6 @@ static std::string GenMethod(const FieldDef &field) {
     : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
 }
 
-
-// Save out the generated code for a Python Table type.
-static bool SaveType(const Parser &parser, const Definition &def,
-                     const std::string &classcode, const std::string &path,
-                     bool needs_imports) {
-  if (!classcode.length()) return true;
-
-  std::string namespace_name;
-  std::string namespace_dir = path;
-  auto &namespaces = parser.namespaces_.back()->components;
-  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    if (namespace_name.length()) {
-      namespace_name += ".";
-      namespace_dir += kPathSeparator;
-    }
-    namespace_name = *it;
-    namespace_dir += *it;
-    EnsureDirExists(namespace_dir.c_str());
-
-    std::string init_py_filename = namespace_dir + "/__init__.py";
-    SaveFile(init_py_filename.c_str(), "", false);
-  }
-
-
-  std::string code = "";
-  BeginFile(namespace_name, needs_imports, &code);
-  code += classcode;
-  std::string filename = namespace_dir + kPathSeparator + def.name + ".py";
-  return SaveFile(filename.c_str(), code, false);
-}
-
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
@@ -634,29 +591,81 @@ static void GenStructBuilder(const StructDef &struct_def,
   EndBuilderBody(code_ptr);
 }
 
+class PythonGenerator : public BaseGenerator {
+ public:
+  PythonGenerator(const Parser &parser, const std::string &path,
+                  const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "" /* not used */,
+                      "" /* not used */){};
+  bool generate() {
+    if (!generateEnums()) return false;
+    if (!generateStructs()) return false;
+    return true;
+  }
+
+ private:
+  bool generateEnums() {
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      auto &enum_def = **it;
+      std::string enumcode;
+      GenEnum(enum_def, &enumcode);
+      if (!SaveType(enum_def, enumcode, false)) return false;
+    }
+    return true;
+  }
+
+  bool generateStructs() {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      auto &struct_def = **it;
+      std::string declcode;
+      GenStruct(struct_def, &declcode);
+      if (!SaveType(struct_def, declcode, true)) return false;
+    }
+    return true;
+  }
+
+  // Begin by declaring namespace and imports.
+  void BeginFile(const std::string name_space_name, const bool needs_imports,
+                 std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code = code + "# " + FlatBuffersGeneratedWarning();
+    code += "# namespace: " + name_space_name + "\n\n";
+    if (needs_imports) {
+      code += "import flatbuffers\n\n";
+    }
+  }
+
+  // Save out the generated code for a Python Table type.
+  bool SaveType(const Definition &def, const std::string &classcode,
+                bool needs_imports) {
+    if (!classcode.length()) return true;
+
+    std::string namespace_dir = path_;
+    auto &namespaces = parser_.namespaces_.back()->components;
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+      if (it != namespaces.begin()) namespace_dir += kPathSeparator;
+      namespace_dir += *it;
+      std::string init_py_filename = namespace_dir + "/__init__.py";
+      SaveFile(init_py_filename.c_str(), "", false);
+    }
+
+    std::string code = "";
+    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
+    code += classcode;
+    std::string filename = NamespaceDir(*def.defined_namespace) +
+                           kPathSeparator + def.name + ".py";
+    return SaveFile(filename.c_str(), code, false);
+  }
+};
+
 }  // namespace python
 
-bool GeneratePython(const Parser &parser,
-                    const std::string &path,
-                    const std::string & /*file_name*/,
-                    const GeneratorOptions & /*opts*/) {
-  for (auto it = parser.enums_.vec.begin();
-       it != parser.enums_.vec.end(); ++it) {
-    std::string enumcode;
-    python::GenEnum(**it, &enumcode);
-    if (!python::SaveType(parser, **it, enumcode, path, false))
-      return false;
-  }
-
-  for (auto it = parser.structs_.vec.begin();
-       it != parser.structs_.vec.end(); ++it) {
-    std::string declcode;
-    python::GenStruct(**it, &declcode, parser.root_struct_def_);
-    if (!python::SaveType(parser, **it, declcode, path, true))
-      return false;
-  }
-
-  return true;
+bool GeneratePython(const Parser &parser, const std::string &path,
+                    const std::string &file_name) {
+  python::PythonGenerator generator(parser, path, file_name);
+  return generator.generate();
 }
 
 }  // namespace flatbuffers

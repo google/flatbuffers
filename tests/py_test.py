@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2014 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,8 +153,6 @@ def CheckReadBuffer(buf, offset):
     asserter(monster.Testarrayofstring(0) == b"test1")
     asserter(monster.Testarrayofstring(1) == b"test2")
 
-    asserter(monster.Enemy() is None)
-
     asserter(monster.TestarrayoftablesLength() == 0)
     asserter(monster.TestnestedflatbufferLength() == 0)
     asserter(monster.Testempty() is None)
@@ -163,9 +162,10 @@ class TestFuzz(unittest.TestCase):
     ''' Low level stress/fuzz test: serialize/deserialize a variety of
         different kinds of data in different combinations '''
 
-    ofInt32Bytes = compat.binary_type([0x83, 0x33, 0x33, 0x33])
-    ofInt64Bytes = compat.binary_type([0x84, 0x44, 0x44, 0x44,
-                                       0x44, 0x44, 0x44, 0x44])
+    binary_type = compat.binary_types[0] # this will always exist
+    ofInt32Bytes = binary_type([0x83, 0x33, 0x33, 0x33])
+    ofInt64Bytes = binary_type([0x84, 0x44, 0x44, 0x44,
+                                0x44, 0x44, 0x44, 0x44])
     overflowingInt32Val = flatbuffers.encode.Get(flatbuffers.packer.int32,
                                                  ofInt32Bytes, 0)
     overflowingInt64Val = flatbuffers.encode.Get(flatbuffers.packer.int64,
@@ -389,23 +389,36 @@ class TestByteLayout(unittest.TestCase):
 
     def test_create_ascii_string(self):
         b = flatbuffers.Builder(0)
-        b.CreateString(u"foo".encode('ascii'))
+        b.CreateString(u"foo", encoding='ascii')
+
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
-        b.CreateString(u"moop".encode('ascii'))
+        b.CreateString(u"moop", encoding='ascii')
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 'm', 'o', 'o', 'p',
                                      0, 0, 0, 0,
                                      3, 0, 0, 0, 'f', 'o', 'o', 0])
 
+    def test_create_utf8_string(self):
+        b = flatbuffers.Builder(0)
+        b.CreateString(u"Цлїςσδε")
+        self.assertBuilderEquals(b, "\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
+        b.CreateString(u"ﾌﾑｱﾑｶﾓｹﾓ")
+        self.assertBuilderEquals(b, "\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91" \
+            "\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef" \
+            "\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
     def test_create_arbitrary_string(self):
         b = flatbuffers.Builder(0)
-        s = "\x01\x02\x03".encode('utf-8')
-        b.CreateString(s)
+        s = "\x01\x02\x03"
+        b.CreateString(s) # Default encoding is utf-8.
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
-        s2 = "\x04\x05\x06\x07".encode('utf-8')
-        b.CreateString(s2)
+        s2 = "\x04\x05\x06\x07"
+        b.CreateString(s2) # Default encoding is utf-8.
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
@@ -1021,6 +1034,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(7, mon2.Testhashs64Fnv1a())
         self.assertEqual(8, mon2.Testhashu64Fnv1a())
 
+    def test_getrootas_for_nonroot_table(self):
+        b = flatbuffers.Builder(0)
+        string = b.CreateString("MyStat")
+
+        MyGame.Example.Stat.StatStart(b)
+        MyGame.Example.Stat.StatAddId(b, string)
+        MyGame.Example.Stat.StatAddVal(b, 12345678)
+        MyGame.Example.Stat.StatAddCount(b, 12345)
+        stat = MyGame.Example.Stat.StatEnd(b)
+        b.Finish(stat)
+
+        stat2 = MyGame.Example.Stat.Stat.GetRootAsStat(b.Bytes, b.Head())
+
+        self.assertEqual(b"MyStat", stat2.Id())
+        self.assertEqual(12345678, stat2.Val())
+        self.assertEqual(12345, stat2.Count())
+
 
 class TestVtableDeduplication(unittest.TestCase):
     ''' TestVtableDeduplication verifies that vtables are deduplicated. '''
@@ -1274,7 +1304,7 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
 
 def backward_compatible_run_tests(**kwargs):
     if PY_VERSION < (2, 6):
-        sys.stderr.write("Python version less than 2.6 are not supported") 
+        sys.stderr.write("Python version less than 2.6 are not supported")
         sys.stderr.flush()
         return False
 
@@ -1287,7 +1317,7 @@ def backward_compatible_run_tests(**kwargs):
                 return False
         return True
 
-    # python2.7 and above let us not exit once unittest.main is run: 
+    # python2.7 and above let us not exit once unittest.main is run:
     kwargs['exit'] = False
     kwargs['verbosity'] = 0
     ret = unittest.main(**kwargs)

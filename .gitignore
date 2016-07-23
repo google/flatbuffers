@@ -40,6 +40,8 @@ flatsamplebinary
 flatsamplebinary.exe
 flatsampletext
 flatsampletext.exe
+grpctest
+grpctest.exe
 snapshot.sh
 tests/go_gen
 tests/monsterdata_java_wire.mon
@@ -55,6 +57,10 @@ build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
 FlatBuffers.xcodeproj/
 java/.idea
 java/*.iml
-java/target
-**/*.pyc
 .idea
+*.iml
+target
+**/*.pyc
+build/VS2010/FlatBuffers.sdf
+build/VS2010/FlatBuffers.opensdf
+build/VS2010/ipch/**/*.ipch

@@ -1,4 +1,5 @@
-# Using the schema compiler
+Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
+=========================
 
 Usage:
 
@@ -6,12 +7,11 @@ Usage:
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
-or data (see below). Later files can make use of definitions in earlier
-files.
+or data (see below). Data files are processed according to the definitions of
+the most recent schema specified.
 
 `--` indicates that the following files are binary files in
-FlatBuffer format conforming to the schema(s) indicated before it.
-Incompatible binary files currently will give unpredictable results (!)
+FlatBuffer format conforming to the schema indicated before it.
 
 Depending on the flags passed, additional files may
 be generated for each file processed:
@@ -32,6 +32,8 @@ For any schema input files, one or more generators can be specified:
 -   `--javascript`, `-s`: Generate JavaScript code.
 
 -   `--php`: Generate PHP code.
+
+-   `--grpc`: Generate RPC stub code for GRPC.
 
 For any data input files:
 
@@ -79,7 +81,17 @@ Additional options:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+    `--gen-object-api` : Generate an additional object-based API. This API is
+    more convenient for object construction and mutation than the base API,
+    at the cost of efficiency (object allocation). Recommended only to be used
+    if other options are insufficient.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
+
+-   `--gen-all`: Generate not just code for the current schema files, but
+    for all files it includes as well. If the language uses a single file for
+    output (by default the case for C++ and JS), all code will end up in
+    this one file.
 
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
@@ -95,6 +107,10 @@ Additional options:
     output a binary version of the specified schema that itself corresponds
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
+
+-   `--conform FILE` : Specify a schema the following schemas should be
+    an evolution of. Gives errors if not. Useful to check if schema
+    modifications don't break schema evolution rules.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

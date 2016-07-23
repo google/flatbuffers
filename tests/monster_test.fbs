@@ -2,17 +2,21 @@
 
 include "include_test1.fbs";
 
+namespace MyGame.Example2;
+
+table Monster {}  // Test having same name as below, but in different namespace.
+
 namespace MyGame.Example;
 
 attribute "priority";
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
-union Any { Monster, TestSimpleTableWithEnum }  // TODO: add more elements
+union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
 struct Test { a:short; b:byte; }
 
-table TestSimpleTableWithEnum {
+table TestSimpleTableWithEnum (csharp_partial) {
   color: Color = Green;
 }
 
@@ -44,6 +48,7 @@ table Monster {
   /// multiline too
   testarrayoftables:[Monster] (id: 11);
   testarrayofstring:[string] (id: 10);
+  testarrayofstring2:[string] (id: 28);
   testarrayofbools:[bool] (id: 24);
   enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
@@ -59,6 +64,14 @@ table Monster {
   testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32");
   testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
+  testf:float = 3.14159 (id:25);
+  testf2:float = 3 (id:26);
+  testf3:float (id:27);
+}
+
+rpc_service MonsterStorage {
+  Store(Monster):Stat (streaming: "none");
+  Retrieve(Stat):Monster (idempotent);
 }
 
 root_type Monster;

@@ -1,7 +1,8 @@
-# Writing a schema
+Writing a schema    {#flatbuffers_guide_writing_schema}
+================
 
-The syntax of the schema language (aka IDL, Interface Definition
-Language) should look quite familiar to users of any of the C family of
+The syntax of the schema language (aka IDL, [Interface Definition Language][])
+should look quite familiar to users of any of the C family of
 languages, and also to users of other IDLs. Let's look at an example
 first:
 
@@ -34,14 +35,14 @@ first:
 
     root_type Monster;
 
-(Weapon & Pickup not defined as part of this example).
+(`Weapon` & `Pickup` not defined as part of this example).
 
 ### Tables
 
 Tables are the main way of defining objects in FlatBuffers, and consist
 of a name (here `Monster`) and a list of fields. Each field has a name,
-a type, and optionally a default value (if omitted, it defaults to 0 /
-NULL).
+a type, and optionally a default value (if omitted, it defaults to `0` /
+`NULL`).
 
 Each field is optional: It does not have to appear in the wire
 representation, and you can choose to omit fields for each individual
@@ -68,7 +69,8 @@ and backwards compatibility. Note that:
 -   You may change field names and table names, if you're ok with your
     code breaking until you've renamed them there too.
 
-
+See "Schema evolution examples" below for more on this
+topic.
 
 ### Structs
 
@@ -84,13 +86,13 @@ parent object, and use no virtual table).
 
 Built-in scalar types are:
 
--   8 bit: `byte ubyte bool`
+-   8 bit: `byte`, `ubyte`, `bool`
 
--   16 bit: `short ushort`
+-   16 bit: `short`, `ushort`
 
--   32 bit: `int uint float`
+-   32 bit: `int`, `uint`, `float`
 
--   64 bit: `long ulong double`
+-   64 bit: `long`, `ulong`, `double`
 
 Built-in non-scalar types:
 
@@ -110,18 +112,20 @@ high bit yet.
 
 ### (Default) Values
 
-Values are a sequence of digits, optionally followed by a `.` and more digits
-for float constants, and optionally prefixed by a `-`. Floats may end with an
-`e` or `E`, followed by a `+` or `-` and more digits (scientific notation).
+Values are a sequence of digits. Values may be optionally followed by a decimal
+point (`.`) and more digits, for float constants, or optionally prefixed by
+a `-`. Floats may also be in scientific notation; optionally ending with an `e`
+or `E`, followed by a `+` or `-` and more digits.
 
 Only scalar values can have defaults, non-scalar (string/vector/table) fields
-default to NULL when not present.
+default to `NULL` when not present.
 
 You generally do not want to change default values after they're initially
 defined. Fields that have the default value are not actually stored in the
-serialized data but are generated in code, so when you change the default, you'd
+serialized data (see also Gotchas below) but are generated in code,
+so when you change the default, you'd
 now get a different value than from code generated from an older version of
-the schema. There are situations however where this may be
+the schema. There are situations, however, where this may be
 desirable, especially if you can ensure a simultaneous rebuild of
 all code.
 
@@ -133,11 +137,15 @@ is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
 the type of any fields declared with this enum type.
 
+Typically, enum values should only ever be added, never removed (there is no
+deprecation for enums). This requires code to handle forwards compatibility
+itself, by handling unknown enum values.
+
 ### Unions
 
 Unions share a lot of properties with enums, but instead of new names
 for constants, you use names of tables. You can then declare
-a union field which can hold a reference to any of those types, and
+a union field, which can hold a reference to any of those types, and
 additionally a hidden field with the suffix `_type` is generated that
 holds the corresponding enum value, allowing you to know which type to
 cast to at runtime.
@@ -173,7 +181,7 @@ included files (those you still generate separately).
 ### Root type
 
 This declares what you consider to be the root table (or struct) of the
-serialized data. This is particular important for parsing JSON data,
+serialized data. This is particularly important for parsing JSON data,
 which doesn't include object type information.
 
 ### File identification and extension
@@ -217,6 +225,21 @@ This declaration in the schema will change that to whatever you want:
 
     file_extension "ext";
 
+### RPC interface declarations
+
+You can declare RPC calls in a schema, that define a set of functions
+that take a FlatBuffer as an argument (the request) and return a FlatBuffer
+as the response (both of which must be table types):
+
+    rpc_service MonsterStorage {
+      Store(Monster):StoreResponse;
+      Retrieve(MonsterId):Monster;
+    }
+
+What code this produces and how it is used depends on language and RPC system
+used, there is preliminary support for GRPC through the `--grpc` code generator,
+see `grpc/tests` for an example.
+
 ### Comments & documentation
 
 May be written as in most C-based languages. Additionally, a triple
@@ -229,7 +252,7 @@ in the corresponding C++ code. Multiple such lines per item are allowed.
 
 Attributes may be attached to a declaration, behind a field, or after
 the name of a table/struct/enum/union. These may either have a value or
-not. Some attributes like `deprecated` are understood by the compiler,
+not. Some attributes like `deprecated` are understood by the compiler;
 user defined ones need to be declared with the attribute declaration
 (like `priority` in the example above), and are
 available to query if you parse the schema at runtime.
@@ -249,7 +272,7 @@ Current understood attributes:
     the union field should have id 8, and the unions type field will
     implicitly be 7.
     IDs allow the fields to be placed in any order in the schema.
-    When a new field is added to the schema is must use the next available ID.
+    When a new field is added to the schema it must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `required` (on a non-scalar table field): this field must always be set.
@@ -308,6 +331,13 @@ JSON:
     you do when serializing from code. E.g. for a field `foo`, you must
     add a field `foo_type: FooOne` right before the `foo` field, where
     `FooOne` would be the table out of the union you want to use.
+-   A field that has the value `null` (e.g. `field: null`) is intended to
+    have the default value for that field (thus has the same effect as if
+    that field wasn't specified at all).
+-   It has some built in conversion functions, so you can write for example
+    `rad(180)` where ever you'd normally write `3.14159`.
+    Currently supports the following functions: `rad`, `deg`, `cos`, `sin`,
+    `tan`, `acos`, `asin`, `atan`.
 
 When parsing JSON, it recognizes the following escape codes in strings:
 
@@ -351,3 +381,92 @@ the world. If this is not practical for you, use explicit field ids, which
 should always generate a merge conflict if two people try to allocate the same
 id.
 
+### Schema evolution examples
+
+Some examples to clarify what happens as you change a schema:
+
+If we have the following original schema:
+
+    table { a:int; b:int; }
+
+And we extend it:
+
+    table { a:int; b:int; c:int; }
+
+This is ok. Code compiled with the old schema reading data generated with the
+new one will simply ignore the presence of the new field. Code compiled with the
+new schema reading old data will get the default value for `c` (which is 0
+in this case, since it is not specified).
+
+    table { a:int (deprecated); b:int; }
+
+This is also ok. Code compiled with the old schema reading newer data will now
+always get the default value for `a` since it is not present. Code compiled
+with the new schema now cannot read nor write `a` anymore (any existing code
+that tries to do so will result in compile errors), but can still read
+old data (they will ignore the field).
+
+    table { c:int a:int; b:int; }
+
+This is NOT ok, as this makes the schemas incompatible. Old code reading newer
+data will interpret `c` as if it was `a`, and new code reading old data
+accessing `a` will instead receive `b`.
+
+    table { c:int (id: 2); a:int (id: 0); b:int (id: 1); }
+
+This is ok. If your intent was to order/group fields in a way that makes sense
+semantically, you can do so using explicit id assignment. Now we are compatible
+with the original schema, and the fields can be ordered in any way, as long as
+we keep the sequence of ids.
+
+    table { b:int; }
+
+NOT ok. We can only remove a field by deprecation, regardless of wether we use
+explicit ids or not.
+
+    table { a:uint; b:uint; }
+
+This is MAYBE ok, and only in the case where the type change is the same size,
+like here. If old data never contained any negative numbers, this will be
+safe to do.
+
+    table { a:int = 1; b:int = 2; }
+
+Generally NOT ok. Any older data written that had 0 values were not written to
+the buffer, and rely on the default value to be recreated. These will now have
+those values appear to `1` and `2` instead. There may be cases in which this
+is ok, but care must be taken.
+
+    table { aa:int; bb:int; }
+
+Occasionally ok. You've renamed fields, which will break all code (and JSON
+files!) that use this schema, but as long as the change is obvious, this is not
+incompatible with the actual binary buffers, since those only ever address
+fields by id/offset.
+<br>
+
+### Testing whether a field is present in a table
+
+Most serialization formats (e.g. JSON or Protocol Buffers) make it very
+explicit in the format whether a field is present in an object or not,
+allowing you to use this as "extra" information.
+
+In FlatBuffers, this also holds for everything except scalar values.
+
+FlatBuffers by default will not write fields that are equal to the default
+value (for scalars), sometimes resulting in a significant space savings.
+
+However, this also means testing whether a field is "present" is somewhat
+meaningless, since it does not tell you if the field was actually written by
+calling `add_field` style calls, unless you're only interested in this
+information for non-default values.
+
+Some `FlatBufferBuilder` implementations have an option called `force_defaults`
+that circumvents this behavior, and writes fields even if they are equal to
+the default. You can then use `IsFieldPresent` to query this.
+
+Another option that works in all languages is to wrap a scalar field in a
+struct. This way it will return null if it is not present. The cool thing
+is that structs don't take up any more space than the scalar they represent.
+
+   [Interface Definition Language]: https://en.wikipedia.org/wiki/Interface_description_language

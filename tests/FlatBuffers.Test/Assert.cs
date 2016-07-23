@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,6 +104,14 @@ namespace FlatBuffers.Test
             if (!value)
             {
                 throw new AssertFailedException(true, value);
+            }
+        }
+
+        public static void IsFalse(bool value)
+        {
+            if (value)
+            {
+                throw new AssertFailedException(false, value);
             }
         }
 
