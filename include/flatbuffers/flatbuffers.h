@@ -80,7 +80,7 @@
     #if defined(_M_PPC)
       #define FLATBUFFERS_LITTLEENDIAN 0
     #else
-      #define FLATBUFFERS_LITTLEENDIAN 1
+    #define FLATBUFFERS_LITTLEENDIAN 1
     #endif
   #else
     #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
@@ -183,7 +183,7 @@ template<typename T> T EndianScalar(T t) {
       #pragma pop_macro("__builtin_bswap16")
       #pragma pop_macro("__builtin_bswap32")
       #pragma pop_macro("__builtin_bswap64")
-    #endif
+  #endif
   #endif
 }
 
@@ -202,8 +202,8 @@ template<typename T> size_t AlignOf() {
     #ifndef alignof
       return __alignof__(T);
     #else
-      return alignof(T);
-    #endif
+    return alignof(T);
+  #endif
   #endif
 }
 
@@ -1071,10 +1071,10 @@ FLATBUFFERS_FINAL_CLASS
   struct TableKeyComparator {
   TableKeyComparator(vector_downward& buf) : buf_(buf) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
-      auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
-      auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
-      return table_a->KeyCompareLessThan(table_b);
-    }
+        auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
+        auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
+        return table_a->KeyCompareLessThan(table_b);
+      }
     vector_downward& buf_;
 
   private:
@@ -1104,7 +1104,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
-      std::vector<Offset<T>> *v) {
+                                                    std::vector<Offset<T>> *v) {
     return CreateVectorOfSortedTables(v->data(), v->size());
   }
 
@@ -1135,7 +1135,7 @@ FLATBUFFERS_FINAL_CLASS
   /// written to at a later time to serialize the data into a `vector`
   /// in the buffer.
   template<typename T> Offset<Vector<T>> CreateUninitializedVector(
-      size_t len, T **buf) {
+                                                    size_t len, T **buf) {
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
   }
