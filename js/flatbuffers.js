@@ -2,6 +2,10 @@
 /// @addtogroup flatbuffers_javascript_api
 /// @{
 /// @cond FLATBUFFERS_INTERNAL
+/**
+ * @const
+ * @namespace
+ */
 var flatbuffers = {};
 
 /**

@@ -193,9 +193,11 @@ class GeneralGenerator : public BaseGenerator {
  public:
   GeneralGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."){
-      assert(parser_.opts.lang <= IDLOptions::kMAX);
+      : BaseGenerator(parser, path, file_name, "", "."),
+        lang_(language_parameters[parser_.opts.lang]) {
+    assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
+  GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
 
@@ -234,7 +236,7 @@ class GeneralGenerator : public BaseGenerator {
 
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
-  bool SaveType(const std::string &defname, const Namespace &ns, 
+  bool SaveType(const std::string &defname, const Namespace &ns,
   	  const std::string &classcode, bool needs_includes) {
     if (!classcode.length()) return true;
 
@@ -544,7 +546,7 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
     // "too sparse". Change at will.
     static const int kMaxSparseness = 5;
     if (range / static_cast<int64_t>(enum_def.vals.vec.size()) < kMaxSparseness) {
-      code += "\n  private static";
+      code += "\n  public static";
       code += lang_.const_decl;
       code += lang_.string_type;
       code += "[] names = { ";
@@ -567,7 +569,10 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
   }
 
   // Close the class
-  code += "};\n\n";
+  code += "}";
+  // Java does not need the closing semi-colon on class definitions.
+  code += (lang_.language != IDLOptions::kJava) ? ";" : "";
+  code += "\n\n";
 }
 
 // Returns the function name that is able to read a value of the given type.
@@ -1125,9 +1130,12 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  code += "};\n\n";
-}  
-    const LanguageParameters & lang_ = language_parameters[parser_.opts.lang];
+  code += "}";
+  // Java does not need the closing semi-colon on class definitions.
+  code += (lang_.language != IDLOptions::kJava) ? ";" : "";
+  code += "\n\n";
+}
+    const LanguageParameters & lang_;
 };
 }  // namespace general
 

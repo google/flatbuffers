@@ -29,5 +29,5 @@ public final class TableInNestedNS extends Table {
     int o = builder.endObject();
     return o;
   }
-};
+}
 

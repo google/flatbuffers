@@ -2093,4 +2093,57 @@ flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
   }
 }
 
+std::string Parser::ConformTo(const Parser &base) {
+  for (auto sit = structs_.vec.begin(); sit != structs_.vec.end(); ++sit) {
+    auto &struct_def = **sit;
+    auto qualified_name =
+        struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
+    auto struct_def_base = base.structs_.Lookup(qualified_name);
+    if (!struct_def_base) continue;
+    for (auto fit = struct_def.fields.vec.begin();
+             fit != struct_def.fields.vec.end(); ++fit) {
+      auto &field = **fit;
+      auto field_base = struct_def_base->fields.Lookup(field.name);
+      if (field_base) {
+        if (field.value.offset != field_base->value.offset)
+          return "offsets differ for field: " + field.name;
+        if (field.value.constant != field_base->value.constant)
+          return "defaults differ for field: " + field.name;
+        if (!EqualByName(field.value.type, field_base->value.type))
+          return "types differ for field: " + field.name;
+      } else {
+        // Doesn't have to exist, deleting fields is fine.
+        // But we should check if there is a field that has the same offset
+        // but is incompatible (in the case of field renaming).
+        for (auto fbit = struct_def_base->fields.vec.begin();
+                 fbit != struct_def_base->fields.vec.end(); ++fbit) {
+          field_base = *fbit;
+          if (field.value.offset == field_base->value.offset) {
+            if (!EqualByName(field.value.type, field_base->value.type))
+              return "field renamed to different type: " + field.name;
+            break;
+          }
+        }
+      }
+    }
+  }
+  for (auto eit = enums_.vec.begin(); eit != enums_.vec.end(); ++eit) {
+    auto &enum_def = **eit;
+    auto qualified_name =
+        enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
+    auto enum_def_base = base.enums_.Lookup(qualified_name);
+    if (!enum_def_base) continue;
+    for (auto evit = enum_def.vals.vec.begin();
+             evit != enum_def.vals.vec.end(); ++evit) {
+      auto &enum_val = **evit;
+      auto enum_val_base = enum_def_base->vals.Lookup(enum_val.name);
+      if (enum_val_base) {
+        if (enum_val.value != enum_val_base->value)
+          return "values differ for enum: " + enum_val.name;
+      }
+    }
+  }
+  return "";
+}
+
 }  // namespace flatbuffers

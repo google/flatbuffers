@@ -727,8 +727,8 @@ offsets.
   // Place the two weapons into an array, and pass it to the `createWeaponsVector()` method to
   // create a FlatBuffer vector.
   int[] weaps = new int[2];
-  weaps[1] = sword;
-  weaps[2] = axe;
+  weaps[0] = sword;
+  weaps[1] = axe;
 
   // Pass the `weaps` array into the `createWeaponsVector()` method to create a FlatBuffer vector.
   int weapons = Monster.createWeaponsVector(builder, weaps);
@@ -1881,6 +1881,9 @@ One way to solve this is to call `ForceDefaults` on a FlatBufferBuilder to
 force all fields you set to actually be written. This, of course, increases the
 size of the buffer somewhat, but this may be acceptable for a mutable buffer.
 
+If this is not sufficient, other ways of mutating FlatBuffers may be supported
+in your language through an object based API (`--gen-object-api`) or reflection.
+See the individual language documents for support.
 
 ## JSON with FlatBuffers
 
