@@ -955,7 +955,6 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
   }
   code += "\n";
-  flatbuffers::FieldDef *key_field = nullptr;
   if (struct_def.fixed) {
     // create a struct constructor function
     code += "  public static " + GenOffsetType(struct_def) + " ";
@@ -1043,7 +1042,6 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.key) key_field = &field;
       if (field.deprecated) continue;
       code += "  public static void " + FunctionStart('A') + "dd";
       code += MakeCamel(field.name);
@@ -1126,70 +1124,6 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         code += ", \"" + parser_.file_identifier_ + "\"";
       code += "); }\n";
     }
-  }
-  if (struct_def.has_key) {
-    std::string key_name = lang_.language == IDLOptions::kCSharp ? MakeCamel(key_field->name) : key_field->name + "()";
-    std::string key_type = GenTypeGet(key_field->value.type);
-
-    code += "\n  public int " + FunctionStart('K') + "eyCompareLessThan(" + struct_def.name + " o) ";
-    if (key_field->value.type.base_type != BASE_TYPE_STRING) {
-      code += "{\n    if (" + key_name + " < o." + key_name + ") return -1;\n";
-      code += "    else if (" + key_name + " == o." + key_name + ") return 0;\n";
-      code += "    else return 1;\n  }\n";
-    }
-    else {
-      code += "{ return " + key_name + "." + FunctionStart('C') + "ompareTo(o." + key_name + "); }\n";
-    }
-
-    code += "  public int " + FunctionStart('K') + "eyCompareWithValue(" + key_type + " val) ";
-    if (key_field->value.type.base_type != BASE_TYPE_STRING) {
-      code += "{\n    if (" + key_name + " < val) return -1;\n";
-      code += "    else if (" + key_name + " == val) return 0;\n";
-      code += "    else return 1;\n  }\n";
-    }
-    else {
-      code += "{ return " + key_name + "." + FunctionStart('C') + "ompareTo(val); }\n";
-    }
-
-    code += "\n  public static " + struct_def.name + "[] " + FunctionStart('C') + "reateMyTableVector(";
-    code += (lang_.language == IDLOptions::kCSharp ? "Offset<" + struct_def.name + ">" : "int") + "[] offsets, ByteBuffer bb) {\n";
-    code += "    " + struct_def.name + "[] tables = new " + struct_def.name + "[offsets." + FunctionStart('L') + "ength];\n";
-    code += "    for (int i = 0; i < offsets." + FunctionStart('L') + "ength; i++)\n    {\n";
-    code += "      tables[i] = new " + struct_def.name + "().__init(bb." + (lang_.language == IDLOptions::kCSharp ? "" : "array().");
-    code += FunctionStart('L') + "ength - offsets[i]" + (lang_.language == IDLOptions::kCSharp ? ".Value" : "") + ", bb);\n";
-    code += "    }\n    Array";
-    code += lang_.language == IDLOptions::kCSharp ? "." : "s.";
-    code += FunctionStart('S') + "ort(tables, (" + struct_def.name + " first, " + struct_def.name + " second) ";
-    code += lang_.language == IDLOptions::kCSharp ? "=>" : "->";
-    code += " first." + FunctionStart('K') + "eyCompareLessThan(second));\n";
-    code += "    return tables;\n  }\n";
-
-    code += "\n  public static " + struct_def.name + " " + FunctionStart('L') + "ookupByKey(" + struct_def.name;
-    code += "[] tables, " + key_type + " key) {\n";
-    code += "    int span = tables." + FunctionStart('L') + "ength;\n";
-    code += "    int start = 0;\n\n";
-    code += "    while (span != 0)\n";
-    code += "    {\n";
-    code += "      int middle = span / 2;\n";
-    code += "      " + struct_def.name + " table = tables[start + middle];\n";
-    code += "      int comp = table." + FunctionStart('K') + "eyCompareWithValue(key);\n\n";
-    code += "      if (comp > 0)\n";
-    code += "      {\n";
-    code += "        span = middle;\n";
-    code += "      }\n";
-    code += "      else if (comp < 0)\n";
-    code += "      {\n";
-    code += "        middle++;\n";
-    code += "        start += middle;\n";
-    code += "        span -= middle;\n";
-    code += "      }\n";
-    code += "      else\n";
-    code += "      {\n";
-    code += "        return table;\n";
-    code += "      }\n";
-    code += "    }\n";
-    code += "    return null;\n";
-    code += "  }\n";
   }
   code += "};\n\n";
 }  
