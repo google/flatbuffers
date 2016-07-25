@@ -356,7 +356,8 @@ public:
   void MutateOffset(uoffset_t i, const uint8_t *val) {
     assert(i < size());
     assert(sizeof(T) == sizeof(uoffset_t));
-    WriteScalar(data() + i, val - (Data() + i * sizeof(uoffset_t)));
+    WriteScalar(data() + i,
+                static_cast<uoffset_t>(val - (Data() + i * sizeof(uoffset_t))));
   }
 
   // Get a mutable pointer to tables/strings inside this vector.
@@ -1495,7 +1496,8 @@ class Table {
   bool SetPointer(voffset_t field, const uint8_t *val) {
     auto field_offset = GetOptionalFieldOffset(field);
     if (!field_offset) return false;
-    WriteScalar(data_ + field_offset, val - (data_ + field_offset));
+    WriteScalar(data_ + field_offset,
+                static_cast<uoffset_t>(val - (data_ + field_offset)));
     return true;
   }
 
