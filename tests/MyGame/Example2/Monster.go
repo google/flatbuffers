@@ -9,6 +9,13 @@ type Monster struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Monster{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
