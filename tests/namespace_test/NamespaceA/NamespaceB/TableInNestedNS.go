@@ -9,6 +9,13 @@ type TableInNestedNS struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInNestedNS {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TableInNestedNS{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *TableInNestedNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

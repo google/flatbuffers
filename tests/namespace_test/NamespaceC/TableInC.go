@@ -9,6 +9,13 @@ type TableInC struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsTableInC(buf []byte, offset flatbuffers.UOffsetT) *TableInC {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TableInC{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *TableInC) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
