@@ -2,17 +2,20 @@
 
 /**
  * @const
-*/
+ * @namespace
+ */
 var NamespaceA = NamespaceA || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 NamespaceA.NamespaceB = NamespaceA.NamespaceB || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 var NamespaceC = NamespaceC || {};
 
 /**

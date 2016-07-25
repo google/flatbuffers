@@ -2,22 +2,26 @@
 
 /**
  * @const
-*/
+ * @namespace
+ */
 var MyGame = MyGame || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 MyGame.Example = MyGame.Example || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 MyGame.Example2 = MyGame.Example2 || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
 
 /**
