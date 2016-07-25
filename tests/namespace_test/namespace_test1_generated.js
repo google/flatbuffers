@@ -65,6 +65,21 @@ NamespaceA.NamespaceB.TableInNestedNS.prototype.foo = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+NamespaceA.NamespaceB.TableInNestedNS.prototype.mutate_foo = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 NamespaceA.NamespaceB.TableInNestedNS.startTableInNestedNS = function(builder) {
@@ -122,11 +137,41 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.a = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_a = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 0)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
+
+/**
  * @returns {number}
  */
 NamespaceA.NamespaceB.StructInNestedNS.prototype.b = function() {
   return this.bb.readInt32(this.bb_pos + 4);
 };
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_b = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
 
 /**
  * @param {flatbuffers.Builder} builder

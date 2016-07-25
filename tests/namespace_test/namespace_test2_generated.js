@@ -71,6 +71,21 @@ NamespaceA.TableInFirstNS.prototype.fooEnum = function() {
 };
 
 /**
+ * @param {NamespaceA.NamespaceB.EnumInNestedNS} value
+ * @returns {boolean}
+ */
+NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+}
+
+/**
  * @param {NamespaceA.NamespaceB.StructInNestedNS=} obj
  * @returns {NamespaceA.NamespaceB.StructInNestedNS}
  */
