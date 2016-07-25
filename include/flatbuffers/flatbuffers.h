@@ -24,12 +24,19 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <utility>
 #include <type_traits>
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <functional>
 #include <memory>
+
+#ifdef _STLPORT_VERSION
+  #define FLATBUFFERS_CPP98_STL
+#endif
+#ifndef FLATBUFFERS_CPP98_STL
+  #include <functional>
+#endif
 
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
@@ -123,9 +130,11 @@ typedef uintmax_t largest_scalar_t;
 // In 32bits, this evaluates to 2GB - 1
 #define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(soffset_t) * 8 - 1)) - 1)
 
+#ifndef FLATBUFFERS_CPP98_STL
 // Pointer to relinquished memory.
 typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
           unique_ptr_t;
+#endif
 
 // Wrapper for uoffset_t to allow safe template specialization.
 template<typename T> struct Offset {
@@ -234,23 +243,19 @@ template<typename T> struct IndirectHelper<const T *> {
 
 // An STL compatible iterator implementation for Vector below, effectively
 // calling Get() for every element.
-template<typename T, bool bConst>
-struct VectorIterator : public
-  std::iterator < std::input_iterator_tag,
-  typename std::conditional < bConst,
-  const typename IndirectHelper<T>::return_type,
-  typename IndirectHelper<T>::return_type > ::type, uoffset_t > {
+template<typename T, typename IT>
+struct VectorIterator
+    : public std::iterator<std::input_iterator_tag, IT, uoffset_t> {
 
-  typedef std::iterator<std::input_iterator_tag,
-    typename std::conditional<bConst,
-    const typename IndirectHelper<T>::return_type,
-    typename IndirectHelper<T>::return_type>::type, uoffset_t> super_type;
+  typedef std::iterator<std::input_iterator_tag, IT, uoffset_t> super_type;
 
 public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
       data_(data + IndirectHelper<T>::element_stride * i) {};
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
+  #ifndef FLATBUFFERS_CPP98_STL
   VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
+  #endif
 
   VectorIterator &operator=(const VectorIterator &other) {
     data_ = other.data_;
@@ -288,7 +293,7 @@ public:
   }
 
   VectorIterator operator++(int) {
-    VectorIterator temp(data_);
+    VectorIterator temp(data_,0);
     data_ += IndirectHelper<T>::element_stride;
     return temp;
   }
@@ -301,8 +306,10 @@ private:
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
 public:
-  typedef VectorIterator<T, false> iterator;
-  typedef VectorIterator<T, true> const_iterator;
+  typedef VectorIterator<T, typename IndirectHelper<T>::mutable_return_type>
+    iterator;
+  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
+    const_iterator;
 
   uoffset_t size() const { return EndianScalar(length_); }
 
@@ -471,6 +478,7 @@ class vector_downward {
     cur_ = buf_ + reserved_;
   }
 
+  #ifndef FLATBUFFERS_CPP98_STL
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
     // Actually deallocate from the start of the allocated memory.
@@ -486,6 +494,7 @@ class vector_downward {
 
     return retval;
   }
+  #endif
 
   size_t growth_policy(size_t bytes) {
     return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
@@ -562,6 +571,10 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
 inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }
+
+template <typename T> const T* data(const std::vector<T> &v) {
+  return v.empty() ? nullptr : &v.front();
+}
 /// @endcond
 
 /// @addtogroup flatbuffers_cpp_api
@@ -627,6 +640,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
+  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Get the released pointer to the serialized buffer.
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
   /// @return The `unique_ptr` returned has a special allocator that knows how
@@ -637,6 +651,7 @@ FLATBUFFERS_FINAL_CLASS
     Finished();
     return buf_.release();
   }
+  #endif
 
   /// @cond FLATBUFFERS_INTERNAL
   void Finished() const {
@@ -674,11 +689,13 @@ FLATBUFFERS_FINAL_CLASS
   void PopBytes(size_t amount) { buf_.pop(amount); }
 
   template<typename T> void AssertScalarT() {
+    #ifndef FLATBUFFERS_CPP98_STL
     // The code assumes power of 2 sizes and endian-swap-ability.
     static_assert(std::is_scalar<T>::value
         // The Offset<T> type is essentially a scalar but fails is_scalar.
         || sizeof(T) == sizeof(Offset<void>),
            "T must be a scalar type");
+    #endif
   }
 
   // Write a single aligned scalar to the buffer
@@ -876,7 +893,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateString(const String *str) {
-    return CreateString(str->c_str(), str->Length());
+    return str ? CreateString(str->c_str(), str->Length()) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -981,9 +998,21 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(const std::vector<T> &v) {
-    return CreateVector(v.data(), v.size());
+    return CreateVector(data(v), v.size());
   }
 
+  // vector<bool> may be implemented using a bit-set, so we can't access it as
+  // an array. Instead, read elements manually.
+  // Background: https://isocpp.org/blog/2012/11/on-vectorbool
+  Offset<Vector<uint8_t>> CreateVector(const std::vector<bool> &v) {
+    StartVector(v.size(), sizeof(uint8_t));
+    for (auto i = v.size(); i > 0; ) {
+      PushElement(static_cast<uint8_t>(v[--i]));
+    }
+    return Offset<Vector<uint8_t>>(EndVector(v.size()));
+  }
+
+  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you.
   /// @tparam T The data type of the `std::vector` elements.
@@ -995,8 +1024,9 @@ FLATBUFFERS_FINAL_CLASS
       const std::function<T (size_t i)> &f) {
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
-    return CreateVector(elems.data(), elems.size());
+    return CreateVector(elems);
   }
+  #endif
 
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
   /// This is a convenience function for a common case.
@@ -1008,7 +1038,7 @@ FLATBUFFERS_FINAL_CLASS
       const std::vector<std::string> &v) {
     std::vector<Offset<String>> offsets(v.size());
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
-    return CreateVector(offsets.data(), offsets.size());
+    return CreateVector(offsets);
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -1033,7 +1063,7 @@ FLATBUFFERS_FINAL_CLASS
   /// where the vector is stored.
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
       const std::vector<T> &v) {
-    return CreateVectorOfStructs(v.data(), v.size());
+    return CreateVectorOfStructs(data(v), v.size());
   }
 
   /// @cond FLATBUFFERS_INTERNAL
@@ -1216,6 +1246,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            size_t _max_tables = 1000000)
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      , upper_bound_(buf)
+    #endif
     {}
 
   // Central location where any verification failures register.
@@ -1223,11 +1256,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       assert(ok);
     #endif
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      if (!ok)
+        upper_bound_ = buf_;
+    #endif
     return ok;
   }
 
   // Verify any range within the buffer.
   bool Verify(const void *elem, size_t elem_len) const {
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      auto upper_bound = reinterpret_cast<const uint8_t *>(elem) + elem_len;
+      if (upper_bound_ < upper_bound)
+        upper_bound_ =  upper_bound;
+    #endif
     return Check(elem_len <= (size_t) (end_ - buf_) &&
                  elem >= buf_ &&
                  elem <= end_ - elem_len);
@@ -1302,11 +1344,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() {
+  template<typename T> bool VerifyBuffer(const char *identifier) {
+    if (identifier && (size_t(end_ - buf_) < 2 * sizeof(flatbuffers::uoffset_t) ||
+                       !BufferHasIdentifier(buf_, identifier))) {
+      return false;
+    }
+
     // Call T::Verify, which must be in the generated code for this type.
     return Verify<uoffset_t>(buf_) &&
       reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
-        Verify(*this);
+        Verify(*this)
+        #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+          && GetComputedSize()
+        #endif
+            ;
   }
 
   // Called at the start of a table to increase counters measuring data
@@ -1325,6 +1376,16 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+  // Returns the message size in bytes
+  size_t GetComputedSize() const {
+    uintptr_t size = upper_bound_ - buf_;
+    // Align the size to uoffset_t
+    size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
+    return (buf_  + size > end_) ?  0 : size;
+  }
+  #endif
+
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
@@ -1332,6 +1393,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_depth_;
   size_t num_tables_;
   size_t max_tables_;
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+  mutable const uint8_t *upper_bound_;
+  #endif
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around
@@ -1487,6 +1551,12 @@ class Table {
   Table(const Table &other);
 
   uint8_t data_[1];
+};
+
+// Base class for native objects (FlatBuffer data de-serialized into native
+// C++ data structures).
+// Contains no functionality, purely documentative.
+struct NativeTable {
 };
 
 // Helper function to test if a field is present, using any of the field

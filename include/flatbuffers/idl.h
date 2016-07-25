@@ -311,6 +311,14 @@ struct EnumDef : public Definition {
   Type underlying_type;
 };
 
+inline bool EqualByName(const Type &a, const Type &b) {
+  return a.base_type == b.base_type && a.element == b.element &&
+         (a.struct_def == b.struct_def ||
+          a.struct_def->name == b.struct_def->name) &&
+         (a.enum_def == b.enum_def ||
+          a.enum_def->name == b.enum_def->name);
+}
+
 struct RPCCall {
   std::string name;
   SymbolTable<Value> attributes;
@@ -338,7 +346,8 @@ struct IDLOptions {
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
   bool escape_proto_identifiers;
-  
+  bool generate_object_based_api;
+
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
 
@@ -358,6 +367,7 @@ struct IDLOptions {
       skip_unexpected_fields_in_json(false),
       generate_name_strings(false),
       escape_proto_identifiers(false),
+      generate_object_based_api(false),
       lang(IDLOptions::kJava) {}
 };
 
@@ -470,6 +480,10 @@ class Parser : public ParserState {
   // Fills builder_ with a binary version of the schema parsed.
   // See reflection/reflection.fbs
   void Serialize();
+
+  // Checks that the schema represented by this parser is a safe evolution
+  // of the schema provided. Returns non-empty error on any problems.
+  std::string ConformTo(const Parser &base);
 
   FLATBUFFERS_CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
 

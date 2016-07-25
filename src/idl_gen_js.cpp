@@ -110,7 +110,7 @@ class JsGenerator : public BaseGenerator {
   std::string &exports = *exports_ptr;
   for (auto it = sorted_namespaces.begin();
        it != sorted_namespaces.end(); it++) {
-    code += "/**\n * @const\n*/\n";
+    code += "/**\n * @const\n * @namespace\n */\n";
     if (it->find('.') == std::string::npos) {
       code += "var ";
       exports += "this." + *it + " = " + *it + ";\n";

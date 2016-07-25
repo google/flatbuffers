@@ -94,7 +94,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += Indent + Indent + "x = " + struct_def.name + "()\n";
   code += Indent + Indent + "x.Init(buf, n + offset)\n";
   code += Indent + Indent + "return x\n";
-  code += "\n\n";
+  code += "\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
@@ -478,13 +478,12 @@ static void GenTableBuilders(const StructDef &struct_def,
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
   BeginClass(struct_def, code_ptr);
-  if (&struct_def == root_struct_def) {
+  if (!struct_def.fixed) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
@@ -621,7 +620,7 @@ class PythonGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       std::string declcode;
-      GenStruct(struct_def, &declcode, parser_.root_struct_def_);
+      GenStruct(struct_def, &declcode);
       if (!SaveType(struct_def, declcode, true)) return false;
     }
     return true;

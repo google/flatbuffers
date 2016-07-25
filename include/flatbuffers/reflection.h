@@ -370,6 +370,7 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
                          uoffset_t elem_size, std::vector<uint8_t> *flatbuf,
                          const reflection::Object *root_table = nullptr);
 
+#ifndef FLATBUFFERS_CPP98_STL
 template <typename T>
 void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
                   const Vector<T> *vec, std::vector<uint8_t> *flatbuf,
@@ -391,6 +392,7 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
     }
   }
 }
+#endif
 
 // Adds any new data (in the form of a new FlatBuffer) to an existing
 // FlatBuffer. This can be used when any of the above methods are not

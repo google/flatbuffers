@@ -12,6 +12,6 @@
 :: See the License for the specific language governing permissions and
 :: limitations under the License.
 
-..\flatc.exe --cpp --java --csharp --go --binary --python --js --php --grpc --gen-mutable --no-includes monster_test.fbs monsterdata_test.json
+..\flatc.exe --cpp --java --csharp --go --binary --python --js --php --grpc --gen-mutable --gen-object-api --no-includes monster_test.fbs monsterdata_test.json
 ..\flatc.exe --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test\namespace_test1.fbs namespace_test\namespace_test2.fbs
 ..\flatc.exe --binary --schema monster_test.fbs
