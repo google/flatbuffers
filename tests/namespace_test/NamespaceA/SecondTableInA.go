@@ -9,6 +9,13 @@ type SecondTableInA struct {
 	_tab flatbuffers.Table
 }
 
+func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTableInA {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &SecondTableInA{}
+	x.Init(buf, n + offset)
+	return x
+}
+
 func (rcv *SecondTableInA) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

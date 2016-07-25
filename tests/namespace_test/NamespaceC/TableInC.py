@@ -7,6 +7,13 @@ import flatbuffers
 class TableInC(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def GetRootAsTableInC(cls, buf, offset):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = TableInC()
+        x.Init(buf, n + offset)
+        return x
+
     # TableInC
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
