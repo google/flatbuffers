@@ -151,39 +151,41 @@ inline void EndianCheck() {
   (void)endiantest;
 }
 
+template<typename T> T EndianSwap(T t) {
+  #if defined(_MSC_VER)
+    #pragma push_macro("__builtin_bswap16")
+    #pragma push_macro("__builtin_bswap32")
+    #pragma push_macro("__builtin_bswap64")
+    #define __builtin_bswap16 _byteswap_ushort
+    #define __builtin_bswap32 _byteswap_ulong
+    #define __builtin_bswap64 _byteswap_uint64
+  #endif
+  if (sizeof(T) == 1) {   // Compile-time if-then's.
+    return t;
+  } else if (sizeof(T) == 2) {
+    auto r = __builtin_bswap16(*reinterpret_cast<uint16_t *>(&t));
+    return *reinterpret_cast<T *>(&r);
+  } else if (sizeof(T) == 4) {
+    auto r = __builtin_bswap32(*reinterpret_cast<uint32_t *>(&t));
+    return *reinterpret_cast<T *>(&r);
+  } else if (sizeof(T) == 8) {
+    auto r = __builtin_bswap64(*reinterpret_cast<uint64_t *>(&t));
+    return *reinterpret_cast<T *>(&r);
+  } else {
+    assert(0);
+  }
+  #if defined(_MSC_VER)
+    #pragma pop_macro("__builtin_bswap16")
+    #pragma pop_macro("__builtin_bswap32")
+    #pragma pop_macro("__builtin_bswap64")
+  #endif
+}
+
 template<typename T> T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
   #else
-    #if defined(_MSC_VER)
-      #pragma push_macro("__builtin_bswap16")
-      #pragma push_macro("__builtin_bswap32")
-      #pragma push_macro("__builtin_bswap64")
-      #define __builtin_bswap16 _byteswap_ushort
-      #define __builtin_bswap32 _byteswap_ulong
-      #define __builtin_bswap64 _byteswap_uint64
-    #endif
-    // If you're on the few remaining big endian platforms, we make the bold
-    // assumption you're also on gcc/clang, and thus have bswap intrinsics:
-    if (sizeof(T) == 1) {   // Compile-time if-then's.
-      return t;
-    } else if (sizeof(T) == 2) {
-      auto r = __builtin_bswap16(*reinterpret_cast<uint16_t *>(&t));
-      return *reinterpret_cast<T *>(&r);
-    } else if (sizeof(T) == 4) {
-      auto r = __builtin_bswap32(*reinterpret_cast<uint32_t *>(&t));
-      return *reinterpret_cast<T *>(&r);
-    } else if (sizeof(T) == 8) {
-      auto r = __builtin_bswap64(*reinterpret_cast<uint64_t *>(&t));
-      return *reinterpret_cast<T *>(&r);
-    } else {
-      assert(0);
-    }
-    #if defined(_MSC_VER)
-      #pragma pop_macro("__builtin_bswap16")
-      #pragma pop_macro("__builtin_bswap32")
-      #pragma pop_macro("__builtin_bswap64")
-    #endif
+    return EndianSwap(t);
   #endif
 }
 
