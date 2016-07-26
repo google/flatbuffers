@@ -85,7 +85,33 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
 // End enum code.
 static void EndEnum(std::string *code_ptr) {
   std::string &code = *code_ptr;
-  code += ")\n";
+  code += ")\n\n";
+}
+
+// Begin enum name code.
+static void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "var EnumNames";
+  code += enum_def.name;
+  code += " = map[int]string{\n";
+}
+
+// A single enum name member.
+static void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
+                           std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "\t";
+  code += enum_def.name;
+  code += ev.name;
+  code += ":\"";
+  code += ev.name;
+  code += "\",\n";
+}
+
+// End enum name code.
+static void EndEnumNames(std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "}\n\n";
 }
 
 // Initialize a new struct or table from existing data.
@@ -597,6 +623,15 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     EnumMember(enum_def, ev, code_ptr);
   }
   EndEnum(code_ptr);
+
+  BeginEnumNames(enum_def, code_ptr);
+  for (auto it = enum_def.vals.vec.begin();
+       it != enum_def.vals.vec.end();
+       ++it) {
+    auto &ev = **it;
+    EnumNameMember(enum_def, ev, code_ptr);
+  }
+  EndEnumNames(code_ptr);
 }
 
 // Returns the function name that is able to read a value of the given type.
