@@ -100,6 +100,9 @@ func TestAll(t *testing.T) {
 	// Verify that vtables are deduplicated when written:
 	CheckVtableDeduplication(t.Fatalf)
 
+	// Verify the enum names
+	CheckEnumNames(t.Fatalf)
+
 	// Verify that the Go code used in FlatBuffers documentation passes
 	// some sanity checks:
 	CheckDocExample(generated, off, t.Fatalf)
@@ -1312,6 +1315,37 @@ func CheckFinishedBytesError(fail func(string, ...interface{})) {
 		}
 	}()
 	b.FinishedBytes()
+}
+
+// CheckEnumNames checks that the generated enum names are correct.
+func CheckEnumNames(fail func(string, ...interface{})) {
+	type testEnumNames struct {
+		EnumNames map[int]string
+		Expected  map[int]string
+	}
+	data := [...]testEnumNames{
+		{example.EnumNamesAny,
+			map[int]string{
+				example.AnyNONE:                    "NONE",
+				example.AnyMonster:                 "Monster",
+				example.AnyTestSimpleTableWithEnum: "TestSimpleTableWithEnum",
+			},
+		},
+		{example.EnumNamesColor,
+			map[int]string{
+				example.ColorRed:   "Red",
+				example.ColorGreen: "Green",
+				example.ColorBlue:  "Blue",
+			},
+		},
+	}
+	for _, t := range data {
+		for val, name := range t.Expected {
+			if name != t.EnumNames[val] {
+				fail("enum name is not equal")
+			}
+		}
+	}
 }
 
 // CheckDocExample checks that the code given in FlatBuffers documentation
