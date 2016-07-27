@@ -103,7 +103,7 @@ To use:
     cout << monsterobj->name;  // This is now a std::string!
     monsterobj->name = "Bob";  // Change the name.
     FlatBufferBuilder fbb;
-    monsterobj->Pack(fbb);     // Serialize into new buffer.
+    CreateMonster(fbb, monsterobj->get());     // Serialize into new buffer.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Reflection (& Resizing)
