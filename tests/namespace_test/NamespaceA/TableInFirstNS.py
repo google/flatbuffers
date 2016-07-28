@@ -7,6 +7,13 @@ import flatbuffers
 class TableInFirstNS(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def GetRootAsTableInFirstNS(cls, buf, offset):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = TableInFirstNS()
+        x.Init(buf, n + offset)
+        return x
+
     # TableInFirstNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

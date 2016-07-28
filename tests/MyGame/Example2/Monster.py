@@ -7,6 +7,13 @@ import flatbuffers
 class Monster(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def GetRootAsMonster(cls, buf, offset):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = Monster()
+        x.Init(buf, n + offset)
+        return x
+
     # Monster
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

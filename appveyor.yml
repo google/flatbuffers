@@ -1,0 +1,26 @@
+branches:
+  only:
+    - master
+
+os: Visual Studio 2015
+
+platform:
+  - x86
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+before_build:
+  - cmake -G"Visual Studio 10 2010"
+
+build:
+  project: ALL_BUILD.vcxproj
+
+#test_script:
+#  - Debug/flattests.exe
+
+#artifacts:
+#  - path: Release/flatc.exe
+#    name: flatc.exe
