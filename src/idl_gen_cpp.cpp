@@ -975,8 +975,10 @@ class CppGenerator : public BaseGenerator {
                   if (invector) {
                     return "*" + val;
                   } else {
-                    return "std::unique_ptr<" + type.struct_def->name +
-                           ">(new " + type.struct_def->name + "(*" + val + "))";
+                    return "std::unique_ptr<" +
+                           WrapInNameSpace (*type.struct_def) +
+                           ">(new " +
+                           WrapInNameSpace (*type.struct_def) + "(*" + val + "))";
                   }
                 } else {
                   return val + "->UnPack()";
