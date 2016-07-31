@@ -195,6 +195,8 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;
+      } else if (arg == "--no-union-value-namespacing") {
+        opts.union_value_namespacing = false;
       } else if(arg == "--gen-mutable") {
         opts.mutable_buffer = true;
       } else if(arg == "--gen-name-strings") {

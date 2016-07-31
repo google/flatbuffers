@@ -347,6 +347,7 @@ struct IDLOptions {
   bool generate_name_strings;
   bool escape_proto_identifiers;
   bool generate_object_based_api;
+  bool union_value_namespacing;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kMAX };
@@ -368,6 +369,7 @@ struct IDLOptions {
       generate_name_strings(false),
       escape_proto_identifiers(false),
       generate_object_based_api(false),
+      union_value_namespacing(true),
       lang(IDLOptions::kJava) {}
 };
 
