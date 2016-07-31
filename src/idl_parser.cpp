@@ -1216,10 +1216,12 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       EXPECT(kTokenIdentifier);
       if (is_union) {
         ECHECK(ParseNamespacing(&full_name, &value_name));
-        // Since we can't namespace the actual enum identifiers, turn
-        // namespace parts into part of the identifier.
-        value_name = full_name;
-        std::replace(value_name.begin(), value_name.end(), '.', '_');
+        if (opts.union_value_namespacing) {
+          // Since we can't namespace the actual enum identifiers, turn
+          // namespace parts into part of the identifier.
+          value_name = full_name;
+          std::replace(value_name.begin(), value_name.end(), '.', '_');
+        }
       }
       auto prevsize = enum_def.vals.vec.size();
       auto value = enum_def.vals.vec.size()
