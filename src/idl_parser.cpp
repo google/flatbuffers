@@ -61,6 +61,17 @@ static_assert(BASE_TYPE_UNION ==
 #define NEXT() ECHECK(Next())
 #define EXPECT(tok) ECHECK(Expect(tok))
 
+static bool ValidateUTF8(const std::string &str) {
+  const char *s = &str[0];
+  const char * const sEnd = s + str.length();
+  while (s < sEnd) {
+    if (FromUTF8(&s) < 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 CheckedError Parser::Error(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   #ifdef _WIN32
@@ -320,6 +331,9 @@ CheckedError Parser::Next() {
             "illegal Unicode sequence (unpaired high surrogate)");
         }
         cursor_++;
+        if (!opts.allow_non_utf8 && !ValidateUTF8(attribute_)) {
+          return Error("illegal UTF-8 sequence");
+        }
         token_ = kTokenStringConstant;
         return NoError();
       }
