@@ -978,15 +978,36 @@ void IntegerOutOfRangeTest() {
 
 void UnicodeTest() {
   flatbuffers::Parser parser;
+  // Without setting allow_non_utf8 = true, we treat \x sequences as byte sequences
+  // which are then validated as UTF-8.
   TEST_EQ(parser.Parse("table T { F:string; }"
                        "root_type T;"
                        "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\" }"), true);
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\xE2\\x82\\xAC\\u0080\\uD83D\\uDE0E\" }"),
+          true);
   std::string jsongen;
   parser.opts.indent_step = -1;
   GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(jsongen == "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-                     "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\"}", true);
+  TEST_EQ(jsongen,
+          std::string(
+            "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}"));
+}
+
+void UnicodeTestAllowNonUTF8() {
+  flatbuffers::Parser parser;
+  parser.opts.allow_non_utf8 = true;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"), true);
+  std::string jsongen;
+  parser.opts.indent_step = -1;
+  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(jsongen,
+          std::string(
+            "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u0001\\x80\\u0080\\uD83D\\uDE0E\"}"));
 }
 
 void UnicodeSurrogatesTest() {
@@ -1025,6 +1046,96 @@ void UnicodeInvalidSurrogatesTest() {
     "table T { F:string; }"
     "root_type T;"
     "{ F:\"\\uDC00\"}", "unpaired low surrogate");
+}
+
+void InvalidUTF8Test() {
+  // "1 byte" pattern, under min length of 2 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\x80\"}", "illegal UTF-8 sequence");
+  // 2 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xDF\"}", "illegal UTF-8 sequence");
+  // 3 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xEF\xBF\"}", "illegal UTF-8 sequence");
+  // 4 byte pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF7\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "5 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFB\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "6 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFD\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "7 byte" pattern, string too short
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFE\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "5 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFB\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "6 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFD\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+  // "7 byte" pattern, over max length of 4 bytes
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xFE\xBF\xBF\xBF\xBF\xBF\xBF\"}", "illegal UTF-8 sequence");
+
+  // Three invalid encodings for U+000A (\n, aka NEWLINE)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xC0\x8A\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xE0\x80\x8A\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x80\x80\x8A\"}", "illegal UTF-8 sequence");
+
+  // Two invalid encodings for U+00A9 (COPYRIGHT SYMBOL)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xE0\x81\xA9\"}", "illegal UTF-8 sequence");
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x80\x81\xA9\"}", "illegal UTF-8 sequence");
+
+  // Invalid encoding for U+20AC (EURO SYMBOL)
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    "{ F:\"\xF0\x82\x82\xAC\"}", "illegal UTF-8 sequence");
+
+  // UTF-16 surrogate values between U+D800 and U+DFFF cannot be encoded in UTF-8
+  TestError(
+    "table T { F:string; }"
+    "root_type T;"
+    // U+10400 "encoded" as U+D801 U+DC00
+    "{ F:\"\xED\xA0\x81\xED\xB0\x80\"}", "illegal UTF-8 sequence");
 }
 
 void UnknownFieldsTest() {
@@ -1105,8 +1216,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   EnumStringsTest();
   IntegerOutOfRangeTest();
   UnicodeTest();
+  UnicodeTestAllowNonUTF8();
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();
+  InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
