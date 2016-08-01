@@ -93,7 +93,7 @@ template<typename T> void PrintVector(const Vector<T> &v, Type type,
   text += "]";
 }
 
-static void EscapeString(const String &s, std::string *_text) {
+static void EscapeString(const String &s, std::string *_text, const IDLOptions& opts) {
   std::string &text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < s.size(); i++) {
@@ -113,17 +113,32 @@ static void EscapeString(const String &s, std::string *_text) {
           // Not printable ASCII data. Let's see if it's valid UTF-8 first:
           const char *utf8 = s.c_str() + i;
           int ucc = FromUTF8(&utf8);
-          if (ucc >= 0x80 && ucc <= 0xFFFF) {
-            // Parses as Unicode within JSON's \uXXXX range, so use that.
-            text += "\\u";
-            text += IntToStringHex(ucc, 4);
+          if (ucc < 0) {
+            if (opts.allow_non_utf8) {
+              text += "\\x";
+              text += IntToStringHex(static_cast<uint8_t>(c), 2);
+            } else {
+              // We previously checked for non-UTF-8 and returned a parse error,
+              // so we shouldn't reach here.
+              assert(0);
+            }
+          } else {
+            if (ucc <= 0xFFFF) {
+              // Parses as Unicode within JSON's \uXXXX range, so use that.
+              text += "\\u";
+              text += IntToStringHex(ucc, 4);
+            } else if (ucc <= 0x10FFFF) {
+              // Encode Unicode SMP values to a surrogate pair using two \u escapes.
+              uint32_t base = ucc - 0x10000;
+              uint16_t highSurrogate = (base >> 10) + 0xD800;
+              uint16_t lowSurrogate = (base & 0x03FF) + 0xDC00;
+              text += "\\u";
+              text += IntToStringHex(highSurrogate, 4);
+              text += "\\u";
+              text += IntToStringHex(lowSurrogate, 4);
+            }
             // Skip past characters recognized.
             i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
-          } else {
-            // It's either unprintable ASCII, arbitrary binary, or Unicode data
-            // that doesn't fit \uXXXX, so use \xXX escape code instead.
-            text += "\\x";
-            text += IntToStringHex(static_cast<uint8_t>(c), 2);
           }
         }
         break;
@@ -157,7 +172,7 @@ template<> void Print<const void *>(const void *val,
                 _text);
       break;
     case BASE_TYPE_STRING: {
-      EscapeString(*reinterpret_cast<const String *>(val), _text);
+      EscapeString(*reinterpret_cast<const String *>(val), _text, opts);
       break;
     }
     case BASE_TYPE_VECTOR:
