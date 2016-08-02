@@ -106,6 +106,9 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --version          Print the version number of flatc and exit.\n"
       "  --strict-json      Strict JSON: field names must be / will be quoted,\n"
       "                     no trailing commas in tables/vectors.\n"
+      "  --allow-non-utf8   Pass non-UTF-8 input through parser and emit nonstandard\n"
+      "                     \\x escapes in JSON. (Default is to raise parse error on\n"
+      "                     non-UTF-8 input.)\n"
       "  --defaults-json    Output fields whose value is the default when\n"
       "                     writing JSON\n"
       "  --unknown-json     Allow fields in JSON that are not defined in the\n"
@@ -184,6 +187,8 @@ int main(int argc, const char *argv[]) {
         conform_to_schema = argv[argi];
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
+      } else if(arg == "--allow-non-utf8") {
+        opts.allow_non_utf8 = true;
       } else if(arg == "--no-js-exports") {
         opts.skip_js_exports = true;
       } else if(arg == "--defaults-json") {
