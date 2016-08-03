@@ -51,6 +51,19 @@ class JavaTest {
         // better for performance.
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
 
+        int[] names = {fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma")};
+        int[] off = new int[3];
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[0]);
+        off[0] = Monster.endMonster(fbb);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[1]);
+        off[1] = Monster.endMonster(fbb);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[2]);
+        off[2] = Monster.endMonster(fbb);
+        int sortMons = fbb.createSortedTableVector(Monster.class, off);
+		
         // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
@@ -84,6 +97,7 @@ class JavaTest {
         Monster.addTestarrayofstring(fbb, testArrayOfString);
         Monster.addTestbool(fbb, false);
         Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
+        Monster.addTestarrayoftables(fbb, sortMons);
         int mon = Monster.endMonster(fbb);
 
         Monster.finishMonsterBuffer(fbb, mon);
@@ -121,6 +135,17 @@ class JavaTest {
         // the mana field should retain its default value
         TestEq(monster.mutateMana((short)10), false);
         TestEq(monster.mana(), (short)150);
+		
+		// Accessing a vector of sorted by the key tables
+        Monster[] monsters = { monster.testarrayoftables(0), monster.testarrayoftables(1), monster.testarrayoftables(2) };
+        TestEq(monster.testarrayoftables(0).name(), "Barney");
+        TestEq(monster.testarrayoftables(1).name(), "Frodo");
+        TestEq(monster.testarrayoftables(2).name(), "Wilma");
+		
+		// Example of searching for a table by the key
+        TestEq(Monster.lookupByKey(monsters, "Frodo").name(), "Frodo");
+        TestEq(Monster.lookupByKey(monsters, "Barney").name(), "Barney");
+        TestEq(Monster.lookupByKey(monsters, "Wilma").name(), "Wilma");
 
         // testType is an existing field and mutating it should succeed
         TestEq(monster.testType(), (byte)Any.Monster);

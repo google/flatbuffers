@@ -960,6 +960,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
   }
   code += "\n";
+  flatbuffers::FieldDef *key_field = nullptr;
   if (struct_def.fixed) {
     // create a struct constructor function
     code += "  public static " + GenOffsetType(struct_def) + " ";
@@ -1048,6 +1049,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
+      if (field.key) key_field = &field;
       code += "  public static void " + FunctionStart('A') + "dd";
       code += MakeCamel(field.name);
       code += "(FlatBufferBuilder builder, ";
@@ -1129,6 +1131,71 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         code += ", \"" + parser_.file_identifier_ + "\"";
       code += "); }\n";
     }
+  }
+  if (struct_def.has_key) {
+    bool is_string = key_field->value.type.base_type == BASE_TYPE_STRING;
+    std::string key_name = lang_.language == IDLOptions::kCSharp ? MakeCamel(key_field->name) : key_field->name + "()";
+    std::string key_type = GenTypeGet(key_field->value.type);
+    std::string key_offset = NumToString(key_field->value.offset);
+    std::string key_getter = is_string ? GenGetter(key_field->value.type) : GenGetter(key_field->value.type).substr(2);
+    std::string data_buffer = lang_.language == IDLOptions::kCSharp ? "builder.DataBuffer" : "bb";
+
+    code += "\n  public static int " + FunctionStart('K') + "eysCompare(" + key_type + " o1, " + key_type + " o2) ";
+    if (lang_.language == IDLOptions::kJava && !is_string) {
+      code += "{\n    if (o1 < o2) return -1;\n";
+      code += "    else if (o1 == o2) return 0;\n";
+      code += "    else return 1;\n  }\n";
+    }
+    else {
+      code += "{ return o1." + FunctionStart('C') + "ompareTo(o2); }\n";
+    }
+
+    code += "\n  public int " + FunctionStart('K') + "eyCompareWithValue(" + key_type + " val) ";
+    if (lang_.language == IDLOptions::kJava && !is_string) {
+      code += "{\n    if (" + key_name + " < val) return -1;\n";
+      code += "    else if (" + key_name + " == val) return 0;\n";
+      code += "    else return 1;\n  }\n";
+    }
+    else {
+      code += "{ return " + key_name + "." + FunctionStart('C') + "ompareTo(val); }\n";
+    }
+
+    code += "\n  public static ";
+    code += (lang_.language == IDLOptions::kCSharp ? "VectorOffset " : "int ") + FunctionStart('C') + "reateMySortedTableVector(FlatBufferBuilder builder, ";
+    code += (lang_.language == IDLOptions::kCSharp ? " Offset<" + struct_def.name + ">" : "ByteBuffer bb, int") + "[] off" + (lang_.language == IDLOptions::kCSharp ? "sets" : "") + ") {\n";
+    if (lang_.language == IDLOptions::kJava) {
+      code += "    Integer[] offsets = new Integer[off.length];\n";
+      code += "    for (int i = 0; i < off.length; i++) offsets[i] = off[i];\n";
+    }
+    code += "    Array";
+    code += (lang_.language == IDLOptions::kCSharp ? ".S" : "s.s");
+    code += "ort(offsets, (";
+    code += (lang_.language == IDLOptions::kCSharp ? "Offset<" + struct_def.name + "> o1, Offset<" + struct_def.name + "> o2) => " : "Integer o1, Integer o2) -> ");
+    code += FunctionStart('K') + "eysCompare(";
+    code += (is_string ? key_getter : data_buffer + key_getter) + "(__offset(" + key_offset + ", " + data_buffer + (lang_.language == IDLOptions::kCSharp ? ".Length - o1.Value" : ".array().length - o1");
+    code += ", " + data_buffer + ", true)" + (is_string ? ", " + data_buffer : "") + "),\n      ";
+    code += (is_string ? key_getter : data_buffer + key_getter) + "(__offset(" + key_offset + ", " + data_buffer + (lang_.language == IDLOptions::kCSharp ? ".Length - o2.Value" : ".array().length - o2");
+    code += ", " + data_buffer + ", true)" + (is_string ? ", " + data_buffer : "") + ")));\n";
+    if (lang_.language == IDLOptions::kJava) code += "    for (int i = 0; i < off.length; i++) off[i] = offsets[i];\n";
+    code += "    return builder." + FunctionStart('C') + "reateVectorOfTables(off" + (lang_.language == IDLOptions::kCSharp ? "sets" : "") + ");\n  }\n";
+
+    code += "\n  public static " + struct_def.name + " " + FunctionStart('L') + "ookupByKey(" + struct_def.name;
+    code += "[] tables, " + key_type + " key) {\n";
+    code += "    int span = tables." + FunctionStart('L') + "ength, start = 0;\n";
+    code += "    while (span != 0) {\n";
+    code += "      int middle = span / 2;\n";
+    code += "      " + struct_def.name + " table = tables[start + middle];\n";
+    code += "      int comp = table." + FunctionStart('K') + "eyCompareWithValue(key);\n";
+    code += "      if (comp > 0) span = middle;\n";
+    code += "      else if (comp < 0) {\n";
+    code += "        middle++;\n";
+    code += "        start += middle;\n";
+    code += "        span -= middle;\n";
+    code += "      }\n";
+    code += "      else return table;\n";
+    code += "    }\n";
+    code += "    return null;\n";
+    code += "  }\n";
   }
   code += "}";
   // Java does not need the closing semi-colon on class definitions.

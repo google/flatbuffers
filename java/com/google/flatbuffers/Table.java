@@ -56,9 +56,11 @@ public class Table {
    * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
    * @return Returns an offset into the object, or `0` if the field is not present.
    */
-  protected int __offset(int vtable_offset) {
-    int vtable = bb_pos - bb.getInt(bb_pos);
-    return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
+  protected int __offset(int vtable_offset) { return __offset(vtable_offset, bb_pos - bb.getInt(bb_pos), bb, false); }
+
+  protected static int __offset(int vtable_offset, int vtable, ByteBuffer _bb, boolean invoked_static) {
+    if (!invoked_static) return vtable_offset < _bb.getShort(vtable) ? _bb.getShort(vtable + vtable_offset) : 0;
+    else return _bb.getShort(vtable + vtable_offset - _bb.getInt(vtable)) + vtable;
   }
 
   /**
@@ -83,11 +85,15 @@ public class Table {
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
    */
   protected String __string(int offset) {
+    return __string(offset, bb);
+  }
+
+  protected static String __string(int offset, ByteBuffer _bb) {
     CharsetDecoder decoder = UTF8_DECODER.get();
     decoder.reset();
 
-    offset += bb.getInt(offset);
-    ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+    offset += _bb.getInt(offset);
+    ByteBuffer src = _bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int length = src.getInt(offset);
     src.position(offset + SIZEOF_INT);
     src.limit(offset + SIZEOF_INT + length);

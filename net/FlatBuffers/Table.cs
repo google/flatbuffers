@@ -31,10 +31,12 @@ namespace FlatBuffers
 
         // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
         // present.
-        protected int __offset(int vtableOffset)
+        protected int __offset(int vtableOffset) { return __offset(vtableOffset, bb_pos - bb.GetInt(bb_pos), bb, false); }
+
+        protected static int __offset(int vtableOffset, int vtable, ByteBuffer _bb, bool invoked_static)
         {
-            int vtable = bb_pos - bb.GetInt(bb_pos);
-            return vtableOffset < bb.GetShort(vtable) ? (int)bb.GetShort(vtable + vtableOffset) : 0;
+            if (!invoked_static) return vtableOffset < _bb.GetShort(vtable) ? (int)_bb.GetShort(vtable + vtableOffset) : 0;
+            else return (int)_bb.GetShort(vtable + vtableOffset - _bb.GetInt(vtable)) + vtable;
         }
 
         // Retrieve the relative offset stored at "offset"
@@ -44,12 +46,14 @@ namespace FlatBuffers
         }
 
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
-        protected string __string(int offset)
+        protected string __string(int offset) { return __string(offset, bb); }
+
+        protected static string __string(int offset, ByteBuffer _bb)
         {
-            offset += bb.GetInt(offset);
-            var len = bb.GetInt(offset);
+            offset += _bb.GetInt(offset);
+            var len = _bb.GetInt(offset);
             var startPos = offset + sizeof(int);
-            return Encoding.UTF8.GetString(bb.Data, startPos , len);
+            return Encoding.UTF8.GetString(_bb.Data, startPos, len);
         }
 
         // Get the length of a vector whose offset is stored at "offset" in this object.
