@@ -295,6 +295,18 @@ namespace FlatBuffers
             PutInt(_vectorNumElems);
             return new VectorOffset(Offset);
         }
+		
+        /// <summary>
+        /// Creates a vector of tables.
+        /// </summary>
+        /// <param name="offsets">Offsets of the tables.</param>
+        public VectorOffset CreateVectorOfTables<T>(Offset<T>[] offsets) where T : class
+        {
+            NotNested();
+            StartVector(sizeof(int), offsets.Length, sizeof(int));
+            for (int i = offsets.Length - 1; i >= 0; i--) AddOffset(offsets[i].Value);
+            return EndVector();
+        }
 
         /// @cond FLATBUFFERS_INTENRAL
         public void Nested(int obj)

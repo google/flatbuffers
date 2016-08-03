@@ -129,6 +129,33 @@ public sealed class Monster : Table {
     return new Offset<Monster>(o);
   }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }
+  
+  public static int KeysCompare(string o1, string o2) { return o1.CompareTo(o2); }
+
+  public int KeyCompareWithValue(string val) { return Name.CompareTo(val); }
+
+  public static VectorOffset CreateMySortedTableVector(FlatBufferBuilder builder,  Offset<Monster>[] offsets) {
+    Array.Sort(offsets, (Offset<Monster> o1, Offset<Monster> o2) => KeysCompare(__string(__offset(10, builder.DataBuffer.Length - o1.Value, builder.DataBuffer, true), builder.DataBuffer),
+      __string(__offset(10, builder.DataBuffer.Length - o2.Value, builder.DataBuffer, true), builder.DataBuffer)));
+    return builder.CreateVectorOfTables(offsets);
+  }
+
+  public static Monster LookupByKey(Monster[] tables, string key) {
+    int span = tables.Length, start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      Monster table = tables[start + middle];
+      int comp = table.KeyCompareWithValue(key);
+      if (comp > 0) span = middle;
+      else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      }
+      else return table;
+    }
+    return null;
+  }
 };
 
 
