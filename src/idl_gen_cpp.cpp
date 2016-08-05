@@ -85,7 +85,7 @@ class CppGenerator : public BaseGenerator {
       if (num_includes) code += "\n";
     }
 
-    assert(!cur_name_space_);
+    flatbuffers_assert(!cur_name_space_);
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -211,7 +211,7 @@ class CppGenerator : public BaseGenerator {
       code += "); }\n\n";
     }
 
-    assert(cur_name_space_);
+    flatbuffers_assert(cur_name_space_);
     SetNameSpace(nullptr, &code);
 
     // Close the include guard.
@@ -403,7 +403,7 @@ class CppGenerator : public BaseGenerator {
       anyv |= ev.value;
     }
     if (parser_.opts.scoped_enums || parser_.opts.prefixed_enums) {
-      assert(minv && maxv);
+      flatbuffers_assert(minv && maxv);
       if (enum_def.attributes.Lookup("bit_flags")) {
         if (minv->value != 0)  // If the user didn't defined NONE value
           code += "  " + GenEnumVal(enum_def, "NONE", parser_.opts) + " = 0,\n";
@@ -722,7 +722,7 @@ class CppGenerator : public BaseGenerator {
               parser_.namespaces_.back()->GetFullyQualifiedName(
                   nested->constant);
           auto nested_root = parser_.structs_.Lookup(qualified_name);
-          assert(nested_root);  // Guaranteed to exist by parser.
+          flatbuffers_assert(nested_root);  // Guaranteed to exist by parser.
           (void)nested_root;
           std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
 
@@ -1004,7 +1004,7 @@ class CppGenerator : public BaseGenerator {
             }
             case BASE_TYPE_UTYPE: {
               auto &union_field = **(it + 1);
-              assert(union_field.value.type.base_type == BASE_TYPE_UNION);
+              flatbuffers_assert(union_field.value.type.base_type == BASE_TYPE_UNION);
               code += prefix + deref + union_field.name + ".type = _e;";
               break;
             }
@@ -1114,7 +1114,7 @@ class CppGenerator : public BaseGenerator {
       for (int i = 0; i < 4; i++)
         if (static_cast<int>(field.padding) & (1 << i))
           f((1 << i) * 8, code, padding_id);
-      assert(!(field.padding & ~0xF));
+      flatbuffers_assert(!(field.padding & ~0xF));
     }
   }
 

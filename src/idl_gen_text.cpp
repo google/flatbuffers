@@ -120,7 +120,7 @@ static void EscapeString(const String &s, std::string *_text, const IDLOptions& 
             } else {
               // We previously checked for non-UTF-8 and returned a parse error,
               // so we shouldn't reach here.
-              assert(0);
+              flatbuffers_assert(0);
             }
           } else {
             if (ucc <= 0xFFFF) {
@@ -157,7 +157,7 @@ template<> void Print<const void *>(const void *val,
     case BASE_TYPE_UNION:
       // If this assert hits, you have an corrupt buffer, a union type field
       // was not present or was out of range.
-      assert(union_sd);
+      flatbuffers_assert(union_sd);
       GenStruct(*union_sd,
                 reinterpret_cast<const Table *>(val),
                 indent,
@@ -189,7 +189,7 @@ template<> void Print<const void *>(const void *val,
         #undef FLATBUFFERS_TD
       }
       break;
-    default: assert(0);
+    default: flatbuffers_assert(0);
   }
 }
 
@@ -212,7 +212,7 @@ static void GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
   const void *val = nullptr;
   if (fixed) {
     // The only non-scalar fields in structs are structs.
-    assert(IsStruct(fd.value.type));
+    flatbuffers_assert(IsStruct(fd.value.type));
     val = reinterpret_cast<const Struct *>(table)->
             GetStruct<const void *>(fd.value.offset);
   } else {
@@ -271,7 +271,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
         if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
           auto enum_val = fd.value.type.enum_def->ReverseLookup(
                                   table->GetField<uint8_t>(fd.value.offset, 0));
-          assert(enum_val);
+          flatbuffers_assert(enum_val);
           union_sd = enum_val->struct_def;
         }
       }
@@ -290,7 +290,7 @@ static void GenStruct(const StructDef &struct_def, const Table *table,
 void GenerateText(const Parser &parser, const void *flatbuffer,
                   std::string *_text) {
   std::string &text = *_text;
-  assert(parser.root_struct_def_);  // call SetRootType()
+  flatbuffers_assert(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);   // Reduce amount of inevitable reallocs.
   GenStruct(*parser.root_struct_def_,
             GetRoot<Table>(flatbuffer),

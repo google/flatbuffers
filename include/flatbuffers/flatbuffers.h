@@ -18,6 +18,9 @@
 #define FLATBUFFERS_H_
 
 #include <assert.h>
+#ifndef flatbuffers_assert
+#define flatbuffers_assert assert
+#endif
 
 #include <cstdint>
 #include <cstddef>
@@ -147,7 +150,7 @@ template<typename T> struct Offset {
 inline void EndianCheck() {
   int endiantest = 1;
   // If this fails, see FLATBUFFERS_LITTLEENDIAN above.
-  assert(*reinterpret_cast<char *>(&endiantest) == FLATBUFFERS_LITTLEENDIAN);
+  flatbuffers_assert(*reinterpret_cast<char *>(&endiantest) == FLATBUFFERS_LITTLEENDIAN);
   (void)endiantest;
 }
 
@@ -172,7 +175,7 @@ template<typename T> T EndianSwap(T t) {
     auto r = __builtin_bswap64(*reinterpret_cast<uint64_t *>(&t));
     return *reinterpret_cast<T *>(&r);
   } else {
-    assert(0);
+    flatbuffers_assert(0);
   }
   #if defined(_MSC_VER)
     #pragma pop_macro("__builtin_bswap16")
@@ -322,7 +325,7 @@ public:
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
 
   return_type Get(uoffset_t i) const {
-    assert(i < size());
+    flatbuffers_assert(i < size());
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -348,7 +351,7 @@ public:
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
   void Mutate(uoffset_t i, const T& val) {
-    assert(i < size());
+    flatbuffers_assert(i < size());
     WriteScalar(data() + i, val);
   }
 
@@ -356,15 +359,15 @@ public:
   // "val" points to the new table/string, as you can obtain from
   // e.g. reflection::AddFlatBuffer().
   void MutateOffset(uoffset_t i, const uint8_t *val) {
-    assert(i < size());
-    assert(sizeof(T) == sizeof(uoffset_t));
+    flatbuffers_assert(i < size());
+    flatbuffers_assert(sizeof(T) == sizeof(uoffset_t));
     WriteScalar(data() + i,
                 static_cast<uoffset_t>(val - (Data() + i * sizeof(uoffset_t))));
   }
 
   // Get a mutable pointer to tables/strings inside this vector.
   mutable_return_type GetMutableObject(uoffset_t i) const {
-    assert(i < size());
+    flatbuffers_assert(i < size());
     return const_cast<mutable_return_type>(IndirectHelper<T>::Read(Data(), i));
   }
 
@@ -466,7 +469,7 @@ class vector_downward {
       buf_(allocator.allocate(reserved_)),
       cur_(buf_ + reserved_),
       allocator_(allocator) {
-    assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
+    flatbuffers_assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
   ~vector_downward() {
@@ -520,17 +523,17 @@ class vector_downward {
     cur_ -= len;
     // Beyond this, signed offsets may not have enough range:
     // (FlatBuffers > 2GB not supported).
-    assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
+    flatbuffers_assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
     return cur_;
   }
 
   uoffset_t size() const {
-    assert(cur_ != nullptr && buf_ != nullptr);
+    flatbuffers_assert(cur_ != nullptr && buf_ != nullptr);
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
   uint8_t *data() const {
-    assert(cur_ != nullptr);
+    flatbuffers_assert(cur_ != nullptr);
     return cur_;
   }
 
@@ -663,7 +666,7 @@ FLATBUFFERS_FINAL_CLASS
     // FlatBufferBuilder::Finish with your root table.
     // If you really need to access an unfinished buffer, call
     // GetCurrentBufferPointer instead.
-    assert(finished);
+    flatbuffers_assert(finished);
   }
   /// @endcond
 
@@ -753,7 +756,7 @@ FLATBUFFERS_FINAL_CLASS
     // Align to ensure GetSize() below is correct.
     Align(sizeof(uoffset_t));
     // Offset must refer to something already in buffer.
-    assert(off && off <= GetSize());
+    flatbuffers_assert(off && off <= GetSize());
     return GetSize() - off + static_cast<uoffset_t>(sizeof(uoffset_t));
   }
 
@@ -766,7 +769,7 @@ FLATBUFFERS_FINAL_CLASS
     // Ignoring this assert may appear to work in simple cases, but the reason
     // it is here is that storing objects in-line may cause vtable offsets
     // to not fit anymore. It also leads to vtable duplication.
-    assert(!nested);
+    flatbuffers_assert(!nested);
   }
 
   // From generated code (or from the parser), we call StartTable/EndTable
@@ -782,7 +785,7 @@ FLATBUFFERS_FINAL_CLASS
   // resulting vtable offset.
   uoffset_t EndTable(uoffset_t start, voffset_t numfields) {
     // If you get this assert, a corresponding StartTable wasn't called.
-    assert(nested);
+    flatbuffers_assert(nested);
     // Write the vtable offset, which is the start of any Table.
     // We fill it's value later.
     auto vtableoffsetloc = PushElement<soffset_t>(0);
@@ -791,7 +794,7 @@ FLATBUFFERS_FINAL_CLASS
     // by the offsets themselves. In reverse:
     buf_.fill(numfields * sizeof(voffset_t));
     auto table_object_size = vtableoffsetloc - start;
-    assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
+    flatbuffers_assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
     PushElement<voffset_t>(static_cast<voffset_t>(table_object_size));
     PushElement<voffset_t>(FieldIndexToOffset(numfields));
     // Write the offsets into the table
@@ -800,7 +803,7 @@ FLATBUFFERS_FINAL_CLASS
             ++field_location) {
       auto pos = static_cast<voffset_t>(vtableoffsetloc - field_location->off);
       // If this asserts, it means you've set a field twice.
-      assert(!ReadScalar<voffset_t>(buf_.data() + field_location->id));
+      flatbuffers_assert(!ReadScalar<voffset_t>(buf_.data() + field_location->id));
       WriteScalar<voffset_t>(buf_.data() + field_location->id, pos);
     }
     offsetbuf_.clear();
@@ -841,7 +844,7 @@ FLATBUFFERS_FINAL_CLASS
     auto vtable_ptr = table_ptr - ReadScalar<soffset_t>(table_ptr);
     bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
     // If this fails, the caller will show what field needs to be set.
-    assert(ok);
+    flatbuffers_assert(ok);
     (void)ok;
   }
 
@@ -953,7 +956,7 @@ FLATBUFFERS_FINAL_CLASS
 
   /// @cond FLATBUFFERS_INTERNAL
   uoffset_t EndVector(size_t len) {
-    assert(nested);  // Hit if no corresponding StartVector.
+    flatbuffers_assert(nested);  // Hit if no corresponding StartVector.
     nested = false;
     return PushElement(static_cast<uoffset_t>(len));
   }
@@ -1156,7 +1159,7 @@ FLATBUFFERS_FINAL_CLASS
     PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
              minalign_);
     if (file_identifier) {
-      assert(strlen(file_identifier) == kFileIdentifierLength);
+      flatbuffers_assert(strlen(file_identifier) == kFileIdentifierLength);
       buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
                 kFileIdentifierLength);
     }
@@ -1257,7 +1260,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   // Central location where any verification failures register.
   bool Check(bool ok) const {
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
-      assert(ok);
+      flatbuffers_assert(ok);
     #endif
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       if (!ok)

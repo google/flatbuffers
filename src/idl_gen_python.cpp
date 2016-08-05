@@ -447,7 +447,7 @@ static void GenStructAccessor(const StructDef &struct_def,
         GetUnionField(struct_def, field, code_ptr);
         break;
       default:
-        assert(0);
+        flatbuffers_assert(0);
     }
   }
   if (field.value.type.base_type == BASE_TYPE_VECTOR) {
