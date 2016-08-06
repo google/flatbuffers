@@ -99,11 +99,19 @@ construction, access and mutation.
 To use:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto monsterobj = GetMonster(buffer)->UnPack();
-    cout << monsterobj->name;  // This is now a std::string!
-    monsterobj->name = "Bob";  // Change the name.
+    MonsterT monsterobj(GetMonster(buffer));
+    cout << monsterobj.name;  // This is now a std::string!
+    monsterobj.name = "Bob";  // Change the name.
     FlatBufferBuilder fbb;
-    CreateMonster(fbb, monsterobj.get());     // Serialize into new buffer.
+    monsterobj.Pack(fbb);     // Serialize into new buffer.
+
+    // You can even copy one struct to another
+    MonsterT another; // Create another monster
+    another = monsterobj; // Copy the original monster
+    another.name = "Good monster"; // Change only the name
+    FlatBufferBuilder fbb1;
+    another.Pack(fbb1);     // Serialize into new buffer.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Reflection (& Resizing)

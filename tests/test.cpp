@@ -315,16 +315,18 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 // Unpack a FlatBuffer into objects.
 void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   // Turn a buffer into C++ objects.
-  auto monster1 = GetMonster(flatbuf)->UnPack();
+  MyGame::Example::MonsterT monster1(GetMonster(flatbuf));
 
   // Re-serialize the data.
   flatbuffers::FlatBufferBuilder fbb1;
-  fbb1.Finish(CreateMonster(fbb1, monster1.get()), MonsterIdentifier());
+  fbb1.Finish(monster1.Pack(fbb1), MonsterIdentifier());
 
   // Unpack again, and re-serialize again.
-  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack();
+  auto monster2 = monster1;
   flatbuffers::FlatBufferBuilder fbb2;
-  fbb2.Finish(CreateMonster(fbb2, monster2.get()), MonsterIdentifier());
+  fbb2.Finish(monster2.Pack(fbb2), MonsterIdentifier());
+
+
 
   // Now we've gone full round-trip, the two buffers should match.
   auto len1 = fbb1.GetSize();
@@ -337,46 +339,45 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
 
   // Test accessing fields, similar to AccessFlatBufferTest above.
-  TEST_EQ(monster2->hp, 80);
-  TEST_EQ(monster2->mana, 150);  // default
-  TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
+  TEST_EQ(monster2.hp, 80);
+  TEST_EQ(monster2.mana, 150);  // default
+  TEST_EQ_STR(monster2.name.c_str(), "MyMonster");
 
-  auto &pos = monster2->pos;
-  TEST_NOTNULL(pos);
+  auto &pos = monster2.pos;
   TEST_EQ(pos->z(), 3);
   TEST_EQ(pos->test3().a(), 10);
   TEST_EQ(pos->test3().b(), 20);
 
-  auto &inventory = monster2->inventory;
+  auto &inventory = monster2.inventory;
   TEST_EQ(inventory.size(), 10UL);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   for (auto it = inventory.begin(); it != inventory.end(); ++it)
     TEST_EQ(*it, inv_data[it - inventory.begin()]);
 
-  TEST_EQ(monster2->color, Color_Blue);
+  TEST_EQ(monster2.color, Color_Blue);
 
-  auto monster3 = monster2->test.AsMonster();
+  auto monster3 = monster2.test.AsMonster();
   TEST_NOTNULL(monster3);
   TEST_EQ_STR(monster3->name.c_str(), "Fred");
 
-  auto &vecofstrings = monster2->testarrayofstring;
+  auto &vecofstrings = monster2.testarrayofstring;
   TEST_EQ(vecofstrings.size(), 4U);
   TEST_EQ_STR(vecofstrings[0].c_str(), "bob");
   TEST_EQ_STR(vecofstrings[1].c_str(), "fred");
 
-  auto &vecofstrings2 = monster2->testarrayofstring2;
+  auto &vecofstrings2 = monster2.testarrayofstring2;
   TEST_EQ(vecofstrings2.size(), 2U);
   TEST_EQ_STR(vecofstrings2[0].c_str(), "jane");
   TEST_EQ_STR(vecofstrings2[1].c_str(), "mary");
 
-  auto &vecoftables = monster2->testarrayoftables;
+  auto &vecoftables = monster2.testarrayoftables;
   TEST_EQ(vecoftables.size(), 3U);
-  TEST_EQ_STR(vecoftables[0]->name.c_str(), "Barney");
-  TEST_EQ(vecoftables[0]->hp, 1000);
-  TEST_EQ_STR(vecoftables[1]->name.c_str(), "Fred");
-  TEST_EQ_STR(vecoftables[2]->name.c_str(), "Wilma");
+  TEST_EQ_STR(vecoftables[0].name.c_str(), "Barney");
+  TEST_EQ(vecoftables[0].hp, 1000);
+  TEST_EQ_STR(vecoftables[1].name.c_str(), "Fred");
+  TEST_EQ_STR(vecoftables[2].name.c_str(), "Wilma");
 
-  auto &tests = monster2->test4;
+  auto &tests = monster2.test4;
   TEST_EQ(tests[0].a(), 10);
   TEST_EQ(tests[0].b(), 20);
   TEST_EQ(tests[1].a(), 30);

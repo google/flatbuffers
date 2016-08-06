@@ -127,6 +127,9 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --gen-name-strings Generate type name functions for C++.\n"
       "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --gen-object-api   Generate an additional object-based API\n"
+      "  --cpp-variant VAR  What C++ variant to generate code for:\n"
+      "                       c++0x (default): Minimal c++11 functionality at the level of VS2010 / GCC 4.6.2).\n"
+      "                       c++11: Code for a fully compliant c++11 compiler (VS2015 / GCC 4.8).\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
@@ -208,6 +211,15 @@ int main(int argc, const char *argv[]) {
         opts.generate_name_strings = true;
       } else if(arg == "--gen-object-api") {
         opts.generate_object_based_api = true;
+      } else if(arg == "--cpp-variant") {
+        if (++argi >= argc) Error("missing param following" + arg, true);
+        arg = std::string(argv[argi]);
+        if (arg == "c++0x")
+            opts.cpp_variant = flatbuffers::IDLOptions::Cpp0x;
+        else if (arg == "c++11")
+            opts.cpp_variant = flatbuffers::IDLOptions::Cpp11;
+        else
+            Error("Invalid cpp variant " + arg, true);
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
