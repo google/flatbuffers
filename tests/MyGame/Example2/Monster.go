@@ -5,6 +5,7 @@ package Example2
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
+
 type Monster struct {
 	_tab flatbuffers.Table
 }
@@ -12,7 +13,7 @@ type Monster struct {
 func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Monster{}
-	x.Init(buf, n + offset)
+	x.Init(buf, n+offset)
 	return x
 }
 
@@ -21,5 +22,9 @@ func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
-func MonsterStart(builder *flatbuffers.Builder) { builder.StartObject(0) }
-func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }
+func MonsterStart(builder *flatbuffers.Builder) {
+	builder.StartObject(0)
+}
+func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+	return builder.EndObject()
+}
