@@ -927,15 +927,16 @@ class CppGenerator : public BaseGenerator {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            code += ", " + field.name + " ? 0 : ";
-            code += "_fbb.CreateString(" + field.name + ")";
+            code += ", " + field.name + " ? ";
+            code += "_fbb.CreateString(" + field.name + ") : 0";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ", " + field.name + " ? 0 : ";
+            code += ", " + field.name + " ? ";
             code += "_fbb.CreateVector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
-            code += ">(*" + field.name + ")";
-          } else
+            code += ">(*" + field.name + ") : 0";
+          } else {
             code += ", " + field.name;
+          }
         }
       }
       code += ");\n}\n\n";
