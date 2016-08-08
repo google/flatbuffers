@@ -136,7 +136,7 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValue(flatbuffers::FlatBufferBuild
 inline flatbuffers::Offset<KeyValue> CreateKeyValue(flatbuffers::FlatBufferBuilder &_fbb,
     const char *key = nullptr,
     const char *value = nullptr) {
-  return CreateKeyValue(_fbb, key ? 0 : _fbb.CreateString(key), value ? 0 : _fbb.CreateString(value));
+  return CreateKeyValue(_fbb, key ? _fbb.CreateString(key) : 0, value ? _fbb.CreateString(value) : 0);
 }
 
 struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -191,7 +191,7 @@ inline flatbuffers::Offset<EnumVal> CreateEnumVal(flatbuffers::FlatBufferBuilder
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<Object> object = 0) {
-  return CreateEnumVal(_fbb, name ? 0 : _fbb.CreateString(name), value, object);
+  return CreateEnumVal(_fbb, name ? _fbb.CreateString(name) : 0, value, object);
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -266,7 +266,7 @@ inline flatbuffers::Offset<Enum> CreateEnum(flatbuffers::FlatBufferBuilder &_fbb
     bool is_union = false,
     flatbuffers::Offset<Type> underlying_type = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateEnum(_fbb, name ? 0 : _fbb.CreateString(name), values ? 0 : _fbb.CreateVector<flatbuffers::Offset<EnumVal>>(*values), is_union, underlying_type, attributes ? 0 : _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes));
+  return CreateEnum(_fbb, name ? _fbb.CreateString(name) : 0, values ? _fbb.CreateVector<flatbuffers::Offset<EnumVal>>(*values) : 0, is_union, underlying_type, attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0);
 }
 
 struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -373,7 +373,7 @@ inline flatbuffers::Offset<Field> CreateField(flatbuffers::FlatBufferBuilder &_f
     bool required = false,
     bool key = false,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateField(_fbb, name ? 0 : _fbb.CreateString(name), type, id, offset, default_integer, default_real, deprecated, required, key, attributes ? 0 : _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes));
+  return CreateField(_fbb, name ? _fbb.CreateString(name) : 0, type, id, offset, default_integer, default_real, deprecated, required, key, attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -453,7 +453,7 @@ inline flatbuffers::Offset<Object> CreateObject(flatbuffers::FlatBufferBuilder &
     int32_t minalign = 0,
     int32_t bytesize = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateObject(_fbb, name ? 0 : _fbb.CreateString(name), fields ? 0 : _fbb.CreateVector<flatbuffers::Offset<Field>>(*fields), is_struct, minalign, bytesize, attributes ? 0 : _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes));
+  return CreateObject(_fbb, name ? _fbb.CreateString(name) : 0, fields ? _fbb.CreateVector<flatbuffers::Offset<Field>>(*fields) : 0, is_struct, minalign, bytesize, attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0);
 }
 
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -526,7 +526,7 @@ inline flatbuffers::Offset<Schema> CreateSchema(flatbuffers::FlatBufferBuilder &
     const char *file_ident = nullptr,
     const char *file_ext = nullptr,
     flatbuffers::Offset<Object> root_table = 0) {
-  return CreateSchema(_fbb, objects ? 0 : _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects), enums ? 0 : _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums), file_ident ? 0 : _fbb.CreateString(file_ident), file_ext ? 0 : _fbb.CreateString(file_ext), root_table);
+  return CreateSchema(_fbb, objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0, enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0, file_ident ? _fbb.CreateString(file_ident) : 0, file_ext ? _fbb.CreateString(file_ext) : 0, root_table);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) { return flatbuffers::GetRoot<reflection::Schema>(buf); }
