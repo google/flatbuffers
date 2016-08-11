@@ -238,9 +238,8 @@ flatbuffers.Builder.prototype.dataBuffer = function() {
 };
 
 /**
- * Get the ByteBuffer representing the FlatBuffer. Only call this after you've
- * called finish(). The actual data starts at the ByteBuffer's current position,
- * not necessarily at 0.
+ * Get the bytes representing the FlatBuffer. Only call this after you've
+ * called finish().
  *
  * @returns {Uint8Array}
  */
