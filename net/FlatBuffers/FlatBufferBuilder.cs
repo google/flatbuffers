@@ -582,6 +582,8 @@ namespace FlatBuffers
         /// </summary>
         /// <remarks>
         /// This is typically only called after you call `Finish()`.
+        /// The actual data starts at the ByteBuffer's current position,
+        /// not necessarily at `0`.
         /// </remarks>
         /// <returns>
         /// Returns the ByteBuffer for this FlatBuffer.
