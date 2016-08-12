@@ -133,7 +133,7 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValue(flatbuffers::FlatBufferBuild
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<KeyValue> CreateKeyValue(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<KeyValue> CreateKeyValueDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *key = nullptr,
     const char *value = nullptr) {
   return CreateKeyValue(_fbb, key ? _fbb.CreateString(key) : 0, value ? _fbb.CreateString(value) : 0);
@@ -187,7 +187,7 @@ inline flatbuffers::Offset<EnumVal> CreateEnumVal(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<EnumVal> CreateEnumVal(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<Object> object = 0) {
@@ -260,7 +260,7 @@ inline flatbuffers::Offset<Enum> CreateEnum(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Enum> CreateEnum(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Enum> CreateEnumDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<flatbuffers::Offset<EnumVal>> *values = nullptr,
     bool is_union = false,
@@ -362,7 +362,7 @@ inline flatbuffers::Offset<Field> CreateField(flatbuffers::FlatBufferBuilder &_f
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Field> CreateField(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Field> CreateFieldDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     flatbuffers::Offset<Type> type = 0,
     uint16_t id = 0,
@@ -446,7 +446,7 @@ inline flatbuffers::Offset<Object> CreateObject(flatbuffers::FlatBufferBuilder &
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Object> CreateObject(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Object> CreateObjectDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<flatbuffers::Offset<Field>> *fields = nullptr,
     bool is_struct = false,
@@ -520,7 +520,7 @@ inline flatbuffers::Offset<Schema> CreateSchema(flatbuffers::FlatBufferBuilder &
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Schema> CreateSchema(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Schema> CreateSchemaDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<Object>> *objects = nullptr,
     const std::vector<flatbuffers::Offset<Enum>> *enums = nullptr,
     const char *file_ident = nullptr,

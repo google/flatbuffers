@@ -260,7 +260,7 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Stat> CreateStatDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
     int64_t val = 0,
     uint16_t count = 0) {
@@ -542,7 +542,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Monster> CreateMonsterDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const Vec3 *pos = 0,
     int16_t mana = 150,
     int16_t hp = 100,

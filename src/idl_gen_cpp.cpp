@@ -897,11 +897,11 @@ class CppGenerator : public BaseGenerator {
     }
     code += "  return builder_.Finish();\n}\n\n";
 
-    // Generate a CreateX function with vector types as parameters
+    // Generate a CreateXDirect function with vector types as parameters
     if (gen_vector_pars) {
       code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
       code += struct_def.name;
-      code += "(flatbuffers::FlatBufferBuilder &_fbb";
+      code += "Direct(flatbuffers::FlatBufferBuilder &_fbb";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
