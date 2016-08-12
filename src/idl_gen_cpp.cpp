@@ -325,6 +325,8 @@ class CppGenerator : public BaseGenerator {
                          bool user_facing_type) {
     return IsScalar(type.base_type)
                ? GenTypeBasic(type, user_facing_type) + afterbasic
+               : IsArray(type) ? beforeptr 
+                 + GenTypeBasic(type.VectorType(), user_facing_type) + afterptr
                : beforeptr + GenTypePointer(type) + afterptr;
   }
 
@@ -1153,7 +1155,13 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       code += "  " + GenTypeGet(field.value.type, " ", "", " ", false);
-      code += field.name + "_;\n";
+      code += field.name + "_";
+      if (IsArray(field.value.type)) {
+        code += "[";
+        code += NumToString<short>(field.value.type.fixed_length);
+        code += "]";
+      }
+      code += ";\n";
       GenPadding(field, code, padding_id, PaddingDefinition);
     }
 
@@ -1176,7 +1184,8 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (it != struct_def.fields.vec.begin()) code += ", ";
-      code += GenTypeGet(field.value.type, " ", "const ", " &", true);
+      code += GenTypeGet(field.value.type, " ", "const ", 
+                         IsArray(field.value.type) ? " *" : " &", true);
       code += "_" + field.name;
     }
     code += ")\n    : ";
@@ -1184,19 +1193,31 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (it != struct_def.fields.vec.begin()) code += ", ";
-      code += field.name + "_(";
-      if (IsScalar(field.value.type.base_type)) {
-        code += "flatbuffers::EndianScalar(";
-        code += GenUnderlyingCast(field, false, "_" + field.name);
-        code += "))";
-      } else {
-        code += "_" + field.name + ")";
+      if (!IsArray(field.value.type)) {
+        if (it != struct_def.fields.vec.begin()) code += ", ";
+        code += field.name + "_(";
+        if (IsScalar(field.value.type.base_type)) {
+          code += "flatbuffers::EndianScalar(";
+          code += GenUnderlyingCast(field, false, "_" + field.name);
+          code += "))";
+        } else {
+          code += "_" + field.name + ")";
+        }
       }
       GenPadding(field, code, padding_id, PaddingInitializer);
     }
 
     code += " {";
+    for (auto it = struct_def.fields.vec.begin();
+    it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (IsArray(field.value.type)) {
+        code += " memcpy(";
+        code += field.name + "_, ";
+        code += "_" + field.name + ", ";
+        code += NumToString(InlineSize(field.value.type)) + ");";
+      }
+    }
     padding_id = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1212,13 +1233,17 @@ class CppGenerator : public BaseGenerator {
       auto &field = **it;
       GenComment(field.doc_comment, code_ptr, nullptr, "  ");
       auto is_scalar = IsScalar(field.value.type.base_type);
-      code += "  " + GenTypeGet(field.value.type, " ", "const ", " &", true);
+      code += "  " + GenTypeGet(field.value.type, " ", "const ",
+                                IsArray(field.value.type) ? " *" : " &", true);
       code += field.name + "() const { return ";
-      code += GenUnderlyingCast(
-          field, true, is_scalar
+      code += GenUnderlyingCast(field, true, is_scalar
                            ? "flatbuffers::EndianScalar(" + field.name + "_)"
                            : field.name + "_");
       code += "; }\n";
+      if (IsArray(field.value.type)) {
+        code += "  int16_t " + field.name + "_length() const { return ";
+        code += NumToString(field.value.type.fixed_length) + "; }\n";
+      }
       if (parser_.opts.mutable_buffer) {
         if (is_scalar) {
           code += "  void mutate_" + field.name + "(";
@@ -1229,7 +1254,8 @@ class CppGenerator : public BaseGenerator {
           code += "); }\n";
         } else {
           code += "  ";
-          code += GenTypeGet(field.value.type, "", "", " &", true);
+          code += GenTypeGet(field.value.type, "", "", 
+                             IsArray(field.value.type) ? " *" : " &", true);
           code += "mutable_" + field.name + "() { return " + field.name;
           code += "_; }\n";
         }
