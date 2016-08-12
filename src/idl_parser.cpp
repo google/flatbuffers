@@ -567,7 +567,7 @@ CheckedError Parser::ParseType(Type &type) {
                 "length of fixed-length array must be an integer value.");
         }
         int64_t fixed_length = StringToInt(attribute_.c_str());
-        if (fixed_length < 1 || fixed_length > MAXSHORT) {
+        if (fixed_length < 1 || fixed_length > 0x7fff) {
           return Error(
                 "length of fixed-length array must be positive and fit to short type.");
         }
