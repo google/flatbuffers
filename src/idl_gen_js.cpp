@@ -430,6 +430,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end(); ++it) {
     auto &field = **it;
+    assert(field.value.type.base_type != BASE_TYPE_ARRAY);
     if (field.deprecated) continue;
     auto offset_prefix = "  var offset = this.bb.__offset(this.bb_pos, " +
       NumToString(field.value.offset) + ");\n  return offset ? ";
