@@ -295,12 +295,12 @@ namespace FlatBuffers
             PutInt(_vectorNumElems);
             return new VectorOffset(Offset);
         }
-		
+
         /// <summary>
         /// Creates a vector of tables.
         /// </summary>
         /// <param name="offsets">Offsets of the tables.</param>
-        public VectorOffset CreateVectorOfTables<T>(Offset<T>[] offsets) where T : class
+        public VectorOffset CreateVectorOfTables<T>(Offset<T>[] offsets) where T : struct
         {
             NotNested();
             StartVector(sizeof(int), offsets.Length, sizeof(int));

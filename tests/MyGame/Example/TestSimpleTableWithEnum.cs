@@ -6,13 +6,16 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public partial class TestSimpleTableWithEnum : Table {
+public partial struct TestSimpleTableWithEnum : IFlatbufferObject
+{
+  private Table __p;
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return GetRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
-  public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public TestSimpleTableWithEnum __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+  public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public TestSimpleTableWithEnum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public Color Color { get { int o = __offset(4); return o != 0 ? (Color)bb.GetSbyte(o + bb_pos) : Color.Green; } }
-  public bool MutateColor(Color color) { int o = __offset(4); if (o != 0) { bb.PutSbyte(o + bb_pos, (sbyte)color); return true; } else { return false; } }
+  public Color Color { get { int o = __p.__offset(4); return o != 0 ? (Color)__p.bb.GetSbyte(o + __p.bb_pos) : Color.Green; } }
+  public bool MutateColor(Color color) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)color); return true; } else { return false; } }
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
       Color color = Color.Green) {

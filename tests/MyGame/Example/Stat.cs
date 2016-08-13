@@ -6,17 +6,20 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public sealed class Stat : Table {
+public struct Stat : IFlatbufferObject
+{
+  private Table __p;
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
-  public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__init(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public Stat __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+  public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public Stat __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public string Id { get { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; } }
-  public ArraySegment<byte>? GetIdBytes() { return __vector_as_arraysegment(4); }
-  public long Val { get { int o = __offset(6); return o != 0 ? bb.GetLong(o + bb_pos) : (long)0; } }
-  public bool MutateVal(long val) { int o = __offset(6); if (o != 0) { bb.PutLong(o + bb_pos, val); return true; } else { return false; } }
-  public ushort Count { get { int o = __offset(8); return o != 0 ? bb.GetUshort(o + bb_pos) : (ushort)0; } }
-  public bool MutateCount(ushort count) { int o = __offset(8); if (o != 0) { bb.PutUshort(o + bb_pos, count); return true; } else { return false; } }
+  public string Id { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public ArraySegment<byte>? GetIdBytes() { return __p.__vector_as_arraysegment(4); }
+  public long Val { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool MutateVal(long val) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutLong(o + __p.bb_pos, val); return true; } else { return false; } }
+  public ushort Count { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateCount(ushort count) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, count); return true; } else { return false; } }
 
   public static Offset<Stat> CreateStat(FlatBufferBuilder builder,
       StringOffset idOffset = default(StringOffset),

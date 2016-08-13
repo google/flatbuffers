@@ -6,13 +6,16 @@ namespace NamespaceA.NamespaceB
 using System;
 using FlatBuffers;
 
-public sealed class StructInNestedNS : Struct {
-  public StructInNestedNS __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+public struct StructInNestedNS : IFlatbufferObject
+{
+  private Struct __p;
+  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public StructInNestedNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public int A { get { return bb.GetInt(bb_pos + 0); } }
-  public void MutateA(int a) { bb.PutInt(bb_pos + 0, a); }
-  public int B { get { return bb.GetInt(bb_pos + 4); } }
-  public void MutateB(int b) { bb.PutInt(bb_pos + 4, b); }
+  public int A { get { return __p.bb.GetInt(__p.bb_pos + 0); } }
+  public void MutateA(int a) { __p.bb.PutInt(__p.bb_pos + 0, a); }
+  public int B { get { return __p.bb.GetInt(__p.bb_pos + 4); } }
+  public void MutateB(int b) { __p.bb.PutInt(__p.bb_pos + 4, b); }
 
   public static Offset<StructInNestedNS> CreateStructInNestedNS(FlatBufferBuilder builder, int A, int B) {
     builder.Prep(4, 8);
