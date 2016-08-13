@@ -6,13 +6,16 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public sealed class Test : Struct {
-  public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+public struct Test : IFlatbufferObject
+{
+  private Struct __p;
+  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public Test __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public short A { get { return bb.GetShort(bb_pos + 0); } }
-  public void MutateA(short a) { bb.PutShort(bb_pos + 0, a); }
-  public sbyte B { get { return bb.GetSbyte(bb_pos + 2); } }
-  public void MutateB(sbyte b) { bb.PutSbyte(bb_pos + 2, b); }
+  public short A { get { return __p.bb.GetShort(__p.bb_pos + 0); } }
+  public void MutateA(short a) { __p.bb.PutShort(__p.bb_pos + 0, a); }
+  public sbyte B { get { return __p.bb.GetSbyte(__p.bb_pos + 2); } }
+  public void MutateB(sbyte b) { __p.bb.PutSbyte(__p.bb_pos + 2, b); }
 
   public static Offset<Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
     builder.Prep(2, 4);
