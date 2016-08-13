@@ -897,11 +897,11 @@ class CppGenerator : public BaseGenerator {
     }
     code += "  return builder_.Finish();\n}\n\n";
 
-    // Generate a CreateX function with vector types as parameters
+    // Generate a CreateXDirect function with vector types as parameters
     if (gen_vector_pars) {
       code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
       code += struct_def.name;
-      code += "(flatbuffers::FlatBufferBuilder &_fbb";
+      code += "Direct(flatbuffers::FlatBufferBuilder &_fbb";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
@@ -927,15 +927,16 @@ class CppGenerator : public BaseGenerator {
         auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            code += ", " + field.name + " ? 0 : ";
-            code += "_fbb.CreateString(" + field.name + ")";
+            code += ", " + field.name + " ? ";
+            code += "_fbb.CreateString(" + field.name + ") : 0";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ", " + field.name + " ? 0 : ";
+            code += ", " + field.name + " ? ";
             code += "_fbb.CreateVector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
-            code += ">(*" + field.name + ")";
-          } else
+            code += ">(*" + field.name + ") : 0";
+          } else {
             code += ", " + field.name;
+          }
         }
       }
       code += ");\n}\n\n";
