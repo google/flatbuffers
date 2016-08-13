@@ -1169,6 +1169,11 @@ void ParseUnionTest() {
                        "table V { X:U; }"
                        "root_type V;"
                        "{ X:{ A:1 }, X_type: T }"), true);
+  // Unions must be parsable with prefixed namespace.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse("namespace N; table A {} namespace; union U { N.A }"
+                        "table B { e:U; } root_type B;"
+                        "{ e_type: N_A, e: {} }"), true);
 }
 
 void ConformTest() {

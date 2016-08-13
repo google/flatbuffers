@@ -260,11 +260,11 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Stat> CreateStatDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
     int64_t val = 0,
     uint16_t count = 0) {
-  return CreateStat(_fbb, id ? 0 : _fbb.CreateString(id), val, count);
+  return CreateStat(_fbb, id ? _fbb.CreateString(id) : 0, val, count);
 }
 
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o);
@@ -542,7 +542,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Monster> CreateMonsterDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const Vec3 *pos = 0,
     int16_t mana = 150,
     int16_t hp = 100,
@@ -571,7 +571,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     float testf2 = 3.0f,
     float testf3 = 0.0f,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr) {
-  return CreateMonster(_fbb, pos, mana, hp, name ? 0 : _fbb.CreateString(name), inventory ? 0 : _fbb.CreateVector<uint8_t>(*inventory), color, test_type, test, test4 ? 0 : _fbb.CreateVector<const Test *>(*test4), testarrayofstring ? 0 : _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring), testarrayoftables ? 0 : _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables), enemy, testnestedflatbuffer ? 0 : _fbb.CreateVector<uint8_t>(*testnestedflatbuffer), testempty, testbool, testhashs32_fnv1, testhashu32_fnv1, testhashs64_fnv1, testhashu64_fnv1, testhashs32_fnv1a, testhashu32_fnv1a, testhashs64_fnv1a, testhashu64_fnv1a, testarrayofbools ? 0 : _fbb.CreateVector<uint8_t>(*testarrayofbools), testf, testf2, testf3, testarrayofstring2 ? 0 : _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2));
+  return CreateMonster(_fbb, pos, mana, hp, name ? _fbb.CreateString(name) : 0, inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0, color, test_type, test, test4 ? _fbb.CreateVector<const Test *>(*test4) : 0, testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0, testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0, enemy, testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0, testempty, testbool, testhashs32_fnv1, testhashu32_fnv1, testhashs64_fnv1, testhashu64_fnv1, testhashs32_fnv1a, testhashu32_fnv1a, testhashs64_fnv1a, testhashu64_fnv1a, testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0, testf, testf2, testf3, testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0);
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o);
