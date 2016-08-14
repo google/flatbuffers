@@ -56,11 +56,14 @@ public class Table {
    * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
    * @return Returns an offset into the object, or `0` if the field is not present.
    */
-  protected int __offset(int vtable_offset) { return __offset(vtable_offset, bb_pos - bb.getInt(bb_pos), bb, false); }
+  protected int __offset(int vtable_offset) {
+    int vtable = bb_pos - bb.getInt(bb_pos);
+    return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
+  }
 
-  protected static int __offset(int vtable_offset, int vtable, ByteBuffer _bb, boolean invoked_static) {
-    if (!invoked_static) return vtable_offset < _bb.getShort(vtable) ? _bb.getShort(vtable + vtable_offset) : 0;
-    else return _bb.getShort(vtable + vtable_offset - _bb.getInt(vtable)) + vtable;
+  protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
+    int vtable = bb.array().length - offset;
+    return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable;
   }
 
   /**
@@ -85,15 +88,11 @@ public class Table {
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
    */
   protected String __string(int offset) {
-    return __string(offset, bb);
-  }
-
-  protected static String __string(int offset, ByteBuffer _bb) {
     CharsetDecoder decoder = UTF8_DECODER.get();
     decoder.reset();
 
-    offset += _bb.getInt(offset);
-    ByteBuffer src = _bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+    offset += bb.getInt(offset);
+    ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int length = src.getInt(offset);
     src.position(offset + SIZEOF_INT);
     src.limit(offset + SIZEOF_INT + length);
@@ -193,6 +192,52 @@ public class Table {
       if (ident.charAt(i) != (char)bb.get(bb.position() + SIZEOF_INT + i)) return false;
     }
     return true;
+  }
+  
+  /**
+   * Sort tables by the key.
+   *
+   * @param offsets An 'int' indexes of the tables into the _bb.
+   * @param bb A {@code ByteBuffer} to get the tables.
+   */
+  protected void sortTables(int[] offsets, ByteBuffer bb) {
+    Integer[] off = new Integer[offsets.length];
+    for (int i = 0; i < offsets.length; i++) off[i] = offsets[i];
+    Arrays.sort(off, (Integer o1, Integer o2) -> keysCompare(o1, o2, bb));
+    for (int i = 0; i < offsets.length; i++) offsets[i] = off[i];
+  }
+
+  /**
+   * Compare two tables by the key.
+   *
+   * @param o1 An 'Integer' index of the first key into the _bb.
+   * @param o2 An 'Integer' index of the second key into the _bb.
+   * @param bb A {@code ByteBuffer} to get the keys.
+   */
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) { return 0; }
+  
+  /**
+   * Compare two strings in the buffer.
+   *
+   * @param offset_1 An 'int' index of the first string into the bb.
+   * @param offset_2 An 'int' index of the second string into the bb.
+   * @param bb A {@code ByteBuffer} to get the strings.
+   */
+  protected static int compareStrings(int offset_1, int offset_2, ByteBuffer bb) {
+    offset_1 += bb.getInt(offset_1);
+    offset_2 += bb.getInt(offset_2);
+    int len_1 = bb.getInt(offset_1);
+    int len_2 = bb.getInt(offset_2);
+    int startPos_1 = offset_1 + SIZEOF_INT;
+    int startPos_2 = offset_2 + SIZEOF_INT;
+    int len = Math.min(len_1, len_2);
+    for(int i = 0; i < len; i++) {
+      if (bb.array()[i + startPos_1] != bb.array()[i + startPos_2])
+        return bb.array()[i + startPos_1] - bb.array()[i + startPos_2];
+    }
+    if (len_1 < len_2) return -1;
+    if (len_1 > len_2) return 1;
+    return 0;
   }
 }
 

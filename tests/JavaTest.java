@@ -62,7 +62,7 @@ class JavaTest {
         Monster.startMonster(fbb);
         Monster.addName(fbb, names[2]);
         off[2] = Monster.endMonster(fbb);
-        int sortMons = fbb.createSortedTableVector(Monster.class, off);
+        int sortMons = fbb.createSortedTableVector(new Monster(), off);
 		
         // We set up the same values as monsterdata.json:
 
