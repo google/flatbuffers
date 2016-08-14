@@ -375,7 +375,7 @@ public class FlatBufferBuilder {
      */
     public int createVectorOfTables(int[] offsets) {
         notNested();
-        startVector(4, offsets.length, 4);
+        startVector(Constants.SIZEOF_INT, offsets.length, Constants.SIZEOF_INT);
         for(int i = offsets.length - 1; i >= 0; i--) addOffset(offsets[i]);
         return endVector();
     }
@@ -383,21 +383,13 @@ public class FlatBufferBuilder {
     /**
      * Create a vector of sorted by the key tables.
      *
-     * @param type Type of the tables.
+     * @param obj Instance of the table class.
      * @param offsets Offsets of the tables.
      * @return Returns offset of the sorted vector.
      */
-    public <T> int createSortedTableVector(Class<T> type, int[] offsets) {
-        try{
-            return (int)type.getMethod("createMySortedTableVector", FlatBufferBuilder.class, ByteBuffer.class, int[].class).invoke(null, this, bb, offsets);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return 0;
+    public <T extends Table> int createSortedTableVector(T obj, int[] offsets) {
+        obj.sortTables(offsets, bb);
+        return createVectorOfTables(offsets);
     }
 	
    /**

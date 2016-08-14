@@ -135,26 +135,16 @@ public final class Monster extends Table {
     return o;
   }
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
-  
-  public static int keysCompare(String o1, String o2) { return o1.compareTo(o2); }
 
-  public int keyCompareWithValue(String val) { return name().compareTo(val); }
-
-  public static int createMySortedTableVector(FlatBufferBuilder builder, ByteBuffer bb, int[] off) {
-    Integer[] offsets = new Integer[off.length];
-    for (int i = 0; i < off.length; i++) offsets[i] = off[i];
-    Arrays.sort(offsets, (Integer o1, Integer o2) -> keysCompare(__string(__offset(10, bb.array().length - o1, bb, true), bb),
-      __string(__offset(10, bb.array().length - o2, bb, true), bb)));
-    for (int i = 0; i < off.length; i++) off[i] = offsets[i];
-    return builder.createVectorOfTables(off);
-  }
+  @Override
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
   public static Monster lookupByKey(Monster[] tables, String key) {
     int span = tables.length, start = 0;
     while (span != 0) {
       int middle = span / 2;
       Monster table = tables[start + middle];
-      int comp = table.keyCompareWithValue(key);
+      int comp = table.name().compareTo(key);
       if (comp > 0) span = middle;
       else if (comp < 0) {
         middle++;

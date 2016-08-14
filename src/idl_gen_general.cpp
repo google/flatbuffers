@@ -669,6 +669,60 @@ void GenStructBody(const StructDef &struct_def, std::string *code_ptr, const cha
   }
 }
 
+void IncChar(std::string &str) {
+  static int index = -1, num = 1;
+  if (index < 0) {
+    for (size_t i = 0; i < str.length(); i++) {
+      if (str[i] == '!') {
+        index = i;
+        break;
+      }
+    }
+  }
+  str[index] = (char)(num + '0');
+  num++;
+}
+
+std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
+  auto data_buffer = (lang_.language == IDLOptions::kCSharp) ?
+    "builder.DataBuffer" : "_bb";
+  auto get_offset = "__offset(" +
+    NumToString(key_field->value.offset) + ", o!" +
+    (lang_.language == IDLOptions::kCSharp ? ".Value" : "") +
+    ", " + data_buffer + ")";
+
+  std::string key_getter = "";
+  if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    if (lang_.language == IDLOptions::kJava)
+      key_getter += " return ";
+    key_getter += FunctionStart('C') + "ompareStrings(";
+    IncChar(get_offset);
+    key_getter += get_offset + ", ";
+    IncChar(get_offset);
+    key_getter += get_offset + ", " + data_buffer + ")";
+    if (lang_.language == IDLOptions::kJava)
+      key_getter += ";";
+  }
+  else {
+    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+      "(" + get_offset + ")";
+    IncChar(field_getter);
+    if (lang_.language == IDLOptions::kCSharp) {
+      key_getter += field_getter;
+      IncChar(field_getter);
+      key_getter += ".CompareTo(" + field_getter + ")";
+    }
+    else {
+      key_getter += "\n    " + GenTypeGet(key_field->value.type) + " off1 = ";
+      key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
+      key_getter += " off2 = ";
+      IncChar(field_getter);
+      key_getter += field_getter + ";\n";
+    }
+  }
+  return key_getter;
+}
+
 void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
@@ -1133,59 +1187,48 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
   }
   if (struct_def.has_key) {
-    bool is_string = key_field->value.type.base_type == BASE_TYPE_STRING;
-    std::string key_name = lang_.language == IDLOptions::kCSharp ? MakeCamel(key_field->name) : key_field->name + "()";
-    std::string key_type = GenTypeGet(key_field->value.type);
-    std::string key_offset = NumToString(key_field->value.offset);
-    std::string key_getter = is_string ? GenGetter(key_field->value.type) : GenGetter(key_field->value.type).substr(2);
-    std::string data_buffer = lang_.language == IDLOptions::kCSharp ? "builder.DataBuffer" : "bb";
+    auto is_string = key_field->value.type.base_type == BASE_TYPE_STRING;
+    auto key_name = "table." +
+      (lang_.language == IDLOptions::kCSharp ?
+        MakeCamel(key_field->name) : key_field->name + "()");
 
-    code += "\n  public static int " + FunctionStart('K') + "eysCompare(" + key_type + " o1, " + key_type + " o2) ";
-    if (lang_.language == IDLOptions::kJava && !is_string) {
-      code += "{\n    if (o1 < o2) return -1;\n";
-      code += "    else if (o1 == o2) return 0;\n";
-      code += "    else return 1;\n  }\n";
-    }
-    else {
-      code += "{ return o1." + FunctionStart('C') + "ompareTo(o2); }\n";
-    }
-
-    code += "\n  public int " + FunctionStart('K') + "eyCompareWithValue(" + key_type + " val) ";
-    if (lang_.language == IDLOptions::kJava && !is_string) {
-      code += "{\n    if (" + key_name + " < val) return -1;\n";
-      code += "    else if (" + key_name + " == val) return 0;\n";
-      code += "    else return 1;\n  }\n";
-    }
-    else {
-      code += "{ return " + key_name + "." + FunctionStart('C') + "ompareTo(val); }\n";
-    }
-
-    code += "\n  public static ";
-    code += (lang_.language == IDLOptions::kCSharp ? "VectorOffset " : "int ") + FunctionStart('C') + "reateMySortedTableVector(FlatBufferBuilder builder, ";
-    code += (lang_.language == IDLOptions::kCSharp ? " Offset<" + struct_def.name + ">" : "ByteBuffer bb, int") + "[] off" + (lang_.language == IDLOptions::kCSharp ? "sets" : "") + ") {\n";
     if (lang_.language == IDLOptions::kJava) {
-      code += "    Integer[] offsets = new Integer[off.length];\n";
-      code += "    for (int i = 0; i < off.length; i++) offsets[i] = off[i];\n";
+      code += "\n  @Override\n  protected int keysCompare(";
+      code += "Integer o1, Integer o2, ByteBuffer _bb) {";
+      code += GenKeyGetter(key_field);
+      if (!is_string) {
+        code += "    if (off1 < off2) return -1;\n";
+        code += "    else if (off1 == off2) return 0;\n";
+        code += "    else return 1;\n ";
+      }
+      code += " }\n";
     }
-    code += "    Array";
-    code += (lang_.language == IDLOptions::kCSharp ? ".S" : "s.s");
-    code += "ort(offsets, (";
-    code += (lang_.language == IDLOptions::kCSharp ? "Offset<" + struct_def.name + "> o1, Offset<" + struct_def.name + "> o2) => " : "Integer o1, Integer o2) -> ");
-    code += FunctionStart('K') + "eysCompare(";
-    code += (is_string ? key_getter : data_buffer + key_getter) + "(__offset(" + key_offset + ", " + data_buffer + (lang_.language == IDLOptions::kCSharp ? ".Length - o1.Value" : ".array().length - o1");
-    code += ", " + data_buffer + ", true)" + (is_string ? ", " + data_buffer : "") + "),\n      ";
-    code += (is_string ? key_getter : data_buffer + key_getter) + "(__offset(" + key_offset + ", " + data_buffer + (lang_.language == IDLOptions::kCSharp ? ".Length - o2.Value" : ".array().length - o2");
-    code += ", " + data_buffer + ", true)" + (is_string ? ", " + data_buffer : "") + ")));\n";
-    if (lang_.language == IDLOptions::kJava) code += "    for (int i = 0; i < off.length; i++) off[i] = offsets[i];\n";
-    code += "    return builder." + FunctionStart('C') + "reateVectorOfTables(off" + (lang_.language == IDLOptions::kCSharp ? "sets" : "") + ");\n  }\n";
+    else {
+      code += "\n  public static VectorOffset ";
+      code += "CreateMySortedTableVector(FlatBufferBuilder builder, ";
+      code += "Offset<" + struct_def.name + ">";
+      code += "[] offsets) {\n";
+      code += "    Array.Sort(offsets, (Offset<" + struct_def.name +
+        "> o1, Offset<" + struct_def.name + "> o2) => " + GenKeyGetter(key_field);
+      code += ");\n";
+      code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
+    }
 
-    code += "\n  public static " + struct_def.name + " " + FunctionStart('L') + "ookupByKey(" + struct_def.name;
-    code += "[] tables, " + key_type + " key) {\n";
+    code += "\n  public static " + struct_def.name + " " + FunctionStart('L');
+    code += "ookupByKey(" + struct_def.name;
+    code += "[] tables, " + GenTypeGet(key_field->value.type) + " key) {\n";
     code += "    int span = tables." + FunctionStart('L') + "ength, start = 0;\n";
     code += "    while (span != 0) {\n";
     code += "      int middle = span / 2;\n";
     code += "      " + struct_def.name + " table = tables[start + middle];\n";
-    code += "      int comp = table." + FunctionStart('K') + "eyCompareWithValue(key);\n";
+    if (lang_.language == IDLOptions::kCSharp || is_string) {
+      code += "      int comp = " + key_name + "." + FunctionStart('C');
+      code += "ompareTo(key);\n";
+    }
+    else {
+      code += "      int comp = " + key_name + " > key ? 1 : " + key_name;
+      code += " < key ? -1 : 0;\n";
+    }
     code += "      if (comp > 0) span = middle;\n";
     code += "      else if (comp < 0) {\n";
     code += "        middle++;\n";
