@@ -669,55 +669,43 @@ void GenStructBody(const StructDef &struct_def, std::string *code_ptr, const cha
   }
 }
 
-void IncChar(std::string &str) {
-  static int index = -1, num = 1;
-  if (index < 0) {
-    for (size_t i = 0; i < str.length(); i++) {
-      if (str[i] == '!') {
-        index = i;
-        break;
-      }
-    }
-  }
-  str[index] = (char)(num + '0');
-  num++;
+std::string GenOffsetGetter(flatbuffers::FieldDef *key_field, const char &num) {
+  return "__offset(" +
+    NumToString(key_field->value.offset) + ", o" + num +
+    (lang_.language == IDLOptions::kCSharp ?
+      ".Value, builder.DataBuffer)" : ", _bb)");
 }
 
 std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
   auto data_buffer = (lang_.language == IDLOptions::kCSharp) ?
     "builder.DataBuffer" : "_bb";
-  auto get_offset = "__offset(" +
-    NumToString(key_field->value.offset) + ", o!" +
-    (lang_.language == IDLOptions::kCSharp ? ".Value" : "") +
-    ", " + data_buffer + ")";
-
   std::string key_getter = "";
   if (key_field->value.type.base_type == BASE_TYPE_STRING) {
     if (lang_.language == IDLOptions::kJava)
       key_getter += " return ";
     key_getter += FunctionStart('C') + "ompareStrings(";
-    IncChar(get_offset);
-    key_getter += get_offset + ", ";
-    IncChar(get_offset);
-    key_getter += get_offset + ", " + data_buffer + ")";
+    key_getter += GenOffsetGetter(key_field, '1') + ", ";
+    key_getter += GenOffsetGetter(key_field, '2') + ", " + data_buffer + ")";
     if (lang_.language == IDLOptions::kJava)
       key_getter += ";";
   }
   else {
     auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-      "(" + get_offset + ")";
-    IncChar(field_getter);
+      "(" + GenOffsetGetter(key_field, '1') + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
-      IncChar(field_getter);
+      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+        "(" + GenOffsetGetter(key_field, '2') + ")";
       key_getter += ".CompareTo(" + field_getter + ")";
     }
     else {
       key_getter += "\n    " + GenTypeGet(key_field->value.type) + " off1 = ";
       key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
       key_getter += " off2 = ";
-      IncChar(field_getter);
+      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+        "(" + GenOffsetGetter(key_field, '2') + ")";
       key_getter += field_getter + ";\n";
+      key_getter += "    return off1 > off2 ? 1 : off1 < off2 ? -1 : 0;\n";
     }
   }
   return key_getter;
