@@ -367,6 +367,28 @@ public class FlatBufferBuilder {
     }
     /// @endcond
 
+    /**
+     * Create a new array/vector and return a ByteBuffer to be filled later.
+     * Call {@link #endVector} after this method to get an offset to the beginning
+     * of vector.
+     *
+     * @param elem_size the size of each element in bytes.
+     * @param num_elems number of elements in the vector.
+     * @param alignment byte alignment.
+     * @return ByteBuffer with position and limit set to the space allocated for the array.
+     */
+    public ByteBuffer createUnintializedVector(int elem_size, int num_elems, int alignment) {
+        int length = elem_size * num_elems;
+        startVector(elem_size, num_elems, alignment);
+
+        bb.position(space -= length);
+
+        // Slice and limit the copy vector to point to the 'array'
+        ByteBuffer copy = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
+        copy.limit(length);
+        return copy;
+    }
+
    /**
     * Encode the string `s` in the buffer using UTF-8.  If {@code s} is
     * already a {@link CharBuffer}, this method is allocation free.
@@ -410,6 +432,20 @@ public class FlatBufferBuilder {
         startVector(1, length, 1);
         bb.position(space -= length);
         bb.put(s);
+        return endVector();
+    }
+
+    /**
+     * Create a byte array in the buffer.
+     *
+     * @param arr A source array with data
+     * @return The offset in the buffer where the encoded array starts.
+     */
+    public int createByteVector(byte[] arr) {
+        int length = arr.length;
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(arr);
         return endVector();
     }
 
