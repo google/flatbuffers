@@ -127,6 +127,7 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_using_schema_compile
 <li><code>--python</code>, <code>-p</code>: Generate Python code.</li>
 <li><code>--javascript</code>, <code>-s</code>: Generate JavaScript code.</li>
 <li><code>--php</code>: Generate PHP code.</li>
+<li><code>--grpc</code>: Generate RPC stub code for GRPC.</li>
 </ul>
 <p>For any data input files:</p>
 <ul>
@@ -144,12 +145,15 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_using_schema_compile
 <li><code>--scoped-enums</code> : Use C++11 style scoped and strongly typed enums in generated C++. This also implies <code>--no-prefix</code>.</li>
 <li><code>--gen-includes</code> : (deprecated), this is the default behavior. If the original behavior is required (no include statements) use <code>--no-includes.</code></li>
 <li><code>--no-includes</code> : Don't generate include statements for included schemas the generated file depends on (C++).</li>
-<li><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</li>
+<li><p class="startli"><code>--gen-mutable</code> : Generate additional non-const accessors for mutating FlatBuffers in-place.</p>
+<p class="startli"><code>--gen-object-api</code> : Generate an additional object-based API. This API is more convenient for object construction and mutation than the base API, at the cost of efficiency (object allocation). Recommended only to be used if other options are insufficient.</p>
+</li>
 <li><code>--gen-onefile</code> : Generate single output file (useful for C#)</li>
 <li><code>--gen-all</code>: Generate not just code for the current schema files, but for all files it includes as well. If the language uses a single file for output (by default the case for C++ and JS), all code will end up in this one file.</li>
 <li><code>--raw-binary</code> : Allow binaries without a file_indentifier to be read. This may crash flatc given a mismatched schema.</li>
 <li><code>--proto</code>: Expect input files to be .proto files (protocol buffers). Output the corresponding .fbs file. Currently supports: <code>package</code>, <code>message</code>, <code>enum</code>, nested declarations, <code>import</code> (use <code>-I</code> for paths), <code>extend</code>, <code>oneof</code>, <code>group</code>. Does not support, but will skip without error: <code>option</code>, <code>service</code>, <code>extensions</code>, and most everything else.</li>
 <li><code>--schema</code>: Serialize schemas instead of JSON (use with -b). This will output a binary version of the specified schema that itself corresponds to the reflection/reflection.fbs schema. Loading this binary file is the basis for reflection functionality.</li>
+<li><code>--conform FILE</code> : Specify a schema the following schemas should be an evolution of. Gives errors if not. Useful to check if schema modifications don't break schema evolution rules.</li>
 </ul>
 <p>NOTE: short-form options for generators are deprecated, use the long form whenever possible. </p>
 </div></div><!-- contents -->

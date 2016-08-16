@@ -147,7 +147,16 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_use_cpp.html','');})
 <div class="line">printf(<span class="stringliteral">&quot;%d\n&quot;</span>, monster-&gt;mana());          <span class="comment">// default value of `150`</span></div>
 <div class="line">printf(<span class="stringliteral">&quot;%s\n&quot;</span>, monster-&gt;name()-&gt;c_str()); <span class="comment">// &quot;MyMonster&quot;</span></div>
 </div><!-- fragment --><p><em>Note: That we never stored a <code>mana</code> value, so it will return the default.</em></p>
-<h2>Reflection (&amp; Resizing)</h2>
+<h2>Object based API.</h2>
+<p>FlatBuffers is all about memory efficiency, which is why its base API is written around using as little as possible of it. This does make the API clumsier (requiring pre-order construction of all data, and making mutation harder).</p>
+<p>For times when efficiency is less important a more convenient object based API can be used (through <code>--gen-object-api</code>) that is able to unpack &amp; pack a FlatBuffer into objects and standard STL containers, allowing for convenient construction, access and mutation.</p>
+<p>To use:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> monsterobj = GetMonster(buffer)-&gt;UnPack();</div>
+<div class="line">cout &lt;&lt; monsterobj-&gt;name;  <span class="comment">// This is now a std::string!</span></div>
+<div class="line">monsterobj-&gt;name = <span class="stringliteral">&quot;Bob&quot;</span>;  <span class="comment">// Change the name.</span></div>
+<div class="line">FlatBufferBuilder fbb;</div>
+<div class="line">CreateMonster(fbb, monsterobj.get());     <span class="comment">// Serialize into new buffer.</span></div>
+</div><!-- fragment --><h2>Reflection (&amp; Resizing)</h2>
 <p>There is experimental support for reflection in FlatBuffers, allowing you to read and write data even if you don't know the exact format of a buffer, and even allows you to change sizes of strings and vectors in-place.</p>
 <p>The way this works is very elegant; there is actually a FlatBuffer schema that describes schemas (!) which you can find in <code>reflection/reflection.fbs</code>. The compiler, <code>flatc</code>, can write out any schemas it has just parsed as a binary FlatBuffer, corresponding to this meta-schema.</p>
 <p>Loading in one of these binary schemas at runtime allows you traverse any FlatBuffer data that corresponds to it without knowing the exact format. You can query what fields are present, and then read/write them after.</p>

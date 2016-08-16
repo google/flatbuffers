@@ -184,6 +184,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af715dd24dd37cb0151dc7a980ad0f207"><td class="memTemplItemLeft" align="right" valign="top">Offset&lt; Vector&lt; T &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#af715dd24dd37cb0151dc7a980ad0f207">CreateVector</a> (const std::vector&lt; T &gt; &amp;v)</td></tr>
 <tr class="memdesc:af715dd24dd37cb0151dc7a980ad0f207"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize a <code>std::vector</code> into a FlatBuffer <code>vector</code>.  <a href="#af715dd24dd37cb0151dc7a980ad0f207">More...</a><br /></td></tr>
 <tr class="separator:af715dd24dd37cb0151dc7a980ad0f207"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a274b1afcfa16bab2c884129b2788db19"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a274b1afcfa16bab2c884129b2788db19"></a>
+Offset&lt; Vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>CreateVector</b> (const std::vector&lt; bool &gt; &amp;v)</td></tr>
+<tr class="separator:a274b1afcfa16bab2c884129b2788db19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1080c9e370e2d9d9d872dadd1131436b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a1080c9e370e2d9d9d872dadd1131436b"><td class="memTemplItemLeft" align="right" valign="top">Offset&lt; Vector&lt; T &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a1080c9e370e2d9d9d872dadd1131436b">CreateVector</a> (size_t vector_size, const std::function&lt; T(size_t i)&gt; &amp;f)</td></tr>
+<tr class="memdesc:a1080c9e370e2d9d9d872dadd1131436b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize values returned by a function into a FlatBuffer <code>vector</code>.  <a href="#a1080c9e370e2d9d9d872dadd1131436b">More...</a><br /></td></tr>
+<tr class="separator:a1080c9e370e2d9d9d872dadd1131436b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2130ef232ff405eebe2e7f184ecd06e6"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a2130ef232ff405eebe2e7f184ecd06e6"><td class="memTemplItemLeft" align="right" valign="top">Offset&lt; Vector&lt; Offset&lt; T &gt; &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a2130ef232ff405eebe2e7f184ecd06e6">CreateVectorOfSortedTables</a> (Offset&lt; T &gt; *v, size_t len)</td></tr>
 <tr class="memdesc:a2130ef232ff405eebe2e7f184ecd06e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize an array of <code>table</code> offsets as a <code>vector</code> in the buffer in sorted order.  <a href="#a2130ef232ff405eebe2e7f184ecd06e6">More...</a><br /></td></tr>
@@ -192,6 +199,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac64d11c219559ea51567eab556e13135"><td class="memTemplItemLeft" align="right" valign="top">Offset&lt; Vector&lt; Offset&lt; T &gt; &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#ac64d11c219559ea51567eab556e13135">CreateVectorOfSortedTables</a> (std::vector&lt; Offset&lt; T &gt;&gt; *v)</td></tr>
 <tr class="memdesc:ac64d11c219559ea51567eab556e13135"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize an array of <code>table</code> offsets as a <code>vector</code> in the buffer in sorted order.  <a href="#ac64d11c219559ea51567eab556e13135">More...</a><br /></td></tr>
 <tr class="separator:ac64d11c219559ea51567eab556e13135"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a592110519a6c8db1926f1365bf2a58e6"><td class="memItemLeft" align="right" valign="top">Offset&lt; Vector&lt; Offset&lt; String &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#a592110519a6c8db1926f1365bf2a58e6">CreateVectorOfStrings</a> (const std::vector&lt; std::string &gt; &amp;v)</td></tr>
+<tr class="memdesc:a592110519a6c8db1926f1365bf2a58e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize a <code>std::vector&lt;std::string&gt;</code> into a FlatBuffer <code>vector</code>.  <a href="#a592110519a6c8db1926f1365bf2a58e6">More...</a><br /></td></tr>
+<tr class="separator:a592110519a6c8db1926f1365bf2a58e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afede51fd9c32d146cbb1832f57c5e1b7"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:afede51fd9c32d146cbb1832f57c5e1b7"><td class="memTemplItemLeft" align="right" valign="top">Offset&lt; Vector&lt; const T * &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classflatbuffers_1_1_flat_buffer_builder.html#afede51fd9c32d146cbb1832f57c5e1b7">CreateVectorOfStructs</a> (const T *v, size_t len)</td></tr>
 <tr class="memdesc:afede51fd9c32d146cbb1832f57c5e1b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize an array of structs into a FlatBuffer <code>vector</code>.  <a href="#afede51fd9c32d146cbb1832f57c5e1b7">More...</a><br /></td></tr>
@@ -780,6 +790,57 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a class="anchor" id="a1080c9e370e2d9d9d872dadd1131436b"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;Vector&lt;T&gt; &gt; flatbuffers::FlatBufferBuilder::CreateVector </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>vector_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; T(size_t i)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>f</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Serialize values returned by a function into a FlatBuffer <code>vector</code>. </p>
+<p>This is a convenience function that takes care of iteration for you. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>The data type of the <code>std::vector</code> elements. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>A function that takes the current iteration 0..vector_size-1 and returns any type that you can construct a FlatBuffers vector out of. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a typed <code>Offset</code> into the serialized data indicating where the vector is stored. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a2130ef232ff405eebe2e7f184ecd06e6"></a>
 <div class="memitem">
 <div class="memproto">
@@ -866,6 +927,39 @@ template&lt;typename T &gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">v</td><td>An array of type <code>Offset&lt;T&gt;</code> that contains the <code>table</code> offsets to store in the buffer in sorted order. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a typed <code>Offset</code> into the serialized data indicating where the vector is stored. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a592110519a6c8db1926f1365bf2a58e6"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Offset&lt;Vector&lt;Offset&lt;String&gt; &gt; &gt; flatbuffers::FlatBufferBuilder::CreateVectorOfStrings </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Serialize a <code>std::vector&lt;std::string&gt;</code> into a FlatBuffer <code>vector</code>. </p>
+<p>This is a convenience function for a common case. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>A const reference to the <code>std::vector</code> to serialize into the buffer as a <code>vector</code>. </td></tr>
   </table>
   </dd>
 </dl>

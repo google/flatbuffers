@@ -113,10 +113,8 @@ $(document).ready(function(){initNavTree('flatbuffers_guide_building.html','');}
 <div class="title">Building </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>Building with Visual Studio or Xcode projects</h2>
-<p>There are project files for Visual Studio and Xcode that should allow you to build the compiler <code>flatc</code>, the samples and the tests out of the box.</p>
-<h2>Building with CMake</h2>
-<p>Alternatively, the distribution comes with a <code>cmake</code> file that should allow you to build project/make files for any platform. For details on <code>cmake</code>, see <a href="http://www.cmake.org">http://www.cmake.org</a>. In brief, depending on your platform, use one of e.g.: </p><pre class="fragment">cmake -G "Unix Makefiles"
+<div class="textblock"><h2>Building with CMake</h2>
+<p>The distribution comes with a <code>cmake</code> file that should allow you to build project/make files for any platform. For details on <code>cmake</code>, see <a href="http://www.cmake.org">http://www.cmake.org</a>. In brief, depending on your platform, use one of e.g.: </p><pre class="fragment">cmake -G "Unix Makefiles"
 cmake -G "Visual Studio 10"
 cmake -G "Xcode"
 </pre><p>Then, build as normal for your platform. This should result in a <code>flatc</code> executable, essential for the next steps. Note that to use clang instead of gcc, you may need to set up your environment variables, e.g. <code>CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -G "Unix Makefiles"</code>.</p>

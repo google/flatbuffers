@@ -827,7 +827,7 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the ByteBuffer representing the FlatBuffer. </p>
-<p>This is typically only called after you call <code>Finish()</code>. </p>
+<p>This is typically only called after you call <code>Finish()</code>. The actual data starts at the ByteBuffer's current position, not necessarily at <code>0</code>. </p>
 <dl class="section return"><dt>Returns</dt><dd>Returns the ByteBuffer for this FlatBuffer. </dd></dl>
 
 </div>

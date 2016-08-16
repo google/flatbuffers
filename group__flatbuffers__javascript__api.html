@@ -145,7 +145,7 @@ Variables</h2></td></tr>
 <tr class="memdesc:ga21ba7dd4c33dafd6abb89568e4d9c8b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds on offset, relative to where it will be written.  <a href="#ga21ba7dd4c33dafd6abb89568e4d9c8b8">More...</a><br /></td></tr>
 <tr class="separator:ga21ba7dd4c33dafd6abb89568e4d9c8b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga997af48d5c8f757fcb962168d67e33fb"><td class="memItemLeft" align="right" valign="top">flatbuffers <a class="el" href="group__flatbuffers__javascript__api.html#gabd00b65bbe9e9fbac55fe4982eb6cec8">Builder</a> prototype&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatbuffers__javascript__api.html#ga997af48d5c8f757fcb962168d67e33fb">asUint8Array</a></td></tr>
-<tr class="memdesc:ga997af48d5c8f757fcb962168d67e33fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the ByteBuffer representing the FlatBuffer.  <a href="#ga997af48d5c8f757fcb962168d67e33fb">More...</a><br /></td></tr>
+<tr class="memdesc:ga997af48d5c8f757fcb962168d67e33fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the bytes representing the FlatBuffer.  <a href="#ga997af48d5c8f757fcb962168d67e33fb">More...</a><br /></td></tr>
 <tr class="separator:ga997af48d5c8f757fcb962168d67e33fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabd00b65bbe9e9fbac55fe4982eb6cec8"><td class="memItemLeft" align="right" valign="top">flatbuffers&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatbuffers__javascript__api.html#gabd00b65bbe9e9fbac55fe4982eb6cec8">Builder</a></td></tr>
 <tr class="memdesc:gabd00b65bbe9e9fbac55fe4982eb6cec8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a FlatBufferBuilder.  <a href="#gabd00b65bbe9e9fbac55fe4982eb6cec8">More...</a><br /></td></tr>
@@ -348,8 +348,8 @@ Variables</h2></td></tr>
 <div class="line">  <span class="keywordflow">return</span> this.bb.bytes().subarray(this.bb.position(), this.bb.position() + this.offset());</div>
 <div class="line">}</div>
 </div><!-- fragment -->
-<p>Get the ByteBuffer representing the FlatBuffer. </p>
-<p>Only call this after you've called finish(). The actual data starts at the ByteBuffer's current position, not necessarily at 0.</p>
+<p>Get the bytes representing the FlatBuffer. </p>
+<p>Only call this after you've called finish().</p>
 <dl class="section return"><dt>Returns</dt><dd>{Uint8Array} </dd></dl>
 
 </div>
@@ -465,7 +465,7 @@ Variables</h2></td></tr>
 <div class="line">  this.<a class="code" href="group__flatbuffers__javascript__api.html#ga21ba7dd4c33dafd6abb89568e4d9c8b8">addOffset</a>(root_table);</div>
 <div class="line">  this.bb.setPosition(this.space);</div>
 <div class="line">}</div>
-<div class="ttc" id="group__flatbuffers__javascript__api_html_ga21ba7dd4c33dafd6abb89568e4d9c8b8"><div class="ttname"><a href="group__flatbuffers__javascript__api.html#ga21ba7dd4c33dafd6abb89568e4d9c8b8">addOffset</a></div><div class="ttdeci">flatbuffers Builder prototype addOffset</div><div class="ttdoc">Adds on offset, relative to where it will be written. </div><div class="ttdef"><b>Definition:</b> flatbuffers.js:550</div></div>
+<div class="ttc" id="group__flatbuffers__javascript__api_html_ga21ba7dd4c33dafd6abb89568e4d9c8b8"><div class="ttname"><a href="group__flatbuffers__javascript__api.html#ga21ba7dd4c33dafd6abb89568e4d9c8b8">addOffset</a></div><div class="ttdeci">flatbuffers Builder prototype addOffset</div><div class="ttdoc">Adds on offset, relative to where it will be written. </div><div class="ttdef"><b>Definition:</b> flatbuffers.js:553</div></div>
 </div><!-- fragment -->
 <p>Finalize a buffer, poiting to the given <code>root_table</code>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -490,7 +490,7 @@ Variables</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">= <span class="keyword">function</span>(<a class="code" href="group__flatbuffers__javascript__api.html#ga0d1738111b83dffb2c2a7fc8bca19b33">forceDefaults</a>) {</div>
 <div class="line">  this.force_defaults = <a class="code" href="group__flatbuffers__javascript__api.html#ga0d1738111b83dffb2c2a7fc8bca19b33">forceDefaults</a>;</div>
 <div class="line">}</div>
-<div class="ttc" id="group__flatbuffers__javascript__api_html_ga0d1738111b83dffb2c2a7fc8bca19b33"><div class="ttname"><a href="group__flatbuffers__javascript__api.html#ga0d1738111b83dffb2c2a7fc8bca19b33">forceDefaults</a></div><div class="ttdeci">flatbuffers Builder prototype forceDefaults</div><div class="ttdoc">In order to save space, fields that are set to their default value don&#39;t get serialized into the buff...</div><div class="ttdef"><b>Definition:</b> flatbuffers.js:221</div></div>
+<div class="ttc" id="group__flatbuffers__javascript__api_html_ga0d1738111b83dffb2c2a7fc8bca19b33"><div class="ttname"><a href="group__flatbuffers__javascript__api.html#ga0d1738111b83dffb2c2a7fc8bca19b33">forceDefaults</a></div><div class="ttdeci">flatbuffers Builder prototype forceDefaults</div><div class="ttdoc">In order to save space, fields that are set to their default value don&#39;t get serialized into the buff...</div><div class="ttdef"><b>Definition:</b> flatbuffers.js:225</div></div>
 </div><!-- fragment -->
 <p>In order to save space, fields that are set to their default value don't get serialized into the buffer. </p>
 <p>Forcing defaults provides a way to manually disable this optimization.</p>

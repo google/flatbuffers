@@ -142,7 +142,24 @@ blob/master/tests/GoTest.sh">GoTest.sh</a> shell script.</p>
 </div><!-- fragment --><p>Now you can access values like this:</p>
 <div class="fragment"><div class="line">hp := monster.Hp()</div>
 <div class="line">pos := monster.Pos(nil)</div>
-</div><!-- fragment --><h2>Text Parsing</h2>
+</div><!-- fragment --><p>In some cases it's necessary to modify values in an existing FlatBuffer in place (without creating a copy). For this reason, scalar fields of a Flatbuffer table or struct can be mutated.</p>
+<div class="fragment"><div class="line">monster := example.GetRootAsMonster(buf, 0)</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Set table field.</span></div>
+<div class="line"><span class="keywordflow">if</span> ok := monster.MutateHp(10); !ok {</div>
+<div class="line">  panic(<span class="stringliteral">&quot;failed to mutate Hp&quot;</span>)</div>
+<div class="line">}</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Set struct field.</span></div>
+<div class="line">monster.Pos().MutateZ(4)</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// This mutation will fail because the mana field is not available in</span></div>
+<div class="line"><span class="comment">// the buffer. It should be set when creating the buffer.</span></div>
+<div class="line"><span class="keywordflow">if</span> ok := monster.MutateMana(20); !ok {</div>
+<div class="line">  panic(<span class="stringliteral">&quot;failed to mutate Hp&quot;</span>)</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>The term <code>mutate</code> is used instead of <code>set</code> to indicate that this is a special use case. All mutate functions return a boolean value which is false if the field we're trying to mutate is not available in the buffer.</p>
+<h2>Text Parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Go, though you could use the C++ parser through cgo. Please see the C++ documentation for more on text parsing.</p>
 <p><br />
  </p>
