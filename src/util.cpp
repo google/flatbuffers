@@ -47,12 +47,12 @@ static LoadFileFunction g_load_file_function = LoadFileRaw;
 static FileExistsFunction g_file_exists_function = FileExistsRaw;
 
 bool LoadFile(const char *name, bool binary, std::string *buf) {
-  assert(g_load_file_function);
+  flatbuffers_assert(g_load_file_function);
   return g_load_file_function(name, binary, buf);
 }
 
 bool FileExists(const char *name) {
-  assert(g_file_exists_function);
+  flatbuffers_assert(g_file_exists_function);
   return g_file_exists_function(name);
 }
 

@@ -125,7 +125,7 @@ class FlatBufPrinter : public grpc_cpp_generator::Printer {
   }
 
   void Indent() { indent_++; }
-  void Outdent() { indent_--; assert(indent_ >= 0); }
+  void Outdent() { indent_--; flatbuffers_assert(indent_ >= 0); }
 
  private:
   std::string *str_;

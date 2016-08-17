@@ -710,7 +710,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
                                    const StructDef *parent_struct_def) {
   switch (val.type.base_type) {
     case BASE_TYPE_UNION: {
-      assert(field);
+      flatbuffers_assert(field);
       std::string constant;
       if (!parent_fieldn ||
           field_stack_.back().second->value.type.base_type != BASE_TYPE_UTYPE) {
@@ -718,9 +718,9 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         // output these in alphabetical order, meaning it comes after this
         // value. So we scan past the value to find it, then come back here.
         auto type_name = field->name + UnionTypeFieldSuffix();
-        assert(parent_struct_def);
+        flatbuffers_assert(parent_struct_def);
         auto type_field = parent_struct_def->fields.Lookup(type_name);
-        assert(type_field);  // Guaranteed by ParseField().
+        flatbuffers_assert(type_field);  // Guaranteed by ParseField().
         // Remember where we are in the source file, so we can come back here.
         auto backup = *static_cast<ParserState *>(this);
         ECHECK(SkipAnyJsonValue());  // The table.
@@ -786,7 +786,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
 }
 
 void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
-  assert(val.constant.length() == struct_def.bytesize);
+  flatbuffers_assert(val.constant.length() == struct_def.bytesize);
   builder_.Align(struct_def.minalign);
   builder_.PushBytes(reinterpret_cast<const uint8_t *>(val.constant.c_str()),
                      struct_def.bytesize);
@@ -895,14 +895,14 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   if (struct_def.fixed) {
     builder_.ClearOffsets();
     builder_.EndStruct();
-    assert(value);
+    flatbuffers_assert(value);
     // Temporarily store this struct in the value string, since it is to
     // be serialized in-place elsewhere.
     value->assign(
           reinterpret_cast<const char *>(builder_.GetCurrentBufferPointer()),
           struct_def.bytesize);
     builder_.PopBytes(struct_def.bytesize);
-    assert(!ovalue);
+    flatbuffers_assert(!ovalue);
   } else {
     auto val = builder_.EndTable(start,
                           static_cast<voffset_t>(struct_def.fields.vec.size()));
@@ -1035,7 +1035,7 @@ CheckedError Parser::ParseEnumFromString(Type &type, int64_t *result) {
 
 
 CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
-  assert(field);
+  flatbuffers_assert(field);
   Value *hash_name = field->attributes.Lookup("hash");
   switch (e.type.base_type) {
     case BASE_TYPE_INT:
@@ -1053,7 +1053,7 @@ CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
       break;
     }
     default:
-      assert(0);
+      flatbuffers_assert(0);
   }
   NEXT();
   return NoError();
@@ -1098,7 +1098,7 @@ CheckedError Parser::ParseSingleValue(Value &e) {
       } else if (IsFloat(e.type.base_type)) {
         e.constant = NumToString(strtod(attribute_.c_str(), nullptr));
       } else {
-        assert(0);  // Shouldn't happen, we covered all types.
+        flatbuffers_assert(0);  // Shouldn't happen, we covered all types.
         e.constant = "0";
       }
       NEXT();
@@ -2094,7 +2094,7 @@ flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
   std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
   for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
     auto it = parser.known_attributes_.find(kv->first);
-    assert(it != parser.known_attributes_.end());
+    flatbuffers_assert(it != parser.known_attributes_.end());
     if (!it->second) {  // Custom attribute.
       attrs.push_back(
           reflection::CreateKeyValue(*builder, builder->CreateString(kv->first),

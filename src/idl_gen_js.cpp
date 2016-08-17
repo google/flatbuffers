@@ -545,7 +545,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           break;
 
         default:
-          assert(0);
+          flatbuffers_assert(0);
       }
     }
     code += "};\n\n";

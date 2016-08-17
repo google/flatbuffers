@@ -267,7 +267,7 @@ class ResizeContext {
           case reflection::String:
             break;
           default:
-            assert(false);
+            flatbuffers_assert(false);
         }
       }
       // Check if the vtable offset points beyond the insertion point.
@@ -471,7 +471,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
       }
     }
   }
-  assert(offset_idx == offsets.size());
+  flatbuffers_assert(offset_idx == offsets.size());
   if (objectdef.is_struct()) {
     fbb.ClearOffsets();
     return fbb.EndStruct();

@@ -195,7 +195,7 @@ class GeneralGenerator : public BaseGenerator {
                    const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
         lang_(language_parameters[parser_.opts.lang]) {
-    assert(parser_.opts.lang <= IDLOptions::kMAX);
+    flatbuffers_assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
   GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
@@ -865,7 +865,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           code += "(obj, o) : null";
           break;
         default:
-          assert(0);
+          flatbuffers_assert(0);
       }
     }
     code += "; ";
@@ -1147,7 +1147,7 @@ bool GenerateGeneral(const Parser &parser, const std::string &path,
 
 std::string GeneralMakeRule(const Parser &parser, const std::string &path,
                             const std::string &file_name) {
-  assert(parser.opts.lang <= IDLOptions::kMAX);
+  flatbuffers_assert(parser.opts.lang <= IDLOptions::kMAX);
   auto lang = language_parameters[parser.opts.lang];
 
   std::string make_rule;

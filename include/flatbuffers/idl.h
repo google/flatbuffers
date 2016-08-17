@@ -175,7 +175,7 @@ template<typename T> class SymbolTable {
       dict.erase(it);
       dict[newname] = obj;
     } else {
-      assert(false);
+      flatbuffers_assert(false);
     }
   }
 
@@ -411,7 +411,7 @@ class CheckedError {
     *this = other;  // Use assignment operator.
   }
 
-  ~CheckedError() { assert(has_been_checked_); }
+  ~CheckedError() { flatbuffers_assert(has_been_checked_); }
 
   bool Check() { has_been_checked_ = true; return is_error_; }
 
