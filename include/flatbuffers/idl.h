@@ -596,7 +596,9 @@ extern void GenComment(const std::vector<std::string> &dc,
 // if it is less than 0, no linefeeds will be generated either.
 // See idl_gen_text.cpp.
 // strict_json adds "quotes" around field names if true.
-extern void GenerateText(const Parser &parser,
+// If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
+// byte arrays in String values), returns false.
+extern bool GenerateText(const Parser &parser,
                          const void *flatbuffer,
                          std::string *text);
 extern bool GenerateTextFile(const Parser &parser,
