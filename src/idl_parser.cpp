@@ -2165,60 +2165,118 @@ std::string Parser::ConformTo(const Parser &base) {
 }  // namespace flatbuffers
 
 
-FLATBUFFERS_EXPORT flatbuffers::Parser* flatbuffers_parser_new()
+typedef enum
 {
-  flatbuffers::Parser *p = new flatbuffers::Parser();
-  return p;
+  ALLOW_NON_UTF8 = 1,
+  STRICT_JSON = 2,
+  SKIP_UNEXPECTED_FIELDS_IN_JSON = 4,
+} flatbuffers_parser_option;
+
+typedef struct
+{
+  flatbuffers::Parser* pointer;
+} flatbuffers_parser;
+
+FLATBUFFERS_EXPORT flatbuffers_parser* flatbuffers_parser_new(flatbuffers_parser_option option)
+{
+  flatbuffers_parser* parser = static_cast<flatbuffers_parser*>(malloc(sizeof(flatbuffers_parser)));
+  flatbuffers::IDLOptions opt = flatbuffers::IDLOptions();
+
+  if (option > 0)
+  {
+    if ((option & ALLOW_NON_UTF8) != 0)
+    {
+      opt.allow_non_utf8 = true;
+    }
+    if ((option & STRICT_JSON) != 0)
+    {
+      opt.strict_json = true;
+    }
+    if ((option & SKIP_UNEXPECTED_FIELDS_IN_JSON) != 0)
+    {
+      opt.skip_unexpected_fields_in_json = true;
+    }
+  }
+
+  parser->pointer = new flatbuffers::Parser(opt);
+
+  return parser;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers::Parser *parser, const char* source)
+FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers_parser *parser, const char* source)
 {
   assert(parser);
+  assert(parser->pointer);
 
-  bool result = parser->Parse(source, nullptr, nullptr);
+  bool result = parser->pointer->Parse(source, nullptr, nullptr);
   return result ? 0 : -1;
 }
 
 FLATBUFFERS_EXPORT void flatbuffers_free_string(char **buffer)
 {
-  if (buffer != nullptr)
-  {
-    free(buffer);
-  }
+  assert(buffer);
+  free(buffer);
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers::Parser *parser, char **buffer, int *size)
+FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers_parser *parser, char **buffer, size_t *size)
 {
   std::string jsongen;
-  *size = parser->builder_.GetSize();
-  flatbuffers::GenerateText(*parser, parser->builder_.GetBufferPointer(), &jsongen);
+
+  assert(parser);
+  assert(parser->pointer);
+
+  *size = parser->pointer->builder_.GetSize();
+  flatbuffers::GenerateText(*parser->pointer, parser->pointer->builder_.GetBufferPointer(), &jsongen);
 
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
   memcpy(*buffer, jsongen.c_str(), *size);
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers::Parser *parser, char **buffer, int *size)
+FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers_parser *parser, char **buffer, size_t *size)
 {
-  *size = parser->builder_.GetSize();
+  assert(parser);
+  assert(parser->pointer);
+
+  *size = parser->pointer->builder_.GetSize();
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
-  memcpy(*buffer, reinterpret_cast<const char *>(parser->builder_.GetBufferPointer()), *size);
+  memcpy(*buffer, reinterpret_cast<const char *>(parser->pointer->builder_.GetBufferPointer()), *size);
 
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers::Parser *parser, const char *root_type)
+FLATBUFFERS_EXPORT int flatbuffers_errstr(flatbuffers_parser *parser, char **buffer, size_t *size)
 {
   assert(parser);
+  assert(parser->pointer);
 
-  bool result = parser->SetRootType(root_type);
+  const char* errstr = parser->pointer->error_.c_str();
+
+  *size = parser->pointer->error_.length();
+  *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
+
+  memcpy(*buffer, parser->pointer->error_.c_str(), *size);
+
+  return *size;
+}
+
+FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers_parser *parser, const char *root_type)
+{
+  assert(parser);
+  assert(parser->pointer);
+
+  bool result = parser->pointer->SetRootType(root_type);
   return result ? 0 : -1;
 }
 
-FLATBUFFERS_EXPORT void flatbuffers_parser_free(flatbuffers::Parser *parser)
+FLATBUFFERS_EXPORT void flatbuffers_parser_free(flatbuffers_parser *parser)
 {
+  assert(parser);
+  assert(parser->pointer);
+
   if (parser != nullptr)
   {
-    delete parser;
+    delete parser->pointer;
+    free(parser);
   }
 }
