@@ -131,9 +131,6 @@ func (rcv *Monster) Test4(obj *Test, j int) bool {
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
-		if obj == nil {
-			obj = new(Test)
-		}
 		obj.Init(rcv._tab.Bytes, x)
 		return true
 	}
@@ -173,9 +170,6 @@ func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
 		x = rcv._tab.Indirect(x)
-		if obj == nil {
-			obj = new(Monster)
-		}
 		obj.Init(rcv._tab.Bytes, x)
 		return true
 	}
