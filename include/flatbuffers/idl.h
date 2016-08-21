@@ -35,10 +35,10 @@
 #define FLATBUFFERS_EXPORT extern "C" __declspec(dllexport)
 #elif defined(__MACH__) || defined(__ANDROID__) || defined(__linux__) || defined(__QNX__)
 #define FLATBUFFERS_API
-#define FLATBUFFERS_EXPORT
+#define FLATBUFFERS_EXPORT extern "C"
 #else
 #define FLATBUFFERS_API
-#define FLATBUFFERS_EXPORT
+#define FLATBUFFERS_EXPORT extern "C"
 #endif
 
 
