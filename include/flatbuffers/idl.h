@@ -737,15 +737,15 @@ int flatbuffers_parser_parse(flatbuffers_parser *parser,
                              const char* source);
 
 FLATBUFFERS_EXPORT
-int flatbuffers_parser_generate_json(flatbuffers_parser *parser,
+size_t flatbuffers_parser_generate_json(flatbuffers_parser *parser,
                                      char **buffer, size_t *size);
 
 FLATBUFFERS_EXPORT
-int flatbuffers_parser_generate_buffer(flatbuffers_parser *parser,
+size_t flatbuffers_parser_generate_buffer(flatbuffers_parser *parser,
                                        char **buffer, size_t *size);
 
 FLATBUFFERS_EXPORT
-int flatbuffers_parser_errstr(flatbuffers_parser *parser,
+size_t flatbuffers_parser_errstr(flatbuffers_parser *parser,
                               char **buffer, size_t *size);
 
 FLATBUFFERS_EXPORT
