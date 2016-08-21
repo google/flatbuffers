@@ -24,6 +24,7 @@
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
+#include "arrays_test_generated.h"
 
 #ifndef FLATBUFFERS_CPP98_STL
   #include <random>
@@ -749,6 +750,15 @@ void FuzzTest2() {
       // Pick random type:
       int base_type = lcg_rand() % (flatbuffers::BASE_TYPE_UNION + 1);
       switch (base_type) {
+        case flatbuffers::BASE_TYPE_ARRAY:
+          if (!is_struct) {
+            AddToSchemaAndInstances("ubyte",
+              deprecated ? "" : "255");  // No fixed-length arrays in tables.
+          } else {
+            AddToSchemaAndInstances("[int:3]",
+              deprecated ? "" : "[\n,\n,\n]");
+          }
+          break;
         case flatbuffers::BASE_TYPE_STRING:
           if (is_struct) {
             Dummy();  // No strings in structs.
@@ -1194,6 +1204,23 @@ void ConformTest() {
   test_conform("enum E:byte { B, A }", "values differ for enum");
 }
 
+void FixedLengthArrayTest() {
+  flatbuffers::FlatBufferBuilder fbb;
+  int array[15];
+  for (int i = 0; i < 15; i++) array[i] = i + 1;
+  ArraysTest::Test1::ArrayStruct aStruct(2, array, 12);
+  auto aTable = ArraysTest::Test1::CreateArrayTable(fbb, &aStruct);
+  fbb.Finish(aTable);
+  auto p = ArraysTest::Test1::GetMutableArrayTable(fbb.GetBufferPointer());
+  auto mArStruct = p->mutable_a();
+  mArStruct->mutable_b()[14] = -14;
+  TEST_EQ(mArStruct->a(), 2);
+  TEST_EQ(mArStruct->b_length(), 15);
+  TEST_EQ(mArStruct->c(), 12);
+  TEST_EQ(mArStruct->b()[14], -14);
+  for (int i = 0; i < 14; i++) TEST_EQ(mArStruct->b()[i], i + 1);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1228,6 +1255,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
+  FixedLengthArrayTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

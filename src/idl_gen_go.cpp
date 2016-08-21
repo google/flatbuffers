@@ -595,6 +595,7 @@ static void GenStruct(const StructDef &struct_def,
        it != struct_def.fields.vec.end();
        ++it) {
     auto &field = **it;
+    assert(field.value.type.base_type != BASE_TYPE_ARRAY);
     if (field.deprecated) continue;
 
     GenStructAccessor(struct_def, field, code_ptr);

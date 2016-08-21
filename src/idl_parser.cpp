@@ -543,7 +543,8 @@ CheckedError Parser::ParseType(Type &type) {
       NEXT();
       Type subtype;
       ECHECK(ParseType(subtype));
-      if (subtype.base_type == BASE_TYPE_VECTOR) {
+      if (subtype.base_type == BASE_TYPE_VECTOR || 
+          subtype.base_type == BASE_TYPE_ARRAY) {
         // We could support this, but it will complicate things, and it's
         // easier to work around with a struct around the inner vector.
         return Error(
@@ -555,7 +556,27 @@ CheckedError Parser::ParseType(Type &type) {
         return Error(
               "vector of union types not supported (wrap in table first).");
       }
-      type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
+      if (token_ == ':') {
+        if (!IsScalar(subtype.base_type)) {
+          return Error(
+                "arrays of non-scalar types not supported.");
+        }
+        NEXT();
+        if (token_ != kTokenIntegerConstant) {
+          return Error(
+                "length of fixed-length array must be an integer value.");
+        }
+        int64_t fixed_length = StringToInt(attribute_.c_str());
+        if (fixed_length < 1 || fixed_length > 0x7fff) {
+          return Error(
+                "length of fixed-length array must be positive and fit to short type.");
+        }
+        type = Type(BASE_TYPE_ARRAY, subtype.struct_def, 
+                    subtype.enum_def, (int16_t)fixed_length);
+        NEXT();
+      } else {
+        type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
+      }
       type.element = subtype.base_type;
       EXPECT(']');
     } else {
@@ -597,8 +618,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   Type type;
   ECHECK(ParseType(type));
 
-  if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type))
+  if (struct_def.fixed && !IsScalar(type.base_type) && 
+      !IsStruct(type) && !IsArray(type))
     return Error("structs_ may contain only scalar or struct fields");
+  if (!struct_def.fixed && IsArray(type))
+    return Error("tables can't contain fixed-length arrays.");
 
   FieldDef *typefield = nullptr;
   if (type.base_type == BASE_TYPE_UNION) {
@@ -753,6 +777,10 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
     case BASE_TYPE_STRUCT:
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
+    case BASE_TYPE_ARRAY:
+      EXPECT('[');
+      ECHECK(ParseArray(val.type.VectorType(),val.type.fixed_length));
+      break;
     case BASE_TYPE_STRING: {
       auto s = attribute_;
       EXPECT(kTokenStringConstant);
@@ -852,6 +880,14 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
              it != field_stack_.rbegin() + fieldn; ++it) {
       auto &field_value = it->first;
       auto field = it->second;
+      if (field->value.type.base_type == BASE_TYPE_ARRAY) {
+        int array_size = field->value.type.fixed_length * SizeOf(field->value.type.element);
+        uint8_t*bytes = new uint8_t[array_size];
+        memset(bytes, 0, array_size);
+        builder_.Pad(field->padding);
+        builder_.PushBytes(bytes, array_size);
+        continue;
+      }
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
@@ -910,6 +946,22 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     if (value) *value = NumToString(val);
   }
   return NoError();
+}
+
+CheckedError Parser::ParseArray(const Type &type, const short length) {
+  bool values_defined = token_ != ',';
+  int count = values_defined ? 0 : 1;
+  for (;;) {
+    if ((!opts.strict_json || !count) && Is(']')) { NEXT(); break; }
+    Value val;
+    val.type = type;
+    if (token_ != ',') ECHECK(ParseSingleValue(val));
+    count++;
+    if (Is(']')) { NEXT(); break; }
+    EXPECT(',');
+  }
+  if (length != count) return Error("Fixed-length array size is incorrect.");
+    else return NoError();
 }
 
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
@@ -1381,6 +1433,7 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "Length", BASE_TYPE_VECTOR));
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
+  ECHECK(CheckClash(fields, struct_def, "_length", BASE_TYPE_ARRAY));
   EXPECT('}');
   return NoError();
 }
@@ -2083,6 +2136,7 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
   return reflection::CreateType(*builder,
                                 static_cast<reflection::BaseType>(base_type),
                                 static_cast<reflection::BaseType>(element),
+                                fixed_length,
                                 struct_def ? struct_def->index :
                                              (enum_def ? enum_def->index : -1));
 }

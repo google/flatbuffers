@@ -731,6 +731,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
        it != struct_def.fields.vec.end();
        ++it) {
     auto &field = **it;
+    assert(field.value.type.base_type != BASE_TYPE_ARRAY);
     if (field.deprecated) continue;
     GenComment(field.doc_comment, code_ptr, &lang_.comment_config, "  ");
     std::string type_name = GenTypeGet(field.value.type);

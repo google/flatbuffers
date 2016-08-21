@@ -20,6 +20,7 @@ enum BaseType : byte {
     ULong,
     Float,
     Double,
+    Array,
     String,
     Vector,
     Obj,     // Used for tables & structs.
@@ -29,6 +30,7 @@ enum BaseType : byte {
 table Type {
     base_type:BaseType;
     element:BaseType = None;  // Only if base_type == Vector.
+    fixed_length:short = 0;   // Only if base_type == Array.
     index:int = -1;  // If base_type == Object, index into "objects" below.
                      // If base_type == Union, UnionType, or integral derived
                      // from an enum, index into "enums" below.

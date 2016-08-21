@@ -48,7 +48,7 @@ void OutputIdentifier(const std::string &name, const IDLOptions &opts,
 // Print (and its template specialization below for pointers) generate text
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
-template<typename T> void Print(T val, Type type, int /*indent*/,
+template<typename T> void Print(T val, Type type, int indent,
                                 StructDef * /*union_sd*/,
                                 const IDLOptions &opts,
                                 std::string *_text) {
@@ -63,6 +63,16 @@ template<typename T> void Print(T val, Type type, int /*indent*/,
 
   if (type.base_type == BASE_TYPE_BOOL) {
     text += val != 0 ? "true" : "false";
+  } else if (type.base_type == BASE_TYPE_ARRAY) {
+    text += '[';
+    text += NewLine(opts);
+    for (short i = 1; i < type.fixed_length; i++) {
+      text.append(indent + Indent(opts), ' ');
+      text += ",";
+      text += NewLine(opts);
+    }
+    text.append(indent, ' ');
+    text += "]";
   } else {
     text += NumToString(val);
   }

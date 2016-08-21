@@ -1,0 +1,13 @@
+namespace ArraysTest.Test1;
+
+struct ArrayStruct{
+	a:float;
+	b:[int:15];
+	c:byte;
+}
+
+table ArrayTable{
+	a:ArrayStruct;
+}
+
+root_type ArrayTable;
