@@ -53,7 +53,7 @@ namespace FlatBuffers.Parser
                 string result = string.Empty;
                 int size = 0;
 
-                flatbuffers_errstr(m_parser, ref buffer, ref _size); ;
+                flatbuffers_parser_errstr(m_parser, ref buffer, ref _size); ;
                 size = _size.ToInt32();
                 if (size > 0)
                 {
@@ -119,7 +119,7 @@ namespace FlatBuffers.Parser
 
             try
             {
-                flatbuffers_generate_json(m_parser, ref buffer, ref _size);
+                flatbuffers_parser_generate_json(m_parser, ref buffer, ref _size);
                 size = _size.ToInt32();
                 if (size > 0)
                 {
@@ -152,7 +152,7 @@ namespace FlatBuffers.Parser
 
             try
             {
-                flatbuffers_generate_buffer(m_parser, ref buffer, ref _size);
+                flatbuffers_parser_generate_buffer(m_parser, ref buffer, ref _size);
                 size = _size.ToInt32();
                 byte[] managedArray = new byte[size];
                 Marshal.Copy(buffer, managedArray, 0, size);
@@ -189,16 +189,16 @@ namespace FlatBuffers.Parser
         private static extern int flatbuffers_parser_parse(IntPtr parser, string source);
 
         [DllImport(dll_name)]
-        private static extern int flatbuffers_errstr(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
+        private static extern int flatbuffers_parser_errstr(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
 
         [DllImport(dll_name)]
         private static extern int flatbuffers_parser_set_root_type(IntPtr parser, string root_type);
 
         [DllImport(dll_name)]
-        private static extern int flatbuffers_generate_json(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
+        private static extern int flatbuffers_parser_generate_json(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
 
         [DllImport(dll_name)]
-        private static extern int flatbuffers_generate_buffer(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
+        private static extern int flatbuffers_parser_generate_buffer(IntPtr parser, ref IntPtr buffer, ref IntPtr size);
 
         [DllImport(dll_name)]
         private static extern void flatbuffers_free_string(IntPtr buffer);

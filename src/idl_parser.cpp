@@ -2165,35 +2165,24 @@ std::string Parser::ConformTo(const Parser &base) {
 }  // namespace flatbuffers
 
 
-typedef enum
-{
-  ALLOW_NON_UTF8 = 1,
-  STRICT_JSON = 2,
-  SKIP_UNEXPECTED_FIELDS_IN_JSON = 4,
-} flatbuffers_parser_option;
+struct flatbuffers_parser {
+    flatbuffers::Parser* pointer;
+};
 
-typedef struct
-{
-  flatbuffers::Parser* pointer;
-} flatbuffers_parser;
-
-FLATBUFFERS_EXPORT flatbuffers_parser* flatbuffers_parser_new(flatbuffers_parser_option option)
-{
-  flatbuffers_parser* parser = static_cast<flatbuffers_parser*>(malloc(sizeof(flatbuffers_parser)));
+FLATBUFFERS_EXPORT
+flatbuffers_parser* flatbuffers_parser_new(flatbuffers_parser_option option) {
+  flatbuffers_parser* parser
+    = static_cast<flatbuffers_parser*>(malloc(sizeof(flatbuffers_parser)));
   flatbuffers::IDLOptions opt = flatbuffers::IDLOptions();
 
-  if (option > 0)
-  {
-    if ((option & ALLOW_NON_UTF8) != 0)
-    {
+  if (option > 0) {
+    if ((option & PARSER_OPTION_ALLOW_NON_UTF8) != 0) {
       opt.allow_non_utf8 = true;
     }
-    if ((option & STRICT_JSON) != 0)
-    {
+    if ((option & PARSER_OPTION_STRICT_JSON) != 0) {
       opt.strict_json = true;
     }
-    if ((option & SKIP_UNEXPECTED_FIELDS_IN_JSON) != 0)
-    {
+    if ((option & PARSER_OPTION_SKIP_UNEXPECTED_FIELDS_IN_JSON) != 0) {
       opt.skip_unexpected_fields_in_json = true;
     }
   }
@@ -2203,8 +2192,8 @@ FLATBUFFERS_EXPORT flatbuffers_parser* flatbuffers_parser_new(flatbuffers_parser
   return parser;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers_parser *parser, const char* source)
-{
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_parse(flatbuffers_parser *parser, const char* source) {
   assert(parser);
   assert(parser->pointer);
 
@@ -2212,41 +2201,47 @@ FLATBUFFERS_EXPORT int flatbuffers_parser_parse(flatbuffers_parser *parser, cons
   return result ? 0 : -1;
 }
 
-FLATBUFFERS_EXPORT void flatbuffers_free_string(char **buffer)
-{
+FLATBUFFERS_EXPORT
+void flatbuffers_free_string(char *buffer) {
   assert(buffer);
   free(buffer);
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_json(flatbuffers_parser *parser, char **buffer, size_t *size)
-{
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_generate_json(flatbuffers_parser *parser,
+                                     char **buffer, size_t *size) {
   std::string jsongen;
 
   assert(parser);
   assert(parser->pointer);
 
-  *size = parser->pointer->builder_.GetSize();
-  flatbuffers::GenerateText(*parser->pointer, parser->pointer->builder_.GetBufferPointer(), &jsongen);
+  flatbuffers::GenerateText(*parser->pointer,
+    parser->pointer->builder_.GetBufferPointer(), &jsongen);
 
+  *size = jsongen.length();
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
   memcpy(*buffer, jsongen.c_str(), *size);
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_generate_buffer(flatbuffers_parser *parser, char **buffer, size_t *size)
-{
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_generate_buffer(flatbuffers_parser *parser,
+                                       char **buffer, size_t *size) {
   assert(parser);
   assert(parser->pointer);
 
   *size = parser->pointer->builder_.GetSize();
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
-  memcpy(*buffer, reinterpret_cast<const char *>(parser->pointer->builder_.GetBufferPointer()), *size);
+  memcpy(*buffer, reinterpret_cast<const char *>(
+    parser->pointer->builder_.GetBufferPointer()),
+    *size);
 
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_errstr(flatbuffers_parser *parser, char **buffer, size_t *size)
-{
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_errstr(flatbuffers_parser *parser,
+                              char **buffer, size_t *size) {
   assert(parser);
   assert(parser->pointer);
 
@@ -2260,8 +2255,9 @@ FLATBUFFERS_EXPORT int flatbuffers_errstr(flatbuffers_parser *parser, char **buf
   return *size;
 }
 
-FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers_parser *parser, const char *root_type)
-{
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_set_root_type(flatbuffers_parser *parser,
+                                     const char *root_type) {
   assert(parser);
   assert(parser->pointer);
 
@@ -2269,13 +2265,12 @@ FLATBUFFERS_EXPORT int flatbuffers_parser_set_root_type(flatbuffers_parser *pars
   return result ? 0 : -1;
 }
 
-FLATBUFFERS_EXPORT void flatbuffers_parser_free(flatbuffers_parser *parser)
-{
+FLATBUFFERS_EXPORT
+void flatbuffers_parser_free(flatbuffers_parser *parser) {
   assert(parser);
   assert(parser->pointer);
 
-  if (parser != nullptr)
-  {
+  if (parser != nullptr) {
     delete parser->pointer;
     free(parser);
   }

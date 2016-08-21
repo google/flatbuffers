@@ -1216,6 +1216,22 @@ void ConformTest() {
   test_conform("enum E:byte { B, A }", "values differ for enum");
 }
 
+void ParserCAPITest() {
+  size_t size;
+  char* buffer = NULL;
+  flatbuffers_parser *parser = flatbuffers_parser_new(PARSER_OPTION_DEFAULT);
+  
+  TEST_EQ(flatbuffers_parser_parse(parser, "table Vector2 {x:float; y:float;}"), 0);
+  flatbuffers_parser_set_root_type(parser, "Vector2");
+  TEST_EQ(flatbuffers_parser_parse(parser, "{x: 1.5, y: 2.0}"), 0);
+  
+  flatbuffers_generate_json(parser, &buffer, &size);
+  std::string jsongen = std::string(buffer, size);
+  TEST_EQ(jsongen == "{\n  x: 1.5,\n  y: 2\n}\n", true);
+  flatbuffers_free_string(buffer);
+  flatbuffers_parser_free(parser);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1251,6 +1267,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
+  ParserCAPITest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

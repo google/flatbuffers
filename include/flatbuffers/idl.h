@@ -725,5 +725,45 @@ bool GenerateGRPC(const Parser &parser,
 
 }  // namespace flatbuffers
 
+
+// Parser CAPI
+typedef enum {
+  PARSER_OPTION_DEFAULT = 0,
+  PARSER_OPTION_ALLOW_NON_UTF8 = 1,
+  PARSER_OPTION_STRICT_JSON = 2,
+  PARSER_OPTION_SKIP_UNEXPECTED_FIELDS_IN_JSON = 4,
+} flatbuffers_parser_option;
+
+typedef struct flatbuffers_parser flatbuffers_parser;
+
+// Parser CAPI
+FLATBUFFERS_EXPORT
+flatbuffers_parser* flatbuffers_parser_new(flatbuffers_parser_option option);
+
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_parse(flatbuffers_parser *parser,
+                             const char* source);
+
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_generate_json(flatbuffers_parser *parser,
+                                     char **buffer, size_t *size);
+
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_generate_buffer(flatbuffers_parser *parser,
+                                       char **buffer, size_t *size);
+
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_errstr(flatbuffers_parser *parser,
+                              char **buffer, size_t *size);
+
+FLATBUFFERS_EXPORT
+int flatbuffers_parser_set_root_type(flatbuffers_parser *parser,
+                                     const char *root_type);
+FLATBUFFERS_EXPORT
+void flatbuffers_parser_free(flatbuffers_parser *parser);
+
+FLATBUFFERS_EXPORT
+void flatbuffers_free_string(char *buffer);
+
 #endif  // FLATBUFFERS_IDL_H_
 
