@@ -288,9 +288,6 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
   if (!(vectortype.struct_def->fixed)) {
     code += "\t\tx = rcv._tab.Indirect(x)\n";
   }
-  code += "\t\tif obj == nil {\n";
-  code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
-  code += "\t\t}\n";
   code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
   code += "\t\treturn true\n\t}\n";
   code += "\treturn false\n";
