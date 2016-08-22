@@ -355,6 +355,9 @@ struct IDLOptions {
 
   Language lang;
 
+  enum CPPVariants { Cpp0x, Cpp11 };
+  CPPVariants cpp_variant;
+
   IDLOptions()
     : strict_json(false),
       skip_js_exports(false),
@@ -372,7 +375,8 @@ struct IDLOptions {
       generate_object_based_api(false),
       union_value_namespacing(true),
       allow_non_utf8(false),
-      lang(IDLOptions::kJava) {}
+      lang(IDLOptions::kJava),
+      cpp_variant(IDLOptions::Cpp0x){}
 };
 
 // This encapsulates where the parser is in the current source file.
