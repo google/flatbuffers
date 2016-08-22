@@ -139,19 +139,21 @@ public final class Monster extends Table {
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
-  public static Monster lookupByKey(Monster[] tables, String key) {
-    int span = tables.length, start = 0;
+  public static Monster lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
+    int vectorLocation = bb.array().length - vectorOffset.Value;
+    int span = bb.getInt(vectorLocation), middle, start = 0, comp, tableOffset; 
+    vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
-      Monster table = tables[start + middle];
-      int comp = table.name().compareTo(key);
+      tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      comp = compareStrings(__offset(10, bb.array().length - tableOffset, bb), key, bb);
       if (comp > 0) span = middle;
       else if (comp < 0) {
         middle++;
         start += middle;
         span -= middle;
       }
-      else return table;
+      else return new Monster().__init(tableOffset, bb);
     }
     return null;
   }

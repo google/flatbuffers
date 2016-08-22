@@ -383,11 +383,11 @@ public class FlatBufferBuilder {
     /**
      * Create a vector of sorted by the key tables.
      *
-     * @param obj Instance of the table class.
+     * @param obj Instance of the table subclass.
      * @param offsets Offsets of the tables.
      * @return Returns offset of the sorted vector.
      */
-    public <T extends Table> int createSortedTableVector(T obj, int[] offsets) {
+    public <T extends Table> int createSortedVectorOfTables(T obj, int[] offsets) {
         obj.sortTables(offsets, bb);
         return createVectorOfTables(offsets);
     }

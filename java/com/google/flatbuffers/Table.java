@@ -75,6 +75,10 @@ public class Table {
   protected int __indirect(int offset) {
     return offset + bb.getInt(offset);
   }
+  
+  protected static int __indirect(int offset, ByteBuffer bb) {
+    return offset + bb.getInt(offset);
+  }
 
   /**
    * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
@@ -197,7 +201,7 @@ public class Table {
   /**
    * Sort tables by the key.
    *
-   * @param offsets An 'int' indexes of the tables into the _bb.
+   * @param offsets An 'int' indexes of the tables into the bb.
    * @param bb A {@code ByteBuffer} to get the tables.
    */
   protected void sortTables(int[] offsets, ByteBuffer bb) {
@@ -210,8 +214,8 @@ public class Table {
   /**
    * Compare two tables by the key.
    *
-   * @param o1 An 'Integer' index of the first key into the _bb.
-   * @param o2 An 'Integer' index of the second key into the _bb.
+   * @param o1 An 'Integer' index of the first key into the bb.
+   * @param o2 An 'Integer' index of the second key into the bb.
    * @param bb A {@code ByteBuffer} to get the keys.
    */
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) { return 0; }
@@ -234,6 +238,28 @@ public class Table {
     for(int i = 0; i < len; i++) {
       if (bb.array()[i + startPos_1] != bb.array()[i + startPos_2])
         return bb.array()[i + startPos_1] - bb.array()[i + startPos_2];
+    }
+    if (len_1 < len_2) return -1;
+    if (len_1 > len_2) return 1;
+    return 0;
+  }
+  
+  /**
+   * Compare string from the buffer with the 'String' object.
+   *
+   * @param offset_1 An 'int' index of the first string into the bb.
+   * @param key Second string.
+   * @param bb A {@code ByteBuffer} to get the first string.
+   */
+  protected static int compareStrings(int offset_1, String key, ByteBuffer bb) {
+    offset_1 += bb.getInt(offset_1);
+    int len_1 = bb.getInt(offset_1);
+    int len_2 = key.length();
+    int startPos_1 = offset_1 + Constants.SIZEOF_INT;
+    int len = Math.min(len_1, len_2);
+    for (int i = 0; i < len; i++) {
+      if (bb.array()[i + startPos_1] != key.charAt(i))
+        return bb.array()[i + startPos_1] - key.charAt(i);
     }
     if (len_1 < len_2) return -1;
     if (len_1 > len_2) return 1;

@@ -669,43 +669,84 @@ void GenStructBody(const StructDef &struct_def, std::string *code_ptr, const cha
   }
 }
 
-std::string GenOffsetGetter(flatbuffers::FieldDef *key_field, const char &num) {
-  return "__offset(" +
-    NumToString(key_field->value.offset) + ", o" + num +
-    (lang_.language == IDLOptions::kCSharp ?
-      ".Value, builder.DataBuffer)" : ", _bb)");
+std::string GenByteBufferLength(const char *bb_name) {
+  std::string bb_len = bb_name;
+  if (lang_.language == IDLOptions::kCSharp) bb_len += ".Length";
+  else bb_len += ".array().length";
+  return bb_len;
 }
 
+std::string GenOffsetGetter(flatbuffers::FieldDef *key_field, const char *num = nullptr) {
+  std::string key_offset = "";
+  key_offset += "__offset(" +
+    NumToString(key_field->value.offset) + ", ";
+  if (num) {
+    key_offset += num;
+    key_offset += (lang_.language == IDLOptions::kCSharp ?
+      ".Value, builder.DataBuffer)" : ", _bb)");
+  }
+  else {
+    key_offset += GenByteBufferLength("bb");
+    key_offset += " - tableOffset, bb)";
+  }
+  return key_offset;
+}
+
+std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
+  std::string key_getter = "      ";
+  key_getter += "tableOffset = __indirect(vectorLocation + 4 * (start + middle)";
+  key_getter += ", bb);\n      ";
+  if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    key_getter += "comp = " + FunctionStart('C') + "ompareStrings(";
+    key_getter += GenOffsetGetter(key_field);
+    key_getter += ", key, bb);\n";
+  }
+  else {
+    auto get_val = GenGetter(key_field->value.type) +
+      "(" + GenOffsetGetter(key_field) + ")";
+    if (lang_.language == IDLOptions::kCSharp) {
+      key_getter += "comp = " + get_val + ".CompateTo(key);\n";
+    }
+    else {
+      key_getter += GenTypeGet(key_field->value.type) + " val = ";
+      key_getter += get_val + ";\n";
+      key_getter += "      comp = val > key ? 1 : val < key ? -1 : 0;\n";
+    }
+  }
+  return key_getter;
+}
+
+
 std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
+  std::string key_getter = "";
   auto data_buffer = (lang_.language == IDLOptions::kCSharp) ?
     "builder.DataBuffer" : "_bb";
-  std::string key_getter = "";
   if (key_field->value.type.base_type == BASE_TYPE_STRING) {
     if (lang_.language == IDLOptions::kJava)
       key_getter += " return ";
     key_getter += FunctionStart('C') + "ompareStrings(";
-    key_getter += GenOffsetGetter(key_field, '1') + ", ";
-    key_getter += GenOffsetGetter(key_field, '2') + ", " + data_buffer + ")";
+    key_getter += GenOffsetGetter(key_field, "o1") + ", ";
+    key_getter += GenOffsetGetter(key_field, "o2") + ", " + data_buffer + ")";
     if (lang_.language == IDLOptions::kJava)
       key_getter += ";";
   }
   else {
     auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-      "(" + GenOffsetGetter(key_field, '1') + ")";
+      "(" + GenOffsetGetter(key_field, "o1") + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
       field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-        "(" + GenOffsetGetter(key_field, '2') + ")";
+        "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += ".CompareTo(" + field_getter + ")";
     }
     else {
-      key_getter += "\n    " + GenTypeGet(key_field->value.type) + " off1 = ";
+      key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
       key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
-      key_getter += " off2 = ";
+      key_getter += " val_2 = ";
       field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-        "(" + GenOffsetGetter(key_field, '2') + ")";
+        "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += field_getter + ";\n";
-      key_getter += "    return off1 > off2 ? 1 : off1 < off2 ? -1 : 0;\n";
+      key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
   }
   return key_getter;
@@ -1175,25 +1216,15 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
   }
   if (struct_def.has_key) {
-    auto is_string = key_field->value.type.base_type == BASE_TYPE_STRING;
-    auto key_name = "table." +
-      (lang_.language == IDLOptions::kCSharp ?
-        MakeCamel(key_field->name) : key_field->name + "()");
-
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
       code += GenKeyGetter(key_field);
-      if (!is_string) {
-        code += "    if (off1 < off2) return -1;\n";
-        code += "    else if (off1 == off2) return 0;\n";
-        code += "    else return 1;\n ";
-      }
       code += " }\n";
     }
     else {
       code += "\n  public static VectorOffset ";
-      code += "CreateMySortedTableVector(FlatBufferBuilder builder, ";
+      code += "CreateMySortedVectorOfTables(FlatBufferBuilder builder, ";
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
       code += "    Array.Sort(offsets, (Offset<" + struct_def.name +
@@ -1203,27 +1234,25 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
 
     code += "\n  public static " + struct_def.name + " " + FunctionStart('L');
-    code += "ookupByKey(" + struct_def.name;
-    code += "[] tables, " + GenTypeGet(key_field->value.type) + " key) {\n";
-    code += "    int span = tables." + FunctionStart('L') + "ength, start = 0;\n";
+    code += "ookupByKey(" + GenVectorOffsetType();
+    code += " vectorOffset, " + GenTypeGet(key_field->value.type);
+    code += " key, ByteBuffer bb) {\n";
+    code += "    int vectorLocation = " + GenByteBufferLength("bb");
+    code += " - vectorOffset.Value;\n    int span = ";
+    code += "bb." + FunctionStart('G') + "etInt(vectorLocation), ";
+    code += "middle, start = 0, comp, tableOffset; \n";
+    code += "    vectorLocation += 4;\n";
     code += "    while (span != 0) {\n";
     code += "      int middle = span / 2;\n";
-    code += "      " + struct_def.name + " table = tables[start + middle];\n";
-    if (lang_.language == IDLOptions::kCSharp || is_string) {
-      code += "      int comp = " + key_name + "." + FunctionStart('C');
-      code += "ompareTo(key);\n";
-    }
-    else {
-      code += "      int comp = " + key_name + " > key ? 1 : " + key_name;
-      code += " < key ? -1 : 0;\n";
-    }
+    code += GenLookupKeyGetter(key_field);
     code += "      if (comp > 0) span = middle;\n";
     code += "      else if (comp < 0) {\n";
     code += "        middle++;\n";
     code += "        start += middle;\n";
     code += "        span -= middle;\n";
     code += "      }\n";
-    code += "      else return table;\n";
+    code += "      else return new " + struct_def.name;
+    code += "().__init(tableOffset, bb);\n";
     code += "    }\n";
     code += "    return null;\n";
     code += "  }\n";

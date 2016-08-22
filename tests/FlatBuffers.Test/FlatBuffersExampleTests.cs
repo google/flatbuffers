@@ -50,7 +50,7 @@ namespace FlatBuffers.Test
             Monster.StartMonster(fbb);
             Monster.AddName(fbb, names[2]);
             off[2] = Monster.EndMonster(fbb);
-            var sortMons = Monster.CreateMySortedTableVector(fbb, off);
+            var sortMons = Monster.CreateMySortedVectorOfTables(fbb, off);
 			
             // We set up the same values as monsterdata.json:
 
@@ -118,15 +118,14 @@ namespace FlatBuffers.Test
             Assert.AreEqual(monster.Mana, (short)150);
 			
             // Accessing a vector of sorted by the key tables
-            Monster[] monsters = { monster.GetTestarrayoftables(0), monster.GetTestarrayoftables(1), monster.GetTestarrayoftables(2) };
             Assert.AreEqual(monster.GetTestarrayoftables(0).Name, "Barney");
             Assert.AreEqual(monster.GetTestarrayoftables(1).Name, "Frodo");
             Assert.AreEqual(monster.GetTestarrayoftables(2).Name, "Wilma");
 			
             // Example of searching for a table by the key
-            Assert.IsTrue(Monster.LookupByKey(monsters, "Frodo") != null);
-            Assert.IsTrue(Monster.LookupByKey(monsters, "Barney") != null);
-            Assert.IsTrue(Monster.LookupByKey(monsters, "Wilma") != null);
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Frodo", fbb.DataBuffer) != null);
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Barney", fbb.DataBuffer) != null);
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Wilma", fbb.DataBuffer)!= null);
 
             // testType is an existing field and mutating it should succeed
             Assert.AreEqual(monster.TestType, Any.Monster);
