@@ -62,7 +62,7 @@ class JavaTest {
         Monster.startMonster(fbb);
         Monster.addName(fbb, names[2]);
         off[2] = Monster.endMonster(fbb);
-        int sortMons = fbb.createSortedTableVector(new Monster(), off);
+        int sortMons = fbb.createSortedVectorOfTables(new Monster(), off);
 		
         // We set up the same values as monsterdata.json:
 
@@ -137,15 +137,14 @@ class JavaTest {
         TestEq(monster.mana(), (short)150);
 		
 		// Accessing a vector of sorted by the key tables
-        Monster[] monsters = { monster.testarrayoftables(0), monster.testarrayoftables(1), monster.testarrayoftables(2) };
         TestEq(monster.testarrayoftables(0).name(), "Barney");
         TestEq(monster.testarrayoftables(1).name(), "Frodo");
         TestEq(monster.testarrayoftables(2).name(), "Wilma");
 		
 		// Example of searching for a table by the key
-        TestEq(Monster.lookupByKey(monsters, "Frodo").name(), "Frodo");
-        TestEq(Monster.lookupByKey(monsters, "Barney").name(), "Barney");
-        TestEq(Monster.lookupByKey(monsters, "Wilma").name(), "Wilma");
+        TestEq(Monster.lookupByKey(sortMons, "Frodo", fbb.dataBuffer()).name(), "Frodo");
+        TestEq(Monster.lookupByKey(sortMons, "Barney", fbb.dataBuffer()).name(), "Barney");
+        TestEq(Monster.lookupByKey(sortMons, "Wilma", fbb.dataBuffer()).name(), "Wilma");
 
         // testType is an existing field and mutating it should succeed
         TestEq(monster.testType(), (byte)Any.Monster);

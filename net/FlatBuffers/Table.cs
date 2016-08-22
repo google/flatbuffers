@@ -48,6 +48,11 @@ namespace FlatBuffers
         {
             return offset + bb.GetInt(offset);
         }
+		
+        protected static int __indirect(int offset, ByteBuffer bb)
+        {
+            return offset + bb.GetInt(offset);
+        }
 
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
         protected string __string(int offset)
@@ -123,6 +128,23 @@ namespace FlatBuffers
             for(int i = 0; i < len; i++) {
                 if (bb.Data[i + startPos_1] != bb.Data[i + startPos_2])
                     return bb.Data[i + startPos_1] - bb.Data[i + startPos_2];
+            }
+            if (len_1 < len_2) return -1;
+            if (len_1 > len_2) return 1;
+            return 0;
+        }
+		
+        // Compare string from the ByteBuffer with the string object
+        protected static int CompareStrings(int offset_1, string key, ByteBuffer bb)
+        {
+            offset_1 += bb.GetInt(offset_1);
+            var len_1 = bb.GetInt(offset_1);
+            var len_2 = key.Length;
+            var startPos_1 = offset_1 + sizeof(int);
+            var len = Math.Min(len_1, len_2);
+            for (int i = 0; i < len; i++) {
+                if (bb.Data[i + startPos_1] != key[i])
+                    return bb.Data[i + startPos_1] - key[i];
             }
             if (len_1 < len_2) return -1;
             if (len_1 > len_2) return 1;

@@ -131,6 +131,36 @@ object are prefixed with `Get`, e.g.:
     monster.GetPos(preconstructedPos);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+## Storing dictionaries in a FlatBuffer
+
+FlatBuffers doesn't support dictionaries natively, but there is support to
+emulate their behavior with vectors and binary search, which means you
+can have fast lookups directly from a FlatBuffer without having to unpack
+your data into a `Dictionary` or similar.
+
+To use it:
+-   Designate one of the fields in a table as they "key" field. You do this
+    by setting the `key` attribute on this field, e.g.
+    `name:string (key)`.
+    You may only have one key field, and it must be of string or scalar type.
+-   Write out tables of this type as usual, collect their offsets in an
+    array.
+-   Instead of calling standard generated method,
+    e.g.: `Monster.createTestarrayoftablesVector`,
+    call `CreateMySortedVectorOfTables` in C# or
+    `createSortedVectorOfTables` (from the `FlatBufferBuilder` object) in Java,
+    which will first sort all offsets such that the tables they refer to
+    are sorted by the key field, then serialize it.
+-   Now when you're accessing the FlatBuffer, you can use `LookupByKey`
+    to access elements of the vector, e.g.:
+    `Monster.lookupByKey(tablesVectorOffset, "Frodo", dataBuffer)`,
+    which returns an object of the corresponding table type,
+    or `null` if not found.
+    `LookupByKey` performs a binary search, so should have a similar speed to
+    `Dictionary`, though may be faster because of better caching. `LookupByKey`
+    only works if the vector has been sorted, it will likely not find elements
+    if it hasn't been sorted.
+
 ## Text parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly
