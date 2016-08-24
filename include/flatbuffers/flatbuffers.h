@@ -1565,6 +1565,85 @@ class Table {
 struct NativeTable {
 };
 
+template<typename T>
+class Optional {
+public:
+  Optional() : val_(nullptr) {}
+  Optional(T *val) : val_(val) {}
+  Optional(const T &other) : val_(new T(other)) {}
+  Optional(const Optional<T> &other) {
+    if (other)
+      val_ = new T(*other.val_);
+    else
+      val_ = nullptr;
+  }
+  ~Optional() { delete val_;}
+
+  inline operator bool() const { return val_; }
+
+  inline const T *get() const { return val_; }
+  inline operator const T * () const { return val_; }
+  inline const T * operator ->() const { return val_; }
+  inline T * operator ->() { return val_; }
+  inline bool operator ==(const Optional &other) const { return *val_ == other.val_; }
+  inline bool operator !=(const Optional &other) const { return *val_ != other.val_; }
+
+  inline T *create() { delete val_; val_ = new T(); return val_; }
+  inline void release() { delete val_; val_ = nullptr; }
+
+  inline Optional &operator =(const Optional<T> &other) {
+    if (!other) {
+      release();
+      return *this;
+    }
+    if (!val_)
+      val_ = new T(*other.val_);
+    else
+      *val_ = *other.val_;
+    return *this;
+  }
+
+  inline Optional &operator =(const T &other) {
+    if (!val_)
+      val_ = new T(other);
+    else
+      *val_ = other;
+    return *this;
+  }
+
+  inline Optional &operator =(const T *other) {
+    if (!other) {
+      release();
+      return *this;
+    }
+
+    if (!val_)
+      val_ = new T(*other);
+    else
+      *val_ = *other;
+    return *this;
+  }
+
+protected:
+  T *val_;
+};
+
+template<typename T, typename S>
+class OptionalTable : public Optional<T> {
+public:
+  using Optional<T>::operator=;
+  inline OptionalTable &operator =(const S *other) {
+    if (!other) {
+      this->release();
+      return *this;
+    }
+    if (!this->val_)
+      this->val_ = new T(other);
+    else
+      *(this->val_) = other;
+    return *this;
+  }
+};
 // Helper function to test if a field is present, using any of the field
 // enums in the generated code.
 // `table` must be a generated table type. Since this is a template parameter,
