@@ -223,3 +223,7 @@ if(FLATBUFFERS_BUILD_TESTS)
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)
+
+if(FLATBUFFERS_PACKAGE_DEBIAN)
+    include(CMake/PackageDebian.cmake)
+endif()
