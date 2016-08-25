@@ -243,7 +243,7 @@ int main(int argc, const char *argv[]) {
             goto found;
           }
         }
-        Error("unknown commandline argument" + arg, true);
+        Error("unknown commandline argument: " + arg, true);
         found:;
       }
     } else {
