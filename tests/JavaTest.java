@@ -161,6 +161,10 @@ class JavaTest {
 
         TestNestedFlatBuffer();
 
+        TestCreateByteVector();
+
+        TestCreateUninitializedVector();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -279,6 +283,44 @@ class JavaTest {
         TestEq(nestedMonsterMana, nestedMonster.mana());
         TestEq(nestedMonsterHp, nestedMonster.hp());
         TestEq(nestedMonsterName, nestedMonster.name());
+    }
+
+    static void TestCreateByteVector() {
+        FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+        int str = fbb.createString("MyMonster");
+        byte[] inventory = new byte[] { 0, 1, 2, 3, 4 };
+        int vec = fbb.createByteVector(inventory);
+        Monster.startMonster(fbb);
+        Monster.addInventory(fbb, vec);
+        Monster.addName(fbb, str);
+        int monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject.inventory(1), (int)inventory[1]);
+        TestEq(monsterObject.inventoryLength(), inventory.length);
+        TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
+    }
+
+    static void TestCreateUninitializedVector() {
+        FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+        int str = fbb.createString("MyMonster");
+        byte[] inventory = new byte[] { 0, 1, 2, 3, 4 };
+        ByteBuffer bb = fbb.createUnintializedVector(1, inventory.length, 1);
+        for (byte i:inventory) {
+            bb.put(i);
+        }
+        int vec = fbb.endVector();
+        Monster.startMonster(fbb);
+        Monster.addInventory(fbb, vec);
+        Monster.addName(fbb, str);
+        int monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject.inventory(1), (int)inventory[1]);
+        TestEq(monsterObject.inventoryLength(), inventory.length);
+        TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
     }
 
     static <T> void TestEq(T a, T b) {

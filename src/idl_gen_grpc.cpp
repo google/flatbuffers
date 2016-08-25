@@ -24,7 +24,7 @@
 
 namespace flatbuffers {
 
-class FlatBufMethod : public grpc_cpp_generator::Method {
+class FlatBufMethod : public grpc_generator::Method {
  public:
   enum Streaming { kNone, kClient, kServer, kBiDi };
 
@@ -62,7 +62,7 @@ class FlatBufMethod : public grpc_cpp_generator::Method {
   Streaming streaming_;
 };
 
-class FlatBufService : public grpc_cpp_generator::Service {
+class FlatBufService : public grpc_generator::Service {
  public:
   FlatBufService(const ServiceDef *service) : service_(service) {}
 
@@ -72,8 +72,8 @@ class FlatBufService : public grpc_cpp_generator::Service {
     return static_cast<int>(service_->calls.vec.size());
   };
 
-  std::unique_ptr<const grpc_cpp_generator::Method> method(int i) const {
-    return std::unique_ptr<const grpc_cpp_generator::Method>(
+  std::unique_ptr<const grpc_generator::Method> method(int i) const {
+    return std::unique_ptr<const grpc_generator::Method>(
           new FlatBufMethod(service_->calls.vec[i]));
   };
 
@@ -81,7 +81,7 @@ class FlatBufService : public grpc_cpp_generator::Service {
   const ServiceDef *service_;
 };
 
-class FlatBufPrinter : public grpc_cpp_generator::Printer {
+class FlatBufPrinter : public grpc_generator::Printer {
  public:
   FlatBufPrinter(std::string *str)
     : str_(str), escape_char_('$'), indent_(0) {}
@@ -133,7 +133,7 @@ class FlatBufPrinter : public grpc_cpp_generator::Printer {
   int indent_;
 };
 
-class FlatBufFile : public grpc_cpp_generator::File {
+class FlatBufFile : public grpc_generator::File {
  public:
   FlatBufFile(const Parser &parser, const std::string &file_name)
     : parser_(parser), file_name_(file_name) {}
@@ -163,13 +163,13 @@ class FlatBufFile : public grpc_cpp_generator::File {
     return static_cast<int>(parser_.services_.vec.size());
   };
 
-  std::unique_ptr<const grpc_cpp_generator::Service> service(int i) const {
-    return std::unique_ptr<const grpc_cpp_generator::Service> (
+  std::unique_ptr<const grpc_generator::Service> service(int i) const {
+    return std::unique_ptr<const grpc_generator::Service> (
           new FlatBufService(parser_.services_.vec[i]));
   }
 
-  std::unique_ptr<grpc_cpp_generator::Printer> CreatePrinter(std::string *str) const {
-    return std::unique_ptr<grpc_cpp_generator::Printer>(
+  std::unique_ptr<grpc_generator::Printer> CreatePrinter(std::string *str) const {
+    return std::unique_ptr<grpc_generator::Printer>(
           new FlatBufPrinter(str));
   }
 
