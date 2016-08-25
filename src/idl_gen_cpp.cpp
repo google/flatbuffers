@@ -333,15 +333,15 @@ class CppGenerator : public BaseGenerator {
     return (opts.scoped_enums ? "enum class " : "enum ") + enum_def.name;
   }
 
-  static std::string GenEnumVal(const EnumDef &enum_def,
-                                const std::string &enum_val,
-                                const IDLOptions &opts) {
+  static std::string GenEnumValDecl(const EnumDef &enum_def,
+                                   const std::string &enum_val,
+                                   const IDLOptions &opts) {
     return opts.prefixed_enums ? enum_def.name + "_" + enum_val : enum_val;
   }
 
-  static std::string GetEnumVal(const EnumDef &enum_def,
-                                const EnumVal &enum_val,
-                                const IDLOptions &opts) {
+  static std::string GetEnumValUse(const EnumDef &enum_def,
+                                   const EnumVal &enum_val,
+                                   const IDLOptions &opts) {
     if (opts.scoped_enums) {
       return enum_def.name + "::" + enum_val.name;
     } else if (opts.prefixed_enums) {
@@ -396,7 +396,7 @@ class CppGenerator : public BaseGenerator {
          ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "  ");
-      code += "  " + GenEnumVal(enum_def, ev.name, parser_.opts) + " = ";
+      code += "  " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + " = ";
       code += NumToString(ev.value) + ",\n";
       minv = !minv || minv->value > ev.value ? &ev : minv;
       maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
@@ -406,15 +406,15 @@ class CppGenerator : public BaseGenerator {
       assert(minv && maxv);
       if (enum_def.attributes.Lookup("bit_flags")) {
         if (minv->value != 0)  // If the user didn't defined NONE value
-          code += "  " + GenEnumVal(enum_def, "NONE", parser_.opts) + " = 0,\n";
+          code += "  " + GenEnumValDecl(enum_def, "NONE", parser_.opts) + " = 0,\n";
         if (maxv->value != anyv)  // If the user didn't defined ANY value
-          code += "  " + GenEnumVal(enum_def, "ANY", parser_.opts) + " = " +
+          code += "  " + GenEnumValDecl(enum_def, "ANY", parser_.opts) + " = " +
                   NumToString(anyv) + "\n";
       } else {  // MIN & MAX are useless for bit_flags
-        code += "  " + GenEnumVal(enum_def, "MIN", parser_.opts) + " = ";
-        code += GenEnumVal(enum_def, minv->name, parser_.opts) + ",\n";
-        code += "  " + GenEnumVal(enum_def, "MAX", parser_.opts) + " = ";
-        code += GenEnumVal(enum_def, maxv->name, parser_.opts) + "\n";
+        code += "  " + GenEnumValDecl(enum_def, "MIN", parser_.opts) + " = ";
+        code += GenEnumValDecl(enum_def, minv->name, parser_.opts) + ",\n";
+        code += "  " + GenEnumValDecl(enum_def, "MAX", parser_.opts) + " = ";
+        code += GenEnumValDecl(enum_def, maxv->name, parser_.opts) + "\n";
       }
     }
     code += "};\n";
@@ -429,7 +429,7 @@ class CppGenerator : public BaseGenerator {
       code += "  " + enum_def.name + " type;\n\n";
       code += "  flatbuffers::NativeTable *table;\n";
       code += "  " + enum_def.name + "Union() : type(";
-      code += GenEnumVal(enum_def, "NONE", parser_.opts);
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
       code += "), table(nullptr) {}\n";
       code += "  " + enum_def.name + "Union(const ";
       code += enum_def.name + "Union &);\n";
@@ -445,7 +445,7 @@ class CppGenerator : public BaseGenerator {
           auto native_name = NativeName(WrapInNameSpace(*ev.struct_def));
           code += "  " + native_name + " *As";
           code += ev.name + "() { return type == ";
-          code += GetEnumVal(enum_def, ev, parser_.opts);
+          code += GetEnumValUse(enum_def, ev, parser_.opts);
           code += " ? reinterpret_cast<" + native_name;
           code += " *>(table) : nullptr; }\n";
         }
@@ -478,7 +478,7 @@ class CppGenerator : public BaseGenerator {
       code += "()[static_cast<int>(e)";
       if (enum_def.vals.vec.front()->value) {
         code += " - static_cast<int>(";
-        code += GetEnumVal(enum_def, *enum_def.vals.vec.front(), parser_.opts) +
+        code += GetEnumValUse(enum_def, *enum_def.vals.vec.front(), parser_.opts) +
                 ")";
       }
       code += "]; }\n\n";
@@ -500,7 +500,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
-      code += "    case " + GetEnumVal(enum_def, ev, parser_.opts);
+      code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
       if (!ev.value) {
         code += ": return true;\n";  // "NONE" enum value.
       } else {
@@ -518,7 +518,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
         auto &ev = **it;
-        code += "    case " + GetEnumVal(enum_def, ev, parser_.opts);
+        code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
         if (!ev.value) {
           code += ": return nullptr;\n";  // "NONE" enum value.
         } else {
@@ -533,7 +533,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
         auto &ev = **it;
-        code += "    case " + GetEnumVal(enum_def, ev, parser_.opts);
+        code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
         if (!ev.value) {
           code += ": return 0;\n";  // "NONE" enum value.
         } else {
@@ -553,7 +553,7 @@ class CppGenerator : public BaseGenerator {
            ++it) {
         auto &ev = **it;
         if (ev.value) {
-          code += "    case " + GenEnumVal(enum_def, ev.name, parser_.opts);
+          code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
           code += ": delete reinterpret_cast<";
           code += NativeName(WrapInNameSpace(*ev.struct_def));
           code += " *>(table); break;\n";
@@ -613,7 +613,7 @@ class CppGenerator : public BaseGenerator {
       if (ev) {
         code += WrapInNameSpace(
             field.value.type.enum_def->defined_namespace,
-            GetEnumVal(*field.value.type.enum_def, *ev, parser_.opts));
+            GetEnumValUse(*field.value.type.enum_def, *ev, parser_.opts));
       } else {
         code += GenUnderlyingCast(field, true, field.value.constant);
       }
