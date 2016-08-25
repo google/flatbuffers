@@ -44,6 +44,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
   src/flatc.cpp
+  grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
 )
@@ -222,3 +223,7 @@ if(FLATBUFFERS_BUILD_TESTS)
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)
+
+if(FLATBUFFERS_PACKAGE_DEBIAN)
+    include(CMake/PackageDebian.cmake)
+endif()

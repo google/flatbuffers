@@ -1436,11 +1436,6 @@ class Struct FLATBUFFERS_FINAL_CLASS {
     return ReadScalar<T>(&data_[o]);
   }
 
-  template<typename T> T GetPointer(uoffset_t o) const {
-    auto p = &data_[o];
-    return reinterpret_cast<T>(p + ReadScalar<uoffset_t>(p));
-  }
-
   template<typename T> T GetStruct(uoffset_t o) const {
     return reinterpret_cast<T>(&data_[o]);
   }
