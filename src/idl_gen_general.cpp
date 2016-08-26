@@ -703,7 +703,7 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
     auto get_val = GenGetter(key_field->value.type) +
       "(" + GenOffsetGetter(key_field) + ")";
     if (lang_.language == IDLOptions::kCSharp) {
-      key_getter += "int comp = " + get_val + ".CompateTo(key);\n";
+      key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
     } else {
       key_getter += GenTypeGet(key_field->value.type) + " val = ";
       key_getter += get_val + ";\n";
@@ -1212,7 +1212,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  if (struct_def.has_key) {
+  if (struct_def.has_key && (lang_.language == IDLOptions::kJava ||
+    lang_.language == IDLOptions::kCSharp)) {
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
@@ -1234,11 +1235,13 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "ookupByKey(" + GenVectorOffsetType();
     code += " vectorOffset, " + GenTypeGet(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
-    code += "    byte[] byteKey = ";
-    if (lang_.language == IDLOptions::kJava)
-      code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
-    else
-      code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+      code += "    byte[] byteKey = ";
+      if (lang_.language == IDLOptions::kJava)
+        code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+      else
+        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    }
     code += "    int vectorLocation = " + GenByteBufferLength("bb");
     code += " - vectorOffset";
     if (lang_.language == IDLOptions::kCSharp) code += ".Value";
