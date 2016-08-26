@@ -1241,7 +1241,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
     code += "    int vectorLocation = " + GenByteBufferLength("bb");
     code += " - vectorOffset";
-    if (lang_.language == IDLOptions::kCsharp) code += ".Value";
+    if (lang_.language == IDLOptions::kCSharp) code += ".Value";
     code += ";\n    int span = ";
     code += "bb." + FunctionStart('G') + "etInt(vectorLocation);\n";
     code += "    int start = 0;\n";
