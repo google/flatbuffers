@@ -237,7 +237,7 @@ class GeneralGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
-  	  const std::string &classcode, bool needs_includes) {
+      const std::string &classcode, bool needs_includes) {
     if (!classcode.length()) return true;
 
     std::string code;
@@ -684,8 +684,7 @@ std::string GenOffsetGetter(flatbuffers::FieldDef *key_field, const char *num = 
     key_offset += num;
     key_offset += (lang_.language == IDLOptions::kCSharp ?
       ".Value, builder.DataBuffer)" : ", _bb)");
-  }
-  else {
+  } else {
     key_offset += GenByteBufferLength("bb");
     key_offset += " - tableOffset, bb)";
   }
@@ -694,23 +693,21 @@ std::string GenOffsetGetter(flatbuffers::FieldDef *key_field, const char *num = 
 
 std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
   std::string key_getter = "      ";
-  key_getter += "tableOffset = __indirect(vectorLocation + 4 * (start + middle)";
+  key_getter += "int tableOffset = __indirect(vectorLocation + 4 * (start + middle)";
   key_getter += ", bb);\n      ";
   if (key_field->value.type.base_type == BASE_TYPE_STRING) {
-    key_getter += "comp = " + FunctionStart('C') + "ompareStrings(";
+    key_getter += "int comp = " + FunctionStart('C') + "ompareStrings(";
     key_getter += GenOffsetGetter(key_field);
     key_getter += ", byteKey, bb);\n";
-  }
-  else {
+  } else {
     auto get_val = GenGetter(key_field->value.type) +
       "(" + GenOffsetGetter(key_field) + ")";
     if (lang_.language == IDLOptions::kCSharp) {
-      key_getter += "comp = " + get_val + ".CompareTo(key);\n";
-    }
-    else {
+      key_getter += "int comp = " + get_val + ".CompateTo(key);\n";
+    } else {
       key_getter += GenTypeGet(key_field->value.type) + " val = ";
       key_getter += get_val + ";\n";
-      key_getter += "      comp = val > key ? 1 : val < key ? -1 : 0;\n";
+      key_getter += "      int comp = val > key ? 1 : val < key ? -1 : 0;\n";
     }
   }
   return key_getter;
@@ -1215,8 +1212,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  if (struct_def.has_key && (lang_.language == IDLOptions::kJava ||
-    lang_.language == IDLOptions::kCSharp)) {
+  if (struct_def.has_key) {
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
@@ -1238,32 +1234,31 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "ookupByKey(" + GenVectorOffsetType();
     code += " vectorOffset, " + GenTypeGet(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
-      code += "    byte[] byteKey = ";
-      if (lang_.language == IDLOptions::kJava)
-        code += "key.getBytes(java.nio.charset.StandardCharsets.UTF_8);\n";
-      else
-        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
-    }
+    code += "    byte[] byteKey = ";
+    if (lang_.language == IDLOptions::kJava)
+      code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+    else
+      code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
     code += "    int vectorLocation = " + GenByteBufferLength("bb");
     code += " - vectorOffset";
     if (lang_.language == IDLOptions::kCSharp) code += ".Value";
     code += ";\n    int span = ";
-    code += "bb." + FunctionStart('G') + "etInt(vectorLocation), ";
-    code += "middle, start = 0, comp, tableOffset; \n";
+    code += "bb." + FunctionStart('G') + "etInt(vectorLocation);\n";
+    code += "    int start = 0;\n";
     code += "    vectorLocation += 4;\n";
     code += "    while (span != 0) {\n";
-    code += "      middle = span / 2;\n";
+    code += "      int middle = span / 2;\n";
     code += GenLookupKeyGetter(key_field);
-    code += "      if (comp > 0) span = middle;\n";
-    code += "      else if (comp < 0) {\n";
+    code += "      if (comp > 0) {\n";
+    code += "        span = middle;\n";
+    code += "      } else if (comp < 0) {\n";
     code += "        middle++;\n";
     code += "        start += middle;\n";
     code += "        span -= middle;\n";
-    code += "      }\n";
-    code += "      else return new " + struct_def.name;
+    code += "      } else {\n";
+    code += "        return new " + struct_def.name;
     code += "().__init(tableOffset, bb);\n";
-    code += "    }\n";
+    code += "      }\n    }\n";
     code += "    return null;\n";
     code += "  }\n";
   }
