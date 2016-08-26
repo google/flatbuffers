@@ -129,7 +129,7 @@ public sealed class Monster : Table {
     return new Offset<Monster>(o);
   }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }
-  
+
   public static VectorOffset CreateMySortedVectorOfTables(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
     Array.Sort(offsets, (Offset<Monster> o1, Offset<Monster> o2) => CompareStrings(__offset(10, o1.Value, builder.DataBuffer), __offset(10, o2.Value, builder.DataBuffer), builder.DataBuffer));
     return builder.CreateVectorOfTables(offsets);
@@ -137,20 +137,23 @@ public sealed class Monster : Table {
 
   public static Monster LookupByKey(VectorOffset vectorOffset, string key, ByteBuffer bb) {
     byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
-    int vectorLocation = bb.Length - vectorOffset.Value;
-    int span = bb.GetInt(vectorLocation), middle, start = 0, comp, tableOffset; 
+    int vectorLocation = bb.Length - vectorOffset;
+    int span = bb.GetInt(vectorLocation);
+    int start = 0;
     vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
-      tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      comp = CompareStrings(__offset(10, bb.Length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) span = middle;
-      else if (comp < 0) {
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int comp = CompareStrings(__offset(10, bb.Length - tableOffset, bb), byteKey, bb);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
         middle++;
         start += middle;
         span -= middle;
+      } else {
+        return new Monster().__init(tableOffset, bb);
       }
-      else return new Monster().__init(tableOffset, bb);
     }
     return null;
   }
