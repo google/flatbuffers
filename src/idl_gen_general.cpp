@@ -1237,11 +1237,13 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "ookupByKey(" + GenVectorOffsetType();
     code += " vectorOffset, " + GenTypeGet(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
-    code += "    byte[] byteKey = ";
-    if (lang_.language == IDLOptions::kJava)
-      code += "key.getBytes(StandardCharsets.UTF_8);\n";
-    else
-      code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+      code += "    byte[] byteKey = ";
+      if (lang_.language == IDLOptions::kJava)
+        code += "key.getBytes(StandardCharsets.UTF_8);\n";
+      else
+        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    }
     code += "    int vectorLocation = " + GenByteBufferLength("bb");
     code += " - vectorOffset.Value;\n    int span = ";
     code += "bb." + FunctionStart('G') + "etInt(vectorLocation), ";
