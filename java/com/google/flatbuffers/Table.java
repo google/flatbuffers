@@ -37,6 +37,12 @@ public class Table {
       return Charset.forName("UTF-8").newDecoder();
     }
   };
+  public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
+    @Override
+    protected Charset initialValue() {
+      return Charset.forName("UTF-8");
+    }
+  };
   private final static ThreadLocal<CharBuffer> CHAR_BUFFER = new ThreadLocal<CharBuffer>();
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
@@ -75,7 +81,7 @@ public class Table {
   protected int __indirect(int offset) {
     return offset + bb.getInt(offset);
   }
-  
+
   protected static int __indirect(int offset, ByteBuffer bb) {
     return offset + bb.getInt(offset);
   }
@@ -197,17 +203,21 @@ public class Table {
     }
     return true;
   }
-  
+
   /**
    * Sort tables by the key.
    *
    * @param offsets An 'int' indexes of the tables into the bb.
    * @param bb A {@code ByteBuffer} to get the tables.
    */
-  protected void sortTables(int[] offsets, ByteBuffer bb) {
+  protected void sortTables(int[] offsets, final ByteBuffer bb) {
     Integer[] off = new Integer[offsets.length];
     for (int i = 0; i < offsets.length; i++) off[i] = offsets[i];
-    Arrays.sort(off, (Integer o1, Integer o2) -> keysCompare(o1, o2, bb));
+    java.util.Arrays.sort(off, new java.util.Comparator<Integer>() {
+      public int compare(Integer o1, Integer o2) {
+        return keysCompare(o1, o2, bb);
+      }
+    });
     for (int i = 0; i < offsets.length; i++) offsets[i] = off[i];
   }
 
@@ -219,7 +229,7 @@ public class Table {
    * @param bb A {@code ByteBuffer} to get the keys.
    */
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) { return 0; }
-  
+
   /**
    * Compare two strings in the buffer.
    *
@@ -242,7 +252,7 @@ public class Table {
     }
     return len_1 - len_2;
   }
-  
+
   /**
    * Compare string from the buffer with the 'String' object.
    *
