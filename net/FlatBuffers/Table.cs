@@ -125,30 +125,28 @@ namespace FlatBuffers
             var startPos_1 = offset_1 + sizeof(int);
             var startPos_2 = offset_2 + sizeof(int);
             var len = Math.Min(len_1, len_2);
+            byte[] bbArray = bb.Data;
             for(int i = 0; i < len; i++) {
-                if (bb.Data[i + startPos_1] != bb.Data[i + startPos_2])
-                    return bb.Data[i + startPos_1] - bb.Data[i + startPos_2];
+                if (bbArray[i + startPos_1] != bbArray[i + startPos_2])
+                    return bbArray[i + startPos_1] - bbArray[i + startPos_2];
             }
-            if (len_1 < len_2) return -1;
-            if (len_1 > len_2) return 1;
-            return 0;
+            return len_1 - len_2;
         }
 		
         // Compare string from the ByteBuffer with the string object
-        protected static int CompareStrings(int offset_1, string key, ByteBuffer bb)
+        protected static int CompareStrings(int offset_1, byte[] key, ByteBuffer bb)
         {
             offset_1 += bb.GetInt(offset_1);
             var len_1 = bb.GetInt(offset_1);
             var len_2 = key.Length;
             var startPos_1 = offset_1 + sizeof(int);
             var len = Math.Min(len_1, len_2);
+            byte[] bbArray = bb.Data;
             for (int i = 0; i < len; i++) {
-                if (bb.Data[i + startPos_1] != key[i])
-                    return bb.Data[i + startPos_1] - key[i];
+                if (bbArray[i + startPos_1] != key[i])
+                    return bbArray[i + startPos_1] - key[i];
             }
-            if (len_1 < len_2) return -1;
-            if (len_1 > len_2) return 1;
-            return 0;
+            return len_1 - len_2;
         }
 
     }
