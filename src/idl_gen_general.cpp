@@ -1215,7 +1215,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  if (struct_def.has_key) {
+  if (struct_def.has_key && (lang_.language == IDLOptions::kJava ||
+    lang_.language == IDLOptions::kCSharp)) {
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
@@ -1240,12 +1241,14 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     if (key_field->value.type.base_type == BASE_TYPE_STRING) {
       code += "    byte[] byteKey = ";
       if (lang_.language == IDLOptions::kJava)
-        code += "key.getBytes(StandardCharsets.UTF_8);\n";
+        code += "key.getBytes(java.nio.charset.StandardCharsets.UTF_8);\n";
       else
         code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
     }
     code += "    int vectorLocation = " + GenByteBufferLength("bb");
-    code += " - vectorOffset.Value;\n    int span = ";
+    code += " - vectorOffset";
+    if (lang_.language == IDLOptions::kCSharp) code += ".Value";
+    code += ";\n    int span = ";
     code += "bb." + FunctionStart('G') + "etInt(vectorLocation), ";
     code += "middle, start = 0, comp, tableOffset; \n";
     code += "    vectorLocation += 4;\n";
