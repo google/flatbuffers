@@ -761,7 +761,7 @@ INPUT = "FlatBuffers.md" \
         "WhitePaper.md" \
         "Internals.md" \
         "Grammar.md" \
-        "CONTRIBUTING.md" \
+        "../../CONTRIBUTING.md" \
         "Tutorial.md" \
         "GoApi.md" \
         "groups" \

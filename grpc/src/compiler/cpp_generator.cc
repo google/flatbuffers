@@ -67,7 +67,8 @@ grpc::string FilenameIdentifier(const grpc::string &filename) {
 template<class T, size_t N>
 T *array_end(T (&array)[N]) { return array + N; }
 
-void PrintIncludes(Printer *printer, const std::vector<grpc::string>& headers, const Parameters &params) {
+void PrintIncludes(grpc_generator::Printer *printer, 
+                   const std::vector<grpc::string>& headers, const Parameters &params) {
   std::map<grpc::string, grpc::string> vars;
 
   vars["l"] = params.use_system_headers ? '<' : '"';
@@ -86,7 +87,7 @@ void PrintIncludes(Printer *printer, const std::vector<grpc::string>& headers, c
   }
 }
 
-grpc::string GetHeaderPrologue(File *file, const Parameters & /*params*/) {
+grpc::string GetHeaderPrologue(grpc_generator::File *file, const Parameters & /*params*/) {
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -111,7 +112,7 @@ grpc::string GetHeaderPrologue(File *file, const Parameters & /*params*/) {
   return output;
 }
 
-grpc::string GetHeaderIncludes(File *file,
+grpc::string GetHeaderIncludes(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
   {
@@ -154,7 +155,7 @@ grpc::string GetHeaderIncludes(File *file,
 }
 
 void PrintHeaderClientMethodInterfaces(
-    Printer *printer, const Method *method,
+    grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars, bool is_public) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -303,8 +304,8 @@ void PrintHeaderClientMethodInterfaces(
   }
 }
 
-void PrintHeaderClientMethod(Printer *printer,
-                             const Method *method,
+void PrintHeaderClientMethod(grpc_generator::Printer *printer,
+                             const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars,
                              bool is_public) {
   (*vars)["Method"] = method->name();
@@ -445,13 +446,13 @@ void PrintHeaderClientMethod(Printer *printer,
   }
 }
 
-void PrintHeaderClientMethodData(Printer *printer, const Method *method,
+void PrintHeaderClientMethodData(grpc_generator::Printer *printer, const grpc_generator::Method *method,
                                  std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   printer->Print(*vars, "const ::grpc::RpcMethod rpcmethod_$Method$_;\n");
 }
 
-void PrintHeaderServerMethodSync(Printer *printer, const Method *method,
+void PrintHeaderServerMethodSync(grpc_generator::Printer *printer, const grpc_generator::Method *method,
                                  std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -483,8 +484,8 @@ void PrintHeaderServerMethodSync(Printer *printer, const Method *method,
 }
 
 void PrintHeaderServerMethodAsync(
-    Printer *printer,
-    const Method *method,
+    grpc_generator::Printer *printer,
+    const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -599,8 +600,8 @@ void PrintHeaderServerMethodAsync(
 }
 
 void PrintHeaderServerMethodGeneric(
-    Printer *printer,
-    const Method *method,
+    grpc_generator::Printer *printer,
+    const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -669,8 +670,8 @@ void PrintHeaderServerMethodGeneric(
   printer->Print(*vars, "};\n");
 }
 
-void PrintHeaderService(Printer *printer,
-                        const Service *service,
+void PrintHeaderService(grpc_generator::Printer *printer,
+                        const grpc_generator::Service *service,
                         std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Service"] = service->name();
 
@@ -764,7 +765,7 @@ void PrintHeaderService(Printer *printer,
   printer->Print("};\n");
 }
 
-grpc::string GetHeaderServices(File *file,
+grpc::string GetHeaderServices(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
   {
@@ -795,7 +796,7 @@ grpc::string GetHeaderServices(File *file,
   return output;
 }
 
-grpc::string GetHeaderEpilogue(File *file, const Parameters & /*params*/) {
+grpc::string GetHeaderEpilogue(grpc_generator::File *file, const Parameters & /*params*/) {
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -821,7 +822,7 @@ grpc::string GetHeaderEpilogue(File *file, const Parameters & /*params*/) {
   return output;
 }
 
-grpc::string GetSourcePrologue(File *file, const Parameters & /*params*/) {
+grpc::string GetSourcePrologue(grpc_generator::File *file, const Parameters & /*params*/) {
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -845,7 +846,7 @@ grpc::string GetSourcePrologue(File *file, const Parameters & /*params*/) {
   return output;
 }
 
-grpc::string GetSourceIncludes(File *file,
+grpc::string GetSourceIncludes(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
   {
@@ -880,8 +881,8 @@ grpc::string GetSourceIncludes(File *file,
   return output;
 }
 
-void PrintSourceClientMethod(Printer *printer,
-                             const Method *method,
+void PrintSourceClientMethod(grpc_generator::Printer *printer,
+                             const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -981,8 +982,8 @@ void PrintSourceClientMethod(Printer *printer,
   }
 }
 
-void PrintSourceServerMethod(Printer *printer,
-                             const Method *method,
+void PrintSourceServerMethod(grpc_generator::Printer *printer,
+                             const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
@@ -1040,8 +1041,8 @@ void PrintSourceServerMethod(Printer *printer,
   }
 }
 
-void PrintSourceService(Printer *printer,
-                        const Service *service,
+void PrintSourceService(grpc_generator::Printer *printer,
+                        const grpc_generator::Service *service,
                         std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Service"] = service->name();
 
@@ -1153,7 +1154,7 @@ void PrintSourceService(Printer *printer,
   }
 }
 
-grpc::string GetSourceServices(File *file,
+grpc::string GetSourceServices(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
   {
@@ -1182,7 +1183,7 @@ grpc::string GetSourceServices(File *file,
   return output;
 }
 
-grpc::string GetSourceEpilogue(File *file, const Parameters & /*params*/) {
+grpc::string GetSourceEpilogue(grpc_generator::File *file, const Parameters & /*params*/) {
   grpc::string temp;
 
   if (!file->package().empty()) {
