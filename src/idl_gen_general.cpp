@@ -1212,8 +1212,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  if (struct_def.has_key && (lang_.language == IDLOptions::kJava ||
-    lang_.language == IDLOptions::kCSharp)) {
+  if (struct_def.has_key) {
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
