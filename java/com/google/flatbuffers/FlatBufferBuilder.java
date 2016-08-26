@@ -390,6 +390,31 @@ public class FlatBufferBuilder {
     }
 
    /**
+     * Create a vector of tables.
+     *
+     * @param offsets Offsets of the tables.
+     * @return Returns offset of the vector.
+     */
+    public int createVectorOfTables(int[] offsets) {
+        notNested();
+        startVector(Constants.SIZEOF_INT, offsets.length, Constants.SIZEOF_INT);
+        for(int i = offsets.length - 1; i >= 0; i--) addOffset(offsets[i]);
+        return endVector();
+    }
+
+    /**
+     * Create a vector of sorted by the key tables.
+     *
+     * @param obj Instance of the table subclass.
+     * @param offsets Offsets of the tables.
+     * @return Returns offset of the sorted vector.
+     */
+    public <T extends Table> int createSortedVectorOfTables(T obj, int[] offsets) {
+        obj.sortTables(offsets, bb);
+        return createVectorOfTables(offsets);
+    }
+	
+   /**
     * Encode the string `s` in the buffer using UTF-8.  If {@code s} is
     * already a {@link CharBuffer}, this method is allocation free.
     *
