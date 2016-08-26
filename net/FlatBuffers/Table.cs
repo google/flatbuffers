@@ -37,8 +37,19 @@ namespace FlatBuffers
             return vtableOffset < bb.GetShort(vtable) ? (int)bb.GetShort(vtable + vtableOffset) : 0;
         }
 
+        protected static int __offset(int vtableOffset, int offset, ByteBuffer bb)
+        {
+            int vtable = bb.Length - offset;
+            return (int)bb.GetShort(vtable + vtableOffset - bb.GetInt(vtable)) + vtable;
+        }
+
         // Retrieve the relative offset stored at "offset"
         protected int __indirect(int offset)
+        {
+            return offset + bb.GetInt(offset);
+        }
+		
+        protected static int __indirect(int offset, ByteBuffer bb)
         {
             return offset + bb.GetInt(offset);
         }
@@ -103,7 +114,40 @@ namespace FlatBuffers
 
             return true;
         }
-
+		
+        // Compare strings in the ByteBuffer.
+        protected static int CompareStrings(int offset_1, int offset_2, ByteBuffer bb)
+        {
+            offset_1 += bb.GetInt(offset_1);
+            offset_2 += bb.GetInt(offset_2);
+            var len_1 = bb.GetInt(offset_1);
+            var len_2 = bb.GetInt(offset_2);
+            var startPos_1 = offset_1 + sizeof(int);
+            var startPos_2 = offset_2 + sizeof(int);
+            var len = Math.Min(len_1, len_2);
+            byte[] bbArray = bb.Data;
+            for(int i = 0; i < len; i++) {
+                if (bbArray[i + startPos_1] != bbArray[i + startPos_2])
+                    return bbArray[i + startPos_1] - bbArray[i + startPos_2];
+            }
+            return len_1 - len_2;
+        }
+		
+        // Compare string from the ByteBuffer with the string object
+        protected static int CompareStrings(int offset_1, byte[] key, ByteBuffer bb)
+        {
+            offset_1 += bb.GetInt(offset_1);
+            var len_1 = bb.GetInt(offset_1);
+            var len_2 = key.Length;
+            var startPos_1 = offset_1 + sizeof(int);
+            var len = Math.Min(len_1, len_2);
+            byte[] bbArray = bb.Data;
+            for (int i = 0; i < len; i++) {
+                if (bbArray[i + startPos_1] != key[i])
+                    return bbArray[i + startPos_1] - key[i];
+            }
+            return len_1 - len_2;
+        }
 
     }
 }

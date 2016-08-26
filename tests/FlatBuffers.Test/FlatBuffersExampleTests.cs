@@ -39,6 +39,19 @@ namespace FlatBuffers.Test
             // better for performance.
             var fbb = new FlatBufferBuilder(1);
 
+            StringOffset[] names = { fbb.CreateString("Frodo"), fbb.CreateString("Barney"), fbb.CreateString("Wilma") };
+            Offset<Monster>[] off = new Offset<Monster>[3];
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, names[0]);
+            off[0] = Monster.EndMonster(fbb);
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, names[1]);
+            off[1] = Monster.EndMonster(fbb);
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, names[2]);
+            off[2] = Monster.EndMonster(fbb);
+            var sortMons = Monster.CreateMySortedVectorOfTables(fbb, off);
+			
             // We set up the same values as monsterdata.json:
 
             var str = fbb.CreateString("MyMonster");
@@ -79,6 +92,7 @@ namespace FlatBuffers.Test
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
             Monster.AddTestbool(fbb, false);
+            Monster.AddTestarrayoftables(fbb, sortMons);
             var mon = Monster.EndMonster(fbb);
 
             Monster.FinishMonsterBuffer(fbb, mon);
@@ -102,6 +116,16 @@ namespace FlatBuffers.Test
             // the mana field should retain its default value
             Assert.AreEqual(monster.MutateMana((short)10), false);
             Assert.AreEqual(monster.Mana, (short)150);
+			
+            // Accessing a vector of sorted by the key tables
+            Assert.AreEqual(monster.GetTestarrayoftables(0).Name, "Barney");
+            Assert.AreEqual(monster.GetTestarrayoftables(1).Name, "Frodo");
+            Assert.AreEqual(monster.GetTestarrayoftables(2).Name, "Wilma");
+			
+            // Example of searching for a table by the key
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Frodo", fbb.DataBuffer) != null);
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Barney", fbb.DataBuffer) != null);
+            Assert.IsTrue(Monster.LookupByKey(sortMons, "Wilma", fbb.DataBuffer)!= null);
 
             // testType is an existing field and mutating it should succeed
             Assert.AreEqual(monster.TestType, Any.Monster);
