@@ -705,7 +705,7 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
     auto get_val = GenGetter(key_field->value.type) +
       "(" + GenOffsetGetter(key_field) + ")";
     if (lang_.language == IDLOptions::kCSharp) {
-      key_getter += "comp = " + get_val + ".CompateTo(key);\n";
+      key_getter += "comp = " + get_val + ".CompareTo(key);\n";
     }
     else {
       key_getter += GenTypeGet(key_field->value.type) + " val = ";
@@ -1250,7 +1250,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "middle, start = 0, comp, tableOffset; \n";
     code += "    vectorLocation += 4;\n";
     code += "    while (span != 0) {\n";
-    code += "      int middle = span / 2;\n";
+    code += "      middle = span / 2;\n";
     code += GenLookupKeyGetter(key_field);
     code += "      if (comp > 0) span = middle;\n";
     code += "      else if (comp < 0) {\n";
