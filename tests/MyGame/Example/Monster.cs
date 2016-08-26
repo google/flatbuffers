@@ -137,7 +137,7 @@ public sealed class Monster : Table {
 
   public static Monster LookupByKey(VectorOffset vectorOffset, string key, ByteBuffer bb) {
     byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
-    int vectorLocation = bb.Length - vectorOffset;
+    int vectorLocation = bb.Length - vectorOffset.Value;
     int span = bb.GetInt(vectorLocation);
     int start = 0;
     vectorLocation += 4;
