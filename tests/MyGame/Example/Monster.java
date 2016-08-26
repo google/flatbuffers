@@ -140,13 +140,14 @@ public final class Monster extends Table {
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
   public static Monster lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
+    byte[] byteKey = key.getBytes(StandardCharsets.UTF_8);
     int vectorLocation = bb.array().length - vectorOffset.Value;
     int span = bb.getInt(vectorLocation), middle, start = 0, comp, tableOffset; 
     vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
       tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      comp = compareStrings(__offset(10, bb.array().length - tableOffset, bb), key, bb);
+      comp = compareStrings(__offset(10, bb.array().length - tableOffset, bb), byteKey, bb);
       if (comp > 0) span = middle;
       else if (comp < 0) {
         middle++;

@@ -235,35 +235,33 @@ public class Table {
     int startPos_1 = offset_1 + SIZEOF_INT;
     int startPos_2 = offset_2 + SIZEOF_INT;
     int len = Math.min(len_1, len_2);
+    byte[] bbArray = bb.array();
     for(int i = 0; i < len; i++) {
-      if (bb.array()[i + startPos_1] != bb.array()[i + startPos_2])
-        return bb.array()[i + startPos_1] - bb.array()[i + startPos_2];
+      if (bbArray[i + startPos_1] != bbArray[i + startPos_2])
+        return bbArray[i + startPos_1] - bbArray[i + startPos_2];
     }
-    if (len_1 < len_2) return -1;
-    if (len_1 > len_2) return 1;
-    return 0;
+    return len_1 - len_2;
   }
   
   /**
    * Compare string from the buffer with the 'String' object.
    *
    * @param offset_1 An 'int' index of the first string into the bb.
-   * @param key Second string.
+   * @param key Second string as a byte array.
    * @param bb A {@code ByteBuffer} to get the first string.
    */
-  protected static int compareStrings(int offset_1, String key, ByteBuffer bb) {
+  protected static int compareStrings(int offset_1, byte[] key, ByteBuffer bb) {
     offset_1 += bb.getInt(offset_1);
     int len_1 = bb.getInt(offset_1);
-    int len_2 = key.length();
+    int len_2 = key.length;
     int startPos_1 = offset_1 + Constants.SIZEOF_INT;
     int len = Math.min(len_1, len_2);
+    byte[] bbArray = bb.array();
     for (int i = 0; i < len; i++) {
-      if (bb.array()[i + startPos_1] != key.charAt(i))
-        return bb.array()[i + startPos_1] - key.charAt(i);
+      if (bbArray[i + startPos_1] != key[i])
+        return bbArray[i + startPos_1] - key[i];
     }
-    if (len_1 < len_2) return -1;
-    if (len_1 > len_2) return 1;
-    return 0;
+    return len_1 - len_2;
   }
 }
 
