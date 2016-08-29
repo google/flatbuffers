@@ -168,7 +168,15 @@ google/flatbuffers/tree/master/tests/FlatBuffers.Test">FlatBuffers.Test</a> subf
 <div class="line"><span class="comment">// method filling a preconstructed object</span></div>
 <div class="line">var preconstructedPos = <span class="keyword">new</span> Vec3();</div>
 <div class="line">monster.GetPos(preconstructedPos);</div>
-</div><!-- fragment --><h2>Text parsing</h2>
+</div><!-- fragment --><h2>Storing dictionaries in a FlatBuffer</h2>
+<p>FlatBuffers doesn't support dictionaries natively, but there is support to emulate their behavior with vectors and binary search, which means you can have fast lookups directly from a FlatBuffer without having to unpack your data into a <code>Dictionary</code> or similar.</p>
+<p>To use it:</p><ul>
+<li>Designate one of the fields in a table as they "key" field. You do this by setting the <code>key</code> attribute on this field, e.g. <code>name:string (key)</code>. You may only have one key field, and it must be of string or scalar type.</li>
+<li>Write out tables of this type as usual, collect their offsets in an array or vector.</li>
+<li>Instead of calling standard generated method, e.g.: <code>Monster.createTestarrayoftablesVector</code>, call <code>CreateMySortedVectorOfTables</code> in C# or <code>createSortedVectorOfTables</code> (from the <code>FlatBufferBuilder</code> object) in Java, which will first sort all offsets such that the tables they refer to are sorted by the key field, then serialize it.</li>
+<li>Now when you're accessing the FlatBuffer, you can use <code>LookupByKey</code> to access elements of the vector, e.g.: <code>Monster.lookupByKey(tablesVectorOffset, "Frodo", dataBuffer)</code>, which returns an object of the corresponding table type, or <code>null</code> if not found. <code>LookupByKey</code> performs a binary search, so should have a similar speed to <code>Dictionary</code>, though may be faster because of better caching. <code>LookupByKey</code> only works if the vector has been sorted, it will likely not find elements if it hasn't been sorted.</li>
+</ul>
+<h2>Text parsing</h2>
 <p>There currently is no support for parsing text (Schema's and JSON) directly from Java or C#, though you could use the C++ parser through native call interfaces available to each language. Please see the C++ documentation for more on text parsing.</p>
 <p><br />
  </p>
