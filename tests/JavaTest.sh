@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright 2014 Google Inc. All rights reserved.
 #
@@ -29,7 +29,10 @@ if [[ "$testdir" != "$thisdir" ]]; then
 	exit 1
 fi
 
-if [ -e "${targetdir}" ]; then
+find ../ -name "*.class" | xargs rm
+#find .. -type f -name "*.class" -exec rm {} \;
+
+if [[ -e "${targetdir}" ]]; then
     echo "clean target"
     rm -fr ${targetdir}
 fi
