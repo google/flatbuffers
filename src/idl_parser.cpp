@@ -2247,10 +2247,11 @@ size_t flatbuffers_parser_errstr(flatbuffers_parser *parser,
 
   const char* errstr = parser->pointer->error_.c_str();
 
-  *size = parser->pointer->error_.length();
+  *size = parser->pointer->error_.length() + 1;
   *buffer = static_cast<char*>(malloc(sizeof(char) * *size));
 
-  memcpy(*buffer, parser->pointer->error_.c_str(), *size);
+  strncpy(*buffer, errstr, *size);
+  *(*buffer + *size - 1) = '\0';
 
   return *size;
 }
