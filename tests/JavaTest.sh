@@ -30,14 +30,15 @@ if [[ "$testdir" != "$thisdir" ]]; then
 fi
 
 find ../ -name "*.class" | xargs rm
-#find .. -type f -name "*.class" -exec rm {} \;
 
 if [[ -e "${targetdir}" ]]; then
     echo "clean target"
-    rm -fr ${targetdir}
+    rm -rf ${targetdir}
 fi
 
 mkdir ${targetdir}
 
 javac -d ${targetdir} -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test JavaTest.java
 java -classpath ${targetdir} JavaTest
+
+rm -rf ${targetdir}
