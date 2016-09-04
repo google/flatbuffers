@@ -162,6 +162,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a67a9f5dcd251735d6b96e1ad46de9d94">addShort</a> (short x)</td></tr>
 <tr class="memdesc:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a <code>short</code> to the buffer, properly aligned, and grows the buffer (if necessary).  <a href="#a67a9f5dcd251735d6b96e1ad46de9d94">More...</a><br /></td></tr>
 <tr class="separator:a67a9f5dcd251735d6b96e1ad46de9d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d2be2d8994dlef6ef50eb9d2d7e9ac9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a2d2be2d8994dlef6ef50eb9d2d7e9ac9">createSortedVectorOfTables</a> (T obj, int[] offsets)</td></tr>
+<tr class="memdesc:a2d2be2d8994dlef6ef50eb9d2d7e9ac9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a vector of sorted by the key tables.  <a href="#a2d2be2d8994dlef6ef50eb9d2d7e9ac9">More...</a><br /></td></tr>
+<tr class="separator:a2d2be2d8994dlef6ef50eb9d2d7e9ac9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#abd3b2f9b239a702ffaa8a1e97894f09e">createString</a> (CharSequence s)</td></tr>
 <tr class="memdesc:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode the string <code>s</code> in the buffer using UTF-8.  <a href="#abd3b2f9b239a702ffaa8a1e97894f09e">More...</a><br /></td></tr>
 <tr class="separator:abd3b2f9b239a702ffaa8a1e97894f09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -520,6 +523,50 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="a2d2be2d8994dlef6ef50eb9d2d7e9ac9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">&#60T extends Table&#62 int com.google.flatbuffers.FlatBufferBuilder.createSortedVectorOfTables </td>
+          <td>(</td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int[]&#160;</td>
+          <td class="paramname"><em>offsets</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a vector of sorted by the key tables. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obj</td><td>An instance of the <code>Table</code> subclass whose objects should be formed into the vector. </td></tr>
+    <tr><td class="paramname">offsets</td><td>Offsets of the tables. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The offset of the created sorted vector. </dd></dl>
 
 </div>
 </div>
