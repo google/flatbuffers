@@ -11,6 +11,7 @@ var classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder =
     [ "addLong", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a0e1215f334989ecc59b49a3239aed5b5", null ],
     [ "addOffset", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#ae817751382089b603753452cc1e56790", null ],
     [ "addShort", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a67a9f5dcd251735d6b96e1ad46de9d94", null ],
+    [ "createSortedVectorOfTables", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a2d2be2d8994dlef6ef50eb9d2d7e9ac9", null ],
     [ "createString", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#abd3b2f9b239a702ffaa8a1e97894f09e", null ],
     [ "createString", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#a8d676eb9973ecba574a220cdef725577", null ],
     [ "dataBuffer", "classcom_1_1google_1_1flatbuffers_1_1_flat_buffer_builder.html#abf0fd34f0d93a9d89f595fddf752feb7", null ],
