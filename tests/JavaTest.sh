@@ -29,7 +29,7 @@ if [[ "$testdir" != "$thisdir" ]]; then
 	exit 1
 fi
 
-find ../ -name "*.class" | xargs rm
+find .. -type f -name "*.class" -exec rm  {} \;
 
 if [[ -e "${targetdir}" ]]; then
     echo "clean target"
