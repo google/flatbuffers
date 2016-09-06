@@ -12,6 +12,9 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
        ON)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
+option(FLATBUFFERS_BUILD_SHAREDLIB
+       "Enable the build of the flatbuffers shared library"
+       OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -164,6 +167,11 @@ if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
 endif()
 
+if(FLATBUFFERS_BUILD_SHAREDLIB)
+  add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
+  set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers)
+endif()
+
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
@@ -211,6 +219,9 @@ if(FLATBUFFERS_INSTALL)
   endif()
   if(FLATBUFFERS_BUILD_FLATC)
     install(TARGETS flatc DESTINATION bin)
+  endif()
+  if(FLATBUFFERS_BUILD_SHAREDLIB)
+    install(TARGETS flatbuffers_shared DESTINATION lib)
   endif()
 endif()
 
