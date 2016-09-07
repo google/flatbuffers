@@ -51,7 +51,7 @@ namespace FlatBuffers.Test
             Monster.AddName(fbb, names[2]);
             off[2] = Monster.EndMonster(fbb);
             var sortMons = Monster.CreateMySortedVectorOfTables(fbb, off);
-			
+
             // We set up the same values as monsterdata.json:
 
             var str = fbb.CreateString("MyMonster");
@@ -116,12 +116,12 @@ namespace FlatBuffers.Test
             // the mana field should retain its default value
             Assert.AreEqual(monster.MutateMana((short)10), false);
             Assert.AreEqual(monster.Mana, (short)150);
-			
+
             // Accessing a vector of sorted by the key tables
-            Assert.AreEqual(monster.GetTestarrayoftables(0).Name, "Barney");
-            Assert.AreEqual(monster.GetTestarrayoftables(1).Name, "Frodo");
-            Assert.AreEqual(monster.GetTestarrayoftables(2).Name, "Wilma");
-			
+            Assert.AreEqual(monster.Testarrayoftables(0).Value.Name, "Barney");
+            Assert.AreEqual(monster.Testarrayoftables(1).Value.Name, "Frodo");
+            Assert.AreEqual(monster.Testarrayoftables(2).Value.Name, "Wilma");
+
             // Example of searching for a table by the key
             Assert.IsTrue(Monster.LookupByKey(sortMons, "Frodo", fbb.DataBuffer) != null);
             Assert.IsTrue(Monster.LookupByKey(sortMons, "Barney", fbb.DataBuffer) != null);
@@ -143,7 +143,7 @@ namespace FlatBuffers.Test
 
             for (int i = 0; i < monster.InventoryLength; i++)
             {
-                Assert.AreEqual(monster.GetInventory(i), i + 1);
+                Assert.AreEqual(monster.Inventory(i), i + 1);
             }
 
             //reverse mutation
@@ -154,7 +154,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(monster.MutateInventory(4, 4), true);
 
             // get a struct field and edit one of its fields
-            Vec3 pos = monster.Pos;
+            Vec3 pos = (Vec3)monster.Pos;
             Assert.AreEqual(pos.X, 1.0f);
             pos.MutateX(55.0f);
             Assert.AreEqual(pos.X, 55.0f);
@@ -172,21 +172,20 @@ namespace FlatBuffers.Test
             Assert.AreEqual(150, monster.Mana);
             Assert.AreEqual("MyMonster", monster.Name);
 
-            var pos = monster.Pos;
+            var pos = monster.Pos.Value;
             Assert.AreEqual(1.0f, pos.X);
             Assert.AreEqual(2.0f, pos.Y);
             Assert.AreEqual(3.0f, pos.Z);
 
             Assert.AreEqual(3.0f, pos.Test1);
             Assert.AreEqual(Color.Green, pos.Test2);
-            var t = pos.Test3;
+            var t = (MyGame.Example.Test)pos.Test3;
             Assert.AreEqual((short)5, t.A);
             Assert.AreEqual((sbyte)6, t.B);
 
             Assert.AreEqual(Any.Monster, monster.TestType);
 
-            var monster2 = new Monster();
-            Assert.IsTrue(monster.GetTest(monster2) != null);
+            var monster2 = monster.Test<Monster>().Value;
             Assert.AreEqual("Fred", monster2.Name);
 
 
@@ -194,19 +193,19 @@ namespace FlatBuffers.Test
             var invsum = 0;
             for (var i = 0; i < monster.InventoryLength; i++)
             {
-                invsum += monster.GetInventory(i);
+                invsum += monster.Inventory(i);
             }
             Assert.AreEqual(10, invsum);
 
-            var test0 = monster.GetTest4(0);
-            var test1 = monster.GetTest4(1);
+            var test0 = monster.Test4(0).Value;
+            var test1 = monster.Test4(1).Value;
             Assert.AreEqual(2, monster.Test4Length);
 
             Assert.AreEqual(100, test0.A + test0.B + test1.A + test1.B);
 
             Assert.AreEqual(2, monster.TestarrayofstringLength);
-            Assert.AreEqual("test1", monster.GetTestarrayofstring(0));
-            Assert.AreEqual("test2", monster.GetTestarrayofstring(1));
+            Assert.AreEqual("test1", monster.Testarrayofstring(0));
+            Assert.AreEqual("test2", monster.Testarrayofstring(1));
 
             Assert.AreEqual(false, monster.Testbool);
 
@@ -269,10 +268,10 @@ namespace FlatBuffers.Test
             Monster.AddTestnestedflatbuffer(fbb2, nestedBuffer);
             var monster = Monster.EndMonster(fbb2);
             Monster.FinishMonsterBuffer(fbb2, monster);
-            
+
             // Now test the data extracted from the nested buffer
             var mons = Monster.GetRootAsMonster(fbb2.DataBuffer);
-            var nestedMonster = mons.TestnestedflatbufferAsMonster();
+            var nestedMonster = mons.GetTestnestedflatbufferAsMonster().Value;
 
             Assert.AreEqual(nestedMonsterMana, nestedMonster.Mana);
             Assert.AreEqual(nestedMonsterHp, nestedMonster.Hp);
