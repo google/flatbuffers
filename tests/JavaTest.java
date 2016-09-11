@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
+import reflection.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -189,6 +190,8 @@ class JavaTest {
 
         TestCreateUninitializedVector();
 
+        TestReflection();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -345,6 +348,41 @@ class JavaTest {
         TestEq(monsterObject.inventory(1), (int)inventory[1]);
         TestEq(monsterObject.inventoryLength(), inventory.length);
         TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
+    }
+
+    static void TestReflection() {
+        byte[] data = null;
+        File file = new File("monster_test.bfbs");
+        RandomAccessFile f = null;
+        try {
+            f = new RandomAccessFile(file, "r");
+            data = new byte[(int)f.length()];
+            f.readFully(data);
+            f.close();
+        } catch(IOException e) {
+            System.err.println("FlatBuffers test: couldn't read binary schema file");
+            return;
+        } finally {
+            if (f != null) {
+                try {
+                    f.close();
+                } catch (IOException e) {
+                    //ignored
+                }
+            }
+        }
+
+        // Now test it:
+
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        Schema schema = Schema.getRootAsSchema(bb);
+        reflection.Object rootTable = schema.rootTable();
+        TestEq(rootTable.name(), "Monster");
+        TestEq(rootTable.fieldsLength(), 29);
+        Field field = rootTable.field("hp");
+        TestEq(field.name(), "hp");
+        TestEq(field.id(), 2);
+
     }
 
     static <T> void TestEq(T a, T b) {
