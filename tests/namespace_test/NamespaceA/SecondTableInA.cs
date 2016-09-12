@@ -9,6 +9,7 @@ using FlatBuffers;
 public struct SecondTableInA : IFlatbufferObject
 {
   private Table __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static SecondTableInA GetRootAsSecondTableInA(ByteBuffer _bb) { return GetRootAsSecondTableInA(_bb, new SecondTableInA()); }
   public static SecondTableInA GetRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
