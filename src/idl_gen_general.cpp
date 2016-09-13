@@ -804,6 +804,11 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += "  private ";
     code += struct_def.fixed ? "Struct" : "Table";
     code += " __p;\n";
+
+    if (lang_.language == IDLOptions::kCSharp) {
+        code += "  public ByteBuffer ByteBuffer { get { return __p.bb; } }\n";
+    }
+
   } else {
     code += lang_.inheritance_marker;
     code += struct_def.fixed ? "Struct" : "Table";

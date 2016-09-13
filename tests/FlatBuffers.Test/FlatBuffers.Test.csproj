@@ -41,8 +41,8 @@
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
       <Link>FlatBuffers\ByteBuffer.cs</Link>
     </Compile>
-    <Compile Include="..\..\net\FlatBuffers\IFlatbufferObject .cs">
-      <Link>FlatBuffers\IFlatbufferObject .cs</Link>
+    <Compile Include="..\..\net\FlatBuffers\IFlatbufferObject.cs">
+      <Link>FlatBuffers\IFlatbufferObject.cs</Link>
     </Compile>
     <Compile Include="..\..\net\FlatBuffers\Offset.cs">
       <Link>FlatBuffers\Offset.cs</Link>
