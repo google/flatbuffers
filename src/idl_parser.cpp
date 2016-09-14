@@ -2023,8 +2023,9 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
       (*it)->Serialize(builder,
                        static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
+  auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   return reflection::CreateObject(*builder,
-                                  builder->CreateString(name),
+                                  builder->CreateString(qualified_name),
                                   builder->CreateVectorOfSortedTables(
                                     &field_offsets),
                                   fixed,
@@ -2061,8 +2062,9 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
   for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
     enumval_offsets.push_back((*it)->Serialize(builder));
   }
+  auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   return reflection::CreateEnum(*builder,
-                                builder->CreateString(name),
+                                builder->CreateString(qualified_name),
                                 builder->CreateVector(enumval_offsets),
                                 is_union,
                                 underlying_type.Serialize(builder),
