@@ -148,12 +148,12 @@ static bool EscapeString(const String &s, std::string *_text, const IDLOptions& 
             } else if (ucc <= 0x10FFFF) {
               // Encode Unicode SMP values to a surrogate pair using two \u escapes.
               uint32_t base = ucc - 0x10000;
-              uint16_t highSurrogate = (base >> 10) + 0xD800;
-              uint16_t lowSurrogate = (base & 0x03FF) + 0xDC00;
+              auto high_surrogate = (base >> 10) + 0xD800;
+              auto low_surrogate = (base & 0x03FF) + 0xDC00;
               text += "\\u";
-              text += IntToStringHex(highSurrogate, 4);
+              text += IntToStringHex(high_surrogate, 4);
               text += "\\u";
-              text += IntToStringHex(lowSurrogate, 4);
+              text += IntToStringHex(low_surrogate, 4);
             }
             // Skip past characters recognized.
             i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
