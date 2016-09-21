@@ -451,7 +451,7 @@ class Parser : public ParserState {
     known_attributes_["csharp_partial"] = true;
     known_attributes_["streaming"] = true;
     known_attributes_["idempotent"] = true;
-	known_attributes_["java_prefix"] = true;
+    known_attributes_["java_prefix"] = true;
   }
 
   ~Parser() {
