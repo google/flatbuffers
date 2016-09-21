@@ -258,7 +258,7 @@ class GeneralGenerator : public BaseGenerator {
 
     std::string code;
     code = code + "// " + FlatBuffersGeneratedWarning();
-    std::string namespace_name = FullNamespace(".", ns);
+    std::string namespace_name = FullNamespace(lang_.language, ".", ns);
     if (!namespace_name.empty()) {
       code += lang_.namespace_ident + namespace_name + lang_.namespace_begin;
       code += "\n\n";
