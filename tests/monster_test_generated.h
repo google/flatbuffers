@@ -88,7 +88,7 @@ template<> struct AnyTraits<TestSimpleTableWithEnum> {
   static const Any enumValue = Any_TestSimpleTableWithEnum;
 };
 
-template<> struct AnyTraits<MyGame_Example2_Monster> {
+template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enumValue = Any_MyGame_Example2_Monster;
 };
 

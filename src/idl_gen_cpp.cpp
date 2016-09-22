@@ -494,7 +494,7 @@ class CppGenerator : public BaseGenerator {
 				code += "template<typename T> struct " + enum_def.name + "Traits {\n";
 			}
 			else {
-				code += "template<> struct " + enum_def.name + "Traits<" + (*it)->name + "> {\n";
+				code += "template<> struct " + enum_def.name + "Traits<" + WrapInNameSpace(*ev.struct_def) + "> {\n";
 			}
 			code += "  static const " + enum_def.name + " enumValue = " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + ";\n";
 			code += "};\n\n";
