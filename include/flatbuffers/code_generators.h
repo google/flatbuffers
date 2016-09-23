@@ -28,8 +28,9 @@ class BaseGenerator {
                                         const Namespace &ns) {
     EnsureDirExists(path.c_str());
     if (parser.opts.one_file) return path;
-    std::string namespace_dir = path;  // Either empty or ends in separator.
-    auto namespaces = PrefixedNamespaceComponents(ns, parser.opts.lang);
+    auto namespace_dir = path;  // Either empty or ends in separator.
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(ns, parser.opts.lang, &namespaces);
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       namespace_dir += *it + kPathSeparator;
       EnsureDirExists(namespace_dir.c_str());
@@ -74,35 +75,37 @@ class BaseGenerator {
     return true;
   }
 
-  static void NamespacePrefixAsComponents(const std::string &prefix, std::vector<std::string> &namespaces)
+  static void NamespacePrefixAsComponents(const std::string &prefix, std::vector<std::string> *namespaces)
   {
-    std::string::size_type componentStart = 0;
-    std::string::size_type componentEnd = prefix.find_first_of('.', componentStart);
-    while (componentEnd != std::string::npos) {
-      namespaces.push_back(prefix.substr(componentStart, componentEnd - componentStart));
-      componentStart = componentEnd + 1;
-      componentEnd = prefix.find_first_of('.', componentStart);
+    auto component_start = std::string::size_type(0);
+    auto component_end = std::string::npos;
+    for (;;)
+    {
+      component_end = prefix.find_first_of('.', component_start);
+      if (component_end == std::string::npos)
+        break;
+      namespaces->push_back(prefix.substr(component_start, component_end - component_start));
+      component_start = component_end + 1;
     }
-    if (componentStart < prefix.length())
-      namespaces.push_back(prefix.substr(componentStart, prefix.length() - componentStart));
+    if (component_start < prefix.length())
+      namespaces->push_back(prefix.substr(component_start, prefix.length() - component_start));
   }
 
   // Returns namespace components, including the language specific prefix splitted by '.'
-  static std::vector<std::string> PrefixedNamespaceComponents(const Namespace &ns, IDLOptions::Language language)
+  static void PrefixedNamespaceComponents(const Namespace &ns, IDLOptions::Language language, std::vector<std::string> *namespaces)
   {
-    std::vector<std::string> namespaces;
     auto java_prefix = ns.attributes.Lookup("java_prefix");
     if (language == IDLOptions::kJava && java_prefix) {
       NamespacePrefixAsComponents(java_prefix->constant, namespaces);
     }
-    namespaces.insert(namespaces.end(), ns.components.begin(), ns.components.end());
-    return namespaces;
+    namespaces->insert(namespaces->end(), ns.components.begin(), ns.components.end());
   }
 
 
   std::string FullNamespace(IDLOptions::Language language, const char *separator, const Namespace &ns) {
     std::string namespace_name;
-    auto namespaces = PrefixedNamespaceComponents(ns, language);
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(ns, language, &namespaces);
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (namespace_name.length()) namespace_name += separator;
       namespace_name += *it;
