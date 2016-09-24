@@ -483,7 +483,7 @@ class CppGenerator : public BaseGenerator {
       }
       code += "]; }\n\n";
     }
-
+    
     // Generate type traits for unions to map from a type to union enum value.
     if (enum_def.is_union) {
       for (auto it = enum_def.vals.vec.begin();
@@ -491,16 +491,16 @@ class CppGenerator : public BaseGenerator {
         ++it) {
         auto &ev = **it;
         if (it == enum_def.vals.vec.begin()) {
-        	code += "template<typename T> struct " + enum_def.name + "Traits {\n";
+          code += "template<typename T> struct " + enum_def.name + "Traits {\n";
         }
         else {
-        	code += "template<> struct " + enum_def.name + "Traits<" + WrapInNameSpace(*ev.struct_def) + "> {\n";
+          code += "template<> struct " + enum_def.name + "Traits<" + WrapInNameSpace(*ev.struct_def) + "> {\n";
         }
         code += "  static const " + enum_def.name + " enum_value = " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + ";\n";
         code += "};\n\n";
       }
     }
-
+    
     if (enum_def.is_union) {
       code += UnionVerifySignature(enum_def) + ";\n\n";
     }
