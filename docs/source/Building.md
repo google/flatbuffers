@@ -1,9 +1,14 @@
 Building    {#flatbuffers_guide_building}
 ========
 
+## Building with Visual Studio or Xcode projects
+
+There are project files for Visual Studio and Xcode that should allow you
+to build the compiler `flatc`, the samples and the tests out of the box.
+
 ## Building with CMake
 
-The distribution comes with a `cmake` file that should allow
+Alternatively, the distribution comes with a `cmake` file that should allow
 you to build project/make files for any platform. For details on `cmake`, see
 <http://www.cmake.org>. In brief, depending on your platform, use one of
 e.g.:

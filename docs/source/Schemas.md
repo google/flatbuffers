@@ -237,8 +237,7 @@ as the response (both of which must be table types):
     }
 
 What code this produces and how it is used depends on language and RPC system
-used, there is preliminary support for GRPC through the `--grpc` code generator,
-see `grpc/tests` for an example.
+used, FlatBuffers itself does not offer this functionality.
 
 ### Comments & documentation
 
@@ -272,7 +271,7 @@ Current understood attributes:
     the union field should have id 8, and the unions type field will
     implicitly be 7.
     IDs allow the fields to be placed in any order in the schema.
-    When a new field is added to the schema it must use the next available ID.
+    When a new field is added to the schema is must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `required` (on a non-scalar table field): this field must always be set.
@@ -334,10 +333,6 @@ JSON:
 -   A field that has the value `null` (e.g. `field: null`) is intended to
     have the default value for that field (thus has the same effect as if
     that field wasn't specified at all).
--   It has some built in conversion functions, so you can write for example
-    `rad(180)` where ever you'd normally write `3.14159`.
-    Currently supports the following functions: `rad`, `deg`, `cos`, `sin`,
-    `tan`, `acos`, `asin`, `atan`.
 
 When parsing JSON, it recognizes the following escape codes in strings:
 

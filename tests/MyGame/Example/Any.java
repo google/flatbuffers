@@ -7,10 +7,9 @@ public final class Any {
   public static final byte NONE = 0;
   public static final byte Monster = 1;
   public static final byte TestSimpleTableWithEnum = 2;
-  public static final byte MyGame_Example2_Monster = 3;
 
-  public static final String[] names = { "NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster", };
+  private static final String[] names = { "NONE", "Monster", "TestSimpleTableWithEnum", };
 
   public static String name(int e) { return names[e]; }
-}
+};
 

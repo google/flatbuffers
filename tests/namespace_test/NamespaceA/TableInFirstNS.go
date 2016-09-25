@@ -5,16 +5,8 @@ package NamespaceA
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
-
 type TableInFirstNS struct {
 	_tab flatbuffers.Table
-}
-
-func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFirstNS {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &TableInFirstNS{}
-	x.Init(buf, n+offset)
-	return x
 }
 
 func (rcv *TableInFirstNS) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -43,10 +35,6 @@ func (rcv *TableInFirstNS) FooEnum() int8 {
 	return 0
 }
 
-func (rcv *TableInFirstNS) MutateFooEnum(n int8) bool {
-	return rcv._tab.MutateInt8Slot(6, n)
-}
-
 func (rcv *TableInFirstNS) FooStruct(obj *StructInNestedNS) *StructInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
@@ -60,18 +48,8 @@ func (rcv *TableInFirstNS) FooStruct(obj *StructInNestedNS) *StructInNestedNS {
 	return nil
 }
 
-func TableInFirstNSStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
-}
-func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(fooTable), 0)
-}
-func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum int8) {
-	builder.PrependInt8Slot(1, fooEnum, 0)
-}
-func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) {
-	builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0)
-}
-func TableInFirstNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	return builder.EndObject()
-}
+func TableInFirstNSStart(builder *flatbuffers.Builder) { builder.StartObject(3) }
+func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(fooTable), 0) }
+func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum int8) { builder.PrependInt8Slot(1, fooEnum, 0) }
+func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) { builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0) }
+func TableInFirstNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

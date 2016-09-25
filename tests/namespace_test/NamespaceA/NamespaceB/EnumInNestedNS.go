@@ -7,10 +7,3 @@ const (
 	EnumInNestedNSB = 1
 	EnumInNestedNSC = 2
 )
-
-var EnumNamesEnumInNestedNS = map[int]string{
-	EnumInNestedNSA:"A",
-	EnumInNestedNSB:"B",
-	EnumInNestedNSC:"C",
-}
-

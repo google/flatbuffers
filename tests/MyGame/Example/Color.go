@@ -7,10 +7,3 @@ const (
 	ColorGreen = 2
 	ColorBlue = 8
 )
-
-var EnumNamesColor = map[int]string{
-	ColorRed:"Red",
-	ColorGreen:"Green",
-	ColorBlue:"Blue",
-}
-

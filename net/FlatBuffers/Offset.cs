@@ -19,7 +19,7 @@ namespace FlatBuffers
     /// <summary>
     /// Offset class for typesafe assignments.
     /// </summary>
-    public struct Offset<T> where T : struct
+    public struct Offset<T> where T : class
     {
         public int Value;
         public Offset(int value)
