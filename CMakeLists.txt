@@ -216,10 +216,6 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   target_link_libraries(grpctest grpc++_unsecure grpc pthread dl)
 endif()
 
-  if(FLATBUFFERS_BUILD_SHAREDLIB)
-    install(TARGETS flatbuffers_shared DESTINATION lib)
-  endif()
-
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
@@ -268,7 +264,19 @@ configure_package_config_file(
   "${project_config}"
   INSTALL_DESTINATION "${config_install_dir}"
   )
+  
 
+if(FLATBUFFERS_BUILD_SHAREDLIB)
+  install(
+    TARGETS flatbuffers_shared
+    EXPORT "${targets_export_name}"
+    LIBRARY DESTINATION "lib"
+    ARCHIVE DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}"
+  )
+endif()
+  
 install(
   TARGETS flatbuffers
   EXPORT "${targets_export_name}"
