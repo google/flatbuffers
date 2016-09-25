@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-# Latest release is 1.3.0, but internal flatbuffers header is 1.0.0
-project(FlatBuffers VERSION 1.3.0)
+# Latest release is 1.4.0, but internal flatbuffers header is 1.0.0
+project(FlatBuffers VERSION 1.4.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -132,12 +132,12 @@ endif()
 include_directories(include)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-  add_library(flatbuffers ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 else()
   # http://stackoverflow.com/a/11583676
   add_library(flatbuffers INTERFACE)
 endif()
-
+  
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
@@ -178,6 +178,14 @@ if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
 endif()
 
+if(FLATBUFFERS_BUILD_GRPCTEST)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+  endif()
+  add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
+  target_link_libraries(grpctest grpc++_unsecure grpc pthread dl)
+endif()
+
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
@@ -192,10 +200,18 @@ if(NOT FLATBUFFERS_INSTALL)
   return()
 endif()
 
+install(DIRECTORY include/flatbuffers DESTINATION include)
+if(FLATBUFFERS_BUILD_FLATLIB)
+  install(TARGETS flatbuffers DESTINATION lib)
+endif()
+if(FLATBUFFERS_BUILD_FLATC)
+  install(TARGETS flatc DESTINATION bin)
+endif()
 ## install
 
 set(TARGET_NAME flatbuffers)
 
+include(CMake/BuildFlatBuffers.cmake)
 set(config_install_dir "lib/cmake/${TARGET_NAME}")
 set(include_install_dir "include")
 
@@ -218,9 +234,15 @@ configure_package_config_file(
   "${project_config}"
   INSTALL_DESTINATION "${config_install_dir}"
   )
+  
+set(EXPORT_TARGETS ${TARGET_NAME})
+
+if(FLATBUFFERS_BUILD_SHAREDLIB)
+  set(APPEND EXPORT_TARGETS flatbuffers_shared)
+endif()
 
 install(
-  TARGETS ${TARGET_NAME}
+  TARGETS ${EXPORT_TARGETS}
   EXPORT "${targets_export_name}"
   LIBRARY DESTINATION "lib"
   ARCHIVE DESTINATION "lib"
@@ -228,14 +250,12 @@ install(
   INCLUDES DESTINATION "${include_install_dir}"
   )
 
-if(FLATBUFFERS_BUILD_FLATC)
-  install(TARGETS flatc DESTINATION bin)
-endif()
-
-install(
-  DIRECTORY include/flatbuffers
-  DESTINATION "${include_install_dir}"
-  )
+foreach(HEADER ${TARGET_PUBLIC_HDRS})
+  install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}"
+    DESTINATION "${include_install_dir}/${TARGET_NAME}"
+    )
+endforeach()
 
 install(
   FILES "${project_config}" "${version_config}"
