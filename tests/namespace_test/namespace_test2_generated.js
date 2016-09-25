@@ -2,17 +2,20 @@
 
 /**
  * @const
-*/
+ * @namespace
+ */
 var NamespaceA = NamespaceA || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 NamespaceA.NamespaceB = NamespaceA.NamespaceB || {};
 
 /**
  * @const
-*/
+ * @namespace
+ */
 var NamespaceC = NamespaceC || {};
 
 /**
@@ -66,6 +69,21 @@ NamespaceA.TableInFirstNS.prototype.fooEnum = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? /** @type {NamespaceA.NamespaceB.EnumInNestedNS} */ (this.bb.readInt8(this.bb_pos + offset)) : NamespaceA.NamespaceB.EnumInNestedNS.A;
 };
+
+/**
+ * @param {NamespaceA.NamespaceB.EnumInNestedNS} value
+ * @returns {boolean}
+ */
+NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+}
 
 /**
  * @param {NamespaceA.NamespaceB.StructInNestedNS=} obj
