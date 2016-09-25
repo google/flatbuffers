@@ -64,10 +64,7 @@ function main() {
 
   fs.writeFileSync('monsterdata_javascript_wire.mon', new Buffer(fbb.asUint8Array()));
 
-  // Tests mutation first.  This will verify that we did not trample any other
-  // part of the byte buffer.
-  testMutation(fbb.dataBuffer());
-  
+  // Test it:
   testBuffer(fbb.dataBuffer());
 
   test64bit();
@@ -75,21 +72,6 @@ function main() {
   fuzzTest1();
 
   console.log('FlatBuffers test: completed successfully');
-}
-
-function testMutation(bb) {
-  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
-
-  monster.mutate_hp(120);
-  assert.strictEqual(monster.hp(), 120);
-
-  monster.mutate_hp(80);
-  assert.strictEqual(monster.hp(), 80);
-
-  var manaRes = monster.mutate_mana(10);
-  assert.strictEqual(manaRes, false);  // Field was NOT present, because default value.
-
-  // TODO: There is not the availability to mutate structs or vectors.
 }
 
 function testBuffer(bb) {

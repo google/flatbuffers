@@ -85,27 +85,6 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
-## Object based API.
-
-FlatBuffers is all about memory efficiency, which is why its base API is written
-around using as little as possible of it. This does make the API clumsier
-(requiring pre-order construction of all data, and making mutation harder).
-
-For times when efficiency is less important a more convenient object based API
-can be used (through `--gen-object-api`) that is able to unpack & pack a
-FlatBuffer into objects and standard STL containers, allowing for convenient
-construction, access and mutation.
-
-To use:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto monsterobj = GetMonster(buffer)->UnPack();
-    cout << monsterobj->name;  // This is now a std::string!
-    monsterobj->name = "Bob";  // Change the name.
-    FlatBufferBuilder fbb;
-    CreateMonster(fbb, monsterobj.get());     // Serialize into new buffer.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 ## Reflection (& Resizing)
 
 There is experimental support for reflection in FlatBuffers, allowing you to

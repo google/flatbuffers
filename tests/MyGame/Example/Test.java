@@ -9,8 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Test extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
-  public Test __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public Test __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
 
   public short a() { return bb.getShort(bb_pos + 0); }
   public void mutateA(short a) { bb.putShort(bb_pos + 0, a); }
@@ -24,5 +23,5 @@ public final class Test extends Struct {
     builder.putShort(a);
     return builder.offset();
   }
-}
+};
 

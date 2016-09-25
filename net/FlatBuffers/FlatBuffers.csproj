@@ -37,7 +37,6 @@
     <Compile Include="ByteBuffer.cs" />
     <Compile Include="FlatBufferBuilder.cs" />
     <Compile Include="FlatBufferConstants.cs" />
-    <Compile Include="IFlatbufferObject.cs" />
     <Compile Include="Offset.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Struct.cs" />

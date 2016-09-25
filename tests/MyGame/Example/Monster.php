@@ -361,40 +361,21 @@ class Monster extends Table
     }
 
     /**
-     * @param int offset
-     * @return string
-     */
-    public function getTestarrayofstring2($j)
-    {
-        $o = $this->__offset(60);
-        return $o != 0 ? $this->__string($this->__vector($o) + $j * 4) : 0;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTestarrayofstring2Length()
-    {
-        $o = $this->__offset(60);
-        return $o != 0 ? $this->__vector_len($o) : 0;
-    }
-
-    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(29);
+        $builder->StartObject(28);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3)
     {
-        $builder->startObject(29);
+        $builder->startObject(28);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -422,7 +403,6 @@ class Monster extends Table
         self::addTestf($builder, $testf);
         self::addTestf2($builder, $testf2);
         self::addTestf3($builder, $testf3);
-        self::addTestarrayofstring2($builder, $testarrayofstring2);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -835,40 +815,6 @@ class Monster extends Table
     public static function addTestf3(FlatBufferBuilder $builder, $testf3)
     {
         $builder->addFloatX(27, $testf3, 0.0);
-    }
-
-    /**
-     * @param FlatBufferBuilder $builder
-     * @param VectorOffset
-     * @return void
-     */
-    public static function addTestarrayofstring2(FlatBufferBuilder $builder, $testarrayofstring2)
-    {
-        $builder->addOffsetX(28, $testarrayofstring2, 0);
-    }
-
-    /**
-     * @param FlatBufferBuilder $builder
-     * @param array offset array
-     * @return int vector offset
-     */
-    public static function createTestarrayofstring2Vector(FlatBufferBuilder $builder, array $data)
-    {
-        $builder->startVector(4, count($data), 4);
-        for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
-        }
-        return $builder->endVector();
-    }
-
-    /**
-     * @param FlatBufferBuilder $builder
-     * @param int $numElems
-     * @return void
-     */
-    public static function startTestarrayofstring2Vector(FlatBufferBuilder $builder, $numElems)
-    {
-        $builder->startVector(4, $numElems, 4);
     }
 
     /**

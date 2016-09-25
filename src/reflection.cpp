@@ -204,76 +204,72 @@ class ResizeContext {
     if (DagCheck(table))
       return;  // Table already visited.
     auto vtable = table->GetVTable();
+    // Check if the vtable offset points beyond the insertion point.
+    Straddle<soffset_t, -1>(table, vtable, table);
+    // This direction shouldn't happen because vtables that sit before tables
+    // are always directly adjacent, but check just in case we ever change the
+    // way flatbuffers are built.
+    Straddle<soffset_t, -1>(vtable, table, table);
     // Early out: since all fields inside the table must point forwards in
     // memory, if the insertion point is before the table we can stop here.
     auto tableloc = reinterpret_cast<uint8_t *>(table);
-    if (startptr_ <= tableloc) {
-      // Check if insertion point is between the table and a vtable that
-      // precedes it. This can't happen in current construction code, but check
-      // just in case we ever change the way flatbuffers are built.
-      Straddle<soffset_t, -1>(vtable, table, table);
-    } else {
-      // Check each field.
-      auto fielddefs = objectdef.fields();
-      for (auto it = fielddefs->begin(); it != fielddefs->end(); ++it) {
-        auto &fielddef = **it;
-        auto base_type = fielddef.type()->base_type();
-        // Ignore scalars.
-        if (base_type <= reflection::Double) continue;
-        // Ignore fields that are not stored.
-        auto offset = table->GetOptionalFieldOffset(fielddef.offset());
-        if (!offset) continue;
-        // Ignore structs.
-        auto subobjectdef = base_type == reflection::Obj ?
-          schema_.objects()->Get(fielddef.type()->index()) : nullptr;
-        if (subobjectdef && subobjectdef->is_struct()) continue;
-        // Get this fields' offset, and read it if safe.
-        auto offsetloc = tableloc + offset;
-        if (DagCheck(offsetloc))
-          continue;  // This offset already visited.
-        auto ref = offsetloc + ReadScalar<uoffset_t>(offsetloc);
-        Straddle<uoffset_t, 1>(offsetloc, ref, offsetloc);
-        // Recurse.
-        switch (base_type) {
-          case reflection::Obj: {
-            ResizeTable(*subobjectdef, reinterpret_cast<Table *>(ref));
-            break;
-          }
-          case reflection::Vector: {
-            auto elem_type = fielddef.type()->element();
-            if (elem_type != reflection::Obj && elem_type != reflection::String)
-              break;
-            auto vec = reinterpret_cast<Vector<uoffset_t> *>(ref);
-            auto elemobjectdef = elem_type == reflection::Obj
-              ? schema_.objects()->Get(fielddef.type()->index())
-              : nullptr;
-            if (elemobjectdef && elemobjectdef->is_struct()) break;
-            for (uoffset_t i = 0; i < vec->size(); i++) {
-              auto loc = vec->Data() + i * sizeof(uoffset_t);
-              if (DagCheck(loc))
-                continue;  // This offset already visited.
-              auto dest = loc + vec->Get(i);
-              Straddle<uoffset_t, 1>(loc, dest ,loc);
-              if (elemobjectdef)
-                ResizeTable(*elemobjectdef, reinterpret_cast<Table *>(dest));
-            }
-            break;
-          }
-          case reflection::Union: {
-            ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
-                        reinterpret_cast<Table *>(ref));
-            break;
-          }
-          case reflection::String:
-            break;
-          default:
-            assert(false);
+    if (startptr_ <= tableloc) return;
+    // Check each field.
+    auto fielddefs = objectdef.fields();
+    for (auto it = fielddefs->begin(); it != fielddefs->end(); ++it) {
+      auto &fielddef = **it;
+      auto base_type = fielddef.type()->base_type();
+      // Ignore scalars.
+      if (base_type <= reflection::Double) continue;
+      // Ignore fields that are not stored.
+      auto offset = table->GetOptionalFieldOffset(fielddef.offset());
+      if (!offset) continue;
+      // Ignore structs.
+      auto subobjectdef = base_type == reflection::Obj ?
+        schema_.objects()->Get(fielddef.type()->index()) : nullptr;
+      if (subobjectdef && subobjectdef->is_struct()) continue;
+      // Get this fields' offset, and read it if safe.
+      auto offsetloc = tableloc + offset;
+      if (DagCheck(offsetloc))
+        continue;  // This offset already visited.
+      auto ref = offsetloc + ReadScalar<uoffset_t>(offsetloc);
+      Straddle<uoffset_t, 1>(offsetloc, ref, offsetloc);
+      // Recurse.
+      switch (base_type) {
+        case reflection::Obj: {
+          ResizeTable(*subobjectdef, reinterpret_cast<Table *>(ref));
+          break;
         }
+        case reflection::Vector: {
+          auto elem_type = fielddef.type()->element();
+          if (elem_type != reflection::Obj && elem_type != reflection::String)
+            break;
+          auto vec = reinterpret_cast<Vector<uoffset_t> *>(ref);
+          auto elemobjectdef = elem_type == reflection::Obj
+            ? schema_.objects()->Get(fielddef.type()->index())
+            : nullptr;
+          if (elemobjectdef && elemobjectdef->is_struct()) break;
+          for (uoffset_t i = 0; i < vec->size(); i++) {
+            auto loc = vec->Data() + i * sizeof(uoffset_t);
+            if (DagCheck(loc))
+              continue;  // This offset already visited.
+            auto dest = loc + vec->Get(i);
+            Straddle<uoffset_t, 1>(loc, dest ,loc);
+            if (elemobjectdef)
+              ResizeTable(*elemobjectdef, reinterpret_cast<Table *>(dest));
+          }
+          break;
+        }
+        case reflection::Union: {
+          ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
+                      reinterpret_cast<Table *>(ref));
+          break;
+        }
+        case reflection::String:
+          break;
+        default:
+          assert(false);
       }
-      // Check if the vtable offset points beyond the insertion point.
-      // Must do this last, since GetOptionalFieldOffset above still reads
-      // this value.
-      Straddle<soffset_t, -1>(table, vtable, table);
     }
   }
 

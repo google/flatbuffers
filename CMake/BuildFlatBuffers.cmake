@@ -63,13 +63,6 @@ function(build_flatbuffers flatbuffers_schemas
     set(FLATC_TARGET flatc)
     set(FLATC flatc)
   endif()
-  set(FLATC_SCHEMA_ARGS --gen-mutable)
-  if(FLATBUFFERS_FLATC_SCHEMA_EXTRA_ARGS)
-    set(FLATC_SCHEMA_ARGS
-      ${FLATBUFFERS_FLATC_SCHEMA_EXTRA_ARGS}
-      ${FLATC_SCHEMA_ARGS}
-      )
-  endif()
 
   set(schema_glob "*.fbs")
   # Generate the include files parameters.
@@ -93,7 +86,7 @@ function(build_flatbuffers flatbuffers_schemas
       set(generated_include ${generated_includes_dir}/${filename}_generated.h)
       add_custom_command(
         OUTPUT ${generated_include}
-        COMMAND ${FLATC} ${FLATC_SCHEMA_ARGS}
+        COMMAND ${FLATC} --gen-mutable
         -o ${generated_includes_dir}
         ${include_params}
         -c ${schema}
