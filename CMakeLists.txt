@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Latest release is 1.4.0, but internal flatbuffers header is 1.0.0
-project(FlatBuffers VERSION 1.3.0)
+project(FlatBuffers VERSION 1.4.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -157,9 +157,9 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 else()
   # http://stackoverflow.com/a/11583676
-  add_library(flatbuffers INTERFACE)
+  add_library(flatbuffers INTERFACE) 
 endif()
-
+  
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
@@ -220,13 +220,6 @@ endif()
     install(TARGETS flatbuffers_shared DESTINATION lib)
   endif()
 
-  if(FLATBUFFERS_BUILD_FLATLIB)
-    install(TARGETS flatbuffers DESTINATION lib)
-  endif()
-  if(FLATBUFFERS_BUILD_FLATC)
-    install(TARGETS flatc DESTINATION bin)
-  endif()
-endif()
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
@@ -237,18 +230,22 @@ endif()
 
 include(CMake/BuildFlatBuffers.cmake)
 
-if(FLATBUFFERS_PACKAGE_DEBIAN)
-    include(CMake/PackageDebian.cmake)
-endif()
-
 if(NOT FLATBUFFERS_INSTALL)
   return()
 endif()
 
+install(DIRECTORY include/flatbuffers DESTINATION include)
+if(FLATBUFFERS_BUILD_FLATLIB)
+  install(TARGETS flatbuffers DESTINATION lib)
+endif()
+if(FLATBUFFERS_BUILD_FLATC)
+  install(TARGETS flatc DESTINATION bin)
+endif()
 ## install
 
 set(TARGET_NAME flatbuffers)
 
+include(CMake/BuildFlatBuffers.cmake)
 set(config_install_dir "lib/cmake/${TARGET_NAME}")
 set(include_install_dir "include")
 
@@ -273,7 +270,7 @@ configure_package_config_file(
   )
 
 install(
-  TARGETS ${TARGET_NAME}
+  TARGETS flatbuffers
   EXPORT "${targets_export_name}"
   LIBRARY DESTINATION "lib"
   ARCHIVE DESTINATION "lib"
@@ -281,14 +278,12 @@ install(
   INCLUDES DESTINATION "${include_install_dir}"
   )
 
-if(FLATBUFFERS_BUILD_FLATC)
-  install(TARGETS flatc DESTINATION bin)
-endif()
-
-install(
-  DIRECTORY include/flatbuffers
-  DESTINATION "${include_install_dir}"
-  )
+foreach(HEADER ${TARGET_PUBLIC_HDRS})
+  install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}"
+    DESTINATION "${include_install_dir}/${TARGET_NAME}"
+    )
+endforeach()
 
 install(
   FILES "${project_config}" "${version_config}"
