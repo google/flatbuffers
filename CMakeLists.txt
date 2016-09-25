@@ -135,7 +135,7 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 else()
   # http://stackoverflow.com/a/11583676
-  add_library(flatbuffers INTERFACE) 
+  add_library(flatbuffers INTERFACE)
 endif()
   
 if(FLATBUFFERS_BUILD_FLATC)
@@ -235,20 +235,14 @@ configure_package_config_file(
   INSTALL_DESTINATION "${config_install_dir}"
   )
   
+set(EXPORT_TARGETS ${TARGET_NAME})
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
-  install(
-    TARGETS flatbuffers_shared
-    EXPORT "${targets_export_name}"
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
-    RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}"
-  )
+  set(APPEND EXPORT_TARGETS flatbuffers_shared)
 endif()
-  
+
 install(
-  TARGETS flatbuffers
+  TARGETS ${EXPORT_TARGETS}
   EXPORT "${targets_export_name}"
   LIBRARY DESTINATION "lib"
   ARCHIVE DESTINATION "lib"
