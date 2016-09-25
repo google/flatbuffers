@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-# Latest release is 1.3.0, but internal flatbuffers header is 1.0.0
+# Latest release is 1.4.0, but internal flatbuffers header is 1.0.0
 project(FlatBuffers VERSION 1.3.0)
 
 # NOTE: Code coverage only works on Linux & OSX.
@@ -154,7 +154,7 @@ include_directories(include)
 include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-  add_library(flatbuffers ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 else()
   # http://stackoverflow.com/a/11583676
   add_library(flatbuffers INTERFACE)
@@ -219,6 +219,14 @@ endif()
   if(FLATBUFFERS_BUILD_SHAREDLIB)
     install(TARGETS flatbuffers_shared DESTINATION lib)
   endif()
+
+  if(FLATBUFFERS_BUILD_FLATLIB)
+    install(TARGETS flatbuffers DESTINATION lib)
+  endif()
+  if(FLATBUFFERS_BUILD_FLATC)
+    install(TARGETS flatc DESTINATION bin)
+  endif()
+endif()
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
@@ -231,6 +239,10 @@ include(CMake/BuildFlatBuffers.cmake)
 
 if(FLATBUFFERS_PACKAGE_DEBIAN)
     include(CMake/PackageDebian.cmake)
+endif()
+
+if(NOT FLATBUFFERS_INSTALL)
+  return()
 endif()
 
 ## install
