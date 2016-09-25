@@ -5,16 +5,8 @@ package Example
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
-
 type Stat struct {
 	_tab flatbuffers.Table
-}
-
-func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Stat{}
-	x.Init(buf, n+offset)
-	return x
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -38,10 +30,6 @@ func (rcv *Stat) Val() int64 {
 	return 0
 }
 
-func (rcv *Stat) MutateVal(n int64) bool {
-	return rcv._tab.MutateInt64Slot(6, n)
-}
-
 func (rcv *Stat) Count() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
@@ -50,22 +38,8 @@ func (rcv *Stat) Count() uint16 {
 	return 0
 }
 
-func (rcv *Stat) MutateCount(n uint16) bool {
-	return rcv._tab.MutateUint16Slot(8, n)
-}
-
-func StatStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
-}
-func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(id), 0)
-}
-func StatAddVal(builder *flatbuffers.Builder, val int64) {
-	builder.PrependInt64Slot(1, val, 0)
-}
-func StatAddCount(builder *flatbuffers.Builder, count uint16) {
-	builder.PrependUint16Slot(2, count, 0)
-}
-func StatEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	return builder.EndObject()
-}
+func StatStart(builder *flatbuffers.Builder) { builder.StartObject(3) }
+func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(id), 0) }
+func StatAddVal(builder *flatbuffers.Builder, val int64) { builder.PrependInt64Slot(1, val, 0) }
+func StatAddCount(builder *flatbuffers.Builder, count uint16) { builder.PrependUint16Slot(2, count, 0) }
+func StatEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

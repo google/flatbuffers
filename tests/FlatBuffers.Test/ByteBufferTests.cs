@@ -40,7 +40,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual((byte)99, buffer[0]);
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutByteCannotPutAtOffsetPastLength()
         {
@@ -48,7 +47,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutByte(1, 99));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutShortPopulatesBufferCorrectly()
@@ -62,7 +60,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual((byte)0, buffer[1]);
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutShortCannotPutAtOffsetPastLength()
         {
@@ -70,9 +67,7 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutShort(2, 99));
         }
-#endif
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutShortChecksLength()
         {
@@ -88,7 +83,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutShort(1, 99));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutIntPopulatesBufferCorrectly()
@@ -104,7 +98,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x0A, buffer[3]);
         }
 
- #if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutIntCannotPutAtOffsetPastLength()
         {
@@ -128,7 +121,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutInt(2, 0x0A0B0C0D));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutLongPopulatesBufferCorrectly()
@@ -148,7 +140,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x01, buffer[7]);
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutLongCannotPutAtOffsetPastLength()
         {
@@ -172,7 +163,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.PutLong(2, 0x010203040A0B0C0D));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetByteReturnsCorrectData()
@@ -183,7 +173,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual((byte)99, uut.Get(0));
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetByteChecksOffset()
         {
@@ -191,7 +180,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(()=>uut.Get(1));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetShortReturnsCorrectData()
@@ -203,7 +191,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual(1, uut.GetShort(0));
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetShortChecksOffset()
         {
@@ -219,7 +206,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetShort(1));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetIntReturnsCorrectData()
@@ -233,7 +219,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x0A0B0C0D, uut.GetInt(0));
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetIntChecksOffset()
         {
@@ -249,7 +234,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetInt(0));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetLongReturnsCorrectData()
@@ -267,7 +251,6 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x010203040A0B0C0D, uut.GetLong(0));
         }
 
-#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_GetLongChecksOffset()
         {
@@ -283,7 +266,6 @@ namespace FlatBuffers.Test
             var uut = new ByteBuffer(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() => uut.GetLong(0));
         }
-#endif
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_ReverseBytesUshort()

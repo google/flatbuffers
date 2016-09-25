@@ -5,16 +5,8 @@ package NamespaceA
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
-
 type SecondTableInA struct {
 	_tab flatbuffers.Table
-}
-
-func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTableInA {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &SecondTableInA{}
-	x.Init(buf, n+offset)
-	return x
 }
 
 func (rcv *SecondTableInA) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -35,12 +27,6 @@ func (rcv *SecondTableInA) ReferToC(obj *TableInC) *TableInC {
 	return nil
 }
 
-func SecondTableInAStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
-}
-func SecondTableInAAddReferToC(builder *flatbuffers.Builder, referToC flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(referToC), 0)
-}
-func SecondTableInAEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	return builder.EndObject()
-}
+func SecondTableInAStart(builder *flatbuffers.Builder) { builder.StartObject(1) }
+func SecondTableInAAddReferToC(builder *flatbuffers.Builder, referToC flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(referToC), 0) }
+func SecondTableInAEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

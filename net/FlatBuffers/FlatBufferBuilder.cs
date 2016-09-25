@@ -296,18 +296,6 @@ namespace FlatBuffers
             return new VectorOffset(Offset);
         }
 
-        /// <summary>
-        /// Creates a vector of tables.
-        /// </summary>
-        /// <param name="offsets">Offsets of the tables.</param>
-        public VectorOffset CreateVectorOfTables<T>(Offset<T>[] offsets) where T : struct
-        {
-            NotNested();
-            StartVector(sizeof(int), offsets.Length, sizeof(int));
-            for (int i = offsets.Length - 1; i >= 0; i--) AddOffset(offsets[i].Value);
-            return EndVector();
-        }
-
         /// @cond FLATBUFFERS_INTENRAL
         public void Nested(int obj)
         {
@@ -594,8 +582,6 @@ namespace FlatBuffers
         /// </summary>
         /// <remarks>
         /// This is typically only called after you call `Finish()`.
-        /// The actual data starts at the ByteBuffer's current position,
-        /// not necessarily at `0`.
         /// </remarks>
         /// <returns>
         /// Returns the ByteBuffer for this FlatBuffer.
