@@ -19,7 +19,9 @@ import java.nio.ByteBuffer;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
-import reflection.*;
+import com.google.flatbuffers.Reflection;
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.reflection.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -36,7 +38,7 @@ class JavaTest {
             data = new byte[(int)f.length()];
             f.readFully(data);
             f.close();
-        } catch(java.io.IOException e) {
+        } catch(IOException e) {
             System.out.println("FlatBuffers test: couldn't read file");
             return;
         }
@@ -113,7 +115,7 @@ class JavaTest {
                                            "monsterdata_java_wire.mon"));
             os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
             os.close();
-        } catch(java.io.IOException e) {
+        } catch(IOException e) {
             System.out.println("FlatBuffers test: couldn't write file");
             return;
         }
@@ -190,7 +192,7 @@ class JavaTest {
 
         TestCreateUninitializedVector();
 
-        TestReflection();
+        TestReflection(bb);
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -350,7 +352,7 @@ class JavaTest {
         TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
     }
 
-    static void TestReflection() {
+    static void TestReflection(ByteBuffer flatbuf) {
         byte[] data = null;
         File file = new File("monster_test.bfbs");
         RandomAccessFile f = null;
@@ -376,13 +378,42 @@ class JavaTest {
 
         ByteBuffer bb = ByteBuffer.wrap(data);
         Schema schema = Schema.getRootAsSchema(bb);
-        reflection.Object rootTable = schema.rootTable();
+        com.google.flatbuffers.reflection.Object rootTable = schema.rootTable();
         TestEq(rootTable.name(), "Monster");
         TestEq(rootTable.fieldsLength(), 29);
-        Field field = rootTable.field("hp");
-        TestEq(field.name(), "hp");
-        TestEq(field.id(), 2);
+        Field hpField = rootTable.field("hp");
+        TestEq(hpField.name(), "hp");
+        TestEq(hpField.id(), 2);
+        // Now use it to dynamically access a buffer.
+        Table root = Reflection.getRootTable(flatbuf);
 
+        // maybe we can move those methods to the Table class...
+        int hp = Reflection.getIntField(root, hpField); //<- maybe provide a way to specify your default
+//        TestEq(hp, 80);
+//        short shortHp = Reflection.getShortField(root, hpField); //<- maybe provide a way to specify your default
+//        TestEq(shortHp, 80);
+//        long longField = Reflection.getLongField(root, rootTable.field("testhashs64Fnv1")); //<- maybe provide a way to specify your default
+//        TestEq(longField, 80L);
+//        float floatField = Reflection.getFloatField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
+//        TestEq(floatField, 80.0F);
+//        double doubleField = Reflection.getDoubleField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
+//        TestEq(doubleField, 80.0F);
+
+//        hp = Reflection.getAsIntField(root, hpField);
+//        hp = Reflection.getFieldAsInt(root, hpField);
+//        TestEq(hp, 80);
+//        long longHp = Reflection.getAsLongField(root, hpField);
+//        long longHp = Reflection.getFieldAsLong(root, hpField);
+//        TestEq(longHp, 80L);
+//        float floatHp = Reflection.getAsFloatField(root, hpField);
+//        float floatHp = Reflection.getFieldAsFloat(root, hpField);
+//        TestEq(floatHp, 80.0F);
+//        double doubleHp = Reflection.getAsDoubleField(root, hpField);
+//        double doubleHp = Reflection.getFieldAsDouble(root, hpField);
+//        TestEq(doubleHp, 80.0D);
+//        String stringHp = Reflection.getAsStringField(root, hpField);
+//        String stringHp = Reflection.getFieldAsString(root, hpField);
+//        TestEq(stringHp, "80");
     }
 
     static <T> void TestEq(T a, T b) {

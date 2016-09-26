@@ -56,6 +56,23 @@ public class Table {
    */
   public ByteBuffer getByteBuffer() { return bb; }
 
+  public <T> T getScalarField(int field, T defaultValue, Class<T> type) {
+    int offset = __offset(field);
+
+    return type.cast(null);
+  }
+
+  /**
+   * Initialized this {@link Table} to the given position for the giver {@code ByteBuffer}.
+   *
+   * @param position position of this {@link Table} in the {@code ByteBuffer}.
+   * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
+   * @return this {@link Table} initialized.
+   */
+  protected Table _init(int position, ByteBuffer bb) {
+    bb_pos = position; this.bb = bb; return this;
+  }
+
   /**
    * Look up a field in the vtable.
    *
