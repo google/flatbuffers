@@ -132,7 +132,9 @@ class BaseGenerator {
   std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
     if (CurrentNameSpace() == ns) return name;
     std::string qualified_name = qualifying_start_;
-    for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(*ns, parser_.opts.lang, &namespaces);
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it)
       qualified_name += *it + qualifying_separator_;
     return qualified_name + name;
   }
