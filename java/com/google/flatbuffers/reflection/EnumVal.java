@@ -2,11 +2,10 @@
 
 package com.google.flatbuffers.reflection;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.Table;
+import java.nio.*;
+import java.lang.*;
+import java.util.*;
+import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class EnumVal extends Table {
@@ -18,6 +17,7 @@ public final class EnumVal extends Table {
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
   public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateValue(long value) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, value); return true; } else { return false; } }
   public Object object() { return object(new Object()); }
   public Object object(Object obj) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 

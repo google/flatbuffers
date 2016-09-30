@@ -381,7 +381,7 @@ class JavaTest {
         com.google.flatbuffers.reflection.Object rootTable = schema.rootTable();
         TestEq(rootTable.name(), "Monster");
         TestEq(rootTable.fieldsLength(), 29);
-        Field hpField = rootTable.field("hp");
+        Field hpField = rootTable.fieldsByKey("hp");
         TestEq(hpField.name(), "hp");
         TestEq(hpField.id(), 2);
         // Now use it to dynamically access a buffer.

@@ -2,11 +2,10 @@
 
 package com.google.flatbuffers.reflection;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.Table;
+import java.nio.*;
+import java.lang.*;
+import java.util.*;
+import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Object extends Table {
@@ -20,12 +19,17 @@ public final class Object extends Table {
   public Field fields(int j) { return fields(new Field(), j); }
   public Field fields(Field obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int fieldsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
+  public Field fieldsByKey( String key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? Field.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public boolean isStruct() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateIsStruct(boolean is_struct) { int o = __offset(8); if (o != 0) { bb.put(o + bb_pos, (byte)(is_struct ? 1 : 0)); return true; } else { return false; } }
   public int minalign() { int o = __offset(10); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateMinalign(int minalign) { int o = __offset(10); if (o != 0) { bb.putInt(o + bb_pos, minalign); return true; } else { return false; } }
   public int bytesize() { int o = __offset(12); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateBytesize(int bytesize) { int o = __offset(12); if (o != 0) { bb.putInt(o + bb_pos, bytesize); return true; } else { return false; } }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
+  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(14)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
 
   public static int createObject(FlatBufferBuilder builder,
       int nameOffset,
@@ -87,12 +91,5 @@ public final class Object extends Table {
     }
     return null;
   }
-
-  // added manually for the moment open to discussion :)
-  public Field field(String key) {
-    int vectorOffset = __vector(__offset(6)) - 4;
-    return vectorOffset != 0 ? Field.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;
-  }
-
 }
 

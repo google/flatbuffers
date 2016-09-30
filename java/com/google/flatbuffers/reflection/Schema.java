@@ -2,11 +2,10 @@
 
 package com.google.flatbuffers.reflection;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.Table;
+import java.nio.*;
+import java.lang.*;
+import java.util.*;
+import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Schema extends Table {
@@ -19,9 +18,11 @@ public final class Schema extends Table {
   public Object objects(int j) { return objects(new Object(), j); }
   public Object objects(Object obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int objectsLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
+  public Object objectsByKey( String key ) { int vectorOffset = __vector(__offset(4)) - 4; return vectorOffset != 0 ? Object.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public Enum enums(int j) { return enums(new Enum(), j); }
   public Enum enums(Enum obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int enumsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
+  public Enum enumsByKey( String key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? Enum.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public String fileIdent() { int o = __offset(8); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer fileIdentAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public String fileExt() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }

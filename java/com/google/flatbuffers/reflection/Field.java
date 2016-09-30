@@ -2,11 +2,10 @@
 
 package com.google.flatbuffers.reflection;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.Table;
+import java.nio.*;
+import java.lang.*;
+import java.util.*;
+import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Field extends Table {
@@ -20,15 +19,23 @@ public final class Field extends Table {
   public Type type() { return type(new Type()); }
   public Type type(Type obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int id() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  public boolean mutateId(int id) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)id); return true; } else { return false; } }
   public int offset() { int o = __offset(10); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  public boolean mutateOffset(int offset) { int o = __offset(10); if (o != 0) { bb.putShort(o + bb_pos, (short)offset); return true; } else { return false; } }
   public long defaultInteger() { int o = __offset(12); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public boolean mutateDefaultInteger(long default_integer) { int o = __offset(12); if (o != 0) { bb.putLong(o + bb_pos, default_integer); return true; } else { return false; } }
   public double defaultReal() { int o = __offset(14); return o != 0 ? bb.getDouble(o + bb_pos) : 0.0; }
+  public boolean mutateDefaultReal(double default_real) { int o = __offset(14); if (o != 0) { bb.putDouble(o + bb_pos, default_real); return true; } else { return false; } }
   public boolean deprecated() { int o = __offset(16); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateDeprecated(boolean deprecated) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte)(deprecated ? 1 : 0)); return true; } else { return false; } }
   public boolean required() { int o = __offset(18); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateRequired(boolean required) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos, (byte)(required ? 1 : 0)); return true; } else { return false; } }
   public boolean key() { int o = __offset(20); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateKey(boolean key) { int o = __offset(20); if (o != 0) { bb.put(o + bb_pos, (byte)(key ? 1 : 0)); return true; } else { return false; } }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
+  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(22)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -100,11 +107,5 @@ public final class Field extends Table {
     }
     return null;
   }
-
-  public KeyValue attribute(String key) {
-    int vectorOffset = __vector(__offset(22)) - 4;
-    return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;
-  }
-
 }
 
