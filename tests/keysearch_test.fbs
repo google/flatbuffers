@@ -1,0 +1,80 @@
+// test schema file that contains object with all type of keys
+
+namespace KeySearch;
+
+
+table MasterDict {
+  ubytesEntries: [UByteEntry];
+  bytesEntries: [ByteEntry];
+  boolEntries: [BoolEntry];
+  shortEntries: [ShortEntry];
+  ushortEntries: [UShortEntry];
+  intEntries: [IntEntry];
+  uintEntries: [UIntEntry];
+  floatEntries: [FloatEntry];
+  longEntries: [LongEntry];
+  ulongEntries: [ULongEntry];
+  doubleEntries: [DoubleEntry];
+}
+
+
+table UByteEntry {
+  key: ubyte (key);
+  value: int;
+}
+
+table ByteEntry {
+  key: byte (key);
+  value: int;
+}
+
+table BoolEntry {
+  key: bool (key);
+  value: int;
+}
+
+table ShortEntry {
+  key: short (key);
+  value: int;
+}
+
+table UShortEntry {
+  key: ushort (key);
+  value: int;
+}
+
+table IntEntry {
+  key: int (key);
+  value: int;
+}
+
+table UIntEntry {
+  key: uint (key);
+  value: int;
+}
+
+table FloatEntry {
+  key: float (key);
+  value: int;
+}
+
+table LongEntry {
+  key: long (key);
+  value: int;
+}
+
+table ULongEntry {
+  key: ulong (key);
+  value: int;
+}
+
+table DoubleEntry {
+  key: double (key);
+  value: int;
+}
+
+
+root_type MasterDict;
+
+file_identifier "MDCT";
+file_extension "mdict";

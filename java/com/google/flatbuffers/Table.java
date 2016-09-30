@@ -290,6 +290,25 @@ public class Table {
     }
     return len_1 - len_2;
   }
+
+  protected interface BSearchComparator {
+    /**
+     * Compares key to data stored at offsetData in bb.
+     *
+     * @param key value of the searched key.
+     * @param offsetData offset to the data to compare key to in bb
+     * @param bb A {@code ByteBuffer} to get the first string.
+     * @return signOf(key - offsetData[...])
+     */
+    long compare( long key, int offsetData, ByteBuffer bb );
+  }
+
+  protected static final BSearchComparator INT_COMPARATOR = new BSearchComparator() {
+    @Override
+    public long compare(long key, int offsetData, ByteBuffer bb) {
+      return (int) (key - bb.getInt(offsetData));
+    }
+  };
 }
 
 /// @endcond
