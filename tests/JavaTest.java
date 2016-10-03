@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
+
 import com.google.flatbuffers.Reflection;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.reflection.*;
@@ -66,7 +67,7 @@ class JavaTest {
         Monster.addName(fbb, names[2]);
         off[2] = Monster.endMonster(fbb);
         int sortMons = fbb.createSortedVectorOfTables(new Monster(), off);
-		
+
         // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
@@ -112,7 +113,7 @@ class JavaTest {
 
         try {
             DataOutputStream os = new DataOutputStream(new FileOutputStream(
-                                           "monsterdata_java_wire.mon"));
+                    "monsterdata_java_wire.mon"));
             os.write(fbb.dataBuffer().array(), fbb.dataBuffer().position(), fbb.offset());
             os.close();
         } catch(IOException e) {
@@ -293,8 +294,8 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb1, monster1);
         byte[] fbb1Bytes = fbb1.sizedByteArray();
         fbb1 = null;
-        
-        FlatBufferBuilder fbb2 = new FlatBufferBuilder(16);        
+
+        FlatBufferBuilder fbb2 = new FlatBufferBuilder(16);
         int str2 = fbb2.createString("My Monster");
         int nestedBuffer = Monster.createTestnestedflatbufferVector(fbb2, fbb1Bytes);
         Monster.startMonster(fbb2);
@@ -304,7 +305,7 @@ class JavaTest {
         Monster.addTestnestedflatbuffer(fbb2, nestedBuffer);
         int monster = Monster.endMonster(fbb2);
         Monster.finishMonsterBuffer(fbb2, monster);
-        
+
         // Now test the data extracted from the nested buffer
         Monster mons = Monster.getRootAsMonster(fbb2.dataBuffer());
         Monster nestedMonster = mons.testnestedflatbufferAsMonster();
@@ -388,10 +389,22 @@ class JavaTest {
         Table root = Reflection.getRootTable(flatbuf);
 
         // maybe we can move those methods to the Table class...
-        int hp = Reflection.getIntField(root, hpField); //<- maybe provide a way to specify your default
+        boolean hasHp = Reflection.hasValue(root, hpField);
+        TestEq(hasHp, true);
+        short shortHp = Reflection.getShortField(root, hpField);
+        //TODO see with Wouter if he prefers this form
+//        short shortHp = Reflection.shortField(root, hpField);
+        TestEq(shortHp, (short) 80);
+        Field manaField = rootTable.fieldsByKey("mana");
+        boolean hasMana = Reflection.hasValue(root, manaField);
+        TestEq(hasMana, false);
+        short shortMana = Reflection.getShortField(root, manaField);
+        TestEq(shortMana, (short) 150);
+        shortMana = Reflection.getShortField(root, manaField, (short) 42);
+        TestEq(shortMana, (short) 42);
+        // wait to stabilized the api first before applying on all scalar types
+//        int hp = Reflection.getIntField(root, hpField); //<- maybe provide a way to specify your default
 //        TestEq(hp, 80);
-//        short shortHp = Reflection.getShortField(root, hpField); //<- maybe provide a way to specify your default
-//        TestEq(shortHp, 80);
 //        long longField = Reflection.getLongField(root, rootTable.field("testhashs64Fnv1")); //<- maybe provide a way to specify your default
 //        TestEq(longField, 80L);
 //        float floatField = Reflection.getFloatField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
@@ -399,9 +412,11 @@ class JavaTest {
 //        double doubleField = Reflection.getDoubleField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
 //        TestEq(doubleField, 80.0F);
 
+        //TODO see with Wouter which method naming convention he prefers?
 //        hp = Reflection.getAsIntField(root, hpField);
 //        hp = Reflection.getFieldAsInt(root, hpField);
 //        TestEq(hp, 80);
+
 //        long longHp = Reflection.getAsLongField(root, hpField);
 //        long longHp = Reflection.getFieldAsLong(root, hpField);
 //        TestEq(longHp, 80L);
@@ -414,6 +429,16 @@ class JavaTest {
 //        String stringHp = Reflection.getAsStringField(root, hpField);
 //        String stringHp = Reflection.getFieldAsString(root, hpField);
 //        TestEq(stringHp, "80");
+
+        // We can also modify it.
+        TestEq(Reflection.setShortField(root, hpField, (short) 200), true);
+        shortHp = Reflection.getShortField(root, hpField); //<- maybe provide a way to specify your default
+        TestEq(shortHp, (short) 200);
+        TestEq(Reflection.setShortField(root, manaField, (short) 42), false);
+        shortMana = Reflection.getShortField(root, manaField);
+        TestEq(shortMana, (short) 150);
+        // Reset it, for further tests.
+        TestEq(Reflection.setShortField(root, hpField, (short) hpField.defaultInteger()), true);
     }
 
     static <T> void TestEq(T a, T b) {
