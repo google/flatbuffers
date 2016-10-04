@@ -1,6 +1,6 @@
 // test schema file that contains object with all type of keys
 
-namespace KeySearch;
+namespace Testing.KeySearch;
 
 
 table MasterDict {
@@ -15,66 +15,72 @@ table MasterDict {
   longEntries: [LongEntry];
   ulongEntries: [ULongEntry];
   doubleEntries: [DoubleEntry];
+  stringEntries: [StringEntry];
 }
 
 
 table UByteEntry {
   key: ubyte (key);
-  value: int;
+  value: ubyte = 255;
 }
 
 table ByteEntry {
   key: byte (key);
-  value: int;
+  value: byte = -128;
 }
 
 table BoolEntry {
   key: bool (key);
-  value: int;
+  value: bool = true;
 }
 
 table ShortEntry {
   key: short (key);
-  value: int;
+  value: short = -32768;
 }
 
 table UShortEntry {
   key: ushort (key);
-  value: int;
+  value: ushort = 65535;
 }
 
 table IntEntry {
   key: int (key);
-  value: int;
+  value: int = -2147483648;
 }
 
 table UIntEntry {
   key: uint (key);
-  value: int;
+  value: int = 4294967295;
 }
 
 table FloatEntry {
   key: float (key);
-  value: int;
+  value: int = 1234;
 }
 
 table LongEntry {
   key: long (key);
-  value: int;
+  value: long = -9223372036854775808;
 }
 
 table ULongEntry {
   key: ulong (key);
-  value: int;
+  value: long = 9223372036854775807; // keep default within signed range for portability across languages
 }
 
 table DoubleEntry {
   key: double (key);
-  value: int;
+  value: int = 4567;
+}
+
+table StringEntry {
+  key: string (key);
+  value: int = 7890;
 }
 
 
 root_type MasterDict;
 
-file_identifier "MDCT";
+file_identifier "FBMD";
 file_extension "mdict";
