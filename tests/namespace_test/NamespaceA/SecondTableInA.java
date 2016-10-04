@@ -10,11 +10,12 @@ import com.google.flatbuffers.*;
 @SuppressWarnings("unused")
 public final class SecondTableInA extends Table {
   public static SecondTableInA getRootAsSecondTableInA(ByteBuffer _bb) { return getRootAsSecondTableInA(_bb, new SecondTableInA()); }
-  public static SecondTableInA getRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__init(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public SecondTableInA __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+  public static SecondTableInA getRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public SecondTableInA __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceC.TableInC referToC() { return referToC(new NamespaceC.TableInC()); }
-  public NamespaceC.TableInC referToC(NamespaceC.TableInC obj) { int o = __offset(4); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public NamespaceC.TableInC referToC(NamespaceC.TableInC obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
   public static int createSecondTableInA(FlatBufferBuilder builder,
       int refer_to_cOffset) {

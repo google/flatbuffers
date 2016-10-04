@@ -9,7 +9,8 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Vec3 extends Struct {
-  public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public Vec3 __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float x() { return bb.getFloat(bb_pos + 0); }
   public void mutateX(float x) { bb.putFloat(bb_pos + 0, x); }
@@ -22,7 +23,7 @@ public final class Vec3 extends Struct {
   public byte test2() { return bb.get(bb_pos + 24); }
   public void mutateTest2(byte test2) { bb.put(bb_pos + 24, test2); }
   public Test test3() { return test3(new Test()); }
-  public Test test3(Test obj) { return obj.__init(bb_pos + 26, bb); }
+  public Test test3(Test obj) { return obj.__assign(bb_pos + 26, bb); }
 
   public static int createVec3(FlatBufferBuilder builder, float x, float y, float z, double test1, byte test2, short test3_a, byte test3_b) {
     builder.prep(16, 32);

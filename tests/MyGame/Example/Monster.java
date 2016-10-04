@@ -13,12 +13,13 @@ import com.google.flatbuffers.*;
  */
 public final class Monster extends Table {
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
-  public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__init(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONS"); }
-  public Monster __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public Monster __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Vec3 pos() { return pos(new Vec3()); }
-  public Vec3 pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__init(o + bb_pos, bb) : null; }
+  public Vec3 pos(Vec3 obj) { int o = __offset(4); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
   public short mana() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) : 150; }
   public boolean mutateMana(short mana) { int o = __offset(6); if (o != 0) { bb.putShort(o + bb_pos, mana); return true; } else { return false; } }
   public short hp() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) : 100; }
@@ -35,7 +36,7 @@ public final class Monster extends Table {
   public boolean mutateTestType(byte test_type) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos, test_type); return true; } else { return false; } }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
   public Test test4(int j) { return test4(new Test(), j); }
-  public Test test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__init(__vector(o) + j * 4, bb) : null; }
+  public Test test4(Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
   public int test4Length() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
   public String testarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int testarrayofstringLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
@@ -44,18 +45,18 @@ public final class Monster extends Table {
    * multiline too
    */
   public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
-  public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
+  public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public Monster enemy() { return enemy(new Monster()); }
-  public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int testnestedflatbufferLength() { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer testnestedflatbufferAsByteBuffer() { return __vector_as_bytebuffer(30, 1); }
   public Monster testnestedflatbufferAsMonster() { return testnestedflatbufferAsMonster(new Monster()); }
-  public Monster testnestedflatbufferAsMonster(Monster obj) { int o = __offset(30); return o != 0 ? obj.__init(__indirect(__vector(o)), bb) : null; }
+  public Monster testnestedflatbufferAsMonster(Monster obj) { int o = __offset(30); return o != 0 ? obj.__assign(__indirect(__vector(o)), bb) : null; }
   public boolean mutateTestnestedflatbuffer(int j, int testnestedflatbuffer) { int o = __offset(30); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)testnestedflatbuffer); return true; } else { return false; } }
   public Stat testempty() { return testempty(new Stat()); }
-  public Stat testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
+  public Stat testempty(Stat obj) { int o = __offset(32); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public boolean testbool() { int o = __offset(34); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   public boolean mutateTestbool(boolean testbool) { int o = __offset(34); if (o != 0) { bb.put(o + bb_pos, (byte)(testbool ? 1 : 0)); return true; } else { return false; } }
   public int testhashs32Fnv1() { int o = __offset(36); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
@@ -135,5 +136,31 @@ public final class Monster extends Table {
     return o;
   }
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
+
+  @Override
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
+
+  public static Monster lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
+    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    int vectorLocation = bb.array().length - vectorOffset;
+    int span = bb.getInt(vectorLocation);
+    int start = 0;
+    vectorLocation += 4;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int comp = compareStrings(__offset(10, bb.array().length - tableOffset, bb), byteKey, bb);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return new Monster().__assign(tableOffset, bb);
+      }
+    }
+    return null;
+  }
 }
 

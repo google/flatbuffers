@@ -188,7 +188,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Monster> CreateMonsterDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const Vec3 *pos = 0,
     int16_t mana = 150,
     int16_t hp = 100,
@@ -198,7 +198,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     const std::vector<flatbuffers::Offset<Weapon>> *weapons = nullptr,
     Equipment equipped_type = Equipment_NONE,
     flatbuffers::Offset<void> equipped = 0) {
-  return CreateMonster(_fbb, pos, mana, hp, name ? 0 : _fbb.CreateString(name), inventory ? 0 : _fbb.CreateVector<uint8_t>(*inventory), color, weapons ? 0 : _fbb.CreateVector<flatbuffers::Offset<Weapon>>(*weapons), equipped_type, equipped);
+  return CreateMonster(_fbb, pos, mana, hp, name ? _fbb.CreateString(name) : 0, inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0, color, weapons ? _fbb.CreateVector<flatbuffers::Offset<Weapon>>(*weapons) : 0, equipped_type, equipped);
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o);
@@ -249,10 +249,10 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<Weapon> CreateWeaponDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     int16_t damage = 0) {
-  return CreateWeapon(_fbb, name ? 0 : _fbb.CreateString(name), damage);
+  return CreateWeapon(_fbb, name ? _fbb.CreateString(name) : 0, damage);
 }
 
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o);

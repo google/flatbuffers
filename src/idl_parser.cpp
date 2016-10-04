@@ -219,7 +219,7 @@ CheckedError Parser::ParseHexNum(int nibbles, int64_t *val) {
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
-  *val = StringToUInt(target.c_str(), 16);
+  *val = StringToUInt(target.c_str(), nullptr, 16);
   cursor_ += nibbles;
   return NoError();
 }
@@ -447,7 +447,7 @@ CheckedError Parser::Next() {
               cursor_++;
               while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
               attribute_.append(start + 2, cursor_);
-              attribute_ = NumToString(StringToUInt(attribute_.c_str(), 16));
+              attribute_ = NumToString(StringToUInt(attribute_.c_str(), nullptr, 16));
               token_ = kTokenIntegerConstant;
               return NoError();
           }
@@ -1093,10 +1093,15 @@ CheckedError Parser::ParseSingleValue(Value &e) {
       NEXT();
     } else {  // Numeric constant in string.
       if (IsInteger(e.type.base_type)) {
-        // TODO(wvo): do we want to check for garbage after the number?
-        e.constant = NumToString(StringToInt(attribute_.c_str()));
+        char *end;
+        e.constant = NumToString(StringToInt(attribute_.c_str(), &end));
+        if (*end)
+          return Error("invalid integer: " + attribute_);
       } else if (IsFloat(e.type.base_type)) {
-        e.constant = NumToString(strtod(attribute_.c_str(), nullptr));
+        char *end;
+        e.constant = NumToString(strtod(attribute_.c_str(), &end));
+        if (*end)
+          return Error("invalid float: " + attribute_);
       } else {
         assert(0);  // Shouldn't happen, we covered all types.
         e.constant = "0";
@@ -1977,7 +1982,8 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 // Schema serialization functionality:
 
 template<typename T> bool compareName(const T* a, const T* b) {
-    return a->name < b->name;
+    return a->defined_namespace->GetFullyQualifiedName(a->name)
+        < b->defined_namespace->GetFullyQualifiedName(b->name);
 }
 
 template<typename T> void AssignIndices(const std::vector<T *> &defvec) {
@@ -2023,8 +2029,9 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
       (*it)->Serialize(builder,
                        static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
+  auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   return reflection::CreateObject(*builder,
-                                  builder->CreateString(name),
+                                  builder->CreateString(qualified_name),
                                   builder->CreateVectorOfSortedTables(
                                     &field_offsets),
                                   fixed,
@@ -2061,8 +2068,9 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
   for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
     enumval_offsets.push_back((*it)->Serialize(builder));
   }
+  auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   return reflection::CreateEnum(*builder,
-                                builder->CreateString(name),
+                                builder->CreateString(qualified_name),
                                 builder->CreateVector(enumval_offsets),
                                 is_union,
                                 underlying_type.Serialize(builder),

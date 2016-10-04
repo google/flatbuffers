@@ -410,7 +410,8 @@ void ParseAndGenerateTextTest() {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
@@ -432,7 +433,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Make sure the schema is what we expect it to be.
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
-  TEST_EQ_STR(root_table->name()->c_str(), "Monster");
+  TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
   auto fields = root_table->fields();
   auto hp_field_ptr = fields->LookupByKey("hp");
   TEST_NOTNULL(hp_field_ptr);
@@ -444,6 +445,14 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(friendly_field_ptr);
   TEST_NOTNULL(friendly_field_ptr->attributes());
   TEST_NOTNULL(friendly_field_ptr->attributes()->LookupByKey("priority"));
+
+  // Make sure the table index is what we expect it to be.
+  auto pos_field_ptr = fields->LookupByKey("pos");
+  TEST_NOTNULL(pos_field_ptr);
+  TEST_EQ(pos_field_ptr->type()->base_type(), reflection::Obj);
+  auto pos_table_ptr = schema.objects()->Get(pos_field_ptr->type()->index());
+  TEST_NOTNULL(pos_table_ptr);
+  TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
@@ -827,7 +836,8 @@ void FuzzTest2() {
 
   std::string jsongen;
   parser.opts.indent_step = 0;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
 
   if (jsongen != json) {
     // These strings are larger than a megabyte, so we show the bytes around
@@ -987,7 +997,8 @@ void UnicodeTest() {
           true);
   std::string jsongen;
   parser.opts.indent_step = -1;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
   TEST_EQ(jsongen,
           std::string(
             "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
@@ -1003,11 +1014,29 @@ void UnicodeTestAllowNonUTF8() {
                        "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"), true);
   std::string jsongen;
   parser.opts.indent_step = -1;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
   TEST_EQ(jsongen,
           std::string(
             "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
             "\\u5225\\u30B5\\u30A4\\u30C8\\u0001\\x80\\u0080\\uD83D\\uDE0E\"}"));
+}
+
+void UnicodeTestGenerateTextFailsOnNonUTF8() {
+  flatbuffers::Parser parser;
+  // Allow non-UTF-8 initially to model what happens when we load a binary flatbuffer from disk
+  // which contains non-UTF-8 strings.
+  parser.opts.allow_non_utf8 = true;
+  TEST_EQ(parser.Parse("table T { F:string; }"
+                       "root_type T;"
+                       "{ F:\"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
+                       "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"), true);
+  std::string jsongen;
+  parser.opts.indent_step = -1;
+  // Now, disallow non-UTF-8 (the default behavior) so GenerateText indicates failure.
+  parser.opts.allow_non_utf8 = false;
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, false);
 }
 
 void UnicodeSurrogatesTest() {
@@ -1157,7 +1186,8 @@ void UnknownFieldsTest() {
 
   std::string jsongen;
   parser.opts.indent_step = -1;
-  GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
   TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
 }
 
@@ -1169,6 +1199,11 @@ void ParseUnionTest() {
                        "table V { X:U; }"
                        "root_type V;"
                        "{ X:{ A:1 }, X_type: T }"), true);
+  // Unions must be parsable with prefixed namespace.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse("namespace N; table A {} namespace; union U { N.A }"
+                        "table B { e:U; } root_type B;"
+                        "{ e_type: N_A, e: {} }"), true);
 }
 
 void ConformTest() {
@@ -1217,6 +1252,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   IntegerOutOfRangeTest();
   UnicodeTest();
   UnicodeTestAllowNonUTF8();
+  UnicodeTestGenerateTextFailsOnNonUTF8();
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();
   InvalidUTF8Test();

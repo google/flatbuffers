@@ -19,7 +19,7 @@
 #include "flatbuffers/util.h"
 #include <limits>
 
-#define FLATC_VERSION "1.3.0 (" __DATE__ ")"
+#define FLATC_VERSION "1.4.0 (" __DATE__ ")"
 
 static void Error(const std::string &err, bool usage = false,
                   bool show_exe_name = true);
@@ -243,7 +243,7 @@ int main(int argc, const char *argv[]) {
             goto found;
           }
         }
-        Error("unknown commandline argument" + arg, true);
+        Error("unknown commandline argument: " + arg, true);
         found:;
       }
     } else {
