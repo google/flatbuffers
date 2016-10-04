@@ -15,4 +15,5 @@
 # limitations under the License.
 
 ../flatc -c --no-prefix -o ../include/flatbuffers reflection.fbs
+
 ../flatc --java -o ../java reflection.fbs

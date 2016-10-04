@@ -402,6 +402,15 @@ class JavaTest {
         TestEq(shortMana, (short) 150);
         shortMana = Reflection.getShortField(root, manaField, (short) 42);
         TestEq(shortMana, (short) 42);
+        // test wrong type access
+        Field nameField = rootTable.fieldsByKey("name");
+        try {
+            Reflection.getShortField(root, nameField);
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+
         // wait to stabilized the api first before applying on all scalar types
 //        int hp = Reflection.getIntField(root, hpField); //<- maybe provide a way to specify your default
 //        TestEq(hp, 80);
