@@ -657,6 +657,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
               "only int, uint, long and ulong data types support hashing.");
     }
   }
+  auto cpp_type = field->attributes.Lookup("cpp_type");
+  if (cpp_type) {
+    if (!hash_name)
+      return Error("cpp_type can only be used with a hashed field");
+  }
   if (field->deprecated && struct_def.fixed)
     return Error("can't deprecate fields in a struct");
   field->required = field->attributes.Lookup("required") != nullptr;

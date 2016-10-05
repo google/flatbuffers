@@ -314,17 +314,30 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 
 // Unpack a FlatBuffer into objects.
 void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+  // Optional: we can specify resolver and rehasher functions to turn hashed
+  // strings into object pointers and back, to implement remote references
+  // and such.
+  auto resolver = flatbuffers::resolver_function_t([](void **pointer_adr,
+                                               flatbuffers::hash_value_t hash) {
+    return nullptr;  // Fail the lookup.
+  });
+  auto rehasher = flatbuffers::rehasher_function_t([](void *pointer) {
+    return 0;
+  });
+
   // Turn a buffer into C++ objects.
-  auto monster1 = GetMonster(flatbuf)->UnPack();
+  auto monster1 = GetMonster(flatbuf)->UnPack(&resolver);
 
   // Re-serialize the data.
   flatbuffers::FlatBufferBuilder fbb1;
-  fbb1.Finish(CreateMonster(fbb1, monster1.get()), MonsterIdentifier());
+  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
+              MonsterIdentifier());
 
   // Unpack again, and re-serialize again.
-  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack();
+  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack(&resolver);
   flatbuffers::FlatBufferBuilder fbb2;
-  fbb2.Finish(CreateMonster(fbb2, monster2.get()), MonsterIdentifier());
+  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
+              MonsterIdentifier());
 
   // Now we've gone full round-trip, the two buffers should match.
   auto len1 = fbb1.GetSize();
