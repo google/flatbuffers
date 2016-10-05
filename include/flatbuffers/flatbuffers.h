@@ -1560,6 +1560,24 @@ class Table {
 struct NativeTable {
 };
 
+/// @brief Function types to be used with resolving hashes into objects and
+/// back again. The resolver gets a pointer to a field inside an object API
+/// object that is of the type specified in the schema using the attribute
+/// `cpp_type` (it is thus important whatever you write to this address
+/// matches that type). The value of this field is initially null, so you
+/// may choose to implement a delayed binding lookup using this function
+/// if you wish. The resolver does the opposite lookup, for when the object
+/// is being serialized again.
+typedef uint64_t hash_value_t;
+#ifdef FLATBUFFERS_CPP98_STL
+  typedef void (*resolver_function_t)(void **pointer_adr, hash_value_t hash);
+  typedef hash_value_t (*rehasher_function_t)(void *pointer);
+#else
+  typedef std::function<void (void **pointer_adr, hash_value_t hash)>
+          resolver_function_t;
+  typedef std::function<hash_value_t (void *pointer)> rehasher_function_t;
+#endif
+
 // Helper function to test if a field is present, using any of the field
 // enums in the generated code.
 // `table` must be a generated table type. Since this is a template parameter,
