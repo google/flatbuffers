@@ -17,9 +17,9 @@ public struct Monster : IFlatbufferObject
 
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(0); }
-  public static Offset<MyGame.Example2.Monster> EndMonster(FlatBufferBuilder builder) {
+  public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
-    return new Offset<MyGame.Example2.Monster>(o);
+    return new Offset<Monster>(o);
   }
 };
 
