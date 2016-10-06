@@ -6,12 +6,13 @@ import com.google.flatbuffers.reflection.Field;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import static com.google.flatbuffers.reflection.BaseType.Short;
+
 /**
  * Help class to manipulate flatbuffers document by reflection.
  */
 public final class Reflection {
   private Reflection() {
-    throw new AssertionError("Not for you!");
   }
 
   public static Table getRootTable(ByteBuffer _bb) {
@@ -33,7 +34,7 @@ public final class Reflection {
   }
 
   public static short getShortField(Table table, Field field, short defaultValue) {
-    field.type().baseType();
+    checkFieldType(field.type().baseType(), Short);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getShort(o + table.bb_pos) : defaultValue;
   }
@@ -48,6 +49,14 @@ public final class Reflection {
     }
   }
 
+  /**
+   * Check if the 2 given types are the same. If not throw an {@link IllegalArgumentException}
+   *
+   * @param actual   the actual type to check against the expected.
+   * @param expected the expected type whose the actual must be equal to.
+   * @throws IllegalArgumentException if actual and expected types are not equal.
+   * @see BaseType
+   */
   private static void checkFieldType(byte actual, byte expected) {
     if (actual != expected) {
       throw new IllegalArgumentException("Invalid type expected: " + BaseType.name(expected) + ", but was: " + BaseType.name(actual));

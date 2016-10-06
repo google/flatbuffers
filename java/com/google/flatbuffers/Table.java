@@ -37,7 +37,7 @@ public class Table {
       return Charset.forName("UTF-8").newDecoder();
     }
   };
-  public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
+  protected final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
     @Override
     protected Charset initialValue() {
       return Charset.forName("UTF-8");
@@ -55,12 +55,6 @@ public class Table {
    * @return Returns the Table's ByteBuffer.
    */
   public ByteBuffer getByteBuffer() { return bb; }
-
-  public <T> T getScalarField(int field, T defaultValue, Class<T> type) {
-    int offset = __offset(field);
-
-    return type.cast(null);
-  }
 
   /**
    * Initialized this {@link Table} to the given position for the giver {@code ByteBuffer}.

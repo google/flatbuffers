@@ -13,26 +13,13 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-rem Compile then run the Java test.
+rem Generate reflection classes
 
-set batch_file_dir=%~d0%~p0
-set targetdir=%batch_file_dir%\target
+set buildtype=Release
 
-
-if exist "%targetdir%" (
-    echo clean target
-    rmdir /Q /S %targetdir%
-)
-
-mkdir %targetdir%
-
-rem remove previous class from previous build style
-
-del /S ..\java\*.class
-del /S *.class
+if "%1"=="-b" set buildtype=%2
 
 
-javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
-java -classpath %targetdir% JavaTest
+..\%buildtype%\flatc.exe -c --no-prefix -o ..\include\flatbuffers reflection.fbs
 
-rmdir /Q /S %targetdir%
+..\%buildtype%\flatc.exe --java -o ..\java reflection.fbs
