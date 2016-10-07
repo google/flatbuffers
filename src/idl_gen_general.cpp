@@ -1369,8 +1369,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   code += "\n\n";
 }
     const LanguageParameters & lang_;
-  // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
-  const Namespace *cur_name_space_;
+    // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
+    const Namespace *cur_name_space_;
 };
 }  // namespace general
 
