@@ -69,6 +69,8 @@ class CppGenerator : public BaseGenerator {
     code += "#ifndef " + include_guard + "\n";
     code += "#define " + include_guard + "\n\n";
 
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5)
+      code += "#ifndef FLATBUFFERS_USE_QT\n#error FLATBUFFERS_USE_QT is not defined\n#endif\n\n";
     code += "#include \"flatbuffers/flatbuffers.h\"\n\n";
 
     if (parser_.opts.include_dependence_headers) {
@@ -86,6 +88,12 @@ class CppGenerator : public BaseGenerator {
     }
 
     assert(!cur_name_space_);
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        code += "#include <QObject>\n";
+        code += "#if (QT_VERSION < QT_VERSION_CHECK(5, 8, 0))\n";
+        code += "# error Qt version must me at least 5.8\n";
+        code += "#endif\n\n";
+    }
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -112,13 +120,14 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
+    std::vector<std::string> qgadgets;
     // Generate code for all structs, then all tables.
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
-        GenStruct(struct_def, &code);
+        GenStruct(struct_def, &code, qgadgets);
       }
     }
     for (auto it = parser_.structs_.vec.begin();
@@ -126,7 +135,7 @@ class CppGenerator : public BaseGenerator {
       auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
-        GenTable(struct_def, &code);
+        GenTable(struct_def, &code, qgadgets);
       }
     }
     for (auto it = parser_.structs_.vec.begin();
@@ -214,6 +223,19 @@ class CppGenerator : public BaseGenerator {
     assert(cur_name_space_);
     SetNameSpace(nullptr, &code);
 
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        for (const auto &gadget : qgadgets)
+            code += "Q_DECLARE_METATYPE(" + gadget + ")\n";
+        code += "Q_DECLARE_METATYPE(int8_t)\n";
+        code += "Q_DECLARE_METATYPE(uint8_t)\n";
+        code += "Q_DECLARE_METATYPE(int16_t)\n";
+        code += "Q_DECLARE_METATYPE(uint16_t)\n";
+        code += "Q_DECLARE_METATYPE(int32_t)\n";
+        code += "Q_DECLARE_METATYPE(uint32_t)\n";
+        code += "Q_DECLARE_METATYPE(int64_t)\n";
+        code += "Q_DECLARE_METATYPE(uint64_t)\n\n";
+    }
+
     // Close the include guard.
     code += "#endif  // " + include_guard + "\n";
 
@@ -239,7 +261,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Return a C++ type from the table in idl.h
-  std::string GenTypeBasic(const Type &type, bool user_facing_type) {
+  std::string GenTypeBasic(const Type &type, bool user_facing_type, bool forceFullyQualifiedNamesapce = false) {
     static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             #CTYPE,
@@ -247,7 +269,7 @@ class CppGenerator : public BaseGenerator {
     #undef FLATBUFFERS_TD
     };
     if (user_facing_type) {
-      if (type.enum_def) return WrapInNameSpace(*type.enum_def);
+      if (type.enum_def) return WrapInNameSpace(*type.enum_def, forceFullyQualifiedNamesapce);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
     return ctypename[type.base_type];
@@ -293,22 +315,24 @@ class CppGenerator : public BaseGenerator {
   // TODO(wvo): make this configurable.
   std::string NativeName(const std::string &name) { return name + "T"; }
 
-  std::string GenTypeNative(const Type &type) {
+  std::string GenTypeNative(const Type &type, bool forceFullyQualified = false) {
     switch (type.base_type) {
       case BASE_TYPE_STRING:
+        if (parser_.opts.cpp_frameowork == IDLOptions::Qt5)
+            return "QByteArray";
         return "std::string";
       case BASE_TYPE_VECTOR:
-        return "std::vector<" + GenTypeNative(type.VectorType()) + ">";
+        return "std::vector<" + GenTypeNative(type.VectorType(), forceFullyQualified) + ">";
       case BASE_TYPE_STRUCT:
         if (IsStruct(type)) {
-          return WrapInNameSpace(*type.struct_def);
+          return WrapInNameSpace(*type.struct_def, forceFullyQualified);
         } else {
-          return NativeName(WrapInNameSpace(*type.struct_def));
+          return NativeName(WrapInNameSpace(*type.struct_def, forceFullyQualified));
         }
       case BASE_TYPE_UNION:
         return type.enum_def->name + "Union";
       default:
-        return GenTypeBasic(type, true);
+        return GenTypeBasic(type, true, forceFullyQualified);
     }
   }
 
@@ -422,8 +446,16 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
       code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ", " +
               GenTypeBasic(enum_def.underlying_type, false) + ")\n";
-    code += "\n";
 
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
+            code += "Q_FLAG_NS(";
+        else
+            code += "Q_ENUM_NS(";
+        code += enum_def.name + ")\n";
+    }
+
+    code += "\n";
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
       // Generate a union type
       code += "struct " + enum_def.name + "Union {\n";
@@ -669,7 +701,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Generate an accessor struct, builder structs & function for a table.
-  void GenTable(StructDef &struct_def, std::string *code_ptr) {
+  void GenTable(StructDef &struct_def, std::string *code_ptr, std::vector<std::string> &qgadgets) {
     std::string &code = *code_ptr;
 
 
@@ -845,12 +877,19 @@ class CppGenerator : public BaseGenerator {
       auto structName = NativeName(struct_def.name);
       code += "struct " + structName;
       code += " : public flatbuffers::NativeTable {\n";
+      if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        code += "  Q_GADGET\n public:\n";
+        qgadgets.emplace_back(CurrentNameSpace()->GetFullyQualifiedName(structName, 100, "::"));
+      }
       code += "  flatbuffers::Offset<" + struct_def.name + "> Pack(flatbuffers::FlatBufferBuilder &_fbb) const;\n";
       code += "  void UnPack(const " + struct_def.name + " *object);\n";
       code += "  inline " + structName + "& operator=(const " + struct_def.name + " *object) { UnPack(object); return *this;}\n";
       code += "  explicit " + structName + "(const " + struct_def.name + " *object) { UnPack(object); }\n\n";
 
       std::string fields_init;
+      std::string qt5_properties;
+      std::string qt5_members;
+      std::string qt5_equalOperator;
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
@@ -873,9 +912,39 @@ class CppGenerator : public BaseGenerator {
           if (IsScalar(field.value.type.base_type))
             fields_init += (fields_init.empty() ? "\n    : "  : "\n    , ") + field.name + "(" + GenDefaultParam(field) + ")";
           code += ";\n";
+          if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+              if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+                  qt5_members += "  QVariant get_"+ field.name + "() const {"
+                                 "return "+ field.name + ".toQVariant();}\n";
+                  qt5_members += "  void set_"+ field.name + "(const QVariant &val) {"
+                                 + field.name + ".fromQVariant(val);}\n";
+                  qt5_members += "  Q_INVOKABLE QVariant create_"+ field.name + "() {"
+                                 + field.name + ".create(); return "+ field.name + ".toQVariant();}\n";
+
+                  qt5_properties += "  Q_PROPERTY(QVariant " + field.name + " READ get_" + field.name + " WRITE set_" + field.name + ")\n";
+              } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+                  qt5_members += "  QObject* get_"+ field.name + "() {"
+                                 "return new flatbuffers::ListModel<" + GenTypeNative(field.value.type.VectorType()) + ">("+ field.name + ");}\n";
+                  qt5_properties += "  Q_PROPERTY(QObject* " + field.name + " READ get_" + field.name + ")\n";
+              } else {
+                qt5_properties += "  Q_PROPERTY(" + GenTypeNative(field.value.type, true) + " " + field.name + " MEMBER " + field.name + ")\n";
+              }
+              qt5_equalOperator += (qt5_equalOperator.size() ? " &&\n    " : "") + field.name + " == other." + field.name;
+          }
         }
       }
       code += "  " + structName + "()" + fields_init + " {}\n\n";
+
+      if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+          if (!qt5_members.empty())
+            code += qt5_members + "\n";
+
+          code += qt5_properties;
+          if (!qt5_equalOperator.empty()) {
+              code += "  inline bool operator ==(const " + structName +" &other) const {\n    return " + qt5_equalOperator + ";\n  }\n";
+              code += "  inline bool operator !=(const " + structName +" &other) const { return !operator==(other);}\n";
+          }
+      }
 
       code += "};\n\n";
     }
@@ -1067,8 +1136,12 @@ class CppGenerator : public BaseGenerator {
               break;
             default:
               code += "  " + field.name;
-              if (field.value.type.base_type == BASE_TYPE_STRING)
-                code += ".assign";
+              if (field.value.type.base_type == BASE_TYPE_STRING) {
+                if (parser_.opts.cpp_frameowork == IDLOptions::Stl)
+                  code += ".assign";
+                else
+                  code += "= QByteArray";
+              }
               auto struct_name = field.value.type.struct_def ? WrapInNameSpace(*field.value.type.struct_def) : "";
               if (!struct_name.empty() && !IsStruct(field.value.type))
                   struct_name = NativeName(struct_name);
@@ -1182,7 +1255,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
-  void GenStruct(StructDef &struct_def, std::string *code_ptr) {
+  void GenStruct(StructDef &struct_def, std::string *code_ptr, std::vector<std::string> &qgadgets) {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 
@@ -1194,7 +1267,12 @@ class CppGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     code +=
         "MANUALLY_ALIGNED_STRUCT(" + NumToString(struct_def.minalign) + ") ";
-    code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n private:\n";
+    code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n";
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        code += "  Q_GADGET\n";
+        qgadgets.emplace_back(CurrentNameSpace()->GetFullyQualifiedName(struct_def.name, 100, "::"));
+    }
+    code += " private:\n";
     int padding_id = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1252,6 +1330,8 @@ class CppGenerator : public BaseGenerator {
     }
     code += " }\n\n";
 
+    std::string qt5_properties;
+    std::string qt5_equalOperator;
     // Generate accessor methods of the form:
     // type name() const { return flatbuffers::EndianScalar(name_); }
     for (auto it = struct_def.fields.vec.begin();
@@ -1266,7 +1346,14 @@ class CppGenerator : public BaseGenerator {
                            ? "flatbuffers::EndianScalar(" + field.name + "_)"
                            : field.name + "_");
       code += "; }\n";
-      if (parser_.opts.mutable_buffer) {
+
+      if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        qt5_properties += "  Q_PROPERTY(" + GenTypeGet(field.value.type, " ", "const ", " &", true);
+        qt5_properties += field.name + " READ " + field.name;
+        qt5_equalOperator += (qt5_equalOperator.size() ? "_ &&\n    " : "") + field.name + "_ == other." + field.name;
+      }
+
+      if (parser_.opts.mutable_buffer || parser_.opts.generate_object_based_api) {
         if (is_scalar) {
           code += "  void mutate_" + field.name + "(";
           code += GenTypeBasic(field.value.type, true);
@@ -1280,7 +1367,21 @@ class CppGenerator : public BaseGenerator {
           code += "mutable_" + field.name + "() { return " + field.name;
           code += "_; }\n";
         }
+
+        if (parser_.opts.cpp_frameowork == IDLOptions::Qt5)
+          qt5_properties += " WRITE mutate_" + field.name;
       }
+
+      if (parser_.opts.cpp_frameowork == IDLOptions::Qt5)
+        qt5_properties += ")\n";
+    }
+
+    if (parser_.opts.cpp_frameowork == IDLOptions::Qt5) {
+        code += qt5_properties;
+        if (!qt5_equalOperator.empty()) {
+            code += "  inline bool operator ==(const " + struct_def.name +" &other) const {\n    return " + qt5_equalOperator + "_;\n  }\n";
+            code += "  inline bool operator !=(const " + struct_def.name +" &other) const { return !operator==(other);}\n";
+        }
     }
     code += "};\nSTRUCT_END(" + struct_def.name + ", ";
     code += NumToString(struct_def.bytesize) + ");\n\n";
@@ -1313,8 +1414,11 @@ class CppGenerator : public BaseGenerator {
     if (old_size != common_prefix_size) *code_ptr += "\n";
     // open namespace parts to reach the ns namespace
     // in the previous example, E, then F, then G are opened
-    for (auto j = common_prefix_size; j != new_size; ++j)
+    for (auto j = common_prefix_size; j != new_size; ++j) {
       *code_ptr += "namespace " + ns->components[j] + " {\n";
+       if (parser_.opts.cpp_frameowork == IDLOptions::Qt5)
+         *code_ptr += "Q_NAMESPACE\n";
+    }
     if (new_size != common_prefix_size) *code_ptr += "\n";
     cur_name_space_ = ns;
   }

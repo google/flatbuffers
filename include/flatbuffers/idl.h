@@ -198,7 +198,7 @@ struct Namespace {
   // With max_components you can request less than the number of components
   // the current namespace has.
   std::string GetFullyQualifiedName(const std::string &name,
-                                    size_t max_components = 1000) const;
+                                    size_t max_components = 1000, const std::string &separator = ".") const;
 };
 
 // Base class for all definition types (fields, structs_, enums_).
@@ -358,6 +358,9 @@ struct IDLOptions {
   enum CPPVariants { Cpp0x, Cpp11 };
   CPPVariants cpp_variant;
 
+  enum CPPFramewors { Stl, Qt5 };
+  CPPFramewors cpp_frameowork;
+
   IDLOptions()
     : strict_json(false),
       skip_js_exports(false),
@@ -376,7 +379,8 @@ struct IDLOptions {
       union_value_namespacing(true),
       allow_non_utf8(false),
       lang(IDLOptions::kJava),
-      cpp_variant(IDLOptions::Cpp0x){}
+      cpp_variant(IDLOptions::Cpp0x),
+      cpp_frameowork(Stl){}
 };
 
 // This encapsulates where the parser is in the current source file.

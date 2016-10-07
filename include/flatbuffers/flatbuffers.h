@@ -109,6 +109,10 @@
 
 /// @endcond
 
+#ifdef FLATBUFFERS_USE_QT
+# include <QVariant>
+# include <QAbstractListModel>
+#endif
 /// @file
 namespace flatbuffers {
 
@@ -1045,6 +1049,17 @@ FLATBUFFERS_FINAL_CLASS
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
     return CreateVector(offsets);
   }
+#ifdef FLATBUFFERS_USE_QT
+  Offset<Vector<Offset<String>>> CreateVectorOfStrings(
+    const std::vector<QByteArray> &v) {
+    std::vector<Offset<String>> offsets(v.size());
+    for (size_t i = 0; i < v.size(); i++) {
+      const auto &str = v[i];
+      offsets[i] = CreateString(str.constData(), str.size());
+    }
+    return CreateVector(offsets);
+  }
+#endif
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
@@ -1565,8 +1580,105 @@ class Table {
 struct NativeTable {
 };
 
+#ifdef FLATBUFFERS_USE_QT
+class AbstractListModel : public QAbstractListModel
+{
+  Q_OBJECT
+public:
+  Q_INVOKABLE int length() const {
+    return rowCount();
+  }
+  Q_INVOKABLE bool insert(int pos, const QVariant &value) {
+    if (insertRows(pos, 1)) {
+      if (!setData(index(pos), value, Qt::DisplayRole))
+        return removeRows(pos, 1);
+      return true;
+    }
+    return false;
+  }
+  Q_INVOKABLE bool insert(const QVariant &value) {
+    return insert(rowCount(), value);
+  }
+
+  Q_INVOKABLE QVariant insert(int pos) {
+    if (insertRows(pos, 1)) {
+      return data(index(pos), Qt::DisplayRole);;
+    }
+    return QVariant();
+  }
+  Q_INVOKABLE QVariant insert() {
+    return insert(rowCount());
+  }
+
+  Q_INVOKABLE QVariant get(int pos) {
+    return data(index(pos), Qt::DisplayRole);
+  }
+  Q_INVOKABLE bool put(int pos, const QVariant &value) {
+    return setData(index(pos), value, Qt::DisplayRole);
+  }
+  Q_INVOKABLE bool remove(int pos) {
+    return removeRows(pos, 1);
+  }
+};
+
+template <typename T>
+class ListModel : public AbstractListModel
+{
+public:
+  ListModel(std::vector<T> &vector) : m_vector(vector) {}
+
+  // QAbstractItemModel interface
+  int rowCount(const QModelIndex &parent) const override {
+    if (parent.isValid())
+      return 0;
+    return m_vector.size();
+  }
+
+  QVariant data(const QModelIndex &index, int role) const override {
+    if (!index.isValid() || size_t(index.row()) >= m_vector.size() ||
+      role != Qt::DisplayRole) {
+      return QVariant();
+      }
+      return QVariant::fromValue(m_vector[index.row()]);
+  }
+
+  bool setData(const QModelIndex &index, const QVariant &value, int role) override {
+    if (!index.isValid() || size_t(index.row()) >= m_vector.size() ||
+      !value.canConvert<T>() ||
+      role != Qt::DisplayRole) {
+      return false;
+      }
+      m_vector[index.row()] = value.value<T>();
+    return true;
+  }
+
+  bool insertRows(int row, int count, const QModelIndex &parent) override {
+    if (size_t(row) > m_vector.size() || parent.isValid())
+      return false;
+    for (auto it = m_vector.begin() + row; count--; ++it)
+      m_vector.emplace(it);
+    return true;
+  }
+  bool removeRows(int row, int count, const QModelIndex &parent) override {
+    if (size_t(row + count) >= m_vector.size() || parent.isValid())
+      return false;
+    auto it = m_vector.begin() + row;
+    m_vector.erase(it, it + count);
+    return true;
+  }
+  QHash<int, QByteArray> roleNames() const override {
+    static QHash<int, QByteArray> names = {{Qt::DisplayRole, "modelData"}};
+    return names;
+  }
+
+private:
+  std::vector<T> &m_vector;
+};
+#endif
+
 template<typename T>
-class Optional {
+class Optional
+{
 public:
   Optional() : val_(nullptr) {}
   Optional(T *val) : val_(val) {}
@@ -1584,7 +1696,6 @@ public:
   inline const T *get() const { return val_; }
   inline operator const T * () const { return val_; }
   inline const T * operator ->() const { return val_; }
-  inline T * operator ->() { return val_; }
 
   inline T *create() { delete val_; val_ = new T(); return val_; }
   inline void release() { delete val_; val_ = nullptr; }
@@ -1622,6 +1733,27 @@ public:
     return *this;
   }
 
+  inline bool operator ==(const Optional<T> &other) const {
+    if (val_ && other.val_)
+        return *val_ == *other.val_;
+    return false;
+  }
+
+  inline bool operator !=(const Optional<T> &other) const {
+      return !operator==(other);
+  }
+#ifdef FLATBUFFERS_USE_QT
+  inline QVariant toQVariant() const {
+    return val_ ? QVariant::fromValue(*val_) : QVariant();
+  }
+  inline Optional &fromQVariant(const QVariant &val) {
+    if (val.isNull() || !val.canConvert<T>())
+      release();
+    else
+      *this = val.value<T>();
+    return *this;
+  }
+#endif
 protected:
   T *val_;
 };
