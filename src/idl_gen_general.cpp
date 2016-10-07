@@ -779,8 +779,7 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
 }
 
 
-static FieldDef *GetStructKeyField(StructDef *struct_def)
-{
+static FieldDef *GetStructKeyField(StructDef *struct_def) {
   for (auto it = struct_def->fields.vec.begin();
     it != struct_def->fields.vec.end(); ++it) {
     auto field = *it;
