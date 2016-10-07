@@ -99,7 +99,10 @@ set(FlatBuffers_GRPCTest_SRCS
 # source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
 # source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
 
-if(APPLE)
+if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+  # do not apply any global settings if the toolchain 
+  # is being configured externally
+elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)

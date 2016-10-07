@@ -785,15 +785,14 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
 }
 
 
-static FieldDef *GetStructKeyField(StructDef *struct_def)
-{
-	for (auto it = struct_def->fields.vec.begin();
-		it != struct_def->fields.vec.end(); ++it) {
-		auto field = *it;
-		if (field->key)
-			return field;
-	}
-	return nullptr;
+static FieldDef *GetStructKeyField(StructDef *struct_def) {
+  for (auto it = struct_def->fields.vec.begin();
+    it != struct_def->fields.vec.end(); ++it) {
+    auto field = *it;
+    if (field->key)
+      return field;
+  }
+  return nullptr;
 }
 
 
@@ -1042,26 +1041,26 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += lang_.getter_suffix;
       code += "}\n";
     }
-	// Generate ByKey accessor for vector of struct with key
-	if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-		field.value.type.element == BASE_TYPE_STRUCT &&
-		field.value.type.struct_def->has_key &&
-		lang_.language == IDLOptions::kJava) {
-		auto element_key_field = GetStructKeyField(
-			field.value.type.struct_def);
-		auto element_type_name = GenTypeGet(element_key_field->value.type);
-		assert(element_key_field != nullptr);
-		code += "  public " + type_name + " ";
-		code += MakeCamel(field.name, lang_.first_camel_upper);
-		code += "ByKey( " + element_type_name + " key ) { ";
-		code += "int vectorOffset = __vector(__offset(";
-		code += NumToString(field.value.offset);
-		code += ")) - 4; return vectorOffset != 0 ? ";
-		code += type_name;
-		code += ".lookupByKey(bb.array().length - vectorOffset, key, bb) ";
-		code += ": null; ";
-		code += " }\n";
-	}
+    // Generate ByKey accessor for vector of struct with key
+    if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+        field.value.type.element == BASE_TYPE_STRUCT &&
+        field.value.type.struct_def->has_key &&
+        lang_.language == IDLOptions::kJava) {
+      auto element_key_field = GetStructKeyField(
+        field.value.type.struct_def);
+      auto element_type_name = GenTypeGet(element_key_field->value.type);
+      assert(element_key_field != nullptr);
+      code += "  public " + type_name + " ";
+      code += MakeCamel(field.name, lang_.first_camel_upper);
+      code += "ByKey( " + element_type_name + " key ) { ";
+      code += "int vectorOffset = __vector(__offset(";
+      code += NumToString(field.value.offset);
+      code += ")) - 4; return vectorOffset != 0 ? ";
+      code += type_name;
+      code += ".lookupByKey(bb.array().length - vectorOffset, key, bb) ";
+      code += ": null; ";
+      code += " }\n";
+    }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
     if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
          IsScalar(field.value.type.VectorType().base_type)) ||

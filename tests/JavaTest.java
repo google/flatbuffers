@@ -148,6 +148,9 @@ class JavaTest {
         TestEq(Monster.lookupByKey(sortMons, "Frodo", fbb.dataBuffer()).name(), "Frodo");
         TestEq(Monster.lookupByKey(sortMons, "Barney", fbb.dataBuffer()).name(), "Barney");
         TestEq(Monster.lookupByKey(sortMons, "Wilma", fbb.dataBuffer()).name(), "Wilma");
+        TestEq(monster.testarrayoftablesByKey("Frodo").name(), "Frodo");
+        TestEq(monster.testarrayoftablesByKey("Barney").name(), "Barney");
+        TestEq(monster.testarrayoftablesByKey("Wilma").name(), "Wilma");
 
         // testType is an existing field and mutating it should succeed
         TestEq(monster.testType(), (byte)Any.Monster);
