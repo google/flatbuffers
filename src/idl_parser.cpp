@@ -352,6 +352,7 @@ CheckedError Parser::Next() {
           cursor_++;
           // TODO: make nested.
           while (*cursor_ != '*' || cursor_[1] != '/') {
+            if (*cursor_ == '\n') line_++;
             if (!*cursor_) return Error("end of file in comment");
             cursor_++;
           }
