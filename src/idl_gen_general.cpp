@@ -210,17 +210,21 @@ class GeneralGenerator : public BaseGenerator {
   GeneralGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
-        lang_(language_parameters[parser_.opts.lang]) {
+        lang_(language_parameters[parser_.opts.lang]),
+        cur_name_space_( nullptr ) {
     assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
   GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
+    cur_name_space_ = parser_.namespaces_.back();
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
       auto &enum_def = **it;
+      if (!parser_.opts.one_file)
+        cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
@@ -234,6 +238,8 @@ class GeneralGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
       auto &struct_def = **it;
+      if (!parser_.opts.one_file)
+        cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, &declcode);
       if (parser_.opts.one_file) {
         one_file_code += declcode;
@@ -270,7 +276,7 @@ class GeneralGenerator : public BaseGenerator {
     return SaveFile(filename.c_str(), code, false);
   }
 
-  const Namespace *CurrentNameSpace() { return parser_.namespaces_.back(); }
+  const Namespace *CurrentNameSpace() { return cur_name_space_; }
 
   std::string FunctionStart(char upper) {
     return std::string() + (lang_.language == IDLOptions::kJava
@@ -1396,6 +1402,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   code += "\n\n";
 }
     const LanguageParameters & lang_;
+    // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
+    const Namespace *cur_name_space_;
 };
 }  // namespace general
 
