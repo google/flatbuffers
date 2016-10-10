@@ -51,7 +51,7 @@ table IntEntry {
 
 table UIntEntry {
   key: uint (key);
-  value: int = 4294967295;
+  value: uint = 4294967295;
 }
 
 table FloatEntry {
@@ -66,7 +66,7 @@ table LongEntry {
 
 table ULongEntry {
   key: ulong (key);
-  value: long = 9223372036854775807; // keep default within signed range for portability across languages
+  value: ulong = 9223372036854775807; // keep default within signed range for portability across languages
 }
 
 table DoubleEntry {
