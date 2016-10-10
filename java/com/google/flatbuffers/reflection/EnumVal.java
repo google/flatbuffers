@@ -11,13 +11,11 @@ import com.google.flatbuffers.*;
 public final class EnumVal extends Table {
   public static EnumVal getRootAsEnumVal(ByteBuffer _bb) { return getRootAsEnumVal(_bb, new EnumVal()); }
   public static EnumVal getRootAsEnumVal(ByteBuffer _bb, EnumVal obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public EnumVal __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
   public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
-  public boolean mutateValue(long value) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, value); return true; } else { return false; } }
   public Object object() { return object(new Object()); }
   public Object object(Object obj) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 

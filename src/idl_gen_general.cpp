@@ -864,11 +864,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       }
     }
   }
-  // Generate the __init method that sets the field in a pre-existing
-  // accessor object. This is to allow object reuse.
-  code += "  public void __init(int _i, ByteBuffer _bb) ";
-  code += "{ " + lang_.accessor_prefix + "bb_pos = _i; ";
-  code += lang_.accessor_prefix + "bb = _bb; }\n";
+  // Generate the __assign method that sets the field in a pre-existing
+  // accessor object through Table.__init(...). This is to allow object reuse.
   code += "  public " + struct_def.name + " __assign(int _i, ByteBuffer _bb) ";
   code += "{ __init(_i, _bb); return this; }\n\n";
   for (auto it = struct_def.fields.vec.begin();

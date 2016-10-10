@@ -12,7 +12,6 @@ public final class Schema extends Table {
   public static Schema getRootAsSchema(ByteBuffer _bb) { return getRootAsSchema(_bb, new Schema()); }
   public static Schema getRootAsSchema(ByteBuffer _bb, Schema obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean SchemaBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "BFBS"); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Schema __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Object objects(int j) { return objects(new Object(), j); }

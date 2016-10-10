@@ -27,12 +27,13 @@ if exist "%targetdir%" (
 mkdir %targetdir%
 
 rem remove previous class from previous build style
-
+@echo Deleting old class files in source folders
 del /S ..\java\*.class
 del /S *.class
 
-
+@echo Compile
 javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
+@echo Execute JavaTest
 java -ea -classpath %targetdir% JavaTest
 
 rmdir /Q /S %targetdir%

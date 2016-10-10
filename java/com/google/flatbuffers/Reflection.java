@@ -21,7 +21,8 @@ public final class Reflection {
 
   public static Table getRootTable(ByteBuffer _bb, Table obj) {
     _bb.order(ByteOrder.LITTLE_ENDIAN);
-    return obj._init(_bb.getInt(_bb.position()) + _bb.position(), _bb);
+    obj.__init(_bb.getInt(_bb.position()) + _bb.position(), _bb);
+    return obj;
   }
 
   public static boolean hasValue(Table table, Field field) {

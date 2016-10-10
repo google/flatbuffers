@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class KeyValue extends Table {
   public static KeyValue getRootAsKeyValue(ByteBuffer _bb) { return getRootAsKeyValue(_bb, new KeyValue()); }
   public static KeyValue getRootAsKeyValue(ByteBuffer _bb, KeyValue obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public KeyValue __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String key() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
