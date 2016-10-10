@@ -39,6 +39,6 @@ fi
 mkdir ${targetdir}
 
 javac -d ${targetdir} -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test JavaTest.java
-java -classpath ${targetdir} JavaTest
+java -ea -classpath ${targetdir} JavaTest
 
 rm -rf ${targetdir}

@@ -33,6 +33,6 @@ del /S *.class
 
 
 javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
-java -classpath %targetdir% JavaTest
+java -ea -classpath %targetdir% JavaTest
 
 rmdir /Q /S %targetdir%
