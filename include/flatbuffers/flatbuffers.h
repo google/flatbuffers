@@ -658,6 +658,16 @@ FLATBUFFERS_FINAL_CLASS
   }
   #endif
 
+  /// @brief get the minimum alignment this buffer needs to be accessed
+  /// properly. This is only known once all elements have been written (after
+  /// you call Finish()). You can use this information if you need to embed
+  /// a FlatBuffer in some other buffer, such that you can later read it
+  /// without first having to copy it into its own buffer.
+  size_t GetBufferMinAlignment() {
+    Finished();
+    return minalign_;
+  }
+
   /// @cond FLATBUFFERS_INTERNAL
   void Finished() const {
     // If you get this assert, you're attempting to get access a buffer
@@ -1153,23 +1163,45 @@ FLATBUFFERS_FINAL_CLASS
   /// will be prefixed with a standard FlatBuffers file header.
   template<typename T> void Finish(Offset<T> root,
                                    const char *file_identifier = nullptr) {
-    NotNested();
-    // This will cause the whole buffer to be aligned.
-    PreAlign(sizeof(uoffset_t) + (file_identifier ? kFileIdentifierLength : 0),
-             minalign_);
-    if (file_identifier) {
-      assert(strlen(file_identifier) == kFileIdentifierLength);
-      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
-                kFileIdentifierLength);
-    }
-    PushElement(ReferTo(root.o));  // Location of root.
-    finished = true;
+
+    Finish(root.o, file_identifier, false);
+  }
+
+  /// @brief Finish a buffer with a 32 bit size field pre-fixed (size of the
+  /// buffer following the size field). These buffers are NOT compatible
+  /// with standard buffers created by Finish, i.e. you can't call GetRoot
+  /// on them, you have to use GetSizePrefixedRoot instead.
+  /// All >32 bit quantities in this buffer will be aligned when the whole
+  /// size pre-fixed buffer is aligned.
+  /// These kinds of buffers are useful for creating a stream of FlatBuffers.
+  template<typename T> void FinishSizePrefixed(Offset<T> root,
+                                   const char *file_identifier = nullptr) {
+    Finish(root.o, file_identifier, true);
   }
 
  private:
   // You shouldn't really be copying instances of this class.
   FlatBufferBuilder(const FlatBufferBuilder &);
   FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+
+  void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
+    NotNested();
+    // This will cause the whole buffer to be aligned.
+    PreAlign((size_prefix ? sizeof(uoffset_t) : 0) +
+             sizeof(uoffset_t) +
+             (file_identifier ? kFileIdentifierLength : 0),
+             minalign_);
+    if (file_identifier) {
+      assert(strlen(file_identifier) == kFileIdentifierLength);
+      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
+                kFileIdentifierLength);
+    }
+    PushElement(ReferTo(root));  // Location of root.
+    if (size_prefix) {
+      PushElement(GetSize());
+    }
+    finished = true;
+  }
 
   struct FieldLoc {
     uoffset_t off;
@@ -1224,7 +1256,11 @@ template<typename T> const T *GetRoot(const void *buf) {
   return GetMutableRoot<T>(const_cast<void *>(buf));
 }
 
-/// Helpers to get a typed pointer to objects that are currently beeing built.
+template<typename T> const T *GetSizePrefixedRoot(const void *buf) {
+  return GetRoot<T>(reinterpret_cast<const uint8_t *>(buf) + sizeof(uoffset_t));
+}
+
+/// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates
 /// the pointer!
 template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb,
@@ -1348,21 +1384,33 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer(const char *identifier) {
-    if (identifier && (size_t(end_ - buf_) < 2 * sizeof(flatbuffers::uoffset_t) ||
-                       !BufferHasIdentifier(buf_, identifier))) {
+  template<typename T> bool VerifyBufferFromStart(const char *identifier,
+                                                  const uint8_t *start) {
+    if (identifier &&
+        (size_t(end_ - start) < 2 * sizeof(flatbuffers::uoffset_t) ||
+         !BufferHasIdentifier(start, identifier))) {
       return false;
     }
 
     // Call T::Verify, which must be in the generated code for this type.
-    return Verify<uoffset_t>(buf_) &&
-      reinterpret_cast<const T *>(buf_ + ReadScalar<uoffset_t>(buf_))->
+    return Verify<uoffset_t>(start) &&
+      reinterpret_cast<const T *>(start + ReadScalar<uoffset_t>(start))->
         Verify(*this)
         #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
           && GetComputedSize()
         #endif
             ;
+  }
+
+  // Verify this whole buffer, starting with root type T.
+  template<typename T> bool VerifyBuffer(const char *identifier) {
+    return VerifyBufferFromStart<T>(identifier, buf_);
+  }
+
+  template<typename T> bool VerifySizePrefixedBuffer(const char *identifier) {
+    return Verify<uoffset_t>(buf_) &&
+           ReadScalar<uoffset_t>(buf_) == end_ - buf_ - sizeof(uoffset_t) &&
+           VerifyBufferFromStart<T>(identifier, buf_ + sizeof(uoffset_t));
   }
 
   // Called at the start of a table to increase counters measuring data

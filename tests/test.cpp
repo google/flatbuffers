@@ -396,6 +396,25 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ(tests[1].b(), 40);
 }
 
+// Prefix a FlatBuffer with a size field.
+void SizePrefixedTest() {
+  // Create size prefixed buffer.
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.FinishSizePrefixed(CreateMonster(fbb, 0, 200, 300,
+                                       fbb.CreateString("bob")));
+
+  // Verify it.
+  flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+  TEST_EQ(verifier.VerifySizePrefixedBuffer<Monster>(nullptr), true);
+
+  // Access it.
+  auto m = flatbuffers::GetSizePrefixedRoot<MyGame::Example::Monster>(
+                                                        fbb.GetBufferPointer());
+  TEST_EQ(m->mana(), 200);
+  TEST_EQ(m->hp(), 300);
+  TEST_EQ_STR(m->name()->c_str(), "bob");
+}
+
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest() {
@@ -1241,6 +1260,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
 
   ObjectFlatBuffersTest(flatbuf.get());
+
+  SizePrefixedTest();
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest();
