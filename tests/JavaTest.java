@@ -270,9 +270,11 @@ class JavaTest {
         
         TableInFirstNS.startTableInFirstNS(fbb);      
         TableInFirstNS.addFooTable(fbb, nestedTableOff);
-        int off = TableInFirstNS.endTableInFirstNS(fbb);
+        int offTableInFirstNS = TableInFirstNS.endTableInFirstNS(fbb);
 
-        TableInC.startTableInC(fbb);
+        FlatBufferBuilder fbb2 = new FlatBufferBuilder(1);
+        TableInC.startTableInC(fbb2);
+        int offTableInC = TableInC.endTableInC(fbb2);
     }
     
     static void TestNestedFlatBuffer() {
