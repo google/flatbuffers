@@ -14,9 +14,9 @@ public final class LongEntry extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public LongEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public long key() { int o = __offset(4); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public long key() { int o = __offset(4); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateKey(long key) { int o = __offset(4); if (o != 0) { bb.putLong(o + bb_pos, key); return true; } else { return false; } }
-  public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : -9223372036854775808; }
+  public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : -9223372036854775808L; }
   public boolean mutateValue(long value) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, value); return true; } else { return false; } }
 
   public static int createLongEntry(FlatBufferBuilder builder,
@@ -29,8 +29,8 @@ public final class LongEntry extends Table {
   }
 
   public static void startLongEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, long key) { builder.addLong(0, key, 0); }
-  public static void addValue(FlatBufferBuilder builder, long value) { builder.addLong(1, value, -9223372036854775808); }
+  public static void addKey(FlatBufferBuilder builder, long key) { builder.addLong(0, key, 0L); }
+  public static void addValue(FlatBufferBuilder builder, long value) { builder.addLong(1, value, -9223372036854775808L); }
   public static int endLongEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

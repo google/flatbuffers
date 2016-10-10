@@ -15,11 +15,8 @@ public final class Type extends Table {
   public Type __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public byte baseType() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public boolean mutateBaseType(byte base_type) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, base_type); return true; } else { return false; } }
   public byte element() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public boolean mutateElement(byte element) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, element); return true; } else { return false; } }
   public int index() { int o = __offset(8); return o != 0 ? bb.getInt(o + bb_pos) : -1; }
-  public boolean mutateIndex(int index) { int o = __offset(8); if (o != 0) { bb.putInt(o + bb_pos, index); return true; } else { return false; } }
 
   public static int createType(FlatBufferBuilder builder,
       byte base_type,

@@ -16,8 +16,7 @@ public final class EnumVal extends Table {
 
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
-  public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
-  public boolean mutateValue(long value) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, value); return true; } else { return false; } }
+  public long value() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public Object object() { return object(new Object()); }
   public Object object(Object obj) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
@@ -34,7 +33,7 @@ public final class EnumVal extends Table {
 
   public static void startEnumVal(FlatBufferBuilder builder) { builder.startObject(3); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(0, nameOffset, 0); }
-  public static void addValue(FlatBufferBuilder builder, long value) { builder.addLong(1, value, 0); }
+  public static void addValue(FlatBufferBuilder builder, long value) { builder.addLong(1, value, 0L); }
   public static void addObject(FlatBufferBuilder builder, int objectOffset) { builder.addOffset(2, objectOffset, 0); }
   public static int endEnumVal(FlatBufferBuilder builder) {
     int o = builder.endObject();

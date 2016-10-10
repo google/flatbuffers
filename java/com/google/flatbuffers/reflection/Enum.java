@@ -21,7 +21,6 @@ public final class Enum extends Table {
   public int valuesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public EnumVal valuesByKey( long key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? EnumVal.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public boolean isUnion() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean mutateIsUnion(boolean is_union) { int o = __offset(8); if (o != 0) { bb.put(o + bb_pos, (byte)(is_union ? 1 : 0)); return true; } else { return false; } }
   public Type underlyingType() { return underlyingType(new Type()); }
   public Type underlyingType(Type obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }

@@ -16,7 +16,7 @@ public final class UByteEntry extends Table {
 
   public int key() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
   public boolean mutateKey(int key) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, (byte)key); return true; } else { return false; } }
-  public int value() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 255; }
+  public int value() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) & 0xFF : -1; }
   public boolean mutateValue(int value) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, (byte)value); return true; } else { return false; } }
 
   public static int createUByteEntry(FlatBufferBuilder builder,
@@ -30,7 +30,7 @@ public final class UByteEntry extends Table {
 
   public static void startUByteEntry(FlatBufferBuilder builder) { builder.startObject(2); }
   public static void addKey(FlatBufferBuilder builder, int key) { builder.addByte(0, (byte)key, 0); }
-  public static void addValue(FlatBufferBuilder builder, int value) { builder.addByte(1, (byte)value, 255); }
+  public static void addValue(FlatBufferBuilder builder, int value) { builder.addByte(1, (byte)value, -1); }
   public static int endUByteEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
