@@ -1042,7 +1042,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         lang_.language == IDLOptions::kJava) {
       auto element_key_field = GetStructKeyField(
         field.value.type.struct_def);
-      auto element_type_name = GenTypeGet(element_key_field->value.type);
+      auto element_type_name = GenTypeNameDest(element_key_field->value.type);
       assert(element_key_field != nullptr);
       code += "  public " + type_name + " ";
       code += MakeCamel(field.name, lang_.first_camel_upper);
@@ -1357,7 +1357,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
 
     code += "\n  public static " + struct_def.name + lang_.optional_suffix;
     code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
-    code += " vectorOffset, " + GenTypeGet(key_field->value.type);
+    code += " vectorOffset, " + GenTypeNameDest(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
     if (key_field->value.type.base_type == BASE_TYPE_STRING) {
       code += "    byte[] byteKey = ";
