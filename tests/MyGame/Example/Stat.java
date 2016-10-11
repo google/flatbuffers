@@ -35,7 +35,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startObject(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0L); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)count, 0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)count, (short)0); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
