@@ -16,12 +16,12 @@ public final class FloatEntry extends Table {
 
   public float key() { int o = __offset(4); return o != 0 ? bb.getFloat(o + bb_pos) : 0.0f; }
   public boolean mutateKey(float key) { int o = __offset(4); if (o != 0) { bb.putFloat(o + bb_pos, key); return true; } else { return false; } }
-  public int value() { int o = __offset(6); return o != 0 ? bb.getInt(o + bb_pos) : 1234; }
-  public boolean mutateValue(int value) { int o = __offset(6); if (o != 0) { bb.putInt(o + bb_pos, value); return true; } else { return false; } }
+  public float value() { int o = __offset(6); return o != 0 ? bb.getFloat(o + bb_pos) : 1234.0f; }
+  public boolean mutateValue(float value) { int o = __offset(6); if (o != 0) { bb.putFloat(o + bb_pos, value); return true; } else { return false; } }
 
   public static int createFloatEntry(FlatBufferBuilder builder,
       float key,
-      int value) {
+      float value) {
     builder.startObject(2);
     FloatEntry.addValue(builder, value);
     FloatEntry.addKey(builder, key);
@@ -30,7 +30,7 @@ public final class FloatEntry extends Table {
 
   public static void startFloatEntry(FlatBufferBuilder builder) { builder.startObject(2); }
   public static void addKey(FlatBufferBuilder builder, float key) { builder.addFloat(0, key, 0.0f); }
-  public static void addValue(FlatBufferBuilder builder, int value) { builder.addInt(1, value, 1234); }
+  public static void addValue(FlatBufferBuilder builder, float value) { builder.addFloat(1, value, 1234.0f); }
   public static int endFloatEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

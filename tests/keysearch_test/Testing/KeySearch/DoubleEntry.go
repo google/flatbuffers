@@ -34,16 +34,16 @@ func (rcv *DoubleEntry) MutateKey(n float64) bool {
 	return rcv._tab.MutateFloat64Slot(4, n)
 }
 
-func (rcv *DoubleEntry) Value() int32 {
+func (rcv *DoubleEntry) Value() float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
 	}
-	return 4567
+	return 4567.0
 }
 
-func (rcv *DoubleEntry) MutateValue(n int32) bool {
-	return rcv._tab.MutateInt32Slot(6, n)
+func (rcv *DoubleEntry) MutateValue(n float64) bool {
+	return rcv._tab.MutateFloat64Slot(6, n)
 }
 
 func DoubleEntryStart(builder *flatbuffers.Builder) {
@@ -52,8 +52,8 @@ func DoubleEntryStart(builder *flatbuffers.Builder) {
 func DoubleEntryAddKey(builder *flatbuffers.Builder, key float64) {
 	builder.PrependFloat64Slot(0, key, 0.0)
 }
-func DoubleEntryAddValue(builder *flatbuffers.Builder, value int32) {
-	builder.PrependInt32Slot(1, value, 4567)
+func DoubleEntryAddValue(builder *flatbuffers.Builder, value float64) {
+	builder.PrependFloat64Slot(1, value, 4567.0)
 }
 func DoubleEntryEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

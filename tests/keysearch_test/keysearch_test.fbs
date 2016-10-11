@@ -56,7 +56,7 @@ table UIntEntry {
 
 table FloatEntry {
   key: float (key);
-  value: int = 1234;
+  value: float = 1234;
 }
 
 table LongEntry {
@@ -71,7 +71,7 @@ table ULongEntry {
 
 table DoubleEntry {
   key: double (key);
-  value: int = 4567;
+  value: double = 4567;
 }
 
 table StringEntry {

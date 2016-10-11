@@ -29,10 +29,10 @@ class DoubleEntry(object):
     def Value(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
-        return 4567
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return 4567.0
 
 def DoubleEntryStart(builder): builder.StartObject(2)
 def DoubleEntryAddKey(builder, key): builder.PrependFloat64Slot(0, key, 0.0)
-def DoubleEntryAddValue(builder, value): builder.PrependInt32Slot(1, value, 4567)
+def DoubleEntryAddValue(builder, value): builder.PrependFloat64Slot(1, value, 4567.0)
 def DoubleEntryEnd(builder): return builder.EndObject()

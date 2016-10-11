@@ -29,10 +29,10 @@ class FloatEntry(object):
     def Value(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
-        return 1234
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 1234.0
 
 def FloatEntryStart(builder): builder.StartObject(2)
 def FloatEntryAddKey(builder, key): builder.PrependFloat32Slot(0, key, 0.0)
-def FloatEntryAddValue(builder, value): builder.PrependInt32Slot(1, value, 1234)
+def FloatEntryAddValue(builder, value): builder.PrependFloat32Slot(1, value, 1234.0)
 def FloatEntryEnd(builder): return builder.EndObject()

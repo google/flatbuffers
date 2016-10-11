@@ -1497,7 +1497,7 @@ Testing.KeySearch.FloatEntry.prototype.mutate_key = function(value) {
  */
 Testing.KeySearch.FloatEntry.prototype.value = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 1234;
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 1234.0;
 };
 
 /**
@@ -1511,7 +1511,7 @@ Testing.KeySearch.FloatEntry.prototype.mutate_value = function(value) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
 }
 
@@ -1535,7 +1535,7 @@ Testing.KeySearch.FloatEntry.addKey = function(builder, key) {
  * @param {number} value
  */
 Testing.KeySearch.FloatEntry.addValue = function(builder, value) {
-  builder.addFieldInt32(1, value, 1234);
+  builder.addFieldFloat32(1, value, 1234.0);
 };
 
 /**
@@ -1836,7 +1836,7 @@ Testing.KeySearch.DoubleEntry.prototype.mutate_key = function(value) {
  */
 Testing.KeySearch.DoubleEntry.prototype.value = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 4567;
+  return offset ? this.bb.readFloat64(this.bb_pos + offset) : 4567.0;
 };
 
 /**
@@ -1850,7 +1850,7 @@ Testing.KeySearch.DoubleEntry.prototype.mutate_value = function(value) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeFloat64(this.bb_pos + offset, value);
   return true;
 }
 
@@ -1874,7 +1874,7 @@ Testing.KeySearch.DoubleEntry.addKey = function(builder, key) {
  * @param {number} value
  */
 Testing.KeySearch.DoubleEntry.addValue = function(builder, value) {
-  builder.addFieldInt32(1, value, 4567);
+  builder.addFieldFloat64(1, value, 4567.0);
 };
 
 /**

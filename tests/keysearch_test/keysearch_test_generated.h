@@ -479,12 +479,12 @@ struct FloatEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_key(float _key) { return SetField(VT_KEY, _key); }
   bool KeyCompareLessThan(const FloatEntry *o) const { return key() < o->key(); }
   int KeyCompareWithValue(float val) const { return key() < val ? -1 : key() > val; }
-  int32_t value() const { return GetField<int32_t>(VT_VALUE, 1234); }
-  bool mutate_value(int32_t _value) { return SetField(VT_VALUE, _value); }
+  float value() const { return GetField<float>(VT_VALUE, 1234.0f); }
+  bool mutate_value(float _value) { return SetField(VT_VALUE, _value); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_KEY) &&
-           VerifyField<int32_t>(verifier, VT_VALUE) &&
+           VerifyField<float>(verifier, VT_VALUE) &&
            verifier.EndTable();
   }
 };
@@ -493,7 +493,7 @@ struct FloatEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_key(float key) { fbb_.AddElement<float>(FloatEntry::VT_KEY, key, 0.0f); }
-  void add_value(int32_t value) { fbb_.AddElement<int32_t>(FloatEntry::VT_VALUE, value, 1234); }
+  void add_value(float value) { fbb_.AddElement<float>(FloatEntry::VT_VALUE, value, 1234.0f); }
   FloatEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   FloatEntryBuilder &operator=(const FloatEntryBuilder &);
   flatbuffers::Offset<FloatEntry> Finish() {
@@ -504,7 +504,7 @@ struct FloatEntryBuilder {
 
 inline flatbuffers::Offset<FloatEntry> CreateFloatEntry(flatbuffers::FlatBufferBuilder &_fbb,
     float key = 0.0f,
-    int32_t value = 1234) {
+    float value = 1234.0f) {
   FloatEntryBuilder builder_(_fbb);
   builder_.add_value(value);
   builder_.add_key(key);
@@ -602,12 +602,12 @@ struct DoubleEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_key(double _key) { return SetField(VT_KEY, _key); }
   bool KeyCompareLessThan(const DoubleEntry *o) const { return key() < o->key(); }
   int KeyCompareWithValue(double val) const { return key() < val ? -1 : key() > val; }
-  int32_t value() const { return GetField<int32_t>(VT_VALUE, 4567); }
-  bool mutate_value(int32_t _value) { return SetField(VT_VALUE, _value); }
+  double value() const { return GetField<double>(VT_VALUE, 4567.0); }
+  bool mutate_value(double _value) { return SetField(VT_VALUE, _value); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_KEY) &&
-           VerifyField<int32_t>(verifier, VT_VALUE) &&
+           VerifyField<double>(verifier, VT_VALUE) &&
            verifier.EndTable();
   }
 };
@@ -616,7 +616,7 @@ struct DoubleEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_key(double key) { fbb_.AddElement<double>(DoubleEntry::VT_KEY, key, 0.0); }
-  void add_value(int32_t value) { fbb_.AddElement<int32_t>(DoubleEntry::VT_VALUE, value, 4567); }
+  void add_value(double value) { fbb_.AddElement<double>(DoubleEntry::VT_VALUE, value, 4567.0); }
   DoubleEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   DoubleEntryBuilder &operator=(const DoubleEntryBuilder &);
   flatbuffers::Offset<DoubleEntry> Finish() {
@@ -627,10 +627,10 @@ struct DoubleEntryBuilder {
 
 inline flatbuffers::Offset<DoubleEntry> CreateDoubleEntry(flatbuffers::FlatBufferBuilder &_fbb,
     double key = 0.0,
-    int32_t value = 4567) {
+    double value = 4567.0) {
   DoubleEntryBuilder builder_(_fbb);
-  builder_.add_key(key);
   builder_.add_value(value);
+  builder_.add_key(key);
   return builder_.Finish();
 }
 
