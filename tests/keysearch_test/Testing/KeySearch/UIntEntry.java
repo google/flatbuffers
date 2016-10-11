@@ -14,9 +14,9 @@ public final class UIntEntry extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public UIntEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public long key() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0; }
+  public long key() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
   public boolean mutateKey(long key) { int o = __offset(4); if (o != 0) { bb.putInt(o + bb_pos, (int)key); return true; } else { return false; } }
-  public long value() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : -1; }
+  public long value() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 4294967295L; }
   public boolean mutateValue(long value) { int o = __offset(6); if (o != 0) { bb.putInt(o + bb_pos, (int)value); return true; } else { return false; } }
 
   public static int createUIntEntry(FlatBufferBuilder builder,
@@ -29,8 +29,8 @@ public final class UIntEntry extends Table {
   }
 
   public static void startUIntEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, long key) { builder.addInt(0, (int)key, 0); }
-  public static void addValue(FlatBufferBuilder builder, long value) { builder.addInt(1, (int)value, -1); }
+  public static void addKey(FlatBufferBuilder builder, long key) { builder.addInt(0, (int)key, 0L); }
+  public static void addValue(FlatBufferBuilder builder, long value) { builder.addInt(1, (int)value, 4294967295L); }
   public static int endUIntEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
@@ -43,7 +43,7 @@ public final class UIntEntry extends Table {
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static UIntEntry lookupByKey(int vectorOffset, int key, ByteBuffer bb) {
+  public static UIntEntry lookupByKey(int vectorOffset, long key, ByteBuffer bb) {
     int vectorLocation = bb.array().length - vectorOffset;
     int span = bb.getInt(vectorLocation);
     int start = 0;

@@ -57,12 +57,12 @@ class FloatEntry extends Table
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getValue()
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 1234;
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : 1234.0;
     }
 
     /**
@@ -99,12 +99,12 @@ class FloatEntry extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param float
      * @return void
      */
     public static function addValue(FlatBufferBuilder $builder, $value)
     {
-        $builder->addIntX(1, $value, 1234);
+        $builder->addFloatX(1, $value, 1234.0);
     }
 
     /**

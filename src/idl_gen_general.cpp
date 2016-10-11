@@ -481,14 +481,6 @@ std::string GenEnumDefaultValue(const Value &value) {
   return result;
 }
 
-template<typename SignedType>
-std::string GenUnsignedDefaultValue(const Value &value) {
-  if (lang_.language != IDLOptions::kJava)
-    return value.constant;
-  uint64_t defaultValue = StringToUInt(value.constant.c_str());
-  return NumToString(static_cast<SignedType>(defaultValue));
-}
-
 std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
   if (enableLangOverrides) {
     // handles both enum case and vector of enum case
@@ -503,11 +495,15 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
-    case BASE_TYPE_UCHAR: return GenUnsignedDefaultValue<int8_t>(value);
-    case BASE_TYPE_USHORT: return GenUnsignedDefaultValue<int16_t>(value);
-    case BASE_TYPE_UINT: return GenUnsignedDefaultValue<int32_t>(value);
     case BASE_TYPE_ULONG: 
-      return GenUnsignedDefaultValue<int64_t>(value) + longSuffix;
+    {
+      if (lang_.language != IDLOptions::kJava)
+        return value.constant;
+      // Converts the ulong into its bits signed equivalent
+      uint64_t defaultValue = StringToUInt(value.constant.c_str());
+      return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
+    }
+    case BASE_TYPE_UINT:
     case BASE_TYPE_LONG: return value.constant + longSuffix;
     default: return value.constant;
   }
@@ -1064,7 +1060,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         lang_.language == IDLOptions::kJava) {
       auto element_key_field = GetStructKeyField(
         field.value.type.struct_def);
-      auto element_type_name = GenTypeGet(element_key_field->value.type);
+      auto element_type_name = GenTypeNameDest(element_key_field->value.type);
       assert(element_key_field != nullptr);
       code += "  public " + type_name + " ";
       code += MakeCamel(field.name, lang_.first_camel_upper);
@@ -1379,7 +1375,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
 
     code += "\n  public static " + struct_def.name + lang_.optional_suffix;
     code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
-    code += " vectorOffset, " + GenTypeGet(key_field->value.type);
+    code += " vectorOffset, " + GenTypeNameDest(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
     if (key_field->value.type.base_type == BASE_TYPE_STRING) {
       code += "    byte[] byteKey = ";

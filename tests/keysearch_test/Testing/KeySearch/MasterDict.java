@@ -15,14 +15,14 @@ public final class MasterDict extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public MasterDict __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public UByteEntry ubytesEntries(int j) { return ubytesEntries(new UByteEntry(), j); }
-  public UByteEntry ubytesEntries(UByteEntry obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int ubytesEntriesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
-  public UByteEntry ubytesEntriesByKey( byte key ) { int vectorOffset = __vector(__offset(4)) - 4; return vectorOffset != 0 ? UByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
-  public ByteEntry bytesEntries(int j) { return bytesEntries(new ByteEntry(), j); }
-  public ByteEntry bytesEntries(ByteEntry obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int bytesEntriesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
-  public ByteEntry bytesEntriesByKey( byte key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? ByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public UByteEntry ubyteEntries(int j) { return ubyteEntries(new UByteEntry(), j); }
+  public UByteEntry ubyteEntries(UByteEntry obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int ubyteEntriesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
+  public UByteEntry ubyteEntriesByKey( int key ) { int vectorOffset = __vector(__offset(4)) - 4; return vectorOffset != 0 ? UByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public ByteEntry byteEntries(int j) { return byteEntries(new ByteEntry(), j); }
+  public ByteEntry byteEntries(ByteEntry obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int byteEntriesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
+  public ByteEntry byteEntriesByKey( byte key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? ByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public BoolEntry boolEntries(int j) { return boolEntries(new BoolEntry(), j); }
   public BoolEntry boolEntries(BoolEntry obj, int j) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int boolEntriesLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
@@ -34,7 +34,7 @@ public final class MasterDict extends Table {
   public UShortEntry ushortEntries(int j) { return ushortEntries(new UShortEntry(), j); }
   public UShortEntry ushortEntries(UShortEntry obj, int j) { int o = __offset(12); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ushortEntriesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
-  public UShortEntry ushortEntriesByKey( short key ) { int vectorOffset = __vector(__offset(12)) - 4; return vectorOffset != 0 ? UShortEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public UShortEntry ushortEntriesByKey( int key ) { int vectorOffset = __vector(__offset(12)) - 4; return vectorOffset != 0 ? UShortEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public IntEntry intEntries(int j) { return intEntries(new IntEntry(), j); }
   public IntEntry intEntries(IntEntry obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int intEntriesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
@@ -42,7 +42,7 @@ public final class MasterDict extends Table {
   public UIntEntry uintEntries(int j) { return uintEntries(new UIntEntry(), j); }
   public UIntEntry uintEntries(UIntEntry obj, int j) { int o = __offset(16); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int uintEntriesLength() { int o = __offset(16); return o != 0 ? __vector_len(o) : 0; }
-  public UIntEntry uintEntriesByKey( int key ) { int vectorOffset = __vector(__offset(16)) - 4; return vectorOffset != 0 ? UIntEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public UIntEntry uintEntriesByKey( long key ) { int vectorOffset = __vector(__offset(16)) - 4; return vectorOffset != 0 ? UIntEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public FloatEntry floatEntries(int j) { return floatEntries(new FloatEntry(), j); }
   public FloatEntry floatEntries(FloatEntry obj, int j) { int o = __offset(18); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int floatEntriesLength() { int o = __offset(18); return o != 0 ? __vector_len(o) : 0; }
@@ -65,8 +65,8 @@ public final class MasterDict extends Table {
   public StringEntry stringEntriesByKey( String key ) { int vectorOffset = __vector(__offset(26)) - 4; return vectorOffset != 0 ? StringEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
 
   public static int createMasterDict(FlatBufferBuilder builder,
-      int ubytesEntriesOffset,
-      int bytesEntriesOffset,
+      int ubyteEntriesOffset,
+      int byteEntriesOffset,
       int boolEntriesOffset,
       int shortEntriesOffset,
       int ushortEntriesOffset,
@@ -88,18 +88,18 @@ public final class MasterDict extends Table {
     MasterDict.addUshortEntries(builder, ushortEntriesOffset);
     MasterDict.addShortEntries(builder, shortEntriesOffset);
     MasterDict.addBoolEntries(builder, boolEntriesOffset);
-    MasterDict.addBytesEntries(builder, bytesEntriesOffset);
-    MasterDict.addUbytesEntries(builder, ubytesEntriesOffset);
+    MasterDict.addByteEntries(builder, byteEntriesOffset);
+    MasterDict.addUbyteEntries(builder, ubyteEntriesOffset);
     return MasterDict.endMasterDict(builder);
   }
 
   public static void startMasterDict(FlatBufferBuilder builder) { builder.startObject(12); }
-  public static void addUbytesEntries(FlatBufferBuilder builder, int ubytesEntriesOffset) { builder.addOffset(0, ubytesEntriesOffset, 0); }
-  public static int createUbytesEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
-  public static void startUbytesEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addBytesEntries(FlatBufferBuilder builder, int bytesEntriesOffset) { builder.addOffset(1, bytesEntriesOffset, 0); }
-  public static int createBytesEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
-  public static void startBytesEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addUbyteEntries(FlatBufferBuilder builder, int ubyteEntriesOffset) { builder.addOffset(0, ubyteEntriesOffset, 0); }
+  public static int createUbyteEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startUbyteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addByteEntries(FlatBufferBuilder builder, int byteEntriesOffset) { builder.addOffset(1, byteEntriesOffset, 0); }
+  public static int createByteEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startByteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addBoolEntries(FlatBufferBuilder builder, int boolEntriesOffset) { builder.addOffset(2, boolEntriesOffset, 0); }
   public static int createBoolEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startBoolEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
