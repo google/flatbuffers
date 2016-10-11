@@ -29,8 +29,8 @@ public final class UShortEntry extends Table {
   }
 
   public static void startUShortEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, int key) { builder.addShort(0, (short)key, 0); }
-  public static void addValue(FlatBufferBuilder builder, int value) { builder.addShort(1, (short)value, 65535); }
+  public static void addKey(FlatBufferBuilder builder, int key) { builder.addShort(0, (short)key, (short)0); }
+  public static void addValue(FlatBufferBuilder builder, int value) { builder.addShort(1, (short)value, (short)65535); }
   public static int endUShortEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
@@ -41,29 +41,6 @@ public final class UShortEntry extends Table {
     short val_1 = _bb.getShort(__offset(4, o1, _bb));
     short val_2 = _bb.getShort(__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
-  }
-
-  public static UShortEntry lookupByKey(int vectorOffset, int key, ByteBuffer bb) {
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      short val = bb.getShort(__offset(4, bb.array().length - tableOffset, bb));
-      int comp = val > key ? 1 : val < key ? -1 : 0;
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new UShortEntry().__assign(tableOffset, bb);
-      }
-    }
-    return null;
   }
 }
 

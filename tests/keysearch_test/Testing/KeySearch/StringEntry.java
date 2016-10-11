@@ -39,28 +39,5 @@ public final class StringEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static StringEntry lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new StringEntry().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
 }
 
