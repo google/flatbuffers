@@ -1231,6 +1231,11 @@ like so:
 ~~~
 </div>
 
+Now you can write the bytes to a file, send them over the network..
+**Make sure your file mode (or tranfer protocol) is set to BINARY, not text.**
+If you transfer a FlatBuffer in text mode, the buffer will be corrupted,
+which will lead to hard to find problems when you read the buffer.
+
 #### Reading Orc FlatBuffers
 
 Now that we have successfully created an `Orc` FlatBuffer, the monster data can
@@ -1326,92 +1331,82 @@ before:
 ~~~
 </div>
 
-Then, assuming you have a variable containing to the bytes of data from disk,
-network, etc., you can create a monster from this data:
+Then, assuming you have a buffer of bytes received from disk,
+network, etc., you can create start accessing the buffer like so:
+
+**Again, make sure you read the bytes in BINARY mode, otherwise the code below
+won't work**
 
 <div class="language-cpp">
 ~~~{.cpp}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  auto buffer_pointer = builder.GetBufferPointer();
+  uint8_t *buffer_pointer = /* the data you just read */;
 
-  // Deserialize the data from the buffer.
+  // Get a pointer to the root object inside the buffer.
   auto monster = GetMonster(buffer_pointer);
 
-  // `monster` is of type`Monster *`, and points to somewhere inside the buffer.
-
+  // `monster` is of type `Monster *`.
   // Note: root object pointers are NOT the same as `buffer_pointer`.
 ~~~
 </div>
 <div class="language-java">
 ~~~{.java}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  java.nio.ByteBuffer buf = builder.dataBuffer();
+  byte[] bytes = /* the data you just read */
+  java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(bytes);
 
-  // Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   Monster monster = Monster.getRootAsMonster(buf);
 ~~~
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  var buf = builder.DataBuffer;
+  byte[] bytes = /* the data you just read */
+  var buf = new ByteBuffer(bytes);
 
-  // Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   var monster = Monster.GetRootAsMonster(buf);
 ~~~
 </div>
 <div class="language-go">
 ~~~{.go}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  buf := builder.FinishedBytes()
+  var buf []byte = /* the data you just read */
 
-  // Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   monster := sample.GetRootAsMonster(buf, 0)
 
-  // Note: We use `0` for the offset here, since we got the data using the
-  // `builder.FinishedBytes()` method. This simulates the data you would
-  // store/receive in your FlatBuffer. If you wanted to read from the
-  // `builder.Bytes` directly, you would need to pass in the offset of
-  // `builder.Head()`, as the builder actually constructs the buffer backwards.
+  // Note: We use `0` for the offset here, which is typical for most buffers
+  // you would read. If you wanted to read from `builder.Bytes` directly, you
+  // would need to pass in the offset of `builder.Head()`, as the builder
+  // constructs the buffer backwards, so may not start at offset 0.
 ~~~
 </div>
 <div class="language-python">
 ~~~{.py}
-  # We can access the buffer we just made directly. Pretend this came over a
-  # network, was read off of disk, etc.
-  buf = builder.Output()
+  buf = /* the data you just read, in an object of type "bytearray" */
 
-  # Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   monster = MyGame.Sample.Monster.Monster.GetRootAsMonster(buf, 0)
 
-  # Note: We use `0` for the offset here, since we got the data using the
-  # `builder.Output()` method. This simulates the data you would store/receive
-  # in your FlatBuffer. If you wanted to read from the `builder.Bytes` directly,
+  # Note: We use `0` for the offset here, which is typical for most buffers
+  # you would read.  If you wanted to read from the `builder.Bytes` directly,
   # you would need to pass in the offset of `builder.Head()`, as the builder
-  # actually constructs the buffer backwards.
+  # constructs the buffer backwards, so may not start at offset 0.
 ~~~
 </div>
 <div class="language-javascript">
 ~~~{.js}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  var buf = builder.dataBuffer();
+  var bytes = /* the data you just read, in an object of type "Uint8Array" */
+  var buf = new flatbuffers.ByteBuffer(bytes);
 
-  // Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   var monster = MyGame.Sample.Monster.getRootAsMonster(buf);
 ~~~
 </div>
 <div class="language-php">
 ~~~{.php}
-  // We can access the buffer we just made directly. Pretend this came over a
-  // network, was read off of disk, etc.
-  $buf = $builder->dataBuffer();
+  $bytes = /* the data you just read, in a string */
+  $buf = Google\FlatBuffers\ByteBuffer::wrap($bytes);
 
-  // Deserialize the data from the buffer.
+  // Get an accessor to the root object inside the buffer.
   $monster = \MyGame\Sample\Monster::GetRootAsMonster($buf);
 ~~~
 </div>
