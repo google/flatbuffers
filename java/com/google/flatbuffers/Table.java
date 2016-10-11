@@ -354,7 +354,7 @@ public class Table {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
       int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
-      long val = bb.getLong(keyValueOffset);
+      long val = bb.getLong(tableOffset + keyValueOffset);
       int comp = Comparators.compareUnsigned(val, key);
       if (comp > 0) {
         span = middle;
