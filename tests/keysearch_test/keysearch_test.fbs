@@ -4,8 +4,8 @@ namespace Testing.KeySearch;
 
 
 table MasterDict {
-  ubytesEntries: [UByteEntry];
-  bytesEntries: [ByteEntry];
+  ubyteEntries: [UByteEntry];
+  byteEntries: [ByteEntry];
   boolEntries: [BoolEntry];
   shortEntries: [ShortEntry];
   ushortEntries: [UShortEntry];

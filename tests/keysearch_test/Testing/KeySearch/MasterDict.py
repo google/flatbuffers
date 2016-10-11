@@ -19,7 +19,7 @@ class MasterDict(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # MasterDict
-    def UbytesEntries(self, j):
+    def UbyteEntries(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Vector(o)
@@ -32,14 +32,14 @@ class MasterDict(object):
         return None
 
     # MasterDict
-    def UbytesEntriesLength(self):
+    def UbyteEntriesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # MasterDict
-    def BytesEntries(self, j):
+    def ByteEntries(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
@@ -52,7 +52,7 @@ class MasterDict(object):
         return None
 
     # MasterDict
-    def BytesEntriesLength(self):
+    def ByteEntriesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
@@ -259,10 +259,10 @@ class MasterDict(object):
         return 0
 
 def MasterDictStart(builder): builder.StartObject(12)
-def MasterDictAddUbytesEntries(builder, ubytesEntries): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(ubytesEntries), 0)
-def MasterDictStartUbytesEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def MasterDictAddBytesEntries(builder, bytesEntries): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(bytesEntries), 0)
-def MasterDictStartBytesEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MasterDictAddUbyteEntries(builder, ubyteEntries): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(ubyteEntries), 0)
+def MasterDictStartUbyteEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MasterDictAddByteEntries(builder, byteEntries): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(byteEntries), 0)
+def MasterDictStartByteEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MasterDictAddBoolEntries(builder, boolEntries): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(boolEntries), 0)
 def MasterDictStartBoolEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MasterDictAddShortEntries(builder, shortEntries): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shortEntries), 0)

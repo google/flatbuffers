@@ -36,8 +36,8 @@ struct StringEntry;
 
 struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_UBYTESENTRIES = 4,
-    VT_BYTESENTRIES = 6,
+    VT_UBYTEENTRIES = 4,
+    VT_BYTEENTRIES = 6,
     VT_BOOLENTRIES = 8,
     VT_SHORTENTRIES = 10,
     VT_USHORTENTRIES = 12,
@@ -49,10 +49,10 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DOUBLEENTRIES = 24,
     VT_STRINGENTRIES = 26
   };
-  const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *ubytesEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTESENTRIES); }
-  flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *mutable_ubytesEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTESENTRIES); }
-  const flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *bytesEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *>(VT_BYTESENTRIES); }
-  flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *mutable_bytesEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *>(VT_BYTESENTRIES); }
+  const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *ubyteEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTEENTRIES); }
+  flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *mutable_ubyteEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTEENTRIES); }
+  const flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *byteEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *>(VT_BYTEENTRIES); }
+  flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *mutable_byteEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>> *>(VT_BYTEENTRIES); }
   const flatbuffers::Vector<flatbuffers::Offset<BoolEntry>> *boolEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<BoolEntry>> *>(VT_BOOLENTRIES); }
   flatbuffers::Vector<flatbuffers::Offset<BoolEntry>> *mutable_boolEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<BoolEntry>> *>(VT_BOOLENTRIES); }
   const flatbuffers::Vector<flatbuffers::Offset<ShortEntry>> *shortEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ShortEntry>> *>(VT_SHORTENTRIES); }
@@ -75,12 +75,12 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *mutable_stringEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *>(VT_STRINGENTRIES); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_UBYTESENTRIES) &&
-           verifier.Verify(ubytesEntries()) &&
-           verifier.VerifyVectorOfTables(ubytesEntries()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_BYTESENTRIES) &&
-           verifier.Verify(bytesEntries()) &&
-           verifier.VerifyVectorOfTables(bytesEntries()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_UBYTEENTRIES) &&
+           verifier.Verify(ubyteEntries()) &&
+           verifier.VerifyVectorOfTables(ubyteEntries()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_BYTEENTRIES) &&
+           verifier.Verify(byteEntries()) &&
+           verifier.VerifyVectorOfTables(byteEntries()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_BOOLENTRIES) &&
            verifier.Verify(boolEntries()) &&
            verifier.VerifyVectorOfTables(boolEntries()) &&
@@ -118,8 +118,8 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct MasterDictBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_ubytesEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubytesEntries) { fbb_.AddOffset(MasterDict::VT_UBYTESENTRIES, ubytesEntries); }
-  void add_bytesEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> bytesEntries) { fbb_.AddOffset(MasterDict::VT_BYTESENTRIES, bytesEntries); }
+  void add_ubyteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubyteEntries) { fbb_.AddOffset(MasterDict::VT_UBYTEENTRIES, ubyteEntries); }
+  void add_byteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> byteEntries) { fbb_.AddOffset(MasterDict::VT_BYTEENTRIES, byteEntries); }
   void add_boolEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BoolEntry>>> boolEntries) { fbb_.AddOffset(MasterDict::VT_BOOLENTRIES, boolEntries); }
   void add_shortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShortEntry>>> shortEntries) { fbb_.AddOffset(MasterDict::VT_SHORTENTRIES, shortEntries); }
   void add_ushortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UShortEntry>>> ushortEntries) { fbb_.AddOffset(MasterDict::VT_USHORTENTRIES, ushortEntries); }
@@ -139,8 +139,8 @@ struct MasterDictBuilder {
 };
 
 inline flatbuffers::Offset<MasterDict> CreateMasterDict(flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubytesEntries = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> bytesEntries = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubyteEntries = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> byteEntries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BoolEntry>>> boolEntries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShortEntry>>> shortEntries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UShortEntry>>> ushortEntries = 0,
@@ -162,14 +162,14 @@ inline flatbuffers::Offset<MasterDict> CreateMasterDict(flatbuffers::FlatBufferB
   builder_.add_ushortEntries(ushortEntries);
   builder_.add_shortEntries(shortEntries);
   builder_.add_boolEntries(boolEntries);
-  builder_.add_bytesEntries(bytesEntries);
-  builder_.add_ubytesEntries(ubytesEntries);
+  builder_.add_byteEntries(byteEntries);
+  builder_.add_ubyteEntries(ubyteEntries);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<MasterDict> CreateMasterDictDirect(flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<UByteEntry>> *ubytesEntries = nullptr,
-    const std::vector<flatbuffers::Offset<ByteEntry>> *bytesEntries = nullptr,
+    const std::vector<flatbuffers::Offset<UByteEntry>> *ubyteEntries = nullptr,
+    const std::vector<flatbuffers::Offset<ByteEntry>> *byteEntries = nullptr,
     const std::vector<flatbuffers::Offset<BoolEntry>> *boolEntries = nullptr,
     const std::vector<flatbuffers::Offset<ShortEntry>> *shortEntries = nullptr,
     const std::vector<flatbuffers::Offset<UShortEntry>> *ushortEntries = nullptr,
@@ -180,7 +180,7 @@ inline flatbuffers::Offset<MasterDict> CreateMasterDictDirect(flatbuffers::FlatB
     const std::vector<flatbuffers::Offset<ULongEntry>> *ulongEntries = nullptr,
     const std::vector<flatbuffers::Offset<DoubleEntry>> *doubleEntries = nullptr,
     const std::vector<flatbuffers::Offset<StringEntry>> *stringEntries = nullptr) {
-  return CreateMasterDict(_fbb, ubytesEntries ? _fbb.CreateVector<flatbuffers::Offset<UByteEntry>>(*ubytesEntries) : 0, bytesEntries ? _fbb.CreateVector<flatbuffers::Offset<ByteEntry>>(*bytesEntries) : 0, boolEntries ? _fbb.CreateVector<flatbuffers::Offset<BoolEntry>>(*boolEntries) : 0, shortEntries ? _fbb.CreateVector<flatbuffers::Offset<ShortEntry>>(*shortEntries) : 0, ushortEntries ? _fbb.CreateVector<flatbuffers::Offset<UShortEntry>>(*ushortEntries) : 0, intEntries ? _fbb.CreateVector<flatbuffers::Offset<IntEntry>>(*intEntries) : 0, uintEntries ? _fbb.CreateVector<flatbuffers::Offset<UIntEntry>>(*uintEntries) : 0, floatEntries ? _fbb.CreateVector<flatbuffers::Offset<FloatEntry>>(*floatEntries) : 0, longEntries ? _fbb.CreateVector<flatbuffers::Offset<LongEntry>>(*longEntries) : 0, ulongEntries ? _fbb.CreateVector<flatbuffers::Offset<ULongEntry>>(*ulongEntries) : 0, doubleEntries ? _fbb.CreateVector<flatbuffers::Offset<DoubleEntry>>(*doubleEntries) : 0, stringEntries ? _fbb.CreateVector<flatbuffers::Offset<StringEntry>>(*stringEntries) : 0);
+  return CreateMasterDict(_fbb, ubyteEntries ? _fbb.CreateVector<flatbuffers::Offset<UByteEntry>>(*ubyteEntries) : 0, byteEntries ? _fbb.CreateVector<flatbuffers::Offset<ByteEntry>>(*byteEntries) : 0, boolEntries ? _fbb.CreateVector<flatbuffers::Offset<BoolEntry>>(*boolEntries) : 0, shortEntries ? _fbb.CreateVector<flatbuffers::Offset<ShortEntry>>(*shortEntries) : 0, ushortEntries ? _fbb.CreateVector<flatbuffers::Offset<UShortEntry>>(*ushortEntries) : 0, intEntries ? _fbb.CreateVector<flatbuffers::Offset<IntEntry>>(*intEntries) : 0, uintEntries ? _fbb.CreateVector<flatbuffers::Offset<UIntEntry>>(*uintEntries) : 0, floatEntries ? _fbb.CreateVector<flatbuffers::Offset<FloatEntry>>(*floatEntries) : 0, longEntries ? _fbb.CreateVector<flatbuffers::Offset<LongEntry>>(*longEntries) : 0, ulongEntries ? _fbb.CreateVector<flatbuffers::Offset<ULongEntry>>(*ulongEntries) : 0, doubleEntries ? _fbb.CreateVector<flatbuffers::Offset<DoubleEntry>>(*doubleEntries) : 0, stringEntries ? _fbb.CreateVector<flatbuffers::Offset<StringEntry>>(*stringEntries) : 0);
 }
 
 struct UByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

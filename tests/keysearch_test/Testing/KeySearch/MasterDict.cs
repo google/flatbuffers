@@ -16,10 +16,10 @@ public struct MasterDict : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public MasterDict __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public UByteEntry? UbytesEntries(int j) { int o = __p.__offset(4); return o != 0 ? (UByteEntry?)(new UByteEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
-  public int UbytesEntriesLength { get { int o = __p.__offset(4); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public ByteEntry? BytesEntries(int j) { int o = __p.__offset(6); return o != 0 ? (ByteEntry?)(new ByteEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
-  public int BytesEntriesLength { get { int o = __p.__offset(6); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public UByteEntry? UbyteEntries(int j) { int o = __p.__offset(4); return o != 0 ? (UByteEntry?)(new UByteEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int UbyteEntriesLength { get { int o = __p.__offset(4); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public ByteEntry? ByteEntries(int j) { int o = __p.__offset(6); return o != 0 ? (ByteEntry?)(new ByteEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int ByteEntriesLength { get { int o = __p.__offset(6); return o != 0 ? __p.__vector_len(o) : 0; } }
   public BoolEntry? BoolEntries(int j) { int o = __p.__offset(8); return o != 0 ? (BoolEntry?)(new BoolEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int BoolEntriesLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ShortEntry? ShortEntries(int j) { int o = __p.__offset(10); return o != 0 ? (ShortEntry?)(new ShortEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
@@ -42,8 +42,8 @@ public struct MasterDict : IFlatbufferObject
   public int StringEntriesLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<MasterDict> CreateMasterDict(FlatBufferBuilder builder,
-      VectorOffset ubytesEntriesOffset = default(VectorOffset),
-      VectorOffset bytesEntriesOffset = default(VectorOffset),
+      VectorOffset ubyteEntriesOffset = default(VectorOffset),
+      VectorOffset byteEntriesOffset = default(VectorOffset),
       VectorOffset boolEntriesOffset = default(VectorOffset),
       VectorOffset shortEntriesOffset = default(VectorOffset),
       VectorOffset ushortEntriesOffset = default(VectorOffset),
@@ -65,18 +65,18 @@ public struct MasterDict : IFlatbufferObject
     MasterDict.AddUshortEntries(builder, ushortEntriesOffset);
     MasterDict.AddShortEntries(builder, shortEntriesOffset);
     MasterDict.AddBoolEntries(builder, boolEntriesOffset);
-    MasterDict.AddBytesEntries(builder, bytesEntriesOffset);
-    MasterDict.AddUbytesEntries(builder, ubytesEntriesOffset);
+    MasterDict.AddByteEntries(builder, byteEntriesOffset);
+    MasterDict.AddUbyteEntries(builder, ubyteEntriesOffset);
     return MasterDict.EndMasterDict(builder);
   }
 
   public static void StartMasterDict(FlatBufferBuilder builder) { builder.StartObject(12); }
-  public static void AddUbytesEntries(FlatBufferBuilder builder, VectorOffset ubytesEntriesOffset) { builder.AddOffset(0, ubytesEntriesOffset.Value, 0); }
-  public static VectorOffset CreateUbytesEntriesVector(FlatBufferBuilder builder, Offset<UByteEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
-  public static void StartUbytesEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddBytesEntries(FlatBufferBuilder builder, VectorOffset bytesEntriesOffset) { builder.AddOffset(1, bytesEntriesOffset.Value, 0); }
-  public static VectorOffset CreateBytesEntriesVector(FlatBufferBuilder builder, Offset<ByteEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
-  public static void StartBytesEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddUbyteEntries(FlatBufferBuilder builder, VectorOffset ubyteEntriesOffset) { builder.AddOffset(0, ubyteEntriesOffset.Value, 0); }
+  public static VectorOffset CreateUbyteEntriesVector(FlatBufferBuilder builder, Offset<UByteEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static void StartUbyteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddByteEntries(FlatBufferBuilder builder, VectorOffset byteEntriesOffset) { builder.AddOffset(1, byteEntriesOffset.Value, 0); }
+  public static VectorOffset CreateByteEntriesVector(FlatBufferBuilder builder, Offset<ByteEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static void StartByteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddBoolEntries(FlatBufferBuilder builder, VectorOffset boolEntriesOffset) { builder.AddOffset(2, boolEntriesOffset.Value, 0); }
   public static VectorOffset CreateBoolEntriesVector(FlatBufferBuilder builder, Offset<BoolEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static void StartBoolEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }

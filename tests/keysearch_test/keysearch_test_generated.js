@@ -60,7 +60,7 @@ Testing.KeySearch.MasterDict.bufferHasIdentifier = function(bb) {
  * @param {Testing.KeySearch.UByteEntry=} obj
  * @returns {Testing.KeySearch.UByteEntry}
  */
-Testing.KeySearch.MasterDict.prototype.ubytesEntries = function(index, obj) {
+Testing.KeySearch.MasterDict.prototype.ubyteEntries = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new Testing.KeySearch.UByteEntry).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
@@ -68,7 +68,7 @@ Testing.KeySearch.MasterDict.prototype.ubytesEntries = function(index, obj) {
 /**
  * @returns {number}
  */
-Testing.KeySearch.MasterDict.prototype.ubytesEntriesLength = function() {
+Testing.KeySearch.MasterDict.prototype.ubyteEntriesLength = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
@@ -78,7 +78,7 @@ Testing.KeySearch.MasterDict.prototype.ubytesEntriesLength = function() {
  * @param {Testing.KeySearch.ByteEntry=} obj
  * @returns {Testing.KeySearch.ByteEntry}
  */
-Testing.KeySearch.MasterDict.prototype.bytesEntries = function(index, obj) {
+Testing.KeySearch.MasterDict.prototype.byteEntries = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? (obj || new Testing.KeySearch.ByteEntry).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
@@ -86,7 +86,7 @@ Testing.KeySearch.MasterDict.prototype.bytesEntries = function(index, obj) {
 /**
  * @returns {number}
  */
-Testing.KeySearch.MasterDict.prototype.bytesEntriesLength = function() {
+Testing.KeySearch.MasterDict.prototype.byteEntriesLength = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
@@ -280,10 +280,10 @@ Testing.KeySearch.MasterDict.startMasterDict = function(builder) {
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} ubytesEntriesOffset
+ * @param {flatbuffers.Offset} ubyteEntriesOffset
  */
-Testing.KeySearch.MasterDict.addUbytesEntries = function(builder, ubytesEntriesOffset) {
-  builder.addFieldOffset(0, ubytesEntriesOffset, 0);
+Testing.KeySearch.MasterDict.addUbyteEntries = function(builder, ubyteEntriesOffset) {
+  builder.addFieldOffset(0, ubyteEntriesOffset, 0);
 };
 
 /**
@@ -291,7 +291,7 @@ Testing.KeySearch.MasterDict.addUbytesEntries = function(builder, ubytesEntriesO
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-Testing.KeySearch.MasterDict.createUbytesEntriesVector = function(builder, data) {
+Testing.KeySearch.MasterDict.createUbyteEntriesVector = function(builder, data) {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
@@ -303,16 +303,16 @@ Testing.KeySearch.MasterDict.createUbytesEntriesVector = function(builder, data)
  * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
-Testing.KeySearch.MasterDict.startUbytesEntriesVector = function(builder, numElems) {
+Testing.KeySearch.MasterDict.startUbyteEntriesVector = function(builder, numElems) {
   builder.startVector(4, numElems, 4);
 };
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} bytesEntriesOffset
+ * @param {flatbuffers.Offset} byteEntriesOffset
  */
-Testing.KeySearch.MasterDict.addBytesEntries = function(builder, bytesEntriesOffset) {
-  builder.addFieldOffset(1, bytesEntriesOffset, 0);
+Testing.KeySearch.MasterDict.addByteEntries = function(builder, byteEntriesOffset) {
+  builder.addFieldOffset(1, byteEntriesOffset, 0);
 };
 
 /**
@@ -320,7 +320,7 @@ Testing.KeySearch.MasterDict.addBytesEntries = function(builder, bytesEntriesOff
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-Testing.KeySearch.MasterDict.createBytesEntriesVector = function(builder, data) {
+Testing.KeySearch.MasterDict.createByteEntriesVector = function(builder, data) {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
@@ -332,7 +332,7 @@ Testing.KeySearch.MasterDict.createBytesEntriesVector = function(builder, data) 
  * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
-Testing.KeySearch.MasterDict.startBytesEntriesVector = function(builder, numElems) {
+Testing.KeySearch.MasterDict.startByteEntriesVector = function(builder, numElems) {
   builder.startVector(4, numElems, 4);
 };
 

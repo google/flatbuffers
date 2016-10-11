@@ -1,6 +1,6 @@
 {
-  "ubytesEntries": [{"key": 212}],
-  "bytesEntries": [{"key": -212}],
+  "ubyteEntries": [{"key": 212}],
+  "byteEntries": [{"key": -212}],
   "boolEntries": [{"key": true}],
   "shortEntries": [{"key": -16123}],
   "ushortEntries": [{"key": 61234}],
