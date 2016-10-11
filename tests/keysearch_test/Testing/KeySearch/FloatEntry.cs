@@ -17,12 +17,12 @@ public struct FloatEntry : IFlatbufferObject
 
   public float Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
   public bool MutateKey(float key) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, key); return true; } else { return false; } }
-  public int Value { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)1234; } }
-  public bool MutateValue(int value) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, value); return true; } else { return false; } }
+  public float Value { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)1234.0f; } }
+  public bool MutateValue(float value) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, value); return true; } else { return false; } }
 
   public static Offset<FloatEntry> CreateFloatEntry(FlatBufferBuilder builder,
       float key = 0.0f,
-      int value = 1234) {
+      float value = 1234.0f) {
     builder.StartObject(2);
     FloatEntry.AddValue(builder, value);
     FloatEntry.AddKey(builder, key);
@@ -31,7 +31,7 @@ public struct FloatEntry : IFlatbufferObject
 
   public static void StartFloatEntry(FlatBufferBuilder builder) { builder.StartObject(2); }
   public static void AddKey(FlatBufferBuilder builder, float key) { builder.AddFloat(0, key, 0.0f); }
-  public static void AddValue(FlatBufferBuilder builder, int value) { builder.AddInt(1, value, 1234); }
+  public static void AddValue(FlatBufferBuilder builder, float value) { builder.AddFloat(1, value, 1234.0f); }
   public static Offset<FloatEntry> EndFloatEntry(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     return new Offset<FloatEntry>(o);

@@ -50,7 +50,7 @@ class MasterDict extends Table
     /**
      * @returnVectorOffset
      */
-    public function getUbytesEntries($j)
+    public function getUbyteEntries($j)
     {
         $o = $this->__offset(4);
         $obj = new UByteEntry();
@@ -60,7 +60,7 @@ class MasterDict extends Table
     /**
      * @return int
      */
-    public function getUbytesEntriesLength()
+    public function getUbyteEntriesLength()
     {
         $o = $this->__offset(4);
         return $o != 0 ? $this->__vector_len($o) : 0;
@@ -69,7 +69,7 @@ class MasterDict extends Table
     /**
      * @returnVectorOffset
      */
-    public function getBytesEntries($j)
+    public function getByteEntries($j)
     {
         $o = $this->__offset(6);
         $obj = new ByteEntry();
@@ -79,7 +79,7 @@ class MasterDict extends Table
     /**
      * @return int
      */
-    public function getBytesEntriesLength()
+    public function getByteEntriesLength()
     {
         $o = $this->__offset(6);
         return $o != 0 ? $this->__vector_len($o) : 0;
@@ -288,11 +288,11 @@ class MasterDict extends Table
      * @param FlatBufferBuilder $builder
      * @return MasterDict
      */
-    public static function createMasterDict(FlatBufferBuilder $builder, $ubytesEntries, $bytesEntries, $boolEntries, $shortEntries, $ushortEntries, $intEntries, $uintEntries, $floatEntries, $longEntries, $ulongEntries, $doubleEntries, $stringEntries)
+    public static function createMasterDict(FlatBufferBuilder $builder, $ubyteEntries, $byteEntries, $boolEntries, $shortEntries, $ushortEntries, $intEntries, $uintEntries, $floatEntries, $longEntries, $ulongEntries, $doubleEntries, $stringEntries)
     {
         $builder->startObject(12);
-        self::addUbytesEntries($builder, $ubytesEntries);
-        self::addBytesEntries($builder, $bytesEntries);
+        self::addUbyteEntries($builder, $ubyteEntries);
+        self::addByteEntries($builder, $byteEntries);
         self::addBoolEntries($builder, $boolEntries);
         self::addShortEntries($builder, $shortEntries);
         self::addUshortEntries($builder, $ushortEntries);
@@ -312,9 +312,9 @@ class MasterDict extends Table
      * @param VectorOffset
      * @return void
      */
-    public static function addUbytesEntries(FlatBufferBuilder $builder, $ubytesEntries)
+    public static function addUbyteEntries(FlatBufferBuilder $builder, $ubyteEntries)
     {
-        $builder->addOffsetX(0, $ubytesEntries, 0);
+        $builder->addOffsetX(0, $ubyteEntries, 0);
     }
 
     /**
@@ -322,7 +322,7 @@ class MasterDict extends Table
      * @param array offset array
      * @return int vector offset
      */
-    public static function createUbytesEntriesVector(FlatBufferBuilder $builder, array $data)
+    public static function createUbyteEntriesVector(FlatBufferBuilder $builder, array $data)
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -336,7 +336,7 @@ class MasterDict extends Table
      * @param int $numElems
      * @return void
      */
-    public static function startUbytesEntriesVector(FlatBufferBuilder $builder, $numElems)
+    public static function startUbyteEntriesVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(4, $numElems, 4);
     }
@@ -346,9 +346,9 @@ class MasterDict extends Table
      * @param VectorOffset
      * @return void
      */
-    public static function addBytesEntries(FlatBufferBuilder $builder, $bytesEntries)
+    public static function addByteEntries(FlatBufferBuilder $builder, $byteEntries)
     {
-        $builder->addOffsetX(1, $bytesEntries, 0);
+        $builder->addOffsetX(1, $byteEntries, 0);
     }
 
     /**
@@ -356,7 +356,7 @@ class MasterDict extends Table
      * @param array offset array
      * @return int vector offset
      */
-    public static function createBytesEntriesVector(FlatBufferBuilder $builder, array $data)
+    public static function createByteEntriesVector(FlatBufferBuilder $builder, array $data)
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -370,7 +370,7 @@ class MasterDict extends Table
      * @param int $numElems
      * @return void
      */
-    public static function startBytesEntriesVector(FlatBufferBuilder $builder, $numElems)
+    public static function startByteEntriesVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(4, $numElems, 4);
     }

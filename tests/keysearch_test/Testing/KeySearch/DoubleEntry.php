@@ -57,12 +57,12 @@ class DoubleEntry extends Table
     }
 
     /**
-     * @return int
+     * @return double
      */
     public function getValue()
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 4567;
+        return $o != 0 ? $this->bb->getDouble($o + $this->bb_pos) : 4567.0;
     }
 
     /**
@@ -99,12 +99,12 @@ class DoubleEntry extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param double
      * @return void
      */
     public static function addValue(FlatBufferBuilder $builder, $value)
     {
-        $builder->addIntX(1, $value, 4567);
+        $builder->addDoubleX(1, $value, 4567.0);
     }
 
     /**
