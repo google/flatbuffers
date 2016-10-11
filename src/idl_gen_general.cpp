@@ -481,14 +481,6 @@ std::string GenEnumDefaultValue(const Value &value) {
   return result;
 }
 
-template<typename SignedType>
-std::string GenUnsignedDefaultValue(const Value &value) {
-  if (lang_.language != IDLOptions::kJava)
-    return value.constant;
-  uint64_t defaultValue = StringToUInt(value.constant.c_str());
-  return NumToString(static_cast<SignedType>(defaultValue));
-}
-
 std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
   if (enableLangOverrides) {
     // handles both enum case and vector of enum case
@@ -503,11 +495,15 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
-    case BASE_TYPE_UCHAR: return GenUnsignedDefaultValue<int8_t>(value);
-    case BASE_TYPE_USHORT: return GenUnsignedDefaultValue<int16_t>(value);
-    case BASE_TYPE_UINT: return GenUnsignedDefaultValue<int32_t>(value);
     case BASE_TYPE_ULONG: 
-      return GenUnsignedDefaultValue<int64_t>(value) + longSuffix;
+    {
+      if (lang_.language != IDLOptions::kJava)
+        return value.constant;
+      // Converts the ulong into its bits signed equivalent
+      uint64_t defaultValue = StringToUInt(value.constant.c_str());
+      return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
+    }
+    case BASE_TYPE_UINT:
     case BASE_TYPE_LONG: return value.constant + longSuffix;
     default: return value.constant;
   }

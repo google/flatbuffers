@@ -38,13 +38,12 @@ public final class BoolEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    byte val_1 = _bb.get(__offset(4, o1, _bb));
-    byte val_2 = _bb.get(__offset(4, o2, _bb));
+    boolean val_1 = _bb=bb.get(__offset(4, o1, _bb));
+    boolean val_2 = _bb=bb.get(__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static BoolEntry lookupByKey(int vectorOffset, boolean key2, ByteBuffer bb) {
-    byte key = key2 ? (byte)1 : (byte)0;
+  public static BoolEntry lookupByKey(int vectorOffset, boolean key, ByteBuffer bb) {
     int vectorLocation = bb.array().length - vectorOffset;
     int span = bb.getInt(vectorLocation);
     int start = 0;
@@ -52,7 +51,7 @@ public final class BoolEntry extends Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      byte val = bb.get(__offset(4, bb.array().length - tableOffset, bb));
+      boolean val = 0!=bb.get(__offset(4, bb.array().length - tableOffset, bb));
       int comp = val > key ? 1 : val < key ? -1 : 0;
       if (comp > 0) {
         span = middle;

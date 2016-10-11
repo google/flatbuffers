@@ -16,7 +16,7 @@ public final class UShortEntry extends Table {
 
   public int key() { int o = __offset(4); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
   public boolean mutateKey(int key) { int o = __offset(4); if (o != 0) { bb.putShort(o + bb_pos, (short)key); return true; } else { return false; } }
-  public int value() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : -1; }
+  public int value() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 65535; }
   public boolean mutateValue(int value) { int o = __offset(6); if (o != 0) { bb.putShort(o + bb_pos, (short)value); return true; } else { return false; } }
 
   public static int createUShortEntry(FlatBufferBuilder builder,
@@ -30,7 +30,7 @@ public final class UShortEntry extends Table {
 
   public static void startUShortEntry(FlatBufferBuilder builder) { builder.startObject(2); }
   public static void addKey(FlatBufferBuilder builder, int key) { builder.addShort(0, (short)key, 0); }
-  public static void addValue(FlatBufferBuilder builder, int value) { builder.addShort(1, (short)value, -1); }
+  public static void addValue(FlatBufferBuilder builder, int value) { builder.addShort(1, (short)value, 65535); }
   public static int endUShortEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
