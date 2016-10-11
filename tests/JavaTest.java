@@ -187,7 +187,8 @@ class JavaTest {
 
         TestReflection(bb);
 
-        TestKeySearch();
+        TestKeySearchEmpty();
+        TestKeySearchOneEntry();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -427,16 +428,67 @@ class JavaTest {
 //        TestEq(stringHp, "80");
     }
 
-    private static void TestKeySearch() {
+    private static void TestKeySearchEmpty() {
         byte data[] = loadBinaryFile("keysearch_test_empty_arrays.mdict");
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        TestEq(MasterDict.MasterDictBufferHasIdentifier(bb), true);
+        MasterDict mdict = MasterDict.getRootAsMasterDict(bb);
+        checkMasterDictEntriesSize(mdict, 0);
+    }
+
+    private static void checkMasterDictEntriesSize(MasterDict mdict, int expectedSize) {
+        TestEq( mdict.boolEntriesLength(), expectedSize);
+        TestEq( mdict.bytesEntriesLength(), expectedSize);
+        TestEq( mdict.ubytesEntriesLength(), expectedSize);
+        TestEq( mdict.shortEntriesLength(), expectedSize);
+        TestEq( mdict.ushortEntriesLength(), expectedSize);
+        TestEq( mdict.intEntriesLength(), expectedSize);
+        TestEq( mdict.uintEntriesLength(), expectedSize);
+        TestEq( mdict.longEntriesLength(), expectedSize);
+        TestEq( mdict.ulongEntriesLength(), expectedSize);
+        TestEq( mdict.stringEntriesLength(), expectedSize);
+        TestEq( mdict.floatEntriesLength(), expectedSize);
+        TestEq( mdict.doubleEntriesLength(), expectedSize);
+    }
+
+    private static void TestKeySearchOneEntry() {
+        byte data[] = loadBinaryFile("keysearch_test_1entry.mdict");
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        TestEq(MasterDict.MasterDictBufferHasIdentifier(bb), true);
+        MasterDict mdict = MasterDict.getRootAsMasterDict(bb);
+        checkMasterDictEntriesSize(mdict, 1);
+        TestEq( TestNotNull( mdict.boolEntriesByKey(true) ).value(), true );
+// TODO fix code gen for bykey
+//        TestEq( TestNotNull( mdict.bytesEntriesByKey(-212) ).value(), -128 );
+//        TestEq( TestNotNull( mdict.shortEntriesByKey(-16123) ).value(), -32768 );
+        TestEq( TestNotNull( mdict.intEntriesByKey(-2123456789) ).value(), -2147483648 );
+        TestEq( TestNotNull( mdict.longEntriesByKey(-41234567890L) ).value(), -9223372036854775808L );
+        //        TestEq( TestNotNull( mdict.bytesEntriesByKey(-212) ).value(), -128 );
+        //        TestEq( TestNotNull( mdict.shortEntriesByKey(-16123) ).value(), -32768 );
+        TestEq( TestNotNull( mdict.intEntriesByKey(-2123456789) ).value(), -2147483648 );
+        TestEq( TestNotNull( mdict.longEntriesByKey(-41234567890L) ).value(), -9223372036854775808L );
+
+//        TestEq( TestNotNull( mdict.ubytesEntriesByKey(212) ).value(), 255 );
+//        TestEq( TestNotNull( mdict.ushortEntriesByKey(61234) ).value(), 65535 );
+//        TestEq( TestNotNull( mdict.uintEntriesByKey(4123456789L) ).value(), 4294967295L );
+        TestEq( TestNotNull( mdict.ulongEntriesByKey(-41234567890L) ).value(), 9223372036854775807L );
     }
 
     static <T> void TestEq(T a, T b) {
         if (!a.equals(b)) {
             System.out.println("" + a.getClass().getName() + " " + b.getClass().getName());
             System.out.println("FlatBuffers test FAILED: \'" + a + "\' != \'" + b + "\'");
-            assert false;
+            assert false; // Run test with -ea VM options to get callstack
             System.exit(1);
         }
+    }
+
+    static <T> T TestNotNull(T a) {
+        if (a == null) {
+            System.out.println("FlatBuffers test FAILED: unexpected null reference");
+            assert false; // Run test with -ea VM options to get callstack
+            System.exit(1);
+        }
+        return a;
     }
 }
