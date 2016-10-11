@@ -438,8 +438,8 @@ class JavaTest {
 
     private static void checkMasterDictEntriesSize(MasterDict mdict, int expectedSize) {
         TestEq( mdict.boolEntriesLength(), expectedSize);
-        TestEq( mdict.bytesEntriesLength(), expectedSize);
-        TestEq( mdict.ubytesEntriesLength(), expectedSize);
+        TestEq( mdict.byteEntriesLength(), expectedSize);
+        TestEq( mdict.ubyteEntriesLength(), expectedSize);
         TestEq( mdict.shortEntriesLength(), expectedSize);
         TestEq( mdict.ushortEntriesLength(), expectedSize);
         TestEq( mdict.intEntriesLength(), expectedSize);
@@ -459,8 +459,8 @@ class JavaTest {
         checkMasterDictEntriesSize(mdict, 1);
         TestEq( TestNotNull( mdict.boolEntriesByKey(true) ).value(), true );
 // TODO fix code gen for bykey
-//        TestEq( TestNotNull( mdict.bytesEntriesByKey(-212) ).value(), -128 );
-//        TestEq( TestNotNull( mdict.shortEntriesByKey(-16123) ).value(), -32768 );
+        TestEq( TestNotNull( mdict.byteEntriesByKey((byte)-212) ).value(), (byte)-128 );
+        TestEq( TestNotNull( mdict.shortEntriesByKey((short)-16123) ).value(), (short)-32768 );
         TestEq( TestNotNull( mdict.intEntriesByKey(-2123456789) ).value(), -2147483648 );
         TestEq( TestNotNull( mdict.longEntriesByKey(-41234567890L) ).value(), -9223372036854775808L );
         //        TestEq( TestNotNull( mdict.bytesEntriesByKey(-212) ).value(), -128 );
@@ -471,7 +471,7 @@ class JavaTest {
 //        TestEq( TestNotNull( mdict.ubytesEntriesByKey(212) ).value(), 255 );
 //        TestEq( TestNotNull( mdict.ushortEntriesByKey(61234) ).value(), 65535 );
 //        TestEq( TestNotNull( mdict.uintEntriesByKey(4123456789L) ).value(), 4294967295L );
-        TestEq( TestNotNull( mdict.ulongEntriesByKey(-41234567890L) ).value(), 9223372036854775807L );
+//        TestEq( TestNotNull( mdict.ulongEntriesByKey(-41234567890L) ).value(), 9223372036854775807L );
     }
 
     static <T> void TestEq(T a, T b) {
