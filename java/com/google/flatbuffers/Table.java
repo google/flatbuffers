@@ -84,9 +84,17 @@ public class Table {
     return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
   }
 
-  protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
-    int vtable = bb.array().length - offset;
-    return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable;
+  /**
+   * Look up a field in the vtable.
+   * Sames as new Table(table_offset, bb).__offset( vtable_offset )
+   * @param table_offset Offset of the table in bb (same as bb_pos field in Table).
+   * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
+   * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
+   * @return Returns an offset into the object, or `0` if the field is not present.
+   */
+  protected static int __offset(int table_offset, int vtable_offset, ByteBuffer bb) {
+    int vtable = table_offset - bb.getInt(table_offset);
+    return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
   }
 
   /**
@@ -309,6 +317,58 @@ public class Table {
       return (int) (key - bb.getInt(offsetData));
     }
   };
+
+  protected int __lookupByLongKey(int fieldOffset, long key) {
+    if ( fieldOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldOffset );
+    int span = bb.getInt(vectorLocation-4);
+    int start = 0;
+    vectorLocation += 4;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      long val = bb.getLong(__offset(4, bb.array().length - tableOffset, bb));
+      int comp = val > key ? 1 : val < key ? -1 : 0;
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByULongKey(int vectorFieldOffset, int keyFieldOffset, long key) {
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-4);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      long val = bb.getLong(keyValueOffset);
+      int comp = Comparators.compareUnsigned(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
 }
 
 /// @endcond
