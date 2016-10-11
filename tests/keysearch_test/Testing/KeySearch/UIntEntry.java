@@ -43,7 +43,7 @@ public final class UIntEntry extends Table {
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static UIntEntry lookupByKey(int vectorOffset, int key, ByteBuffer bb) {
+  public static UIntEntry lookupByKey(int vectorOffset, long key, ByteBuffer bb) {
     int vectorLocation = bb.array().length - vectorOffset;
     int span = bb.getInt(vectorLocation);
     int start = 0;

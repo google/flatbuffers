@@ -43,7 +43,7 @@ public final class UByteEntry extends Table {
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static UByteEntry lookupByKey(int vectorOffset, byte key, ByteBuffer bb) {
+  public static UByteEntry lookupByKey(int vectorOffset, int key, ByteBuffer bb) {
     int vectorLocation = bb.array().length - vectorOffset;
     int span = bb.getInt(vectorLocation);
     int start = 0;

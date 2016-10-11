@@ -18,10 +18,11 @@ public final class MasterDict extends Table {
   public UByteEntry ubyteEntries(int j) { return ubyteEntries(new UByteEntry(), j); }
   public UByteEntry ubyteEntries(UByteEntry obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ubyteEntriesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
+  public UByteEntry ubyteEntriesByKey( int key ) { int vectorOffset = __vector(__offset(4)) - 4; return vectorOffset != 0 ? UByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public ByteEntry byteEntries(int j) { return byteEntries(new ByteEntry(), j); }
   public ByteEntry byteEntries(ByteEntry obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int byteEntriesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
-  public ByteEntry bytesEntriesByKey( byte key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? ByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public ByteEntry byteEntriesByKey( byte key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? ByteEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public BoolEntry boolEntries(int j) { return boolEntries(new BoolEntry(), j); }
   public BoolEntry boolEntries(BoolEntry obj, int j) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int boolEntriesLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
@@ -33,7 +34,7 @@ public final class MasterDict extends Table {
   public UShortEntry ushortEntries(int j) { return ushortEntries(new UShortEntry(), j); }
   public UShortEntry ushortEntries(UShortEntry obj, int j) { int o = __offset(12); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ushortEntriesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
-  public UShortEntry ushortEntriesByKey( short key ) { int vectorOffset = __vector(__offset(12)) - 4; return vectorOffset != 0 ? UShortEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public UShortEntry ushortEntriesByKey( int key ) { int vectorOffset = __vector(__offset(12)) - 4; return vectorOffset != 0 ? UShortEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public IntEntry intEntries(int j) { return intEntries(new IntEntry(), j); }
   public IntEntry intEntries(IntEntry obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int intEntriesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
@@ -41,7 +42,7 @@ public final class MasterDict extends Table {
   public UIntEntry uintEntries(int j) { return uintEntries(new UIntEntry(), j); }
   public UIntEntry uintEntries(UIntEntry obj, int j) { int o = __offset(16); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int uintEntriesLength() { int o = __offset(16); return o != 0 ? __vector_len(o) : 0; }
-  public UIntEntry uintEntriesByKey( int key ) { int vectorOffset = __vector(__offset(16)) - 4; return vectorOffset != 0 ? UIntEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public UIntEntry uintEntriesByKey( long key ) { int vectorOffset = __vector(__offset(16)) - 4; return vectorOffset != 0 ? UIntEntry.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
   public FloatEntry floatEntries(int j) { return floatEntries(new FloatEntry(), j); }
   public FloatEntry floatEntries(FloatEntry obj, int j) { int o = __offset(18); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int floatEntriesLength() { int o = __offset(18); return o != 0 ? __vector_len(o) : 0; }
