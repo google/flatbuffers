@@ -29,8 +29,8 @@ public final class UIntEntry extends Table {
   }
 
   public static void startUIntEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, long key) { builder.addInt(0, (int)key, 0L); }
-  public static void addValue(FlatBufferBuilder builder, long value) { builder.addInt(1, (int)value, 4294967295L); }
+  public static void addKey(FlatBufferBuilder builder, long key) { builder.addInt(0, (int)key, (int)0L); }
+  public static void addValue(FlatBufferBuilder builder, long value) { builder.addInt(1, (int)value, (int)4294967295L); }
   public static int endUIntEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
