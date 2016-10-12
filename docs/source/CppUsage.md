@@ -99,7 +99,7 @@ construction, access and mutation.
 To use:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    auto monsterobj = GetMonster(buffer)->UnPack();
+    auto monsterobj = UnpackMonster(buffer);
     cout << monsterobj->name;  // This is now a std::string!
     monsterobj->name = "Bob";  // Change the name.
     FlatBufferBuilder fbb;
@@ -124,6 +124,15 @@ same string (or hash).
 
 When you call `UnPack` (or `Create`), you'll need a function that maps from
 hash to the object (see `resolver_function_t` for details).
+
+# Using different pointer types.
+
+By default the object tree is built out of `std::unique_ptr`, but you can
+influence this either globally (using the `--cpp-ptr-type` argument to
+`flatc`) or per field (using the `cpp_ptr_type` attribute) to by any smart
+pointer type (`my_ptr<T>`), or by specifying `naked` as the type to get `T *`
+pointers. Unlike the smart pointers, naked pointers do not manage memory for
+you, so you'll have to manage their lifecycles manually.
 
 ## Reflection (& Resizing)
 

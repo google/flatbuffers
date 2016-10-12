@@ -326,7 +326,7 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   });
 
   // Turn a buffer into C++ objects.
-  auto monster1 = GetMonster(flatbuf)->UnPack(&resolver);
+  auto monster1 = UnPackMonster(flatbuf, &resolver);
 
   // Re-serialize the data.
   flatbuffers::FlatBufferBuilder fbb1;
@@ -334,7 +334,7 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
               MonsterIdentifier());
 
   // Unpack again, and re-serialize again.
-  auto monster2 = GetMonster(fbb1.GetBufferPointer())->UnPack(&resolver);
+  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
   flatbuffers::FlatBufferBuilder fbb2;
   fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
               MonsterIdentifier());
