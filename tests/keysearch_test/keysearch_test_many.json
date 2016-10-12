@@ -147,44 +147,48 @@
   ],
   "stringEntries": [
     {
-      "key": "Apple",
+      "key": "",
       "value": -3
     },
     {
-      "key": "Apricot",
+      "key": "Apple",
       "value": 7
     },
     {
-      "key": "Avocado",
-      "value": 77
-    },
-    {
-      "key": "Banana",
-      "value": 27
-    },
-    {
-      "key": "Blackberry",
-      "value": 67
-    },
-    {
-      "key": "Blackcurrant",
-      "value": 57
-    },
-    {
-      "key": "Cherimoya",
-      "value": 87
-    },
-    {
-      "key": "Cherry",
+      "key": "Apricot",
       "value": 17
     },
     {
+      "key": "Avocado",
+      "value": 87
+    },
+    {
+      "key": "Banana",
+      "value": 37
+    },
+    {
+      "key": "Blackberry",
+      "value": 77
+    },
+    {
+      "key": "Blackcurrant",
+      "value": 67
+    },
+    {
+      "key": "Cherimoya",
+      "value": 97
+    },
+    {
+      "key": "Cherry",
+      "value": 27
+    },
+    {
       "key": "Coconut",
-      "value": 47
+      "value": 57
     },
     {
       "key": "Currant",
-      "value": 37
+      "value": 47
     }
   ],
   "ubyteEntries": [

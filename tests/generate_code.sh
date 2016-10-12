@@ -18,7 +18,7 @@
 ../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 ../flatc --binary --schema monster_test.fbs
 ../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o keysearch_test keysearch_test/keysearch_test.fbs
-../flatc --binary keysearch_test/keysearch_test.fbs keysearch_test/keysearch_test_empty_arrays.json keysearch_test/keysearch_test_1entry.json keysearch_test/keysearch_test_many.json
+../flatc --binary -o keysearch_test keysearch_test/keysearch_test.fbs keysearch_test/keysearch_test_all_missing.json keysearch_test/keysearch_test_empty_arrays.json keysearch_test/keysearch_test_1entry.json keysearch_test/keysearch_test_many.json
 cd ../samples
 ../flatc --cpp --gen-mutable --gen-object-api monster.fbs
 cd ../reflection
