@@ -60,6 +60,14 @@ inline const char **EnumNamesEquipment() {
 
 inline const char *EnumNameEquipment(Equipment e) { return EnumNamesEquipment()[static_cast<int>(e)]; }
 
+template<typename T> struct EquipmentTraits {
+  static const Equipment enum_value = Equipment_NONE;
+};
+
+template<> struct EquipmentTraits<Weapon> {
+  static const Equipment enum_value = Equipment_Weapon;
+};
+
 inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *union_obj, Equipment type);
 
 MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
