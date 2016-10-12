@@ -19,14 +19,16 @@ public final class Object extends Table {
   public Field fields(int j) { return fields(new Field(), j); }
   public Field fields(Field obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int fieldsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
-  public Field fieldsByKey( String key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? Field.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public Field fieldsByKey(String key) { return fieldsByKey(new Field(), key); }
+  public Field fieldsByKey(Field obj, String key) { int o = __lookupByStringKey(6, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
   public boolean isStruct() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   public int minalign() { int o = __offset(10); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
   public int bytesize() { int o = __offset(12); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
-  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(14)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public KeyValue attributesByKey(String key) { return attributesByKey(new KeyValue(), key); }
+  public KeyValue attributesByKey(KeyValue obj, String key) { int o = __lookupByStringKey(14, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createObject(FlatBufferBuilder builder,
       int nameOffset,
@@ -65,28 +67,5 @@ public final class Object extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static Object lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new Object().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
 }
 

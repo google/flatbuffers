@@ -28,7 +28,8 @@ public final class Field extends Table {
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
-  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(22)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public KeyValue attributesByKey(String key) { return attributesByKey(new KeyValue(), key); }
+  public KeyValue attributesByKey(KeyValue obj, String key) { int o = __lookupByStringKey(22, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -58,8 +59,8 @@ public final class Field extends Table {
   public static void startField(FlatBufferBuilder builder) { builder.startObject(10); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(0, nameOffset, 0); }
   public static void addType(FlatBufferBuilder builder, int typeOffset) { builder.addOffset(1, typeOffset, 0); }
-  public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short)id, 0); }
-  public static void addOffset(FlatBufferBuilder builder, int offset) { builder.addShort(3, (short)offset, 0); }
+  public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short)id, (short)0); }
+  public static void addOffset(FlatBufferBuilder builder, int offset) { builder.addShort(3, (short)offset, (short)0); }
   public static void addDefaultInteger(FlatBufferBuilder builder, long defaultInteger) { builder.addLong(4, defaultInteger, 0L); }
   public static void addDefaultReal(FlatBufferBuilder builder, double defaultReal) { builder.addDouble(5, defaultReal, 0.0); }
   public static void addDeprecated(FlatBufferBuilder builder, boolean deprecated) { builder.addBoolean(6, deprecated, false); }
@@ -77,28 +78,5 @@ public final class Field extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static Field lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new Field().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
 }
 
