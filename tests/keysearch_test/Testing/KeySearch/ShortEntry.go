@@ -27,7 +27,7 @@ func (rcv *ShortEntry) Key() int16 {
 	if o != 0 {
 		return rcv._tab.GetInt16(o + rcv._tab.Pos)
 	}
-	return 0
+	return -32768
 }
 
 func (rcv *ShortEntry) MutateKey(n int16) bool {
@@ -50,7 +50,7 @@ func ShortEntryStart(builder *flatbuffers.Builder) {
 	builder.StartObject(2)
 }
 func ShortEntryAddKey(builder *flatbuffers.Builder, key int16) {
-	builder.PrependInt16Slot(0, key, 0)
+	builder.PrependInt16Slot(0, key, -32768)
 }
 func ShortEntryAddValue(builder *flatbuffers.Builder, value int16) {
 	builder.PrependInt16Slot(1, value, -32768)

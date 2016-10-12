@@ -796,7 +796,7 @@ Testing.KeySearch.ByteEntry.getRootAsByteEntry = function(bb, obj) {
  */
 Testing.KeySearch.ByteEntry.prototype.key = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.readInt8(this.bb_pos + offset) : 0;
+  return offset ? this.bb.readInt8(this.bb_pos + offset) : -128;
 };
 
 /**
@@ -849,7 +849,7 @@ Testing.KeySearch.ByteEntry.startByteEntry = function(builder) {
  * @param {number} key
  */
 Testing.KeySearch.ByteEntry.addKey = function(builder, key) {
-  builder.addFieldInt8(0, key, 0);
+  builder.addFieldInt8(0, key, -128);
 };
 
 /**
@@ -1022,7 +1022,7 @@ Testing.KeySearch.ShortEntry.getRootAsShortEntry = function(bb, obj) {
  */
 Testing.KeySearch.ShortEntry.prototype.key = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.readInt16(this.bb_pos + offset) : 0;
+  return offset ? this.bb.readInt16(this.bb_pos + offset) : -32768;
 };
 
 /**
@@ -1075,7 +1075,7 @@ Testing.KeySearch.ShortEntry.startShortEntry = function(builder) {
  * @param {number} key
  */
 Testing.KeySearch.ShortEntry.addKey = function(builder, key) {
-  builder.addFieldInt16(0, key, 0);
+  builder.addFieldInt16(0, key, -32768);
 };
 
 /**
@@ -1248,7 +1248,7 @@ Testing.KeySearch.IntEntry.getRootAsIntEntry = function(bb, obj) {
  */
 Testing.KeySearch.IntEntry.prototype.key = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : -2147483648;
 };
 
 /**
@@ -1301,7 +1301,7 @@ Testing.KeySearch.IntEntry.startIntEntry = function(builder) {
  * @param {number} key
  */
 Testing.KeySearch.IntEntry.addKey = function(builder, key) {
-  builder.addFieldInt32(0, key, 0);
+  builder.addFieldInt32(0, key, -2147483648);
 };
 
 /**

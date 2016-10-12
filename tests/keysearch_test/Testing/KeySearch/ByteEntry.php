@@ -53,7 +53,7 @@ class ByteEntry extends Table
     public function getKey()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : -128;
     }
 
     /**
@@ -94,7 +94,7 @@ class ByteEntry extends Table
      */
     public static function addKey(FlatBufferBuilder $builder, $key)
     {
-        $builder->addSbyteX(0, $key, 0);
+        $builder->addSbyteX(0, $key, -128);
     }
 
     /**

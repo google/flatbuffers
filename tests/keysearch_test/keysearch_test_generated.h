@@ -229,7 +229,7 @@ struct ByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_KEY = 4,
     VT_VALUE = 6
   };
-  int8_t key() const { return GetField<int8_t>(VT_KEY, 0); }
+  int8_t key() const { return GetField<int8_t>(VT_KEY, -128); }
   bool mutate_key(int8_t _key) { return SetField(VT_KEY, _key); }
   bool KeyCompareLessThan(const ByteEntry *o) const { return key() < o->key(); }
   int KeyCompareWithValue(int8_t val) const { return key() < val ? -1 : key() > val; }
@@ -246,7 +246,7 @@ struct ByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct ByteEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int8_t key) { fbb_.AddElement<int8_t>(ByteEntry::VT_KEY, key, 0); }
+  void add_key(int8_t key) { fbb_.AddElement<int8_t>(ByteEntry::VT_KEY, key, -128); }
   void add_value(int8_t value) { fbb_.AddElement<int8_t>(ByteEntry::VT_VALUE, value, -128); }
   ByteEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ByteEntryBuilder &operator=(const ByteEntryBuilder &);
@@ -257,7 +257,7 @@ struct ByteEntryBuilder {
 };
 
 inline flatbuffers::Offset<ByteEntry> CreateByteEntry(flatbuffers::FlatBufferBuilder &_fbb,
-    int8_t key = 0,
+    int8_t key = -128,
     int8_t value = -128) {
   ByteEntryBuilder builder_(_fbb);
   builder_.add_value(value);
@@ -311,7 +311,7 @@ struct ShortEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_KEY = 4,
     VT_VALUE = 6
   };
-  int16_t key() const { return GetField<int16_t>(VT_KEY, 0); }
+  int16_t key() const { return GetField<int16_t>(VT_KEY, -32768); }
   bool mutate_key(int16_t _key) { return SetField(VT_KEY, _key); }
   bool KeyCompareLessThan(const ShortEntry *o) const { return key() < o->key(); }
   int KeyCompareWithValue(int16_t val) const { return key() < val ? -1 : key() > val; }
@@ -328,7 +328,7 @@ struct ShortEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct ShortEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int16_t key) { fbb_.AddElement<int16_t>(ShortEntry::VT_KEY, key, 0); }
+  void add_key(int16_t key) { fbb_.AddElement<int16_t>(ShortEntry::VT_KEY, key, -32768); }
   void add_value(int16_t value) { fbb_.AddElement<int16_t>(ShortEntry::VT_VALUE, value, -32768); }
   ShortEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ShortEntryBuilder &operator=(const ShortEntryBuilder &);
@@ -339,7 +339,7 @@ struct ShortEntryBuilder {
 };
 
 inline flatbuffers::Offset<ShortEntry> CreateShortEntry(flatbuffers::FlatBufferBuilder &_fbb,
-    int16_t key = 0,
+    int16_t key = -32768,
     int16_t value = -32768) {
   ShortEntryBuilder builder_(_fbb);
   builder_.add_value(value);
@@ -393,7 +393,7 @@ struct IntEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_KEY = 4,
     VT_VALUE = 6
   };
-  int32_t key() const { return GetField<int32_t>(VT_KEY, 0); }
+  int32_t key() const { return GetField<int32_t>(VT_KEY, -2147483648); }
   bool mutate_key(int32_t _key) { return SetField(VT_KEY, _key); }
   bool KeyCompareLessThan(const IntEntry *o) const { return key() < o->key(); }
   int KeyCompareWithValue(int32_t val) const { return key() < val ? -1 : key() > val; }
@@ -410,7 +410,7 @@ struct IntEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct IntEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int32_t key) { fbb_.AddElement<int32_t>(IntEntry::VT_KEY, key, 0); }
+  void add_key(int32_t key) { fbb_.AddElement<int32_t>(IntEntry::VT_KEY, key, -2147483648); }
   void add_value(int32_t value) { fbb_.AddElement<int32_t>(IntEntry::VT_VALUE, value, -2147483648); }
   IntEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   IntEntryBuilder &operator=(const IntEntryBuilder &);
@@ -421,7 +421,7 @@ struct IntEntryBuilder {
 };
 
 inline flatbuffers::Offset<IntEntry> CreateIntEntry(flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t key = 0,
+    int32_t key = -2147483648,
     int32_t value = -2147483648) {
   IntEntryBuilder builder_(_fbb);
   builder_.add_value(value);

@@ -23,7 +23,7 @@ class IntEntry(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
-        return 0
+        return -2147483648
 
     # IntEntry
     def Value(self):
@@ -33,6 +33,6 @@ class IntEntry(object):
         return -2147483648
 
 def IntEntryStart(builder): builder.StartObject(2)
-def IntEntryAddKey(builder, key): builder.PrependInt32Slot(0, key, 0)
+def IntEntryAddKey(builder, key): builder.PrependInt32Slot(0, key, -2147483648)
 def IntEntryAddValue(builder, value): builder.PrependInt32Slot(1, value, -2147483648)
 def IntEntryEnd(builder): return builder.EndObject()

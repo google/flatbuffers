@@ -15,13 +15,13 @@ public struct ShortEntry : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public ShortEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public short Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)0; } }
+  public short Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)-32768; } }
   public bool MutateKey(short key) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, key); return true; } else { return false; } }
   public short Value { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)-32768; } }
   public bool MutateValue(short value) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, value); return true; } else { return false; } }
 
   public static Offset<ShortEntry> CreateShortEntry(FlatBufferBuilder builder,
-      short key = 0,
+      short key = -32768,
       short value = -32768) {
     builder.StartObject(2);
     ShortEntry.AddValue(builder, value);
@@ -30,7 +30,7 @@ public struct ShortEntry : IFlatbufferObject
   }
 
   public static void StartShortEntry(FlatBufferBuilder builder) { builder.StartObject(2); }
-  public static void AddKey(FlatBufferBuilder builder, short key) { builder.AddShort(0, key, 0); }
+  public static void AddKey(FlatBufferBuilder builder, short key) { builder.AddShort(0, key, -32768); }
   public static void AddValue(FlatBufferBuilder builder, short value) { builder.AddShort(1, value, -32768); }
   public static Offset<ShortEntry> EndShortEntry(FlatBufferBuilder builder) {
     int o = builder.EndObject();

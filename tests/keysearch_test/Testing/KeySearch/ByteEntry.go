@@ -27,7 +27,7 @@ func (rcv *ByteEntry) Key() int8 {
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
 	}
-	return 0
+	return -128
 }
 
 func (rcv *ByteEntry) MutateKey(n int8) bool {
@@ -50,7 +50,7 @@ func ByteEntryStart(builder *flatbuffers.Builder) {
 	builder.StartObject(2)
 }
 func ByteEntryAddKey(builder *flatbuffers.Builder, key int8) {
-	builder.PrependInt8Slot(0, key, 0)
+	builder.PrependInt8Slot(0, key, -128)
 }
 func ByteEntryAddValue(builder *flatbuffers.Builder, value int8) {
 	builder.PrependInt8Slot(1, value, -128)

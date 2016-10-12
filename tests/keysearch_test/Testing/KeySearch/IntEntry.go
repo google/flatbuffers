@@ -27,7 +27,7 @@ func (rcv *IntEntry) Key() int32 {
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
 	}
-	return 0
+	return -2147483648
 }
 
 func (rcv *IntEntry) MutateKey(n int32) bool {
@@ -50,7 +50,7 @@ func IntEntryStart(builder *flatbuffers.Builder) {
 	builder.StartObject(2)
 }
 func IntEntryAddKey(builder *flatbuffers.Builder, key int32) {
-	builder.PrependInt32Slot(0, key, 0)
+	builder.PrependInt32Slot(0, key, -2147483648)
 }
 func IntEntryAddValue(builder *flatbuffers.Builder, value int32) {
 	builder.PrependInt32Slot(1, value, -2147483648)
