@@ -318,18 +318,207 @@ public class Table {
     }
   };
 
-  protected int __lookupByLongKey(int fieldOffset, long key) {
-    if ( fieldOffset == 0 )
+  protected int __lookupByBooleanKey(int vectorFieldOffset, int keyFieldOffset, boolean queryKey) {
+    byte key = (byte)(queryKey ? 1 : 0);
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
       return 0;
-    int vectorLocation = __vector( fieldOffset );
-    int span = bb.getInt(vectorLocation-4);
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
     int start = 0;
-    vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      long val = bb.getLong(__offset(4, bb.array().length - tableOffset, bb));
-      int comp = val > key ? 1 : val < key ? -1 : 0;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      byte val = bb.get(tableOffset + keyValueOffset);
+      int comp = Comparators.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByByteKey(int vectorFieldOffset, int keyFieldOffset, int queryKey) {
+    byte key = (byte)queryKey;
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      byte val = bb.get(tableOffset + keyValueOffset);
+      int comp = Comparators.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByUByteKey(int vectorFieldOffset, int keyFieldOffset, int queryKey) {
+    byte key = (byte)queryKey;
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      byte val = bb.get(tableOffset + keyValueOffset);
+      int comp = Comparators.compareUnsigned(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByShortKey(int vectorFieldOffset, int keyFieldOffset, int queryKey) {
+    short key = (short)queryKey;
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      short val = bb.getShort(tableOffset + keyValueOffset);
+      int comp = Comparators.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByUShortKey(int vectorFieldOffset, int keyFieldOffset, int queryKey) {
+    short key = (short)queryKey;
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      short val = bb.getShort(tableOffset + keyValueOffset);
+      int comp = Comparators.compareUnsigned(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByIntKey(int vectorFieldOffset, int keyFieldOffset, int key) {
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int val = bb.getInt(tableOffset + keyValueOffset);
+      int comp = Comparators.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByUIntKey(int vectorFieldOffset, int keyFieldOffset, long queryKey) {
+    int key = (int)queryKey;
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int val = bb.getInt(tableOffset + keyValueOffset);
+      int comp = Comparators.compareUnsigned(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByLongKey(int vectorFieldOffset, int keyFieldOffset, long key) {
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      long val = bb.getLong(tableOffset + keyValueOffset);
+      int comp = Comparators.compare(val, key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -348,14 +537,92 @@ public class Table {
     if ( fieldDataOffset == 0 )
       return 0;
     int vectorLocation = __vector( fieldDataOffset );
-    int span = bb.getInt(vectorLocation-4);
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
       int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
       long val = bb.getLong(tableOffset + keyValueOffset);
       int comp = Comparators.compareUnsigned(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByFloatKey(int vectorFieldOffset, int keyFieldOffset, float key) {
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      float val = bb.getFloat(tableOffset + keyValueOffset);
+      int comp = Float.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByDoubleKey(int vectorFieldOffset, int keyFieldOffset, double key) {
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      double val = bb.getDouble(tableOffset + keyValueOffset);
+      int comp = Double.compare(val, key);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
+
+  protected int __lookupByStringKey(int vectorFieldOffset, int keyFieldOffset, String key) {
+    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    int fieldDataOffset = __offset(vectorFieldOffset);
+    if ( fieldDataOffset == 0 )
+      return 0;
+    int vectorLocation = __vector( fieldDataOffset );
+    int span = bb.getInt(vectorLocation-SIZEOF_INT);
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
+      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int comp = compareStrings(tableOffset + keyValueOffset, byteKey, bb);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {

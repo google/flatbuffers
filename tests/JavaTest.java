@@ -141,12 +141,9 @@ class JavaTest {
             TestEq(monster.testarrayoftables(2).name(), "Wilma");
 
             // Example of searching for a table by the key
-            TestEq(Monster.lookupByKey(sortMons, "Frodo", fbb.dataBuffer()).name(), "Frodo");
-            TestEq(Monster.lookupByKey(sortMons, "Barney", fbb.dataBuffer()).name(), "Barney");
-            TestEq(Monster.lookupByKey(sortMons, "Wilma", fbb.dataBuffer()).name(), "Wilma");
-            TestEq(monster.testarrayoftablesByKey("Frodo").name(), "Frodo");
-            TestEq(monster.testarrayoftablesByKey("Barney").name(), "Barney");
-            TestEq(monster.testarrayoftablesByKey("Wilma").name(), "Wilma");
+            TestEq(TestNotNull(monster.testarrayoftablesByKey("Frodo")).name(), "Frodo");
+            TestEq(TestNotNull(monster.testarrayoftablesByKey("Barney")).name(), "Barney");
+            TestEq(TestNotNull(monster.testarrayoftablesByKey("Wilma")).name(), "Wilma");
         }
 
         // testType is an existing field and mutating it should succeed
@@ -458,6 +455,8 @@ class JavaTest {
         TestEq( mdict.stringEntriesLength(), expectedSize);
         TestEq( mdict.floatEntriesLength(), expectedSize);
         TestEq( mdict.doubleEntriesLength(), expectedSize);
+        // check non existing entry
+        checkNonExistingEntries(mdict);
     }
 
     private static void TestKeySearchOneEntry() {
@@ -466,40 +465,69 @@ class JavaTest {
         TestEq(MasterDict.MasterDictBufferHasIdentifier(bb), true);
         MasterDict mdict = MasterDict.getRootAsMasterDict(bb);
         checkMasterDictEntriesSize(mdict, 1);
+        // check existing entry
         TestEq( TestNotNull( mdict.boolEntriesByKey(true) ).value(), true );
-// TODO fix code gen for bykey
+
         TestEq( TestNotNull( mdict.byteEntriesByKey((byte)-212) ).value(), (byte)-128 );
         TestEq( TestNotNull( mdict.shortEntriesByKey((short)-16123) ).value(), (short)-32768 );
         TestEq( TestNotNull( mdict.intEntriesByKey(-2123456789) ).value(), -2147483648 );
         TestEq( TestNotNull( mdict.longEntriesByKey(-41234567890L) ).value(), -9223372036854775808L );
-        //        TestEq( TestNotNull( mdict.bytesEntriesByKey(-212) ).value(), -128 );
-        //        TestEq( TestNotNull( mdict.shortEntriesByKey(-16123) ).value(), -32768 );
-        TestEq( TestNotNull( mdict.intEntriesByKey(-2123456789) ).value(), -2147483648 );
-        TestEq( TestNotNull( mdict.longEntriesByKey(-41234567890L) ).value(), -9223372036854775808L );
 
-//        TestEq( TestNotNull( mdict.ubytesEntriesByKey(212) ).value(), 255 );
-//        TestEq( TestNotNull( mdict.ushortEntriesByKey(61234) ).value(), 65535 );
-//        TestEq( TestNotNull( mdict.uintEntriesByKey(4123456789L) ).value(), 4294967295L );
+        TestEq( TestNotNull( mdict.ubyteEntriesByKey(212) ).value(), 255 );
+        TestEq( TestNotNull( mdict.ushortEntriesByKey(61234) ).value(), 65535 );
+        TestEq( TestNotNull( mdict.uintEntriesByKey(4123456789L) ).value(), 4294967295L );
         TestEq( TestNotNull( mdict.ulongEntriesByKey(41234567890L) ).value(), 9223372036854775807L );
+
+        TestEq( TestNotNull( mdict.floatEntriesByKey(12345.5f) ).value(), 1234f );
+        TestEq( TestNotNull( mdict.doubleEntriesByKey(1234567890.5) ).value(), 4567.0 );
+        TestEq( TestNotNull( mdict.stringEntriesByKey("some key") ).value(), 7890 );
+        // check non existing entry
+        checkNonExistingEntries(mdict);
+    }
+
+    private static void checkNonExistingEntries(MasterDict mdict) {
+        TestIsNull( mdict.boolEntriesByKey(false) );
+        TestIsNull( mdict.byteEntriesByKey((byte)-211) );
+        TestIsNull( mdict.shortEntriesByKey((short)-16120) );
+        TestIsNull( mdict.intEntriesByKey(-2123456780) );
+        TestIsNull( mdict.longEntriesByKey(-41234567891L) );
+        TestIsNull( mdict.ubyteEntriesByKey(213) );
+        TestIsNull( mdict.ushortEntriesByKey(61230) );
+        TestIsNull( mdict.uintEntriesByKey(4123456780L) );
+        TestIsNull( mdict.ulongEntriesByKey(41234567891L) );
+
+        TestIsNull( mdict.floatEntriesByKey(12345.0f) );
+        TestIsNull( mdict.doubleEntriesByKey(1234567890.0) );
+        TestIsNull( mdict.stringEntriesByKey("bad key") );
+        TestIsNull( mdict.stringEntriesByKey("not some key") );
+        TestIsNull( mdict.stringEntriesByKey("") );
     }
 
     private static void TestComparators()
     {
         // byte
         TestPositive(Comparators.compare((byte)10, (byte)5));
+        TestPositive(Comparators.compare(Byte.MAX_VALUE, Byte.MIN_VALUE));
         TestNegative(Comparators.compare((byte)-10, (byte)5));
+        TestNegative(Comparators.compare(Byte.MIN_VALUE, Byte.MAX_VALUE));
         TestEq(Comparators.compare((byte)-10, (byte)-10), 0);
         // short
         TestPositive(Comparators.compare((short)10, (short)5));
+        TestPositive(Comparators.compare(Short.MAX_VALUE, Short.MIN_VALUE));
         TestNegative(Comparators.compare((short)-10, (short)5));
+        TestNegative(Comparators.compare(Short.MIN_VALUE, Short.MAX_VALUE));
         TestEq(Comparators.compare((short)-10, (short)-10), 0);
         // int
         TestPositive(Comparators.compare(10, 5));
+        TestPositive(Comparators.compare(Integer.MAX_VALUE, Integer.MIN_VALUE));
         TestNegative(Comparators.compare(-10, 5));
+        TestNegative(Comparators.compare(Integer.MIN_VALUE, Integer.MAX_VALUE));
         TestEq(Comparators.compare(-10, -10), 0);
         // long
         TestPositive(Comparators.compare(10L, 5L));
+        TestPositive(Comparators.compare(Long.MAX_VALUE, Long.MIN_VALUE));
         TestNegative(Comparators.compare(-10L, 5L));
+        TestNegative(Comparators.compare(Long.MIN_VALUE, Long.MAX_VALUE));
         TestEq(Comparators.compare(-10L, -10L), 0);
         // ulong
         TestPositive(Comparators.compareUnsigned(0xff00123400000000L , 0xf500123400000000L));
@@ -564,5 +592,13 @@ class JavaTest {
             System.exit(1);
         }
         return a;
+    }
+
+    static <T> void TestIsNull(T a) {
+        if (a != null) {
+            System.out.println("FlatBuffers test FAILED: expected null but got '" + a + "'");
+            assert false; // Run test with -ea VM options to get callstack
+            System.exit(1);
+        }
     }
 }
