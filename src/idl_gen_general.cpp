@@ -1075,7 +1075,10 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "int o = __lookupBy" + GenElementTypeLookUp(*element_key_field);
       code += "Key(" + NumToString(field.value.offset);
       code += ", " + NumToString(element_key_field->value.offset);
-      code += ", key); ";
+      code += ", key";
+      if (element_key_field->value.type.base_type != BASE_TYPE_STRING)
+        code += ", " + GenDefaultValue(element_key_field->value);
+      code += "); ";
       code += "return o != 0 ? obj.__assign(o, bb) : null; }\n";
     }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
