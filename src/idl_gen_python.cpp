@@ -655,7 +655,7 @@ class PythonGenerator : public BaseGenerator {
     BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
     code += classcode;
     std::string filename = NamespaceDir(*def.defined_namespace) +
-                           kPathSeparator + def.name + ".py";
+                           def.name + ".py";
     return SaveFile(filename.c_str(), code, false);
   }
 };
