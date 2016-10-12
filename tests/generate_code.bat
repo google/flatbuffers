@@ -19,4 +19,4 @@ if "%1"=="-b" set buildtype=%2
 ..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test\namespace_test1.fbs namespace_test\namespace_test2.fbs
 ..\%buildtype%\flatc.exe --binary --schema monster_test.fbs
 ..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o keysearch_test keysearch_test/keysearch_test.fbs
-..\%buildtype%\flatc.exe --binary keysearch_test/keysearch_test.fbs keysearch_test/keysearch_test_empty_arrays.json keysearch_test/keysearch_test_1entry.json keysearch_test/keysearch_test_many.json
+..\%buildtype%\flatc.exe --binary -o keysearch_test keysearch_test/keysearch_test.fbs keysearch_test/keysearch_test_all_missing.json keysearch_test/keysearch_test_empty_arrays.json keysearch_test/keysearch_test_1entry.json keysearch_test/keysearch_test_many.json
