@@ -53,7 +53,7 @@ class ShortEntry extends Table
     public function getKey()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getShort($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getShort($o + $this->bb_pos) : -32768;
     }
 
     /**
@@ -94,7 +94,7 @@ class ShortEntry extends Table
      */
     public static function addKey(FlatBufferBuilder $builder, $key)
     {
-        $builder->addShortX(0, $key, 0);
+        $builder->addShortX(0, $key, -32768);
     }
 
     /**

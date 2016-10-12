@@ -23,7 +23,7 @@ class ByteEntry(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
-        return 0
+        return -128
 
     # ByteEntry
     def Value(self):
@@ -33,6 +33,6 @@ class ByteEntry(object):
         return -128
 
 def ByteEntryStart(builder): builder.StartObject(2)
-def ByteEntryAddKey(builder, key): builder.PrependInt8Slot(0, key, 0)
+def ByteEntryAddKey(builder, key): builder.PrependInt8Slot(0, key, -128)
 def ByteEntryAddValue(builder, value): builder.PrependInt8Slot(1, value, -128)
 def ByteEntryEnd(builder): return builder.EndObject()

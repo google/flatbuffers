@@ -53,7 +53,7 @@ class IntEntry extends Table
     public function getKey()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : -2147483648;
     }
 
     /**
@@ -94,7 +94,7 @@ class IntEntry extends Table
      */
     public static function addKey(FlatBufferBuilder $builder, $key)
     {
-        $builder->addIntX(0, $key, 0);
+        $builder->addIntX(0, $key, -2147483648);
     }
 
     /**

@@ -18,6 +18,9 @@ table MasterDict {
   stringEntries: [StringEntry];
 }
 
+// Remarks: we set default value for signed type keys below to check that 
+// the lookup correctly handle "missing" key (key that have the default value).
+// For unsigned types, this already occurs with value 0.
 
 table UByteEntry {
   key: ubyte (key);
@@ -25,7 +28,7 @@ table UByteEntry {
 }
 
 table ByteEntry {
-  key: byte (key);
+  key: byte = -128 (key);
   value: byte = -128;
 }
 
@@ -35,7 +38,7 @@ table BoolEntry {
 }
 
 table ShortEntry {
-  key: short (key);
+  key: short = -32768 (key);
   value: short = -32768;
 }
 
@@ -45,7 +48,7 @@ table UShortEntry {
 }
 
 table IntEntry {
-  key: int (key);
+  key: int = -2147483648 (key);
   value: int = -2147483648;
 }
 

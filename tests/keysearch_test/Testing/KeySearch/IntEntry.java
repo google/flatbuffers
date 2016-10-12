@@ -14,7 +14,7 @@ public final class IntEntry extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public IntEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public int key() { int o = __offset(4); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public int key() { int o = __offset(4); return o != 0 ? bb.getInt(o + bb_pos) : -2147483648; }
   public boolean mutateKey(int key) { int o = __offset(4); if (o != 0) { bb.putInt(o + bb_pos, key); return true; } else { return false; } }
   public int value() { int o = __offset(6); return o != 0 ? bb.getInt(o + bb_pos) : -2147483648; }
   public boolean mutateValue(int value) { int o = __offset(6); if (o != 0) { bb.putInt(o + bb_pos, value); return true; } else { return false; } }
@@ -29,7 +29,7 @@ public final class IntEntry extends Table {
   }
 
   public static void startIntEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, int key) { builder.addInt(0, key, 0); }
+  public static void addKey(FlatBufferBuilder builder, int key) { builder.addInt(0, key, -2147483648); }
   public static void addValue(FlatBufferBuilder builder, int value) { builder.addInt(1, value, -2147483648); }
   public static int endIntEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();

@@ -15,13 +15,13 @@ public struct ByteEntry : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public ByteEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public sbyte Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)0; } }
+  public sbyte Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)-128; } }
   public bool MutateKey(sbyte key) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, key); return true; } else { return false; } }
   public sbyte Value { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)-128; } }
   public bool MutateValue(sbyte value) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, value); return true; } else { return false; } }
 
   public static Offset<ByteEntry> CreateByteEntry(FlatBufferBuilder builder,
-      sbyte key = 0,
+      sbyte key = -128,
       sbyte value = -128) {
     builder.StartObject(2);
     ByteEntry.AddValue(builder, value);
@@ -30,7 +30,7 @@ public struct ByteEntry : IFlatbufferObject
   }
 
   public static void StartByteEntry(FlatBufferBuilder builder) { builder.StartObject(2); }
-  public static void AddKey(FlatBufferBuilder builder, sbyte key) { builder.AddSbyte(0, key, 0); }
+  public static void AddKey(FlatBufferBuilder builder, sbyte key) { builder.AddSbyte(0, key, -128); }
   public static void AddValue(FlatBufferBuilder builder, sbyte value) { builder.AddSbyte(1, value, -128); }
   public static Offset<ByteEntry> EndByteEntry(FlatBufferBuilder builder) {
     int o = builder.EndObject();

@@ -23,7 +23,7 @@ class ShortEntry(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int16Flags, o + self._tab.Pos)
-        return 0
+        return -32768
 
     # ShortEntry
     def Value(self):
@@ -33,6 +33,6 @@ class ShortEntry(object):
         return -32768
 
 def ShortEntryStart(builder): builder.StartObject(2)
-def ShortEntryAddKey(builder, key): builder.PrependInt16Slot(0, key, 0)
+def ShortEntryAddKey(builder, key): builder.PrependInt16Slot(0, key, -32768)
 def ShortEntryAddValue(builder, value): builder.PrependInt16Slot(1, value, -32768)
 def ShortEntryEnd(builder): return builder.EndObject()

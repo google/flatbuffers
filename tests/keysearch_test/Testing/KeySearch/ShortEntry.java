@@ -14,7 +14,7 @@ public final class ShortEntry extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public ShortEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public short key() { int o = __offset(4); return o != 0 ? bb.getShort(o + bb_pos) : 0; }
+  public short key() { int o = __offset(4); return o != 0 ? bb.getShort(o + bb_pos) : -32768; }
   public boolean mutateKey(short key) { int o = __offset(4); if (o != 0) { bb.putShort(o + bb_pos, key); return true; } else { return false; } }
   public short value() { int o = __offset(6); return o != 0 ? bb.getShort(o + bb_pos) : -32768; }
   public boolean mutateValue(short value) { int o = __offset(6); if (o != 0) { bb.putShort(o + bb_pos, value); return true; } else { return false; } }
@@ -29,7 +29,7 @@ public final class ShortEntry extends Table {
   }
 
   public static void startShortEntry(FlatBufferBuilder builder) { builder.startObject(2); }
-  public static void addKey(FlatBufferBuilder builder, short key) { builder.addShort(0, key, 0); }
+  public static void addKey(FlatBufferBuilder builder, short key) { builder.addShort(0, key, -32768); }
   public static void addValue(FlatBufferBuilder builder, short value) { builder.addShort(1, value, -32768); }
   public static int endShortEntry(FlatBufferBuilder builder) {
     int o = builder.endObject();
