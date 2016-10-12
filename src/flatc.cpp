@@ -126,7 +126,8 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --gen-onefile      Generate single output file for C#.\n"
       "  --gen-name-strings Generate type name functions for C++.\n"
       "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
-      "  --gen-object-api   Generate an additional object-based API\n"
+      "  --gen-object-api   Generate an additional object-based API.\n"
+      "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
@@ -214,6 +215,9 @@ int main(int argc, const char *argv[]) {
         opts.generate_name_strings = true;
       } else if(arg == "--gen-object-api") {
         opts.generate_object_based_api = true;
+      } else if (arg == "--cpp-ptr-type") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.cpp_object_api_pointer_type = argv[argi];
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
