@@ -717,6 +717,21 @@ std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
   return key_offset;
 }
 
+std::string GenBufferGetterForKeyGetter(flatbuffers::FieldDef *key_field,
+                                        std::string data_buffer = "") {
+  auto bool_appendix = "";
+  auto substr_ind = 2;
+  if (!data_buffer.size())
+    data_buffer = (lang_.language == IDLOptions::kCSharp) ?
+    "builder.DataBuffer" : "_bb";
+  if (key_field->value.type.base_type == BASE_TYPE_BOOL) {
+    bool_appendix = "0!=";
+    substr_ind = 5;
+  }
+  if (lang_.language == IDLOptions::kCSharp) substr_ind += 4;
+  return bool_appendix + data_buffer + GenGetter(key_field->value.type).substr(substr_ind);
+}
+
 std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
   std::string key_getter = "      ";
   key_getter += "int tableOffset = " + lang_.accessor_prefix_static;
@@ -728,14 +743,21 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
     key_getter += GenOffsetGetter(key_field);
     key_getter += ", byteKey, bb);\n";
   } else {
-    auto get_val = GenGetter(key_field->value.type) +
+    auto get_val = GenBufferGetterForKeyGetter(key_field, "bb") +
       "(" + GenOffsetGetter(key_field) + ")";
     if (lang_.language == IDLOptions::kCSharp) {
-      key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
+      key_getter += "int comp = ";
+      if (key_field->value.type.base_type == BASE_TYPE_BOOL) key_getter += "(";
+      key_getter += get_val;
+      if (key_field->value.type.base_type == BASE_TYPE_BOOL) key_getter += ")";
+      key_getter += ".CompareTo(key);\n";
     } else {
       key_getter += GenTypeGet(key_field->value.type) + " val = ";
       key_getter += get_val + ";\n";
-      key_getter += "      int comp = val > key ? 1 : val < key ? -1 : 0;\n";
+      if (key_field->value.type.base_type == BASE_TYPE_BOOL)
+        key_getter += "      int comp = val == true ? key == true ? 0 : 1 : key == true ? -1 : 0;\n";
+      else
+        key_getter += "      int comp = val > key ? 1 : val < key ? -1 : 0;\n";
     }
   }
   return key_getter;
@@ -755,27 +777,24 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
     key_getter += GenOffsetGetter(key_field, "o2") + ", " + data_buffer + ")";
     if (lang_.language == IDLOptions::kJava)
       key_getter += ";";
-  }
-  else {
-    auto substr_len = 2;
-    if (key_field->value.type.base_type == BASE_TYPE_BOOL) substr_len = 5;
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
+    else key_getter += ")";
+  } else {
+    auto field_getter = GenBufferGetterForKeyGetter(key_field) +
       "(" + GenOffsetGetter(key_field, "o1") + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
+      field_getter = GenBufferGetterForKeyGetter(key_field) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
-      key_getter += ".CompareTo(" + field_getter + ")";
-    }
-    else {
+      key_getter += ").CompareTo(" + field_getter + ")";
+    } else {
       key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
       key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
       key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
+      field_getter = GenBufferGetterForKeyGetter(key_field) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += field_getter + ";\n";
       if (key_field->value.type.base_type == BASE_TYPE_BOOL)
-        key_getter += "    return val_1 == true ? 0 : val_2 == true ? 1 : 0;\n ";
+        key_getter += "    return val_1 == true ? val_2 == true ? 0 : 1 : val_2 == true ? -1 : 0;\n ";
       else
         key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
@@ -1323,7 +1342,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
       code += "    Array.Sort(offsets, (Offset<" + struct_def.name +
-        "> o1, Offset<" + struct_def.name + "> o2) => " + GenKeyGetter(key_field);
+        "> o1, Offset<" + struct_def.name + "> o2) => (" + GenKeyGetter(key_field);
       code += ");\n";
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
     }
