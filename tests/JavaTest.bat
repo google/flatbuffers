@@ -17,5 +17,5 @@ rem Compile then run the Java test.
 
 set batch_file_dir=%~d0%~p0
 
-javac -g -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
-java -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest
+javac -g -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\keysearch_test JavaTest.java
+java -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\keysearch_test JavaTest
