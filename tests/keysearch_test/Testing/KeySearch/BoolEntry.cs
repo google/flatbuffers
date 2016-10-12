@@ -38,7 +38,7 @@ public struct BoolEntry : IFlatbufferObject
   }
 
   public static VectorOffset CreateMySortedVectorOfTables(FlatBufferBuilder builder, Offset<BoolEntry>[] offsets) {
-    Array.Sort(offsets, (Offset<BoolEntry> o1, Offset<BoolEntry> o2) => builder.DataBuffer=__p.bb.Get(Table.__offset(4, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer=__p.bb.Get(Table.__offset(4, o2.Value, builder.DataBuffer))));
+    Array.Sort(offsets, (Offset<BoolEntry> o1, Offset<BoolEntry> o2) => builder.DataBufferp.bb.Get(Table.__offset(4, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer=__p.bb.Get(Table.__offset(4, o2.Value, builder.DataBuffer))));
     return builder.CreateVectorOfTables(offsets);
   }
 
