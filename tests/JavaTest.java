@@ -435,7 +435,7 @@ class JavaTest {
     }
 
     private static void TestKeySearchEmpty() {
-        byte data[] = loadBinaryFile("keysearch_test_empty_arrays.mdict");
+        byte data[] = loadBinaryFile("keysearch_test/keysearch_test_empty_arrays.mdict");
         ByteBuffer bb = ByteBuffer.wrap(data);
         TestEq(MasterDict.MasterDictBufferHasIdentifier(bb), true);
         MasterDict mdict = MasterDict.getRootAsMasterDict(bb);
@@ -460,7 +460,7 @@ class JavaTest {
     }
 
     private static void TestKeySearchOneEntry() {
-        byte data[] = loadBinaryFile("keysearch_test_1entry.mdict");
+        byte data[] = loadBinaryFile("keysearch_test/keysearch_test_1entry.mdict");
         ByteBuffer bb = ByteBuffer.wrap(data);
         TestEq(MasterDict.MasterDictBufferHasIdentifier(bb), true);
         MasterDict mdict = MasterDict.getRootAsMasterDict(bb);
