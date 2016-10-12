@@ -76,6 +76,22 @@ inline const char **EnumNamesAny() {
 
 inline const char *EnumNameAny(Any e) { return EnumNamesAny()[static_cast<int>(e)]; }
 
+template<typename T> struct AnyTraits {
+  static const Any enum_value = Any_NONE;
+};
+
+template<> struct AnyTraits<Monster> {
+  static const Any enum_value = Any_Monster;
+};
+
+template<> struct AnyTraits<TestSimpleTableWithEnum> {
+  static const Any enum_value = Any_TestSimpleTableWithEnum;
+};
+
+template<> struct AnyTraits<MyGame::Example2::Monster> {
+  static const Any enum_value = Any_MyGame_Example2_Monster;
+};
+
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type);
 
 MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {

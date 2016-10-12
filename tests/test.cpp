@@ -465,7 +465,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Make sure the schema is what we expect it to be.
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
-  TEST_EQ_STR(root_table->name()->c_str(), "Monster");
+  TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
   auto fields = root_table->fields();
   auto hp_field_ptr = fields->LookupByKey("hp");
   TEST_NOTNULL(hp_field_ptr);
@@ -477,6 +477,14 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(friendly_field_ptr);
   TEST_NOTNULL(friendly_field_ptr->attributes());
   TEST_NOTNULL(friendly_field_ptr->attributes()->LookupByKey("priority"));
+
+  // Make sure the table index is what we expect it to be.
+  auto pos_field_ptr = fields->LookupByKey("pos");
+  TEST_NOTNULL(pos_field_ptr);
+  TEST_EQ(pos_field_ptr->type()->base_type(), reflection::Obj);
+  auto pos_table_ptr = schema.objects()->Get(pos_field_ptr->type()->index());
+  TEST_NOTNULL(pos_table_ptr);
+  TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
