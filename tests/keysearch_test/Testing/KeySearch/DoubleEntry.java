@@ -38,8 +38,8 @@ public final class DoubleEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    double val_1 = _bb.getDouble(__offset(4, o1, _bb));
-    double val_2 = _bb.getDouble(__offset(4, o2, _bb));
+    double val_1 = _bb.getDouble(o1+__offset(4, o1, _bb));
+    double val_2 = _bb.getDouble(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 }

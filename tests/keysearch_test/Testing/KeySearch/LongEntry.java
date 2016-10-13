@@ -38,8 +38,8 @@ public final class LongEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    long val_1 = _bb.getLong(__offset(4, o1, _bb));
-    long val_2 = _bb.getLong(__offset(4, o2, _bb));
+    long val_1 = _bb.getLong(o1+__offset(4, o1, _bb));
+    long val_2 = _bb.getLong(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 }

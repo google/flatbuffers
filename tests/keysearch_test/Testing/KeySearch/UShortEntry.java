@@ -38,8 +38,8 @@ public final class UShortEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    short val_1 = _bb.getShort(__offset(4, o1, _bb));
-    short val_2 = _bb.getShort(__offset(4, o2, _bb));
+    short val_1 = _bb.getShort(o1+__offset(4, o1, _bb));
+    short val_2 = _bb.getShort(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 }

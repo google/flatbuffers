@@ -38,8 +38,8 @@ public final class FloatEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    float val_1 = _bb.getFloat(__offset(4, o1, _bb));
-    float val_2 = _bb.getFloat(__offset(4, o2, _bb));
+    float val_1 = _bb.getFloat(o1+__offset(4, o1, _bb));
+    float val_2 = _bb.getFloat(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 }

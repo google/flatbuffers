@@ -38,8 +38,8 @@ public final class ByteEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    byte val_1 = _bb.get(__offset(4, o1, _bb));
-    byte val_2 = _bb.get(__offset(4, o2, _bb));
+    byte val_1 = _bb.get(o1+__offset(4, o1, _bb));
+    byte val_2 = _bb.get(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 }
