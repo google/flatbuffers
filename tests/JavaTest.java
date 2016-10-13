@@ -27,7 +27,7 @@ import com.google.flatbuffers.reflection.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
-    private static final boolean ENABLE_KEYBUG = false;
+    private static final boolean ENABLE_KEYBUG = true;
 
     public static void main(String[] args) {
 

@@ -237,10 +237,13 @@ public class Table {
    */
   protected void sortTables(int[] offsets, final ByteBuffer bb) {
     Integer[] off = new Integer[offsets.length];
+    final int bufferSize = bb.array().length;
     for (int i = 0; i < offsets.length; i++) off[i] = offsets[i];
     java.util.Arrays.sort(off, new java.util.Comparator<Integer>() {
       public int compare(Integer o1, Integer o2) {
-        return keysCompare(o1, o2, bb);
+        // createSortedVectorOfTables() is called with offset relative to the end of the bufer,
+        // we adjust them for keysCompare() that expect offset relative to the start of the buffer
+        return keysCompare(bufferSize-o1, bufferSize-o2, bb);
       }
     });
     for (int i = 0; i < offsets.length; i++) offsets[i] = off[i];

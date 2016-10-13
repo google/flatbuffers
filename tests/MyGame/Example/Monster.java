@@ -140,6 +140,6 @@ public final class Monster extends Table {
   public static void finishMonsterBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONS"); }
 
   @Override
-  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(o1, 10, _bb), o2+__offset(o2, 10, _bb), _bb); }
 }
 
