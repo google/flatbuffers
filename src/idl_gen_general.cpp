@@ -704,6 +704,8 @@ std::string GenByteBufferLength(const char *bb_name) {
 std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
                             const char *num = nullptr) {
   std::string key_offset = "";
+  if (lang_.language == IDLOptions::kJava && num)
+    key_offset += std::string(num) + "+";
   key_offset += lang_.accessor_prefix_static + "__offset(" +
     NumToString(key_field->value.offset) + ", ";
   if (num) {
@@ -759,9 +761,9 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
   else {
     // offset is used to strip "bb" or "0!=bb" from GenGetter() result
     auto offset = key_field->value.type.base_type == BASE_TYPE_BOOL ? 5 : 2;
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset) +
-      "(" + GenOffsetGetter(key_field, "o1") + ")";
     if (lang_.language == IDLOptions::kCSharp) {
+      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset) +
+        "(" + GenOffsetGetter(key_field, "o1") + ")";
       key_getter += field_getter;
       field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
@@ -771,12 +773,11 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       auto varType = GenTypeGet(key_field->value.type);
       if (lang_.language == IDLOptions::kJava &&  key_field->value.type.base_type == BASE_TYPE_BOOL)
         varType = "byte"; // boolean are not comparable in Java
+      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset);
       key_getter += "\n    " + varType + " val_1 = ";
-      key_getter += field_getter + ";\n    " + varType;
-      key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset) +
-        "(" + GenOffsetGetter(key_field, "o2") + ")";
-      key_getter += field_getter + ";\n";
+      key_getter += field_getter + "(" + GenOffsetGetter(key_field, "o1") + ");\n";
+      key_getter += "    " + varType + " val_2 = ";
+      key_getter += field_getter + "(" + GenOffsetGetter(key_field, "o2") + ");\n";
       key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
   }
