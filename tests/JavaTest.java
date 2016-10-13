@@ -523,7 +523,7 @@ class JavaTest {
     static int[] UBYTE_KEYS = { 0x0, 0x30, 0x47, 0x4b, 0x6f, (byte)0x80, (byte)0x90, (byte)0xff };
     static int[] USHORT_KEYS = { 0x0, 0x730, 0x1fe3, 0x68b1, 0x855f, 0xa1e4, 0xe2a8, 0xf43a, 0xffff };
     static int[] UINT_KEYS = { 0x0, 0x1beb3711, 0x72ae2244, 0x8a5006c1, 0x8c25166a, 0x8d1fd9b7, 0x966e1277, 0xb4e1357d, 0xeece328b, 0xffffffff };
-    static long[] ULONG_KEYS = { 0x0, 0xfebd845d0dfae43L, 0x38018b47b29a8b06L, 0x552116dd2ba4b180L, 0x5b7c709acb175a5aL, 0x73581a8146743741L, 0x9cdf5a865306f3f5L, 0xae3b16ec9a27d858L, 0xd857010255d44936L, 0xffffffffffffffffL };
+    static long[] ULONG_KEYS = { 0x0L, 0x151665705b7c709aL, 0x19c16a0d0febd845L, 0x1dfc83524562be7fL, 0x38701a14b490b608L, 0x3e37952d30bcab0eL, 0x552116dd2ba4b180L, 0x73581a8146743741L, 0x7c879b741d878f9fL, 0x7fffffffffffffffL };
     static String[] STRING_KEYS = { "", "Apple", "Apricot", "Avocado", "Banana", "Blackberry", "Blackcurrant", "Cherimoya", "Cherry", "Coconut", "Currant" };
     static long BYTE_TOTAL = 333;
     static long SHORT_TOTAL = 256;
@@ -538,11 +538,10 @@ class JavaTest {
 
     private static void TestKeySearchManyEntries() {
         MasterDict mdict = loadMasterDict("keysearch_test/keysearch_test_many.mdict");
-//        TestEq( TestNotNull( mdict.boolEntriesByKey(true) ).value(), false);
-//        TestEq( TestNotNull( mdict.boolEntriesByKey(false) ).value(), true);
+        TestEq( TestNotNull( mdict.boolEntriesByKey(true) ).value(), false);
+        TestEq( TestNotNull( mdict.boolEntriesByKey(false) ).value(), true);
 
         long sum = 0;
-        int index = 0;
         for ( byte key: BYTE_KEYS ) {
             sum += TestNotNull(mdict.byteEntriesByKey(key)).value();
         }
@@ -566,35 +565,35 @@ class JavaTest {
         }
         TestEq(sum, LONG_TOTAL);
 
-        // unsigned tests are failing because value "0" is not stored because it is the default value.
-//        sum = 0;
-//        index = 0;
-//        for ( int zi = 0; zi < UBYTE_KEYS.length; ++zi ) {
-//            System.out.println(mdict.ubyteEntries(zi).key());
-//        }
-//        for ( int  key: UBYTE_KEYS ) {
-//            TestEq( mdict.ubyteEntries(index++).key(), key );
-//            sum += TestNotNull(mdict.ubyteEntriesByKey(key)).value();
-//        }
-//        TestEq(sum, UBYTE_TOTAL);
+        sum = 0;
+        for ( int  key: UBYTE_KEYS ) {
+            sum += TestNotNull(mdict.ubyteEntriesByKey(key)).value();
+        }
+        TestEq(sum, UBYTE_TOTAL);
 
-//        sum = 0;
-//        for ( int  key: USHORT_KEYS ) {
-//            sum += TestNotNull(mdict.ushortEntriesByKey(key)).value();
-//        }
-//        TestEq(sum, USHORT_TOTAL);
+        sum = 0;
+        for ( int  key: USHORT_KEYS ) {
+            sum += TestNotNull(mdict.ushortEntriesByKey(key)).value();
+        }
+        TestEq(sum, USHORT_TOTAL);
 
-//        sum = 0;
-//        for ( int  key: UINT_KEYS ) {
-//            sum += TestNotNull(mdict.uintEntriesByKey(key)).value();
-//        }
-//        TestEq(sum, UINT_TOTAL);
+        sum = 0;
+        for ( int  key: UINT_KEYS ) {
+            sum += TestNotNull(mdict.uintEntriesByKey(key)).value();
+        }
+        TestEq(sum, UINT_TOTAL);
 
-//        sum = 0;
-//        for ( long key: ULONG_KEYS ) {
-//            sum += TestNotNull(mdict.ulongEntriesByKey(key)).value();
-//        }
-//        TestEq(sum, ULONG_TOTAL);
+        sum = 0;
+        for ( long key: ULONG_KEYS ) {
+            sum += TestNotNull(mdict.ulongEntriesByKey(key)).value();
+        }
+        TestEq(sum, ULONG_TOTAL);
+
+        sum = 0;
+        for ( String key: STRING_KEYS ) {
+            sum += TestNotNull(mdict.stringEntriesByKey(key)).value();
+        }
+        TestEq(sum, STRING_TOTAL);
     }
 
     private static void TestComparators() {

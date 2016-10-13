@@ -6,7 +6,6 @@ package com.google.flatbuffers;
 public class Comparators {
     private static final int UBYTE_MASK = 0xff;
     private static final int USHORT_MASK = 0xffff;
-    private static final long UINT_MASK = 0xffffffffL;
     private static final int UINT_SIGN_BIT = 0x80000000;
     private static final long ULONG_SIGN_BIT = 0x8000000000000000L;
 
@@ -27,14 +26,13 @@ public class Comparators {
     }
 
     public static int compareUnsigned(long a, long b) {
-        long delta = (a - b) ^ (a & ULONG_SIGN_BIT) ^ (b & ULONG_SIGN_BIT);
-        return delta > 0 ? 1 : delta < 0 ? -1 : 0;
+        // Toggling the bit sign makes ulong compare in the same order as long.
+        return compare(a ^ULONG_SIGN_BIT, b ^ULONG_SIGN_BIT);
     }
 
     public static int compareUnsigned(int a, int b) {
-//        long delta = (a & UINT_MASK) - (b & UINT_MASK);
-//        return delta > 0 ? 1 : delta < 0 ? -1 : 0;
-        return (a - b) ^ (a & UINT_SIGN_BIT) ^ (b & UINT_SIGN_BIT);
+        // Toggling the bit sign makes uint compare in the same order as int.
+        return compare(a ^ UINT_SIGN_BIT, b ^ UINT_SIGN_BIT);
     }
 
     public static int compareUnsigned(short a, short b) {
