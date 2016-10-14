@@ -1246,7 +1246,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           lang_.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + SourceCastBasic(field.value.type);
+      code += ", ";
+      if (lang_.language == IDLOptions::kJava)
+        code += SourceCastBasic( field.value.type );
       code += GenDefaultValue(field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
