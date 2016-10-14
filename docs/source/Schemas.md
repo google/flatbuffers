@@ -304,6 +304,10 @@ Current understood attributes:
 -   `key` (on a field): this field is meant to be used as a key when sorting
     a vector of the type of table it sits in. Can be used for in-place
     binary search.
+-   `hash` (on a field). This is an (un)signed 32/64 bit integer field, whose
+    value during JSON parsing is allowed to be a string, which will then be
+    stored as its hash. The value of attribute is the hashing algorithm to
+    use, one of `fnv1_32` `fnv1_64` `fnv1a_32` `fnv1a_64`.
 
 ## JSON Parsing
 

@@ -361,25 +361,32 @@ class CppGenerator : public BaseGenerator {
     return (inclass ? "static " : "") +
            std::string("flatbuffers::NativeTable *") +
            (inclass ? "" : enum_def.name + "Union::") +
-           "UnPack(const void *union_obj, " + enum_def.name + " type)";
+           "UnPack(const void *union_obj, " + enum_def.name +
+           " type, const flatbuffers::resolver_function_t *resolver)";
   }
 
   std::string UnionPackSignature(EnumDef &enum_def, bool inclass) {
     return "flatbuffers::Offset<void> " +
            (inclass ? "" : enum_def.name + "Union::") +
-           "Pack(flatbuffers::FlatBufferBuilder &_fbb) const";
+           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
+           "const flatbuffers::rehasher_function_t *rehasher" +
+           (inclass ? " = nullptr" : "") + ") const";
   }
 
-  std::string TableCreateSignature(StructDef &struct_def) {
+  std::string TableCreateSignature(StructDef &struct_def, bool predecl) {
     return "inline flatbuffers::Offset<" + struct_def.name + "> Create" +
            struct_def.name  +
            "(flatbuffers::FlatBufferBuilder &_fbb, const " +
-           NativeName(struct_def.name) + " *_o)";
+           NativeName(struct_def.name) +
+           " *_o, const flatbuffers::rehasher_function_t *rehasher" +
+           (predecl ? " = nullptr" : "") + ")";
   }
 
   std::string TableUnPackSignature(StructDef &struct_def, bool inclass) {
     return "std::unique_ptr<" + NativeName(struct_def.name) + "> " +
-           (inclass ? "" : struct_def.name + "::") + "UnPack() const";
+           (inclass ? "" : struct_def.name + "::") +
+           "UnPack(const flatbuffers::resolver_function_t *resolver" +
+           (inclass ? " = nullptr" : "") + ") const";
   }
 
   // Generate an enum declaration and an enum string lookup table.
@@ -541,7 +548,7 @@ class CppGenerator : public BaseGenerator {
         } else {
           code += ": return reinterpret_cast<const ";
           code += WrapInNameSpace(*ev.struct_def);
-          code += " *>(union_obj)->UnPack().release();\n";
+          code += " *>(union_obj)->UnPack(resolver).release();\n";
         }
       }
       code += "    default: return nullptr;\n  }\n}\n\n";
@@ -557,7 +564,7 @@ class CppGenerator : public BaseGenerator {
           code += ": return Create" + ev.struct_def->name;
           code += "(_fbb, reinterpret_cast<const ";
           code += NativeName(WrapInNameSpace(*ev.struct_def));
-          code += " *>(table)).Union();\n";
+          code += " *>(table), rehasher).Union();\n";
         }
       }
       code += "    default: return 0;\n  }\n}\n\n";
@@ -655,8 +662,10 @@ class CppGenerator : public BaseGenerator {
         auto &field = **it;
         if (!field.deprecated &&  // Deprecated fields won't be accessible.
             field.value.type.base_type != BASE_TYPE_UTYPE) {
-          code += "  " + GenTypeNative(field.value.type, false) + " ";
-          code += field.name + ";\n";
+          auto type = GenTypeNative(field.value.type, false);
+          auto cpp_type = field.attributes.Lookup("cpp_type");
+          code += "  " + (cpp_type ? cpp_type->constant + " *" : type+ " ") +
+                  field.name + ";\n";
         }
       }
       code += "};\n\n";
@@ -962,7 +971,7 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Generate a pre-declaration for a CreateX method that works with an
       // unpacked C++ object.
-      code += TableCreateSignature(struct_def) + ";\n\n";
+      code += TableCreateSignature(struct_def, true) + ";\n\n";
     }
   }
 
@@ -999,7 +1008,7 @@ class CppGenerator : public BaseGenerator {
                            WrapInNameSpace (*type.struct_def) + "(*" + val + "))";
                   }
                 } else {
-                  return val + "->UnPack()";
+                  return val + "->UnPack(resolver)";
                 }
               default:
                 return val;
@@ -1026,16 +1035,28 @@ class CppGenerator : public BaseGenerator {
               code += prefix + deref + union_field.name + ".type = _e;";
               break;
             }
-            case BASE_TYPE_UNION:
+            case BASE_TYPE_UNION: {
               code += prefix + dest + ".table = ";
               code += field.value.type.enum_def->name;
               code += "Union::UnPack(_e, ";
-              code += field.name + UnionTypeFieldSuffix() + "());";
+              code += field.name + UnionTypeFieldSuffix() + "(), resolver);";
               break;
-            default:
-              code += assign + gen_unpack_val(field.value.type, "_e", false);
+            }
+            default: {
+              auto cpp_type = field.attributes.Lookup("cpp_type");
+              if (cpp_type) {
+                code += prefix;
+                code += "if (resolver) (*resolver)(reinterpret_cast<void **>(&";
+                code += dest;
+                code += "), static_cast<flatbuffers::hash_value_t>(_e)); else ";
+                code += dest + " = nullptr";
+              } else {
+                code += assign;
+                code += gen_unpack_val(field.value.type, "_e", false);
+              }
               code += ";";
               break;
+            }
           }
           code += " };\n";
         }
@@ -1044,7 +1065,7 @@ class CppGenerator : public BaseGenerator {
       code += ">(_o);\n}\n\n";
 
       // Generate a CreateX method that works with an unpacked C++ object.
-      code += TableCreateSignature(struct_def) + " {\n";
+      code += TableCreateSignature(struct_def, false) + " {\n";
       auto before_return_statement = code.size();
       code += "  return Create";
       code += struct_def.name + "(_fbb";
@@ -1061,6 +1082,10 @@ class CppGenerator : public BaseGenerator {
             field_name += ".type";
           }
           auto accessor = "_o->" + field_name;
+          if (field.attributes.Lookup("cpp_type"))
+            accessor = "rehasher ? static_cast<" +
+                       GenTypeBasic(field.value.type, false) +
+                       ">((*rehasher)(" + accessor + ")) : 0";
           auto ptrprefix = accessor + " ? ";
           auto stlprefix = accessor + ".size() ? ";
           auto postfix = " : 0";
@@ -1091,7 +1116,7 @@ class CppGenerator : public BaseGenerator {
                     code += vector_type.struct_def->name + ">>(" + accessor;
                     code += ".size(), [&](size_t i) { return Create";
                     code += vector_type.struct_def->name + "(_fbb, " + accessor;
-                    code += "[i].get()); })";
+                    code += "[i].get(), rehasher); })";
                   }
                   break;
                 default:
@@ -1110,7 +1135,7 @@ class CppGenerator : public BaseGenerator {
               } else {
                 code += ptrprefix + "Create";
                 code += field.value.type.struct_def->name;
-                code += "(_fbb, " + accessor + ".get())" + postfix;
+                code += "(_fbb, " + accessor + ".get(), rehasher)" + postfix;
               }
               break;
             default:

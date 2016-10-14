@@ -106,6 +106,25 @@ To use:
     CreateMonster(fbb, monsterobj.get());     // Serialize into new buffer.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# External references.
+
+An additional feature of the object API is the ability to allow you to load
+multiple independent FlatBuffers, and have them refer to eachothers objects
+using hashes which are then represented as typed pointers in the object API.
+
+To make this work have a field in the objects you want to referred to which is
+using the string hashing feature (see `hash` attribute in the
+[schema](@ref flatbuffers_guide_writing_schema) documentation). Then you have
+a similar hash in the field referring to it, along with a `cpp_type`
+attribute specifying the C++ type this will refer to (this can be any C++
+type, and will get a `*` added).
+
+Then, in JSON or however you create these buffers, make sure they use the
+same string (or hash).
+
+When you call `UnPack` (or `Create`), you'll need a function that maps from
+hash to the object (see `resolver_function_t` for details).
+
 ## Reflection (& Resizing)
 
 There is experimental support for reflection in FlatBuffers, allowing you to
