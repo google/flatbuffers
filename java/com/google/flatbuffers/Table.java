@@ -61,7 +61,6 @@ public class Table {
    *
    * @param position position of this {@link Table} in the {@code ByteBuffer}.
    * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
-   * @return this {@link Table} initialized.
    */
   public void __init(int position, ByteBuffer bb) {
     bb_pos = position; this.bb = bb;
