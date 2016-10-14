@@ -982,6 +982,8 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Generate the UnPack() method.
       code += "inline " + TableUnPackSignature(struct_def, false) + " {\n";
+      // TODO
+      code += "  #ifdef __GNUC__\n    (void)resolver;\n  #endif\n";
       code += "  auto _o = new " + NativeName(struct_def.name) + "();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
@@ -1067,6 +1069,8 @@ class CppGenerator : public BaseGenerator {
       // Generate a CreateX method that works with an unpacked C++ object.
       code += TableCreateSignature(struct_def, false) + " {\n";
       auto before_return_statement = code.size();
+      //TODO
+      code += "  #ifdef __GNUC__\n    (void)rehasher;\n  #endif\n";
       code += "  return Create";
       code += struct_def.name + "(_fbb";
       bool any_fields = false;

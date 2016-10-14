@@ -597,12 +597,18 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example2 {
 
 inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new MonsterT();
   return std::unique_ptr<MonsterT>(_o);
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
   (void)_o;
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateMonster(_fbb);
 }
 
@@ -611,17 +617,26 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 inline std::unique_ptr<TestSimpleTableWithEnumT> TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new TestSimpleTableWithEnumT();
   { auto _e = color(); _o->color = _e; };
   return std::unique_ptr<TestSimpleTableWithEnumT>(_o);
 }
 
 inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateTestSimpleTableWithEnum(_fbb,
     _o->color);
 }
 
 inline std::unique_ptr<StatT> Stat::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new StatT();
   { auto _e = id(); if (_e) _o->id = _e->str(); };
   { auto _e = val(); _o->val = _e; };
@@ -630,6 +645,9 @@ inline std::unique_ptr<StatT> Stat::UnPack(const flatbuffers::resolver_function_
 }
 
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateStat(_fbb,
     _o->id.size() ? _fbb.CreateString(_o->id) : 0,
     _o->val,
@@ -637,6 +655,9 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new MonsterT();
   { auto _e = pos(); if (_e) _o->pos = std::unique_ptr<Vec3>(new Vec3(*_e)); };
   { auto _e = mana(); _o->mana = _e; };
@@ -670,6 +691,9 @@ inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_fun
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateMonster(_fbb,
     _o->pos ? _o->pos.get() : 0,
     _o->mana,

@@ -320,8 +320,17 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   auto resolver = flatbuffers::resolver_function_t([](void **pointer_adr,
                                                flatbuffers::hash_value_t hash) {
     // Don't actually do anything, leave variable null.
+    // keep gcc quite about unused params
+    #ifdef __GNUC__
+      (void)pointer_adr;
+      (void)hash;
+    #endif
   });
   auto rehasher = flatbuffers::rehasher_function_t([](void *pointer) {
+    // keep gcc quite about unused params
+    #ifdef __GNUC__
+      (void)pointer;
+    #endif
     return 0;
   });
 
