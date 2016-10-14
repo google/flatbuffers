@@ -493,6 +493,7 @@ class JavaTest {
         TestEq( TestNotNull( mdict.floatEntriesByKey(12345.5f) ).value(), 1234f );
         TestEq( TestNotNull( mdict.doubleEntriesByKey(1234567890.5) ).value(), 4567.0 );
         TestEq( TestNotNull( mdict.stringEntriesByKey("some key") ).value(), 7890 );
+        TestEq( TestNotNull( mdict.enumEntriesByKey(FruitFilter.Apricot) ).value(), 7412 );
         // check non existing entry
         checkNonExistingEntries(mdict);
     }
@@ -513,6 +514,8 @@ class JavaTest {
         TestIsNull( mdict.stringEntriesByKey("bad key") );
         TestIsNull( mdict.stringEntriesByKey("not some key") );
         TestIsNull( mdict.stringEntriesByKey("") );
+        TestIsNull( mdict.enumEntriesByKey(FruitFilter.Avocado) );
+        TestIsNull( mdict.enumEntriesByKey(FruitFilter.Avocado | FruitFilter.Blueberry) );
     }
 
 
@@ -527,17 +530,19 @@ class JavaTest {
     static float[] FLOAT_KEYS = { -1048576.0f, -936601.75f, -738210.75f, -664663.75f, -546537.0f, -526621.25f, -257863.25f, 503903.25f, 592275.0f, 1048576.0f };
     static double[] DOUBLE_KEYS = { -1125899906842624.0, -850797801804121.2, -810628627134711.5, -249540797891042.25, 1032376053261822.5, 1125899906842624.0 };
     static String[] STRING_KEYS = { "", "Apple", "Apricot", "Avocado", "Banana", "Blackberry", "Blackcurrant", "Cherimoya", "Cherry", "Coconut", "Currant" };
+    static int[] ENUM_KEYS = { 0, 38639505, 96807436, 161631183, 188062643, 234112573, 268435455 };
     static long BYTE_TOTAL = 333;
     static long SHORT_TOTAL = 256;
     static long INT_TOTAL = 132;
     static long LONG_TOTAL = 333;
-    static long STRING_TOTAL = 517;
     static long UBYTE_TOTAL = 288;
     static long USHORT_TOTAL = 369;
     static long UINT_TOTAL = 460;
     static long ULONG_TOTAL = 460;
     static long DOUBLE_TOTAL = 132;
     static long FLOAT_TOTAL = 420;
+    static long STRING_TOTAL = 517;
+    static long ENUM_TOTAL = 217;
 
 
     private static void TestKeySearchManyEntries() {
@@ -610,6 +615,12 @@ class JavaTest {
             sum += TestNotNull(mdict.stringEntriesByKey(key)).value();
         }
         TestEq(sum, STRING_TOTAL);
+
+        sum = 0;
+        for ( int key: ENUM_KEYS ) {
+            sum += TestNotNull(mdict.enumEntriesByKey(key)).value();
+        }
+        TestEq(sum, ENUM_TOTAL);
     }
 
     private static void TestComparators() {
