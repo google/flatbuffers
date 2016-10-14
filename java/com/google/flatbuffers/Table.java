@@ -87,12 +87,12 @@ public class Table {
   /**
    * Look up a field in the vtable.
    * Sames as new Table(table_offset, bb).__offset( vtable_offset )
-   * @param table_offset Offset of the table in bb (same as bb_pos field in Table).
    * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
+   * @param table_offset Offset of the table in bb (same as bb_pos field in Table).
    * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
    * @return Returns an offset into the object, or `0` if the field is not present.
    */
-  protected static int __offset(int table_offset, int vtable_offset, ByteBuffer bb) {
+  protected static int __offset(int vtable_offset, int table_offset, ByteBuffer bb) {
     int vtable = table_offset - bb.getInt(table_offset);
     return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
   }
@@ -322,7 +322,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       byte val = keyValueOffset != 0 ? bb.get(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compare(val, key);
       if (comp > 0) {
@@ -351,7 +351,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       byte val = keyValueOffset != 0 ? bb.get(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compareUnsigned(val, key);
       if (comp > 0) {
@@ -380,7 +380,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       short val = keyValueOffset != 0 ? bb.getShort(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compare(val, key);
       if (comp > 0) {
@@ -409,7 +409,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       short val = keyValueOffset != 0 ? bb.getShort(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compareUnsigned(val, key);
       if (comp > 0) {
@@ -436,7 +436,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       int val = keyValueOffset != 0 ? bb.getInt(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compare(val, key);
       if (comp > 0) {
@@ -465,7 +465,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       int val = keyValueOffset != 0 ? bb.getInt(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compareUnsigned(val, key);
       if (comp > 0) {
@@ -492,7 +492,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       long val = keyValueOffset != 0 ? bb.getLong(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compare(val, key);
       if (comp > 0) {
@@ -519,7 +519,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       long val = keyValueOffset != 0 ? bb.getLong(tableOffset + keyValueOffset) : defaultValue;
       int comp = Comparators.compareUnsigned(val, key);
       if (comp > 0) {
@@ -546,7 +546,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       float val = keyValueOffset != 0 ? bb.getFloat(tableOffset + keyValueOffset) : defaultValue;
       int comp = Float.compare(val, key);
       if (comp > 0) {
@@ -573,7 +573,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       double val = keyValueOffset != 0 ? bb.getDouble(tableOffset + keyValueOffset) : defaultValue;
       int comp = Double.compare(val, key);
       if (comp > 0) {
@@ -600,7 +600,7 @@ public class Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( tableOffset, keyFieldOffset, bb );
+      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
       int comp = compareStrings(tableOffset + keyValueOffset, byteKey, bb);
       if (comp > 0) {
         span = middle;
