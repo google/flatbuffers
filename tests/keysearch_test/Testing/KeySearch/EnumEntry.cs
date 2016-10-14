@@ -30,7 +30,7 @@ public struct EnumEntry : IFlatbufferObject
   }
 
   public static void StartEnumEntry(FlatBufferBuilder builder) { builder.StartObject(2); }
-  public static void AddKey(FlatBufferBuilder builder, FruitFilter key) { builder.AddInt(0, (int)key, 0); }
+  public static void AddKey(FlatBufferBuilder builder, FruitFilter key) { builder.AddInt(0, (int)key, (int)0); }
   public static void AddValue(FlatBufferBuilder builder, int value) { builder.AddInt(1, value, 7412); }
   public static Offset<EnumEntry> EndEnumEntry(FlatBufferBuilder builder) {
     int o = builder.EndObject();

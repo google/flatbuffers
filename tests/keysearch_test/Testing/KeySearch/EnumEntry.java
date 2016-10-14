@@ -38,32 +38,9 @@ public final class EnumEntry extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) {
-    int val_1 = _bb.getInt(__offset(4, o1, _bb));
-    int val_2 = _bb.getInt(__offset(4, o2, _bb));
+    int val_1 = _bb.getInt(o1+__offset(4, o1, _bb));
+    int val_2 = _bb.getInt(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
-  }
-
-  public static EnumEntry lookupByKey(int vectorOffset, int key, ByteBuffer bb) {
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int val = bb.getInt(__offset(4, bb.array().length - tableOffset, bb));
-      int comp = val > key ? 1 : val < key ? -1 : 0;
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new EnumEntry().__assign(tableOffset, bb);
-      }
-    }
-    return null;
   }
 }
 
