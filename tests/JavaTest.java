@@ -193,7 +193,7 @@ class JavaTest {
 
         TestCreateUninitializedVector();
 
-        TestReflection(bb);
+        TestReflection();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -353,7 +353,7 @@ class JavaTest {
         TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
     }
 
-    static void TestReflection(ByteBuffer flatbuf) {
+    static void TestReflection() {
         byte[] data = null;
         File file = new File("monster_test.bfbs");
         RandomAccessFile f = null;
@@ -376,7 +376,6 @@ class JavaTest {
         }
 
         // Now test it:
-
         ByteBuffer bb = ByteBuffer.wrap(data);
         Schema schema = Schema.getRootAsSchema(bb);
         com.google.flatbuffers.reflection.Object rootTable = schema.rootTable();
@@ -386,40 +385,20 @@ class JavaTest {
         TestEq(hpField.name(), "hp");
         TestEq(hpField.id(), 2);
         // Now use it to dynamically access a buffer.
-        Table root = Reflection.getRootTable(flatbuf);
 
-        // maybe we can move those methods to the Table class...
-        boolean hasHp = Reflection.hasValue(root, hpField);
-        TestEq(hasHp, true);
-        short shortHp = Reflection.getShortField(root, hpField);
-        //TODO see with Wouter if he prefers this form
-//        short shortHp = Reflection.shortField(root, hpField);
-        TestEq(shortHp, (short) 80);
-        Field manaField = rootTable.fieldsByKey("mana");
-        boolean hasMana = Reflection.hasValue(root, manaField);
-        TestEq(hasMana, false);
-        short shortMana = Reflection.getShortField(root, manaField);
-        TestEq(shortMana, (short) 150);
-        shortMana = Reflection.getShortField(root, manaField, (short) 42);
-        TestEq(shortMana, (short) 42);
-        // test wrong type access
-        Field nameField = rootTable.fieldsByKey("name");
-        try {
-            Reflection.getShortField(root, nameField);
-            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
-        } catch (IllegalArgumentException ex) {
-            // expected exception
-        }
-
-        // wait to stabilized the api first before applying on all scalar types
-//        int hp = Reflection.getIntField(root, hpField); //<- maybe provide a way to specify your default
-//        TestEq(hp, 80);
-//        long longField = Reflection.getLongField(root, rootTable.field("testhashs64Fnv1")); //<- maybe provide a way to specify your default
-//        TestEq(longField, 80L);
-//        float floatField = Reflection.getFloatField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
-//        TestEq(floatField, 80.0F);
-//        double doubleField = Reflection.getDoubleField(root, rootTable.field("testf")); //<- maybe provide a way to specify your default
-//        TestEq(doubleField, 80.0F);
+        TestReflectionBool(rootTable);
+        TestReflectionByte(rootTable);
+        TestReflectionUByte(rootTable);
+        TestReflectionShort(rootTable);
+        TestReflectionUShort(schema);
+        TestReflectionInt(rootTable);
+        TestReflectionUInt(rootTable);
+        TestReflectionLong(rootTable);
+        TestReflectionULong(rootTable);
+        TestReflectionFloat(rootTable);
+        TestReflectionDouble(rootTable);
+        TestReflectionString(schema);
+        TestReflectionObj(rootTable);
 
         //TODO see with Wouter which method naming convention he prefers?
 //        hp = Reflection.getAsIntField(root, hpField);
@@ -439,15 +418,506 @@ class JavaTest {
 //        String stringHp = Reflection.getFieldAsString(root, hpField);
 //        TestEq(stringHp, "80");
 
-        // We can also modify it.
+
+    }
+
+    static void TestReflectionBool(com.google.flatbuffers.reflection.Object rootTable) {
+        // Now use it to dynamically access a buffer.
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test-short");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        Field nameField = rootTable.fieldsByKey("name");
+
+        //test not valued boolean
+        Field testboolField = rootTable.fieldsByKey("testbool");
+        boolean hasTestbool = Reflection.hasValue(root, testboolField);
+        TestEq(hasTestbool, false);
+        boolean testbool = Reflection.getBoolField(root, testboolField);
+        TestEq(testbool, false);
+        testbool = Reflection.getBoolField(root, testboolField, true);
+        TestEq(testbool, true);
+        TestEq(Reflection.setBoolField(root, testboolField, true), false);
+        testbool = Reflection.getBoolField(root, testboolField);
+        TestEq(testbool, false);
+        // test valued boolean
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test-bool");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestbool(fbb, true);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+        hasTestbool = Reflection.hasValue(root, testboolField);
+        TestEq(hasTestbool, true);
+        testbool = Reflection.getBoolField(root, testboolField);
+        TestEq(testbool, true);
+        testbool = Reflection.getBoolField(root, testboolField, false);
+        TestEq(testbool, true);
+        TestEq(Reflection.setBoolField(root, testboolField, false), true);
+        testbool = Reflection.getBoolField(root, testboolField);
+        TestEq(testbool, false);
+        // test wrong type access
+        try {
+            Reflection.getBoolField(root, nameField);
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionByte(com.google.flatbuffers.reflection.Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on byte");
+    }
+    static void TestReflectionUByte(com.google.flatbuffers.reflection.Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on ubyte");
+    }
+
+    static void TestReflectionShort(com.google.flatbuffers.reflection.Object rootTable) {
+        // Now use it to dynamically access a buffer.
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test-short");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addHp(fbb, (short) 80);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        Field hpField = rootTable.fieldsByKey("hp");
+        Field nameField = rootTable.fieldsByKey("name");
+
+        // test valued short
+        boolean hasHp = Reflection.hasValue(root, hpField);
+        TestEq(hasHp, true);
+        short shortHp = Reflection.getShortField(root, hpField);
+        TestEq(shortHp, (short) 80);
         TestEq(Reflection.setShortField(root, hpField, (short) 200), true);
         shortHp = Reflection.getShortField(root, hpField); //<- maybe provide a way to specify your default
         TestEq(shortHp, (short) 200);
+        // Reset it, for further tests.
+        TestEq(Reflection.setShortField(root, hpField, (short) hpField.defaultInteger()), true);
+        // test not valued short
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test-short");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        Field manaField = rootTable.fieldsByKey("mana");
+        boolean hasMana = Reflection.hasValue(root, manaField);
+        TestEq(hasMana, false);
+        short shortMana = Reflection.getShortField(root, manaField);
+        TestEq(shortMana, (short) 150);
+        shortMana = Reflection.getShortField(root, manaField, (short) 42);
+        TestEq(shortMana, (short) 42);
         TestEq(Reflection.setShortField(root, manaField, (short) 42), false);
         shortMana = Reflection.getShortField(root, manaField);
         TestEq(shortMana, (short) 150);
-        // Reset it, for further tests.
-        TestEq(Reflection.setShortField(root, hpField, (short) hpField.defaultInteger()), true);
+
+        // test wrong type access
+        try {
+            Reflection.getShortField(root, nameField);
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionUShort(Schema schema) {
+        // not valuated
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        Stat.startStat(fbb);
+        int mon = Stat.endStat(fbb);
+        fbb.finish(mon, "STAT");
+        com.google.flatbuffers.reflection.Object rootTable = Reflection.getSchemaChildTable(schema,"testempty");
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        Field field = rootTable.fieldsByKey("count");
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int fieldValue = Reflection.getUShortField(root, field);
+        TestEq(fieldValue, 0);
+        fieldValue = Reflection.getUShortField(root, field, 42);
+        TestEq(fieldValue, 42);
+        TestEq(Reflection.setUShortField(root, field, 42), false);
+        fieldValue = Reflection.getUShortField(root, field);
+        TestEq(fieldValue, 0);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        Stat.startStat(fbb);
+        Stat.addCount(fbb, Short.MAX_VALUE + 1);
+        mon = Stat.endStat(fbb);
+        fbb.finish(mon, "STAT");
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        field = rootTable.fieldsByKey("count");
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getUShortField(root, field);
+        TestEq(fieldValue, Short.MAX_VALUE + 1);
+        fieldValue = Reflection.getUShortField(root, field, Short.MAX_VALUE + 2);
+        TestEq(fieldValue, Short.MAX_VALUE + 1);
+        TestEq(Reflection.setUShortField(root, field, Short.MAX_VALUE + 2), true);
+        fieldValue = Reflection.getUShortField(root, field);
+        TestEq(fieldValue, Short.MAX_VALUE + 2);
+        // test wrong type access
+        try {
+            Reflection.getUShortField(root, rootTable.fieldsByKey("id"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+
+    }
+
+    static void TestReflectionInt(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated
+        Field field = rootTable.fieldsByKey("testhashs32_fnv1");
+
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int fieldValue = Reflection.getIntField(root, field);
+        TestEq(fieldValue, 0);
+        fieldValue = Reflection.getIntField(root, field, 42);
+        TestEq(fieldValue, 42);
+        TestEq(Reflection.setIntField(root, field, 42), false);
+        fieldValue = Reflection.getIntField(root, field);
+        TestEq(fieldValue, 0);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTesthashs32Fnv1(fbb, 42);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getIntField(root, field);
+        TestEq(fieldValue, 42);
+        fieldValue = Reflection.getIntField(root, field, 0);
+        TestEq(fieldValue, 42);
+        TestEq(Reflection.setIntField(root, field, 1), true);
+        fieldValue = Reflection.getIntField(root, field);
+        TestEq(fieldValue, 1);
+        // test wrong type access
+        try {
+            Reflection.getIntField(root, rootTable.fieldsByKey("hp"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionUInt(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated
+        Field field = rootTable.fieldsByKey("testhashu32_fnv1");
+
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        long fieldValue = Reflection.getUIntField(root, field);
+        TestEq(fieldValue, 0L);
+        fieldValue = Reflection.getUIntField(root, field, Integer.MAX_VALUE + 1L);
+        TestEq(fieldValue, Integer.MAX_VALUE + 1L);
+        TestEq(Reflection.setUIntField(root, field, Integer.MAX_VALUE + 1L), false);
+        fieldValue = Reflection.getUIntField(root, field);
+        TestEq(fieldValue, 0L);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getUIntField(root, field);
+        TestEq(fieldValue, Integer.MAX_VALUE + 1L);
+        fieldValue = Reflection.getUIntField(root, field, Integer.MAX_VALUE + 1L);
+        TestEq(fieldValue, Integer.MAX_VALUE + 1L);
+        TestEq(Reflection.setUIntField(root, field, 1L), true);
+        fieldValue = Reflection.getUIntField(root, field);
+        TestEq(fieldValue, 1L);
+        // test wrong type access
+        try {
+            Reflection.getUIntField(root, rootTable.fieldsByKey("hp"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionLong(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated
+        Field field = rootTable.fieldsByKey("testhashs64_fnv1");
+
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        long fieldValue = Reflection.getLongField(root, field);
+        TestEq(fieldValue, 0L);
+        fieldValue = Reflection.getLongField(root, field, 42);
+        TestEq(fieldValue, 42L);
+        TestEq(Reflection.setLongField(root, field, 42), false);
+        fieldValue = Reflection.getLongField(root, field);
+        TestEq(fieldValue, 0L);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTesthashs64Fnv1(fbb, 42);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getLongField(root, field);
+        TestEq(fieldValue, 42L);
+        fieldValue = Reflection.getLongField(root, field, 0);
+        TestEq(fieldValue, 42L);
+        TestEq(Reflection.setLongField(root, field, 1), true);
+        fieldValue = Reflection.getLongField(root, field);
+        TestEq(fieldValue, 1L);
+        // test wrong type access
+        try {
+            Reflection.getIntField(root, rootTable.fieldsByKey("hp"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionULong(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated
+        Field field = rootTable.fieldsByKey("testhashu64_fnv1");
+
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        long fieldValue = Reflection.getULongField(root, field);
+        TestEq(fieldValue, 0L);
+        fieldValue = Reflection.getULongField(root, field, Long.MAX_VALUE + 1L);
+        TestEq(fieldValue, Long.MAX_VALUE + 1L);
+        TestEq(Reflection.setULongField(root, field, Long.MAX_VALUE + 1L), false);
+        fieldValue = Reflection.getULongField(root, field);
+        TestEq(fieldValue, 0L);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTesthashu64Fnv1(fbb, Long.MAX_VALUE + 1L);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getULongField(root, field);
+        TestEq(fieldValue, Long.MAX_VALUE + 1L);
+        fieldValue = Reflection.getULongField(root, field, Long.MAX_VALUE + 1L);
+        TestEq(fieldValue, Long.MAX_VALUE + 1L);
+        TestEq(Reflection.setULongField(root, field, 1L), true);
+        fieldValue = Reflection.getULongField(root, field);
+        TestEq(fieldValue, 1L);
+        // test wrong type access
+        try {
+            Reflection.getULongField(root, rootTable.fieldsByKey("hp"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionFloat(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated
+        Field field = rootTable.fieldsByKey("testf3");
+
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        float fieldValue = Reflection.getFloatField(root, field);
+        TestEq(fieldValue, 0F);
+        fieldValue = Reflection.getFloatField(root, field, 42);
+        TestEq(fieldValue, 42F);
+        TestEq(Reflection.setFloatField(root, field, 42), false);
+        fieldValue = Reflection.getFloatField(root, field);
+        TestEq(fieldValue, 0F);
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestf3(fbb, 42);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getFloatField(root, field);
+        TestEq(fieldValue, 42F);
+        fieldValue = Reflection.getFloatField(root, field, 0);
+        TestEq(fieldValue, 42F);
+        TestEq(Reflection.setFloatField(root, field, 1.1F), true);
+        fieldValue = Reflection.getFloatField(root, field);
+        TestEq(fieldValue, 1.1F);
+        // test wrong type access
+        try {
+            Reflection.getFloatField(root, rootTable.fieldsByKey("hp"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+    static void TestReflectionString(Schema schema) {
+        // not valuated
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        Stat.startStat(fbb);
+        int mon = Stat.endStat(fbb);
+        fbb.finish(mon, "STAT");
+        com.google.flatbuffers.reflection.Object rootTable = Reflection.getSchemaChildTable(schema,"testempty");
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        Field field = rootTable.fieldsByKey("id");
+
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        String fieldValue = Reflection.getStringField(root, field);
+        TestEq(fieldValue == null, true);
+        fieldValue = Reflection.getStringField(root, field, "42");
+        TestEq(fieldValue, "42");
+
+        // valuated
+        fbb = new FlatBufferBuilder(1);
+        int idPos = fbb.createString("test");
+        Stat.startStat(fbb);
+        Stat.addId(fbb, idPos);
+        mon = Stat.endStat(fbb);
+        fbb.finish(mon, "STAT");
+        rootTable = Reflection.getSchemaChildTable(schema,"testempty");
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        fieldValue = Reflection.getStringField(root, field);
+        TestEq(fieldValue, "test");
+        fieldValue = Reflection.getStringField(root, field, null);
+        TestEq(fieldValue, "test");
+        // test wrong type access
+        try {
+            Reflection.getIntField(root, rootTable.fieldsByKey("count"));
+            throw new AssertionError("Expected IllegalArgumentException when access a field of wrong type");
+        } catch (IllegalArgumentException ex) {
+            // expected exception
+        }
+    }
+
+
+    static void TestReflectionObj(com.google.flatbuffers.reflection.Object rootTable) {
+        // not valuated obj
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test-obj");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+
+        Field field = rootTable.fieldsByKey("testempty");
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        Table childTable = Reflection.getObjField(root, field);
+        TestEq(childTable == null, true);
+        Table toReuse = new Table();
+        childTable = Reflection.getObjField(root, field, toReuse);
+        TestEq(childTable == null, true);
+
+        // valuated obj
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test-obj");
+        Stat.startStat(fbb);
+        int i = Stat.endStat(fbb);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestempty(fbb, i);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+
+        field = rootTable.fieldsByKey("testempty");
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        childTable = Reflection.getObjField(root, field);
+        TestEq(childTable != null, true);
+        toReuse = new Table();
+        childTable = Reflection.getObjField(root, field, toReuse);
+        //memory equality check
+        TestEq(childTable == toReuse, true);
+    }
+
+    static void TestReflectionDouble(com.google.flatbuffers.reflection.Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on double");
     }
 
     static <T> void TestEq(T a, T b) {
