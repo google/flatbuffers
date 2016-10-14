@@ -10,5 +10,6 @@
   "longEntries": [{"key": -41234567890}],
   "ulongEntries": [{"key": 41234567890}],
   "doubleEntries": [{"key": 1234567890.5}],
-  "stringEntries": [{"key": "some key"}]
+  "stringEntries": [{"key": "some key"}],
+  "enumEntries": [{"key": "Apricot"}]
 }
