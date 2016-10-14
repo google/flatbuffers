@@ -51,6 +51,9 @@ public final class MasterDict extends Table {
   public StringEntry stringEntries(int j) { return stringEntries(new StringEntry(), j); }
   public StringEntry stringEntries(StringEntry obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int stringEntriesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
+  public EnumEntry enumEntries(int j) { return enumEntries(new EnumEntry(), j); }
+  public EnumEntry enumEntries(EnumEntry obj, int j) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int enumEntriesLength() { int o = __offset(28); return o != 0 ? __vector_len(o) : 0; }
 
   public static int createMasterDict(FlatBufferBuilder builder,
       int ubyteEntriesOffset,
@@ -64,8 +67,10 @@ public final class MasterDict extends Table {
       int longEntriesOffset,
       int ulongEntriesOffset,
       int doubleEntriesOffset,
-      int stringEntriesOffset) {
-    builder.startObject(12);
+      int stringEntriesOffset,
+      int enumEntriesOffset) {
+    builder.startObject(13);
+    MasterDict.addEnumEntries(builder, enumEntriesOffset);
     MasterDict.addStringEntries(builder, stringEntriesOffset);
     MasterDict.addDoubleEntries(builder, doubleEntriesOffset);
     MasterDict.addUlongEntries(builder, ulongEntriesOffset);
@@ -81,7 +86,7 @@ public final class MasterDict extends Table {
     return MasterDict.endMasterDict(builder);
   }
 
-  public static void startMasterDict(FlatBufferBuilder builder) { builder.startObject(12); }
+  public static void startMasterDict(FlatBufferBuilder builder) { builder.startObject(13); }
   public static void addUbyteEntries(FlatBufferBuilder builder, int ubyteEntriesOffset) { builder.addOffset(0, ubyteEntriesOffset, 0); }
   public static int createUbyteEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startUbyteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
@@ -118,6 +123,9 @@ public final class MasterDict extends Table {
   public static void addStringEntries(FlatBufferBuilder builder, int stringEntriesOffset) { builder.addOffset(11, stringEntriesOffset, 0); }
   public static int createStringEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startStringEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addEnumEntries(FlatBufferBuilder builder, int enumEntriesOffset) { builder.addOffset(12, enumEntriesOffset, 0); }
+  public static int createEnumEntriesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startEnumEntriesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMasterDict(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

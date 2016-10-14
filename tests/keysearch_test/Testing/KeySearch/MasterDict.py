@@ -258,7 +258,27 @@ class MasterDict(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MasterDictStart(builder): builder.StartObject(12)
+    # MasterDict
+    def EnumEntries(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .EnumEntry import EnumEntry
+            obj = EnumEntry()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # MasterDict
+    def EnumEntriesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MasterDictStart(builder): builder.StartObject(13)
 def MasterDictAddUbyteEntries(builder, ubyteEntries): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(ubyteEntries), 0)
 def MasterDictStartUbyteEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MasterDictAddByteEntries(builder, byteEntries): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(byteEntries), 0)
@@ -283,4 +303,6 @@ def MasterDictAddDoubleEntries(builder, doubleEntries): builder.PrependUOffsetTR
 def MasterDictStartDoubleEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MasterDictAddStringEntries(builder, stringEntries): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(stringEntries), 0)
 def MasterDictStartStringEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MasterDictAddEnumEntries(builder, enumEntries): builder.PrependUOffsetTRelativeSlot(12, flatbuffers.number_types.UOffsetTFlags.py_type(enumEntries), 0)
+def MasterDictStartEnumEntriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MasterDictEnd(builder): return builder.EndObject()
