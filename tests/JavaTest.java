@@ -524,6 +524,8 @@ class JavaTest {
     static int[] USHORT_KEYS = { 0x0, 0x730, 0x1fe3, 0x68b1, 0x855f, 0xa1e4, 0xe2a8, 0xf43a, 0xffff };
     static int[] UINT_KEYS = { 0x0, 0x1beb3711, 0x72ae2244, 0x8a5006c1, 0x8c25166a, 0x8d1fd9b7, 0x966e1277, 0xb4e1357d, 0xeece328b, 0xffffffff };
     static long[] ULONG_KEYS = { 0x0L, 0x151665705b7c709aL, 0x19c16a0d0febd845L, 0x1dfc83524562be7fL, 0x38701a14b490b608L, 0x3e37952d30bcab0eL, 0x552116dd2ba4b180L, 0x73581a8146743741L, 0x7c879b741d878f9fL, 0x7fffffffffffffffL };
+    static float[] FLOAT_KEYS = { -1048576.0f, -936601.75f, -738210.75f, -664663.75f, -546537.0f, -526621.25f, -257863.25f, 503903.25f, 592275.0f, 1048576.0f };
+    static double[] DOUBLE_KEYS = { -1125899906842624.0, -850797801804121.2, -810628627134711.5, -249540797891042.25, 1032376053261822.5, 1125899906842624.0 };
     static String[] STRING_KEYS = { "", "Apple", "Apricot", "Avocado", "Banana", "Blackberry", "Blackcurrant", "Cherimoya", "Cherry", "Coconut", "Currant" };
     static long BYTE_TOTAL = 333;
     static long SHORT_TOTAL = 256;
@@ -534,6 +536,8 @@ class JavaTest {
     static long USHORT_TOTAL = 369;
     static long UINT_TOTAL = 460;
     static long ULONG_TOTAL = 460;
+    static long DOUBLE_TOTAL = 132;
+    static long FLOAT_TOTAL = 420;
 
 
     private static void TestKeySearchManyEntries() {
@@ -588,6 +592,18 @@ class JavaTest {
             sum += TestNotNull(mdict.ulongEntriesByKey(key)).value();
         }
         TestEq(sum, ULONG_TOTAL);
+
+        sum = 0;
+        for ( float key: FLOAT_KEYS ) {
+            sum += TestNotNull(mdict.floatEntriesByKey(key)).value();
+        }
+        TestEq(sum, FLOAT_TOTAL);
+
+        sum = 0;
+        for ( double key: DOUBLE_KEYS ) {
+            sum += TestNotNull(mdict.doubleEntriesByKey(key)).value();
+        }
+        TestEq(sum, DOUBLE_TOTAL);
 
         sum = 0;
         for ( String key: STRING_KEYS ) {
