@@ -13,6 +13,40 @@ var Testing = Testing || {};
 Testing.KeySearch = Testing.KeySearch || {};
 
 /**
+ * @enum
+ */
+Testing.KeySearch.FruitFilter = {
+  Apple: 1,
+  Apricot: 2,
+  Avocado: 4,
+  Banana: 8,
+  Bilberry: 16,
+  Blackberry: 32,
+  Blackcurrant: 64,
+  Blueberry: 128,
+  Boysenberry: 256,
+  Currant: 512,
+  Cherry: 1024,
+  Cherimoya: 2048,
+  Cloudberry: 4096,
+  Coconut: 8192,
+  Cranberry: 16384,
+  Damson: 32768,
+  Date: 65536,
+  Dragonfruit: 131072,
+  Durian: 262144,
+  Elderberry: 524288,
+  Feijoa: 1048576,
+  Fig: 2097152,
+  Gojiberry: 4194304,
+  Gooseberry: 8388608,
+  Grape: 16777216,
+  Raisin: 33554432,
+  Grapefruit: 67108864,
+  Guava: 134217728
+};
+
+/**
  * @constructor
  */
 Testing.KeySearch.MasterDict = function() {
@@ -272,10 +306,28 @@ Testing.KeySearch.MasterDict.prototype.stringEntriesLength = function() {
 };
 
 /**
+ * @param {number} index
+ * @param {Testing.KeySearch.EnumEntry=} obj
+ * @returns {Testing.KeySearch.EnumEntry}
+ */
+Testing.KeySearch.MasterDict.prototype.enumEntries = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 28);
+  return offset ? (obj || new Testing.KeySearch.EnumEntry).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+Testing.KeySearch.MasterDict.prototype.enumEntriesLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 28);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 Testing.KeySearch.MasterDict.startMasterDict = function(builder) {
-  builder.startObject(12);
+  builder.startObject(13);
 };
 
 /**
@@ -623,6 +675,35 @@ Testing.KeySearch.MasterDict.createStringEntriesVector = function(builder, data)
  * @param {number} numElems
  */
 Testing.KeySearch.MasterDict.startStringEntriesVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} enumEntriesOffset
+ */
+Testing.KeySearch.MasterDict.addEnumEntries = function(builder, enumEntriesOffset) {
+  builder.addFieldOffset(12, enumEntriesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+Testing.KeySearch.MasterDict.createEnumEntriesVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+Testing.KeySearch.MasterDict.startEnumEntriesVector = function(builder, numElems) {
   builder.startVector(4, numElems, 4);
 };
 
@@ -1983,6 +2064,119 @@ Testing.KeySearch.StringEntry.addValue = function(builder, value) {
 Testing.KeySearch.StringEntry.endStringEntry = function(builder) {
   var offset = builder.endObject();
   builder.requiredField(offset, 4); // key
+  return offset;
+};
+
+/**
+ * @constructor
+ */
+Testing.KeySearch.EnumEntry = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {Testing.KeySearch.EnumEntry}
+ */
+Testing.KeySearch.EnumEntry.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {Testing.KeySearch.EnumEntry=} obj
+ * @returns {Testing.KeySearch.EnumEntry}
+ */
+Testing.KeySearch.EnumEntry.getRootAsEnumEntry = function(bb, obj) {
+  return (obj || new Testing.KeySearch.EnumEntry).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {Testing.KeySearch.FruitFilter}
+ */
+Testing.KeySearch.EnumEntry.prototype.key = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? /** @type {Testing.KeySearch.FruitFilter} */ (this.bb.readInt32(this.bb_pos + offset)) : 0;
+};
+
+/**
+ * @param {Testing.KeySearch.FruitFilter} value
+ * @returns {boolean}
+ */
+Testing.KeySearch.EnumEntry.prototype.mutate_key = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
+
+/**
+ * @returns {number}
+ */
+Testing.KeySearch.EnumEntry.prototype.value = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 7412;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+Testing.KeySearch.EnumEntry.prototype.mutate_value = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6)
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+Testing.KeySearch.EnumEntry.startEnumEntry = function(builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Testing.KeySearch.FruitFilter} key
+ */
+Testing.KeySearch.EnumEntry.addKey = function(builder, key) {
+  builder.addFieldInt32(0, key, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} value
+ */
+Testing.KeySearch.EnumEntry.addValue = function(builder, value) {
+  builder.addFieldInt32(1, value, 7412);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+Testing.KeySearch.EnumEntry.endEnumEntry = function(builder) {
+  var offset = builder.endObject();
   return offset;
 };
 

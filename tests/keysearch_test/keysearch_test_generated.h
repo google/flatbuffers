@@ -34,6 +34,41 @@ struct DoubleEntry;
 
 struct StringEntry;
 
+struct EnumEntry;
+
+enum FruitFilter {
+  FruitFilter_Apple = 1,
+  FruitFilter_Apricot = 2,
+  FruitFilter_Avocado = 4,
+  FruitFilter_Banana = 8,
+  FruitFilter_Bilberry = 16,
+  FruitFilter_Blackberry = 32,
+  FruitFilter_Blackcurrant = 64,
+  FruitFilter_Blueberry = 128,
+  FruitFilter_Boysenberry = 256,
+  FruitFilter_Currant = 512,
+  FruitFilter_Cherry = 1024,
+  FruitFilter_Cherimoya = 2048,
+  FruitFilter_Cloudberry = 4096,
+  FruitFilter_Coconut = 8192,
+  FruitFilter_Cranberry = 16384,
+  FruitFilter_Damson = 32768,
+  FruitFilter_Date = 65536,
+  FruitFilter_Dragonfruit = 131072,
+  FruitFilter_Durian = 262144,
+  FruitFilter_Elderberry = 524288,
+  FruitFilter_Feijoa = 1048576,
+  FruitFilter_Fig = 2097152,
+  FruitFilter_Gojiberry = 4194304,
+  FruitFilter_Gooseberry = 8388608,
+  FruitFilter_Grape = 16777216,
+  FruitFilter_Raisin = 33554432,
+  FruitFilter_Grapefruit = 67108864,
+  FruitFilter_Guava = 134217728,
+  FruitFilter_NONE = 0,
+  FruitFilter_ANY = 268435455
+};
+
 struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_UBYTEENTRIES = 4,
@@ -47,7 +82,8 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_LONGENTRIES = 20,
     VT_ULONGENTRIES = 22,
     VT_DOUBLEENTRIES = 24,
-    VT_STRINGENTRIES = 26
+    VT_STRINGENTRIES = 26,
+    VT_ENUMENTRIES = 28
   };
   const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *ubyteEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTEENTRIES); }
   flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *mutable_ubyteEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>> *>(VT_UBYTEENTRIES); }
@@ -73,6 +109,8 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>> *mutable_doubleEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>> *>(VT_DOUBLEENTRIES); }
   const flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *stringEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *>(VT_STRINGENTRIES); }
   flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *mutable_stringEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<StringEntry>> *>(VT_STRINGENTRIES); }
+  const flatbuffers::Vector<flatbuffers::Offset<EnumEntry>> *enumEntries() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<EnumEntry>> *>(VT_ENUMENTRIES); }
+  flatbuffers::Vector<flatbuffers::Offset<EnumEntry>> *mutable_enumEntries() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<EnumEntry>> *>(VT_ENUMENTRIES); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_UBYTEENTRIES) &&
@@ -111,6 +149,9 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_STRINGENTRIES) &&
            verifier.Verify(stringEntries()) &&
            verifier.VerifyVectorOfTables(stringEntries()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ENUMENTRIES) &&
+           verifier.Verify(enumEntries()) &&
+           verifier.VerifyVectorOfTables(enumEntries()) &&
            verifier.EndTable();
   }
 };
@@ -130,10 +171,11 @@ struct MasterDictBuilder {
   void add_ulongEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ULongEntry>>> ulongEntries) { fbb_.AddOffset(MasterDict::VT_ULONGENTRIES, ulongEntries); }
   void add_doubleEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>>> doubleEntries) { fbb_.AddOffset(MasterDict::VT_DOUBLEENTRIES, doubleEntries); }
   void add_stringEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringEntry>>> stringEntries) { fbb_.AddOffset(MasterDict::VT_STRINGENTRIES, stringEntries); }
+  void add_enumEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<EnumEntry>>> enumEntries) { fbb_.AddOffset(MasterDict::VT_ENUMENTRIES, enumEntries); }
   MasterDictBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MasterDictBuilder &operator=(const MasterDictBuilder &);
   flatbuffers::Offset<MasterDict> Finish() {
-    auto o = flatbuffers::Offset<MasterDict>(fbb_.EndTable(start_, 12));
+    auto o = flatbuffers::Offset<MasterDict>(fbb_.EndTable(start_, 13));
     return o;
   }
 };
@@ -150,8 +192,10 @@ inline flatbuffers::Offset<MasterDict> CreateMasterDict(flatbuffers::FlatBufferB
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<LongEntry>>> longEntries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ULongEntry>>> ulongEntries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>>> doubleEntries = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringEntry>>> stringEntries = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringEntry>>> stringEntries = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<EnumEntry>>> enumEntries = 0) {
   MasterDictBuilder builder_(_fbb);
+  builder_.add_enumEntries(enumEntries);
   builder_.add_stringEntries(stringEntries);
   builder_.add_doubleEntries(doubleEntries);
   builder_.add_ulongEntries(ulongEntries);
@@ -179,8 +223,9 @@ inline flatbuffers::Offset<MasterDict> CreateMasterDictDirect(flatbuffers::FlatB
     const std::vector<flatbuffers::Offset<LongEntry>> *longEntries = nullptr,
     const std::vector<flatbuffers::Offset<ULongEntry>> *ulongEntries = nullptr,
     const std::vector<flatbuffers::Offset<DoubleEntry>> *doubleEntries = nullptr,
-    const std::vector<flatbuffers::Offset<StringEntry>> *stringEntries = nullptr) {
-  return CreateMasterDict(_fbb, ubyteEntries ? _fbb.CreateVector<flatbuffers::Offset<UByteEntry>>(*ubyteEntries) : 0, byteEntries ? _fbb.CreateVector<flatbuffers::Offset<ByteEntry>>(*byteEntries) : 0, boolEntries ? _fbb.CreateVector<flatbuffers::Offset<BoolEntry>>(*boolEntries) : 0, shortEntries ? _fbb.CreateVector<flatbuffers::Offset<ShortEntry>>(*shortEntries) : 0, ushortEntries ? _fbb.CreateVector<flatbuffers::Offset<UShortEntry>>(*ushortEntries) : 0, intEntries ? _fbb.CreateVector<flatbuffers::Offset<IntEntry>>(*intEntries) : 0, uintEntries ? _fbb.CreateVector<flatbuffers::Offset<UIntEntry>>(*uintEntries) : 0, floatEntries ? _fbb.CreateVector<flatbuffers::Offset<FloatEntry>>(*floatEntries) : 0, longEntries ? _fbb.CreateVector<flatbuffers::Offset<LongEntry>>(*longEntries) : 0, ulongEntries ? _fbb.CreateVector<flatbuffers::Offset<ULongEntry>>(*ulongEntries) : 0, doubleEntries ? _fbb.CreateVector<flatbuffers::Offset<DoubleEntry>>(*doubleEntries) : 0, stringEntries ? _fbb.CreateVector<flatbuffers::Offset<StringEntry>>(*stringEntries) : 0);
+    const std::vector<flatbuffers::Offset<StringEntry>> *stringEntries = nullptr,
+    const std::vector<flatbuffers::Offset<EnumEntry>> *enumEntries = nullptr) {
+  return CreateMasterDict(_fbb, ubyteEntries ? _fbb.CreateVector<flatbuffers::Offset<UByteEntry>>(*ubyteEntries) : 0, byteEntries ? _fbb.CreateVector<flatbuffers::Offset<ByteEntry>>(*byteEntries) : 0, boolEntries ? _fbb.CreateVector<flatbuffers::Offset<BoolEntry>>(*boolEntries) : 0, shortEntries ? _fbb.CreateVector<flatbuffers::Offset<ShortEntry>>(*shortEntries) : 0, ushortEntries ? _fbb.CreateVector<flatbuffers::Offset<UShortEntry>>(*ushortEntries) : 0, intEntries ? _fbb.CreateVector<flatbuffers::Offset<IntEntry>>(*intEntries) : 0, uintEntries ? _fbb.CreateVector<flatbuffers::Offset<UIntEntry>>(*uintEntries) : 0, floatEntries ? _fbb.CreateVector<flatbuffers::Offset<FloatEntry>>(*floatEntries) : 0, longEntries ? _fbb.CreateVector<flatbuffers::Offset<LongEntry>>(*longEntries) : 0, ulongEntries ? _fbb.CreateVector<flatbuffers::Offset<ULongEntry>>(*ulongEntries) : 0, doubleEntries ? _fbb.CreateVector<flatbuffers::Offset<DoubleEntry>>(*doubleEntries) : 0, stringEntries ? _fbb.CreateVector<flatbuffers::Offset<StringEntry>>(*stringEntries) : 0, enumEntries ? _fbb.CreateVector<flatbuffers::Offset<EnumEntry>>(*enumEntries) : 0);
 }
 
 struct UByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -681,6 +726,47 @@ inline flatbuffers::Offset<StringEntry> CreateStringEntryDirect(flatbuffers::Fla
     const char *key = nullptr,
     int32_t value = 7890) {
   return CreateStringEntry(_fbb, key ? _fbb.CreateString(key) : 0, value);
+}
+
+struct EnumEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_KEY = 4,
+    VT_VALUE = 6
+  };
+  FruitFilter key() const { return static_cast<FruitFilter>(GetField<int32_t>(VT_KEY, 0)); }
+  bool mutate_key(FruitFilter _key) { return SetField(VT_KEY, static_cast<int32_t>(_key)); }
+  bool KeyCompareLessThan(const EnumEntry *o) const { return key() < o->key(); }
+  int KeyCompareWithValue(int32_t val) const { return key() < val ? -1 : key() > val; }
+  int32_t value() const { return GetField<int32_t>(VT_VALUE, 7412); }
+  bool mutate_value(int32_t _value) { return SetField(VT_VALUE, _value); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_KEY) &&
+           VerifyField<int32_t>(verifier, VT_VALUE) &&
+           verifier.EndTable();
+  }
+};
+
+struct EnumEntryBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_key(FruitFilter key) { fbb_.AddElement<int32_t>(EnumEntry::VT_KEY, static_cast<int32_t>(key), 0); }
+  void add_value(int32_t value) { fbb_.AddElement<int32_t>(EnumEntry::VT_VALUE, value, 7412); }
+  EnumEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  EnumEntryBuilder &operator=(const EnumEntryBuilder &);
+  flatbuffers::Offset<EnumEntry> Finish() {
+    auto o = flatbuffers::Offset<EnumEntry>(fbb_.EndTable(start_, 2));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<EnumEntry> CreateEnumEntry(flatbuffers::FlatBufferBuilder &_fbb,
+    FruitFilter key = static_cast<FruitFilter>(0),
+    int32_t value = 7412) {
+  EnumEntryBuilder builder_(_fbb);
+  builder_.add_value(value);
+  builder_.add_key(key);
+  return builder_.Finish();
 }
 
 inline const Testing::KeySearch::MasterDict *GetMasterDict(const void *buf) { return flatbuffers::GetRoot<Testing::KeySearch::MasterDict>(buf); }

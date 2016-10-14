@@ -2,6 +2,44 @@
 
 namespace Testing.KeySearch;
 
+enum FruitFilter:int (bit_flags) { 
+    Apple,
+    Apricot,
+    Avocado,
+    Banana,
+    
+    Bilberry,
+    Blackberry,
+    Blackcurrant,
+    Blueberry,
+    
+    Boysenberry,
+    Currant,
+    Cherry,
+    Cherimoya,
+    
+    Cloudberry,
+    Coconut,
+    Cranberry,
+    Damson,
+
+    // 16 values
+    Date,  
+    Dragonfruit,
+    Durian,
+    Elderberry,
+    
+    Feijoa,
+    Fig,
+    Gojiberry,
+    Gooseberry,
+    
+    Grape,
+    Raisin,
+    Grapefruit,
+    Guava
+}
+
 
 table MasterDict {
   ubyteEntries: [UByteEntry];
@@ -16,6 +54,7 @@ table MasterDict {
   ulongEntries: [ULongEntry];
   doubleEntries: [DoubleEntry];
   stringEntries: [StringEntry];
+  enumEntries: [EnumEntry];
 }
 
 // Remarks: we set default value for signed type keys below to check that 
@@ -82,6 +121,10 @@ table StringEntry {
   value: int = 7890;
 }
 
+table EnumEntry {
+  key: FruitFilter (key);
+  value: int = 7412;
+}
 
 root_type MasterDict;
 

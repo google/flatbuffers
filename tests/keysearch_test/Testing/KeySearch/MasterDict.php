@@ -276,21 +276,40 @@ class MasterDict extends Table
     }
 
     /**
+     * @returnVectorOffset
+     */
+    public function getEnumEntries($j)
+    {
+        $o = $this->__offset(28);
+        $obj = new EnumEntry();
+        return $o != 0 ? $obj->init($this->__indirect($this->__vector($o) + $j * 4), $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getEnumEntriesLength()
+    {
+        $o = $this->__offset(28);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMasterDict(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(12);
+        $builder->StartObject(13);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return MasterDict
      */
-    public static function createMasterDict(FlatBufferBuilder $builder, $ubyteEntries, $byteEntries, $boolEntries, $shortEntries, $ushortEntries, $intEntries, $uintEntries, $floatEntries, $longEntries, $ulongEntries, $doubleEntries, $stringEntries)
+    public static function createMasterDict(FlatBufferBuilder $builder, $ubyteEntries, $byteEntries, $boolEntries, $shortEntries, $ushortEntries, $intEntries, $uintEntries, $floatEntries, $longEntries, $ulongEntries, $doubleEntries, $stringEntries, $enumEntries)
     {
-        $builder->startObject(12);
+        $builder->startObject(13);
         self::addUbyteEntries($builder, $ubyteEntries);
         self::addByteEntries($builder, $byteEntries);
         self::addBoolEntries($builder, $boolEntries);
@@ -303,6 +322,7 @@ class MasterDict extends Table
         self::addUlongEntries($builder, $ulongEntries);
         self::addDoubleEntries($builder, $doubleEntries);
         self::addStringEntries($builder, $stringEntries);
+        self::addEnumEntries($builder, $enumEntries);
         $o = $builder->endObject();
         return $o;
     }
@@ -711,6 +731,40 @@ class MasterDict extends Table
      * @return void
      */
     public static function startStringEntriesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addEnumEntries(FlatBufferBuilder $builder, $enumEntries)
+    {
+        $builder->addOffsetX(12, $enumEntries, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createEnumEntriesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startEnumEntriesVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(4, $numElems, 4);
     }

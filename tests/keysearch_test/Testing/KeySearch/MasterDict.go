@@ -262,8 +262,28 @@ func (rcv *MasterDict) StringEntriesLength() int {
 	return 0
 }
 
+func (rcv *MasterDict) EnumEntries(obj *EnumEntry, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *MasterDict) EnumEntriesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MasterDictStart(builder *flatbuffers.Builder) {
-	builder.StartObject(12)
+	builder.StartObject(13)
 }
 func MasterDictAddUbyteEntries(builder *flatbuffers.Builder, ubyteEntries flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(ubyteEntries), 0)
@@ -335,6 +355,12 @@ func MasterDictAddStringEntries(builder *flatbuffers.Builder, stringEntries flat
 	builder.PrependUOffsetTSlot(11, flatbuffers.UOffsetT(stringEntries), 0)
 }
 func MasterDictStartStringEntriesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MasterDictAddEnumEntries(builder *flatbuffers.Builder, enumEntries flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(12, flatbuffers.UOffsetT(enumEntries), 0)
+}
+func MasterDictStartEnumEntriesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
 }
 func MasterDictEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

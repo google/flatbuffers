@@ -40,6 +40,8 @@ public struct MasterDict : IFlatbufferObject
   public int DoubleEntriesLength { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
   public StringEntry? StringEntries(int j) { int o = __p.__offset(26); return o != 0 ? (StringEntry?)(new StringEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int StringEntriesLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public EnumEntry? EnumEntries(int j) { int o = __p.__offset(28); return o != 0 ? (EnumEntry?)(new EnumEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int EnumEntriesLength { get { int o = __p.__offset(28); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<MasterDict> CreateMasterDict(FlatBufferBuilder builder,
       VectorOffset ubyteEntriesOffset = default(VectorOffset),
@@ -53,8 +55,10 @@ public struct MasterDict : IFlatbufferObject
       VectorOffset longEntriesOffset = default(VectorOffset),
       VectorOffset ulongEntriesOffset = default(VectorOffset),
       VectorOffset doubleEntriesOffset = default(VectorOffset),
-      VectorOffset stringEntriesOffset = default(VectorOffset)) {
-    builder.StartObject(12);
+      VectorOffset stringEntriesOffset = default(VectorOffset),
+      VectorOffset enumEntriesOffset = default(VectorOffset)) {
+    builder.StartObject(13);
+    MasterDict.AddEnumEntries(builder, enumEntriesOffset);
     MasterDict.AddStringEntries(builder, stringEntriesOffset);
     MasterDict.AddDoubleEntries(builder, doubleEntriesOffset);
     MasterDict.AddUlongEntries(builder, ulongEntriesOffset);
@@ -70,7 +74,7 @@ public struct MasterDict : IFlatbufferObject
     return MasterDict.EndMasterDict(builder);
   }
 
-  public static void StartMasterDict(FlatBufferBuilder builder) { builder.StartObject(12); }
+  public static void StartMasterDict(FlatBufferBuilder builder) { builder.StartObject(13); }
   public static void AddUbyteEntries(FlatBufferBuilder builder, VectorOffset ubyteEntriesOffset) { builder.AddOffset(0, ubyteEntriesOffset.Value, 0); }
   public static VectorOffset CreateUbyteEntriesVector(FlatBufferBuilder builder, Offset<UByteEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static void StartUbyteEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
@@ -107,6 +111,9 @@ public struct MasterDict : IFlatbufferObject
   public static void AddStringEntries(FlatBufferBuilder builder, VectorOffset stringEntriesOffset) { builder.AddOffset(11, stringEntriesOffset.Value, 0); }
   public static VectorOffset CreateStringEntriesVector(FlatBufferBuilder builder, Offset<StringEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static void StartStringEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddEnumEntries(FlatBufferBuilder builder, VectorOffset enumEntriesOffset) { builder.AddOffset(12, enumEntriesOffset.Value, 0); }
+  public static VectorOffset CreateEnumEntriesVector(FlatBufferBuilder builder, Offset<EnumEntry>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static void StartEnumEntriesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<MasterDict> EndMasterDict(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     return new Offset<MasterDict>(o);
