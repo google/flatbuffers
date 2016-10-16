@@ -24,6 +24,7 @@ import com.google.flatbuffers.Reflection;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.reflection.*;
 import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.reflection.Object;
 
 class JavaTest {
     public static void main(String[] args) {
@@ -139,12 +140,12 @@ class JavaTest {
         // the mana field should retain its default value
         TestEq(monster.mutateMana((short)10), false);
         TestEq(monster.mana(), (short)150);
-		
+
 		// Accessing a vector of sorted by the key tables
         TestEq(monster.testarrayoftables(0).name(), "Barney");
         TestEq(monster.testarrayoftables(1).name(), "Frodo");
         TestEq(monster.testarrayoftables(2).name(), "Wilma");
-		
+
 		// Example of searching for a table by the key
         TestEq(Monster.lookupByKey(sortMons, "Frodo", fbb.dataBuffer()).name(), "Frodo");
         TestEq(Monster.lookupByKey(sortMons, "Barney", fbb.dataBuffer()).name(), "Barney");
@@ -207,7 +208,7 @@ class JavaTest {
 
     static void TestBuffer(ByteBuffer bb) {
         TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
-        
+
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
@@ -265,25 +266,25 @@ class JavaTest {
 
         TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
     }
-    
+
     static void TestNamespaceNesting() {
         // reference / manipulate these to verify compilation
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
-        
+
         TableInNestedNS.startTableInNestedNS(fbb);
         TableInNestedNS.addFoo(fbb, 1234);
         int nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb);
-        
-        TableInFirstNS.startTableInFirstNS(fbb);      
+
+        TableInFirstNS.startTableInFirstNS(fbb);
         TableInFirstNS.addFooTable(fbb, nestedTableOff);
         int off = TableInFirstNS.endTableInFirstNS(fbb);
     }
-    
+
     static void TestNestedFlatBuffer() {
         final String nestedMonsterName = "NestedMonsterName";
         final short nestedMonsterHp = 600;
         final short nestedMonsterMana = 1024;
-        
+
         FlatBufferBuilder fbb1 = new FlatBufferBuilder(16);
         int str1 = fbb1.createString(nestedMonsterName);
         Monster.startMonster(fbb1);
@@ -387,18 +388,31 @@ class JavaTest {
         // Now use it to dynamically access a buffer.
 
         TestReflectionBool(rootTable);
+        TestReflectionBools(rootTable);
         TestReflectionByte(rootTable);
+        TestReflectionBytes(rootTable);
         TestReflectionUByte(rootTable);
+        TestReflectionUBytes(rootTable);
         TestReflectionShort(rootTable);
+        TestReflectionShorts(rootTable);
         TestReflectionUShort(schema);
+        TestReflectionUShorts(rootTable);
         TestReflectionInt(rootTable);
+        TestReflectionInts(rootTable);
         TestReflectionUInt(rootTable);
+        TestReflectionUInts(rootTable);
         TestReflectionLong(rootTable);
+        TestReflectionLongs(rootTable);
         TestReflectionULong(rootTable);
+        TestReflectionULongs(rootTable);
         TestReflectionFloat(rootTable);
+        TestReflectionFloats(rootTable);
         TestReflectionDouble(rootTable);
+        TestReflectionDoubles(rootTable);
         TestReflectionString(schema);
+        TestReflectionStrings(rootTable);
         TestReflectionObj(rootTable);
+        TestReflectionObjs(rootTable);
 
         //TODO see with Wouter which method naming convention he prefers?
 //        hp = Reflection.getAsIntField(root, hpField);
@@ -471,13 +485,102 @@ class JavaTest {
         }
     }
 
+    static void TestReflectionBools(com.google.flatbuffers.reflection.Object rootTable) {
+        Field field = rootTable.fieldsByKey("testarrayofbools");
+        // test not valued
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 0);
+        boolean vectorElement = Reflection.getBoolsField(root, field, 10);
+        TestEq(vectorElement, false);
+        vectorElement = Reflection.getBoolsField(root, field, true, 10);
+        TestEq(vectorElement, true);
+        // test valued
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        int inv = Monster.createTestarrayofboolsVector(fbb, new boolean[] { true, false, true, false, true});
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestarrayofbools(fbb, inv);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 5);
+        vectorElement = Reflection.getBoolsField(root, field, 0);
+        TestEq(vectorElement, true);
+        vectorElement = Reflection.getBoolsField(root, field, 1);
+        TestEq(vectorElement, false);
+        vectorElement = Reflection.getBoolsField(root, field, 2);
+        TestEq(vectorElement, true);
+        vectorElement = Reflection.getBoolsField(root, field, false, 2);
+        TestEq(vectorElement, true);
+    }
+
     static void TestReflectionByte(com.google.flatbuffers.reflection.Object rootTable) {
         //TODO
         System.err.println("TODO Test reflection on byte");
     }
+
+    static void TestReflectionBytes(com.google.flatbuffers.reflection.Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on bytes");
+    }
     static void TestReflectionUByte(com.google.flatbuffers.reflection.Object rootTable) {
         //TODO
         System.err.println("TODO Test reflection on ubyte");
+    }
+
+    static void TestReflectionUBytes(com.google.flatbuffers.reflection.Object rootTable) {
+        Field field = rootTable.fieldsByKey("inventory");
+        // test not valued
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 0);
+        int vectorElement = Reflection.getUBytesField(root, field, 10);
+        TestEq(vectorElement, 0);
+        vectorElement = Reflection.getUBytesField(root, field, 42, 10);
+        TestEq(vectorElement, 42);
+        // test valued
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        int inv = Monster.createInventoryVector(fbb, new byte[] { 0, 1, 2, 3, 4});
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addInventory(fbb, inv);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 5);
+        vectorElement = Reflection.getUBytesField(root, field, 0);
+        TestEq(vectorElement, 0);
+        vectorElement = Reflection.getUBytesField(root, field, 1);
+        TestEq(vectorElement, 1);
+        vectorElement = Reflection.getUBytesField(root, field, 2);
+        TestEq(vectorElement, 2);
+        vectorElement = Reflection.getUBytesField(root, field, 42, 2);
+        TestEq(vectorElement, 2);
     }
 
     static void TestReflectionShort(com.google.flatbuffers.reflection.Object rootTable) {
@@ -533,6 +636,11 @@ class JavaTest {
         }
     }
 
+    private static void TestReflectionShorts(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on shorts");
+    }
+
     static void TestReflectionUShort(Schema schema) {
         // not valuated
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
@@ -578,6 +686,11 @@ class JavaTest {
             // expected exception
         }
 
+    }
+
+    private static void TestReflectionUShorts(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on ushorts");
     }
 
     static void TestReflectionInt(com.google.flatbuffers.reflection.Object rootTable) {
@@ -630,6 +743,12 @@ class JavaTest {
         }
     }
 
+    private static void TestReflectionInts(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on ints");
+    }
+
+
     static void TestReflectionUInt(com.google.flatbuffers.reflection.Object rootTable) {
         // not valuated
         Field field = rootTable.fieldsByKey("testhashu32_fnv1");
@@ -678,6 +797,11 @@ class JavaTest {
         } catch (IllegalArgumentException ex) {
             // expected exception
         }
+    }
+
+    private static void TestReflectionUInts(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on uints");
     }
 
     static void TestReflectionLong(com.google.flatbuffers.reflection.Object rootTable) {
@@ -730,6 +854,11 @@ class JavaTest {
         }
     }
 
+    private static void TestReflectionLongs(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on longs");
+    }
+
     static void TestReflectionULong(com.google.flatbuffers.reflection.Object rootTable) {
         // not valuated
         Field field = rootTable.fieldsByKey("testhashu64_fnv1");
@@ -778,6 +907,11 @@ class JavaTest {
         } catch (IllegalArgumentException ex) {
             // expected exception
         }
+    }
+
+    private static void TestReflectionULongs(Object rootTable) {
+      //TODO
+      System.err.println("TODO Test reflection on ulongs");
     }
 
     static void TestReflectionFloat(com.google.flatbuffers.reflection.Object rootTable) {
@@ -830,6 +964,22 @@ class JavaTest {
         }
     }
 
+    private static void TestReflectionFloats(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on floats");
+    }
+
+
+    static void TestReflectionDouble(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on double");
+    }
+
+    static void TestReflectionDoubles(Object rootTable) {
+        //TODO
+        System.err.println("TODO Test reflection on doubles");
+    }
+
     static void TestReflectionString(Schema schema) {
         // not valuated
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
@@ -870,6 +1020,50 @@ class JavaTest {
         } catch (IllegalArgumentException ex) {
             // expected exception
         }
+    }
+
+    static void TestReflectionStrings(com.google.flatbuffers.reflection.Object rootTable) {
+        Field field = rootTable.fieldsByKey("testarrayofstring");
+        // test not valued
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 0);
+        String vectorElement = Reflection.getStringsField(root, field, 10);
+        TestEq(vectorElement == null, true);
+        vectorElement = Reflection.getStringsField(root, field, vectorElement, 10);
+        TestEq(vectorElement == null, true);
+        vectorElement = Reflection.getStringsField(root, field, "test", 10);
+        TestEq(vectorElement, "test");
+        // test valued
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        int vectorPos = Monster.createTestarrayofstringVector(fbb, new int[]{fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma")});
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestarrayofstring(fbb, vectorPos);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 3);
+        vectorElement = Reflection.getStringsField(root, field, 0);
+        TestEq(vectorElement, "Frodo");
+        vectorElement = Reflection.getStringsField(root, field, 1);
+        TestEq(vectorElement, "Barney");
+        vectorElement = Reflection.getStringsField(root, field, 2);
+        TestEq(vectorElement, "Wilma");
+        vectorElement = Reflection.getStringsField(root, field, "default", 2);
+        TestEq(vectorElement, "Wilma");
     }
 
 
@@ -915,9 +1109,62 @@ class JavaTest {
         TestEq(childTable == toReuse, true);
     }
 
-    static void TestReflectionDouble(com.google.flatbuffers.reflection.Object rootTable) {
-        //TODO
-        System.err.println("TODO Test reflection on double");
+    static void TestReflectionObjs(com.google.flatbuffers.reflection.Object rootTable) {
+        Field field = rootTable.fieldsByKey("testarrayoftables");
+        // test not valued
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        int namePos = fbb.createString("test");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        int mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        Table root = Reflection.getRootTable(fbb.dataBuffer());
+        boolean hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, false);
+        int vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 0);
+        Table vectorElement = Reflection.getObjsField(root, field, 10);
+        TestEq(vectorElement == null, true);
+        vectorElement = Reflection.getObjsField(root, field, vectorElement, 10);
+        TestEq(vectorElement == null, true);
+        // test valued
+        fbb = new FlatBufferBuilder(1);
+        namePos = fbb.createString("test");
+        int[] names = {fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma")};
+        int[] off = new int[3];
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[0]);
+        off[0] = Monster.endMonster(fbb);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[1]);
+        off[1] = Monster.endMonster(fbb);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, names[2]);
+        off[2] = Monster.endMonster(fbb);
+        int sortMons = fbb.createSortedVectorOfTables(new Monster(), off);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, namePos);
+        Monster.addTestarrayoftables(fbb, sortMons);
+        mon = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, mon);
+        root = Reflection.getRootTable(fbb.dataBuffer());
+        hasValue = Reflection.hasValue(root, field);
+        TestEq(hasValue, true);
+        vectorLength = Reflection.getVectorLength(root, field);
+        TestEq(vectorLength, 3);
+        vectorElement = Reflection.getObjsField(root, field, 0);
+        TestEq(vectorElement != null, true);
+        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")) , "Barney");
+        vectorElement = Reflection.getObjsField(root, field, 1);
+        TestEq(vectorElement != null, true);
+        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")) , "Frodo");
+        vectorElement = Reflection.getObjsField(root, field, 2);
+        TestEq(vectorElement != null, true);
+        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")), "Wilma");
+        Table toReuse = new Table();
+        vectorElement = Reflection.getObjsField(root, field, toReuse, 2);
+        TestEq(vectorElement == toReuse, true);
+
     }
 
     static <T> void TestEq(T a, T b) {
