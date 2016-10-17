@@ -365,8 +365,8 @@ class CppGenerator : public BaseGenerator {
   }
 
   static std::string GenEnumValDecl(const EnumDef &enum_def,
-                                   const std::string &enum_val,
-                                   const IDLOptions &opts) {
+                                    const std::string &enum_val,
+                                    const IDLOptions &opts) {
     return opts.prefixed_enums ? enum_def.name + "_" + enum_val : enum_val;
   }
 
@@ -532,9 +532,11 @@ class CppGenerator : public BaseGenerator {
           code += "template<typename T> struct " + enum_def.name + "Traits {\n";
         }
         else {
-          code += "template<> struct " + enum_def.name + "Traits<" + WrapInNameSpace(*ev.struct_def) + "> {\n";
+          code += "template<> struct " + enum_def.name + "Traits<" +
+                  WrapInNameSpace(*ev.struct_def) + "> {\n";
         }
-        code += "  static const " + enum_def.name + " enum_value = " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + ";\n";
+        code += "  static const " + enum_def.name + " enum_value = " +
+                GetEnumValUse(enum_def, ev, parser_.opts) + ";\n";
         code += "};\n\n";
       }
     }
