@@ -114,7 +114,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
       "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
+    "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -Werror=shadow")
   if (GCC_VERSION VERSION_GREATER 4.4)
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")
