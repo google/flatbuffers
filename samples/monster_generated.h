@@ -266,6 +266,9 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(flatbuffers::FlatBufferBui
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
 
 inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new MonsterT();
   { auto _e = pos(); if (_e) _o->pos = std::unique_ptr<Vec3>(new Vec3(*_e)); };
   { auto _e = mana(); _o->mana = _e; };
@@ -280,6 +283,9 @@ inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_fun
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateMonster(_fbb,
     _o->pos ? _o->pos.get() : 0,
     _o->mana,
@@ -293,6 +299,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline std::unique_ptr<WeaponT> Weapon::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  #ifdef __GNUC__
+    (void)resolver;
+  #endif
   auto _o = new WeaponT();
   { auto _e = name(); if (_e) _o->name = _e->str(); };
   { auto _e = damage(); _o->damage = _e; };
@@ -300,6 +309,9 @@ inline std::unique_ptr<WeaponT> Weapon::UnPack(const flatbuffers::resolver_funct
 }
 
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  #ifdef __GNUC__
+    (void)rehasher;
+  #endif
   return CreateWeapon(_fbb,
     _o->name.size() ? _fbb.CreateString(_o->name) : 0,
     _o->damage);
