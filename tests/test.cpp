@@ -319,9 +319,12 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   // and such.
   auto resolver = flatbuffers::resolver_function_t([](void **pointer_adr,
                                                flatbuffers::hash_value_t hash) {
+    (void)pointer_adr;
+    (void)hash;
     // Don't actually do anything, leave variable null.
   });
   auto rehasher = flatbuffers::rehasher_function_t([](void *pointer) {
+    (void)pointer;
     return 0;
   });
 
