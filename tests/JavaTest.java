@@ -381,7 +381,7 @@ class JavaTest {
         Schema schema = Schema.getRootAsSchema(bb);
         com.google.flatbuffers.reflection.Object rootTable = schema.rootTable();
         TestEq(rootTable.name(), "MyGame.Example.Monster");
-        TestEq(rootTable.fieldsLength(), 29);
+        TestEq(rootTable.fieldsLength(), 41);
         Field hpField = rootTable.fieldsByKey("hp");
         TestEq(hpField.name(), "hp");
         TestEq(hpField.id(), 2);
