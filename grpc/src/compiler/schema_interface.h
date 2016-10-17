@@ -34,8 +34,9 @@
 #ifndef GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 #define GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 
- #include <memory>
- #include <vector>
+#include <map>
+#include <memory>
+#include <vector>
 
  #ifndef GRPC_CUSTOM_STRING
  #include <string>
