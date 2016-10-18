@@ -512,7 +512,7 @@ class JavaTest {
         Monster.addTestarrayofbools(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -557,7 +557,7 @@ class JavaTest {
         Monster.addTestbyte(fbb, (byte)42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -604,7 +604,7 @@ class JavaTest {
         Monster.addTestarrayofbytes(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -649,7 +649,7 @@ class JavaTest {
         Monster.addTestubyte(fbb, 42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -696,7 +696,7 @@ class JavaTest {
         Monster.addInventory(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -742,7 +742,7 @@ class JavaTest {
         Monster.addName(fbb, namePos);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         Field manaField = rootTable.fieldsByKey("mana");
         boolean hasMana = Reflection.hasValue(root, manaField);
@@ -791,7 +791,7 @@ class JavaTest {
         Monster.addTestarrayofshort(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -831,7 +831,7 @@ class JavaTest {
         Stat.addCount(fbb, Short.MAX_VALUE + 1);
         mon = Stat.endStat(fbb);
         fbb.finish(mon, "STAT");
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         field = rootTable.fieldsByKey("count");
         hasValue = Reflection.hasValue(root, field);
@@ -880,7 +880,7 @@ class JavaTest {
         Monster.addTestarrayofushort(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -925,7 +925,7 @@ class JavaTest {
         Monster.addTesthashs32Fnv1(fbb, 42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -972,7 +972,7 @@ class JavaTest {
         Monster.addTestarrayofint(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1018,7 +1018,7 @@ class JavaTest {
         Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1065,7 +1065,7 @@ class JavaTest {
         Monster.addTestarrayofuint(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1110,7 +1110,7 @@ class JavaTest {
         Monster.addTesthashs64Fnv1(fbb, 42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1157,7 +1157,7 @@ class JavaTest {
         Monster.addTestarrayoflong(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1202,7 +1202,7 @@ class JavaTest {
         Monster.addTesthashu64Fnv1(fbb, Long.MAX_VALUE + 1L);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1249,7 +1249,7 @@ class JavaTest {
         Monster.addTestarrayofulong(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1294,7 +1294,7 @@ class JavaTest {
         Monster.addTestf3(fbb, 42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1341,7 +1341,7 @@ class JavaTest {
         Monster.addTestarrayoffloat(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1386,7 +1386,7 @@ class JavaTest {
         Monster.addTestdouble(fbb, 42);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1433,7 +1433,7 @@ class JavaTest {
         Monster.addTestarrayofdouble(fbb, inv);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1472,8 +1472,8 @@ class JavaTest {
         Stat.addId(fbb, idPos);
         mon = Stat.endStat(fbb);
         fbb.finish(mon, "STAT");
-        rootTable = Reflection.getSchemaChildTable(schema,"testempty");
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        rootTable = Reflection.getSchemaChildTable(schema, schema.rootTable(), rootTable, "testempty");
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
@@ -1519,7 +1519,7 @@ class JavaTest {
         Monster.addTestarrayofstring(fbb, vectorPos);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
@@ -1564,7 +1564,7 @@ class JavaTest {
         Monster.addTestempty(fbb, i);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         field = rootTable.fieldsByKey("testempty");
         hasValue = Reflection.hasValue(root, field);
@@ -1615,7 +1615,7 @@ class JavaTest {
         Monster.addTestarrayoftables(fbb, sortMons);
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
-        root = Reflection.getRootTable(fbb.dataBuffer());
+        root = Reflection.getRootTable(fbb.dataBuffer(), root);
         hasValue = Reflection.hasValue(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
