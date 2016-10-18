@@ -270,6 +270,9 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // Checking for presence of fields:
   TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_HP), true);
   TEST_EQ(flatbuffers::IsFieldPresent(monster, Monster::VT_MANA), false);
+
+  // Obtaining a buffer from a root:
+  TEST_EQ(GetBufferStartFromRootPointer(monster), flatbuf);
 }
 
 // Change a FlatBuffer in-place, after it has been constructed.
