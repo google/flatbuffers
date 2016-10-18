@@ -180,7 +180,8 @@ class ResizeContext {
   // Check if the range between first (lower address) and second straddles
   // the insertion point. If it does, change the offset at offsetloc (of
   // type T, with direction D).
-  template<typename T, int D> void Straddle(void *first, void *second,
+  template<typename T, int D> void Straddle(const void *first,
+                                            const void *second,
                                             void *offsetloc) {
     if (first <= startptr_ && second >= startptr_) {
       WriteScalar<T>(offsetloc, ReadScalar<T>(offsetloc) + delta_ * D);
@@ -194,9 +195,9 @@ class ResizeContext {
   // resize actually happens.
   // This must be checked for every offset, since we can't know which offsets
   // will straddle and which won't.
-  uint8_t &DagCheck(void *offsetloc) {
-    auto dag_idx = reinterpret_cast<uoffset_t *>(offsetloc) -
-                   reinterpret_cast<uoffset_t *>(buf_.data());
+  uint8_t &DagCheck(const void *offsetloc) {
+    auto dag_idx = reinterpret_cast<const uoffset_t *>(offsetloc) -
+                   reinterpret_cast<const uoffset_t *>(buf_.data());
     return dag_check_[dag_idx];
   }
 

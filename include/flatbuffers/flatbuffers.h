@@ -130,6 +130,9 @@ typedef uintmax_t largest_scalar_t;
 // In 32bits, this evaluates to 2GB - 1
 #define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(soffset_t) * 8 - 1)) - 1)
 
+// We support aligning the contents of buffers up to this size.
+#define FLATBUFFERS_MAX_ALIGNMENT 16
+
 #ifndef FLATBUFFERS_CPP98_STL
 // Pointer to relinquished memory.
 typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
@@ -1499,11 +1502,15 @@ class Struct FLATBUFFERS_FINAL_CLASS {
 // omitted and added at will, but uses an extra indirection to read.
 class Table {
  public:
+  const uint8_t *GetVTable() const {
+    return data_ - ReadScalar<soffset_t>(data_);
+  }
+
   // This gets the field offset for any of the functions below it, or 0
   // if the field was not present.
   voffset_t GetOptionalFieldOffset(voffset_t field) const {
     // The vtable offset is always at the start.
-    auto vtable = data_ - ReadScalar<soffset_t>(data_);
+    auto vtable = GetVTable();
     // The first element is the size of the vtable (fields + type id + itself).
     auto vtsize = ReadScalar<voffset_t>(vtable);
     // If the field we're accessing is outside the vtable, we're reading older
@@ -1556,8 +1563,6 @@ class Table {
     return const_cast<Table *>(this)->GetAddressOf(field);
   }
 
-  uint8_t *GetVTable() { return data_ - ReadScalar<soffset_t>(data_); }
-
   bool CheckField(voffset_t field) const {
     return GetOptionalFieldOffset(field) != 0;
   }
@@ -1567,7 +1572,7 @@ class Table {
   bool VerifyTableStart(Verifier &verifier) const {
     // Check the vtable offset.
     if (!verifier.Verify<soffset_t>(data_)) return false;
-    auto vtable = data_ - ReadScalar<soffset_t>(data_);
+    auto vtable = GetVTable();
     // Check the vtable size field, then check vtable fits in its entirety.
     return verifier.VerifyComplexity() &&
            verifier.Verify<voffset_t>(vtable) &&
@@ -1601,6 +1606,44 @@ class Table {
 
   uint8_t data_[1];
 };
+
+/// @brief This can compute the start of a FlatBuffer from a root pointer, i.e.
+/// it is the opposite transformation of GetRoot().
+/// This may be useful if you want to pass on a root and have the recipient
+/// delete the buffer afterwards.
+inline const uint8_t *GetBufferStartFromRootPointer(const void *root) {
+  auto table = reinterpret_cast<const Table *>(root);
+  auto vtable = table->GetVTable();
+  // Either the vtable is before the root or after the root.
+  auto start = std::min(vtable, reinterpret_cast<const uint8_t *>(root));
+  // Align to at least sizeof(uoffset_t).
+  start = reinterpret_cast<const uint8_t *>(
+            reinterpret_cast<uintptr_t>(start) & ~(sizeof(uoffset_t) - 1));
+  // Additionally, there may be a file_identifier in the buffer, and the root
+  // offset. The buffer may have been aligned to any size between
+  // sizeof(uoffset_t) and FLATBUFFERS_MAX_ALIGNMENT (see "force_align").
+  // Sadly, the exact alignment is only known when constructing the buffer,
+  // since it depends on the presence of values with said alignment properties.
+  // So instead, we simply look at the next uoffset_t values (root,
+  // file_identifier, and alignment padding) to see which points to the root.
+  // None of the other values can "impersonate" the root since they will either
+  // be 0 or four ASCII characters.
+  static_assert(FlatBufferBuilder::kFileIdentifierLength == sizeof(uoffset_t),
+                "file_identifier is assumed to be the same size as uoffset_t");
+  for (auto possible_roots = FLATBUFFERS_MAX_ALIGNMENT / sizeof(uoffset_t) + 1;
+       possible_roots;
+       possible_roots--) {
+      start -= sizeof(uoffset_t);
+      if (ReadScalar<uoffset_t>(start) + start ==
+          reinterpret_cast<const uint8_t *>(root)) return start;
+  }
+  // We didn't find the root, either the "root" passed isn't really a root,
+  // or the buffer is corrupt.
+  // Assert, because calling this function with bad data may cause reads
+  // outside of buffer boundaries.
+  assert(false);
+  return nullptr;
+}
 
 // Base class for native objects (FlatBuffer data de-serialized into native
 // C++ data structures).
