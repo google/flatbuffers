@@ -1,7 +1,7 @@
 package com.google.flatbuffers;
 
 /**
- * Utilities function to signed & unsigned compare values in their natural order
+ * Utilities function to signed and unsigned compare values in their natural order
  */
 public class Comparators {
     private static final int UBYTE_MASK = 0xff;
