@@ -12,7 +12,6 @@ public final class MasterDict extends Table {
   public static MasterDict getRootAsMasterDict(ByteBuffer _bb) { return getRootAsMasterDict(_bb, new MasterDict()); }
   public static MasterDict getRootAsMasterDict(ByteBuffer _bb, MasterDict obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MasterDictBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "FBMD"); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public MasterDict __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public UByteEntry ubyteEntries(int j) { return ubyteEntries(new UByteEntry(), j); }

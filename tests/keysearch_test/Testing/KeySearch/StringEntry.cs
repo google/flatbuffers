@@ -12,7 +12,6 @@ public struct StringEntry : IFlatbufferObject
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static StringEntry GetRootAsStringEntry(ByteBuffer _bb) { return GetRootAsStringEntry(_bb, new StringEntry()); }
   public static StringEntry GetRootAsStringEntry(ByteBuffer _bb, StringEntry obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public StringEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public string Key { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }

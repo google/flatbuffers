@@ -12,7 +12,6 @@ public struct UByteEntry : IFlatbufferObject
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static UByteEntry GetRootAsUByteEntry(ByteBuffer _bb) { return GetRootAsUByteEntry(_bb, new UByteEntry()); }
   public static UByteEntry GetRootAsUByteEntry(ByteBuffer _bb, UByteEntry obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public UByteEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public byte Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.Get(o + __p.bb_pos) : (byte)0; } }

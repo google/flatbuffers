@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class StringEntry extends Table {
   public static StringEntry getRootAsStringEntry(ByteBuffer _bb) { return getRootAsStringEntry(_bb, new StringEntry()); }
   public static StringEntry getRootAsStringEntry(ByteBuffer _bb, StringEntry obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public StringEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String key() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }

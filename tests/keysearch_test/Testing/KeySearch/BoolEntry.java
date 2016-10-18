@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class BoolEntry extends Table {
   public static BoolEntry getRootAsBoolEntry(ByteBuffer _bb) { return getRootAsBoolEntry(_bb, new BoolEntry()); }
   public static BoolEntry getRootAsBoolEntry(ByteBuffer _bb, BoolEntry obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public BoolEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public boolean key() { int o = __offset(4); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }

@@ -12,7 +12,6 @@ public struct EnumEntry : IFlatbufferObject
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static EnumEntry GetRootAsEnumEntry(ByteBuffer _bb) { return GetRootAsEnumEntry(_bb, new EnumEntry()); }
   public static EnumEntry GetRootAsEnumEntry(ByteBuffer _bb, EnumEntry obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public EnumEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public FruitFilter Key { get { int o = __p.__offset(4); return o != 0 ? (FruitFilter)__p.bb.GetInt(o + __p.bb_pos) : 0; } }

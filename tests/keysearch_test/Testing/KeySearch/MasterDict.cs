@@ -13,7 +13,6 @@ public struct MasterDict : IFlatbufferObject
   public static MasterDict GetRootAsMasterDict(ByteBuffer _bb) { return GetRootAsMasterDict(_bb, new MasterDict()); }
   public static MasterDict GetRootAsMasterDict(ByteBuffer _bb, MasterDict obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MasterDictBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "FBMD"); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public MasterDict __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public UByteEntry? UbyteEntries(int j) { int o = __p.__offset(4); return o != 0 ? (UByteEntry?)(new UByteEntry()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }

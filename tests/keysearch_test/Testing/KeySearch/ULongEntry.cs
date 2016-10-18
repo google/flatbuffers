@@ -12,7 +12,6 @@ public struct ULongEntry : IFlatbufferObject
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static ULongEntry GetRootAsULongEntry(ByteBuffer _bb) { return GetRootAsULongEntry(_bb, new ULongEntry()); }
   public static ULongEntry GetRootAsULongEntry(ByteBuffer _bb, ULongEntry obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public ULongEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public ulong Key { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
