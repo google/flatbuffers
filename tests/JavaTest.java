@@ -428,26 +428,6 @@ class JavaTest {
         TestReflectionStrings(rootTable);
         TestReflectionObj(rootTable);
         TestReflectionObjs(rootTable);
-
-        //TODO see with Wouter which method naming convention he prefers?
-//        hp = Reflection.getAsIntField(root, hpField);
-//        hp = Reflection.getFieldAsInt(root, hpField);
-//        TestEq(hp, 80);
-
-//        long longHp = Reflection.getAsLongField(root, hpField);
-//        long longHp = Reflection.getFieldAsLong(root, hpField);
-//        TestEq(longHp, 80L);
-//        float floatHp = Reflection.getAsFloatField(root, hpField);
-//        float floatHp = Reflection.getFieldAsFloat(root, hpField);
-//        TestEq(floatHp, 80.0F);
-//        double doubleHp = Reflection.getAsDoubleField(root, hpField);
-//        double doubleHp = Reflection.getFieldAsDouble(root, hpField);
-//        TestEq(doubleHp, 80.0D);
-//        String stringHp = Reflection.getAsStringField(root, hpField);
-//        String stringHp = Reflection.getFieldAsString(root, hpField);
-//        TestEq(stringHp, "80");
-
-
     }
 
     static void TestReflectionBool(com.google.flatbuffers.reflection.Object rootTable) {
