@@ -38,7 +38,7 @@ fi
 
 mkdir ${targetdir}
 
-javac -d ${targetdir} -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test JavaTest.java
-java -ea -classpath ${targetdir} JavaTest
+javac -d ${targetdir} -classpath ${testdir}/../java:${testdir}:${testdir}/namespace_test:${testdir}/keysearch_test JavaTest.java
+java -classpath ${targetdir} -ea JavaTest
 
 rm -rf ${targetdir}

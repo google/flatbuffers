@@ -490,9 +490,21 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
       return GenEnumDefaultValue(value);
     }
   }
+
+  auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+    case BASE_TYPE_ULONG:
+    {
+      if (lang_.language != IDLOptions::kJava)
+        return value.constant;
+      // Converts the ulong into its bits signed equivalent
+      uint64_t defaultValue = StringToUInt(value.constant.c_str());
+      return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
+    }
+    case BASE_TYPE_UINT:
+    case BASE_TYPE_LONG: return value.constant + longSuffix;
     default: return value.constant;
   }
 }
@@ -710,6 +722,8 @@ std::string GenByteBufferLength(const char *bb_name) {
 std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
                             const char *num = nullptr) {
   std::string key_offset = "";
+  if (lang_.language == IDLOptions::kJava && num)
+    key_offset += std::string(num) + "+";
   key_offset += lang_.accessor_prefix_static + "__offset(" +
     NumToString(key_field->value.offset) + ", ";
   if (num) {
@@ -763,21 +777,25 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += ";";
   }
   else {
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-      "(" + GenOffsetGetter(key_field, "o1") + ")";
+    // offset is used to strip "bb" or "0!=bb" from GenGetter() result
+    auto offset = key_field->value.type.base_type == BASE_TYPE_BOOL ? 5 : 2;
     if (lang_.language == IDLOptions::kCSharp) {
+      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset) +
+        "(" + GenOffsetGetter(key_field, "o1") + ")";
       key_getter += field_getter;
       field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += ".CompareTo(" + field_getter + ")";
     }
     else {
-      key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
-      key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
-      key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-        "(" + GenOffsetGetter(key_field, "o2") + ")";
-      key_getter += field_getter + ";\n";
+      auto varType = GenTypeGet(key_field->value.type);
+      if (lang_.language == IDLOptions::kJava &&  key_field->value.type.base_type == BASE_TYPE_BOOL)
+        varType = "byte"; // boolean are not comparable in Java
+      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset);
+      key_getter += "\n    " + varType + " val_1 = ";
+      key_getter += field_getter + "(" + GenOffsetGetter(key_field, "o1") + ");\n";
+      key_getter += "    " + varType + " val_2 = ";
+      key_getter += field_getter + "(" + GenOffsetGetter(key_field, "o2") + ");\n";
       key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
   }
@@ -785,15 +803,28 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
 }
 
 
-static FieldDef *GetStructKeyField(StructDef *struct_def)
+static FieldDef *GetStructKeyField(StructDef *struct_def) {
+  for (auto it = struct_def->fields.vec.begin();
+    it != struct_def->fields.vec.end(); ++it) {
+    auto field = *it;
+    if (field->key)
+      return field;
+  }
+  return nullptr;
+}
+
+
+std::string GenElementTypeLookUp(const FieldDef &field)
 {
-	for (auto it = struct_def->fields.vec.begin();
-		it != struct_def->fields.vec.end(); ++it) {
-		auto field = *it;
-		if (field->key)
-			return field;
-	}
-	return nullptr;
+  switch (field.value.type.base_type)
+  {
+  case BASE_TYPE_UCHAR: return "UByte";
+  case BASE_TYPE_USHORT: return "UShort";
+  case BASE_TYPE_UINT: return "UInt";
+  case BASE_TYPE_ULONG: return "ULong";
+  case BASE_TYPE_STRING: return "String";
+  default: return GenMethod(field.value.type);
+  }
 }
 
 
@@ -1039,26 +1070,33 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += lang_.getter_suffix;
       code += "}\n";
     }
-	// Generate ByKey accessor for vector of struct with key
-	if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-		field.value.type.element == BASE_TYPE_STRUCT &&
-		field.value.type.struct_def->has_key &&
-		lang_.language == IDLOptions::kJava) {
-		auto element_key_field = GetStructKeyField(
-			field.value.type.struct_def);
-		auto element_type_name = GenTypeGet(element_key_field->value.type);
-		assert(element_key_field != nullptr);
-		code += "  public " + type_name + " ";
-		code += MakeCamel(field.name, lang_.first_camel_upper);
-		code += "ByKey( " + element_type_name + " key ) { ";
-		code += "int vectorOffset = __vector(__offset(";
-		code += NumToString(field.value.offset);
-		code += ")) - 4; return vectorOffset != 0 ? ";
-		code += type_name;
-		code += ".lookupByKey(bb.array().length - vectorOffset, key, bb) ";
-		code += ": null; ";
-		code += " }\n";
-	}
+    // Generate ByKey accessor for vector of struct with key
+    if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+        field.value.type.element == BASE_TYPE_STRUCT &&
+        field.value.type.struct_def->has_key &&
+        lang_.language == IDLOptions::kJava) {
+      auto element_key_field = GetStructKeyField(
+        field.value.type.struct_def);
+      auto element_type_name = GenTypeNameDest(element_key_field->value.type);
+      assert(element_key_field != nullptr);
+      code += "  public " + type_name + " ";
+      auto byKeyMethodName = MakeCamel(field.name, lang_.first_camel_upper)
+        + "ByKey";
+      code += byKeyMethodName + "(" + element_type_name + " key) { ";
+      code += "return " + byKeyMethodName + "(";
+      code += "new " + type_name + "(), key); }\n";
+
+      code += "  public " + type_name + " " + byKeyMethodName;
+      code += "(" + type_name + " obj, " + element_type_name + " key) { ";
+      code += "int o = __lookupBy" + GenElementTypeLookUp(*element_key_field);
+      code += "Key(" + NumToString(field.value.offset);
+      code += ", " + NumToString(element_key_field->value.offset);
+      code += ", key";
+      if (element_key_field->value.type.base_type != BASE_TYPE_STRING)
+        code += ", " + GenDefaultValue(element_key_field->value);
+      code += "); ";
+      code += "return o != 0 ? obj.__assign(o, bb) : null; }\n";
+    }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
     if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
          IsScalar(field.value.type.VectorType().base_type)) ||
@@ -1270,7 +1308,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           lang_.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + GenDefaultValue(field.value, false);
+      code += ", " + SourceCastBasic(field.value.type);
+      code += GenDefaultValue(field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
@@ -1359,39 +1398,41 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
     }
 
-    code += "\n  public static " + struct_def.name + lang_.optional_suffix;
-    code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
-    code += " vectorOffset, " + GenTypeGet(key_field->value.type);
-    code += " key, ByteBuffer bb) {\n";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
-      code += "    byte[] byteKey = ";
-      if (lang_.language == IDLOptions::kJava)
-        code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
-      else
-        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    if (lang_.language != IDLOptions::kJava) {
+      code += "\n  public static " + struct_def.name + lang_.optional_suffix;
+      code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
+      code += " vectorOffset, " + GenTypeNameDest(key_field->value.type);
+      code += " key, ByteBuffer bb) {\n";
+      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+        code += "    byte[] byteKey = ";
+        if (lang_.language == IDLOptions::kJava)
+          code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+        else
+          code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+      }
+      code += "    int vectorLocation = " + GenByteBufferLength("bb");
+      code += " - vectorOffset";
+      if (lang_.language == IDLOptions::kCSharp) code += ".Value";
+      code += ";\n    int span = ";
+      code += "bb." + FunctionStart('G') + "etInt(vectorLocation);\n";
+      code += "    int start = 0;\n";
+      code += "    vectorLocation += 4;\n";
+      code += "    while (span != 0) {\n";
+      code += "      int middle = span / 2;\n";
+      code += GenLookupKeyGetter(key_field);
+      code += "      if (comp > 0) {\n";
+      code += "        span = middle;\n";
+      code += "      } else if (comp < 0) {\n";
+      code += "        middle++;\n";
+      code += "        start += middle;\n";
+      code += "        span -= middle;\n";
+      code += "      } else {\n";
+      code += "        return new " + struct_def.name;
+      code += "().__assign(tableOffset, bb);\n";
+      code += "      }\n    }\n";
+      code += "    return null;\n";
+      code += "  }\n";
     }
-    code += "    int vectorLocation = " + GenByteBufferLength("bb");
-    code += " - vectorOffset";
-    if (lang_.language == IDLOptions::kCSharp) code += ".Value";
-    code += ";\n    int span = ";
-    code += "bb." + FunctionStart('G') + "etInt(vectorLocation);\n";
-    code += "    int start = 0;\n";
-    code += "    vectorLocation += 4;\n";
-    code += "    while (span != 0) {\n";
-    code += "      int middle = span / 2;\n";
-    code += GenLookupKeyGetter(key_field);
-    code += "      if (comp > 0) {\n";
-    code += "        span = middle;\n";
-    code += "      } else if (comp < 0) {\n";
-    code += "        middle++;\n";
-    code += "        start += middle;\n";
-    code += "        span -= middle;\n";
-    code += "      } else {\n";
-    code += "        return new " + struct_def.name;
-    code += "().__assign(tableOffset, bb);\n";
-    code += "      }\n    }\n";
-    code += "    return null;\n";
-    code += "  }\n";
   }
   code += "}";
   // Java does not need the closing semi-colon on class definitions.

@@ -25,7 +25,7 @@ public partial struct TestSimpleTableWithEnum : IFlatbufferObject
   }
 
   public static void StartTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.StartObject(1); }
-  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(0, (sbyte)color, 2); }
+  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(0, (sbyte)color, (sbyte)2); }
   public static Offset<TestSimpleTableWithEnum> EndTestSimpleTableWithEnum(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     return new Offset<TestSimpleTableWithEnum>(o);

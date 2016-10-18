@@ -32,7 +32,7 @@ del /S ..\java\*.class
 del /S *.class
 
 @echo Compile
-javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
+javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\keysearch_test JavaTest.java
 @echo Execute JavaTest
 java -ea -classpath %targetdir% JavaTest
 
