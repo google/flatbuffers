@@ -526,12 +526,22 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
         "@returns {" + GenTypeName(field.value.type, false) + "}");
 		if (ts) {
-		  code += MakeCamel(field.name, false);
-		  code += "(";
+          std::string prefix = "";
+		  prefix += MakeCamel(field.name, false)+"(";
+		  
 		  if (field.value.type.base_type == BASE_TYPE_STRING) {
-		  	code += "optionalEncoding?:flatbuffers.Encoding";
+            code += prefix + "):string\n";
+		  	code += prefix+"optionalEncoding:flatbuffers.Encoding"+"):"+ GenTypeName(field.value.type, false)+"\n";
+            code += prefix + "optionalEncoding?:any";
 		  }
+          else {
+              code += prefix;
+          }
 		  code += "):" + GenTypeName(field.value.type, false) + " {\n";
+
+
+
+
 		}
 		else {
         code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -600,14 +610,20 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           GenDocComment(field.doc_comment, code_ptr, args +
             "@returns {" + vectortypename + "}");
 			if (ts) {
-			  code += MakeCamel(field.name, false);
-			  code += "(index: number";
-			  if (vectortype.base_type == BASE_TYPE_STRUCT) {
-			    code += ", obj?:" + vectortypename;
-			  }
-			  else if (vectortype.base_type == BASE_TYPE_STRING) {
-			    code += ", optionalEncoding?:flatbuffers.Encoding";
-			  }
+                std::string prefix = "";
+                prefix += MakeCamel(field.name, false);
+                prefix += "(index: number";
+                if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                    code += prefix+", obj?:" + vectortypename;
+                }
+                if (field.value.type.base_type == BASE_TYPE_STRING) {
+                    code += prefix + "):string\n";
+                    code += prefix + "optionalEncoding:flatbuffers.Encoding" + "):" + GenTypeName(field.value.type, false) + "\n";
+                    code += prefix + "optionalEncoding?:any";
+                }
+                else {
+                    code += prefix;
+                }
 			  code += "):" + vectortypename + " {\n";
 			}
 			else {
@@ -810,7 +826,11 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@returns {flatbuffers.Offset}");
 		  if (ts) {
 		  	code += "static create" + MakeCamel(field.name);
-		  	code += "Vector(builder:flatbuffers.Builder, data:" + GenTypeName(vector_type, true) + "[]):flatbuffers.Offset {\n";
+            std::string type = GenTypeName(vector_type, true)+"[]";
+            if (type == "number[]") {
+                type += " | Uint8Array";
+            }
+		  	code += "Vector(builder:flatbuffers.Builder, data:" + type+"):flatbuffers.Offset {\n";
 		  }
 		  else {
             code += object_name + ".create" + MakeCamel(field.name);
