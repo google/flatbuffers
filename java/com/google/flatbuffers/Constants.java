@@ -37,6 +37,10 @@ public class Constants {
     static final int SIZEOF_DOUBLE = 8;
     /** The number of bytes in a file identifier. */
     static final int FILE_IDENTIFIER_LENGTH = 4;
+    /** Mask to convert a byte as a user facing ubyte represented with int */
+    static final int UBYTE_MASK = 0xFF;
+    /** Mask to convert a short as a user facing ushort represented with int */
+    static final int USHORT_MASK = 0xFFFF;
 }
 
 /// @endcond
