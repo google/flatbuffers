@@ -158,7 +158,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
-  std::unique_ptr<MonsterT> UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
 struct MonsterBuilder {
@@ -198,7 +198,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
            VerifyField<int8_t>(verifier, VT_COLOR) &&
            verifier.EndTable();
   }
-  std::unique_ptr<TestSimpleTableWithEnumT> UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  TestSimpleTableWithEnumT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
 struct TestSimpleTableWithEnumBuilder {
@@ -248,7 +248,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint16_t>(verifier, VT_COUNT) &&
            verifier.EndTable();
   }
-  std::unique_ptr<StatT> UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  StatT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
 struct StatBuilder {
@@ -523,7 +523,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_TESTUBYTE) &&
            verifier.EndTable();
   }
-  std::unique_ptr<MonsterT> UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
 struct MonsterBuilder {
@@ -713,12 +713,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 
 namespace Example2 {
 
-inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  (void)resolver;
   auto _o = new MonsterT();
-  return std::unique_ptr<MonsterT>(_o);
+  return _o;
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  (void)rehasher;
   (void)_o;
   return CreateMonster(_fbb);
 }
@@ -727,33 +729,38 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 
 namespace Example {
 
-inline std::unique_ptr<TestSimpleTableWithEnumT> TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  (void)resolver;
   auto _o = new TestSimpleTableWithEnumT();
   { auto _e = color(); _o->color = _e; };
-  return std::unique_ptr<TestSimpleTableWithEnumT>(_o);
+  return _o;
 }
 
 inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  (void)rehasher;
   return CreateTestSimpleTableWithEnum(_fbb,
     _o->color);
 }
 
-inline std::unique_ptr<StatT> Stat::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  (void)resolver;
   auto _o = new StatT();
   { auto _e = id(); if (_e) _o->id = _e->str(); };
   { auto _e = val(); _o->val = _e; };
   { auto _e = count(); _o->count = _e; };
-  return std::unique_ptr<StatT>(_o);
+  return _o;
 }
 
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  (void)rehasher;
   return CreateStat(_fbb,
     _o->id.size() ? _fbb.CreateString(_o->id) : 0,
     _o->val,
     _o->count);
 }
 
-inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  (void)resolver;
   auto _o = new MonsterT();
   { auto _e = pos(); if (_e) _o->pos = std::unique_ptr<Vec3>(new Vec3(*_e)); };
   { auto _e = mana(); _o->mana = _e; };
@@ -765,10 +772,10 @@ inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_fun
   { auto _e = test(); if (_e) _o->test.table = AnyUnion::UnPack(_e, test_type(), resolver); };
   { auto _e = test4(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4.push_back(*_e->Get(_i)); } } };
   { auto _e = testarrayofstring(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring.push_back(_e->Get(_i)->str()); } } };
-  { auto _e = testarrayoftables(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables.push_back(_e->Get(_i)->UnPack(resolver)); } } };
-  { auto _e = enemy(); if (_e) _o->enemy = _e->UnPack(resolver); };
+  { auto _e = testarrayoftables(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables.push_back(std::unique_ptr<MonsterT>(_e->Get(_i)->UnPack(resolver))); } } };
+  { auto _e = enemy(); if (_e) _o->enemy = std::unique_ptr<MonsterT>(_e->UnPack(resolver)); };
   { auto _e = testnestedflatbuffer(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testnestedflatbuffer.push_back(_e->Get(_i)); } } };
-  { auto _e = testempty(); if (_e) _o->testempty = _e->UnPack(resolver); };
+  { auto _e = testempty(); if (_e) _o->testempty = std::unique_ptr<StatT>(_e->UnPack(resolver)); };
   { auto _e = testbool(); _o->testbool = _e; };
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; };
   { auto _e = testhashu32_fnv1(); _o->testhashu32_fnv1 = _e; };
@@ -795,10 +802,11 @@ inline std::unique_ptr<MonsterT> Monster::UnPack(const flatbuffers::resolver_fun
   { auto _e = testdouble(); _o->testdouble = _e; };
   { auto _e = testbyte(); _o->testbyte = _e; };
   { auto _e = testubyte(); _o->testubyte = _e; };
-  return std::unique_ptr<MonsterT>(_o);
+  return _o;
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  (void)rehasher;
   return CreateMonster(_fbb,
     _o->pos ? _o->pos.get() : 0,
     _o->mana,
@@ -855,9 +863,9 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, An
 inline flatbuffers::NativeTable *AnyUnion::UnPack(const void *union_obj, Any type, const flatbuffers::resolver_function_t *resolver) {
   switch (type) {
     case Any_NONE: return nullptr;
-    case Any_Monster: return reinterpret_cast<const Monster *>(union_obj)->UnPack(resolver).release();
-    case Any_TestSimpleTableWithEnum: return reinterpret_cast<const TestSimpleTableWithEnum *>(union_obj)->UnPack(resolver).release();
-    case Any_MyGame_Example2_Monster: return reinterpret_cast<const MyGame::Example2::Monster *>(union_obj)->UnPack(resolver).release();
+    case Any_Monster: return reinterpret_cast<const Monster *>(union_obj)->UnPack(resolver);
+    case Any_TestSimpleTableWithEnum: return reinterpret_cast<const TestSimpleTableWithEnum *>(union_obj)->UnPack(resolver);
+    case Any_MyGame_Example2_Monster: return reinterpret_cast<const MyGame::Example2::Monster *>(union_obj)->UnPack(resolver);
     default: return nullptr;
   }
 }
@@ -881,19 +889,35 @@ inline AnyUnion::~AnyUnion() {
   }
 }
 
-inline const MyGame::Example::Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot<MyGame::Example::Monster>(buf); }
+inline const MyGame::Example::Monster *GetMonster(const void *buf) {
+  return flatbuffers::GetRoot<MyGame::Example::Monster>(buf);
+}
 
-inline Monster *GetMutableMonster(void *buf) { return flatbuffers::GetMutableRoot<Monster>(buf); }
+inline Monster *GetMutableMonster(void *buf) {
+  return flatbuffers::GetMutableRoot<Monster>(buf);
+}
 
-inline const char *MonsterIdentifier() { return "MONS"; }
+inline const char *MonsterIdentifier() {
+  return "MONS";
+}
 
-inline bool MonsterBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, MonsterIdentifier()); }
+inline bool MonsterBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(buf, MonsterIdentifier());
+}
 
-inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier()); }
+inline bool VerifyMonsterBuffer(flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+}
 
 inline const char *MonsterExtension() { return "mon"; }
 
-inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<MyGame::Example::Monster> root) { fbb.Finish(root, MonsterIdentifier()); }
+inline void FinishMonsterBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<MyGame::Example::Monster> root) {
+  fbb.Finish(root, MonsterIdentifier());
+}
+
+inline std::unique_ptr<MonsterT> UnPackMonster(const void *buf, const flatbuffers::resolver_function_t *resolver = nullptr) {
+  return std::unique_ptr<MonsterT>(GetMonster(buf)->UnPack(resolver));
+}
 
 }  // namespace Example
 }  // namespace MyGame

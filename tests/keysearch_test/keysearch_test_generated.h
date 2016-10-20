@@ -769,19 +769,31 @@ inline flatbuffers::Offset<EnumEntry> CreateEnumEntry(flatbuffers::FlatBufferBui
   return builder_.Finish();
 }
 
-inline const Testing::KeySearch::MasterDict *GetMasterDict(const void *buf) { return flatbuffers::GetRoot<Testing::KeySearch::MasterDict>(buf); }
+inline const Testing::KeySearch::MasterDict *GetMasterDict(const void *buf) {
+  return flatbuffers::GetRoot<Testing::KeySearch::MasterDict>(buf);
+}
 
-inline MasterDict *GetMutableMasterDict(void *buf) { return flatbuffers::GetMutableRoot<MasterDict>(buf); }
+inline MasterDict *GetMutableMasterDict(void *buf) {
+  return flatbuffers::GetMutableRoot<MasterDict>(buf);
+}
 
-inline const char *MasterDictIdentifier() { return "FBMD"; }
+inline const char *MasterDictIdentifier() {
+  return "FBMD";
+}
 
-inline bool MasterDictBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, MasterDictIdentifier()); }
+inline bool MasterDictBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(buf, MasterDictIdentifier());
+}
 
-inline bool VerifyMasterDictBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Testing::KeySearch::MasterDict>(MasterDictIdentifier()); }
+inline bool VerifyMasterDictBuffer(flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<Testing::KeySearch::MasterDict>(MasterDictIdentifier());
+}
 
 inline const char *MasterDictExtension() { return "mdict"; }
 
-inline void FinishMasterDictBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Testing::KeySearch::MasterDict> root) { fbb.Finish(root, MasterDictIdentifier()); }
+inline void FinishMasterDictBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Testing::KeySearch::MasterDict> root) {
+  fbb.Finish(root, MasterDictIdentifier());
+}
 
 }  // namespace KeySearch
 }  // namespace Testing

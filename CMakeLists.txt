@@ -100,7 +100,7 @@ set(FlatBuffers_GRPCTest_SRCS
 # source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
 
 if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
-  # do not apply any global settings if the toolchain 
+  # do not apply any global settings if the toolchain
   # is being configured externally
 elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
@@ -117,7 +117,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -Werror=shadow")
   if (GCC_VERSION VERSION_GREATER 4.4)
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")
+      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result \
+                          -Wunused-parameter -Werror=unused-parameter")
   endif()
 
   # Certain platforms such as ARM do not use signed chars by default
