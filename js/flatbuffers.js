@@ -75,8 +75,8 @@ flatbuffers.isLittleEndian = new Uint16Array(new Uint8Array([1, 0]).buffer)[0] =
 
 /**
  * @constructor
- * @param {number} high
  * @param {number} low
+ * @param {number} high
  */
 flatbuffers.Long = function(low, high) {
   /**
@@ -93,8 +93,8 @@ flatbuffers.Long = function(low, high) {
 };
 
 /**
- * @param {number} high
  * @param {number} low
+ * @param {number} high
  * @returns {flatbuffers.Long}
  */
 flatbuffers.Long.create = function(low, high) {
