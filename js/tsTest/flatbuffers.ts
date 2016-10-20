@@ -1047,6 +1047,8 @@ export class ByteBuffer {
    * @param {flatbuffers.Encoding=} optionalEncoding Defaults to UTF16_STRING
    * @returns {string|Uint8Array}
    */
+  __string(offset:number):string;
+  __string(offset: number, optionalEncoding: flatbuffers.Encoding): string | Uint8Array;
   __string(offset: number, optionalEncoding?: Encoding): string | Uint8Array {
     offset += this.readInt32(offset);
 
