@@ -615,17 +615,18 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
 }
 
 // Returns the function name that is able to read a value of the given type.
-std::string GenGetter(const Type &type) {
+std::string GenGetter(const Type &type, bool withBoolConversion=true) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return lang_.accessor_prefix + "__string";
     case BASE_TYPE_STRUCT: return lang_.accessor_prefix + "__struct";
     case BASE_TYPE_UNION:  return lang_.accessor_prefix + "__union";
-    case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
+    case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), withBoolConversion);
     default: {
       std::string getter =
         lang_.accessor_prefix + "bb." + FunctionStart('G') + "et";
       if (type.base_type == BASE_TYPE_BOOL) {
-        getter = "0!=" + getter;
+        if (withBoolConversion)
+          getter = "0!=" + getter;
       } else if (GenTypeBasic(type, false) != "byte") {
         getter += MakeCamel(GenTypeBasic(type, false));
       }
@@ -777,10 +778,8 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += ";";
   }
   else {
-    // offset is used to strip "bb" or "0!=bb" from GenGetter() result
-    auto offset = key_field->value.type.base_type == BASE_TYPE_BOOL ? 5 : 2;
     if (lang_.language == IDLOptions::kCSharp) {
-      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset) +
+      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
         "(" + GenOffsetGetter(key_field, "o1") + ")";
       key_getter += field_getter;
       field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
@@ -791,7 +790,7 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       auto varType = GenTypeGet(key_field->value.type);
       if (lang_.language == IDLOptions::kJava &&  key_field->value.type.base_type == BASE_TYPE_BOOL)
         varType = "byte"; // boolean are not comparable in Java
-      auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(offset);
+      auto field_getter = data_buffer + GenGetter(key_field->value.type, false).substr(2);
       key_getter += "\n    " + varType + " val_1 = ";
       key_getter += field_getter + "(" + GenOffsetGetter(key_field, "o1") + ");\n";
       key_getter += "    " + varType + " val_2 = ";
@@ -818,12 +817,12 @@ std::string GenElementTypeLookUp(const FieldDef &field)
 {
   switch (field.value.type.base_type)
   {
-  case BASE_TYPE_UCHAR: return "UByte";
-  case BASE_TYPE_USHORT: return "UShort";
-  case BASE_TYPE_UINT: return "UInt";
-  case BASE_TYPE_ULONG: return "ULong";
-  case BASE_TYPE_STRING: return "String";
-  default: return GenMethod(field.value.type);
+    case BASE_TYPE_UCHAR: return "UByte";
+    case BASE_TYPE_USHORT: return "UShort";
+    case BASE_TYPE_UINT: return "UInt";
+    case BASE_TYPE_ULONG: return "ULong";
+    case BASE_TYPE_STRING: return "String";
+    default: return GenMethod(field.value.type);
   }
 }
 
