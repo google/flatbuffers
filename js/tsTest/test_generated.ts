@@ -11,7 +11,6 @@ export enum Color{
   Green= 1,
   Blue= 2
 }}
-
 /**
  * @enum
  */
@@ -40,7 +39,7 @@ export class Vec3 {
  * @param {flatbuffers.ByteBuffer} bb
  * @returns {Vec3}
  */
-__init = function(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
+__init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -49,21 +48,21 @@ __init = function(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
 /**
  * @returns {number}
  */
-x = function():number {
+x():number {
   return this.bb.readFloat32(this.bb_pos);
 };
 
 /**
  * @returns {number}
  */
-y = function():number {
+y():number {
   return this.bb.readFloat32(this.bb_pos + 4);
 };
 
 /**
  * @returns {number}
  */
-z = function():number {
+z():number {
   return this.bb.readFloat32(this.bb_pos + 8);
 };
 
@@ -74,7 +73,7 @@ z = function():number {
  * @param {number} z
  * @returns {flatbuffers.Offset}
  */
-static createVec3 = function(builder:flatbuffers.Builder, x: number, y: number, z: number):flatbuffers.Offset {
+static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number):flatbuffers.Offset {
   builder.prep(4, 12);
   builder.writeFloat32(z);
   builder.writeFloat32(y);
@@ -103,7 +102,7 @@ export class Monster {
  * @param {flatbuffers.ByteBuffer} bb
  * @returns {Monster}
  */
-__init = function(i:number, bb:flatbuffers.ByteBuffer):Monster {
+__init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -114,7 +113,7 @@ __init = function(i:number, bb:flatbuffers.ByteBuffer):Monster {
  * @param {Monster=} obj
  * @returns {Monster}
  */
-static getRootAsMonster = function(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
+static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -122,7 +121,7 @@ static getRootAsMonster = function(bb:flatbuffers.ByteBuffer, obj?:Monster):Mons
  * @param {MyGame.Sample.Vec3=} obj
  * @returns {MyGame.Sample.Vec3}
  */
-pos = function(obj?:MyGame.Sample.Vec3):MyGame.Sample.Vec3 {
+pos(obj?:MyGame.Sample.Vec3):MyGame.Sample.Vec3 {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new MyGame.Sample.Vec3).__init(this.bb_pos + offset, this.bb) : null;
 };
@@ -130,7 +129,7 @@ pos = function(obj?:MyGame.Sample.Vec3):MyGame.Sample.Vec3 {
 /**
  * @returns {number}
  */
-mana = function():number {
+mana():number {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.readInt16(this.bb_pos + offset) : 150;
 };
@@ -138,7 +137,7 @@ mana = function():number {
 /**
  * @returns {number}
  */
-hp = function():number {
+hp():number {
   var offset = this.bb.__offset(this.bb_pos, 8);
   return offset ? this.bb.readInt16(this.bb_pos + offset) : 100;
 };
@@ -147,7 +146,7 @@ hp = function():number {
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array}
  */
-name = function(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
+name(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -156,7 +155,7 @@ name = function(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
  * @param {number} index
  * @returns {number}
  */
-inventory = function(index: number):number {
+inventory(index: number):number {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
 };
@@ -164,7 +163,7 @@ inventory = function(index: number):number {
 /**
  * @returns {number}
  */
-inventoryLength = function():number {
+inventoryLength():number {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
@@ -172,7 +171,7 @@ inventoryLength = function():number {
 /**
  * @returns {Uint8Array}
  */
-static inventoryArray = function():Uint8Array {
+inventoryArray():Uint8Array {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
@@ -180,7 +179,7 @@ static inventoryArray = function():Uint8Array {
 /**
  * @returns {MyGame.Sample.Color}
  */
-color = function():MyGame.Sample.Color {
+color():MyGame.Sample.Color {
   var offset = this.bb.__offset(this.bb_pos, 16);
   return offset ? /** @type {MyGame.Sample.Color} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Sample.Color.Blue;
 };
@@ -190,7 +189,7 @@ color = function():MyGame.Sample.Color {
  * @param {MyGame.Sample.Weapon=} obj
  * @returns {MyGame.Sample.Weapon}
  */
-weapons = function(index: number, obj?:MyGame.Sample.Weapon):MyGame.Sample.Weapon {
+weapons(index: number, obj?:MyGame.Sample.Weapon):MyGame.Sample.Weapon {
   var offset = this.bb.__offset(this.bb_pos, 18);
   return offset ? (obj || new MyGame.Sample.Weapon).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
@@ -198,7 +197,7 @@ weapons = function(index: number, obj?:MyGame.Sample.Weapon):MyGame.Sample.Weapo
 /**
  * @returns {number}
  */
-weaponsLength = function():number {
+weaponsLength():number {
   var offset = this.bb.__offset(this.bb_pos, 18);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
@@ -206,7 +205,7 @@ weaponsLength = function():number {
 /**
  * @returns {MyGame.Sample.Equipment}
  */
-equippedType = function():MyGame.Sample.Equipment {
+equippedType():MyGame.Sample.Equipment {
   var offset = this.bb.__offset(this.bb_pos, 20);
   return offset ? /** @type {MyGame.Sample.Equipment} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Sample.Equipment.NONE;
 };
@@ -215,15 +214,16 @@ equippedType = function():MyGame.Sample.Equipment {
  * @param {flatbuffers.Table} obj
  * @returns {?flatbuffers.Table}
  */
-equipped = function<T extends flatbuffers.Table>(obj:T):T {
+equipped<T extends flatbuffers.Table>(obj:T):T {
   var offset = this.bb.__offset(this.bb_pos, 22);
+  var t=this.bb.__union(obj, this.bb_pos + offset)
   return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
 };
 
 /**
  * @param {flatbuffers.Builder} builder
  */
-static startMonster = function(builder:flatbuffers.Builder) {
+static startMonster(builder:flatbuffers.Builder) {
   builder.startObject(10);
 };
 
@@ -231,7 +231,7 @@ static startMonster = function(builder:flatbuffers.Builder) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} posOffset
  */
-static addPos = function(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
+static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
   builder.addFieldStruct(0, posOffset, 0);
 };
 
@@ -239,7 +239,7 @@ static addPos = function(builder:flatbuffers.Builder, posOffset:flatbuffers.Offs
  * @param {flatbuffers.Builder} builder
  * @param {number} mana
  */
-static addMana = function(builder:flatbuffers.Builder, mana:number) {
+static addMana(builder:flatbuffers.Builder, mana:number) {
   builder.addFieldInt16(1, mana, 150);
 };
 
@@ -247,7 +247,7 @@ static addMana = function(builder:flatbuffers.Builder, mana:number) {
  * @param {flatbuffers.Builder} builder
  * @param {number} hp
  */
-static addHp = function(builder:flatbuffers.Builder, hp:number) {
+static addHp(builder:flatbuffers.Builder, hp:number) {
   builder.addFieldInt16(2, hp, 100);
 };
 
@@ -255,7 +255,7 @@ static addHp = function(builder:flatbuffers.Builder, hp:number) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} nameOffset
  */
-static addName = function(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
+static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
   builder.addFieldOffset(3, nameOffset, 0);
 };
 
@@ -263,7 +263,7 @@ static addName = function(builder:flatbuffers.Builder, nameOffset:flatbuffers.Of
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} inventoryOffset
  */
-static addInventory = function(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset) {
+static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset) {
   builder.addFieldOffset(5, inventoryOffset, 0);
 };
 
@@ -272,7 +272,7 @@ static addInventory = function(builder:flatbuffers.Builder, inventoryOffset:flat
  * @param {Array.<number>} data
  * @returns {flatbuffers.Offset}
  */
-static createInventoryVector = function(builder:flatbuffers.Builder, data:number[]):flatbuffers.Offset {
+static createInventoryVector(builder:flatbuffers.Builder, data:number[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -284,7 +284,7 @@ static createInventoryVector = function(builder:flatbuffers.Builder, data:number
  * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
-static startInventoryVector = function(builder:flatbuffers.Builder, numElems:number) {
+static startInventoryVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 };
 
@@ -292,7 +292,7 @@ static startInventoryVector = function(builder:flatbuffers.Builder, numElems:num
  * @param {flatbuffers.Builder} builder
  * @param {MyGame.Sample.Color} color
  */
-static addColor = function(builder:flatbuffers.Builder, color:MyGame.Sample.Color) {
+static addColor(builder:flatbuffers.Builder, color:MyGame.Sample.Color) {
   builder.addFieldInt8(6, color, MyGame.Sample.Color.Blue);
 };
 
@@ -300,7 +300,7 @@ static addColor = function(builder:flatbuffers.Builder, color:MyGame.Sample.Colo
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} weaponsOffset
  */
-static addWeapons = function(builder:flatbuffers.Builder, weaponsOffset:flatbuffers.Offset) {
+static addWeapons(builder:flatbuffers.Builder, weaponsOffset:flatbuffers.Offset) {
   builder.addFieldOffset(7, weaponsOffset, 0);
 };
 
@@ -309,7 +309,7 @@ static addWeapons = function(builder:flatbuffers.Builder, weaponsOffset:flatbuff
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createWeaponsVector = function(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+static createWeaponsVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
@@ -321,7 +321,7 @@ static createWeaponsVector = function(builder:flatbuffers.Builder, data:flatbuff
  * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
-static startWeaponsVector = function(builder:flatbuffers.Builder, numElems:number) {
+static startWeaponsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 };
 
@@ -329,7 +329,7 @@ static startWeaponsVector = function(builder:flatbuffers.Builder, numElems:numbe
  * @param {flatbuffers.Builder} builder
  * @param {MyGame.Sample.Equipment} equippedType
  */
-static addEquippedType = function(builder:flatbuffers.Builder, equippedType:MyGame.Sample.Equipment) {
+static addEquippedType(builder:flatbuffers.Builder, equippedType:MyGame.Sample.Equipment) {
   builder.addFieldInt8(8, equippedType, MyGame.Sample.Equipment.NONE);
 };
 
@@ -337,7 +337,7 @@ static addEquippedType = function(builder:flatbuffers.Builder, equippedType:MyGa
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} equippedOffset
  */
-static addEquipped = function(builder:flatbuffers.Builder, equippedOffset:flatbuffers.Offset) {
+static addEquipped(builder:flatbuffers.Builder, equippedOffset:flatbuffers.Offset) {
   builder.addFieldOffset(9, equippedOffset, 0);
 };
 
@@ -345,7 +345,7 @@ static addEquipped = function(builder:flatbuffers.Builder, equippedOffset:flatbu
  * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
-static endMonster = function(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endMonster (builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
   return offset;
 };
@@ -354,7 +354,7 @@ static endMonster = function(builder:flatbuffers.Builder):flatbuffers.Offset {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} offset
  */
-static finishMonsterBuffer = function(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset);
 };
 
@@ -379,7 +379,7 @@ export class Weapon {
  * @param {flatbuffers.ByteBuffer} bb
  * @returns {Weapon}
  */
-__init = function(i:number, bb:flatbuffers.ByteBuffer):Weapon {
+__init(i:number, bb:flatbuffers.ByteBuffer):Weapon {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -390,7 +390,7 @@ __init = function(i:number, bb:flatbuffers.ByteBuffer):Weapon {
  * @param {Weapon=} obj
  * @returns {Weapon}
  */
-static getRootAsWeapon = function(bb:flatbuffers.ByteBuffer, obj?:Weapon):Weapon {
+static getRootAsWeapon(bb:flatbuffers.ByteBuffer, obj?:Weapon):Weapon {
   return (obj || new Weapon).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -398,7 +398,7 @@ static getRootAsWeapon = function(bb:flatbuffers.ByteBuffer, obj?:Weapon):Weapon
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array}
  */
-name = function(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
+name(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -406,7 +406,7 @@ name = function(optionalEncoding?:flatbuffers.Encoding):string|Uint8Array {
 /**
  * @returns {number}
  */
-damage = function():number {
+damage():number {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.readInt16(this.bb_pos + offset) : 0;
 };
@@ -414,7 +414,7 @@ damage = function():number {
 /**
  * @param {flatbuffers.Builder} builder
  */
-static startWeapon = function(builder:flatbuffers.Builder) {
+static startWeapon(builder:flatbuffers.Builder) {
   builder.startObject(2);
 };
 
@@ -422,7 +422,7 @@ static startWeapon = function(builder:flatbuffers.Builder) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} nameOffset
  */
-static addName = function(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
+static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
   builder.addFieldOffset(0, nameOffset, 0);
 };
 
@@ -430,7 +430,7 @@ static addName = function(builder:flatbuffers.Builder, nameOffset:flatbuffers.Of
  * @param {flatbuffers.Builder} builder
  * @param {number} damage
  */
-static addDamage = function(builder:flatbuffers.Builder, damage:number) {
+static addDamage(builder:flatbuffers.Builder, damage:number) {
   builder.addFieldInt16(1, damage, 0);
 };
 
@@ -438,7 +438,7 @@ static addDamage = function(builder:flatbuffers.Builder, damage:number) {
  * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
-static endWeapon = function(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endWeapon (builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
   return offset;
 };

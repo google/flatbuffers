@@ -464,7 +464,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   code += " */\n";
   if (ts) {
   	//constructor += "prototype.__init:(i:number, bb:flatbuffers.ByteBuffer):" + object_name + "\n";
-  	code += "__init = function(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+  	code += "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
   }
   else {
     code += object_name + ".prototype.__init = function(i, bb) {\n";
@@ -483,7 +483,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@returns {" + object_name + "}");
 	if (ts) {
       code += "static getRootAs" + struct_def.name;
-      code += " = function(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" + object_name + " {\n";
+      code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" + object_name + " {\n";
     }
     else {
       code += object_name + ".getRootAs" + struct_def.name;
@@ -500,7 +500,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
       if (ts) {
-      	code += "static bufferHasIdentifier = function(bb:flatbuffers.ByteBuffer):boolean {\n";
+      	code += "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {\n";
       }
       else {
         code += object_name + ".bufferHasIdentifier = function(bb) {\n";
@@ -527,7 +527,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@returns {" + GenTypeName(field.value.type, false) + "}");
 		if (ts) {
 		  code += MakeCamel(field.name, false);
-		  code += " = function(";
+		  code += "(";
 		  if (field.value.type.base_type == BASE_TYPE_STRING) {
 		  	code += "optionalEncoding?:flatbuffers.Encoding";
 		  }
@@ -565,7 +565,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@param {" + type + "=} obj\n@returns {" + type + "}");
 			if (ts) {
 		      code += MakeCamel(field.name, false);
-		      code += " = function(obj?:" + type + "):" + type + " {\n";
+		      code += "(obj?:" + type + "):" + type + " {\n";
 		    }
 		    else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -601,7 +601,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@returns {" + vectortypename + "}");
 			if (ts) {
 			  code += MakeCamel(field.name, false);
-			  code += " = function(index: number";
+			  code += "(index: number";
 			  if (vectortype.base_type == BASE_TYPE_STRUCT) {
 			    code += ", obj?:" + vectortypename;
 			  }
@@ -655,7 +655,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@returns {?flatbuffers.Table}");
 		  if (ts) {
 		  	code += MakeCamel(field.name, false);
-		  	code += " = function<T extends flatbuffers.Table>(obj:T):T {\n";
+		  	code += "<T extends flatbuffers.Table>(obj:T):T {\n";
 		  }
 		  else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -677,7 +677,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
 	  if (ts) {
-	  	code += "static mutate_" + field.name + " = function(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
+	  	code += "static mutate_" + field.name + "(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
 	  }
 	  else {
         code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
@@ -697,7 +697,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr, "@returns {number}");
 	  if (ts) {
 	  	code += MakeCamel(field.name, false);
-	  	code += "Length = function():number {\n" + offset_prefix;
+	  	code += "Length():number {\n" + offset_prefix;
 	  }
 	  else {
         code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -711,7 +711,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
 		if (ts) {
 		  code += "static "+MakeCamel(field.name, false);
-		  code += "Array = function():" + GenType(vectorType) + "Array {\n" + offset_prefix;
+		  code += "Array():" + GenType(vectorType) + "Array {\n" + offset_prefix;
 		}
 		else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -732,7 +732,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     GenDocComment(code_ptr, annotations +
       "@returns {flatbuffers.Offset}");
 	if (ts) {
-      code += "static create" + struct_def.name + " = function(builder:flatbuffers.Builder";
+      code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
       code += arguments + "):flatbuffers.Offset {\n";
     }
     else {
@@ -747,7 +747,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@param {flatbuffers.Builder} builder");
 	if (ts) {
    	  code += "static start" + struct_def.name;
-   	  code += " = function(builder:flatbuffers.Builder) {\n";
+   	  code += "(builder:flatbuffers.Builder) {\n";
     }
     else {
       code += object_name + ".start" + struct_def.name;
@@ -774,7 +774,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         argname);
       if (ts) {
 	  	code += "static add" + MakeCamel(field.name);
-	  	code += " = function(builder:flatbuffers.Builder, " + argname + ":" + GenTypeName(field.value.type, true) + ") {\n";
+	  	code += "(builder:flatbuffers.Builder, " + argname + ":" + GenTypeName(field.value.type, true) + ") {\n";
 	  }
 	  else {
         code += object_name + ".add" + MakeCamel(field.name);
@@ -810,7 +810,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@returns {flatbuffers.Offset}");
 		  if (ts) {
 		  	code += "static create" + MakeCamel(field.name);
-		  	code += "Vector = function(builder:flatbuffers.Builder, data:" + GenTypeName(vector_type, true) + "[]):flatbuffers.Offset {\n";
+		  	code += "Vector(builder:flatbuffers.Builder, data:" + GenTypeName(vector_type, true) + "[]):flatbuffers.Offset {\n";
 		  }
 		  else {
             code += object_name + ".create" + MakeCamel(field.name);
@@ -835,7 +835,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           "@param {number} numElems");
 		if (ts) {
 	      code += "static start" + MakeCamel(field.name);
-	      code += "Vector = function(builder:flatbuffers.Builder, numElems:number) {\n";
+	      code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
 		}
 		else {
           code += object_name + ".start" + MakeCamel(field.name);
@@ -853,7 +853,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@returns {flatbuffers.Offset}");
 	if (ts) {
 	  code += "static end" + struct_def.name;
-	  code += " = function(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
+	  code += " (builder:flatbuffers.Builder):flatbuffers.Offset {\n";
 	}
 	else {
       code += object_name + ".end" + struct_def.name;
@@ -879,7 +879,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.Offset} offset");
 	  if (ts) {
 	  	code += "static finish" + struct_def.name + "Buffer";
-	  	code += " = function(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+	  	code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
 	  }
 	  else {
         code += object_name + ".finish" + struct_def.name + "Buffer";
