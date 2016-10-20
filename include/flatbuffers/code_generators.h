@@ -112,6 +112,22 @@ class BaseGenerator {
     return WrapInNameSpace(def.defined_namespace, def.name);
   }
 
+  std::string GetNameSpace(const Definition &def) {
+  const Namespace *ns = def.defined_namespace;
+  const std::string &name = def.name;
+  if (CurrentNameSpace() == ns) return "";
+  std::string qualified_name = qualifying_start_;
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+  {
+  	qualified_name += *it;
+  	if (std::next(it) != ns->components.end()) {
+  		qualified_name += qualifying_separator_;
+  	}
+  }
+  
+  
+  return qualified_name;
+  }
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
