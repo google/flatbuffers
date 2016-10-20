@@ -710,7 +710,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       if (IsScalar(vectorType.base_type)) {
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
 		if (ts) {
-		  code += "static "+MakeCamel(field.name, false);
+		  code += MakeCamel(field.name, false);
 		  code += "Array():" + GenType(vectorType) + "Array {\n" + offset_prefix;
 		}
 		else {
