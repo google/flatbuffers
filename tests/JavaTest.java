@@ -19,7 +19,8 @@ import java.nio.ByteBuffer;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
-import com.google.flatbuffers.Comparators;
+import com.google.flatbuffers.Unsigneds;
+
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -351,72 +352,42 @@ class JavaTest {
     }
 
     private static void TestComparators() {
-        // byte
-        TestPositive(Comparators.compare((byte)10, (byte)5));
-        TestPositive(Comparators.compare(Byte.MAX_VALUE, Byte.MIN_VALUE));
-        TestNegative(Comparators.compare((byte)-10, (byte)5));
-        TestNegative(Comparators.compare(Byte.MIN_VALUE, Byte.MAX_VALUE));
-        TestEq(Comparators.compare((byte)-10, (byte)-10), 0);
-        // short
-        TestPositive(Comparators.compare((short)10, (short)5));
-        TestPositive(Comparators.compare(Short.MAX_VALUE, Short.MIN_VALUE));
-        TestNegative(Comparators.compare((short)-10, (short)5));
-        TestNegative(Comparators.compare(Short.MIN_VALUE, Short.MAX_VALUE));
-        TestEq(Comparators.compare((short)-10, (short)-10), 0);
-        // int
-        TestPositive(Comparators.compare(10, 5));
-        TestPositive(Comparators.compare(Integer.MAX_VALUE, Integer.MIN_VALUE));
-        TestNegative(Comparators.compare(-10, 5));
-        TestNegative(Comparators.compare(Integer.MIN_VALUE, Integer.MAX_VALUE));
-        TestEq(Comparators.compare(-10, -10), 0);
-        // long
-        TestPositive(Comparators.compare(10L, 5L));
-        TestPositive(Comparators.compare(Long.MAX_VALUE, Long.MIN_VALUE));
-        TestNegative(Comparators.compare(-10L, 5L));
-        TestNegative(Comparators.compare(Long.MIN_VALUE, Long.MAX_VALUE));
-        TestEq(Comparators.compare(-10L, -10L), 0);
         // ulong
-        TestPositive(Comparators.compareUnsigned(0xff00123400000000L , 0xf500123400000000L));
-        TestPositive(Comparators.compareUnsigned(0xff00123400000000L, 0x0500123400000000L));
-        TestNegative(Comparators.compareUnsigned(0x0a00123400000000L, 0x6500123400000000L));
-        TestNegative(Comparators.compareUnsigned(0x0a00123400000000L, 0xf500123400000000L));
-        TestNegative(Comparators.compareUnsigned(0xf500123400000000L, 0xff00123400000000L));
-        TestEq(Comparators.compareUnsigned(0x0123456701234567L, 0x0123456701234567L), 0);
-        TestEq(Comparators.compareUnsigned(0xf123456701234567L, 0xf123456701234567L), 0);
+        TestTrue(Unsigneds.asComparable(0xff00123400000000L) > Unsigneds.asComparable( 0xf500123400000000L));
+        TestTrue(Unsigneds.asComparable(0xff00123400000000L) > Unsigneds.asComparable(0x0500123400000000L));
+        TestTrue(Unsigneds.asComparable(0x0a00123400000000L) < Unsigneds.asComparable(0x6500123400000000L));
+        TestTrue(Unsigneds.asComparable(0xf500123400000000L) < Unsigneds.asComparable(0xff00123400000000L));
+        TestTrue(Unsigneds.asComparable(0x0a00123400000000L) < Unsigneds.asComparable(0xf500123400000000L));
+        TestEq(Unsigneds.asComparable(0x0123456701234567L), Unsigneds.asComparable(0x0123456701234567L));
+        TestEq(Unsigneds.asComparable(0xf123456701234567L), Unsigneds.asComparable(0xf123456701234567L));
         // uint
-        TestPositive(Comparators.compareUnsigned(0xff001234, 0xf5001234));
-        TestPositive(Comparators.compareUnsigned(0xff001234, 0x05001234));
-        TestNegative(Comparators.compareUnsigned(0x0a001234, 0x65001234));
-        TestNegative(Comparators.compareUnsigned(0x0a001234, 0xf5001234));
-        TestNegative(Comparators.compareUnsigned(0xf5001234, 0xff001234));
-        TestEq(Comparators.compareUnsigned(0x1000, 0x1000), 0);
+        TestTrue(Unsigneds.asComparable(0xff001234) > Unsigneds.asComparable(0xf5001234));
+        TestTrue(Unsigneds.asComparable(0xff001234) > Unsigneds.asComparable(0x05001234));
+        TestTrue(Unsigneds.asComparable(0x0a001234) < Unsigneds.asComparable(0x65001234));
+        TestTrue(Unsigneds.asComparable(0x0a001234) < Unsigneds.asComparable(0xf5001234));
+        TestTrue(Unsigneds.asComparable(0xf5001234) < Unsigneds.asComparable(0xff001234));
+        TestEq(Unsigneds.asComparable(0x1000), Unsigneds.asComparable(0x1000));
         // ushort
-        TestPositive(Comparators.compareUnsigned((short)0xff00, (short)0xf500));
-        TestPositive(Comparators.compareUnsigned((short)0xff00, (short)0x0500));
-        TestNegative(Comparators.compareUnsigned((short)0x0a00, (short)0x6500));
-        TestNegative(Comparators.compareUnsigned((short)0x0a00, (short)0xf500));
-        TestNegative(Comparators.compareUnsigned((short)0xf500, (short)0xff00));
-        TestEq(Comparators.compareUnsigned((short)0x1000, (short)0x1000), 0);
+        TestTrue(Unsigneds.asComparable((short)0xff00) > Unsigneds.asComparable((short)0xf500));
+        TestTrue(Unsigneds.asComparable((short)0xff00) > Unsigneds.asComparable((short)0x0500));
+        TestTrue(Unsigneds.asComparable((short)0x0a00) < Unsigneds.asComparable((short)0x6500));
+        TestTrue(Unsigneds.asComparable((short)0x0a00) < Unsigneds.asComparable((short)0xf500));
+        TestTrue(Unsigneds.asComparable((short)0xf500) < Unsigneds.asComparable((short)0xff00));
+        TestEq(Unsigneds.asComparable((short)0x1000), Unsigneds.asComparable((short)0x1000));
         // ubyte
-        TestPositive(Comparators.compareUnsigned((byte)0xff, (byte)0xf5));
-        TestPositive(Comparators.compareUnsigned((byte)0xff, (byte)0x05));
-        TestNegative(Comparators.compareUnsigned((byte)0x0a, (byte)0x65));
-        TestNegative(Comparators.compareUnsigned((byte)0x0a, (byte)0xf5));
-        TestNegative(Comparators.compareUnsigned((byte)0xf5, (byte)0xff));
-        TestEq(Comparators.compareUnsigned((byte)0x10, (byte)0x10), 0);
+        TestTrue(Unsigneds.asComparable((byte)0xff) > Unsigneds.asComparable((byte)0xf5));
+        TestTrue(Unsigneds.asComparable((byte)0xff) > Unsigneds.asComparable((byte)0x05));
+        TestTrue(Unsigneds.asComparable((byte)0x0a) < Unsigneds.asComparable((byte)0x65));
+        TestTrue(Unsigneds.asComparable((byte)0xff) > Unsigneds.asComparable((byte)0xf5));
+        TestTrue(Unsigneds.asComparable((byte)0x0a) < Unsigneds.asComparable((byte)0xf5));
+        TestTrue(Unsigneds.asComparable((byte)0xf5) < Unsigneds.asComparable((byte)0xff));
+        TestEq(Unsigneds.asComparable((byte)0x10), Unsigneds.asComparable((byte)0x10));
     }
 
-    static void TestPositive(int a) {
-        if (a <= 0) {
-            System.out.println("FlatBuffers test FAILED: expected > 0 but got \'" + a + "\'");
-            assert false; // Run test with -ea VM options to get callstack
-            System.exit(1);
-        }
-    }
 
-    static void TestNegative(int a) {
-        if (a >= 0) {
-            System.out.println("FlatBuffers test FAILED: expected < 0 but got \'" + a + "\'");
+    static void TestTrue(boolean a) {
+        if (!a) {
+            System.out.println("FlatBuffers test FAILED: expected true");
             assert false; // Run test with -ea VM options to get callstack
             System.exit(1);
         }
