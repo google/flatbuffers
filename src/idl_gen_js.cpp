@@ -128,9 +128,9 @@ class JsGenerator : public BaseGenerator {
 	  }
     if (it->find('.') == std::string::npos) {
 	  if (ts) {
-	  	code += "import flatbuffers from \"./flatbuffers\"\n";
+	  	code += "import {flatbuffers} from \"./flatbuffers\"\n";
       
-	  	code += "export default "+*it+"\n";
+	  	//code += "export default "+*it+"\n"; //this messes up webpack for some reason
 	  }
       else {
         code += "var ";

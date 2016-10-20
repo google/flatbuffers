@@ -15,7 +15,6 @@
  * @param {number} high
  * @param {number} low
  */
-export default flatbuffers
 export module flatbuffers {
   /**
  * @type {number}
