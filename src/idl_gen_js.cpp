@@ -610,19 +610,20 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           GenDocComment(field.doc_comment, code_ptr, args +
             "@returns {" + vectortypename + "}");
 			if (ts) {
+                
                 std::string prefix = "";
                 prefix += MakeCamel(field.name, false);
                 prefix += "(index: number";
                 if (vectortype.base_type == BASE_TYPE_STRUCT) {
                     code += prefix+", obj?:" +vectortypename;
                 }
-                else if (field.value.type.base_type == BASE_TYPE_STRING) {
+                else if (vectortype.base_type == BASE_TYPE_STRING) {
                     code += prefix + "):string\n";
-                    code += prefix + "optionalEncoding:flatbuffers.Encoding" + "):" + GenTypeName(field.value.type, false) + "\n";
-                    code += prefix + "optionalEncoding?:any";
+                    code += prefix + ",optionalEncoding:flatbuffers.Encoding" + "):" + vectortypename + "\n";
+                    code += prefix + ",optionalEncoding?:any";
                 }
                 else {
-                    code += prefix; //is this needed? [SP]
+                    code += prefix;
                 }
 			  code += "):" + vectortypename + " {\n";
 			}
