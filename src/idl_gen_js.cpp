@@ -703,7 +703,11 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
-      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
+      std::string value = "value";
+      if (GenTypeName(field.value.type, true)=="boolean") {
+          value = "+" + value;
+      }
+      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, "+value+");\n";
       code += "  return true;\n";
       code += "}\n\n";
     }
