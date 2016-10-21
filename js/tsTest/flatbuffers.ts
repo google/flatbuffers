@@ -333,7 +333,33 @@ export class Builder {
   writeInt64(value: flatbuffers.Long) {
     this.bb.writeInt64(this.space -= 8, value);
   };
+  /**
+   * @param {number} value
+   */
+  writeUint8(value: number) {
+    this.bb.writeUint8(this.space -= 1, value);
+  };
 
+  /**
+   * @param {number} value
+   */
+  writeUint16(value: number) {
+    this.bb.writeUint16(this.space -= 2, value);
+  };
+
+  /**
+   * @param {number} value
+   */
+  writeUint32(value: number) {
+    this.bb.writeUint32(this.space -= 4, value);
+  };
+
+  /**
+   * @param {flatbuffers.Long} value
+   */
+  writeUint64(value: flatbuffers.Long) {
+    this.bb.writeUint64(this.space -= 8, value);
+  };
   /**
    * @param {number} value
    */
@@ -987,6 +1013,37 @@ export class ByteBuffer {
   writeInt64(offset: number, value: flatbuffers.Long) {
     this.writeInt32(offset, value.low);
     this.writeInt32(offset + 4, value.high);
+  };
+
+  /**
+   * @param {number} offset
+   * @param {number} value
+   */
+  writeUint8(offset: number, value: number){
+    this.writeInt8(offset,value)
+  };
+
+  /**
+   * @param {number} offset
+   * @param {number} value
+   */
+  writeUint16(offset: number, value: number){
+    this.writeInt16(offset,value)
+  };
+
+  /**
+   * @param {number} offset
+   * @param {number} value
+   */
+  writeUint32(offset: number, value: number) {
+    this.writeInt32(offset,value)
+  };
+    /**
+   * @param {number} offset
+   * @param {number} value
+   */
+  writeUint64(offset: number, value: flatbuffers.Long) {
+    this.writeInt64(offset,value)
   };
 
   /**
