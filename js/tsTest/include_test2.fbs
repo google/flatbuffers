@@ -1,0 +1,9 @@
+include "include_test2.fbs";    // should be skipped
+
+namespace MyGame.OtherNameSpace;
+
+enum FromInclude:long { IncludeVal }
+
+struct Unused {}
+
+
