@@ -419,7 +419,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
    object_namespace = GetNameSpace(struct_def);
   } 
   else {
-    std::string object_name = WrapInNameSpace(struct_def);
+    object_name = WrapInNameSpace(struct_def);
   }
   GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
   if (ts) {
