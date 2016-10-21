@@ -694,7 +694,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
 	  if (ts) {
-	  	code += "static mutate_" + field.name + "(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
+	  	code += "mutate_" + field.name + "(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
 	  }
 	  else {
         code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
