@@ -627,14 +627,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 			  code += "):" + vectortypename + " {\n";
 			}
 			else {
-            code += object_name + ".prototype." + MakeCamel(field.name, false);
-            code += " = function(index";
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += ", obj";
-            }
-            else if (vectortype.base_type == BASE_TYPE_STRING) {
-              code += ", optionalEncoding";
-            }
+              code += object_name + ".prototype." + MakeCamel(field.name, false);
+              code += " = function(index";
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += ", obj";
+              }
+              else if (vectortype.base_type == BASE_TYPE_STRING) {
+                code += ", optionalEncoding";
+              }
             code += ") {\n";
 		  }
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
