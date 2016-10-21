@@ -614,15 +614,15 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
                 prefix += MakeCamel(field.name, false);
                 prefix += "(index: number";
                 if (vectortype.base_type == BASE_TYPE_STRUCT) {
-                    code += prefix+", obj?:" + vectortypename;
+                    code += prefix+", obj?:" +vectortypename;
                 }
-                if (field.value.type.base_type == BASE_TYPE_STRING) {
+                else if (field.value.type.base_type == BASE_TYPE_STRING) {
                     code += prefix + "):string\n";
                     code += prefix + "optionalEncoding:flatbuffers.Encoding" + "):" + GenTypeName(field.value.type, false) + "\n";
                     code += prefix + "optionalEncoding?:any";
                 }
                 else {
-                    code += prefix;
+                    code += prefix; //is this needed? [SP]
                 }
 			  code += "):" + vectortypename + " {\n";
 			}
