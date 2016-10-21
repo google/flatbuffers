@@ -490,9 +490,21 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
       return GenEnumDefaultValue(value);
     }
   }
+
+  auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+    case BASE_TYPE_ULONG: 
+    {
+      if (lang_.language != IDLOptions::kJava)
+        return value.constant;
+      // Converts the ulong into its bits signed equivalent
+      uint64_t defaultValue = StringToUInt(value.constant.c_str());
+      return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
+    }
+    case BASE_TYPE_UINT:
+    case BASE_TYPE_LONG: return value.constant + longSuffix;
     default: return value.constant;
   }
 }
@@ -1240,7 +1252,10 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           lang_.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + GenDefaultValue(field.value, false);
+      code += ", ";
+      if (lang_.language == IDLOptions::kJava)
+        code += SourceCastBasic( field.value.type );
+      code += GenDefaultValue(field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
