@@ -75,8 +75,8 @@ flatbuffers.isLittleEndian = new Uint16Array(new Uint8Array([1, 0]).buffer)[0] =
 
 /**
  * @constructor
- * @param {number} high
  * @param {number} low
+ * @param {number} high
  */
 flatbuffers.Long = function(low, high) {
   /**
@@ -93,8 +93,8 @@ flatbuffers.Long = function(low, high) {
 };
 
 /**
- * @param {number} high
  * @param {number} low
+ * @param {number} high
  * @returns {flatbuffers.Long}
  */
 flatbuffers.Long.create = function(low, high) {
@@ -129,11 +129,13 @@ flatbuffers.Long.ZERO = new flatbuffers.Long(0, 0);
  * Create a FlatBufferBuilder.
  *
  * @constructor
- * @param {number=} initial_size
+ * @param {number=} opt_initial_size
  */
-flatbuffers.Builder = function(initial_size) {
-  if (!initial_size) {
-    initial_size = 1024;
+flatbuffers.Builder = function(opt_initial_size) {
+  if (!opt_initial_size) {
+    var initial_size = 1024;
+  } else {
+    var initial_size = opt_initial_size;
   }
 
   /**
@@ -642,10 +644,11 @@ outer_loop:
  * Finalize a buffer, poiting to the given `root_table`.
  *
  * @param {flatbuffers.Offset} root_table
- * @param {string=} file_identifier
+ * @param {string=} opt_file_identifier
  */
-flatbuffers.Builder.prototype.finish = function(root_table, file_identifier) {
-  if (file_identifier) {
+flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier) {
+  if (opt_file_identifier) {
+    var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
       flatbuffers.FILE_IDENTIFIER_LENGTH);
     if (file_identifier.length != flatbuffers.FILE_IDENTIFIER_LENGTH) {
@@ -1018,10 +1021,10 @@ flatbuffers.ByteBuffer.prototype.__union = function(t, offset) {
  * FlatBuffer later on.
  *
  * @param {number} offset
- * @param {flatbuffers.Encoding=} optionalEncoding Defaults to UTF16_STRING
+ * @param {flatbuffers.Encoding=} opt_encoding Defaults to UTF16_STRING
  * @returns {string|Uint8Array}
  */
-flatbuffers.ByteBuffer.prototype.__string = function(offset, optionalEncoding) {
+flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
   offset += this.readInt32(offset);
 
   var length = this.readInt32(offset);
@@ -1030,7 +1033,7 @@ flatbuffers.ByteBuffer.prototype.__string = function(offset, optionalEncoding) {
 
   offset += flatbuffers.SIZEOF_INT;
 
-  if (optionalEncoding === flatbuffers.Encoding.UTF8_BYTES) {
+  if (opt_encoding === flatbuffers.Encoding.UTF8_BYTES) {
     return this.bytes_.subarray(offset, offset + length);
   }
 
