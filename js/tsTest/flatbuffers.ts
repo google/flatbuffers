@@ -1028,7 +1028,7 @@ export class ByteBuffer {
    * @param {number} offset
    * @returns {flatbuffers.Table}
    */
-  __union(t: flatbuffers.Table, offset: number): flatbuffers.Table {
+  __union<T extends flatbuffers.Table>(t: T, offset: number): T {
     t.bb_pos = offset + this.readInt32(offset);
     t.bb = this;
     return t;
