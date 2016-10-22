@@ -583,6 +583,10 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
 template <typename T> const T* data(const std::vector<T> &v) {
   return v.empty() ? nullptr : &v.front();
 }
+template <typename T> T* data(std::vector<T> &v) {
+  return v.empty() ? nullptr : &v.front();
+}
+
 /// @endcond
 
 /// @addtogroup flatbuffers_cpp_api
@@ -1123,7 +1127,7 @@ FLATBUFFERS_FINAL_CLASS
   /// where the vector is stored.
   template<typename T> Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
       std::vector<Offset<T>> *v) {
-    return CreateVectorOfSortedTables(v->data(), v->size());
+    return CreateVectorOfSortedTables(data(*v), v->size());
   }
 
   /// @brief Specialized version of `CreateVector` for non-copying use cases.
