@@ -399,55 +399,56 @@ The first step is to import/include the library, generated files, etc.
 
 Now we are ready to start building some buffers. In order to start, we need
 to create an instance of the `FlatBufferBuilder`, which will contain the buffer
-as it grows:
+as it grows. You can pass an initial size of the buffer (here 1024 bytes),
+which will grow automatically if needed:
 
 <div class="language-cpp">
 ~~~{.cpp}
   // Create a `FlatBufferBuilder`, which will be used to create our
   // monsters' FlatBuffers.
-  flatbuffers::FlatBufferBuilder builder;
+  flatbuffers::FlatBufferBuilder builder(1024);
 ~~~
 </div>
 <div class="language-java">
 ~~~{.java}
   // Create a `FlatBufferBuilder`, which will be used to create our
   // monsters' FlatBuffers.
-  FlatBufferBuilder builder = new FlatBufferBuilder(0);
+  FlatBufferBuilder builder = new FlatBufferBuilder(1024);
 ~~~
 </div>
 <div class="language-csharp">
 ~~~{.cs}
   // Create a `FlatBufferBuilder`, which will be used to create our
   // monsters' FlatBuffers.
-  var builder = new FlatBufferBuilder(1);
+  var builder = new FlatBufferBuilder(1024);
 ~~~
 </div>
 <div class="language-go">
 ~~~{.go}
   // Create a `FlatBufferBuilder`, which will be used to create our
   // monsters' FlatBuffers.
-  builder := flatbuffers.NewBuilder(0)
+  builder := flatbuffers.NewBuilder(1024)
 ~~~
 </div>
 <div class="language-python">
 ~~~{.py}
   # Create a `FlatBufferBuilder`, which will be used to create our
   # monsters' FlatBuffers.
-  builder = flatbuffers.Builder(0)
+  builder = flatbuffers.Builder(1024)
 ~~~
 </div>
 <div class="language-javascript">
 ~~~{.js}
   // Create a `flatbuffer.Builder`, which will be used to create our
   // monsters' FlatBuffers.
-  var builder = new flatbuffers.Builder(1);
+  var builder = new flatbuffers.Builder(1024);
 ~~~
 </div>
 <div class="language-php">
 ~~~{.php}
   // Create a `FlatBufferBuilder`, which will be used to create our
   // monsters' FlatBuffers.
-  $builder = new Google\FlatBuffers\FlatbufferBuilder(0);
+  $builder = new Google\FlatBuffers\FlatbufferBuilder(1024);
 ~~~
 </div>
 <div class="language-c">
