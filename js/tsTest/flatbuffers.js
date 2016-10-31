@@ -8,14 +8,12 @@
  */
 //var flatbuffers = {};
 "use strict";
-exports.__esModule = true;
 ////////////////////////////////////////////////////////////////////////////////
 /**
  * @constructor
  * @param {number} high
  * @param {number} low
  */
-exports["default"] = flatbuffers;
 var flatbuffers;
 (function (flatbuffers) {
     /**
@@ -297,6 +295,34 @@ var flatbuffers;
          */
         Builder.prototype.writeInt64 = function (value) {
             this.bb.writeInt64(this.space -= 8, value);
+        };
+        ;
+        /**
+         * @param {number} value
+         */
+        Builder.prototype.writeUint8 = function (value) {
+            this.bb.writeUint8(this.space -= 1, value);
+        };
+        ;
+        /**
+         * @param {number} value
+         */
+        Builder.prototype.writeUint16 = function (value) {
+            this.bb.writeUint16(this.space -= 2, value);
+        };
+        ;
+        /**
+         * @param {number} value
+         */
+        Builder.prototype.writeUint32 = function (value) {
+            this.bb.writeUint32(this.space -= 4, value);
+        };
+        ;
+        /**
+         * @param {flatbuffers.Long} value
+         */
+        Builder.prototype.writeUint64 = function (value) {
+            this.bb.writeUint64(this.space -= 8, value);
         };
         ;
         /**
@@ -945,6 +971,38 @@ var flatbuffers;
          * @param {number} offset
          * @param {number} value
          */
+        ByteBuffer.prototype.writeUint8 = function (offset, value) {
+            this.writeInt8(offset, value);
+        };
+        ;
+        /**
+         * @param {number} offset
+         * @param {number} value
+         */
+        ByteBuffer.prototype.writeUint16 = function (offset, value) {
+            this.writeInt16(offset, value);
+        };
+        ;
+        /**
+         * @param {number} offset
+         * @param {number} value
+         */
+        ByteBuffer.prototype.writeUint32 = function (offset, value) {
+            this.writeInt32(offset, value);
+        };
+        ;
+        /**
+       * @param {number} offset
+       * @param {number} value
+       */
+        ByteBuffer.prototype.writeUint64 = function (offset, value) {
+            this.writeInt64(offset, value);
+        };
+        ;
+        /**
+         * @param {number} offset
+         * @param {number} value
+         */
         ByteBuffer.prototype.writeFloat32 = function (offset, value) {
             float32[0] = value;
             this.writeInt32(offset, int32[0]);
@@ -986,19 +1044,6 @@ var flatbuffers;
             return t;
         };
         ;
-        /**
-         * Create a JavaScript string from UTF-8 data stored inside the FlatBuffer.
-         * This allocates a new string and converts to wide chars upon each access.
-         *
-         * To avoid the conversion to UTF-16, pass flatbuffers.Encoding.UTF8_BYTES as
-         * the "optionalEncoding" argument. This is useful for avoiding conversion to
-         * and from UTF-16 when the data will just be packaged back up in another
-         * FlatBuffer later on.
-         *
-         * @param {number} offset
-         * @param {flatbuffers.Encoding=} optionalEncoding Defaults to UTF16_STRING
-         * @returns {string|Uint8Array}
-         */
         ByteBuffer.prototype.__string = function (offset, optionalEncoding) {
             offset += this.readInt32(offset);
             var length = this.readInt32(offset);
