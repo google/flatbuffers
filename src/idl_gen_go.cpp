@@ -319,6 +319,15 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   code += "}\n\n";
 }
 
+// Generate accessor of underlying byte array.
+static void GenArrayAccessor(std::string *code_ptr) {
+	std::string &code = *code_ptr;
+  GenReceiver(struct_def, code_ptr);
+  code += " Array() []byte {\n";
+	code += "\treturn rcv._tab.Bytes\n";
+	code += "}\n\n";
+}
+
 // Begin the creator function signature.
 static void BeginBuilderArgs(const StructDef &struct_def,
                              std::string *code_ptr) {
@@ -471,6 +480,7 @@ static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
                               std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
+	
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
       GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -591,6 +601,10 @@ static void GenStruct(const StructDef &struct_def,
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
+	
+	// Generate accessor to underlying byte buffer.
+	GenArrayAccessor(code_ptr);
+	
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
