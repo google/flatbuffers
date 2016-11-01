@@ -480,7 +480,6 @@ static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
                               std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
-	
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
       GetScalarFieldOfStruct(struct_def, field, code_ptr);
