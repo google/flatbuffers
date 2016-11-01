@@ -321,11 +321,11 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
 
 // Generate accessor of underlying byte array.
 static void GenArrayAccessor(std::string *code_ptr) {
-	std::string &code = *code_ptr;
+  std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " Array() []byte {\n";
-	code += "\treturn rcv._tab.Bytes\n";
-	code += "}\n\n";
+  code += "\treturn rcv._tab.Bytes\n";
+  code += "}\n\n";
 }
 
 // Begin the creator function signature.
