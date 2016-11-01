@@ -600,10 +600,10 @@ static void GenStruct(const StructDef &struct_def,
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
-	
-	// Generate accessor to underlying byte buffer.
-	GenArrayAccessor(code_ptr);
-	
+
+  // Generate accessor to underlying byte buffer.
+  GenArrayAccessor(code_ptr);
+
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
