@@ -461,20 +461,25 @@ class simple_allocator {
 };
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
-// except growing from higher to lower addresses. i.e push_back() inserts data
-// in the lowest address in the vector.
-class vector_downward {
+// with configurable direction of growth. Default is downward
+//
+// In the downward configuration, the buffers grows from higher to lower
+// addresses. i.e push_back() inserts data in the lowest address in the vector.
+enum Direction {DOWNWARD, UPWARD};
+
+template <int dir=DOWNWARD>
+class vector_dir {
  public:
-  explicit vector_downward(size_t initial_size,
+  explicit vector_dir(size_t initial_size,
                            const simple_allocator &allocator)
     : reserved_(initial_size),
-      buf_(allocator.allocate(reserved_)),
-      cur_(buf_ + reserved_),
+      buf_(nullptr),
       allocator_(allocator) {
+    clear();
     assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
   }
 
-  ~vector_downward() {
+  ~vector_dir() {
     if (buf_)
       allocator_.deallocate(buf_);
   }
@@ -557,14 +562,55 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  vector_downward(const vector_downward &);
-  vector_downward &operator=(const vector_downward &);
+  vector_dir(const vector_dir &);
+  vector_dir &operator=(const vector_dir &);
 
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   const simple_allocator &allocator_;
 };
+
+template<> inline void
+vector_dir<UPWARD>::clear() {
+  if (buf_ == nullptr)
+    buf_ = allocator_.allocate(reserved_);
+
+  cur_ = buf_;
+}
+
+template <> inline uoffset_t
+vector_dir<UPWARD>::size() const {
+  assert(cur_ != nullptr && buf_ != nullptr);
+  return static_cast<uoffset_t>(cur_ - buf_);
+}
+
+template <> inline uint8_t *
+vector_dir<UPWARD>::make_space(size_t len) {
+  if (len > static_cast<size_t>(cur_ - buf_)) {
+    auto old_size = size();
+    auto largest_align = AlignOf<largest_scalar_t>();
+    reserved_ += (std::max)(len, growth_policy(reserved_));
+    // Round up to avoid undefined behavior from unaligned loads and stores.
+    reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
+    auto new_buf = allocator_.allocate(reserved_);
+    auto new_cur = new_buf + old_size;
+    memcpy(new_buf, buf_, old_size);
+    cur_ = new_cur;
+    allocator_.deallocate(buf_);
+    buf_ = new_buf;
+  }
+  cur_ += len;
+  // Beyond this, signed offsets may not have enough range:
+  // (FlatBuffers > 2GB not supported).
+  assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
+  return cur_;
+}
+
+template <> inline void
+vector_dir<UPWARD>::pop(size_t bytes_to_remove) {
+  cur_ -= bytes_to_remove;
+}
 
 // Converts a Field ID to a virtual table offset.
 inline voffset_t FieldIndexToOffset(voffset_t field_id) {
@@ -598,7 +644,8 @@ template <typename T> T* data(std::vector<T> &v) {
 /// `PushElement`/`AddElement`/`EndTable`, or the builtin `CreateString`/
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
-class FlatBufferBuilder
+template <int Dir=DOWNWARD>
+class FlatBufferBuilderImpl
 /// @cond FLATBUFFERS_INTERNAL
 FLATBUFFERS_FINAL_CLASS
 /// @endcond
@@ -610,8 +657,8 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] allocator A pointer to the `simple_allocator` that should be
   /// used. Defaults to `nullptr`, which means the `default_allocator` will be
   /// be used.
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
-                             const simple_allocator *allocator = nullptr)
+  explicit FlatBufferBuilderImpl(uoffset_t initial_size = 1024,
+                                 const simple_allocator *allocator = nullptr)
       : buf_(initial_size, allocator ? *allocator : default_allocator),
         nested(false), finished(false), minalign_(1), force_defaults_(false),
         string_pool(nullptr) {
@@ -620,7 +667,7 @@ FLATBUFFERS_FINAL_CLASS
     EndianCheck();
   }
 
-  ~FlatBufferBuilder() {
+  ~FlatBufferBuilderImpl() {
     if (string_pool) delete string_pool;
   }
 
@@ -1091,13 +1138,13 @@ FLATBUFFERS_FINAL_CLASS
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T>
   struct TableKeyComparator {
-  TableKeyComparator(vector_downward& buf) : buf_(buf) {}
+  TableKeyComparator(vector_dir<>& buf) : buf_(buf) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
       return table_a->KeyCompareLessThan(table_b);
     }
-    vector_downward& buf_;
+    vector_dir<>& buf_;
 
   private:
     TableKeyComparator& operator= (const TableKeyComparator&);
@@ -1188,8 +1235,8 @@ FLATBUFFERS_FINAL_CLASS
 
  private:
   // You shouldn't really be copying instances of this class.
-  FlatBufferBuilder(const FlatBufferBuilder &);
-  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+  FlatBufferBuilderImpl(const FlatBufferBuilderImpl &);
+  FlatBufferBuilderImpl &operator=(const FlatBufferBuilderImpl &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
@@ -1217,7 +1264,7 @@ FLATBUFFERS_FINAL_CLASS
 
   simple_allocator default_allocator;
 
-  vector_downward buf_;
+  vector_dir<> buf_;
 
   // Accumulating offsets of table members while it is being built.
   std::vector<FieldLoc> offsetbuf_;
@@ -1235,20 +1282,22 @@ FLATBUFFERS_FINAL_CLASS
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
 
   struct StringOffsetCompare {
-    StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
+    StringOffsetCompare(const vector_dir<> &buf) : buf_(&buf) {}
     bool operator() (const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
       return strncmp(stra->c_str(), strb->c_str(),
                      std::min(stra->size(), strb->size()) + 1) < 0;
     }
-    const vector_downward *buf_;
+    const vector_dir<> *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
   typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
   StringOffsetMap *string_pool;
 };
+
+typedef FlatBufferBuilderImpl<DOWNWARD> FlatBufferBuilder;
 /// @}
 
 /// @cond FLATBUFFERS_INTERNAL
