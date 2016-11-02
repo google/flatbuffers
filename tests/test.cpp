@@ -346,11 +346,20 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
               MonsterIdentifier());
 
+  // Test templated version of Create.
+  flatbuffers::FlatBufferBuilder fbb3;
+  fbb3.Finish(flatbuffers::Create<Monster>(fbb3, monster2.get(), &rehasher),
+              MonsterIdentifier());
+
   // Now we've gone full round-trip, the two buffers should match.
   auto len1 = fbb1.GetSize();
   auto len2 = fbb2.GetSize();
+  auto len3 = fbb3.GetSize();
   TEST_EQ(len1, len2);
+  TEST_EQ(len1, len3);
   TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(),
+                 len1), 0);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb3.GetBufferPointer(),
                  len1), 0);
 
   // Test it with the original buffer test to make sure all data survived.

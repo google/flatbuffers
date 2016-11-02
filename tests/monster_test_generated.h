@@ -609,7 +609,16 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 }  // namespace Example2
+}  // namespace MyGame
 
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Example2::Monster> Create(FlatBufferBuilder &_fbb, const MyGame::Example2::MonsterT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Example2::CreateMonster(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *resolver) const {
@@ -624,6 +633,19 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   return CreateTestSimpleTableWithEnum(_fbb,
     _o->color);
 }
+
+}  // namespace Example
+}  // namespace MyGame
+
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Example::TestSimpleTableWithEnum> Create(FlatBufferBuilder &_fbb, const MyGame::Example::TestSimpleTableWithEnumT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Example::CreateTestSimpleTableWithEnum(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
+namespace Example {
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *resolver) const {
   (void)resolver;
@@ -641,6 +663,19 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
     _o->val,
     _o->count);
 }
+
+}  // namespace Example
+}  // namespace MyGame
+
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Example::Stat> Create(FlatBufferBuilder &_fbb, const MyGame::Example::StatT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Example::CreateStat(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
+namespace Example {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolver) const {
   (void)resolver;
@@ -708,6 +743,19 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     _o->testf3,
     _o->testarrayofstring2.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring2) : 0);
 }
+
+}  // namespace Example
+}  // namespace MyGame
+
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Example::Monster> Create(FlatBufferBuilder &_fbb, const MyGame::Example::MonsterT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Example::CreateMonster(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
+namespace Example {
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type) {
   switch (type) {

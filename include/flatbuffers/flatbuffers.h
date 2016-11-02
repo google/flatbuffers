@@ -1673,6 +1673,13 @@ typedef uint64_t hash_value_t;
   typedef std::function<hash_value_t (void *pointer)> rehasher_function_t;
 #endif
 
+// This template is intended to be specialized in the generated header.
+template<typename Type, typename TypeT>
+inline flatbuffers::Offset<Type> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const TypeT *_o,
+    const flatbuffers::rehasher_function_t *rehasher = nullptr);
+
 // Helper function to test if a field is present, using any of the field
 // enums in the generated code.
 // `table` must be a generated table type. Since this is a template parameter,
