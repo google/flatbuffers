@@ -138,6 +138,7 @@ class CppGenerator : public BaseGenerator {
 
         SetNameSpace(nullptr, &code);
         GenTableCreateTemplate(struct_def, &code);
+        SetNameSpace(struct_def.defined_namespace, &code);
       }
     }
 

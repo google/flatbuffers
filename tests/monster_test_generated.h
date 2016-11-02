@@ -619,6 +619,10 @@ inline Offset<MyGame::Example2::Monster> Create(FlatBufferBuilder &_fbb, const M
 }
 
 namespace MyGame {
+namespace Example2 {
+
+}  // namespace Example2
+
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *resolver) const {
