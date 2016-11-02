@@ -28,14 +28,20 @@ static std::string GeneratedFileName(const std::string &path,
   return path + file_name + "_generated.js";
 }
 
+static std::string GeneratedTsFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.ts";
+}
+
 namespace js {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 class JsGenerator : public BaseGenerator {
  public:
   JsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."){};
+              const std::string &file_name, const bool &gen_ts)
+      : BaseGenerator(parser, path, file_name, "", "."), ts(gen_ts){};
+  bool ts = false;
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -59,7 +65,14 @@ class JsGenerator : public BaseGenerator {
       code += exports_code;
     }
 
-    return SaveFile(GeneratedFileName(path_, file_name_).c_str(), code, false);
+    std::string filename = "";
+    if (ts) {
+      filename = GeneratedTsFileName(path_, file_name_);
+    }
+    else {
+      filename = GeneratedFileName(path_, file_name_);
+    }
+    return SaveFile(filename.c_str(), code, false);
   }
 
  private:
@@ -110,12 +123,23 @@ class JsGenerator : public BaseGenerator {
   std::string &exports = *exports_ptr;
   for (auto it = sorted_namespaces.begin();
        it != sorted_namespaces.end(); it++) {
-    code += "/**\n * @const\n * @namespace\n */\n";
+      if (!ts) {
+        code += "/**\n * @const\n * @namespace\n */\n";
+	  }
     if (it->find('.') == std::string::npos) {
-      code += "var ";
-      exports += "this." + *it + " = " + *it + ";\n";
+	  if (ts) {
+	  	code += "import {flatbuffers} from \"./flatbuffers\"\n";
+      
+	  	//code += "export default "+*it+"\n"; //this messes up webpack for some reason
+	  }
+      else {
+        code += "var ";
+        exports += "this." + *it + " = " + *it + ";\n";
+      }
     }
-    code += *it + " = " + *it + " || {};\n\n";
+	if (!ts) {
+      code += *it + " = " + *it + " || {};\n\n";
+    }  
   }
 }
 
@@ -174,7 +198,12 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     code += "var ";
     exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
   }
-  code += WrapInNameSpace(enum_def) + " = {\n";
+  if (ts) {
+    code += "export namespace " + GetNameSpace(enum_def) + "{\n" + "export enum " + enum_def.name + "{\n";
+  }
+  else {
+    code += WrapInNameSpace(enum_def) + " = {\n";
+  }
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end(); ++it) {
     auto &ev = **it;
@@ -184,10 +213,20 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
       }
       GenDocComment(ev.doc_comment, code_ptr, "", "  ");
     }
-    code += "  " + ev.name + ": " + NumToString(ev.value);
+	if (ts) {
+      code += "  " + ev.name + "= " + NumToString(ev.value);
+	}
+	else {
+      code += "  " + ev.name + ": " + NumToString(ev.value);
+	}
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
   }
-  code += "};\n\n";
+  if (ts) {
+  	code += "}}\n\n";
+  }
+  else {
+    code += "};\n\n";
+  }
 }
 
 static std::string GenType(const Type &type) {
@@ -326,7 +365,12 @@ void GenStructArgs(const StructDef &struct_def,
     } else {
       *annotations += "@param {" + GenTypeName(field.value.type, true);
       *annotations += "} " + nameprefix + field.name + "\n";
-      *arguments += ", " + nameprefix + field.name;
+	  if (ts) {
+	    *arguments += ", " + nameprefix + field.name + ": " + GenTypeName(field.value.type, true);
+	  }
+	  else {
+        *arguments += ", " + nameprefix + field.name;
+	  }
     }
   }
 }
@@ -368,26 +412,49 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 
   // Emit constructor
   bool isStatement = struct_def.defined_namespace->components.empty();
-  std::string object_name = WrapInNameSpace(struct_def);
-  GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
-  if (isStatement) {
-    exports += "this." + struct_def.name + " = " + struct_def.name + ";\n";
-    code += "function " + object_name;
-  } else {
-    code += object_name + " = function";
+  std::string object_name = "";
+  std::string object_namespace = "";
+  if (ts) {
+   object_name = struct_def.name;
+   object_namespace = GetNameSpace(struct_def);
+  } 
+  else {
+    object_name = WrapInNameSpace(struct_def);
   }
-  code += "() {\n";
-  code += "  /**\n";
-  code += "   * @type {flatbuffers.ByteBuffer}\n";
-  code += "   */\n";
-  code += "  this.bb = null;\n";
-  code += "\n";
-  code += "  /**\n";
-  code += "   * @type {number}\n";
-  code += "   */\n";
-  code += "  this.bb_pos = 0;\n";
-  code += isStatement ? "}\n\n" : "};\n\n";
-
+  GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
+  if (ts) {
+    code += "export namespace " + object_namespace + "{\n";
+  	code += "export class " + struct_def.name;
+  	code += " {\n";
+  	code += "  /**\n";
+  	code += "   * @type {flatbuffers.ByteBuffer}\n";
+  	code += "   */\n";
+  	code += "  bb: flatbuffers.ByteBuffer= null;\n";
+  	code += "\n";
+  	code += "  /**\n";
+  	code += "   * @type {number}\n";
+  	code += "   */\n";
+  	code += "  bb_pos:number = 0;\n";
+  }
+  else {
+    if (isStatement) {
+      exports += "this." + struct_def.name + " = " + struct_def.name + ";\n";
+      code += "function " + object_name;
+    } else {
+      code += object_name + " = function";
+    }
+    code += "() {\n";
+    code += "  /**\n";
+    code += "   * @type {flatbuffers.ByteBuffer}\n";
+    code += "   */\n";
+    code += "  this.bb = null;\n";
+    code += "\n";
+    code += "  /**\n";
+    code += "   * @type {number}\n";
+    code += "   */\n";
+    code += "  this.bb_pos = 0;\n";
+    code += isStatement ? "}\n\n" : "};\n\n";
+  }
   // Generate the __init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   code += "/**\n";
@@ -395,7 +462,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   code += " * @param {flatbuffers.ByteBuffer} bb\n";
   code += " * @returns {" + object_name + "}\n";
   code += " */\n";
-  code += object_name + ".prototype.__init = function(i, bb) {\n";
+  if (ts) {
+  	//constructor += "prototype.__init:(i:number, bb:flatbuffers.ByteBuffer):" + object_name + "\n";
+  	code += "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+  }
+  else {
+    code += object_name + ".prototype.__init = function(i, bb) {\n";
+  }
   code += "  this.bb_pos = i;\n";
   code += "  this.bb = bb;\n";
   code += "  return this;\n";
@@ -408,8 +481,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@param {flatbuffers.ByteBuffer} bb\n"
       "@param {" + object_name + "=} obj\n"
       "@returns {" + object_name + "}");
-    code += object_name + ".getRootAs" + struct_def.name;
-    code += " = function(bb, obj) {\n";
+	if (ts) {
+      code += "static getRootAs" + struct_def.name;
+      code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" + object_name + " {\n";
+    }
+    else {
+      code += object_name + ".getRootAs" + struct_def.name;
+      code += " = function(bb, obj) {\n";
+    }
     code += "  return (obj || new " + object_name;
     code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
     code += "};\n\n";
@@ -420,7 +499,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr,
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
-      code += object_name + ".bufferHasIdentifier = function(bb) {\n";
+      if (ts) {
+      	code += "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {\n";
+      }
+      else {
+        code += object_name + ".bufferHasIdentifier = function(bb) {\n";
+	  }
       code += "  return bb.__has_identifier('" + parser_.file_identifier_;
       code += "');\n};\n\n";
     }
@@ -441,12 +525,33 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         std::string(field.value.type.base_type == BASE_TYPE_STRING ?
           "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
         "@returns {" + GenTypeName(field.value.type, false) + "}");
-      code += object_name + ".prototype." + MakeCamel(field.name, false);
-      code += " = function(";
-      if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += "optionalEncoding";
-      }
-      code += ") {\n";
+		if (ts) {
+          std::string prefix = "";
+		  prefix += MakeCamel(field.name, false)+"(";
+		  
+		  if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += prefix + "):string\n";
+		  	code += prefix+"optionalEncoding:flatbuffers.Encoding"+"):"+ GenTypeName(field.value.type, false)+"\n";
+            code += prefix + "optionalEncoding?:any";
+		  }
+          else {
+              code += prefix;
+          }
+		  code += "):" + GenTypeName(field.value.type, false) + " {\n";
+
+
+
+
+		}
+		else {
+        code += object_name + ".prototype." + MakeCamel(field.name, false);
+        code += " = function(";
+        if (field.value.type.base_type == BASE_TYPE_STRING) {
+          code += "optionalEncoding";
+        }
+        code += ") {\n";
+	  }
+
       if (struct_def.fixed) {
         code += "  return " + GenGetter(field.value.type, "(this.bb_pos" +
           MaybeAdd(field.value.offset) + ")") + ";\n";
@@ -468,8 +573,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           auto type = WrapInNameSpace(*field.value.type.struct_def);
           GenDocComment(field.doc_comment, code_ptr,
             "@param {" + type + "=} obj\n@returns {" + type + "}");
-          code += object_name + ".prototype." + MakeCamel(field.name, false);
-          code += " = function(obj) {\n";
+			if (ts) {
+		      code += MakeCamel(field.name, false);
+		      code += "(obj?:" + type + "):" + type + " {\n";
+		    }
+		    else {
+            code += object_name + ".prototype." + MakeCamel(field.name, false);
+            code += " = function(obj) {\n";
+		  }
           if (struct_def.fixed) {
             code += "  return (obj || new " + type;
             code += ").__init(this.bb_pos";
@@ -498,14 +609,35 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           }
           GenDocComment(field.doc_comment, code_ptr, args +
             "@returns {" + vectortypename + "}");
-          code += object_name + ".prototype." + MakeCamel(field.name, false);
-          code += " = function(index";
-          if (vectortype.base_type == BASE_TYPE_STRUCT) {
-            code += ", obj";
-          } else if (vectortype.base_type == BASE_TYPE_STRING) {
-            code += ", optionalEncoding";
-          }
-          code += ") {\n";
+			if (ts) {
+                
+                std::string prefix = "";
+                prefix += MakeCamel(field.name, false);
+                prefix += "(index: number";
+                if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                    code += prefix+", obj?:" +vectortypename;
+                }
+                else if (vectortype.base_type == BASE_TYPE_STRING) {
+                    code += prefix + "):string\n";
+                    code += prefix + ",optionalEncoding:flatbuffers.Encoding" + "):" + vectortypename + "\n";
+                    code += prefix + ",optionalEncoding?:any";
+                }
+                else {
+                    code += prefix;
+                }
+			  code += "):" + vectortypename + " {\n";
+			}
+			else {
+              code += object_name + ".prototype." + MakeCamel(field.name, false);
+              code += " = function(index";
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += ", obj";
+              }
+              else if (vectortype.base_type == BASE_TYPE_STRING) {
+                code += ", optionalEncoding";
+              }
+            code += ") {\n";
+		  }
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             code += offset_prefix + "(obj || new " + vectortypename;
             code += ").__init(";
@@ -538,8 +670,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           GenDocComment(field.doc_comment, code_ptr,
             "@param {flatbuffers.Table} obj\n"
             "@returns {?flatbuffers.Table}");
-          code += object_name + ".prototype." + MakeCamel(field.name, false);
-          code += " = function(obj) {\n";
+		  if (ts) {
+		  	code += MakeCamel(field.name, false);
+		  	code += "<T extends flatbuffers.Table>(obj:T):T {\n";
+		  }
+		  else {
+            code += object_name + ".prototype." + MakeCamel(field.name, false);
+            code += " = function(obj) {\n";
+		  }
           code += offset_prefix + GenGetter(field.value.type,
             "(obj, this.bb_pos + offset)") + " : null;\n";
           break;
@@ -555,13 +693,21 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       std::string annotations = "@param {" + GenTypeName(field.value.type, true) + "} value\n";
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
-
-      code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
+	  if (ts) {
+	  	code += "mutate_" + field.name + "(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
+	  }
+	  else {
+        code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
+	  }
       code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ")\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
-      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
+      std::string value = "value";
+      if (GenTypeName(field.value.type, true)=="boolean") {
+          value = "+" + value;
+      }
+      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, "+value+");\n";
       code += "  return true;\n";
       code += "}\n\n";
     }
@@ -570,16 +716,28 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       // Emit a length helper
       GenDocComment(code_ptr, "@returns {number}");
-      code += object_name + ".prototype." + MakeCamel(field.name, false);
-      code += "Length = function() {\n" + offset_prefix;
+	  if (ts) {
+	  	code += MakeCamel(field.name, false);
+	  	code += "Length():number {\n" + offset_prefix;
+	  }
+	  else {
+        code += object_name + ".prototype." + MakeCamel(field.name, false);
+        code += "Length = function() {\n" + offset_prefix;
+	  }
       code += "this.bb.__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
 
       // For scalar types, emit a typed array helper
       auto vectorType = field.value.type.VectorType();
       if (IsScalar(vectorType.base_type)) {
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
-        code += object_name + ".prototype." + MakeCamel(field.name, false);
-        code += "Array = function() {\n" + offset_prefix;
+		if (ts) {
+		  code += MakeCamel(field.name, false);
+		  code += "Array():" + GenType(vectorType) + "Array {\n" + offset_prefix;
+		}
+		else {
+          code += object_name + ".prototype." + MakeCamel(field.name, false);
+          code += "Array = function() {\n" + offset_prefix;
+		}
         code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
           "this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), "
           "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
@@ -594,16 +752,28 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     GenStructArgs(struct_def, &annotations, &arguments, "");
     GenDocComment(code_ptr, annotations +
       "@returns {flatbuffers.Offset}");
-    code += object_name + ".create" + struct_def.name + " = function(builder";
-    code += arguments + ") {\n";
+	if (ts) {
+      code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
+      code += arguments + "):flatbuffers.Offset {\n";
+    }
+    else {
+      code += object_name + ".create" + struct_def.name + " = function(builder";
+      code += arguments + ") {\n";
+    }
     GenStructBody(struct_def, &code, "");
     code += "  return builder.offset();\n};\n\n";
   } else {
     // Generate a method to start building a new object
     GenDocComment(code_ptr,
       "@param {flatbuffers.Builder} builder");
-    code += object_name + ".start" + struct_def.name;
-    code += " = function(builder) {\n";
+	if (ts) {
+   	  code += "static start" + struct_def.name;
+   	  code += "(builder:flatbuffers.Builder) {\n";
+    }
+    else {
+      code += object_name + ".start" + struct_def.name;
+      code += " = function(builder) {\n";
+    }
     code += "  builder.startObject(" + NumToString(
       struct_def.fields.vec.size()) + ");\n";
     code += "};\n\n";
@@ -623,8 +793,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.Builder} builder\n"
         "@param {" + GenTypeName(field.value.type, true) + "} " +
         argname);
-      code += object_name + ".add" + MakeCamel(field.name);
-      code += " = function(builder, " + argname + ") {\n";
+      if (ts) {
+	  	code += "static add" + MakeCamel(field.name);
+	  	code += "(builder:flatbuffers.Builder, " + argname + ":" + GenTypeName(field.value.type, true) + ") {\n";
+	  }
+	  else {
+        code += object_name + ".add" + MakeCamel(field.name);
+        code += " = function(builder, " + argname + ") {\n";
+	  }
       code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
       if (field.value.type.base_type == BASE_TYPE_BOOL) {
@@ -653,8 +829,19 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             "@param {Array.<" + GenTypeName(vector_type, true) +
             ">} data\n"
             "@returns {flatbuffers.Offset}");
-          code += object_name + ".create" + MakeCamel(field.name);
-          code += "Vector = function(builder, data) {\n";
+		  if (ts) {
+		  	code += "static create" + MakeCamel(field.name);
+            std::string type = GenTypeName(vector_type, true)+"[]";
+            if (type == "number[]") {
+                type += " | Uint8Array";
+            }
+		  	code += "Vector(builder:flatbuffers.Builder, data:" + type+"):flatbuffers.Offset {\n";
+            code += "if(!data){\n  return null\n}\n";
+		  }
+		  else {
+            code += object_name + ".create" + MakeCamel(field.name);
+			code += "Vector = function(builder, data) {\n";
+          }
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", data.length, " + NumToString(alignment) + ");\n";
           code += "  for (var i = data.length - 1; i >= 0; i--) {\n";
@@ -672,8 +859,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         GenDocComment(code_ptr,
           "@param {flatbuffers.Builder} builder\n"
           "@param {number} numElems");
-        code += object_name + ".start" + MakeCamel(field.name);
-        code += "Vector = function(builder, numElems) {\n";
+		if (ts) {
+	      code += "static start" + MakeCamel(field.name);
+	      code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
+		}
+		else {
+          code += object_name + ".start" + MakeCamel(field.name);
+		  code += "Vector = function(builder, numElems) {\n";
+        }
         code += "  builder.startVector(" + NumToString(elem_size);
         code += ", numElems, " + NumToString(alignment) + ");\n";
         code += "};\n\n";
@@ -684,8 +877,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     GenDocComment(code_ptr,
       "@param {flatbuffers.Builder} builder\n"
       "@returns {flatbuffers.Offset}");
-    code += object_name + ".end" + struct_def.name;
-    code += " = function(builder) {\n";
+	if (ts) {
+	  code += "static end" + struct_def.name;
+	  code += " (builder:flatbuffers.Builder):flatbuffers.Offset {\n";
+	}
+	else {
+      code += object_name + ".end" + struct_def.name;
+	  code += " = function(builder) {\n";
+	}
     code += "  var offset = builder.endObject();\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -704,9 +903,15 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr,
         "@param {flatbuffers.Builder} builder\n"
         "@param {flatbuffers.Offset} offset");
-      code += object_name + ".finish" + struct_def.name + "Buffer";
-      code += " = function(builder, offset) {\n";
-      code += "  builder.finish(offset";
+	  if (ts) {
+	  	code += "static finish" + struct_def.name + "Buffer";
+	  	code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+	  }
+	  else {
+        code += object_name + ".finish" + struct_def.name + "Buffer";
+        code += " = function(builder, offset) {\n";
+	  }
+	  code += "  builder.finish(offset";
       if (!parser_.file_identifier_.empty()) {
         code += ", '" + parser_.file_identifier_ + "'";
       }
@@ -714,13 +919,22 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       code += "};\n\n";
     }
   }
+  if (ts) {
+  	code += "}\n}\n";
+  }
 }
 };
 }  // namespace js
 
 bool GenerateJS(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name);
+  js::JsGenerator generator(parser, path, file_name, false);
+  return generator.generate();
+}
+
+bool GenerateTS(const Parser &parser, const std::string &path,
+		        const std::string &file_name) {
+  js::JsGenerator generator(parser, path, file_name, true);
   return generator.generate();
 }
 
@@ -734,6 +948,20 @@ std::string JSMakeRule(const Parser &parser,
   for (auto it = included_files.begin();
        it != included_files.end(); ++it) {
     make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
+std::string TSMakeRule(const Parser &parser,
+  const std::string &path,
+  const std::string &file_name) {
+  std::string filebase = flatbuffers::StripPath(
+  	flatbuffers::StripExtension(file_name));
+  std::string make_rule = GeneratedTsFileName(path, filebase) + ": ";
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin();
+  	it != included_files.end(); ++it) {
+  	make_rule += " " + *it;
   }
   return make_rule;
 }
