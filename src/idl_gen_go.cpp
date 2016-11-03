@@ -320,7 +320,8 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
 }
 
 // Generate accessor of underlying byte array.
-static void GenArrayAccessor(std::string *code_ptr) {
+static void GenArrayAccessor(const StructDef &struct_def,
+                             std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " Array() []byte {\n";
@@ -602,7 +603,7 @@ static void GenStruct(const StructDef &struct_def,
   InitializeExisting(struct_def, code_ptr);
 
   // Generate accessor to underlying byte buffer.
-  GenArrayAccessor(code_ptr);
+  GenArrayAccessor(struct_def, code_ptr);
 
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
