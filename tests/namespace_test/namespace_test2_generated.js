@@ -75,7 +75,7 @@ NamespaceA.TableInFirstNS.prototype.fooEnum = function() {
  * @returns {boolean}
  */
 NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 6)
+  var offset = this.bb.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
