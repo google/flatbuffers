@@ -77,7 +77,7 @@ NamespaceA.NamespaceB.TableInNestedNS.prototype.mutate_foo = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -149,7 +149,7 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_a = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -171,7 +171,7 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_b = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder

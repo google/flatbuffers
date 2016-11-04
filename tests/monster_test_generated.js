@@ -140,7 +140,7 @@ MyGame.Example.Test.prototype.mutate_a = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -162,7 +162,7 @@ MyGame.Example.Test.prototype.mutate_b = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -234,7 +234,7 @@ MyGame.Example.TestSimpleTableWithEnum.prototype.mutate_color = function(value) 
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -306,7 +306,7 @@ MyGame.Example.Vec3.prototype.mutate_x = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -328,7 +328,7 @@ MyGame.Example.Vec3.prototype.mutate_y = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -350,7 +350,7 @@ MyGame.Example.Vec3.prototype.mutate_z = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -372,7 +372,7 @@ MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
 
   this.bb.writeFloat64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {MyGame.Example.Color}
@@ -394,7 +394,7 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {MyGame.Example.Test=} obj
@@ -497,7 +497,7 @@ MyGame.Example.Stat.prototype.mutate_val = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -520,7 +520,7 @@ MyGame.Example.Stat.prototype.mutate_count = function(value) {
 
   this.bb.writeUint16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -637,7 +637,7 @@ MyGame.Example.Monster.prototype.mutate_mana = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -660,7 +660,7 @@ MyGame.Example.Monster.prototype.mutate_hp = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
@@ -717,7 +717,7 @@ MyGame.Example.Monster.prototype.mutate_color = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {MyGame.Example.Any}
@@ -740,7 +740,7 @@ MyGame.Example.Monster.prototype.mutate_test_type = function(value) {
 
   this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Table} obj
@@ -872,7 +872,7 @@ MyGame.Example.Monster.prototype.mutate_testbool = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -895,7 +895,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1 = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -918,7 +918,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1 = function(value) {
 
   this.bb.writeUint32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -941,7 +941,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1 = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -964,7 +964,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1 = function(value) {
 
   this.bb.writeUint64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -987,7 +987,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1a = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1010,7 +1010,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1a = function(value) {
 
   this.bb.writeUint32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -1033,7 +1033,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1a = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -1056,7 +1056,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1a = function(value) {
 
   this.bb.writeUint64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {number} index
@@ -1104,7 +1104,7 @@ MyGame.Example.Monster.prototype.mutate_testf = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1127,7 +1127,7 @@ MyGame.Example.Monster.prototype.mutate_testf2 = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1150,7 +1150,7 @@ MyGame.Example.Monster.prototype.mutate_testf3 = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {number} index

@@ -83,7 +83,7 @@ NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {NamespaceA.NamespaceB.StructInNestedNS=} obj
