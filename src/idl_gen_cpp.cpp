@@ -435,7 +435,8 @@ class CppGenerator : public BaseGenerator {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "  ");
       code += "  " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + " = ";
-      code += NumToString(ev.value) + ",\n";
+      code += NumToString(ev.value);
+      if (it != enum_def.vals.vec.end() - 1) code += ",\n";
       minv = !minv || minv->value > ev.value ? &ev : minv;
       maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
       anyv |= ev.value;
@@ -444,18 +445,18 @@ class CppGenerator : public BaseGenerator {
       assert(minv && maxv);
       if (enum_def.attributes.Lookup("bit_flags")) {
         if (minv->value != 0)  // If the user didn't defined NONE value
-          code += "  " + GenEnumValDecl(enum_def, "NONE", parser_.opts) + " = 0,\n";
+          code += ",\n  " + GenEnumValDecl(enum_def, "NONE", parser_.opts) + " = 0";
         if (maxv->value != anyv)  // If the user didn't defined ANY value
-          code += "  " + GenEnumValDecl(enum_def, "ANY", parser_.opts) + " = " +
-                  NumToString(anyv) + "\n";
+          code += ",\n  " + GenEnumValDecl(enum_def, "ANY", parser_.opts) + " = " +
+                  NumToString(anyv);
       } else {  // MIN & MAX are useless for bit_flags
-        code += "  " + GenEnumValDecl(enum_def, "MIN", parser_.opts) + " = ";
-        code += GenEnumValDecl(enum_def, minv->name, parser_.opts) + ",\n";
-        code += "  " + GenEnumValDecl(enum_def, "MAX", parser_.opts) + " = ";
-        code += GenEnumValDecl(enum_def, maxv->name, parser_.opts) + "\n";
+        code += ",\n  " + GenEnumValDecl(enum_def, "MIN", parser_.opts) + " = ";
+        code += GenEnumValDecl(enum_def, minv->name, parser_.opts);
+        code += ",\n  " + GenEnumValDecl(enum_def, "MAX", parser_.opts) + " = ";
+        code += GenEnumValDecl(enum_def, maxv->name, parser_.opts);
       }
     }
-    code += "};\n";
+    code += "\n};\n";
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
       code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ", " +
               GenTypeBasic(enum_def.underlying_type, false) + ")\n";
@@ -1008,6 +1009,32 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  std::string GenUnpackVal(const Type &type, const std::string &val,
+                           bool invector, const FieldDef &afield) {
+    switch (type.base_type) {
+      case BASE_TYPE_STRING:
+        return val + "->str()";
+      case BASE_TYPE_STRUCT:
+        if (IsStruct(type)) {
+          if (invector) {
+            return "*" + val;
+          } else {
+            return GenTypeNativePtr(WrapInNameSpace(*type.struct_def),
+                                    &afield, true) +
+                   "(new " +
+                   WrapInNameSpace(*type.struct_def) + "(*" + val + "))";
+          }
+        } else {
+          return GenTypeNativePtr(NativeName(WrapInNameSpace(
+                     *type.struct_def)), &afield, true) +
+                 "(" + val + "->UnPack(resolver))";
+        }
+      default:
+        return val;
+        break;
+    }
+  };
+
   // Generate code for tables that needs to come after the regular definition.
   void GenTablePost(StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
@@ -1026,32 +1053,6 @@ class CppGenerator : public BaseGenerator {
           auto deref = "_o->";
           auto dest = deref + field.name;
           auto assign = prefix + dest + " = ";
-          auto gen_unpack_val = [&](const Type &type, const std::string &val,
-                                    bool invector, const FieldDef &afield)
-                                        -> std::string {
-            switch (type.base_type) {
-              case BASE_TYPE_STRING:
-                return val + "->str()";
-              case BASE_TYPE_STRUCT:
-                if (IsStruct(type)) {
-                  if (invector) {
-                    return "*" + val;
-                  } else {
-                    return GenTypeNativePtr(WrapInNameSpace(*type.struct_def),
-                                            &afield, true) +
-                           "(new " +
-                           WrapInNameSpace(*type.struct_def) + "(*" + val + "))";
-                  }
-                } else {
-                  return GenTypeNativePtr(NativeName(WrapInNameSpace(
-                             *type.struct_def)), &afield, true) +
-                         "(" + val + "->UnPack(resolver))";
-                }
-              default:
-                return val;
-                break;
-            }
-          };
           switch (field.value.type.base_type) {
             case BASE_TYPE_VECTOR: {
               code += prefix;
@@ -1061,8 +1062,8 @@ class CppGenerator : public BaseGenerator {
               std::string indexing = "_e->Get(_i)";
               if (field.value.type.element == BASE_TYPE_BOOL)
                 indexing += "!=0";
-              code += gen_unpack_val(field.value.type.VectorType(),
-                                     indexing, true, field);
+              code += GenUnpackVal(field.value.type.VectorType(),
+                                   indexing, true, field);
               code += "); } }";
               break;
             }
@@ -1089,7 +1090,7 @@ class CppGenerator : public BaseGenerator {
                 code += dest + " = nullptr";
               } else {
                 code += assign;
-                code += gen_unpack_val(field.value.type, "_e", false, field);
+                code += GenUnpackVal(field.value.type, "_e", false, field);
               }
               code += ";";
               break;
