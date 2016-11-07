@@ -38,7 +38,7 @@ enum BaseType {
   String = 13,
   Vector = 14,
   Obj = 15,
-  Union = 16,
+  Union = 16
 };
 
 inline const char **EnumNamesBaseType() {
