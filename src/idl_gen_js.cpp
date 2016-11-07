@@ -581,7 +581,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         code += object_name + ".prototype." + MakeCamel(field.name, false);
         code += "Array = function() {\n" + offset_prefix;
         code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
-          "this.bb.__vector(this.bb_pos + offset), "
+          "this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), "
           "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
       }
     }
