@@ -1192,7 +1192,7 @@ MyGame.Example.Monster.prototype.testarrayofbytesLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofbytesArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 62);
-  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1217,7 +1217,7 @@ MyGame.Example.Monster.prototype.testarrayofshortLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofshortArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 64);
-  return offset ? new Int16Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Int16Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1242,7 +1242,7 @@ MyGame.Example.Monster.prototype.testarrayofushortLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofushortArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 66);
-  return offset ? new Uint16Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint16Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1267,7 +1267,7 @@ MyGame.Example.Monster.prototype.testarrayofintLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofintArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 68);
-  return offset ? new Int32Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Int32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1292,7 +1292,7 @@ MyGame.Example.Monster.prototype.testarrayofuintLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofuintArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 70);
-  return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1317,7 +1317,7 @@ MyGame.Example.Monster.prototype.testarrayoflongLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayoflongArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 72);
-  return offset ? new Int64Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Int64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1342,7 +1342,7 @@ MyGame.Example.Monster.prototype.testarrayofulongLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofulongArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 74);
-  return offset ? new Uint64Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1367,7 +1367,7 @@ MyGame.Example.Monster.prototype.testarrayoffloatLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayoffloatArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 76);
-  return offset ? new Float32Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Float32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1392,7 +1392,7 @@ MyGame.Example.Monster.prototype.testarrayofdoubleLength = function() {
  */
 MyGame.Example.Monster.prototype.testarrayofdoubleArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 78);
-  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
