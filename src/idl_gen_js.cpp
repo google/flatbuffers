@@ -557,13 +557,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@returns {boolean}");
 
       code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
-      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ")\n\n";
+      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ");\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
       code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
       code += "  return true;\n";
-      code += "}\n\n";
+      code += "};\n\n";
     }
 
     // Emit vector helpers

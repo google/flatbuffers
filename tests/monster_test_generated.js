@@ -132,7 +132,7 @@ MyGame.Example.Test.prototype.a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0)
+  var offset = this.bb.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
@@ -140,7 +140,7 @@ MyGame.Example.Test.prototype.mutate_a = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -154,7 +154,7 @@ MyGame.Example.Test.prototype.b = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_b = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 2)
+  var offset = this.bb.__offset(this.bb_pos, 2);
 
   if (offset === 0) {
     return false;
@@ -162,7 +162,7 @@ MyGame.Example.Test.prototype.mutate_b = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -226,7 +226,7 @@ MyGame.Example.TestSimpleTableWithEnum.prototype.color = function() {
  * @returns {boolean}
  */
 MyGame.Example.TestSimpleTableWithEnum.prototype.mutate_color = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4)
+  var offset = this.bb.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
@@ -234,7 +234,7 @@ MyGame.Example.TestSimpleTableWithEnum.prototype.mutate_color = function(value) 
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -298,7 +298,7 @@ MyGame.Example.Vec3.prototype.x = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_x = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0)
+  var offset = this.bb.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
@@ -306,7 +306,7 @@ MyGame.Example.Vec3.prototype.mutate_x = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -320,7 +320,7 @@ MyGame.Example.Vec3.prototype.y = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_y = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4)
+  var offset = this.bb.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
@@ -328,7 +328,7 @@ MyGame.Example.Vec3.prototype.mutate_y = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -342,7 +342,7 @@ MyGame.Example.Vec3.prototype.z = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_z = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 8)
+  var offset = this.bb.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
@@ -350,7 +350,7 @@ MyGame.Example.Vec3.prototype.mutate_z = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -364,7 +364,7 @@ MyGame.Example.Vec3.prototype.test1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 16)
+  var offset = this.bb.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
     return false;
@@ -372,7 +372,7 @@ MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
 
   this.bb.writeFloat64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {MyGame.Example.Color}
@@ -386,7 +386,7 @@ MyGame.Example.Vec3.prototype.test2 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 24)
+  var offset = this.bb.__offset(this.bb_pos, 24);
 
   if (offset === 0) {
     return false;
@@ -394,7 +394,7 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {MyGame.Example.Test=} obj
@@ -489,7 +489,7 @@ MyGame.Example.Stat.prototype.val = function() {
  * @returns {boolean}
  */
 MyGame.Example.Stat.prototype.mutate_val = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 6)
+  var offset = this.bb.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
@@ -497,7 +497,7 @@ MyGame.Example.Stat.prototype.mutate_val = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -512,7 +512,7 @@ MyGame.Example.Stat.prototype.count = function() {
  * @returns {boolean}
  */
 MyGame.Example.Stat.prototype.mutate_count = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 8)
+  var offset = this.bb.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
@@ -520,7 +520,7 @@ MyGame.Example.Stat.prototype.mutate_count = function(value) {
 
   this.bb.writeUint16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -629,7 +629,7 @@ MyGame.Example.Monster.prototype.mana = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_mana = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 6)
+  var offset = this.bb.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
@@ -637,7 +637,7 @@ MyGame.Example.Monster.prototype.mutate_mana = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -652,7 +652,7 @@ MyGame.Example.Monster.prototype.hp = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_hp = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 8)
+  var offset = this.bb.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
@@ -660,7 +660,7 @@ MyGame.Example.Monster.prototype.mutate_hp = function(value) {
 
   this.bb.writeInt16(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
@@ -709,7 +709,7 @@ MyGame.Example.Monster.prototype.color = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_color = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 16)
+  var offset = this.bb.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
     return false;
@@ -717,7 +717,7 @@ MyGame.Example.Monster.prototype.mutate_color = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {MyGame.Example.Any}
@@ -732,7 +732,7 @@ MyGame.Example.Monster.prototype.testType = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_test_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 18)
+  var offset = this.bb.__offset(this.bb_pos, 18);
 
   if (offset === 0) {
     return false;
@@ -740,7 +740,7 @@ MyGame.Example.Monster.prototype.mutate_test_type = function(value) {
 
   this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {flatbuffers.Table} obj
@@ -864,7 +864,7 @@ MyGame.Example.Monster.prototype.testbool = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testbool = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 34)
+  var offset = this.bb.__offset(this.bb_pos, 34);
 
   if (offset === 0) {
     return false;
@@ -872,7 +872,7 @@ MyGame.Example.Monster.prototype.mutate_testbool = function(value) {
 
   this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -887,7 +887,7 @@ MyGame.Example.Monster.prototype.testhashs32Fnv1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 36)
+  var offset = this.bb.__offset(this.bb_pos, 36);
 
   if (offset === 0) {
     return false;
@@ -895,7 +895,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1 = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -910,7 +910,7 @@ MyGame.Example.Monster.prototype.testhashu32Fnv1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 38)
+  var offset = this.bb.__offset(this.bb_pos, 38);
 
   if (offset === 0) {
     return false;
@@ -918,7 +918,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1 = function(value) {
 
   this.bb.writeUint32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -933,7 +933,7 @@ MyGame.Example.Monster.prototype.testhashs64Fnv1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 40)
+  var offset = this.bb.__offset(this.bb_pos, 40);
 
   if (offset === 0) {
     return false;
@@ -941,7 +941,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1 = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -956,7 +956,7 @@ MyGame.Example.Monster.prototype.testhashu64Fnv1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 42)
+  var offset = this.bb.__offset(this.bb_pos, 42);
 
   if (offset === 0) {
     return false;
@@ -964,7 +964,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1 = function(value) {
 
   this.bb.writeUint64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -979,7 +979,7 @@ MyGame.Example.Monster.prototype.testhashs32Fnv1a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 44)
+  var offset = this.bb.__offset(this.bb_pos, 44);
 
   if (offset === 0) {
     return false;
@@ -987,7 +987,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs32_fnv1a = function(value) {
 
   this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1002,7 +1002,7 @@ MyGame.Example.Monster.prototype.testhashu32Fnv1a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 46)
+  var offset = this.bb.__offset(this.bb_pos, 46);
 
   if (offset === 0) {
     return false;
@@ -1010,7 +1010,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu32_fnv1a = function(value) {
 
   this.bb.writeUint32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -1025,7 +1025,7 @@ MyGame.Example.Monster.prototype.testhashs64Fnv1a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 48)
+  var offset = this.bb.__offset(this.bb_pos, 48);
 
   if (offset === 0) {
     return false;
@@ -1033,7 +1033,7 @@ MyGame.Example.Monster.prototype.mutate_testhashs64_fnv1a = function(value) {
 
   this.bb.writeInt64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {flatbuffers.Long}
@@ -1048,7 +1048,7 @@ MyGame.Example.Monster.prototype.testhashu64Fnv1a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 50)
+  var offset = this.bb.__offset(this.bb_pos, 50);
 
   if (offset === 0) {
     return false;
@@ -1056,7 +1056,7 @@ MyGame.Example.Monster.prototype.mutate_testhashu64_fnv1a = function(value) {
 
   this.bb.writeUint64(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {number} index
@@ -1096,7 +1096,7 @@ MyGame.Example.Monster.prototype.testf = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testf = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 54)
+  var offset = this.bb.__offset(this.bb_pos, 54);
 
   if (offset === 0) {
     return false;
@@ -1104,7 +1104,7 @@ MyGame.Example.Monster.prototype.mutate_testf = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1119,7 +1119,7 @@ MyGame.Example.Monster.prototype.testf2 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testf2 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 56)
+  var offset = this.bb.__offset(this.bb_pos, 56);
 
   if (offset === 0) {
     return false;
@@ -1127,7 +1127,7 @@ MyGame.Example.Monster.prototype.mutate_testf2 = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @returns {number}
@@ -1142,7 +1142,7 @@ MyGame.Example.Monster.prototype.testf3 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Monster.prototype.mutate_testf3 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 58)
+  var offset = this.bb.__offset(this.bb_pos, 58);
 
   if (offset === 0) {
     return false;
@@ -1150,7 +1150,7 @@ MyGame.Example.Monster.prototype.mutate_testf3 = function(value) {
 
   this.bb.writeFloat32(this.bb_pos + offset, value);
   return true;
-}
+};
 
 /**
  * @param {number} index
