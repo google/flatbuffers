@@ -529,17 +529,27 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(flatbuffers::FlatBufferBui
   return CreateSchema(_fbb, objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0, enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0, file_ident ? _fbb.CreateString(file_ident) : 0, file_ext ? _fbb.CreateString(file_ext) : 0, root_table);
 }
 
-inline const reflection::Schema *GetSchema(const void *buf) { return flatbuffers::GetRoot<reflection::Schema>(buf); }
+inline const reflection::Schema *GetSchema(const void *buf) {
+  return flatbuffers::GetRoot<reflection::Schema>(buf);
+}
 
-inline const char *SchemaIdentifier() { return "BFBS"; }
+inline const char *SchemaIdentifier() {
+  return "BFBS";
+}
 
-inline bool SchemaBufferHasIdentifier(const void *buf) { return flatbuffers::BufferHasIdentifier(buf, SchemaIdentifier()); }
+inline bool SchemaBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(buf, SchemaIdentifier());
+}
 
-inline bool VerifySchemaBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier()); }
+inline bool VerifySchemaBuffer(flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier());
+}
 
 inline const char *SchemaExtension() { return "bfbs"; }
 
-inline void FinishSchemaBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<reflection::Schema> root) { fbb.Finish(root, SchemaIdentifier()); }
+inline void FinishSchemaBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<reflection::Schema> root) {
+  fbb.Finish(root, SchemaIdentifier());
+}
 
 }  // namespace reflection
 

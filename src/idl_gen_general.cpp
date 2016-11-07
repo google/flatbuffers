@@ -1311,7 +1311,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           lang_.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + SourceCastBasic(field.value.type);
+      code += ", ";
+      if (lang_.language == IDLOptions::kJava)
+        code += SourceCastBasic( field.value.type );
       code += GenDefaultValue(field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
@@ -1443,8 +1445,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   code += "\n\n";
 }
     const LanguageParameters & lang_;
-  // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
-  const Namespace *cur_name_space_;
+    // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
+    const Namespace *cur_name_space_;
 };
 }  // namespace general
 
@@ -1466,8 +1468,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
     auto &enum_def = **it;
     if (make_rule != "") make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace) +
-        kPathSeparator;
+        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
     make_rule += directory + enum_def.name + lang.file_extension;
   }
 
@@ -1476,8 +1477,8 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
     auto &struct_def = **it;
     if (make_rule != "") make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *struct_def.defined_namespace) +
-        kPathSeparator;
+        BaseGenerator::NamespaceDir(parser, path,
+                                    *struct_def.defined_namespace);
     make_rule += directory + struct_def.name + lang.file_extension;
   }
 

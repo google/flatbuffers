@@ -126,13 +126,16 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --gen-onefile      Generate single output file for C#.\n"
       "  --gen-name-strings Generate type name functions for C++.\n"
       "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
-      "  --gen-object-api   Generate an additional object-based API\n"
+      "  --gen-object-api   Generate an additional object-based API.\n"
+      "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
       "  --schema           Serialize schemas instead of JSON (use with -b)\n"
       "  --conform FILE     Specify a schema the following schemas should be\n"
       "                     an evolution of. Gives errors if not.\n"
+      "  --conform-includes Include path for the schema given with --conform\n"
+      "    PATH             \n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -169,6 +172,7 @@ int main(int argc, const char *argv[]) {
   bool schema_binary = false;
   std::vector<std::string> filenames;
   std::vector<const char *> include_directories;
+  std::vector<const char *> conform_include_directories;
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
   for (int argi = 1; argi < argc; argi++) {
@@ -185,6 +189,9 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--conform") {
         if (++argi >= argc) Error("missing path following" + arg, true);
         conform_to_schema = argv[argi];
+      } else if (arg == "--conform-includes") {
+        if (++argi >= argc) Error("missing path following" + arg, true);
+        conform_include_directories.push_back(argv[argi]);
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
       } else if(arg == "--allow-non-utf8") {
@@ -208,6 +215,9 @@ int main(int argc, const char *argv[]) {
         opts.generate_name_strings = true;
       } else if(arg == "--gen-object-api") {
         opts.generate_object_based_api = true;
+      } else if (arg == "--cpp-ptr-type") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.cpp_object_api_pointer_type = argv[argi];
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
@@ -265,7 +275,8 @@ int main(int argc, const char *argv[]) {
     std::string contents;
     if (!flatbuffers::LoadFile(conform_to_schema.c_str(), true, &contents))
       Error("unable to load schema: " + conform_to_schema);
-    ParseFile(conform_parser, conform_to_schema, contents, include_directories);
+    ParseFile(conform_parser, conform_to_schema, contents,
+              conform_include_directories);
   }
 
   // Now process the files:
