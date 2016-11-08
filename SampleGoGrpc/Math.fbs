@@ -1,0 +1,16 @@
+namespace SimpleMath;
+
+table NumReq{
+	num: int;
+}
+
+table NumRes{
+	num: int;
+}
+
+rpc_service Math{
+	Mod2(NumReq):NumRes (streaming: "none");
+	AddNumbers(NumReq):NumRes (streaming: "client");
+	Squares(NumReq): NumRes (streaming: "server");
+	IsOdd(NumReq): NumRes (streaming: "bidi");
+}
