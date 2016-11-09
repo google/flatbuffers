@@ -1758,6 +1758,9 @@ CheckedError Parser::SkipAnyJsonValue() {
     case kTokenFloatConstant:
       EXPECT(kTokenFloatConstant);
       break;
+    case kTokenNull:
+      EXPECT(kTokenNull);
+      break;
     default:
       return Error(std::string("Unexpected token:") + std::string(1, static_cast<char>(token_)));
   }
