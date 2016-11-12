@@ -41,6 +41,8 @@ public class Constants {
     static final int UBYTE_MASK = 0xFF;
     /** Mask to convert a short as a user facing ushort represented with int */
     static final int USHORT_MASK = 0xFFFF;
+    /** Mask to convert a int as a user facing uint represented with long */
+    static final long UINT_MASK = 0xFFFFFFFFL;
 }
 
 /// @endcond

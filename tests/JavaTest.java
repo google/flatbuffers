@@ -444,7 +444,7 @@ class JavaTest {
 
         //test not valued boolean
         Field testboolField = rootTable.fieldsByKey("testbool");
-        boolean hasTestbool = Reflection.hasValue(root, testboolField);
+        boolean hasTestbool = Reflection.isFieldPresent(root, testboolField);
         TestEq(hasTestbool, false);
         boolean testbool = Reflection.getBoolField(root, testboolField);
         TestEq(testbool, false);
@@ -462,7 +462,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer());
-        hasTestbool = Reflection.hasValue(root, testboolField);
+        hasTestbool = Reflection.isFieldPresent(root, testboolField);
         TestEq(hasTestbool, true);
         testbool = Reflection.getBoolField(root, testboolField);
         TestEq(testbool, true);
@@ -490,7 +490,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -508,7 +508,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -519,6 +519,9 @@ class JavaTest {
         vectorElement = Reflection.getBoolsField(root, field, 2);
         TestEq(vectorElement, true);
         vectorElement = Reflection.getBoolsField(root, field, false, 2);
+        TestEq(vectorElement, true);
+        TestEq(Reflection.setBoolsField(root, field, true, 1), true);
+        vectorElement = Reflection.getBoolsField(root, field, 1);
         TestEq(vectorElement, true);
     }
 
@@ -534,7 +537,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         byte fieldValue = Reflection.getByteField(root, field);
         TestEq(fieldValue, (byte)0);
@@ -554,7 +557,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getByteField(root, field);
         TestEq(fieldValue, (byte)42);
@@ -582,7 +585,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -600,7 +603,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -626,7 +629,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int fieldValue = Reflection.getUByteField(root, field);
         TestEq(fieldValue, 0);
@@ -646,7 +649,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getUByteField(root, field);
         TestEq(fieldValue, 42);
@@ -674,7 +677,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -692,7 +695,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -721,7 +724,7 @@ class JavaTest {
         Field nameField = rootTable.fieldsByKey("name");
 
         // test valued short
-        boolean hasHp = Reflection.hasValue(root, hpField);
+        boolean hasHp = Reflection.isFieldPresent(root, hpField);
         TestEq(hasHp, true);
         short shortHp = Reflection.getShortField(root, hpField);
         TestEq(shortHp, (short) 80);
@@ -740,7 +743,7 @@ class JavaTest {
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         Field manaField = rootTable.fieldsByKey("mana");
-        boolean hasMana = Reflection.hasValue(root, manaField);
+        boolean hasMana = Reflection.isFieldPresent(root, manaField);
         TestEq(hasMana, false);
         short shortMana = Reflection.getShortField(root, manaField);
         TestEq(shortMana, (short) 150);
@@ -769,7 +772,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -787,7 +790,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -807,10 +810,10 @@ class JavaTest {
         Stat.startStat(fbb);
         int mon = Stat.endStat(fbb);
         fbb.finish(mon, "STAT");
-        com.google.flatbuffers.reflection.Object rootTable = Reflection.getSchemaChildTable(schema,"testempty");
+        com.google.flatbuffers.reflection.Object rootTable = schema.objectsByKey("MyGame.Example.Stat");
         Table root = Reflection.getRootTable(fbb.dataBuffer());
         Field field = rootTable.fieldsByKey("count");
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int fieldValue = Reflection.getUShortField(root, field);
         TestEq(fieldValue, 0);
@@ -829,7 +832,7 @@ class JavaTest {
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         field = rootTable.fieldsByKey("count");
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getUShortField(root, field);
         TestEq(fieldValue, Short.MAX_VALUE + 1);
@@ -858,7 +861,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -876,7 +879,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -902,7 +905,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int fieldValue = Reflection.getIntField(root, field);
         TestEq(fieldValue, 0);
@@ -922,7 +925,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getIntField(root, field);
         TestEq(fieldValue, 42);
@@ -950,7 +953,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -968,7 +971,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -995,7 +998,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         long fieldValue = Reflection.getUIntField(root, field);
         TestEq(fieldValue, 0L);
@@ -1015,7 +1018,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getUIntField(root, field);
         TestEq(fieldValue, Integer.MAX_VALUE + 1L);
@@ -1043,7 +1046,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1061,7 +1064,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -1087,7 +1090,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         long fieldValue = Reflection.getLongField(root, field);
         TestEq(fieldValue, 0L);
@@ -1107,7 +1110,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getLongField(root, field);
         TestEq(fieldValue, 42L);
@@ -1135,7 +1138,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1153,7 +1156,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -1179,7 +1182,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         long fieldValue = Reflection.getULongField(root, field);
         TestEq(fieldValue, 0L);
@@ -1199,7 +1202,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getULongField(root, field);
         TestEq(fieldValue, Long.MAX_VALUE + 1L);
@@ -1227,7 +1230,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1245,7 +1248,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -1271,7 +1274,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         float fieldValue = Reflection.getFloatField(root, field);
         TestEq(fieldValue, 0F);
@@ -1291,7 +1294,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getFloatField(root, field);
         TestEq(fieldValue, 42F);
@@ -1319,7 +1322,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1337,7 +1340,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -1363,7 +1366,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         double fieldValue = Reflection.getDoubleField(root, field);
         TestEq(fieldValue, 0D);
@@ -1383,7 +1386,7 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getDoubleField(root, field);
         TestEq(fieldValue, 42D);
@@ -1411,7 +1414,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1429,7 +1432,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
@@ -1449,11 +1452,11 @@ class JavaTest {
         Stat.startStat(fbb);
         int mon = Stat.endStat(fbb);
         fbb.finish(mon, "STAT");
-        com.google.flatbuffers.reflection.Object rootTable = Reflection.getSchemaChildTable(schema,"testempty");
+        com.google.flatbuffers.reflection.Object rootTable = schema.objectsByKey("MyGame.Example.Stat");
         Table root = Reflection.getRootTable(fbb.dataBuffer());
         Field field = rootTable.fieldsByKey("id");
 
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         String fieldValue = Reflection.getStringField(root, field);
         TestEq(fieldValue == null, true);
@@ -1467,10 +1470,10 @@ class JavaTest {
         Stat.addId(fbb, idPos);
         mon = Stat.endStat(fbb);
         fbb.finish(mon, "STAT");
-        rootTable = Reflection.getSchemaChildTable(schema, schema.rootTable(), rootTable, "testempty");
+        rootTable = schema.objectsByKey(rootTable, "MyGame.Example.Stat");
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         fieldValue = Reflection.getStringField(root, field);
         TestEq(fieldValue, "test");
@@ -1495,7 +1498,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1515,7 +1518,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 3);
@@ -1541,7 +1544,7 @@ class JavaTest {
         Table root = Reflection.getRootTable(fbb.dataBuffer());
 
         Field field = rootTable.fieldsByKey("testempty");
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         Table childTable = Reflection.getObjField(root, field);
         TestEq(childTable == null, true);
@@ -1562,7 +1565,7 @@ class JavaTest {
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
 
         field = rootTable.fieldsByKey("testempty");
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         childTable = Reflection.getObjField(root, field);
         TestEq(childTable != null, true);
@@ -1582,7 +1585,7 @@ class JavaTest {
         int mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         Table root = Reflection.getRootTable(fbb.dataBuffer());
-        boolean hasValue = Reflection.hasValue(root, field);
+        boolean hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, false);
         int vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 0);
@@ -1611,7 +1614,7 @@ class JavaTest {
         mon = Monster.endMonster(fbb);
         Monster.finishMonsterBuffer(fbb, mon);
         root = Reflection.getRootTable(fbb.dataBuffer(), root);
-        hasValue = Reflection.hasValue(root, field);
+        hasValue = Reflection.isFieldPresent(root, field);
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 3);

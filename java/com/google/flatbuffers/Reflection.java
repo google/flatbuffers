@@ -18,7 +18,6 @@ package com.google.flatbuffers;
 
 import com.google.flatbuffers.reflection.BaseType;
 import com.google.flatbuffers.reflection.Field;
-import com.google.flatbuffers.reflection.Schema;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -28,6 +27,9 @@ import static com.google.flatbuffers.Constants.SIZEOF_FLOAT;
 import static com.google.flatbuffers.Constants.SIZEOF_INT;
 import static com.google.flatbuffers.Constants.SIZEOF_LONG;
 import static com.google.flatbuffers.Constants.SIZEOF_SHORT;
+import static com.google.flatbuffers.Constants.UBYTE_MASK;
+import static com.google.flatbuffers.Constants.UINT_MASK;
+import static com.google.flatbuffers.Constants.USHORT_MASK;
 import static com.google.flatbuffers.reflection.BaseType.Bool;
 import static com.google.flatbuffers.reflection.BaseType.Byte;
 import static com.google.flatbuffers.reflection.BaseType.Double;
@@ -44,58 +46,206 @@ import static com.google.flatbuffers.reflection.BaseType.UShort;
 import static com.google.flatbuffers.reflection.BaseType.Vector;
 
 /**
- * Help class to manipulate flatbuffers document by reflection.
+ * Helper class to manipulate flatbuffers document by reflection.
+ *
+ * <p>Reflection can be used to manipulate byte buffers of flatbuffers objects from their binary
+ * flatbuffers schema without generated code.</p>
+ *
+ * <h4>Usage</h4> We assume you have a valid binary schema called {@code monster.bfbs} and you have
+ * loaded it into a {@link ByteBuffer}.
+ * <pre>
+ *   // load the schema from a byte buffer
+ *   Schema schema = Schema.getRootAsSchema(bb);
+ *   // then you get the root table of the schema as follow.
+ *   com.google.flatbuffers.reflection.Object rootTable = schema.rootTable();
+ *   // you can get a field definition from a table definition
+ *   Field hpField = rootTable.fieldsByKey("hp");
+ *   // you can check if a field is present or not
+ *   boolean hasHp = Reflection.isFieldPresent(root, hpField);
+ *   // you can get the value associated to field
+ *   short shortHp = Reflection.getShortField(root, hpField);
+ *   // you can set the value of a field
+ *   Reflection.setShortField(root, hpField, (short) 200);
+ * </pre>
+ * <p><strong>Parameter checking:</strong> the check of the parameters is only activated if you
+ * enable the assertions at the VM arguments. You activate the assertion by adding {@code -ea}
+ * option to the VM arguments.</p>
  */
 public final class Reflection {
-
-  private static final int UBYTE_MASK = 0xFF;
-  private static final int USHORT_MASK = 0xFFFF;
-  private static final long UINT_MASK = 0xFFFFFFFFL;
 
   private Reflection() {
   }
 
-  public static com.google.flatbuffers.reflection.Object getSchemaChildTable(Schema schema, String tableName) {
-    return getSchemaChildTable(schema, schema.rootTable(), tableName);
-  }
-
-  public static com.google.flatbuffers.reflection.Object getSchemaChildTable(Schema schema, com.google.flatbuffers.reflection.Object parent, String tableName) {
-    return schema.objects(parent.fieldsByKey(tableName).type().index());
-  }
-
-  public static com.google.flatbuffers.reflection.Object getSchemaChildTable(Schema schema, com.google.flatbuffers.reflection.Object parent, com.google.flatbuffers.reflection.Object childToReuse,String tableName) {
-    return schema.objects(childToReuse, parent.fieldsByKey(tableName).type().index());
-  }
-
+  /**
+   * Returns the root table of a given byte buffer.
+   * <p>Create a new instance of {@link Table} initialize it to the root table
+   * stored in the byte buffer.</p>
+   *
+   * @param _bb the byte buffer whose root table is to be instantiated.
+   * @return the root table from the given byte buffer.
+   * @see #getRootTable(ByteBuffer, Table)
+   */
   public static Table getRootTable(ByteBuffer _bb) {
     return getRootTable(_bb, new Table());
   }
 
+  /**
+   * Returns the given table initialized to the root table from the byte buffer. <p>Initialize the
+   * given table to the root table stored into the byte buffer. This method can be used instead of
+   * the {@link #getRootTable(ByteBuffer)} inorder to reuse the table instance.</p>
+   *
+   * @param _bb the byte buffer whose root table is to be initialized.
+   * @param obj the table to initialized.
+   * @return the table {@code obj} initialized to the root table stored in the given byte buffer
+   * {@code _bb}.
+   * @see #getRootTable(ByteBuffer)
+   */
   public static Table getRootTable(ByteBuffer _bb, Table obj) {
     _bb.order(ByteOrder.LITTLE_ENDIAN);
     obj.__init(_bb.getInt(_bb.position()) + _bb.position(), _bb);
     return obj;
   }
 
-  public static boolean hasValue(Table table, Field field) {
+  /**
+   * Returns <tt>true</tt> if the <tt>table</tt> contains the specified <tt>field</tt>. More
+   * formally, returns <tt>true</tt> if and only if this <tt>table</tt> has an offset different from
+   * <tt>0</tt> at the <tt>field</tt> offset position.
+   *
+   * @param table the table whose presence of the field is to be tested.
+   * @param field the field whose presence in the table is to be tested.
+   * @return <tt>true</tt> if the <tt>table</tt> contains the specified <tt>field</tt>.
+   */
+  public static boolean isFieldPresent(Table table, Field field) {
     int o = table.__offset(field.offset());
     return o != 0;
   }
 
+  /**
+   * Gets the boolean value for the given field. Returns the value if the field is present otherwise
+   * the default value associated to the field is returned.
+   *
+   * <p>This method is a precise type method, the field should have the same type than this method
+   * name implies. If you want you can enable the validation of the field type by activating the
+   * <tt>-ea</tt> VM argument. No special check are made to validate that the field belongs to the
+   * given table it is the responsability of the caller to ensure this consistency.</p>
+   *
+   * @param table the table whose contains the value associated to the field
+   * @param field the field whose associated value is to be returned from the table
+   * @return the value associated to the field if present or the field default value if not present.
+   * @throws IllegalArgumentException if the field type is not the equal to {@link BaseType#Bool}
+   *                                  and the <tt>-ea</tt> VM argument is activated
+   * @see #getBoolField(Table, Field, boolean)
+   * @see #isFieldPresent(Table, Field)
+   */
   public static boolean getBoolField(Table table, Field field) {
     return getBoolField(table, field, 0 != field.defaultInteger());
   }
 
+  /**
+   * Gets the boolean value for the given field. Returns the value if the field is present otherwise
+   * the default value associated to the field is returned.
+   *
+   * <p>This method is a precise type method, the field should have the same type than this method
+   * name implies. If you want you can enable the validation of the field type by activating the
+   * <tt>-ea</tt> VM argument. No special check are made to validate that the field belongs to the
+   * given table it is the responsability of the caller to ensure this consistency.</p>
+   *
+   * @param table        the table whose contains the value associated to the field
+   * @param field        the field whose associated value is to be returned from the table
+   * @param defaultValue the default value to be returned if the field is not present
+   * @return the value associated to the field if present or the field default value if not present.
+   * @throws IllegalArgumentException if the field type is not the equal to {@link BaseType#Bool}
+   *                                  and the <tt>-ea</tt> VM argument is activated
+   * @see #getBoolField(Table, Field)
+   * @see #isFieldPresent(Table, Field)
+   * @see #setBoolField(Table, Field, boolean)
+   */
   public static boolean getBoolField(Table table, Field field, boolean defaultValue) {
     assert checkFieldType(field.type().baseType(), Bool);
     int o = table.__offset(field.offset());
     return o != 0 ? 0 != table.bb.get(o + table.bb_pos) : defaultValue;
   }
 
+  /**
+   * Replaces the current field value with the given new value. The value is replaced only if the
+   * field is present. Returns <tt>true</tt> if the field is present and therefore the value can be
+   * replaced otherwise <tt>false</tt>.
+   *
+   * <p>This method is a precise type method, the field should have the same type than this method
+   * name implies. If you want you can enable the validation of the field type by activating the
+   * <tt>-ea</tt> VM argument. No special check are made to validate that the field belongs to the
+   * given table it is the responsability of the caller to ensure this consistency.</p>
+   *
+   * @param table the table whose the value associated is to be associated to the field
+   * @param field the field whose associated value is to be associated
+   * @param value the value to be stored at the field position
+   * @return <tt>true</tt> if the field is present and therefore the value can be replaced otherwise
+   * <tt>false</tt>
+   * @throws IllegalArgumentException if the field type is not the equal to {@link BaseType#Bool}
+   *                                  and the <tt>-ea</tt> VM argument is activated
+   * @see #getBoolField(Table, Field)
+   * @see #getBoolField(Table, Field, boolean)
+   * @see #isFieldPresent(Table, Field)
+   */
+  public static boolean setBoolField(Table table, Field field, boolean value) {
+    assert checkFieldType(field.type().baseType(), Bool);
+    int o = table.__offset(field.offset());
+    if (o != 0) {
+      table.bb.put(o + table.bb_pos, (byte) (value ? 1 : 0));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Gets the boolean value for the given array field at the given position. Returns the value if
+   * the field array is present otherwise the given default value.
+   *
+   * <p>This method is a precise type method, the field should have the same array element type than
+   * this method name implies. If you want you can enable the validation of the field type by
+   * activating the <tt>-ea</tt> VM argument. No special check are made to validate that the field
+   * belongs to the given table it is the responsability of the caller to ensure this
+   * consistency.</p>
+   *
+   * @param table the table whose contains the value associated to the field
+   * @param field the array field whose associated value is to be returned from the table
+   * @param index the index of the value in the array to return
+   * @return the value associated to the array field at the given index if the field is present or
+   * the field default value if not present.
+   * @throws IllegalArgumentException if the array field element type is not the equal to a {@link
+   *                                  BaseType#Vector} of {@link BaseType#Bool} and the <tt>-ea</tt>
+   *                                  VM argument is activated
+   * @see #getBoolsField(Table, Field, boolean, int)
+   * @see #isFieldPresent(Table, Field)
+   * @see #setBoolsField(Table, Field, boolean, int)
+   */
   public static boolean getBoolsField(Table table, Field field, int index) {
     return getBoolsField(table, field, false, index);
   }
 
+  /**
+   * Gets the boolean value of the element of the array pointed by the given field at the given
+   * index. Returns the value if the field array is present otherwise the given default value.
+   *
+   * <p>This method is a precise type method, the field should have the same array element type than
+   * this method return type. If you want you can enable the validation of the field type by
+   * activating the <tt>-ea</tt> VM argument. No special check are made to validate that the field
+   * belongs to the given table it is the responsability of the caller to ensure this
+   * consistency.</p>
+   *
+   * @param table        the table whose contains the value associated to the field
+   * @param field        the array field whose associated value is to be returned from the table
+   * @param defaultValue the default value to be returned if the array field is not present
+   * @param index        the index of the element in the array to return
+   * @return the value associated to the array field at the given index if the field is present or
+   * the field default value if not present.
+   * @throws IllegalArgumentException if the array field element type is not the equal to {@link
+   *                                  BaseType#Vector} of {@link BaseType#Bool} and the <tt>-ea</tt>
+   *                                  VM argument is activated
+   * @see #getBoolsField(Table, Field, int)
+   * @see #isFieldPresent(Table, Field)
+   */
   public static boolean getBoolsField(Table table, Field field, boolean defaultValue, int index) {
     assert checkFieldType(field.type().baseType(), Vector);
     assert checkFieldType(field.type().element(), Bool);
@@ -103,11 +253,36 @@ public final class Reflection {
     return o != 0 ? 0 != table.bb.get(table.__vector(o) + index) : defaultValue;
   }
 
-  public static boolean setBoolField(Table table, Field field, boolean value) {
-    assert checkFieldType(field.type().baseType(), Bool);
+  /**
+   * Replaces the current field array element with the given new value at the given index. The
+   * element is replaced only if the field is present. Returns <tt>true</tt> if the field is present
+   * and therefore the value can be replaced otherwise <tt>false</tt>.
+   *
+   * <p>This method is a precise type method, the field should have the same array element type than
+   * this method name implies. If you want you can enable the validation of the field type by
+   * activating the <tt>-ea</tt> VM argument. No special check are made to validate that the field
+   * belongs to the given table it is the responsability of the caller to ensure this
+   * consistency.</p>
+   *
+   * @param table the table whose the value associated is to be associated to the field
+   * @param field the field whose associated value is to be associated
+   * @param value the value to be stored at the field position at the given index
+   * @param index the index of the element to replace
+   * @return <tt>true</tt> if the field is present and therefore the element value can be replaced
+   * otherwise <tt>false</tt>
+   * @throws IllegalArgumentException if the field type is not the equal to {@link BaseType#Vector}
+   *                                  of {@link BaseType#Bool} and the <tt>-ea</tt> VM argument is
+   *                                  activated
+   * @see #getBoolsField(Table, Field, int)
+   * @see #getBoolsField(Table, Field, boolean, int)
+   * @see #isFieldPresent(Table, Field)
+   */
+  public static boolean setBoolsField(Table table, Field field, boolean value, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Bool);
     int o = table.__offset(field.offset());
     if (o != 0) {
-      table.bb.put(o + table.bb_pos, (byte) (value ? 1 : 0));
+      table.bb.put(table.__vector(o) + index, (byte) (value ? 1 : 0));
       return true;
     } else {
       return false;
