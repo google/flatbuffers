@@ -20,11 +20,8 @@ import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
 import Testing.KeySearch.*;
-import com.google.flatbuffers.Unsigneds;
-import com.google.flatbuffers.Reflection;
-import com.google.flatbuffers.Table;
+import com.google.flatbuffers.*;
 import com.google.flatbuffers.reflection.*;
-import com.google.flatbuffers.FlatBufferBuilder;
 import com.google.flatbuffers.reflection.Object;
 
 class JavaTest {
@@ -1851,6 +1848,33 @@ class JavaTest {
         TestTrue(Unsigneds.asComparable((byte)0x0a) < Unsigneds.asComparable((byte)0xf5));
         TestTrue(Unsigneds.asComparable((byte)0xf5) < Unsigneds.asComparable((byte)0xff));
         TestEq(Unsigneds.asComparable((byte)0x10), Unsigneds.asComparable((byte)0x10));
+        // float & double
+        // Test data generated with python
+        // (needs combo of negative/positive value/exponent, different mantissa for same power of 2 exponent)
+        // ', '.join( [ '%sf' % x for x in sorted( [ random.choice([1,-1]) * random.random() * 2**random.randint(-10,10) for i in range(0,100) ] ) ] )
+        double[] f64Values = new double[] {
+                -143.663930398, -113.652899568, -57.6674724098, -47.7881615929, -32.8573599523, -25.3757542442, -6.32289731715, -6.31456830901, -5.31070135, -4.34689485017, -3.9683987984, -3.77747831583, -3.21334229205, -1.71951477365, -1.60658948278, -0.952556291191, -0.645880784258, -0.639279500508, -0.490917570716, -0.480758661742, -0.430461368613, -0.393359440669, -0.26171451558, -0.233956194649, -0.215978677013, -0.159699691152, -0.147267049552, -0.12885988167, -0.0863402225314, -0.0605561496802, -0.0293686367562, -0.0218672554299, -0.0196682721456, -0.0190870460972, -0.0185303183367, -0.0175548904648, -0.014187334648, -0.00970443846519, -0.00664061401173, -0.00658451053374, -0.00499531636611, -0.00323883792399, -0.00285543205163, -0.00194430090891, -0.00193135121601, -0.000781460594343, -0.000361581067952, -0.000201375071369, -0.00012577897114, 0.000109667072611, 0.000552367296112, 0.00100503733061, 0.00138013991957, 0.00140720040359, 0.0018676545782, 0.002480821074, 0.00295872659794, 0.00396726462466, 0.00720701306132, 0.00874833806218, 0.0151344506589, 0.0239002544959, 0.0310522281057, 0.0332880414199, 0.0597915280613, 0.0666664780241, 0.0672830280348, 0.09466846402, 0.174067882818, 0.183172618371, 0.271262363864, 0.345374554716, 0.347832783569, 0.353570486712, 0.377268800891, 0.388081857434, 0.405894787835, 0.463490792581, 0.484713561017, 0.881049757562, 1.13443869833, 1.19067039057, 1.46000154319, 1.51508638199, 1.7192321789, 2.34665982514, 3.93027684079, 4.34501229076, 4.43448289424, 5.29645390738, 26.15645063, 40.1630318705, 51.2642056763, 132.516998412, 142.707085881, 186.532929305, 188.476495226, 263.623368372, 507.657674908, 683.475997903
+        };
+        boolean allGood = true;
+        for ( int index=0; index < f64Values.length; ++index ) {
+            double doubleValue = f64Values[index];
+            float floatValue = (float)doubleValue;
+            boolean good = true;
+            int comparable = Floats.asComparable(floatValue);
+            if ( index > 0 ) {
+                double prevDoubleValue = f64Values[index-1];
+                assert prevDoubleValue < doubleValue;
+                good = Floats.asComparable((float)(prevDoubleValue)) < comparable;
+                good = good && Floats.asComparable(prevDoubleValue) < Floats.asComparable(doubleValue);
+            }
+            String alert = good ? "" : " (not greater than previous comparable!)";
+            System.out.printf("%+04.4f \t-> %+011d = %08x  sign:%08x  exp: %02x  without bias: %+04d  mantissa: %08x    %s\n",
+                    floatValue, comparable, comparable,
+                    Floats.sign(floatValue), Floats.exp(floatValue), Floats.exp(floatValue) - 127, Floats.mantissa(floatValue),
+                    alert);
+            allGood = allGood && good;
+        }
+        TestTrue( allGood );
     }
 
 

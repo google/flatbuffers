@@ -302,16 +302,12 @@ public class Table {
     return __lookupByByteKey(vectorFieldOffset, keyFieldOffset, key, byteDefaultValue);
   }
 
-  // Difference between implementation:
-  // Initial conversion from "user facing" type to lower-level type
-  // Unsigneds.asComparable() for defaultValue and "current" value
-  // bb.get / bb.getShort / bb.getInt
-
   /// Returns the field at the given offset as a "comparable" integer
   interface FieldAsIntGetter {
     int getValue( ByteBuffer bb, int offsetInByteBuffer );
   }
 
+  /// Returns the field at the given offset as a "comparable" integer
   interface FieldAsLongGetter {
     long getValue( ByteBuffer bb, int offsetInByteBuffer );
   }
@@ -370,6 +366,20 @@ public class Table {
     @Override
     public long getValue(ByteBuffer bb, int offsetInByteBuffer) {
       return Unsigneds.asComparable( bb.getLong(offsetInByteBuffer) );
+    }
+  };
+
+  static FieldAsIntGetter FLOAT_FIELD_GETTER = new FieldAsIntGetter() {
+    @Override
+    public int getValue(ByteBuffer bb, int offsetInByteBuffer) {
+      return Floats.asComparable( bb.getFloat(offsetInByteBuffer) );
+    }
+  };
+
+  static FieldAsLongGetter DOUBLE_FIELD_GETTER = new FieldAsLongGetter() {
+    @Override
+    public long getValue(ByteBuffer bb, int offsetInByteBuffer) {
+      return Floats.asComparable( bb.getDouble(offsetInByteBuffer) );
     }
   };
 
@@ -470,54 +480,14 @@ public class Table {
 
   protected int __lookupByFloatKey(int vectorFieldOffset, int keyFieldOffset, float key,
           float defaultValue) {
-    int fieldDataOffset = __offset(vectorFieldOffset);
-    if ( fieldDataOffset == 0 )
-      return 0;
-    int vectorLocation = __vector( fieldDataOffset );
-    int span = bb.getInt(vectorLocation-SIZEOF_INT);
-    int start = 0;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
-      float val = keyValueOffset != 0 ? bb.getFloat(tableOffset + keyValueOffset) : defaultValue;
-      if (key < val) {
-        span = middle;
-      } else if (key > val) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return tableOffset;
-      }
-    }
-    return 0;
+    return __genericIntLookupByKey( vectorFieldOffset, keyFieldOffset, Floats.asComparable(key),
+            Floats.asComparable(defaultValue), FLOAT_FIELD_GETTER);
   }
 
   protected int __lookupByDoubleKey(int vectorFieldOffset, int keyFieldOffset, double key,
           double defaultValue) {
-    int fieldDataOffset = __offset(vectorFieldOffset);
-    if ( fieldDataOffset == 0 )
-      return 0;
-    int vectorLocation = __vector( fieldDataOffset );
-    int span = bb.getInt(vectorLocation-SIZEOF_INT);
-    int start = 0;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + SIZEOF_INT * (start + middle), bb);
-      int keyValueOffset = __offset( keyFieldOffset, tableOffset, bb );
-      double val = keyValueOffset != 0 ? bb.getDouble(tableOffset + keyValueOffset) : defaultValue;
-      if (key < val) {
-        span = middle;
-      } else if (key > val) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return tableOffset;
-      }
-    }
-    return 0;
+    return __genericLongLookupByKey(vectorFieldOffset, keyFieldOffset, Floats.asComparable(key),
+            Floats.asComparable(defaultValue), DOUBLE_FIELD_GETTER);
   }
 
   protected int __lookupByStringKey(int vectorFieldOffset, int keyFieldOffset, String key) {
