@@ -15,7 +15,10 @@
  */
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Comparator;
+
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
@@ -495,6 +498,7 @@ class JavaTest {
         TestEq(vectorElement, false);
         vectorElement = Reflection.getBoolsField(root, field, true, 10);
         TestEq(vectorElement, true);
+        TestArrayEq(Reflection.getBoolsField(root, field), new boolean[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -509,6 +513,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getBoolsField(root, field), new boolean[] { true, false, true, false, true});
         vectorElement = Reflection.getBoolsField(root, field, 0);
         TestEq(vectorElement, true);
         vectorElement = Reflection.getBoolsField(root, field, 1);
@@ -590,6 +595,7 @@ class JavaTest {
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getBytesField(root, field, (byte) 42, 10);
         TestEq(vectorElement, 42);
+        TestArrayEq(Reflection.getBytesField(root, field), new byte[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -604,6 +610,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getBytesField(root, field), new byte[] { 0, 1, 2, 3, 4});
         vectorElement = Reflection.getBytesField(root, field, 0);
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getBytesField(root, field, 1);
@@ -682,6 +689,7 @@ class JavaTest {
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getUBytesField(root, field, 42, 10);
         TestEq(vectorElement, 42);
+        TestArrayEq(Reflection.getUBytesField(root, field), new int[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -696,6 +704,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getUBytesField(root, field), new int[] { 0, 1, 2, 3, 4});
         vectorElement = Reflection.getUBytesField(root, field, 0);
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getUBytesField(root, field, 1);
@@ -777,6 +786,7 @@ class JavaTest {
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getShortsField(root, field, (short) 42, 10);
         TestEq(vectorElement, 42);
+        TestArrayEq(Reflection.getShortsField(root, field), new short[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -791,6 +801,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getShortsField(root, field), new short[] { 0, 1, 2, 3, 4});
         vectorElement = Reflection.getShortsField(root, field, 0);
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getShortsField(root, field, 1);
@@ -866,6 +877,7 @@ class JavaTest {
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getUShortsField(root, field, 42, 10);
         TestEq(vectorElement, 42);
+        TestArrayEq(Reflection.getUShortsField(root, field), new int[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -880,6 +892,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getUShortsField(root, field), new int[] { 0, 10, 20, 30, 40});
         vectorElement = Reflection.getUShortsField(root, field, 0);
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getUShortsField(root, field, 1);
@@ -958,6 +971,7 @@ class JavaTest {
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getIntsField(root, field, 42, 10);
         TestEq(vectorElement, 42);
+        TestArrayEq(Reflection.getIntsField(root, field), new int[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -972,6 +986,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getIntsField(root, field), new int[] { 0, 10, 20, 30, 40});
         vectorElement = Reflection.getIntsField(root, field, 0);
         TestEq(vectorElement, 0);
         vectorElement = Reflection.getIntsField(root, field, 1);
@@ -1051,6 +1066,7 @@ class JavaTest {
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getUIntsField(root, field, 42L, 10);
         TestEq(vectorElement, 42L);
+        TestArrayEq(Reflection.getUIntsField(root, field), new long[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1065,6 +1081,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getUIntsField(root, field), new long[] { 0, 10, 20, 30, 40});
         vectorElement = Reflection.getUIntsField(root, field, 0);
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getUIntsField(root, field, 1);
@@ -1143,6 +1160,7 @@ class JavaTest {
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getLongsField(root, field, 42L, 10);
         TestEq(vectorElement, 42L);
+        TestArrayEq(Reflection.getLongsField(root, field), new long[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1157,6 +1175,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getLongsField(root, field), new long[] { 0L, 10L, 20L, 30L, 40L});
         vectorElement = Reflection.getLongsField(root, field, 0);
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getLongsField(root, field, 1);
@@ -1235,6 +1254,7 @@ class JavaTest {
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getULongsField(root, field, 42L, 10);
         TestEq(vectorElement, 42L);
+        TestArrayEq(Reflection.getULongsField(root, field), new long[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1249,6 +1269,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getULongsField(root, field), new long[] { 0L, 10L, 20L, 30L, 40L});
         vectorElement = Reflection.getULongsField(root, field, 0);
         TestEq(vectorElement, 0L);
         vectorElement = Reflection.getULongsField(root, field, 1);
@@ -1327,6 +1348,7 @@ class JavaTest {
         TestEq(vectorElement, 0F);
         vectorElement = Reflection.getFloatsField(root, field, 42F, 10);
         TestEq(vectorElement, 42F);
+        TestArrayEq(Reflection.getFloatsField(root, field), new float[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1341,6 +1363,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getFloatsField(root, field), new float[] {0F, 10F, 20F, 30F, 40F});
         vectorElement = Reflection.getFloatsField(root, field, 0);
         TestEq(vectorElement, 0F);
         vectorElement = Reflection.getFloatsField(root, field, 1);
@@ -1419,6 +1442,7 @@ class JavaTest {
         TestEq(vectorElement, 0D);
         vectorElement = Reflection.getDoublesField(root, field, 42D, 10);
         TestEq(vectorElement, 42D);
+        TestArrayEq(Reflection.getDoublesField(root, field), new double[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1433,6 +1457,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 5);
+        TestArrayEq(Reflection.getDoublesField(root, field), new double[] {0D, 10D, 20D, 30D, 40D});
         vectorElement = Reflection.getDoublesField(root, field, 0);
         TestEq(vectorElement, 0D);
         vectorElement = Reflection.getDoublesField(root, field, 1);
@@ -1505,6 +1530,7 @@ class JavaTest {
         TestEq(vectorElement == null, true);
         vectorElement = Reflection.getStringsField(root, field, "test", 10);
         TestEq(vectorElement, "test");
+        TestArrayEq(Reflection.getStringsField(root, field), new String[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1519,6 +1545,7 @@ class JavaTest {
         TestEq(hasValue, true);
         vectorLength = Reflection.getVectorLength(root, field);
         TestEq(vectorLength, 3);
+        TestArrayEq(Reflection.getStringsField(root, field), new String[] {"Frodo", "Barney", "Wilma"});
         vectorElement = Reflection.getStringsField(root, field, 0);
         TestEq(vectorElement, "Frodo");
         vectorElement = Reflection.getStringsField(root, field, 1);
@@ -1590,6 +1617,7 @@ class JavaTest {
         TestEq(vectorElement == null, true);
         vectorElement = Reflection.getObjsField(root, field, vectorElement, 10);
         TestEq(vectorElement == null, true);
+        TestArrayEq(Reflection.getObjsField(root, field), new Table[] {});
         // test valued
         fbb = new FlatBufferBuilder(1);
         namePos = fbb.createString("test");
@@ -1617,17 +1645,21 @@ class JavaTest {
         TestEq(vectorLength, 3);
         vectorElement = Reflection.getObjsField(root, field, 0);
         TestEq(vectorElement != null, true);
-        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")) , "Barney");
+        Field name = rootTable.fieldsByKey("name");
+        TestEq(Reflection.getStringField(vectorElement, name) , "Barney");
         vectorElement = Reflection.getObjsField(root, field, 1);
         TestEq(vectorElement != null, true);
-        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")) , "Frodo");
+        TestEq(Reflection.getStringField(vectorElement, name) , "Frodo");
         vectorElement = Reflection.getObjsField(root, field, 2);
         TestEq(vectorElement != null, true);
-        TestEq(Reflection.getStringField(vectorElement, rootTable.fieldsByKey("name")), "Wilma");
+        TestEq(Reflection.getStringField(vectorElement, name), "Wilma");
         Table toReuse = new Table();
         vectorElement = Reflection.getObjsField(root, field, toReuse, 2);
         TestEq(vectorElement == toReuse, true);
-
+        Table[] objsField = Reflection.getObjsField(root, field);
+        TestEq(Reflection.getStringField(objsField[0], name) , "Barney");
+        TestEq(Reflection.getStringField(objsField[1], name) , "Frodo");
+        TestEq(Reflection.getStringField(objsField[2], name) , "Wilma");
     }
 
     private static MasterDict loadMasterDict(String path) {
@@ -1880,6 +1912,61 @@ class JavaTest {
             assert false; // Run test with -ea VM options to get callstack
             System.exit(1);
         }
+    }
+
+    static void TestArrayEq(java.lang.Object actuals, java.lang.Object expecteds) {
+        if (expecteds == actuals) {
+            return;
+        }
+        if (actuals == null) {
+            assert false : "expected array was null";
+        }
+        if (expecteds == null) {
+            assert false : "actual array was null";
+        }
+        //validate types
+        if (!actuals.getClass().equals(expecteds.getClass())) {
+            assert false : "actual array type different expected: " + actuals.getClass() + " != " + expecteds.getClass();
+        }
+        int actualsLength = Array.getLength(expecteds);
+        int expectedsLength1 = Array.getLength(actuals);
+        if (actualsLength != expectedsLength1) {
+            assert false : "array lengths differed, expected.length="
+                + expectedsLength1 + " actual.length=" + actualsLength;
+        }
+
+
+        for (int i = 0; i < expectedsLength1; i++) {
+            java.lang.Object expected = Array.get(expecteds, i);
+            java.lang.Object actual = Array.get(actuals, i);
+
+            if (!actual.equals(expected)) {
+                System.out.println("FlatBuffers Array[" + actual.getClass() + "] test FAILED at index:" + i + ", \'" + actual + "\' != \'" + expected + "\'");
+                assert false;
+                System.exit(1);
+            }
+        }
+    }
+
+    private static int assertArraysAreSameLength(java.lang.Object actuals,
+                                          java.lang.Object expecteds) {
+        if (expecteds == null) {
+            assert false : "expected array was null";
+        }
+        if (actuals == null) {
+            assert false : "actual array was null";
+        }
+        int actualsLength = Array.getLength(actuals);
+        int expectedsLength = Array.getLength(expecteds);
+        if (actualsLength != expectedsLength) {
+            assert false : "array lengths differed, expected.length="
+                + expectedsLength + " actual.length=" + actualsLength;
+        }
+        return expectedsLength;
+    }
+
+    private boolean isArray(java.lang.Object expected) {
+        return expected != null && expected.getClass().isArray();
     }
 
     static <T> T TestNotNull(T a) {

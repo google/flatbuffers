@@ -253,6 +253,18 @@ public final class Reflection {
     return o != 0 ? 0 != table.bb.get(table.__vector(o) + index) : defaultValue;
   }
 
+  public static boolean[] getBoolsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Bool);
+    int vectorLength = getVectorLength(table, field);
+    boolean[] vector = new boolean[vectorLength];
+    int o = table.__offset(field.offset());
+    for (int index = 0; index < vectorLength; index++) {
+      vector[index] = 0 != table.bb.get(table.__vector(o) + index);
+    }
+    return vector;
+  }
+
   /**
    * Replaces the current field array element with the given new value at the given index. The
    * element is replaced only if the field is present. Returns <tt>true</tt> if the field is present
@@ -299,17 +311,6 @@ public final class Reflection {
     return o != 0 ? table.bb.get(o + table.bb_pos) : defaultValue;
   }
 
-  public static byte getBytesField(Table table, Field field, int index) {
-    return getBytesField(table, field, (byte) 0, index);
-  }
-
-  public static byte getBytesField(Table table, Field field, byte defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), Byte);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.get(table.__vector(o) + index) : defaultValue;
-  }
-
   public static boolean setByteField(Table table, Field field, byte value) {
     assert checkFieldType(field.type().baseType(), Byte);
     int o = table.__offset(field.offset());
@@ -321,6 +322,32 @@ public final class Reflection {
     }
   }
 
+  public static byte getBytesField(Table table, Field field, int index) {
+    return getBytesField(table, field, (byte) 0, index);
+  }
+
+  public static byte getBytesField(Table table, Field field, byte defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Byte);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.get(table.__vector(o) + index) : defaultValue;
+  }
+
+  public static byte[] getBytesField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Byte);
+    int vectorLength = getVectorLength(table, field);
+    byte[] vector = new byte[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.get(o + index);
+      }
+    }
+    return vector;
+  }
+
   public static int getUByteField(Table table, Field field) {
     return getUByteField(table, field, (int) field.defaultInteger());
   }
@@ -329,6 +356,17 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), UByte);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.get(o + table.bb_pos) & UBYTE_MASK : defaultValue;
+  }
+
+  public static boolean setUByteField(Table table, Field field, int value) {
+    assert checkFieldType(field.type().baseType(), UByte);
+    int o = table.__offset(field.offset());
+    if (o != 0) {
+      table.bb.put(o + table.bb_pos, (byte) value);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public static int getUBytesField(Table table, Field field, int index) {
@@ -342,16 +380,21 @@ public final class Reflection {
     return o != 0 ? table.bb.get(table.__vector(o) + index) & UBYTE_MASK : defaultValue;
   }
 
-  public static boolean setUByteField(Table table, Field field, int value) {
-    assert checkFieldType(field.type().baseType(), UByte);
-    int o = table.__offset(field.offset());
-    if (o != 0) {
-      table.bb.put(o + table.bb_pos, (byte) value);
-      return true;
-    } else {
-      return false;
+  public static int[] getUBytesField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), UByte);
+    int vectorLength = getVectorLength(table, field);
+    int[] vector = new int[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.get(o + index) & UBYTE_MASK;
+      }
     }
+    return vector;
   }
+
 
   public static short getShortField(Table table, Field field) {
     return getShortField(table, field, (short) field.defaultInteger());
@@ -372,6 +415,21 @@ public final class Reflection {
     assert checkFieldType(field.type().element(), Short);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getShort(table.__vector(o) + index * SIZEOF_SHORT) : defaultValue;
+  }
+
+  public static short[] getShortsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Short);
+    int vectorLength = getVectorLength(table, field);
+    short[] vector = new short[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getShort(o + index * SIZEOF_SHORT);
+      }
+    }
+    return vector;
   }
 
   public static boolean setShortField(Table table, Field field, short value) {
@@ -395,17 +453,6 @@ public final class Reflection {
     return o != 0 ? table.bb.getShort(o + table.bb_pos) & USHORT_MASK : defaultValue;
   }
 
-  public static int getUShortsField(Table table, Field field, int index) {
-    return getUShortsField(table, field, 0, index);
-  }
-
-  public static int getUShortsField(Table table, Field field, int defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), UShort);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getShort(table.__vector(o) + index * SIZEOF_SHORT) & USHORT_MASK : defaultValue;
-  }
-
   public static boolean setUShortField(Table table, Field field, int value) {
     assert checkFieldType(field.type().baseType(), UShort);
     int o = table.__offset(field.offset());
@@ -417,6 +464,32 @@ public final class Reflection {
     }
   }
 
+  public static int getUShortsField(Table table, Field field, int index) {
+    return getUShortsField(table, field, 0, index);
+  }
+
+  public static int getUShortsField(Table table, Field field, int defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), UShort);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getShort(table.__vector(o) + index * SIZEOF_SHORT) & USHORT_MASK : defaultValue;
+  }
+
+  public static int[] getUShortsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), UShort);
+    int vectorLength = getVectorLength(table, field);
+    int[] vector = new int[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getShort(o + index * SIZEOF_SHORT) & USHORT_MASK;
+      }
+    }
+    return vector;
+  }
+
   public static int getIntField(Table table, Field field) {
     return getIntField(table, field, (int) field.defaultInteger());
   }
@@ -425,17 +498,6 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), Int);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getInt(o + table.bb_pos) : defaultValue;
-  }
-
-  public static int getIntsField(Table table, Field field, int index) {
-    return getIntsField(table, field, 0, index);
-  }
-
-  public static int getIntsField(Table table, Field field, int defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), Int);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getInt(table.__vector(o) + index * SIZEOF_INT) : defaultValue;
   }
 
   public static boolean setIntField(Table table, Field field, int value) {
@@ -449,6 +511,32 @@ public final class Reflection {
     }
   }
 
+  public static int getIntsField(Table table, Field field, int index) {
+    return getIntsField(table, field, 0, index);
+  }
+
+  public static int getIntsField(Table table, Field field, int defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Int);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getInt(table.__vector(o) + index * SIZEOF_INT) : defaultValue;
+  }
+
+  public static int[] getIntsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Int);
+    int vectorLength = getVectorLength(table, field);
+    int[] vector = new int[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getInt(o + index * SIZEOF_INT);
+      }
+    }
+    return vector;
+  }
+
   public static long getUIntField(Table table, Field field) {
     return getUIntField(table, field, field.defaultInteger());
   }
@@ -457,17 +545,6 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), UInt);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getInt(o + table.bb_pos) & UINT_MASK : defaultValue;
-  }
-
-  public static long getUIntsField(Table table, Field field, int index) {
-    return getUIntsField(table, field, 0L, index);
-  }
-
-  public static long getUIntsField(Table table, Field field, long defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), UInt);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getInt(table.__vector(o) + index * SIZEOF_INT) & UINT_MASK : defaultValue;
   }
 
   public static boolean setUIntField(Table table, Field field, long value) {
@@ -481,6 +558,32 @@ public final class Reflection {
     }
   }
 
+  public static long getUIntsField(Table table, Field field, int index) {
+    return getUIntsField(table, field, 0L, index);
+  }
+
+  public static long getUIntsField(Table table, Field field, long defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), UInt);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getInt(table.__vector(o) + index * SIZEOF_INT) & UINT_MASK : defaultValue;
+  }
+
+  public static long[] getUIntsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), UInt);
+    int vectorLength = getVectorLength(table, field);
+    long[] vector = new long[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getInt(o + index * SIZEOF_INT) & UINT_MASK;
+      }
+    }
+    return vector;
+  }
+
   public static long getLongField(Table table, Field field) {
     return getLongField(table, field, field.defaultInteger());
   }
@@ -489,17 +592,6 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), Long);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getLong(o + table.bb_pos) : defaultValue;
-  }
-
-  public static long getLongsField(Table table, Field field, int index) {
-    return getLongsField(table, field, 0L, index);
-  }
-
-  public static long getLongsField(Table table, Field field, long defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), Long);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getLong(table.__vector(o) + index * SIZEOF_LONG) : defaultValue;
   }
 
   public static boolean setLongField(Table table, Field field, long value) {
@@ -513,6 +605,33 @@ public final class Reflection {
     }
   }
 
+  public static long getLongsField(Table table, Field field, int index) {
+    return getLongsField(table, field, 0L, index);
+  }
+
+  public static long getLongsField(Table table, Field field, long defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Long);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getLong(table.__vector(o) + index * SIZEOF_LONG) : defaultValue;
+  }
+
+  public static long[] getLongsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Long);
+    int vectorLength = getVectorLength(table, field);
+    long[] vector = new long[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getLong(o + index * SIZEOF_LONG);
+      }
+    }
+    return vector;
+  }
+
+
   public static long getULongField(Table table, Field field) {
     return getULongField(table, field, field.defaultInteger());
   }
@@ -521,17 +640,6 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), ULong);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getLong(o + table.bb_pos) : defaultValue;
-  }
-
-  public static long getULongsField(Table table, Field field, int index) {
-    return getULongsField(table, field, 0L, index);
-  }
-
-  public static long getULongsField(Table table, Field field, long defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), ULong);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getLong(table.__vector(o) + index * SIZEOF_LONG) : defaultValue;
   }
 
   public static boolean setULongField(Table table, Field field, long value) {
@@ -545,6 +653,32 @@ public final class Reflection {
     }
   }
 
+  public static long getULongsField(Table table, Field field, int index) {
+    return getULongsField(table, field, 0L, index);
+  }
+
+  public static long getULongsField(Table table, Field field, long defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), ULong);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getLong(table.__vector(o) + index * SIZEOF_LONG) : defaultValue;
+  }
+
+  public static long[] getULongsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), ULong);
+    int vectorLength = getVectorLength(table, field);
+    long[] vector = new long[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getLong(o + index * SIZEOF_LONG);
+      }
+    }
+    return vector;
+  }
+
   public static float getFloatField(Table table, Field field) {
     return getFloatField(table, field, field.defaultInteger());
   }
@@ -553,17 +687,6 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), Float);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getFloat(o + table.bb_pos) : defaultValue;
-  }
-
-  public static float getFloatsField(Table table, Field field, int index) {
-    return getFloatsField(table, field, 0F, index);
-  }
-
-  public static float getFloatsField(Table table, Field field, float defaultValue, int index) {
-    assert checkFieldType(field.type().baseType(), Vector);
-    assert checkFieldType(field.type().element(), Float);
-    int o = table.__offset(field.offset());
-    return o != 0 ? table.bb.getFloat(table.__vector(o) + index * SIZEOF_FLOAT) : defaultValue;
   }
 
   public static boolean setFloatField(Table table, Field field, float value) {
@@ -577,6 +700,33 @@ public final class Reflection {
     }
   }
 
+  public static float getFloatsField(Table table, Field field, int index) {
+    return getFloatsField(table, field, 0F, index);
+  }
+
+  public static float getFloatsField(Table table, Field field, float defaultValue, int index) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Float);
+    int o = table.__offset(field.offset());
+    return o != 0 ? table.bb.getFloat(table.__vector(o) + index * SIZEOF_FLOAT) : defaultValue;
+  }
+
+  public static float[] getFloatsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Float);
+    int vectorLength = getVectorLength(table, field);
+    float[] vector = new float[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getFloat(o + index * SIZEOF_FLOAT);
+      }
+    }
+    return vector;
+  }
+
+
   public static double getDoubleField(Table table, Field field) {
     return getDoubleField(table, field, field.defaultInteger());
   }
@@ -585,6 +735,17 @@ public final class Reflection {
     assert checkFieldType(field.type().baseType(), Double);
     int o = table.__offset(field.offset());
     return o != 0 ? table.bb.getDouble(o + table.bb_pos) : defaultValue;
+  }
+
+  public static boolean setDoubleField(Table table, Field field, double value) {
+    assert checkFieldType(field.type().baseType(), Double);
+    int o = table.__offset(field.offset());
+    if (o != 0) {
+      table.bb.putDouble(o + table.bb_pos, value);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public static double getDoublesField(Table table, Field field, int index) {
@@ -598,15 +759,19 @@ public final class Reflection {
     return o != 0 ? table.bb.getDouble(table.__vector(o) + index * SIZEOF_DOUBLE) : defaultValue;
   }
 
-  public static boolean setDoubleField(Table table, Field field, double value) {
-    assert checkFieldType(field.type().baseType(), Double);
-    int o = table.__offset(field.offset());
-    if (o != 0) {
-      table.bb.putDouble(o + table.bb_pos, value);
-      return true;
-    } else {
-      return false;
+  public static double[] getDoublesField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Double);
+    int vectorLength = getVectorLength(table, field);
+    double[] vector = new double[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.bb.getDouble(o + index * SIZEOF_DOUBLE);
+      }
     }
+    return vector;
   }
 
   public static String getStringField(Table table, Field field) {
@@ -628,6 +793,21 @@ public final class Reflection {
     assert checkFieldType(field.type().element(), String);
     int o = table.__offset(field.offset());
     return o != 0 ? table.__string(table.__vector(o) + index * SIZEOF_INT) : defaultValue;
+  }
+
+  public static String[] getStringsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), String);
+    int vectorLength = getVectorLength(table, field);
+    String[] vector = new String[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        vector[index] = table.__string(o + index * SIZEOF_INT);
+      }
+    }
+    return vector;
   }
 
   public static Table getObjField(Table table, Field field) {
@@ -660,6 +840,24 @@ public final class Reflection {
       return null;
     }
   }
+
+  public static Table[] getObjsField(Table table, Field field) {
+    assert checkFieldType(field.type().baseType(), Vector);
+    assert checkFieldType(field.type().element(), Obj);
+    int vectorLength = getVectorLength(table, field);
+    Table[] vector = new Table[vectorLength];
+    if (vectorLength != 0) {
+      int o = table.__offset(field.offset());
+      o = table.__vector(o);
+      for (int index = 0; index < vectorLength; index++) {
+        Table obj = new Table();
+        obj.__init(table.__indirect(o + index * SIZEOF_INT), table.bb);
+        vector[index] = obj;
+      }
+    }
+    return vector;
+  }
+
 
   public static int getVectorLength(Table table, Field field) {
     assert checkFieldType(field.type().baseType(), Vector);
