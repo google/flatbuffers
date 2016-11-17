@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
@@ -209,7 +210,6 @@ bool GenerateCppGRPC(const Parser &parser,
 	       flatbuffers::SaveFile((file_name + ".grpc.fb.cc").c_str(),
 	                             source_code, false);
 }
-
 }// namespace grpc_cpp
 
 namespace grpc_go {
@@ -244,10 +244,6 @@ class FlatBufFile : public grpc_cpp::FlatBufFile {
 
 	FlatBufFile &operator=(const FlatBufFile &);
 
-	std::string package() const {
-		return StripExtension(parser_.namespaces_.back()->GetFullyQualifiedName(""));
-	}
-
 	std::string additional_headers() const {
 		return "import \"github.com/google/flatbuffers/go\"";
 	}
@@ -259,13 +255,13 @@ class FlatBufFile : public grpc_cpp::FlatBufFile {
 		return std::unique_ptr<const grpc_generator::Service> (
 		           new grpc_go::FlatBufService(parser_.services_.vec[i]));
 	}
-
 };
 
+// Gets the Codec for the flatbuffers implementation of Codec interface grpc-go 
 inline std::string GetGoCodec() {
 	std::string codec;
 	auto printer = std::unique_ptr<grpc_cpp::FlatBufPrinter>(new grpc_cpp::FlatBufPrinter(&codec));
-	printer->Print("// FlatCodec implements Grpc-go Codec\n\n");
+	printer->Print("// FlatCodec implements gRPC-go Codec\n\n");
 	printer->Print("var Codec string = \"flatbuffers\"\n\n");
 	printer->Print("type FlatCodec struct{}\n\n");
 	printer->Print("func (FlatCodec) Marshal(v interface{}) ([]byte, error) {\n");
@@ -292,18 +288,43 @@ inline std::string GetGoCodec() {
 	return codec;
 }
 
-bool GenerateGoGRPC(const Parser &parser,
-                    const std::string &/*path*/,
-                    const std::string &file_name) {
+class GoGrpcGenerator : public flatbuffers::BaseGenerator {
+  public:
+	GoGrpcGenerator(const Parser &parser, const std::string &path,
+	                const std::string &file_name)
+		: BaseGenerator(parser, path, file_name, "", "" /*Unused*/),
+		  parser_(parser), path_(path), file_name_(file_name) {}
 
-	FlatBufFile goFile(parser, file_name);
-	grpc_go_generator::Parameters p;
-	p.custom_codec_source = GetGoCodec();
-	p.custom_method_input = "flatbuffers.Builder";
-	std::string output = grpc_go_generator::GenerateServiceSource(&goFile, &p);
-	return flatbuffers::SaveFile((goFile.package() + "/grpc.go").c_str(), output, false);
-}
+	//Generates services into different files
+	bool generate() {
+		FlatBufFile file(parser_, file_name_);
+		grpc_go_generator::Parameters p;
+		p.custom_method_input = "flatbuffers.Builder";
+		//To make sure the flatbuffers codec is generated only once in a package
+		std::map<std::string, bool> uniquePackages;
+		for (int i = 0; i < file.service_count(); i++) {
+			auto service = file.service(i);
+			const Definition *def = parser_.services_.vec[i];
+			std:: string package_name = LastNamespacePart(*(def->defined_namespace));
+			if (!uniquePackages[package_name]) {
+				p.custom_codec_source = GetGoCodec();
+				uniquePackages[package_name] = true;
+			} else {
+				p.custom_codec_source = "";
+			}
+			p.package_name = package_name;
+			std::string output = grpc_go_generator::GenerateServiceSource(&file, service.get(), &p);
+			std::string filename = NamespaceDir(*def->defined_namespace) + def->name + "_grpc.go";
+			if (!flatbuffers::SaveFile(filename.c_str(), output, false))
+				return false;
+		}
+		return true;
+	}
 
+  protected:
+	const Parser &parser_;
+	const std::string &path_, &file_name_;
+};
 }//namespace grpc_go
 
 bool GenerateGRPC(const Parser &parser,
@@ -316,7 +337,8 @@ bool GenerateGRPC(const Parser &parser,
 		if (!(*it)->generated) nservices++;
 	}
 	if (!nservices) return true;
-	return grpc_go::GenerateGoGRPC(parser, path, file_name);
+	grpc_go::GoGrpcGenerator g(parser, path, file_name);
+	return g.generate();
 }
 
 }  // namespace flatbuffers
