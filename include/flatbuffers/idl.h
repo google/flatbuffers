@@ -705,9 +705,15 @@ extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
                                   const std::string &file_name);
 
-// Generate GRPC interfaces.
+// Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
-bool GenerateGRPC(const Parser &parser,
+bool GenerateCppGRPC(const Parser &parser,
+                  const std::string &path,
+                  const std::string &file_name);
+
+// Generate GRPC Go interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGoGRPC(const Parser &parser,
                   const std::string &path,
                   const std::string &file_name);
 
