@@ -593,6 +593,10 @@ class FlatbufferBuilder
 
     protected function is_utf8($bytes)
     {
+        if (function_exists('mb_detect_encoding')) {
+            return (bool) mb_detect_encoding($bytes, 'UTF-8', true);
+        }
+    
         $len = strlen($bytes);
         if ($len < 1) {
             /* NOTE: always return 1 when passed string is null */
