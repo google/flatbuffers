@@ -3,23 +3,9 @@ package com.google.flatbuffers;
 public class Floats {
 
     private static final int FLOAT32_SIGN_MASK = 0x80000000;
-    private static final int FLOAT32_EXP_MASK = 0x7f800000;
-    private static final int FLOAT32_EXP_BITS = 8;
     private static final long FLOAT64_SIGN_MASK = 0x8000000000000000L;
 
     private Floats() {
-    }
-
-    public static int sign(float value) {
-        return Float.floatToIntBits(value) & FLOAT32_SIGN_MASK;
-    }
-
-    public static int exp(float value) {
-        return (Float.floatToIntBits(value) & FLOAT32_EXP_MASK) >> 23;
-    }
-
-    public static int mantissa(float value) {
-        return Float.floatToIntBits(value) & ~(FLOAT32_SIGN_MASK |FLOAT32_EXP_MASK);
     }
 
     // Floating-point are represented as:
