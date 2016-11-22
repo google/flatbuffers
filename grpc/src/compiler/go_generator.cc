@@ -105,7 +105,7 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	vars["Handler"] = "_" + vars["Service"] + "_" + vars["Method"] + "_Handler";
 	if (method->NoStreaming()) {
-		printer->Print(vars, "func $Handler$(srv interface{}, ctx $context$.Context, dec func(interface{}) error, interceptor $grpc$.UnaryServerInterceptor) (interface{}, error) {\n");
+		printer->Print(vars, "func $Handler$(srv interface{}, ctx $context$.Context,\n\tdec func(interface{}) error, interceptor $grpc$.UnaryServerInterceptor) (interface{}, error) {\n");
 		printer->Indent();
 		printer->Print(vars, "in := new($Request$)\n");
 		printer->Print("if err := dec(in); err != nil { return nil, err }\n");
@@ -202,7 +202,7 @@ void GenerateClientMethodSignature(const grpc_generator::Method *method, grpc_ge
 	if (method->ClientOnlyStreaming() || method->BidiStreaming() || method->ServerOnlyStreaming()) {
 		vars["Response"] = vars["Service"] + "_" + vars["Method"] + "Client" ;
 	}
-	printer->Print(vars, "$Method$(ctx $context$.Context$Request$, opts... $grpc$.CallOption) ($Response$, error)");
+	printer->Print(vars, "$Method$(ctx $context$.Context$Request$, \n\topts... $grpc$.CallOption) ($Response$, error)");
 }
 
 // Generates Client method source

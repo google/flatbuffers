@@ -36,8 +36,10 @@ type flatbuffersInit interface {
 
 // Client API for MonsterStorage service
 type MonsterStorageClient interface{
-  Store(ctx context.Context, in *flatbuffers.Builder, opts... grpc.CallOption) (* Stat, error)  
-  Retrieve(ctx context.Context, in *flatbuffers.Builder, opts... grpc.CallOption) (* Monster, error)  
+  Store(ctx context.Context, in *flatbuffers.Builder, 
+  	opts... grpc.CallOption) (* Stat, error)  
+  Retrieve(ctx context.Context, in *flatbuffers.Builder, 
+  	opts... grpc.CallOption) (* Monster, error)  
 }
 
 type monsterStorageClient struct {
@@ -48,14 +50,16 @@ func NewMonsterStorageClient(cc *grpc.ClientConn) MonsterStorageClient {
   return &monsterStorageClient{cc}
 }
 
-func (c *monsterStorageClient) Store(ctx context.Context, in *flatbuffers.Builder, opts... grpc.CallOption) (* Stat, error) {
+func (c *monsterStorageClient) Store(ctx context.Context, in *flatbuffers.Builder, 
+	opts... grpc.CallOption) (* Stat, error) {
   out := new(Stat)
   err := grpc.Invoke(ctx, "/Example.MonsterStorage/Store", in, out, c.cc, opts...)
   if err != nil { return nil, err }
   return out, nil
 }
 
-func (c *monsterStorageClient) Retrieve(ctx context.Context, in *flatbuffers.Builder, opts... grpc.CallOption) (* Monster, error) {
+func (c *monsterStorageClient) Retrieve(ctx context.Context, in *flatbuffers.Builder, 
+	opts... grpc.CallOption) (* Monster, error) {
   out := new(Monster)
   err := grpc.Invoke(ctx, "/Example.MonsterStorage/Retrieve", in, out, c.cc, opts...)
   if err != nil { return nil, err }
@@ -72,7 +76,8 @@ func RegisterMonsterStorageServer(s *grpc.Server, srv MonsterStorageServer) {
   s.RegisterService(&_MonsterStorage_serviceDesc, srv)
 }
 
-func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context,
+	dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
   in := new(Monster)
   if err := dec(in); err != nil { return nil, err }
   if interceptor == nil { return srv.(MonsterStorageServer).Store(ctx, in) }
@@ -88,7 +93,8 @@ func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 
-func _MonsterStorage_Retrieve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MonsterStorage_Retrieve_Handler(srv interface{}, ctx context.Context,
+	dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
   in := new(Stat)
   if err := dec(in); err != nil { return nil, err }
   if interceptor == nil { return srv.(MonsterStorageServer).Retrieve(ctx, in) }

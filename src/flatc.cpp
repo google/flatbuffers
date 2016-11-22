@@ -363,16 +363,6 @@ int main(int argc, const char *argv[]) {
                     generators[i].lang_name +
                     " for " +
                     filebase);
-            }else if(grpc_enabled){
-            	if(generators[i].generateGRPC != nullptr){
-            		if(!generators[i].generateGRPC(*g_parser, output_path, filebase)){
-            			Error(std::string("Unable to generate GRPC interface for") +
-            				generators[i].lang_name);
-            		}
-            	}else{
-            		Error(std::string("GRPC interface generator not implemented for ") + 
-            			generators[i].lang_name);
-            	}
             }
           } else {
             std::string make_rule = generators[i].make_rule(
@@ -381,7 +371,17 @@ int main(int argc, const char *argv[]) {
               printf("%s\n", flatbuffers::WordWrap(
                   make_rule, 80, " ", " \\").c_str());
           }
-
+          if(grpc_enabled){
+            if(generators[i].generateGRPC != nullptr){
+            	if(!generators[i].generateGRPC(*g_parser, output_path, filebase)){
+            		Error(std::string("Unable to generate GRPC interface for") +
+            			generators[i].lang_name);
+           		}
+           	}else{
+           		Error(std::string("GRPC interface generator not implemented for ") + 
+           			generators[i].lang_name);
+           	}
+          }
         }
       }
 
