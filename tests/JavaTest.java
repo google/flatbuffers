@@ -26,7 +26,6 @@ import Testing.KeySearch.*;
 import com.google.flatbuffers.*;
 import com.google.flatbuffers.reflection.*;
 import com.google.flatbuffers.reflection.Object;
-
 class JavaTest {
     private static final boolean ENABLE_KEYBUG = true;
 
