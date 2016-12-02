@@ -413,6 +413,16 @@ class CppGenerator : public BaseGenerator {
            (predecl ? " = nullptr" : "") + ")";
   }
 
+  std::string TablePackSignature(StructDef &struct_def, bool inclass) {
+    return std::string(inclass ? "static " : "") +
+           "flatbuffers::Offset<" + struct_def.name + "> " +
+           (inclass ? "" : struct_def.name + "::") +
+           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
+           "const " + NativeName(struct_def.name) + "* _o, " +
+           "const flatbuffers::rehasher_function_t *_rehasher" +
+           (inclass ? " = nullptr" : "") + ")";
+  }
+
   std::string TableUnPackSignature(StructDef &struct_def, bool inclass) {
     return NativeName(struct_def.name) + " *" +
            (inclass ? "" : struct_def.name + "::") +
@@ -691,6 +701,9 @@ class CppGenerator : public BaseGenerator {
       // table.
       code += "struct " + NativeName(struct_def.name);
       code += " : public flatbuffers::NativeTable {\n";
+      code += "  typedef " + struct_def.name + " TableType;\n";
+      // Generate GetFullyQualifiedName
+      GenFullyQualifiedNameGetter(NativeName(struct_def.name), code);
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
@@ -711,6 +724,10 @@ class CppGenerator : public BaseGenerator {
     code += "struct " + struct_def.name;
     code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
     code += " {\n";
+    if (parser_.opts.generate_object_based_api) {
+      code += "  typedef " + NativeName(struct_def.name) +
+              " NativeTableType;\n";
+    }
     // Generate GetFullyQualifiedName
     GenFullyQualifiedNameGetter(struct_def.name, code);
     // Generate field id constants.
@@ -874,6 +891,7 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Generate the UnPack() pre declaration.
       code += "  " + TableUnPackSignature(struct_def, true) + ";\n";
+      code += "  " + TablePackSignature(struct_def, true) + ";\n";
     }
 
     code += "};\n\n";  // End of table.
@@ -1104,6 +1122,12 @@ class CppGenerator : public BaseGenerator {
         }
       }
       code += "  return _o;\n}\n\n";
+
+      // Generate the X::Pack member function that simply calls the global
+      // CreateX function.
+      code += "inline " + TablePackSignature(struct_def, false) + " {\n";
+      code += "  return Create" + struct_def.name + "(_fbb, _o, _rehasher);\n";
+      code += "}\n\n";
 
       // Generate a CreateX method that works with an unpacked C++ object.
       code += TableCreateSignature(struct_def, false) + " {\n";
