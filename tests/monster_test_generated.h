@@ -151,14 +151,17 @@ STRUCT_END(Vec3, 32);
 namespace Example2 {
 
 struct MonsterT : public flatbuffers::NativeTable {
+  typedef Monster TableType;
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MonsterT NativeTableType;
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MonsterBuilder {
@@ -184,10 +187,12 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
+  typedef TestSimpleTableWithEnum TableType;
   Color color;
 };
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TestSimpleTableWithEnumT NativeTableType;
   enum {
     VT_COLOR = 4
   };
@@ -199,6 +204,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
            verifier.EndTable();
   }
   TestSimpleTableWithEnumT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<TestSimpleTableWithEnum> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct TestSimpleTableWithEnumBuilder {
@@ -223,12 +229,14 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
 
 struct StatT : public flatbuffers::NativeTable {
+  typedef Stat TableType;
   std::string id;
   int64_t val;
   uint16_t count;
 };
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StatT NativeTableType;
   enum {
     VT_ID = 4,
     VT_VAL = 6,
@@ -249,6 +257,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   StatT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<Stat> Pack(flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct StatBuilder {
@@ -286,6 +295,7 @@ inline flatbuffers::Offset<Stat> CreateStatDirect(flatbuffers::FlatBufferBuilder
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
 
 struct MonsterT : public flatbuffers::NativeTable {
+  typedef Monster TableType;
   std::unique_ptr<Vec3> pos;
   int16_t mana;
   int16_t hp;
@@ -317,6 +327,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MonsterT NativeTableType;
   enum {
     VT_POS = 4,
     VT_MANA = 6,
@@ -455,6 +466,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MonsterBuilder {
@@ -602,6 +614,10 @@ inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolve
   return _o;
 }
 
+inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateMonster(_fbb, _o, _rehasher);
+}
+
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
   (void)rehasher;
   (void)_o;
@@ -619,6 +635,10 @@ inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffe
   return _o;
 }
 
+inline flatbuffers::Offset<TestSimpleTableWithEnum> TestSimpleTableWithEnum::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateTestSimpleTableWithEnum(_fbb, _o, _rehasher);
+}
+
 inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *rehasher) {
   (void)rehasher;
   return CreateTestSimpleTableWithEnum(_fbb,
@@ -632,6 +652,10 @@ inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *resolver) con
   { auto _e = val(); _o->val = _e; };
   { auto _e = count(); _o->count = _e; };
   return _o;
+}
+
+inline flatbuffers::Offset<Stat> Stat::Pack(flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateStat(_fbb, _o, _rehasher);
 }
 
 inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const flatbuffers::rehasher_function_t *rehasher) {
@@ -674,6 +698,10 @@ inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolve
   { auto _e = testf3(); _o->testf3 = _e; };
   { auto _e = testarrayofstring2(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2.push_back(_e->Get(_i)->str()); } } };
   return _o;
+}
+
+inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateMonster(_fbb, _o, _rehasher);
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {

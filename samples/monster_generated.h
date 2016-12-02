@@ -92,6 +92,7 @@ MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
 STRUCT_END(Vec3, 12);
 
 struct MonsterT : public flatbuffers::NativeTable {
+  typedef Monster TableType;
   std::unique_ptr<Vec3> pos;
   int16_t mana;
   int16_t hp;
@@ -103,6 +104,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MonsterT NativeTableType;
   enum {
     VT_POS = 4,
     VT_MANA = 6,
@@ -151,6 +153,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MonsterBuilder {
@@ -212,11 +215,13 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(flatbuffers::FlatBufferB
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
 
 struct WeaponT : public flatbuffers::NativeTable {
+  typedef Weapon TableType;
   std::string name;
   int16_t damage;
 };
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef WeaponT NativeTableType;
   enum {
     VT_NAME = 4,
     VT_DAMAGE = 6
@@ -233,6 +238,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   WeaponT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
+  static flatbuffers::Offset<Weapon> Pack(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct WeaponBuilder {
@@ -280,6 +286,10 @@ inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolve
   return _o;
 }
 
+inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateMonster(_fbb, _o, _rehasher);
+}
+
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher) {
   (void)rehasher;
   return CreateMonster(_fbb,
@@ -300,6 +310,10 @@ inline WeaponT *Weapon::UnPack(const flatbuffers::resolver_function_t *resolver)
   { auto _e = name(); if (_e) _o->name = _e->str(); };
   { auto _e = damage(); _o->damage = _e; };
   return _o;
+}
+
+inline flatbuffers::Offset<Weapon> Weapon::Pack(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateWeapon(_fbb, _o, _rehasher);
 }
 
 inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *rehasher) {
