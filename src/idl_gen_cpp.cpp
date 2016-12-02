@@ -332,7 +332,7 @@ class CppGenerator : public BaseGenerator {
                ">";
       case BASE_TYPE_STRUCT:
         if (IsStruct(type)) {
-          if (invector) {
+          if (invector || field.native_inline) {
             return WrapInNameSpace(*type.struct_def);
           } else {
             return GenTypeNativePtr(WrapInNameSpace(*type.struct_def), &field,
@@ -1016,7 +1016,7 @@ class CppGenerator : public BaseGenerator {
         return val + "->str()";
       case BASE_TYPE_STRUCT:
         if (IsStruct(type)) {
-          if (invector) {
+          if (invector || afield.native_inline) {
             return "*" + val;
           } else {
             return GenTypeNativePtr(WrapInNameSpace(*type.struct_def),
@@ -1059,7 +1059,11 @@ class CppGenerator : public BaseGenerator {
               code += "{ for (flatbuffers::uoffset_t _i = 0;";
               code += " _i < _e->size(); _i++) { ";
               code += dest + ".push_back(";
-              std::string indexing = "_e->Get(_i)";
+              std::string indexing;
+              if (field.value.type.enum_def) {
+                indexing += "(" + field.value.type.enum_def->name + ")";
+              }
+              indexing += "_e->Get(_i)";
               if (field.value.type.element == BASE_TYPE_BOOL)
                 indexing += "!=0";
               code += GenUnpackVal(field.value.type.VectorType(),
@@ -1151,15 +1155,27 @@ class CppGenerator : public BaseGenerator {
                     code += "_fbb.CreateVectorOfStructs(" + accessor + ")";
                   } else {
                     code += "_fbb.CreateVector<flatbuffers::Offset<";
-                    code += vector_type.struct_def->name + ">>(" + accessor;
+                    code += WrapInNameSpace(*vector_type.struct_def) + ">>(" +
+                            accessor;
                     code += ".size(), [&](size_t i) { return Create";
                     code += vector_type.struct_def->name + "(_fbb, " + accessor;
                     code += "[i]" + GenPtrGet(field) + ", rehasher); })";
                   }
                   break;
-                default:
+                case BASE_TYPE_BOOL:
                   code += "_fbb.CreateVector(" + accessor + ")";
                   break;
+                default: {
+                  std::string args = accessor;
+                  if (field.value.type.enum_def) {
+                    const std::string basetype = GenTypeBasic(
+                        field.value.type.enum_def->underlying_type, false);
+                    args = "(const " + basetype + "*)" + accessor +
+                           ".data(), " + accessor + ".size()";
+                  }
+                  code += "_fbb.CreateVector(" + args + ")";
+                  break;
+                }
               }
               code += postfix;
               break;
@@ -1169,7 +1185,11 @@ class CppGenerator : public BaseGenerator {
               break;
             case BASE_TYPE_STRUCT:
               if (IsStruct(field.value.type)) {
-                code += ptrprefix + accessor + GenPtrGet(field) + postfix;
+                if (field.native_inline) {
+                  code += "&" + accessor;
+                } else {
+                  code += ptrprefix + accessor + GenPtrGet(field) + postfix;
+                }
               } else {
                 code += ptrprefix + "Create";
                 code += field.value.type.struct_def->name;

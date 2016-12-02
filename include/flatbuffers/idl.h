@@ -234,6 +234,8 @@ struct FieldDef : public Definition {
                    // written in new data nor accessed in new code.
   bool required;   // Field must always be present.
   bool key;        // Field functions as a key for creating sorted vectors.
+  bool native_inline;  // Field will be defined inline (instead of as a pointer)
+                       // for native tables if field is a struct.
   size_t padding;  // Bytes to always pad after this field.
 };
 
@@ -454,6 +456,7 @@ class Parser : public ParserState {
     known_attributes_["idempotent"] = true;
     known_attributes_["cpp_type"] = true;
     known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["native_inline"] = true;
   }
 
   ~Parser() {

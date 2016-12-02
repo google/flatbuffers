@@ -680,6 +680,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+
+  field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
+  if (field->native_inline && !IsStruct(field->value.type))
+    return Error("native_inline can only be defined on structs'");
+
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
     if (nested->type.base_type != BASE_TYPE_STRING)
@@ -1757,9 +1762,6 @@ CheckedError Parser::SkipAnyJsonValue() {
       break;
     case kTokenFloatConstant:
       EXPECT(kTokenFloatConstant);
-      break;
-    case kTokenNull:
-      EXPECT(kTokenNull);
       break;
     default:
       return Error(std::string("Unexpected token:") + std::string(1, static_cast<char>(token_)));
