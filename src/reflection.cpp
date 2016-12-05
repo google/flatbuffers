@@ -481,4 +481,230 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
   }
 }
 
+bool VerifyStruct(flatbuffers::Verifier& v,
+                  const flatbuffers::Table& parentTable,
+                  voffset_t fieldOffset,
+                  const reflection::Object& obj,
+                  bool isRequired) {
+  assert(obj.is_struct());
+  auto offset = parentTable.GetOptionalFieldOffset(fieldOffset);
+  if (!isRequired) {
+    // Check the actual field.
+    return !offset || v.Verify(reinterpret_cast<const uint8_t*>(&parentTable)
+                               + offset, obj.bytesize());
+  } else {
+    return offset && v.Verify(reinterpret_cast<const uint8_t*>(&parentTable)
+                              + offset, obj.bytesize());
+  }
+}
+
+bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
+                           const flatbuffers::Table& parentTable,
+                           voffset_t fieldOffset,
+                           const reflection::Object& obj,
+                           bool isRequired) {
+  auto p = parentTable.GetPointer<const uint8_t*>(fieldOffset);
+  const uint8_t* end;
+  if (!isRequired) {
+    return !p || v.VerifyVector(p, obj.bytesize(), &end);
+  } else {
+    return p && v.VerifyVector(p, obj.bytesize(), &end);
+  }
+}
+
+// forward declare to resolve cyclic deps between VerifyObject and VerifyVector
+bool VerifyObject(flatbuffers::Verifier &v,
+                  const reflection::Schema &schema,
+                  const reflection::Object &obj,
+                  const flatbuffers::Table *table,
+                  bool isRequired);
+
+bool VerifyVector(flatbuffers::Verifier &v,
+                  const reflection::Schema &schema,
+                  const flatbuffers::Table &table,
+                  const reflection::Field &vecField) {
+  assert(vecField.type()->base_type() == reflection::BaseType::Vector);
+  if (!table.VerifyField<uoffset_t>(v, vecField.offset()))
+    return false;
+
+  switch (vecField.type()->element()) {
+    case reflection::BaseType::None:
+      assert(false);
+      break;
+    case reflection::BaseType::UType:
+      return v.Verify(flatbuffers::GetFieldV<uint8_t>(table, vecField));
+    case reflection::BaseType::Bool:
+    case reflection::BaseType::Byte:
+    case reflection::BaseType::UByte:
+      return v.Verify(flatbuffers::GetFieldV<int8_t>(table, vecField));
+    case reflection::BaseType::Short:
+    case reflection::BaseType::UShort:
+      return v.Verify(flatbuffers::GetFieldV<int16_t>(table, vecField));
+    case reflection::BaseType::Int:
+    case reflection::BaseType::UInt:
+      return v.Verify(flatbuffers::GetFieldV<int32_t>(table, vecField));
+    case reflection::BaseType::Long:
+    case reflection::BaseType::ULong:
+      return v.Verify(flatbuffers::GetFieldV<int64_t>(table, vecField));
+    case reflection::BaseType::Float:
+      return v.Verify(flatbuffers::GetFieldV<float>(table, vecField));
+    case reflection::BaseType::Double:
+      return v.Verify(flatbuffers::GetFieldV<double>(table, vecField));
+    case reflection::BaseType::String: {
+      auto vecString =
+        flatbuffers::GetFieldV<flatbuffers::
+        Offset<flatbuffers::String>>(table, vecField);
+      if (v.Verify(vecString) && v.VerifyVectorOfStrings(vecString)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    case reflection::BaseType::Vector:
+      assert(false);
+      break;
+    case reflection::BaseType::Obj: {
+      auto obj = schema.objects()->Get(vecField.type()->index());
+      if (obj->is_struct()) {
+        if (!VerifyVectorOfStructs(v, table, vecField.offset(), *obj,
+                                   vecField.required())) {
+          return false;
+        }
+      } else {
+        auto vec =
+          flatbuffers::GetFieldV<flatbuffers::
+          Offset<flatbuffers::Table>>(table, vecField);
+        if (!v.Verify(vec))
+          return false;
+        if (vec) {
+          for (uoffset_t j = 0; j < vec->size(); j++) {
+            if (!VerifyObject(v, schema, *obj, vec->Get(j), true)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+    case reflection::BaseType::Union:
+      assert(false);
+      break;
+    default:
+      assert(false);
+      break;
+  }
+
+  return false;
+}
+
+bool VerifyObject(flatbuffers::Verifier &v,
+                  const reflection::Schema &schema,
+                  const reflection::Object &obj,
+                  const flatbuffers::Table *table,
+                  bool isRequired) {
+  if (!table) {
+    if (!isRequired)
+      return true;
+    else
+      return false;
+  }
+
+  if (!table->VerifyTableStart(v))
+    return false;
+
+  for (int i = 0; i < obj.fields()->size(); i++) {
+    auto fieldDef = obj.fields()->Get(i);
+    switch (fieldDef->type()->base_type()) {
+      case reflection::BaseType::None:
+        assert(false);
+        break;
+      case reflection::BaseType::UType:
+        if (!table->VerifyField<uint8_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Bool:
+      case reflection::BaseType::Byte:
+      case reflection::BaseType::UByte:
+        if (!table->VerifyField<int8_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Short:
+      case reflection::BaseType::UShort:
+        if (!table->VerifyField<int16_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Int:
+      case reflection::BaseType::UInt:
+        if (!table->VerifyField<int32_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Long:
+      case reflection::BaseType::ULong:
+        if (!table->VerifyField<int64_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Float:
+        if (!table->VerifyField<float>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Double:
+        if (!table->VerifyField<double>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::String:
+        if (!table->VerifyField<uoffset_t>(v, fieldDef->offset()) ||
+            !v.Verify(flatbuffers::GetFieldS(*table, *fieldDef))) {
+          return false;
+        }
+        break;
+      case reflection::BaseType::Vector:
+        if (!VerifyVector(v, schema, *table, *fieldDef))
+          return false;
+        break;
+      case reflection::BaseType::Obj: {
+        auto obj = schema.objects()->Get(fieldDef->type()->index());
+        if (obj->is_struct()) {
+          if (!VerifyStruct(v, *table, fieldDef->offset(), *obj,
+                            fieldDef->required())) {
+            return false;
+          }
+        } else {
+          if (!VerifyObject(v, schema, *obj, flatbuffers::GetFieldT(*table, *fieldDef),
+                            fieldDef->required())) {
+            return false;
+          }
+        }
+        break;
+      }
+      case reflection::BaseType::Union: {
+        //  get union type from the prev field 
+        voffset_t utypeOffset = fieldDef->offset() - sizeof(voffset_t);
+        auto utype = table->GetField<uint8_t>(utypeOffset, 0);
+        if (utype != 0) {
+          // Means we have this union field present
+          auto fbEnum = schema.enums()->Get(fieldDef->type()->index());
+          auto obj = fbEnum->values()->Get(utype)->object();
+          if (!VerifyObject(v, schema, *obj, flatbuffers::GetFieldT(*table, *fieldDef),
+                            fieldDef->required())) {
+            return false;
+          }
+        }
+        break;
+      }
+      default:
+        assert(false);
+        break;
+    }
+  }
+
+  return true;
+}
+
+bool Verify(flatbuffers::Verifier &v,
+            const reflection::Schema &schema,
+            const reflection::Object &obj,
+            const flatbuffers::Table &table) {
+  return VerifyObject(v, schema, obj, &table, true);
+}
+
 }  // namespace flatbuffers

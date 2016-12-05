@@ -428,6 +428,11 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const Table &table,
                                 bool use_string_pooling = false);
 
+bool Verify(flatbuffers::Verifier &v,
+            const reflection::Schema &schema,
+            const reflection::Object &obj,
+            const flatbuffers::Table &table);
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_REFLECTION_H_

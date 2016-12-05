@@ -493,8 +493,18 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
+  
+
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
+
+  // Verify the buffer first
+  TEST_EQ(flatbuffers::Verify(flatbuffers::Verifier(flatbuf, length),
+                              schema,
+                              *schema.root_table(),
+                              root),
+          true);
+
   auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 80);
 
