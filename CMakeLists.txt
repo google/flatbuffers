@@ -50,6 +50,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
+  grpc/src/compiler/go_generator.h
+  grpc/src/compiler/go_generator.cc
 )
 
 set(FlatHash_SRCS
