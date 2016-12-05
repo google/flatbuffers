@@ -375,11 +375,11 @@ int main(int argc, const char *argv[]) {
             if (generators[i].generateGRPC != nullptr) {
               if (!generators[i].generateGRPC(*g_parser, output_path, filebase)) {
                     Error(std::string("Unable to generate GRPC interface for") +
-                      generators[i].lang_name);
+                          generators[i].lang_name);
               }
             } else {
                 Error(std::string("GRPC interface generator not implemented for ") +
-                    generators[i].lang_name);
+                      generators[i].lang_name);
             }
           }
         }
