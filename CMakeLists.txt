@@ -60,10 +60,12 @@ set(FlatHash_SRCS
 )
 
 set(FlatBuffers_Tests_SRCS
+  # FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE macro based compilation does not happen
+  # in all the places if test.cpp is not first file in this list.
+  tests/test.cpp
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
-  src/idl_gen_general.cpp
-  tests/test.cpp
+  src/idl_gen_general.cpp  
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
