@@ -75,7 +75,7 @@ func TestGRPC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to listen: %v", err)
 	}
-	ser := grpc.NewServer(grpc.CustomCodec(Example.FlatCodec{}))
+	ser := grpc.NewServer(grpc.CustomCodec(flatbuffers.FlatbuffersCodec{}))
 	Example.RegisterMonsterStorageServer(ser, &server{})
 	go func() {
 		if err := ser.Serve(lis); err != nil {
@@ -83,7 +83,7 @@ func TestGRPC(t *testing.T) {
 			t.FailNow()
 		}
 	}()
-	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithCodec(Example.FlatCodec{}))
+	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithCodec(flatbuffers.FlatbuffersCodec{}))
 	if err != nil {
 		t.Fatal("Failed to connect: %v", err)
 	}

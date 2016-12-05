@@ -43,11 +43,8 @@
 namespace grpc_go_generator {
 
 struct Parameters {
-	// Puts the custom Codec source in the service file 
-	grpc::string custom_codec_source;
-
-	//Defines the custom input for methods, eg: flatbuffers uses flatbuffers.Builder as input for
-	//client and output for server
+	//Defines the custom parameter types for methods
+	//eg: flatbuffers uses flatbuffers.Builder as input for the client and output for the server
 	grpc::string custom_method_io_type;
 
 	//Package name for the service

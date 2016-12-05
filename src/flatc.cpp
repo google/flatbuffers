@@ -34,8 +34,8 @@ struct Generator {
   const char *generator_opt_long;
   const char *lang_name;
   bool (*generateGRPC)(const flatbuffers::Parser &parser,
-                   const std::string &path,
-                   const std::string &file_name);
+                       const std::string &path,
+                       const std::string &file_name);
   flatbuffers::IDLOptions::Language lang;
   const char *generator_help;
 
@@ -46,47 +46,47 @@ struct Generator {
 
 const Generator generators[] = {
   { flatbuffers::GenerateBinary,   "-b", "--binary", "binary",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kMAX,
     "Generate wire format binaries for any data definitions",
     flatbuffers::BinaryMakeRule },
   { flatbuffers::GenerateTextFile, "-t", "--json", "text",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kMAX,
     "Generate text output for any data definitions",
     flatbuffers::TextMakeRule },
   { flatbuffers::GenerateCPP,      "-c", "--cpp", "C++",
-  	flatbuffers::GenerateCppGRPC,
+    flatbuffers::GenerateCppGRPC,
     flatbuffers::IDLOptions::kMAX,
     "Generate C++ headers for tables/structs",
     flatbuffers::CPPMakeRule },
   { flatbuffers::GenerateGo,       "-g", "--go", "Go",
-  	flatbuffers::GenerateGoGRPC,
+    flatbuffers::GenerateGoGRPC,
     flatbuffers::IDLOptions::kGo,
     "Generate Go files for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateGeneral,  "-j", "--java", "Java",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kJava,
     "Generate Java classes for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateJS,       "-s", "--js", "JavaScript",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kMAX,
     "Generate JavaScript code for tables/structs",
     flatbuffers::JSMakeRule },
   { flatbuffers::GenerateGeneral,  "-n", "--csharp", "C#",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kCSharp,
     "Generate C# classes for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePython,   "-p", "--python", "Python",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kMAX,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
-  	nullptr,
+    nullptr,
     flatbuffers::IDLOptions::kMAX,
     "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
@@ -252,8 +252,8 @@ int main(int argc, const char *argv[]) {
       } else if(arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION);
         exit(0);
-      } else if(arg == "--grpc"){
-      	grpc_enabled = true;
+      } else if(arg == "--grpc") {
+        grpc_enabled = true;
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
           if (arg == generators[i].generator_opt_long ||
@@ -371,16 +371,16 @@ int main(int argc, const char *argv[]) {
               printf("%s\n", flatbuffers::WordWrap(
                   make_rule, 80, " ", " \\").c_str());
           }
-          if(grpc_enabled){
-            if(generators[i].generateGRPC != nullptr){
-            	if(!generators[i].generateGRPC(*g_parser, output_path, filebase)){
-            		Error(std::string("Unable to generate GRPC interface for") +
-            			generators[i].lang_name);
-           		}
-           	}else{
-           		Error(std::string("GRPC interface generator not implemented for ") + 
-           			generators[i].lang_name);
-           	}
+          if (grpc_enabled) {
+            if (generators[i].generateGRPC != nullptr) {
+              if (!generators[i].generateGRPC(*g_parser, output_path, filebase)) {
+                    Error(std::string("Unable to generate GRPC interface for") +
+                      generators[i].lang_name);
+              }
+            } else {
+                Error(std::string("GRPC interface generator not implemented for ") +
+                    generators[i].lang_name);
+            }
           }
         }
       }

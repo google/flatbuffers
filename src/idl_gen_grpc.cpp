@@ -203,56 +203,16 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
     FlatBufFile file(parser_, file_name_);
     grpc_go_generator::Parameters p;
     p.custom_method_io_type = "flatbuffers.Builder";
-    //To make sure the flatbuffers codec is generated only once in a package
-    std::map<std::string, bool> uniquePackages;
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
       const Definition *def = parser_.services_.vec[i];
-      std:: string package_name = LastNamespacePart(*(def->defined_namespace));
-      if (!uniquePackages[package_name]) {
-        p.custom_codec_source = GetGoCodec();
-        uniquePackages[package_name] = true;
-      } else {
-        p.custom_codec_source = "";
-      }
-      p.package_name = package_name;
+      p.package_name = LastNamespacePart(*(def->defined_namespace));
       std::string output = grpc_go_generator::GenerateServiceSource(&file, service.get(), &p);
       std::string filename = NamespaceDir(*def->defined_namespace) + def->name + "_grpc.go";
       if (!flatbuffers::SaveFile(filename.c_str(), output, false))
         return false;
     }
     return true;
-  }
-
-  // Gets the Codec for the flatbuffers implementation of Codec interface grpc-go
-  inline std::string GetGoCodec() {
-    std::string codec;
-    auto printer = std::unique_ptr<FlatBufPrinter>(new FlatBufPrinter(&codec));
-    printer->Print("// FlatCodec implements gRPC-go Codec\n\n");
-    printer->Print("var Codec string = \"flatbuffers\"\n\n");
-    printer->Print("type FlatCodec struct{}\n\n");
-    printer->Print("func (FlatCodec) Marshal(v interface{}) ([]byte, error) {\n");
-    printer->Indent();
-    printer->Print("return v.(*flatbuffers.Builder).FinishedBytes(), nil\n");
-    printer->Outdent();
-    printer->Print("}\n\n");
-    printer->Print("func (FlatCodec) Unmarshal(data []byte, v interface{}) error {\n");
-    printer->Indent();
-    printer->Print("v.(flatbuffersInit).Init(data, flatbuffers.GetUOffsetT(data))\n");
-    printer->Print("return nil\n");
-    printer->Outdent();
-    printer->Print("}\n\n");
-    printer->Print("func (FlatCodec) String() string {\n");
-    printer->Indent();
-    printer->Print("return Codec\n");
-    printer->Outdent();
-    printer->Print("}\n\n");
-    printer->Print("type flatbuffersInit interface {\n");
-    printer->Indent();
-    printer->Print("Init(data []byte, i flatbuffers.UOffsetT)\n");
-    printer->Outdent();
-    printer->Print("}\n\n");
-    return codec;
   }
 
  protected:
