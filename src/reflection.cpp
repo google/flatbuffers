@@ -481,10 +481,10 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
   }
 }
 
-bool VerifyStruct(flatbuffers::Verifier& v,
-                  const flatbuffers::Table& parentTable,
+bool VerifyStruct(flatbuffers::Verifier &v,
+                  const flatbuffers::Table &parentTable,
                   voffset_t fieldOffset,
-                  const reflection::Object& obj,
+                  const reflection::Object &obj,
                   bool isRequired) {
   assert(obj.is_struct());
   auto offset = parentTable.GetOptionalFieldOffset(fieldOffset);
@@ -498,10 +498,10 @@ bool VerifyStruct(flatbuffers::Verifier& v,
   }
 }
 
-bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
-                           const flatbuffers::Table& parentTable,
+bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
+                           const flatbuffers::Table &parentTable,
                            voffset_t fieldOffset,
-                           const reflection::Object& obj,
+                           const reflection::Object &obj,
                            bool isRequired) {
   auto p = parentTable.GetPointer<const uint8_t*>(fieldOffset);
   const uint8_t* end;
@@ -612,7 +612,7 @@ bool VerifyObject(flatbuffers::Verifier &v,
   if (!table->VerifyTableStart(v))
     return false;
 
-  for (int i = 0; i < obj.fields()->size(); i++) {
+  for (size_t i = 0; i < obj.fields()->size(); i++) {
     auto fieldDef = obj.fields()->Get(i);
     switch (fieldDef->type()->base_type()) {
       case reflection::BaseType::None:
@@ -662,14 +662,14 @@ bool VerifyObject(flatbuffers::Verifier &v,
           return false;
         break;
       case reflection::BaseType::Obj: {
-        auto obj = schema.objects()->Get(fieldDef->type()->index());
-        if (obj->is_struct()) {
-          if (!VerifyStruct(v, *table, fieldDef->offset(), *obj,
+        auto childObj = schema.objects()->Get(fieldDef->type()->index());
+        if (childObj->is_struct()) {
+          if (!VerifyStruct(v, *table, fieldDef->offset(), *childObj,
                             fieldDef->required())) {
             return false;
           }
         } else {
-          if (!VerifyObject(v, schema, *obj, flatbuffers::GetFieldT(*table, *fieldDef),
+          if (!VerifyObject(v, schema, *childObj, flatbuffers::GetFieldT(*table, *fieldDef),
                             fieldDef->required())) {
             return false;
           }
@@ -683,8 +683,8 @@ bool VerifyObject(flatbuffers::Verifier &v,
         if (utype != 0) {
           // Means we have this union field present
           auto fbEnum = schema.enums()->Get(fieldDef->type()->index());
-          auto obj = fbEnum->values()->Get(utype)->object();
-          if (!VerifyObject(v, schema, *obj, flatbuffers::GetFieldT(*table, *fieldDef),
+          auto childObj = fbEnum->values()->Get(utype)->object();
+          if (!VerifyObject(v, schema, *childObj, flatbuffers::GetFieldT(*table, *fieldDef),
                             fieldDef->required())) {
             return false;
           }

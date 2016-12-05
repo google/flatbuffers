@@ -499,7 +499,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
 
   // Verify the buffer first
-  TEST_EQ(flatbuffers::Verify(flatbuffers::Verifier(flatbuf, length),
+  flatbuffers::Verifier v(flatbuf, length);
+  TEST_EQ(flatbuffers::Verify(v,
                               schema,
                               *schema.root_table(),
                               root),
