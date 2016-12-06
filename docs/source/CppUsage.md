@@ -85,6 +85,55 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+## Object based API.
+
+FlatBuffers is all about memory efficiency, which is why its base API is written
+around using as little as possible of it. This does make the API clumsier
+(requiring pre-order construction of all data, and making mutation harder).
+
+For times when efficiency is less important a more convenient object based API
+can be used (through `--gen-object-api`) that is able to unpack & pack a
+FlatBuffer into objects and standard STL containers, allowing for convenient
+construction, access and mutation.
+
+To use:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    auto monsterobj = UnpackMonster(buffer);
+    cout << monsterobj->name;  // This is now a std::string!
+    monsterobj->name = "Bob";  // Change the name.
+    FlatBufferBuilder fbb;
+    CreateMonster(fbb, monsterobj.get());     // Serialize into new buffer.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# External references.
+
+An additional feature of the object API is the ability to allow you to load
+multiple independent FlatBuffers, and have them refer to eachothers objects
+using hashes which are then represented as typed pointers in the object API.
+
+To make this work have a field in the objects you want to referred to which is
+using the string hashing feature (see `hash` attribute in the
+[schema](@ref flatbuffers_guide_writing_schema) documentation). Then you have
+a similar hash in the field referring to it, along with a `cpp_type`
+attribute specifying the C++ type this will refer to (this can be any C++
+type, and will get a `*` added).
+
+Then, in JSON or however you create these buffers, make sure they use the
+same string (or hash).
+
+When you call `UnPack` (or `Create`), you'll need a function that maps from
+hash to the object (see `resolver_function_t` for details).
+
+# Using different pointer types.
+
+By default the object tree is built out of `std::unique_ptr`, but you can
+influence this either globally (using the `--cpp-ptr-type` argument to
+`flatc`) or per field (using the `cpp_ptr_type` attribute) to by any smart
+pointer type (`my_ptr<T>`), or by specifying `naked` as the type to get `T *`
+pointers. Unlike the smart pointers, naked pointers do not manage memory for
+you, so you'll have to manage their lifecycles manually.
+
 ## Reflection (& Resizing)
 
 There is experimental support for reflection in FlatBuffers, allowing you to

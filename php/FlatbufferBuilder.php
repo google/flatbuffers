@@ -233,7 +233,7 @@ class FlatbufferBuilder
     public function putUint($x)
     {
         if ($x > PHP_INT_MAX) {
-            throw new \InvalidArgumentException("your platform can't handling uint correctly. use 64bit machine.");
+            throw new \InvalidArgumentException("your platform can't handle uint correctly. use 64bit machine.");
         }
 
         $this->bb->putUint($this->space -= 4, $x);
@@ -245,7 +245,7 @@ class FlatbufferBuilder
     public function putLong($x)
     {
         if ($x > PHP_INT_MAX) {
-            throw new \InvalidArgumentException("your platform can't handling long correctly. use 64bit machine.");
+            throw new \InvalidArgumentException("Your platform can't handle long correctly. Use a 64bit machine.");
         }
 
         $this->bb->putLong($this->space -= 8, $x);
@@ -257,7 +257,7 @@ class FlatbufferBuilder
     public function putUlong($x)
     {
         if ($x > PHP_INT_MAX) {
-            throw new \InvalidArgumentException("your platform can't handling ulong correctly. this is php limitations. please wait extension release.");
+            throw new \InvalidArgumentException("Your platform can't handle ulong correctly. This is a php limitation. Please wait for the extension release.");
         }
 
         $this->bb->putUlong($this->space -= 8, $x);
@@ -593,6 +593,10 @@ class FlatbufferBuilder
 
     protected function is_utf8($bytes)
     {
+        if (function_exists('mb_detect_encoding')) {
+            return (bool) mb_detect_encoding($bytes, 'UTF-8', true);
+        }
+    
         $len = strlen($bytes);
         if ($len < 1) {
             /* NOTE: always return 1 when passed string is null */

@@ -94,7 +94,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += Indent + Indent + "x = " + struct_def.name + "()\n";
   code += Indent + Indent + "x.Init(buf, n + offset)\n";
   code += Indent + Indent + "return x\n";
-  code += "\n\n";
+  code += "\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
@@ -478,13 +478,12 @@ static void GenTableBuilders(const StructDef &struct_def,
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr,
-                      StructDef *root_struct_def) {
+                      std::string *code_ptr) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
   BeginClass(struct_def, code_ptr);
-  if (&struct_def == root_struct_def) {
+  if (!struct_def.fixed) {
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
@@ -596,7 +595,8 @@ class PythonGenerator : public BaseGenerator {
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "" /* not used */,
+                      "" /* not used */){};
   bool generate() {
     if (!generateEnums()) return false;
     if (!generateStructs()) return false;
@@ -620,7 +620,7 @@ class PythonGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       std::string declcode;
-      GenStruct(struct_def, &declcode, parser_.root_struct_def_);
+      GenStruct(struct_def, &declcode);
       if (!SaveType(struct_def, declcode, true)) return false;
     }
     return true;
@@ -652,9 +652,10 @@ class PythonGenerator : public BaseGenerator {
     }
 
     std::string code = "";
-    BeginFile(LastNamespacePart(), needs_imports, &code);
+    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
     code += classcode;
-    std::string filename = namespace_dir_ + kPathSeparator + def.name + ".py";
+    std::string filename = NamespaceDir(*def.defined_namespace) +
+                           def.name + ".py";
     return SaveFile(filename.c_str(), code, false);
   }
 };

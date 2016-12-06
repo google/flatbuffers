@@ -6,21 +6,24 @@ namespace MyGame.Example
 using System;
 using FlatBuffers;
 
-public sealed class Vec3 : Struct {
-  public Vec3 __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; return this; }
+public struct Vec3 : IFlatbufferObject
+{
+  private Struct __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public Vec3 __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public float X { get { return bb.GetFloat(bb_pos + 0); } }
-  public void MutateX(float x) { bb.PutFloat(bb_pos + 0, x); }
-  public float Y { get { return bb.GetFloat(bb_pos + 4); } }
-  public void MutateY(float y) { bb.PutFloat(bb_pos + 4, y); }
-  public float Z { get { return bb.GetFloat(bb_pos + 8); } }
-  public void MutateZ(float z) { bb.PutFloat(bb_pos + 8, z); }
-  public double Test1 { get { return bb.GetDouble(bb_pos + 16); } }
-  public void MutateTest1(double test1) { bb.PutDouble(bb_pos + 16, test1); }
-  public Color Test2 { get { return (Color)bb.GetSbyte(bb_pos + 24); } }
-  public void MutateTest2(Color test2) { bb.PutSbyte(bb_pos + 24, (sbyte)test2); }
-  public Test Test3 { get { return GetTest3(new Test()); } }
-  public Test GetTest3(Test obj) { return obj.__init(bb_pos + 26, bb); }
+  public float X { get { return __p.bb.GetFloat(__p.bb_pos + 0); } }
+  public void MutateX(float x) { __p.bb.PutFloat(__p.bb_pos + 0, x); }
+  public float Y { get { return __p.bb.GetFloat(__p.bb_pos + 4); } }
+  public void MutateY(float y) { __p.bb.PutFloat(__p.bb_pos + 4, y); }
+  public float Z { get { return __p.bb.GetFloat(__p.bb_pos + 8); } }
+  public void MutateZ(float z) { __p.bb.PutFloat(__p.bb_pos + 8, z); }
+  public double Test1 { get { return __p.bb.GetDouble(__p.bb_pos + 16); } }
+  public void MutateTest1(double test1) { __p.bb.PutDouble(__p.bb_pos + 16, test1); }
+  public Color Test2 { get { return (Color)__p.bb.GetSbyte(__p.bb_pos + 24); } }
+  public void MutateTest2(Color test2) { __p.bb.PutSbyte(__p.bb_pos + 24, (sbyte)test2); }
+  public Test Test3 { get { return (new Test()).__assign(__p.bb_pos + 26, __p.bb); } }
 
   public static Offset<Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
     builder.Prep(16, 32);

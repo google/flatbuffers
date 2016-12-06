@@ -23,10 +23,6 @@ namespace NamespaceA {
 
 struct SecondTableInA;
 
-}  // namespace NamespaceA
-
-namespace NamespaceA {
-
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_FOO_TABLE = 4,
@@ -64,9 +60,9 @@ struct TableInFirstNSBuilder {
 };
 
 inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(flatbuffers::FlatBufferBuilder &_fbb,
-   flatbuffers::Offset<NamespaceA::NamespaceB::TableInNestedNS> foo_table = 0,
-   NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A,
-   const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = 0) {
+    flatbuffers::Offset<NamespaceA::NamespaceB::TableInNestedNS> foo_table = 0,
+    NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A,
+    const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = 0) {
   TableInFirstNSBuilder builder_(_fbb);
   builder_.add_foo_struct(foo_struct);
   builder_.add_foo_table(foo_table);
@@ -111,8 +107,8 @@ struct TableInCBuilder {
 };
 
 inline flatbuffers::Offset<TableInC> CreateTableInC(flatbuffers::FlatBufferBuilder &_fbb,
-   flatbuffers::Offset<NamespaceA::TableInFirstNS> refer_to_a1 = 0,
-   flatbuffers::Offset<NamespaceA::SecondTableInA> refer_to_a2 = 0) {
+    flatbuffers::Offset<NamespaceA::TableInFirstNS> refer_to_a1 = 0,
+    flatbuffers::Offset<NamespaceA::SecondTableInA> refer_to_a2 = 0) {
   TableInCBuilder builder_(_fbb);
   builder_.add_refer_to_a2(refer_to_a2);
   builder_.add_refer_to_a1(refer_to_a1);
@@ -150,11 +146,19 @@ struct SecondTableInABuilder {
 };
 
 inline flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(flatbuffers::FlatBufferBuilder &_fbb,
-   flatbuffers::Offset<NamespaceC::TableInC> refer_to_c = 0) {
+    flatbuffers::Offset<NamespaceC::TableInC> refer_to_c = 0) {
   SecondTableInABuilder builder_(_fbb);
   builder_.add_refer_to_c(refer_to_c);
   return builder_.Finish();
 }
+
+}  // namespace NamespaceA
+
+namespace NamespaceC {
+
+}  // namespace NamespaceC
+
+namespace NamespaceA {
 
 }  // namespace NamespaceA
 

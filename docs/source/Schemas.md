@@ -237,7 +237,8 @@ as the response (both of which must be table types):
     }
 
 What code this produces and how it is used depends on language and RPC system
-used, FlatBuffers itself does not offer this functionality.
+used, there is preliminary support for GRPC through the `--grpc` code generator,
+see `grpc/tests` for an example.
 
 ### Comments & documentation
 
@@ -271,7 +272,7 @@ Current understood attributes:
     the union field should have id 8, and the unions type field will
     implicitly be 7.
     IDs allow the fields to be placed in any order in the schema.
-    When a new field is added to the schema is must use the next available ID.
+    When a new field is added to the schema it must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
     anymore, code should stop using this data.
 -   `required` (on a non-scalar table field): this field must always be set.
@@ -303,6 +304,10 @@ Current understood attributes:
 -   `key` (on a field): this field is meant to be used as a key when sorting
     a vector of the type of table it sits in. Can be used for in-place
     binary search.
+-   `hash` (on a field). This is an (un)signed 32/64 bit integer field, whose
+    value during JSON parsing is allowed to be a string, which will then be
+    stored as its hash. The value of attribute is the hashing algorithm to
+    use, one of `fnv1_32` `fnv1_64` `fnv1a_32` `fnv1a_64`.
 
 ## JSON Parsing
 
@@ -333,6 +338,10 @@ JSON:
 -   A field that has the value `null` (e.g. `field: null`) is intended to
     have the default value for that field (thus has the same effect as if
     that field wasn't specified at all).
+-   It has some built in conversion functions, so you can write for example
+    `rad(180)` where ever you'd normally write `3.14159`.
+    Currently supports the following functions: `rad`, `deg`, `cos`, `sin`,
+    `tan`, `acos`, `asin`, `atan`.
 
 When parsing JSON, it recognizes the following escape codes in strings:
 

@@ -235,6 +235,8 @@ struct FieldDef : public Definition {
                    // written in new data nor accessed in new code.
   bool required;   // Field must always be present.
   bool key;        // Field functions as a key for creating sorted vectors.
+  bool native_inline;  // Field will be defined inline (instead of as a pointer)
+                       // for native tables if field is a struct.
   size_t padding;  // Bytes to always pad after this field.
 };
 
@@ -312,6 +314,14 @@ struct EnumDef : public Definition {
   Type underlying_type;
 };
 
+inline bool EqualByName(const Type &a, const Type &b) {
+  return a.base_type == b.base_type && a.element == b.element &&
+         (a.struct_def == b.struct_def ||
+          a.struct_def->name == b.struct_def->name) &&
+         (a.enum_def == b.enum_def ||
+          a.enum_def->name == b.enum_def->name);
+}
+
 struct RPCCall {
   std::string name;
   SymbolTable<Value> attributes;
@@ -338,6 +348,11 @@ struct IDLOptions {
   bool generate_all;
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
+  bool escape_proto_identifiers;
+  bool generate_object_based_api;
+  std::string cpp_object_api_pointer_type;
+  bool union_value_namespacing;
+  bool allow_non_utf8;
 
   // Possible options for the more general generator below.
   enum Language { kJava, kCSharp, kGo, kDlang, kMAX};
@@ -357,7 +372,25 @@ struct IDLOptions {
       generate_all(false),
       skip_unexpected_fields_in_json(false),
       generate_name_strings(false),
+      escape_proto_identifiers(false),
+      generate_object_based_api(false),
+      cpp_object_api_pointer_type("std::unique_ptr"),
+      union_value_namespacing(true),
+      allow_non_utf8(false),
       lang(IDLOptions::kJava) {}
+};
+
+// This encapsulates where the parser is in the current source file.
+struct ParserState {
+  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+
+ protected:
+  const char *cursor_;
+  int line_;  // the current line being parsed
+  int token_;
+
+  std::string attribute_;
+  std::vector<std::string> doc_comment_;
 };
 
 // A way to make error propagation less error prone by requiring values to be
@@ -401,14 +434,12 @@ class CheckedError {
 #define FLATBUFFERS_CHECKED_ERROR CheckedError
 #endif
 
-class Parser {
+class Parser : public ParserState {
  public:
   explicit Parser(const IDLOptions &options = IDLOptions())
     : root_struct_def_(nullptr),
       opts(options),
       source_(nullptr),
-      cursor_(nullptr),
-      line_(1),
       anonymous_counter(0) {
     // Just in case none are declared:
     namespaces_.push_back(new Namespace());
@@ -422,8 +453,11 @@ class Parser {
     known_attributes_["original_order"] = true;
     known_attributes_["nested_flatbuffer"] = true;
     known_attributes_["csharp_partial"] = true;
-    known_attributes_["stream"] = true;
+    known_attributes_["streaming"] = true;
     known_attributes_["idempotent"] = true;
+    known_attributes_["cpp_type"] = true;
+    known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["native_inline"] = true;
   }
 
   ~Parser() {
@@ -459,6 +493,10 @@ class Parser {
   // See reflection/reflection.fbs
   void Serialize();
 
+  // Checks that the schema represented by this parser is a safe evolution
+  // of the schema provided. Returns non-empty error on any problems.
+  std::string ConformTo(const Parser &base);
+
   FLATBUFFERS_CHECKED_ERROR CheckBitsFit(int64_t val, size_t bits);
 
 private:
@@ -479,7 +517,8 @@ private:
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
-                                          size_t parent_fieldn);
+                                          size_t parent_fieldn,
+                                          const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
@@ -539,13 +578,9 @@ private:
   IDLOptions opts;
 
  private:
-  const char *source_, *cursor_;
-  int line_;  // the current line being parsed
-  int token_;
-  std::string file_being_parsed_;
+  const char *source_;
 
-  std::string attribute_;
-  std::vector<std::string> doc_comment_;
+  std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 
@@ -569,7 +604,9 @@ extern void GenComment(const std::vector<std::string> &dc,
 // if it is less than 0, no linefeeds will be generated either.
 // See idl_gen_text.cpp.
 // strict_json adds "quotes" around field names if true.
-extern void GenerateText(const Parser &parser,
+// If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
+// byte arrays in String values), returns false.
+extern bool GenerateText(const Parser &parser,
                          const void *flatbuffer,
                          std::string *text);
 extern bool GenerateTextFile(const Parser &parser,
@@ -613,8 +650,8 @@ extern bool GenerateJava(const Parser &parser,
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
 extern bool GeneratePhp(const Parser &parser,
-       const std::string &path,
-       const std::string &file_name);
+                        const std::string &path,
+                        const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
@@ -677,6 +714,18 @@ extern std::string TextMakeRule(const Parser &parser,
 extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
                                   const std::string &file_name);
+
+// Generate GRPC Cpp interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateCppGRPC(const Parser &parser,
+                     const std::string &path,
+                     const std::string &file_name);
+
+// Generate GRPC Go interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGoGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 
