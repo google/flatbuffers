@@ -669,7 +669,8 @@ bool VerifyObject(flatbuffers::Verifier &v,
             return false;
           }
         } else {
-          if (!VerifyObject(v, schema, *childObj, flatbuffers::GetFieldT(*table, *fieldDef),
+          if (!VerifyObject(v, schema, *childObj,
+                            flatbuffers::GetFieldT(*table, *fieldDef),
                             fieldDef->required())) {
             return false;
           }
@@ -684,7 +685,8 @@ bool VerifyObject(flatbuffers::Verifier &v,
           // Means we have this union field present
           auto fbEnum = schema.enums()->Get(fieldDef->type()->index());
           auto childObj = fbEnum->values()->Get(utype)->object();
-          if (!VerifyObject(v, schema, *childObj, flatbuffers::GetFieldT(*table, *fieldDef),
+          if (!VerifyObject(v, schema, *childObj,
+                            flatbuffers::GetFieldT(*table, *fieldDef),
                             fieldDef->required())) {
             return false;
           }
