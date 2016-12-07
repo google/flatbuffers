@@ -173,7 +173,7 @@ public:
    // Returns the method name for use with add/put calls.
    std::string GenMethod( const Type &type) {
        return IsScalar(type.base_type)
-               ? MakeCamel(GenTypeBasic( type))
+               ? (std::string("!") + GenTypeBasic( type))
                : (IsStruct(type) ? "Struct" : "Offset");
    }
 
@@ -273,14 +273,23 @@ public:
        code += std::string("\tmixin ") + (struct_def.fixed? "Struct" : "Table") + "!" + struct_def.name + ";\n\n";
 
        if (!struct_def.fixed) {
-           // create a struct constructor function
-               code += "\tpublic static int create";
-               code += struct_def.name + "(FlatBufferBuilder builder";
-               GenStructArgs(struct_def, code_ptr, "");
-               code += ") {\n";
-               GenStructBody(struct_def, code_ptr, "");
-               code += "\t\treturn ";
-               code += "builder.offset();\n\t}\n\n";
+           // Generate a special accessor for the table that when used as the root
+           // of a FlatBuffer
+           std::string method_name =  "getRootAs" + struct_def.name;
+           // create convenience method that doesn't require an existing object
+           code += std::string("  ")  + "static " + struct_def.name + " " + method_name + "(ByteBuffer _bb) ";
+           code += "{  return " + struct_def.name + ".init_(_bb.get!int(_bb.position()) + _bb.position(), _bb); }\n";
+
+           if (parser_.root_struct_def_ == &struct_def) {
+               if (parser_.file_identifier_.length()) {
+                   // Check if a buffer has the identifier.
+                   code += std::string("  ")  + "static ";
+                   code += "bool" + struct_def.name;
+                   code += "BufferHasIdentifier(ByteBuffer _bb) { return ";
+                   code += "__has_identifier(_bb, \"" + parser_.file_identifier_;
+                   code += "\"); }\n";
+               }
+           }
        }
 
        for (auto it = struct_def.fields.vec.begin();
@@ -313,7 +322,7 @@ public:
 
            // Most field accessors need to retrieve and test the field offset first,
            // this is the prefix code for that:
-           auto offset_prefix = " { int o = __offset(" +
+           auto offset_prefix = " { uint o = __offset(" +
                    NumToString(field.value.offset) +
                    "); return o != 0 ? " +
                    (typeNeedsExtraHandling
@@ -372,7 +381,7 @@ public:
                    method_start = std::string("\t") + method_start;
                    code += method_start;
                    auto vectortype = field.value.type.VectorType();
-                   code += "(int j)";
+                   code += "(uint j)";
                    code += offset_prefix ;
                    if(IsScalar(field.value.type.element)){ //基本类型
                        code += getter;
@@ -416,10 +425,10 @@ public:
            code += "; ";
            code += "}\n";
            if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-               code += std::string("\t@property ") + "int " + MakeCamel(field.name, false);
+               code += std::string("\t@property ") + "uint " + MakeCamel(field.name, false);
                code += "Length";
                code += "()";
-               auto offset_prefix1 = " { int o = __offset(" +
+               auto offset_prefix1 = " { uint o = __offset(" +
                        NumToString(field.value.offset) +
                        "); return o != 0 ? ";
                code += offset_prefix1;
@@ -432,7 +441,7 @@ public:
 
        if (struct_def.fixed) {
            // create a struct constructor function
-           code += std::string("\t")  + "static int " +  "create";
+           code += std::string("\t")  + "static uint " +  "create";
            code += struct_def.name + "(FlatBufferBuilder builder";
            GenStructArgs( struct_def, code_ptr, "");
            code += ") {\n";
@@ -458,19 +467,19 @@ public:
            if (has_no_struct_fields && num_fields) {
                // Generate a table constructor of the form:
                // public static void createName(FlatBufferBuilder builder, args...)
-               code += std::string("\t")  + "static int " +  "create";
+               code += std::string("\t")  + "static uint " +  "create";
                code += struct_def.name;
                code += "(FlatBufferBuilder builder";
                for (auto it = struct_def.fields.vec.begin();
                     it != struct_def.fields.vec.end(); ++it) {
                    auto &field = **it;
                    if (field.deprecated) continue;
-                   code += ",\n      ";
+                   code += ",";
                    code += GenTypeBasic(field.value.type);
                    code += " ";
                    code += field.name;
                }
-               code += ") {\n\tbuilder.";
+               code += ") {\n\t\tbuilder.";
                code += "startObject(";
                code += NumToString(struct_def.fields.vec.size()) + ");\n";
                for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
@@ -524,34 +533,34 @@ public:
                    auto elem_size = InlineSize(vector_type);
                    if (!IsStruct(vector_type)) {
                        // Generate a method to create a vector from a Java array.
-                       code += std::string("\t")  + "static int " + "create";
+                       code += std::string("\t")  + "static uint " + "create";
                        code += MakeCamel(field.name);
                        code += "Vector(FlatBufferBuilder builder, ";
                        code += GenTypeBasic(vector_type) + "[] data) ";
                        code += std::string("{ builder.") + "startVector(";
                        code += NumToString(elem_size) + ", ";
-                       code += std::string("") + "cast(int)" + "data." + "length, ";
+                       code += std::string("") + "cast(uint)data.length, ";
                        code += NumToString(alignment);
-                       code += "); for (int i = ";
-                       code += std::string("") + "cast(int)" + "data." + "length - 1; i >= 0; i--) builder.";
+                       code += "); for (size_t i = ";
+                       code += std::string("") + "data.length; i > 0; i--) builder.";
                        code += "add";
                        code += GenMethod( vector_type);
-                       code += "(data[i]); return builder.";
+                       code += "(data[i - 1]); return builder.";
                        code += "endVector(); }\n";
                    }
                    // Generate a method to start a vector, data to be added manually after.
                    code += std::string("\t")  + "static void " + "start";
                    code += MakeCamel(field.name);
-                   code += "Vector(FlatBufferBuilder builder, int numElems) ";
+                   code += "Vector(FlatBufferBuilder builder, uint numElems) ";
                    code += std::string("{ builder.") + "startVector(";
                    code += NumToString(elem_size);
                    code += ", numElems, " + NumToString(alignment);
                    code += "); }\n";
                }
            }
-           code += std::string("\t")  + "static int ";
+           code += std::string("\t")  + "static uint ";
            code += "end" + struct_def.name;
-           code += "(FlatBufferBuilder builder) {\n\t\tint o = builder.";
+           code += "(FlatBufferBuilder builder) {\n\t\tuint o = builder.";
            code += "endObject();\n";
            for (auto it = struct_def.fields.vec.begin();
                 it != struct_def.fields.vec.end();
@@ -567,7 +576,7 @@ public:
            if (parser_.root_struct_def_ == &struct_def) {
                code += std::string("\t")  + "static void ";
                code += "finish" + struct_def.name;
-               code += "Buffer(FlatBufferBuilder builder, int offset) { ";
+               code += "Buffer(FlatBufferBuilder builder, uint offset) { ";
                code += std::string("builder.") + "finish(offset";
                if (parser_.file_identifier_.length())
                    code += ", \"" + parser_.file_identifier_ + "\"";

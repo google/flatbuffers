@@ -63,11 +63,9 @@ sample_binary.d -vcolumns
 dmd -of./sample_binary ./sample_binary.o ./libflatbuffers.a -L--no-as-needed
 
 ./sample_binary
-#mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
-#mono SampleBinary.exe
 
 # Cleanup temporary files.
 rm libflatbuffers.a
 rm sample_binary
 rm sample_binary.o
-rm -rf mygame
+rm -rf MyGame

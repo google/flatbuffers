@@ -28,17 +28,18 @@ import core.exception;
 final class ByteBuffer
 {
 public:
+	this(){}
+
     /// init ByteBuffer obj with buffer data
     this(ubyte[] buffer)
     {
-        _buffer = buffer;
-        _pos = 0;
+		restData(buffer,0);
     }
 
     /// Returns buffer length
-    @property uint length()
+    @property size_t length()
     {
-        return cast(uint) _buffer.length;
+        return _buffer.length;
     }
 
     /// Returns buffer data
@@ -48,18 +49,18 @@ public:
     }
 
     /// Returns buffer position
-    @property int position()
+    @property size_t position()
     {
         return _pos;
     }
     /// put boolen value into buffer
-    void put(T)(int offset, T value) if (is(T == bool))
+    void put(T)(size_t offset, T value) if (is(T == bool))
     {
         put!ubyte(offset, (value ? 0x01 : 0x00));
     }
 
     /// put byte value into buffer
-    void put(T)(int offset, T value) if (isByte!T)
+	void put(T)(size_t offset, T value) if (isByte!T)
     {
         mixin(verifyOffset!1);
         _buffer[offset] = value;
@@ -67,7 +68,7 @@ public:
     }
 
     /// put numbirc value into buffer
-    void put(T)(int offset, T value) if (isNum!T)
+	void put(T)(size_t offset, T value) if (isNum!T)
     {
         mixin(verifyOffset!(T.sizeof));
         version (FLATBUFFER_BIGENDIAN)
@@ -84,18 +85,18 @@ public:
     }
 
     ///get Byte value in buffer from index
-    T get(T)(int index) if (isByte!T)
+    T get(T)(size_t index) if (isByte!T)
     {
         return cast(T) _buffer[index];
     }
 
-    T get(T)(int index) if(is(T == bool))
+	T get(T)(size_t index) if(is(T == bool))
     {
         ubyte value = get!ubyte(index);
         return (value ==0x01 ? true : false);
     }
 
-    T get(T)(int index) if (isNum!T)
+	T get(T)(size_t index) if (isNum!T)
     {
         ubyte[T.sizeof] buf = _buffer[index .. (index + T.sizeof)];
         version (FLATBUFFER_BIGENDIAN)
@@ -104,9 +105,14 @@ public:
             return littleEndianToNative!(T, T.sizeof)(buf);
     }
 
+	void restData(ubyte[] buffer,size_t pos){
+		_buffer = buffer;
+		_pos = pos;
+	}
+
 private: /// Variables.
     ubyte[] _buffer;
-    int _pos; /// Must track start of the buffer.
+    size_t _pos; /// Must track start of the buffer.
 }
 
 unittest

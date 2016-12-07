@@ -29,13 +29,13 @@ void main()
     auto name = builder.createString("MyMonster");
 
     // Create some weapons for our Monster 
-    int[] weaps;
+    uint[] weaps;
     foreach (i; 0 .. 3)
     {
         weaps ~= Weapon.createWeapon(builder,
             builder.createString("Weapon." ~ i.to!string()), cast(short) i); // Use the `createWeapon()` helper function to create the weapons, since we set every field.
     }
-    int t = Monster.createWeaponsVector(builder, weaps);
+    uint t = Monster.createWeaponsVector(builder, weaps);
 
     // Serialize the FlatBuffer data.
     ubyte[] invData = cast(ubyte[])("MyMonster");

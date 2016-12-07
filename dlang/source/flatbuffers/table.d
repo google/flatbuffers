@@ -26,7 +26,7 @@ mixin template Struct(ParentType)
     /**
         Create this Struct.
     */
-    static ParentType init_(int pos, ByteBuffer buffer)
+    static ParentType init_(size_t pos, ByteBuffer buffer)
     {
         return ParentType(buffer, pos);
     }
@@ -36,14 +36,14 @@ private: // Variables.
         disable the constor.
     */
     @disable this();
-    this(ByteBuffer buffer, int pos)
+	this(ByteBuffer buffer, size_t pos)
     {
         this._buffer = buffer;
         this._pos = pos;
     }
 
     ByteBuffer _buffer;
-    int _pos;
+	size_t _pos;
 }
 
 /// Mixin this template to all  tables in the generated code derive , and add their own accessors.
@@ -52,66 +52,66 @@ mixin template Table(ParentType)
     /**
         Create this Struct as a Table.
     */
-    static ParentType init_(int pos, ByteBuffer buffer)
+	static ParentType init_(size_t pos, ByteBuffer buffer)
     {
         return ParentType(buffer, pos);
     }
 
 private:
     ByteBuffer _buffer;
-    int _pos;
+	size_t _pos;
 
 private: // Methods.
     @disable this();
-    this(ByteBuffer buffer, int pos)
+	this(ByteBuffer buffer, size_t pos)
     {
         this._buffer = buffer;
         this._pos = pos;
     }
 
     /// Look up a field in the vtable, return an offset into the object, or 0 if the field is not present.
-    int __offset(int vtableOffset)
+	uint __offset(size_t vtableOffset)
     {
-        int vtable = _pos - _buffer.get!int(_pos);
+        auto vtable = _pos - _buffer.get!uint(_pos);
         return vtableOffset < _buffer.get!short(vtable) ? cast(
-            int) _buffer.get!short(vtable + vtableOffset) : 0;
+            uint) _buffer.get!short(vtable + vtableOffset) : 0;
     }
 
     /// Retrieve the relative offset stored at "offset".
-    int __indirect(int offset)
+	uint __indirect(size_t offset)
     {
-        return offset + _buffer.get!int(offset);
+		return cast(uint)(offset + _buffer.get!uint(offset));
     }
 
     /// Create a D string from UTF-8 data stored inside the flatbuffer.
-    string __string(int offset)
+	string __string(size_t offset)
     {
-        offset += _buffer.get!int(offset);
-        auto len = _buffer.get!int(offset);
-        auto startPos = offset + int.sizeof;
+        offset += _buffer.get!uint(offset);
+        auto len = _buffer.get!uint(offset);
+        auto startPos = offset + uint.sizeof;
         return cast(string) _buffer.data[startPos .. startPos + len];
     }
 
     /// Get the length of a vector whose offset is stored at "offset" in this object.
-    int __vector_len(int offset)
+	uint __vector_len(size_t offset)
     {
         offset += _pos;
-        offset += _buffer.get!int(offset);
-        return _buffer.get!int(offset);
+        offset += _buffer.get!uint(offset);
+        return _buffer.get!uint(offset);
     }
 
     /// Get the start of data of a vector whose offset is stored at "offset" in this object.
-    int __dvector(int offset)
+	uint __dvector(size_t offset)
     {
         offset += _pos;
-        return offset + _buffer.get!int(offset) + cast(int) int.sizeof; // Data starts after the length.
+		return cast(uint)(offset + _buffer.get!uint(offset) + uint.sizeof); // Data starts after the length.
     }
 
     /// Initialize any Table-derived type to point to the union at the given offset.
-    T __union(T)(int offset)
+	T __union(T)(size_t offset)
     {
         offset += _pos;
-        return T.init_((offset + _buffer.get!int(offset)), _buffer);
+        return T.init_((offset + _buffer.get!uint(offset)), _buffer);
     }
 
     static bool __has_identifier(ByteBuffer bb, string ident)
@@ -123,9 +123,9 @@ private: // Methods.
                 format("FlatBuffers: file identifier must be length %s.", fileIdentifierLength),
                 "ident");
 
-        for (int i = 0; i < fileIdentifierLength; i++)
+        for (auto i = 0; i < fileIdentifierLength; i++)
         {
-            if (ident[i] != cast(char) bb.get!byte(bb.position() + cast(int) int.sizeof + i))
+            if (ident[i] != cast(char) bb.get!byte(bb.position() + cast(uint)uint.sizeof + i))
                 return false;
         }
 

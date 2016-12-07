@@ -2,6 +2,7 @@
 
 module MyGame.Example;
 
+public import std.typecons;
 public import flatbuffers;
 
 public import MyGame.Example.Color;

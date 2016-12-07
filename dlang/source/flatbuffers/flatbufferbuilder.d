@@ -25,7 +25,6 @@ import std.traits : isNumeric;
 /**
     Responsible for building up and accessing a FlatBuffer formatted byte
 */
-    
 final class FlatBufferBuilder
 {
     /**
@@ -33,21 +32,24 @@ final class FlatBufferBuilder
         Params:
             initsize = The initial size to use for the internal buffer.
     */
-    this(int initsize)
-    {
-        if (initsize <= 0)
-            throw new ArgumentOutOfRangeException("initsize", initsize,
-                "must be greater than zero");
-        _space = initsize;
-        _buffer = new ByteBuffer(new ubyte[initsize]);
+    this(size_t initsize = 32)
+	in{
+		assert(initsize > 0);
+	}body{
+		this(new ByteBuffer(new ubyte[initsize]));
     }
 
-    int offset()
+	this(ByteBuffer buffer){
+		_space = buffer.length;
+		_buffer = buffer;
+	}
+
+    uint offset()
     {
-        return _buffer.length - _space;
+        return cast(uint)(_buffer.length - _space);
     }
 
-    void pad(int size)
+    void pad(size_t size)
     {
         for (int i = 0; i < size; i++)
         {
@@ -66,11 +68,10 @@ final class FlatBufferBuilder
         if ((oldBufSize & 0xC0000000) != 0)
             throw new Exception("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
 
-        auto newBufSize = oldBufSize * 2;
+		auto newBufSize = oldBufSize >= 32 ? oldBufSize * 2 : 64;
         auto newBuf = new ubyte[](newBufSize);
         newBuf[(newBufSize - oldBufSize) .. $] = oldBuf[];
-
-        _buffer = new ByteBuffer(newBuf);
+		_buffer.restData(newBuf,0);
     }
 
     /**
@@ -80,7 +81,7 @@ final class FlatBufferBuilder
         data follows it directly.
         If all you need to do is align, `additional_bytes` will be 0.
     */
-    void prep(int size, int additionalBytes)
+    void prep(size_t size, size_t additionalBytes)
     {
         // Track the biggest thing we've ever aligned to.
         if (size > _minAlign)
@@ -88,7 +89,7 @@ final class FlatBufferBuilder
 
         // Find the amount of alignment needed such that `size` is properly
         // aligned after `additional_bytes`.
-        auto alignSize = ((~(cast(int) _buffer.length - _space + additionalBytes)) + 1) & (size - 1);
+        auto alignSize = ((~( _buffer.length - _space + additionalBytes)) + 1) & (size - 1);
 
         // Reallocate the buffer if needed.
         while (_space < alignSize + size + additionalBytes)
@@ -118,81 +119,23 @@ final class FlatBufferBuilder
     }
 
     /// Adds a scalar to the buffer, properly aligned, and the buffer grown if needed.
-    void addBool(bool x)
+	void add(T)(T x)if (is(T == bool) || isNumeric!T)
     {
-        prep(byte.sizeof, 0);
-        put!bool(x);
+		static if (is(T == bool))
+			prep(1, 0);
+		else
+			prep(T.sizeof, 0);
+        put!T(x);
     }
-    /// ditto
-    void addByte(byte x)
-    {
-        prep(byte.sizeof, 0);
-        put!byte(x);
-    }
-    /// ditto
-    void addUbyte(ubyte x)
-    {
-        prep(ubyte.sizeof, 0);
-        put!ubyte(x);
-    }
-    /// ditto
-    void addShort(short x)
-    {
-        prep(short.sizeof, 0);
-        put!short(x);
-    }
-    /// ditto
-    void addUshort(ushort x)
-    {
-        prep(ushort.sizeof, 0);
-        put!ushort(x);
-    }
-    /// ditto
-    void addInt(int x)
-    {
-        prep(int.sizeof, 0);
-        put!int(x);
-    }
-    /// ditto
-    void addUint(uint x)
-    {
-        prep(uint.sizeof, 0);
-        put!uint(x);
-    }
-    /// ditto
-    void addLong(long x)
-    {
-        prep(long.sizeof, 0);
-        put!long(x);
-    }
-    /// ditto
-    void addUlong(ulong x)
-    {
-        prep(ulong.sizeof, 0);
-        put!ulong(x);
-    }
-    /// ditto
-    void addFloat(float x)
-    {
-        prep(float.sizeof, 0);
-        put!float(x);
-    }
-    /// ditto
-    void addDouble(double x)
-    {
-        prep(double.sizeof, 0);
-        put!double(x);
-    }
-
     /// Adds on offset, relative to where it will be written.
-    void addOffset(int off)
+    void addOffset(uint off)
     {
-        prep(int.sizeof, 0); // Ensure alignment is already done.
+		prep(uint.sizeof, 0); // Ensure alignment is already done.
         if (off > offset())
             throw new ArgumentException("FlatBuffers: must be less than offset.", "off");
 
-        off = offset() - off + cast(int) int.sizeof;
-        put!int(off);
+		off = offset() - off + cast(uint)uint.sizeof;
+        put!uint(off);
     }
 
     void startVector(int elemSize, int count, int alignment)
@@ -203,9 +146,9 @@ final class FlatBufferBuilder
         prep(alignment, elemSize * count); // Just in case alignment > int.
     }
 
-    int endVector()
+    uint endVector()
     {
-        put!int(_vectorNumElems);
+        put!int(cast(int)_vectorNumElems);
         return offset();
     }
 
@@ -233,112 +176,31 @@ final class FlatBufferBuilder
                 "must be greater than zero");
 
         notNested();
-        _vtable = new int[](numfields);
+        _vtable = new size_t[](numfields);
         _objectStart = offset();
     }
 
     /// Set the current vtable at `voffset` to the current location in the buffer.
-    void slot(int voffset)
+	void slot(size_t voffset)
     {
         _vtable[voffset] = offset();
     }
 
     /// Add a scalar to a table at `o` into its vtable, with value `x` and default `d`.
-    void addBool(int o, bool x, bool d)
+    void add(T : bool)(size_t o, T x, T d)
     {
         if (x != d)
         {
-            addBool(x);
+            add!T(x);
             slot(o);
         }
     }
     /// ditto
-    void addByte(int o, byte x, byte d)
+	void add(T)(size_t o, T x, T d) if(isNumeric!T)
     {
         if (x != d)
         {
-            addByte(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addUbyte(int o, ubyte x, ubyte d)
-    {
-        if (x != d)
-        {
-            addUbyte(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addShort(int o, short x, int d)
-    {
-        if (x != d)
-        {
-            addShort(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addUshort(int o, ushort x, ushort d)
-    {
-        if (x != d)
-        {
-            addUshort(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addInt(int o, int x, int d)
-    {
-        if (x != d)
-        {
-            addInt(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addUint(int o, uint x, uint d)
-    {
-        if (x != d)
-        {
-            addUint(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addLong(int o, long x, long d)
-    {
-        if (x != d)
-        {
-            addLong(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addUlong(int o, ulong x, ulong d)
-    {
-        if (x != d)
-        {
-            addUlong(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addFloat(int o, float x, double d)
-    {
-        if (x != d)
-        {
-            addFloat(x);
-            slot(o);
-        }
-    }
-    /// ditto
-    void addDouble(int o, double x, double d)
-    {
-        if (x != d)
-        {
-            addDouble(x);
+            add!T(x);
             slot(o);
         }
     }
@@ -352,6 +214,18 @@ final class FlatBufferBuilder
         }
     }
 
+	/** Structs are stored inline, so nothing additional is being added.
+        `d` is always 0.
+    */
+	void addStruct(int voffset, int x, int d)
+	{
+		if (x != d)
+		{
+			nested(x);
+			slot(voffset);
+		}
+	}
+
     /**
         Encode the string `s` in the buffer using UTF-8.
         Params:
@@ -359,36 +233,24 @@ final class FlatBufferBuilder
         Returns:
             The offset in the buffer where the encoded string starts.
     */
-    int createString(string s)
+    uint createString(string s)
     {
         notNested();
         auto utf8 = cast(ubyte[]) s;
-        addUbyte(cast(ubyte) 0);
+        add!ubyte(cast(ubyte) 0);
         startVector(1, cast(int) utf8.length, 1);
         _space -= utf8.length;
         _buffer.data[_space .. _space + utf8.length] = utf8[];
         return endVector();
     }
 
-    /** Structs are stored inline, so nothing additional is being added.
-        `d` is always 0.
-    */
-    void addStruct(int voffset, int x, int d)
-    {
-        if (x != d)
-        {
-            nested(x);
-            slot(voffset);
-        }
-    }
-
-    int endObject()
+    uint endObject()
     {
         if (!_vtable)
             throw new InvalidOperationException(
                 "Flatbuffers: calling endObject without a startObject");
 
-        addInt(cast(int) 0);
+        add!int(cast(int) 0);
         auto vtableloc = offset();
 
         // Write out the current vtable.
@@ -396,22 +258,22 @@ final class FlatBufferBuilder
         {
             // Offset relative to the start of the table.
             short off = cast(short)(_vtable[i] != 0 ? vtableloc - _vtable[i] : 0);
-            addShort(off);
+            add!short(off);
         }
 
         const int standardFields = 2; // The fields below:
-        addShort(cast(short)(vtableloc - _objectStart));
-        addShort(cast(short)((_vtable.length + standardFields) * short.sizeof));
+        add!short(cast(short)(vtableloc - _objectStart));
+        add!short(cast(short)((_vtable.length + standardFields) * short.sizeof));
 
         /// Search for an existing vtable that matches the current one.
-        int existingVtable = 0;
+        size_t existingVtable = 0;
 
         ubyte[] data = _buffer.data();
 
         for (int i = 0; i < _numVtables; i++)
         {
-            int vt1 = _buffer.length - _vtables[i];
-            int vt2 = _space;
+            auto vt1 = _buffer.length - _vtables[i];
+            auto vt2 = _space;
             short vt1len = _buffer.get!short(vt1);
             short vt2len = _buffer.get!short(vt2);
 
@@ -426,7 +288,7 @@ final class FlatBufferBuilder
             // Remove the current vtable.
             _space = _buffer.length - vtableloc;
             // Point table to existing vtable.
-            _buffer.put!int(_space, existingVtable - vtableloc);
+            _buffer.put!int(_space, cast(int)(existingVtable - vtableloc));
         }
         else
         {
@@ -451,8 +313,8 @@ final class FlatBufferBuilder
     {
         import std.string;
 
-        int table_start = _buffer.length - table;
-        int vtable_start = table_start - _buffer.get!int(table_start);
+        auto table_start = _buffer.length - table;
+        auto vtable_start = table_start - _buffer.get!int(table_start);
         bool ok = _buffer.get!short(vtable_start + field) != 0;
         // If this fails, the caller will show what field needs to be set.
         if (!ok)
@@ -508,23 +370,23 @@ final class FlatBufferBuilder
                 format("FlatBuffers: file identifier must be length %s.", fileIdentifierLength),
                 "fileIdentifier");
         for (int i = fileIdentifierLength - 1; i >= 0; i--)
-            addByte(cast(ubyte) fileIdentifier[i]);
+            add!ubyte(cast(ubyte) fileIdentifier[i]);
         addOffset(rootTable);
     }
 
 private:
-    int _space;
+    size_t _space;
     ByteBuffer _buffer;
-    int _minAlign = 1;
+    size_t _minAlign = 1;
 
     /// The vtable for the current table, null otherwise.
-    int[] _vtable;
+	size_t[] _vtable;
     /// Starting offset of the current struct/table.
-    int _objectStart;
+    size_t _objectStart;
     /// List of offsets of all vtables.
-    int[] _vtables = new int[](16);
+	size_t[] _vtables = new int[](16);
     /// Number of entries in `vtables` in use.
-    int _numVtables = 0;
+	size_t _numVtables = 0;
     /// For the current vector being built.
-    int _vectorNumElems = 0;
+	size_t _vectorNumElems = 0;
 }
