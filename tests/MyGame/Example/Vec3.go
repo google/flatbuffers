@@ -15,6 +15,10 @@ func (rcv *Vec3) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *Vec3) Table() flatbuffers.Table {
+	return rcv._tab.Table
+}
+
 func (rcv *Vec3) X() float32 {
 	return rcv._tab.GetFloat32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }
