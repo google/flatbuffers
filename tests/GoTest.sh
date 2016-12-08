@@ -33,31 +33,44 @@ cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 
+GOPATH=${go_path} go get golang.org/x/net/context
+GOPATH=${go_path} go get google.golang.org/grpc
+
 # Run tests with necessary flags.
+# Tests are run for each set of build tags.
 # Developers may wish to see more detail by appending the verbosity flag
 # -test.v to arguments for this command, as in:
 #   go -test -test.v ...
 # Developers may also wish to run benchmarks, which may be achieved with the
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
-GOPATH=${go_path} go test flatbuffers_test \
-                     --test.coverpkg=github.com/google/flatbuffers/go \
-                     --cpp_data=${test_dir}/monsterdata_test.mon \
-                     --out_data=${test_dir}/monsterdata_go_wire.mon \
-                     --test.bench=. \
-                     --test.benchtime=3s \
-                     --fuzz=true \
-                     --fuzz_fields=4 \
-                     --fuzz_objects=10000
+BUILD_TAG_CHOICES=(
+'unsafe'
+'!unsafe'
+)
+build_tag_len=${#BUILD_TAG_CHOICES[@]}
+for ((i = 0; i < $build_tag_len; i++)) do
+	build_tags=${BUILD_TAG_CHOICES[$i]}
+	echo "Testing build tags: ${build_tags}"
+	GOPATH=${go_path} go test flatbuffers_test \
+			     --tags=${build_tags} \
+			     --test.coverpkg=github.com/google/flatbuffers/go \
+			     --cpp_data=${test_dir}/monsterdata_test.mon \
+			     --out_data=${test_dir}/monsterdata_go_wire.mon \
+			     --test.bench=. \
+			     --test.benchtime=3s \
+			     --fuzz=true \
+			     --fuzz_fields=4 \
+			     --fuzz_objects=10000
 
-GO_TEST_RESULT=$?
-rm -rf ${go_path}/{pkg,src}
-if [[ $GO_TEST_RESULT  == 0 ]]; then
-    echo "OK: Go tests passed."
-else
-    echo "KO: Go tests failed."
-    exit 1
-fi
+	GO_TEST_RESULT=$?
+	if [[ $GO_TEST_RESULT  == 0 ]]; then
+	    echo "OK: Go tests passed with build tags ${build_tags}."
+	else
+	    echo "KO: Go tests failed with build tags ${build_tags}."
+	    exit 1
+	fi
+done
 
 NOT_FMT_FILES=$(gofmt -l MyGame)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
@@ -65,3 +78,5 @@ if [[ ${NOT_FMT_FILES} != "" ]]; then
     # enable this when enums are properly formated
     # exit 1
 fi
+
+rm -rf ${go_path}/{pkg,src}
