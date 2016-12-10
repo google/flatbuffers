@@ -649,8 +649,8 @@ extern bool GenerateJava(const Parser &parser,
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
 extern bool GeneratePhp(const Parser &parser,
-       const std::string &path,
-       const std::string &file_name);
+                        const std::string &path,
+                        const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
@@ -708,11 +708,17 @@ extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
                                   const std::string &file_name);
 
-// Generate GRPC interfaces.
+// Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
-bool GenerateGRPC(const Parser &parser,
-                  const std::string &path,
-                  const std::string &file_name);
+bool GenerateCppGRPC(const Parser &parser,
+                     const std::string &path,
+                     const std::string &file_name);
+
+// Generate GRPC Go interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGoGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 
