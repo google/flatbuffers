@@ -1453,9 +1453,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_depth_;
   size_t num_tables_;
   size_t max_tables_;
-  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable const uint8_t *upper_bound_;
-  #endif
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around

@@ -500,11 +500,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 
   {
     // Verify the buffer first using reflection based verification
-    flatbuffers::Verifier v(flatbuf, length);
-    TEST_EQ(flatbuffers::Verify(v,
-                                schema,
+    TEST_EQ(flatbuffers::Verify(schema,
                                 *schema.root_table(),
-                                root),
+                                flatbuf,
+                                length),
             true);
   }
 
@@ -538,11 +537,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 
   {
     // Test buffer is valid after the modifications
-    flatbuffers::Verifier v(flatbuf, length);
-    TEST_EQ(flatbuffers::Verify(v,
-                                schema,
+    TEST_EQ(flatbuffers::Verify(schema,
                                 *schema.root_table(),
-                                root),
+                                flatbuf,
+                                length),
             true);
   }
 
@@ -609,11 +607,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
   {
     // Test buffer is valid using reflection as well
-    flatbuffers::Verifier v(resizingbuf.data(), resizingbuf.size());
-    TEST_EQ(flatbuffers::Verify(v,
-                                schema,
+    TEST_EQ(flatbuffers::Verify(schema,
                                 *schema.root_table(),
-                                *flatbuffers::GetAnyRoot(resizingbuf.data())),
+                                resizingbuf.data(),
+                                resizingbuf.size()),
             true);
   }
   
@@ -636,10 +633,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   {
     // Test buffer is valid using reflection as well
     flatbuffers::Verifier v(fbb.GetBufferPointer(), fbb.GetSize());
-    TEST_EQ(flatbuffers::Verify(v,
-                                schema,
+    TEST_EQ(flatbuffers::Verify(schema,
                                 *schema.root_table(),
-                                *flatbuffers::GetAnyRoot(fbb.GetBufferPointer())),
+                                fbb.GetBufferPointer(),
+                                fbb.GetSize()),
             true);
   }
 }
