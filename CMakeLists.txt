@@ -59,13 +59,11 @@ set(FlatHash_SRCS
   src/flathash.cpp
 )
 
-set(FlatBuffers_Tests_SRCS
-  # FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE macro based compilation does not happen
-  # in all the places if test.cpp is not first file in this list.
-  tests/test.cpp
+set(FlatBuffers_Tests_SRCS  
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
-  src/idl_gen_general.cpp  
+  src/idl_gen_general.cpp
+  tests/test.cpp  
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
@@ -205,6 +203,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  target_compile_definitions(flattests
+    PRIVATE FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
+    PRIVATE FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE)
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
