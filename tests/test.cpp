@@ -80,6 +80,93 @@ uint32_t lcg_rand() {
 }
 void lcg_reset() { lcg_seed = 48271; }
 
+struct MallocAllocator : public flatbuffers::simple_allocator {
+  virtual uint8_t *allocate(size_t size) {
+    return static_cast<uint8_t*>(malloc(size));
+  }
+  virtual void deallocate(uint8_t *p) {
+    free(p);
+  }
+};
+
+// example of how to build up a serialized buffer algorithmically using custom allocator:
+flatbuffers::unique_ptr_t CreateFlatBufferCustomAllocTest(MallocAllocator& allocator, std::string &buffer) {
+  flatbuffers::FlatBufferBuilder builder(1024, &allocator);
+
+  auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
+
+  auto name = builder.CreateString("MyMonster");
+
+  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  auto inventory = builder.CreateVector(inv_data, 10);
+
+  // Alternatively, create the vector first, and fill in data later:
+  // unsigned char *inv_buf = nullptr;
+  // auto inventory = builder.CreateUninitializedVector<unsigned char>(
+  //                                                              10, &inv_buf);
+  // memcpy(inv_buf, inv_data, 10);
+
+  Test tests[] = { Test(10, 20), Test(30, 40) };
+  auto testv = builder.CreateVectorOfStructs(tests, 2);
+
+  // create monster with very few fields set:
+  // (same functionality as CreateMonster below, but sets fields manually)
+  flatbuffers::Offset<Monster> mlocs[3];
+  auto fred = builder.CreateString("Fred");
+  auto barney = builder.CreateString("Barney");
+  auto wilma = builder.CreateString("Wilma");
+  MonsterBuilder mb1(builder);
+  mb1.add_name(fred);
+  mlocs[0] = mb1.Finish();
+  MonsterBuilder mb2(builder);
+  mb2.add_name(barney);
+  mb2.add_hp(1000);
+  mlocs[1] = mb2.Finish();
+  MonsterBuilder mb3(builder);
+  mb3.add_name(wilma);
+  mlocs[2] = mb3.Finish();
+
+  // Create an array of strings. Also test string pooling, and lambdas.
+  const char *names[] = { "bob", "fred", "bob", "fred" };
+  auto vecofstrings =
+      builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(4,
+                                                                     [&](size_t i) {
+                                                                       return builder.CreateSharedString(names[i]);
+                                                                     });
+
+  // Creating vectors of strings in one convenient call.
+  std::vector<std::string> names2;
+  names2.push_back("jane");
+  names2.push_back("mary");
+  auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
+
+  // Create an array of sorted tables, can be used with binary search when read:
+  auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
+
+  // shortcut for creating monster with all fields set:
+  auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
+                            Any_Monster, mlocs[1].Union(), // Store a union.
+                            testv, vecofstrings, vecoftables, 0, 0, 0, false,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
+                            vecofstrings2);
+
+  FinishMonsterBuffer(builder, mloc);
+
+#ifdef FLATBUFFERS_TEST_VERBOSE
+  // print byte data for debugging:
+  auto p = builder.GetBufferPointer();
+  for (flatbuffers::uoffset_t i = 0; i < builder.GetSize(); i++)
+    printf("%d ", p[i]);
+#endif
+
+  // return the buffer for the caller to use.
+  auto bufferpointer =
+      reinterpret_cast<const char *>(builder.GetBufferPointer());
+  buffer.assign(bufferpointer, bufferpointer + builder.GetSize());
+
+  return builder.ReleaseBufferPointer();
+}
+
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
@@ -1268,6 +1355,9 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   std::string rawbuf;
   auto flatbuf = CreateFlatBufferTest(rawbuf);
+  MallocAllocator alloc;
+  rawbuf = "";
+  CreateFlatBufferCustomAllocTest(alloc,rawbuf);
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
   AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
