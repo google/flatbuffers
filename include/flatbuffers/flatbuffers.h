@@ -252,9 +252,9 @@ template<typename T> struct IndirectHelper<const T *> {
 // calling Get() for every element.
 template<typename T, typename IT>
 struct VectorIterator
-    : public std::iterator<std::input_iterator_tag, IT, uoffset_t> {
+    : public std::iterator<std::random_access_iterator_tag, IT, uoffset_t> {
 
-  typedef std::iterator<std::input_iterator_tag, IT, uoffset_t> super_type;
+  typedef std::iterator<std::random_access_iterator_tag, IT, uoffset_t> super_type;
 
 public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
@@ -300,9 +300,38 @@ public:
   }
 
   VectorIterator operator++(int) {
-    VectorIterator temp(data_,0);
+    VectorIterator temp(data_, 0);
     data_ += IndirectHelper<T>::element_stride;
     return temp;
+  }
+
+  VectorIterator operator+(const uoffset_t& offset) {
+    return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator+=(const uoffset_t& offset) {
+    data_ += offset * IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator &operator--() {
+    data_ -= IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator operator--(int) {
+    VectorIterator temp(data_, 0);
+    data_ -= IndirectHelper<T>::element_stride;
+    return temp;
+  }
+
+  VectorIterator operator-(const uoffset_t& offset) {
+    return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator-=(const uoffset_t& offset) {
+    data_ -= offset * IndirectHelper<T>::element_stride;
+    return *this;
   }
 
 private:
