@@ -102,6 +102,8 @@ inline bool IsInteger(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_ULONG; }
 inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||
                                            t == BASE_TYPE_DOUBLE; }
+inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
+                                           t == BASE_TYPE_ULONG; }
 
 extern const char *const kTypeNames[];
 extern const char kTypeSizes[];

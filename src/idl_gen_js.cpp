@@ -576,7 +576,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 
       // For scalar types, emit a typed array helper
       auto vectorType = field.value.type.VectorType();
-      if (IsScalar(vectorType.base_type)) {
+      if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
         code += object_name + ".prototype." + MakeCamel(field.name, false);
         code += "Array = function() {\n" + offset_prefix;
