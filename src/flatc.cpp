@@ -95,9 +95,14 @@ const Generator generators[] = {
 const char *g_program_name = nullptr;
 flatbuffers::Parser *g_parser = nullptr;
 
+static void Warn(const std::string &warn, bool show_exe_name = true) {
+  if (show_exe_name) printf("%s: ", g_program_name);
+  printf("warning: %s\n", warn.c_str());
+}
+
 static void Error(const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) printf("%s: ", g_program_name);
-  printf("%s\n", err.c_str());
+  printf("error: %s\n", err.c_str());
   if (usage) {
     printf("usage: %s [OPTION]... FILE... [-- FILE...]\n", g_program_name);
     for (size_t i = 0; i < sizeof(generators) / sizeof(generators[0]); ++i)
@@ -139,6 +144,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
+      "  --grpc             Generate GRPC interfaces for the specified languages\n"
       "  --schema           Serialize schemas instead of JSON (use with -b)\n"
       "  --conform FILE     Specify a schema the following schemas should be\n"
       "                     an evolution of. Gives errors if not.\n"
@@ -373,13 +379,14 @@ int main(int argc, const char *argv[]) {
           }
           if (grpc_enabled) {
             if (generators[i].generateGRPC != nullptr) {
-              if (!generators[i].generateGRPC(*g_parser, output_path, filebase)) {
-                    Error(std::string("Unable to generate GRPC interface for") +
-                          generators[i].lang_name);
+              if (!generators[i].generateGRPC(*g_parser, output_path,
+                                              filebase)) {
+                Error(std::string("Unable to generate GRPC interface for") +
+                      generators[i].lang_name);
               }
             } else {
-                Error(std::string("GRPC interface generator not implemented for ") +
-                      generators[i].lang_name);
+              Warn(std::string("GRPC interface generator not implemented for ")
+                   + generators[i].lang_name);
             }
           }
         }
