@@ -274,15 +274,15 @@ public:
     return *this;
   }
 
-  bool operator==(const VectorIterator& other) const {
+  bool operator==(const VectorIterator &other) const {
     return data_ == other.data_;
   }
 
-  bool operator!=(const VectorIterator& other) const {
+  bool operator!=(const VectorIterator &other) const {
     return data_ != other.data_;
   }
 
-  ptrdiff_t operator-(const VectorIterator& other) const {
+  ptrdiff_t operator-(const VectorIterator &other) const {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
@@ -305,11 +305,11 @@ public:
     return temp;
   }
 
-  VectorIterator operator+(const uoffset_t& offset) {
+  VectorIterator operator+(const uoffset_t &offset) {
     return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
   }
 
-  VectorIterator& operator+=(const uoffset_t& offset) {
+  VectorIterator& operator+=(const uoffset_t &offset) {
     data_ += offset * IndirectHelper<T>::element_stride;
     return *this;
   }
@@ -325,11 +325,11 @@ public:
     return temp;
   }
 
-  VectorIterator operator-(const uoffset_t& offset) {
+  VectorIterator operator-(const uoffset_t &offset) {
     return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride, 0);
   }
 
-  VectorIterator& operator-=(const uoffset_t& offset) {
+  VectorIterator& operator-=(const uoffset_t &offset) {
     data_ -= offset * IndirectHelper<T>::element_stride;
     return *this;
   }
