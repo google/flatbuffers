@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
+#define FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
