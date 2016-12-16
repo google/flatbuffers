@@ -428,6 +428,15 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const Table &table,
                                 bool use_string_pooling = false);
 
+// Verifies the provided flatbuffer using reflection.
+// root should point to the root type for this flatbuffer.
+// buf should point to the start of flatbuffer data.
+// length specifies the size of the flatbuffer data.
+bool Verify(const reflection::Schema &schema,
+            const reflection::Object &root,
+            const uint8_t *buf,
+            size_t length);
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_REFLECTION_H_
