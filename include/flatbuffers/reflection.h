@@ -105,6 +105,20 @@ inline Table *GetFieldT(const Table &table,
   return table.GetPointer<Table *>(field.offset());
 }
 
+// Get a field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Table &table,
+                                    const reflection::Field &field) {
+  assert(field.type()->base_type() == reflection::Obj);
+  return table.GetStruct<const Struct *>(field.offset());
+}
+
+// Get a structure's field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Struct &structure,
+                                    const reflection::Field &field) {
+  assert(field.type()->base_type() == reflection::Obj);
+  return structure.GetStruct<const Struct *>(field.offset());
+}
+
 // Raw helper functions used below: get any value in memory as a 64bit int, a
 // double or a string.
 // All scalars get static_cast to an int64_t, strings use strtoull, every other

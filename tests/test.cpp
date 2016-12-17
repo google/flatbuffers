@@ -511,6 +511,21 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, &schema);
   TEST_EQ_STR(hp_string.c_str(), "80");
 
+  // Get struct field through reflection
+  auto pos_struct = flatbuffers::GetFieldStruct(root, *pos_field_ptr);
+  TEST_NOTNULL(pos_struct);
+  TEST_EQ(flatbuffers::GetAnyFieldF(
+    *pos_struct, *pos_table_ptr->fields()->LookupByKey("z")), 3.0f);
+
+  auto test3_field = pos_table_ptr->fields()->LookupByKey("test3");
+  auto test3_struct = flatbuffers::GetFieldStruct(*pos_struct, *test3_field);
+  TEST_NOTNULL(test3_struct);
+  auto test3_object = schema.objects()->Get(test3_field->type()->index());
+
+  TEST_EQ(flatbuffers::GetAnyFieldF(
+    *test3_struct, *test3_object->fields()->LookupByKey("a")), 10);
+
+
   // We can also modify it.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 200);
   hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
