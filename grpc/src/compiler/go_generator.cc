@@ -89,11 +89,11 @@ void GenerateServerMethodSignature(const grpc_generator::Method *method, grpc_ge
 	vars["Request"] = method->input_name();
 	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_name() : vars["CustomMethodIO"];
 	if (method->NoStreaming()) {
-		printer->Print(vars, "$Method$($context$.Context, *$Request$) (*$Response$, error)");
+		printer->Print(vars, "$Method$($context$.Context, *$Request$) (*$Response$, error)\n");
 	} else if (method->ServerOnlyStreaming()) {
-		printer->Print(vars, "$Method$(*$Request$, $Service$_$Method$Server) error");
+		printer->Print(vars, "$Method$(*$Request$, $Service$_$Method$Server) error\n");
 	} else {
-		printer->Print(vars, "$Method$($Service$_$Method$Server) error");
+		printer->Print(vars, "$Method$($Service$_$Method$Server) error\n");
 	}
 }
 
@@ -105,20 +105,20 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	vars["Handler"] = "_" + vars["Service"] + "_" + vars["Method"] + "_Handler";
 	if (method->NoStreaming()) {
-		printer->Print(vars, "func $Handler$(srv interface{}, ctx $context$.Context,\n\tdec func(interface{}) error, interceptor $grpc$.UnaryServerInterceptor) (interface{}, error) {\n");
+		printer->Print(vars, "func $Handler$(srv interface{}, ctx $context$.Context, dec func(interface{}) error, interceptor $grpc$.UnaryServerInterceptor) (interface{}, error) {\n");
 		printer->Indent();
 		printer->Print(vars, "in := new($Request$)\n");
-		printer->Print("if err := dec(in); err != nil { return nil, err }\n");
-		printer->Print(vars, "if interceptor == nil { return srv.($Service$Server).$Method$(ctx, in) }\n");
+		printer->Print("if err := dec(in); err != nil {\n\treturn nil, err\n}\n");
+		printer->Print(vars, "if interceptor == nil {\n\treturn srv.($Service$Server).$Method$(ctx, in)\n}\n");
 		printer->Print(vars, "info := &$grpc$.UnaryServerInfo{\n");
 		printer->Indent();
-		printer->Print("Server: srv,\n");
+		printer->Print("Server:     srv,\n");
 		printer->Print(vars, "FullMethod: \"$FullMethodName$\",\n");
 		printer->Outdent();
-		printer->Print("}\n\n");
+		printer->Print("}\n");
 		printer->Print(vars, "handler := func(ctx $context$.Context, req interface{}) (interface{}, error) {\n");
 		printer->Indent();
-		printer->Print(vars, "return srv.($Service$Server).$Method$(ctx, req.(* $Request$))\n");
+		printer->Print(vars, "return srv.($Service$Server).$Method$(ctx, req.(*$Request$))\n");
 		printer->Outdent();
 		printer->Print("}\n");
 		printer->Print("return interceptor(ctx, in, info, handler)\n");
@@ -143,16 +143,16 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	bool genRecv = method->BidiStreaming() || method->ClientOnlyStreaming();
 	bool genSendAndClose = method->ClientOnlyStreaming();
 
-	printer->Print(vars, "type $Service$_$Method$Server interface { \n");
+	printer->Print(vars, "type $Service$_$Method$Server interface {\n");
 	printer->Indent();
 	if (genSend) {
-		printer->Print(vars, "Send(* $Response$) error\n");
+		printer->Print(vars, "Send(*$Response$) error\n");
 	}
 	if (genRecv) {
-		printer->Print(vars, "Recv() (* $Request$, error)\n");
+		printer->Print(vars, "Recv() (*$Request$, error)\n");
 	}
 	if (genSendAndClose) {
-		printer->Print(vars, "SendAndClose(* $Response$) error\n");
+		printer->Print(vars, "SendAndClose(*$Response$) error\n");
 	}
 	printer->Print(vars, "$grpc$.ServerStream\n");
 	printer->Outdent();
@@ -175,7 +175,7 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 		printer->Print(vars, "func (x *$StreamType$) Recv() (*$Request$, error) {\n");
 		printer->Indent();
 		printer->Print(vars, "m := new($Request$)\n");
-		printer->Print("if err := x.ServerStream.RecvMsg(m); err != nil { return nil, err }\n");
+		printer->Print("if err := x.ServerStream.RecvMsg(m); err != nil {\n\treturn nil, err\n}\n");
 		printer->Print("return m, nil\n");
 		printer->Outdent();
 		printer->Print("}\n\n");
@@ -187,30 +187,29 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 		printer->Outdent();
 		printer->Print("}\n\n");
 	}
-
 }
 
 // Generates Client method signature source
 void GenerateClientMethodSignature(const grpc_generator::Method *method, grpc_generator::Printer *printer,
-                                   std::map<grpc::string, grpc::string> vars) {
+                                   std::map<grpc::string, grpc::string> vars, const bool is_func) {
 	vars["Method"] = exportName(method->name());
 	vars["Request"] = ", in *" + ((vars["CustomMethodIO"] == "") ? method->input_name() : vars["CustomMethodIO"]);
 	if (method->ClientOnlyStreaming() || method->BidiStreaming()) {
 		vars["Request"] = "";
 	}
-	vars["Response"] = "* " + method->output_name();
+	vars["Response"] = "*" + method->output_name();
 	if (method->ClientOnlyStreaming() || method->BidiStreaming() || method->ServerOnlyStreaming()) {
 		vars["Response"] = vars["Service"] + "_" + vars["Method"] + "Client" ;
 	}
-	printer->Print(vars, "$Method$(ctx $context$.Context$Request$, \n\topts... $grpc$.CallOption) ($Response$, error)");
+	vars["prefix"] = is_func ? " {\n" : "\n";
+	printer->Print(vars, "$Method$(ctx $context$.Context$Request$, opts ...$grpc$.CallOption) ($Response$, error)$prefix$");
 }
 
 // Generates Client method source
 void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                           std::map<grpc::string, grpc::string> vars) {
 	printer->Print(vars, "func (c *$ServiceUnexported$Client) ");
-	GenerateClientMethodSignature(method, printer, vars);
-	printer->Print(" {\n");
+	GenerateClientMethodSignature(method, printer, vars, true);
 	printer->Indent();
 	vars["Method"] = exportName(method->name());
 	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->input_name() : vars["CustomMethodIO"];
@@ -219,7 +218,7 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	if (method->NoStreaming()) {
 		printer->Print(vars, "out := new($Response$)\n");
 		printer->Print(vars, "err := $grpc$.Invoke(ctx, \"$FullMethodName$\", in, out, c.cc, opts...)\n");
-		printer->Print("if err != nil { return nil, err }\n");
+		printer->Print("if err != nil {\n\treturn nil, err\n}\n");
 		printer->Print("return out, nil\n");
 		printer->Outdent();
 		printer->Print("}\n\n");
@@ -227,14 +226,14 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	}
 	vars["StreamType"] = vars["ServiceUnexported"] + vars["Method"] + "Client";
 	printer->Print(vars, "stream, err := $grpc$.NewClientStream(ctx, &$MethodDesc$, c.cc, \"$FullMethodName$\", opts...)\n");
-	printer->Print("if err != nil { return nil, err }\n");
+	printer->Print("if err != nil {\n\treturn nil, err\n}\n");
 
 	printer->Print(vars, "x := &$StreamType${stream}\n");
 	if (method->ServerOnlyStreaming()) {
-		printer->Print("if err := x.ClientStream.SendMsg(in); err != nil { return nil, err }\n");
-		printer->Print("if err := x.ClientStream.CloseSend(); err != nil { return nil, err }\n");
+		printer->Print("if err := x.ClientStream.SendMsg(in); err != nil {\n\treturn nil, err\n}\n");
+		printer->Print("if err := x.ClientStream.CloseSend(); err != nil {\n\treturn nil, err\n}\n");
 	}
-	printer->Print("return x,nil\n");
+	printer->Print("return x, nil\n");
 	printer->Outdent();
 	printer->Print("}\n\n");
 
@@ -259,7 +258,7 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Print("}\n\n");
 
 	//Stream Client
-	printer->Print(vars, "type $StreamType$ struct{\n");
+	printer->Print(vars, "type $StreamType$ struct {\n");
 	printer->Indent();
 	printer->Print(vars, "$grpc$.ClientStream\n");
 	printer->Outdent();
@@ -277,7 +276,7 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 		printer->Print(vars, "func (x *$StreamType$) Recv() (*$Response$, error) {\n");
 		printer->Indent();
 		printer->Print(vars, "m := new($Response$)\n");
-		printer->Print("if err := x.ClientStream.RecvMsg(m); err != nil { return nil, err }\n");
+		printer->Print("if err := x.ClientStream.RecvMsg(m); err != nil {\n\treturn nil, err\n}\n");
 		printer->Print("return m, nil\n");
 		printer->Outdent();
 		printer->Print("}\n\n");
@@ -286,9 +285,9 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	if (genCloseAndRecv) {
 		printer->Print(vars, "func (x *$StreamType$) CloseAndRecv() (*$Response$, error) {\n");
 		printer->Indent();
-		printer->Print("if err := x.ClientStream.CloseSend(); err != nil { return nil, err }\n");
+		printer->Print("if err := x.ClientStream.CloseSend(); err != nil {\n\treturn nil, err\n}\n");
 		printer->Print(vars, "m := new ($Response$)\n");
-		printer->Print("if err := x.ClientStream.RecvMsg(m); err != nil { return nil, err }\n");
+		printer->Print("if err := x.ClientStream.RecvMsg(m); err != nil {\n\treturn nil, err\n}\n");
 		printer->Print("return m, nil\n");
 		printer->Outdent();
 		printer->Print("}\n\n");
@@ -300,12 +299,11 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
                      std::map<grpc::string, grpc::string> vars) {
 	vars["Service"] = exportName(service->name());
 	// Client Interface
-	printer->Print(vars, "// Client API for $Service$ service\n");
-	printer->Print(vars, "type $Service$Client interface{\n");
+	printer->Print(vars, "// $Service$Client API for $Service$ service\n");
+	printer->Print(vars, "type $Service$Client interface {\n");
 	printer->Indent();
 	for (int i = 0; i < service->method_count(); i++) {
-		GenerateClientMethodSignature(service->method(i).get(), printer, vars);
-		printer->Print("\n");
+		GenerateClientMethodSignature(service->method(i).get(), printer, vars, false);
 	}
 	printer->Outdent();
 	printer->Print("}\n\n");
@@ -340,12 +338,11 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 	}
 
 	//Server Interface
-	printer->Print(vars, "// Server API for $Service$ service\n");
+	printer->Print(vars, "// $Service$Server API for $Service$ service\n");
 	printer->Print(vars, "type $Service$Server interface {\n");
 	printer->Indent();
 	for (int i = 0; i < service->method_count(); i++) {
 		GenerateServerMethodSignature(service->method(i).get(), printer, vars);
-		printer->Print("\n");
 	}
 	printer->Outdent();
 	printer->Print("}\n\n");
@@ -359,7 +356,6 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 
 	for (int i = 0; i < service->method_count(); i++) {
 		GenerateServerMethod(service->method(i).get(), printer, vars);
-		printer->Print("\n");
 	}
 
 
@@ -378,7 +374,7 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 			printer->Print("{\n");
 			printer->Indent();
 			printer->Print(vars, "MethodName: \"$Method$\",\n");
-			printer->Print(vars, "Handler: $Handler$, \n");
+			printer->Print(vars, "Handler:    $Handler$,\n");
 			printer->Outdent();
 			printer->Print("},\n");
 		}
@@ -394,8 +390,8 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 		if (!method->NoStreaming()) {
 			printer->Print("{\n");
 			printer->Indent();
-			printer->Print(vars, "StreamName: \"$Method$\",\n");
-			printer->Print(vars, "Handler: $Handler$, \n");
+			printer->Print(vars, "StreamName:    \"$Method$\",\n");
+			printer->Print(vars, "Handler:       $Handler$,\n");
 			if (method->ClientOnlyStreaming()) {
 				printer->Print("ClientStreams: true,\n");
 			} else if (method->ServerOnlyStreaming()) {
@@ -411,8 +407,7 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 	printer->Outdent();
 	printer->Print("},\n");
 	printer->Outdent();
-	printer->Print("}\n\n");
-
+	printer->Print("}\n");
 }
 
 
