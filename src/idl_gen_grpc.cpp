@@ -175,7 +175,7 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::string additional_imports() const {
-    return "import \"github.com/google/flatbuffers/go\"";
+    return "flatbuffers \"github.com/google/flatbuffers/go\"\n";
   }
 
   int service_count() const {

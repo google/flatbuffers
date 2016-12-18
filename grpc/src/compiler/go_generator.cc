@@ -70,12 +70,11 @@ void GenerateImports(grpc_generator::File *file, grpc_generator::Printer *printe
 	printer->Print("//If you make any local changes, they will be lost\n");
 	printer->Print(vars, "//source: $filename$\n\n");
 	printer->Print(vars, "package $Package$\n\n");
-	if (file->additional_imports() != "") {
-		printer->Print(file->additional_imports().c_str());
-		printer->Print("\n\n");
-	}
 	printer->Print("import (\n");
 	printer->Indent();
+	if (file->additional_imports() != "") {
+		printer->Print(file->additional_imports().c_str());
+	}
 	printer->Print(vars, "$context$ \"golang.org/x/net/context\"\n");
 	printer->Print(vars, "$grpc$ \"google.golang.org/grpc\"\n");
 	printer->Outdent();
