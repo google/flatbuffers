@@ -472,36 +472,6 @@ class CppGenerator : public BaseGenerator {
               GenTypeBasic(enum_def.underlying_type, false) + ")\n";
     code += "\n";
 
-    if (parser_.opts.generate_object_based_api && enum_def.is_union) {
-      // Generate a union type
-      code += "struct " + enum_def.name + "Union {\n";
-      code += "  " + enum_def.name + " type;\n\n";
-      code += "  flatbuffers::NativeTable *table;\n";
-      code += "  " + enum_def.name + "Union() : type(";
-      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
-      code += "), table(nullptr) {}\n";
-      code += "  " + enum_def.name + "Union(const ";
-      code += enum_def.name + "Union &);\n";
-      code += "  " + enum_def.name + "Union &operator=(const ";
-      code += enum_def.name + "Union &);\n";
-      code += "  ~" + enum_def.name + "Union();\n\n";
-      code += "  " + UnionUnPackSignature(enum_def, true) + ";\n";
-      code += "  " + UnionPackSignature(enum_def, true) + ";\n\n";
-      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-           ++it) {
-        auto &ev = **it;
-        if (ev.value) {
-          auto native_name = NativeName(WrapInNameSpace(*ev.struct_def));
-          code += "  " + native_name + " *As";
-          code += ev.name + "() { return type == ";
-          code += GetEnumValUse(enum_def, ev, parser_.opts);
-          code += " ? reinterpret_cast<" + native_name;
-          code += " *>(table) : nullptr; }\n";
-        }
-      }
-      code += "};\n\n";
-    }
-
     // Generate a generate string table for enum values.
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
@@ -550,6 +520,50 @@ class CppGenerator : public BaseGenerator {
                 GetEnumValUse(enum_def, ev, parser_.opts) + ";\n";
         code += "};\n\n";
       }
+    }
+
+    if (parser_.opts.generate_object_based_api && enum_def.is_union) {
+      // Generate a union type
+      code += "struct " + enum_def.name + "Union {\n";
+      code += "  " + enum_def.name + " type = ";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
+      code += ";\n\n";
+      code += "  flatbuffers::NativeTable *table = nullptr;\n";
+      code += "  " + enum_def.name + "Union() : type(";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
+      code += "), table(nullptr) {}\n";
+      code += "  " + enum_def.name + "Union(const ";
+      code += enum_def.name + "Union &);\n";
+      code += "  " + enum_def.name + "Union &operator=(const ";
+      code += enum_def.name + "Union &);\n";
+      code += "  ~" + enum_def.name + "Union() { Reset(); }\n";
+      code += "  void Reset();\n\n";
+      code += "  template <typename T>\n";
+      code += "  void Set(T&& value) {\n";
+      code += "    Reset();\n";
+      code += "    type = " + enum_def.name;
+      code += "Traits<typename T::TableType>::enum_value;\n";
+      code += "    if (type != ";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
+      code += ") {\n";
+      code += "      table = new T(std::forward<T>(value));\n";
+      code += "    }\n";
+      code += "  }\n\n";
+      code += "  " + UnionUnPackSignature(enum_def, true) + ";\n";
+      code += "  " + UnionPackSignature(enum_def, true) + ";\n\n";
+      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+           ++it) {
+        auto &ev = **it;
+        if (ev.value) {
+          auto native_name = NativeName(WrapInNameSpace(*ev.struct_def));
+          code += "  " + native_name + " *As";
+          code += ev.name + "() { return type == ";
+          code += GetEnumValUse(enum_def, ev, parser_.opts);
+          code += " ? reinterpret_cast<" + native_name;
+          code += " *>(table) : nullptr; }\n";
+        }
+      }
+      code += "};\n\n";
     }
 
     if (enum_def.is_union) {
@@ -614,8 +628,7 @@ class CppGenerator : public BaseGenerator {
       code += "    default: return 0;\n  }\n}\n\n";
 
       // Generate a union destructor.
-      code += "inline " + enum_def.name + "Union::~";
-      code += enum_def.name + "Union() {\n";
+      code += "inline void " + enum_def.name + "Union::Reset() {\n";
       code += "  switch (type) {\n";
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
@@ -627,7 +640,13 @@ class CppGenerator : public BaseGenerator {
           code += " *>(table); break;\n";
         }
       }
-      code += "    default:;\n  }\n}\n\n";
+      code += "    default: break;\n";
+      code += "  }\n";
+      code += "  table = nullptr;\n";
+      code += "  type = ";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
+      code += ";\n";
+      code += "}\n\n";
     }
   }
 

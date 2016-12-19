@@ -52,23 +52,6 @@ enum Any {
   Any_MAX = Any_MyGame_Example2_Monster
 };
 
-struct AnyUnion {
-  Any type;
-
-  flatbuffers::NativeTable *table;
-  AnyUnion() : type(Any_NONE), table(nullptr) {}
-  AnyUnion(const AnyUnion &);
-  AnyUnion &operator=(const AnyUnion &);
-  ~AnyUnion();
-
-  static flatbuffers::NativeTable *UnPack(const void *union_obj, Any type, const flatbuffers::resolver_function_t *resolver);
-  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *rehasher = nullptr) const;
-
-  MonsterT *AsMonster() { return type == Any_Monster ? reinterpret_cast<MonsterT *>(table) : nullptr; }
-  TestSimpleTableWithEnumT *AsTestSimpleTableWithEnum() { return type == Any_TestSimpleTableWithEnum ? reinterpret_cast<TestSimpleTableWithEnumT *>(table) : nullptr; }
-  MyGame::Example2::MonsterT *AsMyGame_Example2_Monster() { return type == Any_MyGame_Example2_Monster ? reinterpret_cast<MyGame::Example2::MonsterT *>(table) : nullptr; }
-};
-
 inline const char **EnumNamesAny() {
   static const char *names[] = { "NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster", nullptr };
   return names;
@@ -90,6 +73,33 @@ template<> struct AnyTraits<TestSimpleTableWithEnum> {
 
 template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enum_value = Any_MyGame_Example2_Monster;
+};
+
+struct AnyUnion {
+  Any type = Any_NONE;
+
+  flatbuffers::NativeTable *table = nullptr;
+  AnyUnion() : type(Any_NONE), table(nullptr) {}
+  AnyUnion(const AnyUnion &);
+  AnyUnion &operator=(const AnyUnion &);
+  ~AnyUnion() { Reset(); }
+  void Reset();
+
+  template <typename T>
+  void Set(T&& value) {
+    Reset();
+    type = AnyTraits<typename T::TableType>::enum_value;
+    if (type != Any_NONE) {
+      table = new T(std::move(value));
+    }
+  }
+
+  static flatbuffers::NativeTable *UnPack(const void *union_obj, Any type, const flatbuffers::resolver_function_t *resolver);
+  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *rehasher = nullptr) const;
+
+  MonsterT *AsMonster() { return type == Any_Monster ? reinterpret_cast<MonsterT *>(table) : nullptr; }
+  TestSimpleTableWithEnumT *AsTestSimpleTableWithEnum() { return type == Any_TestSimpleTableWithEnum ? reinterpret_cast<TestSimpleTableWithEnumT *>(table) : nullptr; }
+  MyGame::Example2::MonsterT *AsMyGame_Example2_Monster() { return type == Any_MyGame_Example2_Monster ? reinterpret_cast<MyGame::Example2::MonsterT *>(table) : nullptr; }
 };
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type);
@@ -767,13 +777,15 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
   }
 }
 
-inline AnyUnion::~AnyUnion() {
+inline void AnyUnion::Reset() {
   switch (type) {
     case Any_Monster: delete reinterpret_cast<MonsterT *>(table); break;
     case Any_TestSimpleTableWithEnum: delete reinterpret_cast<TestSimpleTableWithEnumT *>(table); break;
     case Any_MyGame_Example2_Monster: delete reinterpret_cast<MyGame::Example2::MonsterT *>(table); break;
-    default:;
+    default: break;
   }
+  table = nullptr;
+  type = Any_NONE;
 }
 
 inline const MyGame::Example::Monster *GetMonster(const void *buf) {
