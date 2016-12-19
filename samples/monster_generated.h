@@ -111,6 +111,10 @@ struct MonsterT : public flatbuffers::NativeTable {
   Color color;
   std::vector<std::unique_ptr<WeaponT>> weapons;
   EquipmentUnion equipped;
+  MonsterT()
+    : mana(150),
+      hp(100),
+      color(Color_Blue) {}
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -228,6 +232,8 @@ struct WeaponT : public flatbuffers::NativeTable {
   typedef Weapon TableType;
   std::string name;
   int16_t damage;
+  WeaponT()
+    : damage(0) {}
 };
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

@@ -162,6 +162,7 @@ namespace Example2 {
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
+  MonsterT() {}
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -199,6 +200,8 @@ namespace Example {
 struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
   Color color;
+  TestSimpleTableWithEnumT()
+    : color(Color_Green) {}
 };
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -243,6 +246,9 @@ struct StatT : public flatbuffers::NativeTable {
   std::string id;
   int64_t val;
   uint16_t count;
+  StatT()
+    : val(0),
+      count(0) {}
 };
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -333,6 +339,22 @@ struct MonsterT : public flatbuffers::NativeTable {
   float testf2;
   float testf3;
   std::vector<std::string> testarrayofstring2;
+  MonsterT()
+    : mana(150),
+      hp(100),
+      color(Color_Blue),
+      testbool(false),
+      testhashs32_fnv1(0),
+      testhashu32_fnv1(0),
+      testhashs64_fnv1(0),
+      testhashu64_fnv1(0),
+      testhashs32_fnv1a(0),
+      testhashu32_fnv1a(0),
+      testhashs64_fnv1a(0),
+      testhashu64_fnv1a(0),
+      testf(3.14159f),
+      testf2(3.0f),
+      testf3(0.0f) {}
 };
 
 /// an example documentation comment: monster object
