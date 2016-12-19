@@ -691,24 +691,70 @@ class CppGenerator : public BaseGenerator {
                : field.value.constant;
   }
 
-  void GenSimpleParam(std::string &code, FieldDef &field) {
-    code += ",\n    " + GenTypeWire(field.value.type, " ", true);
-    code += field.name + " = ";
+  std::string GetDefaultScalarValue(const FieldDef &field) {
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
           static_cast<int>(StringToInt(field.value.constant.c_str())), false);
       if (ev) {
-        code += WrapInNameSpace(
+        return WrapInNameSpace(
             field.value.type.enum_def->defined_namespace,
             GetEnumValUse(*field.value.type.enum_def, *ev, parser_.opts));
       } else {
-        code += GenUnderlyingCast(field, true, field.value.constant);
+        return GenUnderlyingCast(field, true, field.value.constant);
       }
     } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
-      code += field.value.constant == "0" ? "false" : "true";
+      return field.value.constant == "0" ? "false" : "true";
     } else {
-      code += GenDefaultConstant(field);
+      return GenDefaultConstant(field);
     }
+  }
+
+  void GenSimpleParam(std::string &code, FieldDef &field) {
+    code += ",\n    " + GenTypeWire(field.value.type, " ", true);
+    code += field.name + " = " + GetDefaultScalarValue(field);
+  }
+
+  // Generate a member, including a default value for scalars and raw pointers.
+  void GenMember(std::string& code, const FieldDef &field) {
+    if (!field.deprecated &&  // Deprecated fields won't be accessible.
+        field.value.type.base_type != BASE_TYPE_UTYPE) {
+      auto type = GenTypeNative(field.value.type, false, field);
+      auto cpp_type = field.attributes.Lookup("cpp_type");
+      code += "  " + (cpp_type ? cpp_type->constant + " *" : type+ " ") +
+              field.name + ";\n";
+    }
+  }
+
+  // Generate the default constructor for this struct. Properly initialize all
+  // scalar members with default values.
+  void GenDefaultConstructor(std::string& code, const StructDef& struct_def) {
+    code += "  " + NativeName(struct_def.name) + "()";
+    std::string initializer_list;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (!field.deprecated &&  // Deprecated fields won't be accessible.
+          field.value.type.base_type != BASE_TYPE_UTYPE) {
+        auto cpp_type = field.attributes.Lookup("cpp_type");
+        // Scalar types get parsed defaults, raw pointers get nullptrs.
+        if (IsScalar(field.value.type.base_type)) {
+          if (!initializer_list.empty()) {
+            initializer_list += ",\n      ";
+          }
+          initializer_list += field.name + "(" +GetDefaultScalarValue(field) +
+              ")";
+        } else if (cpp_type) {
+          if (!initializer_list.empty()) {
+            code += ",\n      ";
+          }
+          initializer_list += field.name + "(0)";
+        }
+      }
+    }
+    if (!initializer_list.empty()) {
+      code += "\n    : " + initializer_list;
+    }
+    code += " {}\n";
   }
 
   // Generate an accessor struct, builder structs & function for a table.
@@ -726,14 +772,9 @@ class CppGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
-        if (!field.deprecated &&  // Deprecated fields won't be accessible.
-            field.value.type.base_type != BASE_TYPE_UTYPE) {
-          auto type = GenTypeNative(field.value.type, false, field);
-          auto cpp_type = field.attributes.Lookup("cpp_type");
-          code += "  " + (cpp_type ? cpp_type->constant + " *" : type+ " ") +
-                  field.name + ";\n";
-        }
+        GenMember(code, field);
       }
+      GenDefaultConstructor(code, struct_def);
       code += "};\n\n";
     }
 
