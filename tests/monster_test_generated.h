@@ -90,7 +90,7 @@ struct AnyUnion {
     Reset();
     type = AnyTraits<typename T::TableType>::enum_value;
     if (type != Any_NONE) {
-      table = new T(std::move(value));
+      table = new T(std::forward<T>(value));
     }
   }
 

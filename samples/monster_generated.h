@@ -68,7 +68,7 @@ struct EquipmentUnion {
     Reset();
     type = EquipmentTraits<typename T::TableType>::enum_value;
     if (type != Equipment_NONE) {
-      table = new T(std::move(value));
+      table = new T(std::forward<T>(value));
     }
   }
 
