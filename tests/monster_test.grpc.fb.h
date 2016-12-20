@@ -5,10 +5,11 @@
 #define GRPC_monster_5ftest__INCLUDED
 
 #include "monster_test_generated.h"
+#include "flatbuffers/grpc.h"
+
 
 #include <grpc++/impl/codegen/async_stream.h>
 #include <grpc++/impl/codegen/async_unary_call.h>
-#include <grpc++/impl/codegen/proto_utils.h>
 #include <grpc++/impl/codegen/rpc_method.h>
 #include <grpc++/impl/codegen/service_type.h>
 #include <grpc++/impl/codegen/status.h>
@@ -35,13 +36,16 @@ class MonsterStorage GRPC_FINAL {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>> AsyncStore(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>>(AsyncStoreRaw(context, request, cq));
     }
-    virtual ::grpc::Status Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, flatbuffers::BufferRef<Monster>* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Monster>>> AsyncRetrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Monster>>>(AsyncRetrieveRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>> Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>>(RetrieveRaw(context, request));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>> AsyncRetrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>>(AsyncRetrieveRaw(context, request, cq, tag));
     }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>* AsyncStoreRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Monster>>* AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>* RetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>* AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
   };
   class Stub GRPC_FINAL : public StubInterface {
    public:
@@ -50,15 +54,18 @@ class MonsterStorage GRPC_FINAL {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Stat>>> AsyncStore(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Stat>>>(AsyncStoreRaw(context, request, cq));
     }
-    ::grpc::Status Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, flatbuffers::BufferRef<Monster>* response) GRPC_OVERRIDE;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Monster>>> AsyncRetrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Monster>>>(AsyncRetrieveRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientReader< flatbuffers::BufferRef<Monster>>> Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) {
+      return std::unique_ptr< ::grpc::ClientReader< flatbuffers::BufferRef<Monster>>>(RetrieveRaw(context, request));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReader< flatbuffers::BufferRef<Monster>>> AsyncRetrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< flatbuffers::BufferRef<Monster>>>(AsyncRetrieveRaw(context, request, cq, tag));
     }
   
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Stat>>* AsyncStoreRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) GRPC_OVERRIDE;
-    ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Monster>>* AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq) GRPC_OVERRIDE;
+    ::grpc::ClientReader< flatbuffers::BufferRef<Monster>>* RetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) GRPC_OVERRIDE;
+    ::grpc::ClientAsyncReader< flatbuffers::BufferRef<Monster>>* AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) GRPC_OVERRIDE;
     const ::grpc::RpcMethod rpcmethod_Store_;
     const ::grpc::RpcMethod rpcmethod_Retrieve_;
   };
@@ -69,7 +76,7 @@ class MonsterStorage GRPC_FINAL {
     Service();
     virtual ~Service();
     virtual ::grpc::Status Store(::grpc::ServerContext* context, const flatbuffers::BufferRef<Monster>* request, flatbuffers::BufferRef<Stat>* response);
-    virtual ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, flatbuffers::BufferRef<Monster>* response);
+    virtual ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer);
   };
   template <class BaseClass>
   class WithAsyncMethod_Store : public BaseClass {
@@ -103,12 +110,12 @@ class MonsterStorage GRPC_FINAL {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, flatbuffers::BufferRef<Monster>* response) GRPC_FINAL GRPC_OVERRIDE {
+    ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer) GRPC_FINAL GRPC_OVERRIDE {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRetrieve(::grpc::ServerContext* context, flatbuffers::BufferRef<Stat>* request, ::grpc::ServerAsyncResponseWriter< flatbuffers::BufferRef<Monster>>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    void RequestRetrieve(::grpc::ServerContext* context, flatbuffers::BufferRef<Stat>* request, ::grpc::ServerAsyncWriter< flatbuffers::BufferRef<Monster>>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(1, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   typedef   WithAsyncMethod_Store<  WithAsyncMethod_Retrieve<  Service   >   >   AsyncService;
@@ -141,7 +148,7 @@ class MonsterStorage GRPC_FINAL {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, flatbuffers::BufferRef<Monster>* response) GRPC_FINAL GRPC_OVERRIDE {
+    ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer) GRPC_FINAL GRPC_OVERRIDE {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
