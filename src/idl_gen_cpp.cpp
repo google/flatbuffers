@@ -525,9 +525,7 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
       // Generate a union type
       code += "struct " + enum_def.name + "Union {\n";
-      code += "  " + enum_def.name + " type = ";
-      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
-      code += ";\n\n";
+      code += "  " + enum_def.name + " type;\n\n";
       code += "  flatbuffers::NativeTable *table = nullptr;\n";
       code += "  " + enum_def.name + "Union() : type(";
       code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
