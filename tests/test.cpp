@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
-#define FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -493,8 +490,15 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
+  
+
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
+
+  // Verify the buffer first using reflection based verification
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), flatbuf, length),
+          true);
+
   auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 80);
 
@@ -522,6 +526,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   flatbuffers::SetAnyFieldS(&root, hp_field, "300");
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
+
+  // Test buffer is valid after the modifications
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), flatbuf, length),
+          true);
 
   // Reset it, for further tests.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 80);
@@ -584,6 +592,11 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
         reinterpret_cast<const uint8_t *>(resizingbuf.data()),
         resizingbuf.size());
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
+    
+  // Test buffer is valid using reflection as well
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
+                              resizingbuf.size()), true);
+  
   // As an additional test, also set it on the name field.
   // Note: unlike the name change above, this just overwrites the offset,
   // rather than changing the string in-place.
@@ -600,6 +613,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   fbb.Finish(root_offset, MonsterIdentifier());
   // Test that it was copied correctly:
   AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
+
+  // Test buffer is valid using reflection as well
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                              fbb.GetBufferPointer(), fbb.GetSize()), true);
 }
 
 // Parse a .proto schema, output as .fbs
