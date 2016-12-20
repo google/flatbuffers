@@ -252,9 +252,9 @@ template<typename T> struct IndirectHelper<const T *> {
 // calling Get() for every element.
 template<typename T, typename IT>
 struct VectorIterator
-    : public std::iterator<std::input_iterator_tag, IT, uoffset_t> {
+    : public std::iterator<std::random_access_iterator_tag, IT, uoffset_t> {
 
-  typedef std::iterator<std::input_iterator_tag, IT, uoffset_t> super_type;
+  typedef std::iterator<std::random_access_iterator_tag, IT, uoffset_t> super_type;
 
 public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
@@ -274,15 +274,15 @@ public:
     return *this;
   }
 
-  bool operator==(const VectorIterator& other) const {
+  bool operator==(const VectorIterator &other) const {
     return data_ == other.data_;
   }
 
-  bool operator!=(const VectorIterator& other) const {
+  bool operator!=(const VectorIterator &other) const {
     return data_ != other.data_;
   }
 
-  ptrdiff_t operator-(const VectorIterator& other) const {
+  ptrdiff_t operator-(const VectorIterator &other) const {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
@@ -300,9 +300,38 @@ public:
   }
 
   VectorIterator operator++(int) {
-    VectorIterator temp(data_,0);
+    VectorIterator temp(data_, 0);
     data_ += IndirectHelper<T>::element_stride;
     return temp;
+  }
+
+  VectorIterator operator+(const uoffset_t &offset) {
+    return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator+=(const uoffset_t &offset) {
+    data_ += offset * IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator &operator--() {
+    data_ -= IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator operator--(int) {
+    VectorIterator temp(data_, 0);
+    data_ -= IndirectHelper<T>::element_stride;
+    return temp;
+  }
+
+  VectorIterator operator-(const uoffset_t &offset) {
+    return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator-=(const uoffset_t &offset) {
+    data_ -= offset * IndirectHelper<T>::element_stride;
+    return *this;
   }
 
 private:
@@ -1295,7 +1324,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      , upper_bound_(buf)
+        , upper_bound_(buf)
     #endif
     {}
 
@@ -1453,9 +1482,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_depth_;
   size_t num_tables_;
   size_t max_tables_;
-  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+#ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable const uint8_t *upper_bound_;
-  #endif
+#endif
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around
