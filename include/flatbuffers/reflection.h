@@ -108,6 +108,8 @@ inline Table *GetFieldT(const Table &table,
 // Get a field, if you know it's a struct.
 inline const Struct *GetFieldStruct(const Table &table,
                                     const reflection::Field &field) {
+  // TODO: This does NOT check if the field is a table or struct, but we'd need
+  // access to the schema to check the is_struct flag.
   assert(field.type()->base_type() == reflection::Obj);
   return table.GetStruct<const Struct *>(field.offset());
 }

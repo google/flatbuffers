@@ -525,7 +525,6 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(flatbuffers::GetAnyFieldF(
     *test3_struct, *test3_object->fields()->LookupByKey("a")), 10);
 
-
   // We can also modify it.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 200);
   hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
