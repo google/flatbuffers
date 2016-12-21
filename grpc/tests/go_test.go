@@ -6,7 +6,6 @@ import (
 	"net"
 	"testing"
 
-	"github.com/google/flatbuffers/go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -14,8 +13,8 @@ import (
 type server struct{}
 
 // test used to send and receive in grpc methods
-var test string = "Flatbuffers"
-var addr string = "0.0.0.0:50051"
+var test = "Flatbuffers"
+var addr = "0.0.0.0:50051"
 
 // gRPC server store method
 func (s *server) Store(context context.Context, in *Example.Monster) (*flatbuffers.Builder, error) {
@@ -46,7 +45,7 @@ func StoreClient(c Example.MonsterStorageClient, t *testing.T) {
 	b.Finish(Example.MonsterEnd(b))
 	out, err := c.Store(context.Background(), b)
 	if err != nil {
-		t.Fatal("Store client failed: %v", err)
+		t.Fatalf("Store client failed: %v", err)
 	}
 	if string(out.Id()) != test {
 		t.Errorf("StoreClient failed: expected=%s, got=%s\n", test, out.Id())
@@ -62,7 +61,7 @@ func RetrieveClient(c Example.MonsterStorageClient, t *testing.T) {
 	b.Finish(Example.StatEnd(b))
 	out, err := c.Retrieve(context.Background(), b)
 	if err != nil {
-		t.Fatal("Retrieve client failed: %v", err)
+		t.Fatalf("Retrieve client failed: %v", err)
 	}
 	if string(out.Name()) != test {
 		t.Errorf("RetrieveClient failed: expected=%s, got=%s\n", test, out.Name())
@@ -85,7 +84,7 @@ func TestGRPC(t *testing.T) {
 	}()
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithCodec(flatbuffers.FlatbuffersCodec{}))
 	if err != nil {
-		t.Fatal("Failed to connect: %v", err)
+		t.Fatalf("Failed to connect: %v", err)
 	}
 	defer conn.Close()
 	client := Example.NewMonsterStorageClient(conn)
