@@ -48,7 +48,7 @@ namespace grpc_go_generator {
 
 // Returns string with first letter to lowerCase
 grpc::string unexportName(grpc::string s) {
-	if (s.size() <= 0)
+	if (s.empty())
 		return s;
 	s[0] = std::tolower(s[0]);
 	return s;
@@ -56,7 +56,7 @@ grpc::string unexportName(grpc::string s) {
 
 // Returns string with first letter to uppercase
 grpc::string exportName(grpc::string s) {
-	if (s.size() <= 0)
+	if (s.empty())
 		return s;
 	s[0] = std::toupper(s[0]);
 	return s;
