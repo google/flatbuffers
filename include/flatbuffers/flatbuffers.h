@@ -1502,7 +1502,7 @@ template<typename T> struct BufferRef : BufferRefBase {
 
   bool Verify() {
     Verifier verifier(buf, len);
-    return verifier.VerifyBuffer<T>();
+    return verifier.VerifyBuffer<T>(nullptr);
   }
 
   uint8_t *buf;
