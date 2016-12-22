@@ -56,7 +56,7 @@ template<> struct EquipmentTraits<Weapon> {
 struct EquipmentUnion {
   Equipment type;
 
-  flatbuffers::NativeTable *table = nullptr;
+  flatbuffers::NativeTable *table;
   EquipmentUnion() : type(Equipment_NONE), table(nullptr) {}
   EquipmentUnion(const EquipmentUnion &);
   EquipmentUnion &operator=(const EquipmentUnion &);

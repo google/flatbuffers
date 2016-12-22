@@ -22,6 +22,10 @@ func (rcv *TableInC) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *TableInC) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *TableInC) ReferToA1(obj *TableInFirstNS) *TableInFirstNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {

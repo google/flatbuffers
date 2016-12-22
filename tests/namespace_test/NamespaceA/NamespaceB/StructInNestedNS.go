@@ -15,6 +15,10 @@ func (rcv *StructInNestedNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *StructInNestedNS) Table() flatbuffers.Table {
+	return rcv._tab.Table
+}
+
 func (rcv *StructInNestedNS) A() int32 {
 	return rcv._tab.GetInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }
