@@ -609,7 +609,7 @@ bool VerifyObject(flatbuffers::Verifier &v,
   if (!table->VerifyTableStart(v))
     return false;
 
-  for (size_t i = 0; i < obj.fields()->size(); i++) {
+  for (uoffset_t i = 0; i < obj.fields()->size(); i++) {
     auto field_def = obj.fields()->Get(i);
     switch (field_def->type()->base_type()) {
       case reflection::None:
