@@ -1354,39 +1354,40 @@ class CppGenerator : public BaseGenerator {
     code += struct_def.name + ")); }\n";
 
     // Generate a constructor that takes all fields as arguments.
-    code += "  " + struct_def.name + "(";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (it != struct_def.fields.vec.begin()) code += ", ";
-      code += GenTypeGet(field.value.type, " ", "const ", " &", true);
-      code += "_" + field.name;
-    }
-    code += ")\n    : ";
-    padding_id = 0;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (it != struct_def.fields.vec.begin()) code += ", ";
-      code += field.name + "_(";
-      if (IsScalar(field.value.type.base_type)) {
-        code += "flatbuffers::EndianScalar(";
-        code += GenUnderlyingCast(field, false, "_" + field.name);
-        code += "))";
-      } else {
-        code += "_" + field.name + ")";
+    if (struct_def.fields.vec.size()) {
+      code += "  " + struct_def.name + "(";
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (it != struct_def.fields.vec.begin()) code += ", ";
+        code += GenTypeGet(field.value.type, " ", "const ", " &", true);
+        code += "_" + field.name;
       }
-      GenPadding(field, code, padding_id, PaddingInitializer);
+      code += ")\n    : ";
+      padding_id = 0;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (it != struct_def.fields.vec.begin()) code += ", ";
+        code += field.name + "_(";
+        if (IsScalar(field.value.type.base_type)) {
+          code += "flatbuffers::EndianScalar(";
+          code += GenUnderlyingCast(field, false, "_" + field.name);
+          code += "))";
+        } else {
+          code += "_" + field.name + ")";
+        }
+        GenPadding(field, code, padding_id, PaddingInitializer);
+      }
+      code += " {";
+      padding_id = 0;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        GenPadding(field, code, padding_id, PaddingDeclaration);
+      }
+      code += " }\n\n";
     }
-
-    code += " {";
-    padding_id = 0;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      GenPadding(field, code, padding_id, PaddingDeclaration);
-    }
-    code += " }\n\n";
 
     // Generate accessor methods of the form:
     // type name() const { return flatbuffers::EndianScalar(name_); }
