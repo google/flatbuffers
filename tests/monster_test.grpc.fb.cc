@@ -4,8 +4,6 @@
 
 #include "monster_test_generated.h"
 #include "monster_test.grpc.fb.h"
-#include "flatbuffers/grpc.h"
-
 #include <grpc++/impl/codegen/async_stream.h>
 #include <grpc++/impl/codegen/async_unary_call.h>
 #include <grpc++/impl/codegen/channel_interface.h>
@@ -29,7 +27,7 @@ std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared
 
 MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   : channel_(channel)  , rpcmethod_Store_(MonsterStorage_method_names[0], ::grpc::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Retrieve_(MonsterStorage_method_names[1], ::grpc::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Retrieve_(MonsterStorage_method_names[1], ::grpc::RpcMethod::SERVER_STREAMING, channel)
   {}
   
 ::grpc::Status MonsterStorage::Stub::Store(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, flatbuffers::BufferRef<Stat>* response) {
@@ -40,12 +38,12 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
   return new ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Stat>>(channel_.get(), cq, rpcmethod_Store_, context, request);
 }
 
-::grpc::Status MonsterStorage::Stub::Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, flatbuffers::BufferRef<Monster>* response) {
-  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_Retrieve_, context, request, response);
+::grpc::ClientReader< flatbuffers::BufferRef<Monster>>* MonsterStorage::Stub::RetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) {
+  return new ::grpc::ClientReader< flatbuffers::BufferRef<Monster>>(channel_.get(), rpcmethod_Retrieve_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Monster>>* MonsterStorage::Stub::AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq) {
-  return new ::grpc::ClientAsyncResponseReader< flatbuffers::BufferRef<Monster>>(channel_.get(), cq, rpcmethod_Retrieve_, context, request);
+::grpc::ClientAsyncReader< flatbuffers::BufferRef<Monster>>* MonsterStorage::Stub::AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) {
+  return new ::grpc::ClientAsyncReader< flatbuffers::BufferRef<Monster>>(channel_.get(), cq, rpcmethod_Retrieve_, context, request, tag);
 }
 
 MonsterStorage::Service::Service() {
@@ -57,8 +55,8 @@ MonsterStorage::Service::Service() {
           std::mem_fn(&MonsterStorage::Service::Store), this)));
   AddMethod(new ::grpc::RpcServiceMethod(
       MonsterStorage_method_names[1],
-      ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< MonsterStorage::Service, flatbuffers::BufferRef<Stat>, flatbuffers::BufferRef<Monster>>(
+      ::grpc::RpcMethod::SERVER_STREAMING,
+      new ::grpc::ServerStreamingHandler< MonsterStorage::Service, flatbuffers::BufferRef<Stat>, flatbuffers::BufferRef<Monster>>(
           std::mem_fn(&MonsterStorage::Service::Retrieve), this)));
 }
 
@@ -72,10 +70,10 @@ MonsterStorage::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MonsterStorage::Service::Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, flatbuffers::BufferRef<Monster>* response) {
+::grpc::Status MonsterStorage::Service::Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer) {
   (void) context;
   (void) request;
-  (void) response;
+  (void) writer;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 

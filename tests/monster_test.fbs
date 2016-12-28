@@ -71,7 +71,7 @@ table Monster {
 
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
-  Retrieve(Stat):Monster (idempotent);
+  Retrieve(Stat):Monster (streaming: "server", idempotent);
 }
 
 root_type Monster;

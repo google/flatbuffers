@@ -107,6 +107,7 @@ grpc::string GetHeaderPrologue(grpc_generator::File *file, const Parameters & /*
     printer->Print(vars, "#define GRPC_$filename_identifier$__INCLUDED\n");
     printer->Print(vars, "\n");
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
+    printer->Print(vars, file->additional_headers().c_str());
     printer->Print(vars, "\n");
   }
   return output;
@@ -123,7 +124,6 @@ grpc::string GetHeaderIncludes(grpc_generator::File *file,
     static const char *headers_strs[] = {
       "grpc++/impl/codegen/async_stream.h",
       "grpc++/impl/codegen/async_unary_call.h",
-      "grpc++/impl/codegen/proto_utils.h",
       "grpc++/impl/codegen/rpc_method.h",
       "grpc++/impl/codegen/service_type.h",
       "grpc++/impl/codegen/status.h",
@@ -840,8 +840,7 @@ grpc::string GetSourcePrologue(grpc_generator::File *file, const Parameters & /*
     printer->Print(vars, "// source: $filename$\n\n");
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
     printer->Print(vars, "#include \"$filename_base$$service_header_ext$\"\n");
-    printer->Print(vars, file->additional_headers().c_str());
-    printer->Print(vars, "\n");
+    printer->Print("\n");
   }
   return output;
 }
@@ -868,6 +867,7 @@ grpc::string GetSourceIncludes(grpc_generator::File *file,
     PrintIncludes(printer.get(), headers, params);
 
     if (!file->package().empty()) {
+      printer->Print("\n");
       std::vector<grpc::string> parts = file->package_parts();
 
       for (auto part = parts.begin(); part != parts.end(); part++) {
