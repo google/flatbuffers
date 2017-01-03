@@ -320,6 +320,19 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     _o->equipped.Pack(_fbb));
 }
 
+}  // namespace Sample
+}  // namespace MyGame
+
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Sample::Monster> Create(FlatBufferBuilder &_fbb, const MyGame::Sample::MonsterT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Sample::CreateMonster(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
+namespace Sample {
+
 inline WeaponT *Weapon::UnPack(const flatbuffers::resolver_function_t *resolver) const {
   (void)resolver;
   auto _o = new WeaponT();
@@ -338,6 +351,19 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &
     _o->name.size() ? _fbb.CreateString(_o->name) : 0,
     _o->damage);
 }
+
+}  // namespace Sample
+}  // namespace MyGame
+
+namespace flatbuffers {
+template<>
+inline Offset<MyGame::Sample::Weapon> Create(FlatBufferBuilder &_fbb, const MyGame::Sample::WeaponT *_o, const rehasher_function_t *rehasher){
+  return MyGame::Sample::CreateWeapon(_fbb, _o, rehasher);
+}
+}
+
+namespace MyGame {
+namespace Sample {
 
 inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *union_obj, Equipment type) {
   switch (type) {

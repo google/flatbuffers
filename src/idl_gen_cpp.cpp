@@ -135,6 +135,10 @@ class CppGenerator : public BaseGenerator {
       if (!struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
         GenTablePost(struct_def, &code);
+
+        SetNameSpace(nullptr, &code);
+        GenTableCreateTemplate(struct_def, &code);
+        SetNameSpace(struct_def.defined_namespace, &code);
       }
     }
 
@@ -1288,6 +1292,21 @@ class CppGenerator : public BaseGenerator {
       code += ");\n}\n\n";
       if (!any_fields) code.insert(before_return_statement, "  (void)_o;\n");
     }
+  }
+
+  void GenTableCreateTemplate(StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    
+    code += "namespace flatbuffers {\n";
+    code += "template<>\ninline Offset<" + WrapInNameSpace(struct_def);
+    code += "> Create(";
+    code += "FlatBufferBuilder &_fbb, const ";
+    code += WrapInNameSpace(struct_def) + "T *_o, ";
+    code += "const rehasher_function_t *rehasher){\n  return ";
+    code += WrapInNameSpace(struct_def.defined_namespace, 
+      "Create" + struct_def.name);
+    code += "(_fbb, _o, rehasher);\n";
+    code += "}\n}\n\n";
   }
 
   static void GenPadding(const FieldDef &field, std::string &code,
