@@ -78,7 +78,7 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
 struct AnyUnion {
   Any type;
 
-  flatbuffers::NativeTable *table = nullptr;
+  flatbuffers::NativeTable *table;
   AnyUnion() : type(Any_NONE), table(nullptr) {}
   AnyUnion(const AnyUnion &);
   AnyUnion &operator=(const AnyUnion &);
