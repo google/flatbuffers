@@ -7,7 +7,6 @@
 #include "monster_test_generated.h"
 #include "flatbuffers/grpc.h"
 
-
 #include <grpc++/impl/codegen/async_stream.h>
 #include <grpc++/impl/codegen/async_unary_call.h>
 #include <grpc++/impl/codegen/rpc_method.h>

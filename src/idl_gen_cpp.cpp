@@ -567,7 +567,7 @@ class CppGenerator : public BaseGenerator {
       // Generate a union type
       code += "struct " + enum_def.name + "Union {\n";
       code += "  " + enum_def.name + " type;\n\n";
-      code += "  flatbuffers::NativeTable *table = nullptr;\n";
+      code += "  flatbuffers::NativeTable *table;\n";
       code += "  " + enum_def.name + "Union() : type(";
       code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"));
       code += "), table(nullptr) {}\n";
