@@ -484,9 +484,9 @@ struct String : public Vector<char> {
 // with custom allocation (see the FlatBufferBuilder constructor).
 class simple_allocator {
  public:
-  virtual ~simple_allocator() {}
-  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
-  virtual void deallocate(uint8_t *p) const { delete[] p; }
+  virtual ~simple_allocator(){}
+  virtual uint8_t *allocate(size_t size) { return new uint8_t[size]; }
+  virtual void deallocate(uint8_t *p) { delete[] p; }
 };
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
@@ -495,7 +495,7 @@ class simple_allocator {
 class vector_downward {
  public:
   explicit vector_downward(size_t initial_size,
-                           const simple_allocator &allocator)
+                           simple_allocator &allocator)
     : reserved_(initial_size),
       buf_(allocator.allocate(reserved_)),
       cur_(buf_ + reserved_),
@@ -518,12 +518,8 @@ class vector_downward {
   #ifndef FLATBUFFERS_CPP98_STL
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
-    // Actually deallocate from the start of the allocated memory.
-    std::function<void(uint8_t *)> deleter(
-      std::bind(&simple_allocator::deallocate, allocator_, buf_));
-
     // Point to the desired offset.
-    unique_ptr_t retval(data(), deleter);
+    unique_ptr_t retval(data(), [this](uint8_t*){allocator_.deallocate(buf_);});
 
     // Don't deallocate when this instance is destroyed.
     buf_ = nullptr;
@@ -592,7 +588,7 @@ class vector_downward {
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
-  const simple_allocator &allocator_;
+  simple_allocator &allocator_;
 };
 
 // Converts a Field ID to a virtual table offset.
@@ -640,7 +636,7 @@ FLATBUFFERS_FINAL_CLASS
   /// used. Defaults to `nullptr`, which means the `default_allocator` will be
   /// be used.
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
-                             const simple_allocator *allocator = nullptr)
+                             simple_allocator *allocator = nullptr)
       : buf_(initial_size, allocator ? *allocator : default_allocator),
         nested(false), finished(false), minalign_(1), force_defaults_(false),
         string_pool(nullptr) {
