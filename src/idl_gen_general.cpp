@@ -276,7 +276,7 @@ class GeneralGenerator : public BaseGenerator {
     return SaveFile(filename.c_str(), code, false);
   }
 
-  const Namespace *CurrentNameSpace() { return cur_name_space_; }
+  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
   std::string FunctionStart(char upper) {
     return std::string() + (lang_.language == IDLOptions::kJava
