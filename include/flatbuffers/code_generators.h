@@ -23,9 +23,9 @@ class BaseGenerator {
  public:
   virtual bool generate() = 0;
 
-  static const std::string NamespaceDir(const Parser &parser,
-                                        const std::string &path,
-                                        const Namespace &ns) {
+  static std::string NamespaceDir(const Parser &parser,
+                                  const std::string &path,
+                                  const Namespace &ns) {
     EnsureDirExists(path.c_str());
     if (parser.opts.one_file) return path;
     std::string namespace_dir = path;  // Either empty or ends in separator.
@@ -46,14 +46,14 @@ class BaseGenerator {
         path_(path),
         file_name_(file_name),
         qualifying_start_(qualifying_start),
-        qualifying_separator_(qualifying_separator){};
-  virtual ~BaseGenerator(){};
+        qualifying_separator_(qualifying_separator) {}
+  virtual ~BaseGenerator() {}
 
   // No copy/assign.
   BaseGenerator &operator=(const BaseGenerator &);
   BaseGenerator(const BaseGenerator &);
 
-  const std::string NamespaceDir(const Namespace &ns) {
+  std::string NamespaceDir(const Namespace &ns) const {
     return BaseGenerator::NamespaceDir(parser_, path_, ns);
   }
 
@@ -62,7 +62,7 @@ class BaseGenerator {
            " do not modify\n\n";
   }
 
-  bool IsEverythingGenerated() {
+  bool IsEverythingGenerated() const {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       if (!(*it)->generated) return false;
@@ -74,7 +74,7 @@ class BaseGenerator {
     return true;
   }
 
-  std::string FullNamespace(const char *separator, const Namespace &ns) {
+  static std::string FullNamespace(const char *separator, const Namespace &ns) {
     std::string namespace_name;
     auto &namespaces = ns.components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
@@ -84,10 +84,9 @@ class BaseGenerator {
     return namespace_name;
   }
 
-  const std::string LastNamespacePart(const Namespace &ns) {
-    auto &namespaces = ns.components;
-    if (namespaces.size())
-      return *(namespaces.end() - 1);
+  static std::string LastNamespacePart(const Namespace &ns) {
+    if (!ns.components.empty())
+      return ns.components.back();
     else
       return std::string("");
   }
@@ -96,11 +95,12 @@ class BaseGenerator {
   // c++, java and csharp returns a different namespace from
   // the following default (no early exit, always fully qualify),
   // which works for js and php
-  virtual const Namespace *CurrentNameSpace() { return nullptr; }
+  virtual const Namespace *CurrentNameSpace() const { return nullptr; }
 
   // Ensure that a type is prefixed with its namespace whenever it is used
   // outside of its namespace.
-  std::string WrapInNameSpace(const Namespace *ns, const std::string &name) {
+  std::string WrapInNameSpace(const Namespace *ns,
+                              const std::string &name) const {
     if (CurrentNameSpace() == ns) return name;
     std::string qualified_name = qualifying_start_;
     for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
@@ -108,7 +108,7 @@ class BaseGenerator {
     return qualified_name + name;
   }
 
-  std::string WrapInNameSpace(const Definition &def) {
+  std::string WrapInNameSpace(const Definition &def) const {
     return WrapInNameSpace(def.defined_namespace, def.name);
   }
 
