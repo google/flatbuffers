@@ -923,7 +923,6 @@ class CppGenerator : public BaseGenerator {
         }
       }
     }
-
   }
 
   void GenTableVerifier(const StructDef &struct_def,
@@ -1038,7 +1037,6 @@ class CppGenerator : public BaseGenerator {
     code += "    return o;\n";
     code += "  }\n";
     code += "};\n\n";
-
   }
 
   void GenTableFactoryMethods(const StructDef &struct_def,
@@ -1120,8 +1118,8 @@ class CppGenerator : public BaseGenerator {
       code += ");\n";
       code += "}\n\n";
     }
-
   }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
