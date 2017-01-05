@@ -814,6 +814,34 @@ class CppGenerator : public BaseGenerator {
     code += " {}\n";
   }
 
+  void GenTableFieldIdConstants(const StructDef &struct_def,
+                                std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    if (struct_def.fields.vec.size() > 0) {
+      code += "  enum {\n";
+      bool is_first_field =
+          true;  // track the first field that's not deprecated
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        if (!field.deprecated) {  // Deprecated fields won't be accessible.
+          if (!is_first_field) {
+            // Add trailing comma and newline to previous element. Don't add
+            // trailing comma to
+            // last element since older versions of gcc complain about this.
+            code += ",\n";
+          } else {
+            is_first_field = false;
+          }
+          code += "    " + GenFieldOffsetName(field) + " = ";
+          code += NumToString(field.value.offset);
+        }
+      }
+      code += "\n";
+      code += "  };\n";
+    }
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
@@ -848,29 +876,8 @@ class CppGenerator : public BaseGenerator {
     // Generate GetFullyQualifiedName
     GenFullyQualifiedNameGetter(struct_def.name, &code);
     // Generate field id constants.
-    if (struct_def.fields.vec.size() > 0) {
-      code += "  enum {\n";
-      bool is_first_field =
-          true;  // track the first field that's not deprecated
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (!field.deprecated) {  // Deprecated fields won't be accessible.
-          if (!is_first_field) {
-            // Add trailing comma and newline to previous element. Don't add
-            // trailing comma to
-            // last element since older versions of gcc complain about this.
-            code += ",\n";
-          } else {
-            is_first_field = false;
-          }
-          code += "    " + GenFieldOffsetName(field) + " = ";
-          code += NumToString(field.value.offset);
-        }
-      }
-      code += "\n";
-      code += "  };\n";
-    }
+    GenTableFieldIdConstants(struct_def, code_ptr);
+
     // Generate the accessors.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
