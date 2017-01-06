@@ -44,7 +44,7 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
   }
   virtual ::grpc::Status Retrieve(::grpc::ServerContext *context,
                                   const flatbuffers::BufferRef<Stat> *request,
-                                  flatbuffers::BufferRef<Monster> *response)
+                                   ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer)
                                   override {
     assert(false);  // We're not actually using this RPC.
     return grpc::Status::CANCELLED;

@@ -210,17 +210,21 @@ class GeneralGenerator : public BaseGenerator {
   GeneralGenerator(const Parser &parser, const std::string &path,
                    const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
-        lang_(language_parameters[parser_.opts.lang]) {
+        lang_(language_parameters[parser_.opts.lang]),
+        cur_name_space_( nullptr ) {
     assert(parser_.opts.lang <= IDLOptions::kMAX);
       };
   GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
+    cur_name_space_ = parser_.namespaces_.back();
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
       auto &enum_def = **it;
+      if (!parser_.opts.one_file)
+        cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
@@ -234,6 +238,8 @@ class GeneralGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
       auto &struct_def = **it;
+      if (!parser_.opts.one_file)
+        cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, &declcode);
       if (parser_.opts.one_file) {
         one_file_code += declcode;
@@ -270,7 +276,7 @@ class GeneralGenerator : public BaseGenerator {
     return SaveFile(filename.c_str(), code, false);
   }
 
-  const Namespace *CurrentNameSpace() { return parser_.namespaces_.back(); }
+  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
   std::string FunctionStart(char upper) {
     return std::string() + (lang_.language == IDLOptions::kJava
@@ -484,9 +490,21 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
       return GenEnumDefaultValue(value);
     }
   }
+
+  auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+    case BASE_TYPE_ULONG: 
+    {
+      if (lang_.language != IDLOptions::kJava)
+        return value.constant;
+      // Converts the ulong into its bits signed equivalent
+      uint64_t defaultValue = StringToUInt(value.constant.c_str());
+      return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
+    }
+    case BASE_TYPE_UINT:
+    case BASE_TYPE_LONG: return value.constant + longSuffix;
     default: return value.constant;
   }
 }
@@ -1292,7 +1310,10 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           lang_.language == IDLOptions::kCSharp) {
         code += ".Value";
       }
-      code += ", " + GenDefaultValue(field.value, false);
+      code += ", ";
+      if (lang_.language == IDLOptions::kJava)
+        code += SourceCastBasic( field.value.type );
+      code += GenDefaultValue(field.value, false);
       code += "); }\n";
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         auto vector_type = field.value.type.VectorType();
@@ -1423,6 +1444,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
   code += "\n\n";
 }
     const LanguageParameters & lang_;
+    // This tracks the current namespace used to determine if a type need to be prefixed by its namespace
+    const Namespace *cur_name_space_;
 };
 }  // namespace general
 
@@ -1444,8 +1467,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
     auto &enum_def = **it;
     if (make_rule != "") make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace) +
-        kPathSeparator;
+        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
     make_rule += directory + enum_def.name + lang.file_extension;
   }
 
@@ -1454,8 +1476,8 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
     auto &struct_def = **it;
     if (make_rule != "") make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *struct_def.defined_namespace) +
-        kPathSeparator;
+        BaseGenerator::NamespaceDir(parser, path,
+                                    *struct_def.defined_namespace);
     make_rule += directory + struct_def.name + lang.file_extension;
   }
 

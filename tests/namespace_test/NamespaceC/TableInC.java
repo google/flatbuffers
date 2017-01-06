@@ -16,8 +16,8 @@ public final class TableInC extends Table {
 
   public NamespaceA.TableInFirstNS referToA1() { return referToA1(new NamespaceA.TableInFirstNS()); }
   public NamespaceA.TableInFirstNS referToA1(NamespaceA.TableInFirstNS obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
-  public SecondTableInA referToA2() { return referToA2(new SecondTableInA()); }
-  public SecondTableInA referToA2(SecondTableInA obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public NamespaceA.SecondTableInA referToA2() { return referToA2(new NamespaceA.SecondTableInA()); }
+  public NamespaceA.SecondTableInA referToA2(NamespaceA.SecondTableInA obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
   public static int createTableInC(FlatBufferBuilder builder,
       int refer_to_a1Offset,

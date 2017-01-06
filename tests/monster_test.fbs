@@ -61,7 +61,7 @@ table Monster {
   testhashs64_fnv1:long (id:18, hash:"fnv1_64");
   testhashu64_fnv1:ulong (id:19, hash:"fnv1_64");
   testhashs32_fnv1a:int (id:20, hash:"fnv1a_32");
-  testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32");
+  testhashu32_fnv1a:uint (id:21, hash:"fnv1a_32", cpp_type:"Stat");
   testhashs64_fnv1a:long (id:22, hash:"fnv1a_64");
   testhashu64_fnv1a:ulong (id:23, hash:"fnv1a_64");
   testf:float = 3.14159 (id:25);
@@ -71,7 +71,7 @@ table Monster {
 
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
-  Retrieve(Stat):Monster (idempotent);
+  Retrieve(Stat):Monster (streaming: "server", idempotent);
 }
 
 root_type Monster;

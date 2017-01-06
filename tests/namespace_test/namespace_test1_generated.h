@@ -61,7 +61,9 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct TableInNestedNSBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_foo(int32_t foo) { fbb_.AddElement<int32_t>(TableInNestedNS::VT_FOO, foo, 0); }
+  void add_foo(int32_t foo) {
+    fbb_.AddElement<int32_t>(TableInNestedNS::VT_FOO, foo, 0);
+  }
   TableInNestedNSBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TableInNestedNSBuilder &operator=(const TableInNestedNSBuilder &);
   flatbuffers::Offset<TableInNestedNS> Finish() {
