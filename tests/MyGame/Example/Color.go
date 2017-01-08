@@ -3,14 +3,13 @@
 package Example
 
 const (
-	ColorRed = 1
+	ColorRed   = 1
 	ColorGreen = 2
-	ColorBlue = 8
+	ColorBlue  = 8
 )
 
 var EnumNamesColor = map[int]string{
-	ColorRed:"Red",
-	ColorGreen:"Green",
-	ColorBlue:"Blue",
+	ColorRed:   "Red",
+	ColorGreen: "Green",
+	ColorBlue:  "Blue",
 }
-
