@@ -149,8 +149,7 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
     }
     stream << components[i];
   }
-
-  stream << "." << name;
+  if (name.length()) stream << "." << name;
   return stream.str();
 }
 
