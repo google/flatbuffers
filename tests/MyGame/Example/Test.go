@@ -15,6 +15,10 @@ func (rcv *Test) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *Test) Table() flatbuffers.Table {
+	return rcv._tab.Table
+}
+
 func (rcv *Test) A() int16 {
 	return rcv._tab.GetInt16(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }

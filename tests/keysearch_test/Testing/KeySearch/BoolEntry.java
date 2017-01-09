@@ -41,5 +41,33 @@ public final class BoolEntry extends Table {
     byte val_2 = _bb.get(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
+
+  public static int lookupByKey( int bb_pos, int fieldDataOffset, boolean key, boolean defaultKeyValue , ByteBuffer bb) {
+    if ( fieldDataOffset == 0 )
+        return 0;
+    int vectorOffsetPos = bb_pos + fieldDataOffset;
+    int vectorLocation = bb.getInt( vectorOffsetPos ) + vectorOffsetPos;
+    int span = bb.getInt(vectorLocation);
+    vectorLocation += 4;
+    byte comparableKey =  key ? (byte)1 : (byte)0;
+    byte comparableDefault = defaultKeyValue ? (byte)1 : (byte)0;
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int keyValueOffset = __offset( 4, tableOffset, bb );
+      byte val = keyValueOffset != 0 ? bb.get(tableOffset + keyValueOffset) : comparableDefault;
+      if (comparableKey < val) {
+        span = middle;
+      } else if (comparableKey > val) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
 }
 

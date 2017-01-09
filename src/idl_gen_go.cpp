@@ -144,6 +144,23 @@ static void InitializeExisting(const StructDef &struct_def,
   code += "}\n\n";
 }
 
+// Implement the table accessor
+static void GenTableAccessor(const StructDef &struct_def,
+                               std::string *code_ptr) {
+  std::string &code = *code_ptr;
+
+  GenReceiver(struct_def, code_ptr);
+  code += " Table() flatbuffers.Table ";
+  code += "{\n";
+
+  if (struct_def.fixed) {
+      code += "\treturn rcv._tab.Table\n";
+  } else {
+      code += "\treturn rcv._tab\n";
+  }
+  code += "}\n\n";
+}
+
 // Get the length of a vector.
 static void GetVectorLen(const StructDef &struct_def,
                          const FieldDef &field,
@@ -591,6 +608,10 @@ static void GenStruct(const StructDef &struct_def,
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
   InitializeExisting(struct_def, code_ptr);
+  // Generate _tab accessor
+  GenTableAccessor(struct_def, code_ptr);
+
+  // Generate struct fields accessors
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -601,6 +622,7 @@ static void GenStruct(const StructDef &struct_def,
     GenStructMutator(struct_def, field, code_ptr);
   }
 
+  // Generate builders
   if (struct_def.fixed) {
     // create a struct constructor function
     GenStructBuilder(struct_def, code_ptr);

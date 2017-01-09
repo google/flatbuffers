@@ -50,6 +50,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
+  grpc/src/compiler/go_generator.h
+  grpc/src/compiler/go_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -201,6 +203,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  set_property(TARGET flattests
+    PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+    FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)

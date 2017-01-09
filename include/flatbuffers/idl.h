@@ -102,6 +102,8 @@ inline bool IsInteger(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_ULONG; }
 inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||
                                            t == BASE_TYPE_DOUBLE; }
+inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
+                                           t == BASE_TYPE_ULONG; }
 
 extern const char *const kTypeNames[];
 extern const char kTypeSizes[];
@@ -235,6 +237,8 @@ struct FieldDef : public Definition {
                    // written in new data nor accessed in new code.
   bool required;   // Field must always be present.
   bool key;        // Field functions as a key for creating sorted vectors.
+  bool native_inline;  // Field will be defined inline (instead of as a pointer)
+                       // for native tables if field is a struct.
   size_t padding;  // Bytes to always pad after this field.
 };
 
@@ -456,6 +460,7 @@ class Parser : public ParserState {
     known_attributes_["cpp_type"] = true;
     known_attributes_["cpp_ptr_type"] = true;
     known_attributes_["java_prefix"] = true;
+    known_attributes_["native_inline"] = true;
   }
 
   ~Parser() {
@@ -648,8 +653,8 @@ extern bool GenerateJava(const Parser &parser,
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
 extern bool GeneratePhp(const Parser &parser,
-       const std::string &path,
-       const std::string &file_name);
+                        const std::string &path,
+                        const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
@@ -707,11 +712,17 @@ extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
                                   const std::string &file_name);
 
-// Generate GRPC interfaces.
+// Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
-bool GenerateGRPC(const Parser &parser,
-                  const std::string &path,
-                  const std::string &file_name);
+bool GenerateCppGRPC(const Parser &parser,
+                     const std::string &path,
+                     const std::string &file_name);
+
+// Generate GRPC Go interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGoGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 

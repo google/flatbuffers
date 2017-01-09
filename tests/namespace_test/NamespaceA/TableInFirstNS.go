@@ -22,6 +22,10 @@ func (rcv *TableInFirstNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *TableInFirstNS) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *TableInFirstNS) FooTable(obj *TableInNestedNS) *TableInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {

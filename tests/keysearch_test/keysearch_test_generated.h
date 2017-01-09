@@ -159,19 +159,45 @@ struct MasterDict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct MasterDictBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_ubyteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubyteEntries) { fbb_.AddOffset(MasterDict::VT_UBYTEENTRIES, ubyteEntries); }
-  void add_byteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> byteEntries) { fbb_.AddOffset(MasterDict::VT_BYTEENTRIES, byteEntries); }
-  void add_boolEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BoolEntry>>> boolEntries) { fbb_.AddOffset(MasterDict::VT_BOOLENTRIES, boolEntries); }
-  void add_shortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShortEntry>>> shortEntries) { fbb_.AddOffset(MasterDict::VT_SHORTENTRIES, shortEntries); }
-  void add_ushortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UShortEntry>>> ushortEntries) { fbb_.AddOffset(MasterDict::VT_USHORTENTRIES, ushortEntries); }
-  void add_intEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntEntry>>> intEntries) { fbb_.AddOffset(MasterDict::VT_INTENTRIES, intEntries); }
-  void add_uintEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UIntEntry>>> uintEntries) { fbb_.AddOffset(MasterDict::VT_UINTENTRIES, uintEntries); }
-  void add_floatEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FloatEntry>>> floatEntries) { fbb_.AddOffset(MasterDict::VT_FLOATENTRIES, floatEntries); }
-  void add_longEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<LongEntry>>> longEntries) { fbb_.AddOffset(MasterDict::VT_LONGENTRIES, longEntries); }
-  void add_ulongEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ULongEntry>>> ulongEntries) { fbb_.AddOffset(MasterDict::VT_ULONGENTRIES, ulongEntries); }
-  void add_doubleEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>>> doubleEntries) { fbb_.AddOffset(MasterDict::VT_DOUBLEENTRIES, doubleEntries); }
-  void add_stringEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringEntry>>> stringEntries) { fbb_.AddOffset(MasterDict::VT_STRINGENTRIES, stringEntries); }
-  void add_enumEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<EnumEntry>>> enumEntries) { fbb_.AddOffset(MasterDict::VT_ENUMENTRIES, enumEntries); }
+  void add_ubyteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UByteEntry>>> ubyteEntries) {
+    fbb_.AddOffset(MasterDict::VT_UBYTEENTRIES, ubyteEntries);
+  }
+  void add_byteEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ByteEntry>>> byteEntries) {
+    fbb_.AddOffset(MasterDict::VT_BYTEENTRIES, byteEntries);
+  }
+  void add_boolEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BoolEntry>>> boolEntries) {
+    fbb_.AddOffset(MasterDict::VT_BOOLENTRIES, boolEntries);
+  }
+  void add_shortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShortEntry>>> shortEntries) {
+    fbb_.AddOffset(MasterDict::VT_SHORTENTRIES, shortEntries);
+  }
+  void add_ushortEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UShortEntry>>> ushortEntries) {
+    fbb_.AddOffset(MasterDict::VT_USHORTENTRIES, ushortEntries);
+  }
+  void add_intEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntEntry>>> intEntries) {
+    fbb_.AddOffset(MasterDict::VT_INTENTRIES, intEntries);
+  }
+  void add_uintEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<UIntEntry>>> uintEntries) {
+    fbb_.AddOffset(MasterDict::VT_UINTENTRIES, uintEntries);
+  }
+  void add_floatEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FloatEntry>>> floatEntries) {
+    fbb_.AddOffset(MasterDict::VT_FLOATENTRIES, floatEntries);
+  }
+  void add_longEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<LongEntry>>> longEntries) {
+    fbb_.AddOffset(MasterDict::VT_LONGENTRIES, longEntries);
+  }
+  void add_ulongEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ULongEntry>>> ulongEntries) {
+    fbb_.AddOffset(MasterDict::VT_ULONGENTRIES, ulongEntries);
+  }
+  void add_doubleEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DoubleEntry>>> doubleEntries) {
+    fbb_.AddOffset(MasterDict::VT_DOUBLEENTRIES, doubleEntries);
+  }
+  void add_stringEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringEntry>>> stringEntries) {
+    fbb_.AddOffset(MasterDict::VT_STRINGENTRIES, stringEntries);
+  }
+  void add_enumEntries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<EnumEntry>>> enumEntries) {
+    fbb_.AddOffset(MasterDict::VT_ENUMENTRIES, enumEntries);
+  }
   MasterDictBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MasterDictBuilder &operator=(const MasterDictBuilder &);
   flatbuffers::Offset<MasterDict> Finish() {
@@ -250,8 +276,12 @@ struct UByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct UByteEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(uint8_t key) { fbb_.AddElement<uint8_t>(UByteEntry::VT_KEY, key, 0); }
-  void add_value(uint8_t value) { fbb_.AddElement<uint8_t>(UByteEntry::VT_VALUE, value, 255); }
+  void add_key(uint8_t key) {
+    fbb_.AddElement<uint8_t>(UByteEntry::VT_KEY, key, 0);
+  }
+  void add_value(uint8_t value) {
+    fbb_.AddElement<uint8_t>(UByteEntry::VT_VALUE, value, 255);
+  }
   UByteEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   UByteEntryBuilder &operator=(const UByteEntryBuilder &);
   flatbuffers::Offset<UByteEntry> Finish() {
@@ -291,8 +321,12 @@ struct ByteEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct ByteEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int8_t key) { fbb_.AddElement<int8_t>(ByteEntry::VT_KEY, key, -128); }
-  void add_value(int8_t value) { fbb_.AddElement<int8_t>(ByteEntry::VT_VALUE, value, -128); }
+  void add_key(int8_t key) {
+    fbb_.AddElement<int8_t>(ByteEntry::VT_KEY, key, -128);
+  }
+  void add_value(int8_t value) {
+    fbb_.AddElement<int8_t>(ByteEntry::VT_VALUE, value, -128);
+  }
   ByteEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ByteEntryBuilder &operator=(const ByteEntryBuilder &);
   flatbuffers::Offset<ByteEntry> Finish() {
@@ -332,8 +366,12 @@ struct BoolEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct BoolEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(bool key) { fbb_.AddElement<uint8_t>(BoolEntry::VT_KEY, static_cast<uint8_t>(key), 0); }
-  void add_value(bool value) { fbb_.AddElement<uint8_t>(BoolEntry::VT_VALUE, static_cast<uint8_t>(value), 1); }
+  void add_key(bool key) {
+    fbb_.AddElement<uint8_t>(BoolEntry::VT_KEY, static_cast<uint8_t>(key), 0);
+  }
+  void add_value(bool value) {
+    fbb_.AddElement<uint8_t>(BoolEntry::VT_VALUE, static_cast<uint8_t>(value), 1);
+  }
   BoolEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   BoolEntryBuilder &operator=(const BoolEntryBuilder &);
   flatbuffers::Offset<BoolEntry> Finish() {
@@ -373,8 +411,12 @@ struct ShortEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct ShortEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int16_t key) { fbb_.AddElement<int16_t>(ShortEntry::VT_KEY, key, -32768); }
-  void add_value(int16_t value) { fbb_.AddElement<int16_t>(ShortEntry::VT_VALUE, value, -32768); }
+  void add_key(int16_t key) {
+    fbb_.AddElement<int16_t>(ShortEntry::VT_KEY, key, -32768);
+  }
+  void add_value(int16_t value) {
+    fbb_.AddElement<int16_t>(ShortEntry::VT_VALUE, value, -32768);
+  }
   ShortEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ShortEntryBuilder &operator=(const ShortEntryBuilder &);
   flatbuffers::Offset<ShortEntry> Finish() {
@@ -414,8 +456,12 @@ struct UShortEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct UShortEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(uint16_t key) { fbb_.AddElement<uint16_t>(UShortEntry::VT_KEY, key, 0); }
-  void add_value(uint16_t value) { fbb_.AddElement<uint16_t>(UShortEntry::VT_VALUE, value, 65535); }
+  void add_key(uint16_t key) {
+    fbb_.AddElement<uint16_t>(UShortEntry::VT_KEY, key, 0);
+  }
+  void add_value(uint16_t value) {
+    fbb_.AddElement<uint16_t>(UShortEntry::VT_VALUE, value, 65535);
+  }
   UShortEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   UShortEntryBuilder &operator=(const UShortEntryBuilder &);
   flatbuffers::Offset<UShortEntry> Finish() {
@@ -455,8 +501,12 @@ struct IntEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct IntEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int32_t key) { fbb_.AddElement<int32_t>(IntEntry::VT_KEY, key, -2147483648); }
-  void add_value(int32_t value) { fbb_.AddElement<int32_t>(IntEntry::VT_VALUE, value, -2147483648); }
+  void add_key(int32_t key) {
+    fbb_.AddElement<int32_t>(IntEntry::VT_KEY, key, -2147483648);
+  }
+  void add_value(int32_t value) {
+    fbb_.AddElement<int32_t>(IntEntry::VT_VALUE, value, -2147483648);
+  }
   IntEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   IntEntryBuilder &operator=(const IntEntryBuilder &);
   flatbuffers::Offset<IntEntry> Finish() {
@@ -496,8 +546,12 @@ struct UIntEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct UIntEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(uint32_t key) { fbb_.AddElement<uint32_t>(UIntEntry::VT_KEY, key, 0); }
-  void add_value(uint32_t value) { fbb_.AddElement<uint32_t>(UIntEntry::VT_VALUE, value, 4294967295); }
+  void add_key(uint32_t key) {
+    fbb_.AddElement<uint32_t>(UIntEntry::VT_KEY, key, 0);
+  }
+  void add_value(uint32_t value) {
+    fbb_.AddElement<uint32_t>(UIntEntry::VT_VALUE, value, 4294967295);
+  }
   UIntEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   UIntEntryBuilder &operator=(const UIntEntryBuilder &);
   flatbuffers::Offset<UIntEntry> Finish() {
@@ -537,8 +591,12 @@ struct FloatEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct FloatEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(float key) { fbb_.AddElement<float>(FloatEntry::VT_KEY, key, 0.0f); }
-  void add_value(float value) { fbb_.AddElement<float>(FloatEntry::VT_VALUE, value, 1234.0f); }
+  void add_key(float key) {
+    fbb_.AddElement<float>(FloatEntry::VT_KEY, key, 0.0f);
+  }
+  void add_value(float value) {
+    fbb_.AddElement<float>(FloatEntry::VT_VALUE, value, 1234.0f);
+  }
   FloatEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   FloatEntryBuilder &operator=(const FloatEntryBuilder &);
   flatbuffers::Offset<FloatEntry> Finish() {
@@ -578,8 +636,12 @@ struct LongEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct LongEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(int64_t key) { fbb_.AddElement<int64_t>(LongEntry::VT_KEY, key, 0); }
-  void add_value(int64_t value) { fbb_.AddElement<int64_t>(LongEntry::VT_VALUE, value, -9223372036854775808); }
+  void add_key(int64_t key) {
+    fbb_.AddElement<int64_t>(LongEntry::VT_KEY, key, 0);
+  }
+  void add_value(int64_t value) {
+    fbb_.AddElement<int64_t>(LongEntry::VT_VALUE, value, -9223372036854775808);
+  }
   LongEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   LongEntryBuilder &operator=(const LongEntryBuilder &);
   flatbuffers::Offset<LongEntry> Finish() {
@@ -619,8 +681,12 @@ struct ULongEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct ULongEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(uint64_t key) { fbb_.AddElement<uint64_t>(ULongEntry::VT_KEY, key, 0); }
-  void add_value(uint64_t value) { fbb_.AddElement<uint64_t>(ULongEntry::VT_VALUE, value, 9223372036854775807); }
+  void add_key(uint64_t key) {
+    fbb_.AddElement<uint64_t>(ULongEntry::VT_KEY, key, 0);
+  }
+  void add_value(uint64_t value) {
+    fbb_.AddElement<uint64_t>(ULongEntry::VT_VALUE, value, 9223372036854775807);
+  }
   ULongEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ULongEntryBuilder &operator=(const ULongEntryBuilder &);
   flatbuffers::Offset<ULongEntry> Finish() {
@@ -660,8 +726,12 @@ struct DoubleEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct DoubleEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(double key) { fbb_.AddElement<double>(DoubleEntry::VT_KEY, key, 0.0); }
-  void add_value(double value) { fbb_.AddElement<double>(DoubleEntry::VT_VALUE, value, 4567.0); }
+  void add_key(double key) {
+    fbb_.AddElement<double>(DoubleEntry::VT_KEY, key, 0.0);
+  }
+  void add_value(double value) {
+    fbb_.AddElement<double>(DoubleEntry::VT_VALUE, value, 4567.0);
+  }
   DoubleEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   DoubleEntryBuilder &operator=(const DoubleEntryBuilder &);
   flatbuffers::Offset<DoubleEntry> Finish() {
@@ -702,8 +772,12 @@ struct StringEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct StringEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(flatbuffers::Offset<flatbuffers::String> key) { fbb_.AddOffset(StringEntry::VT_KEY, key); }
-  void add_value(int32_t value) { fbb_.AddElement<int32_t>(StringEntry::VT_VALUE, value, 7890); }
+  void add_key(flatbuffers::Offset<flatbuffers::String> key) {
+    fbb_.AddOffset(StringEntry::VT_KEY, key);
+  }
+  void add_value(int32_t value) {
+    fbb_.AddElement<int32_t>(StringEntry::VT_VALUE, value, 7890);
+  }
   StringEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   StringEntryBuilder &operator=(const StringEntryBuilder &);
   flatbuffers::Offset<StringEntry> Finish() {
@@ -750,8 +824,12 @@ struct EnumEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct EnumEntryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_key(FruitFilter key) { fbb_.AddElement<int32_t>(EnumEntry::VT_KEY, static_cast<int32_t>(key), 0); }
-  void add_value(int32_t value) { fbb_.AddElement<int32_t>(EnumEntry::VT_VALUE, value, 7412); }
+  void add_key(FruitFilter key) {
+    fbb_.AddElement<int32_t>(EnumEntry::VT_KEY, static_cast<int32_t>(key), 0);
+  }
+  void add_value(int32_t value) {
+    fbb_.AddElement<int32_t>(EnumEntry::VT_VALUE, value, 7412);
+  }
   EnumEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   EnumEntryBuilder &operator=(const EnumEntryBuilder &);
   flatbuffers::Offset<EnumEntry> Finish() {
@@ -789,7 +867,9 @@ inline bool VerifyMasterDictBuffer(flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<Testing::KeySearch::MasterDict>(MasterDictIdentifier());
 }
 
-inline const char *MasterDictExtension() { return "mdict"; }
+inline const char *MasterDictExtension() {
+  return "mdict";
+}
 
 inline void FinishMasterDictBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Testing::KeySearch::MasterDict> root) {
   fbb.Finish(root, MasterDictIdentifier());

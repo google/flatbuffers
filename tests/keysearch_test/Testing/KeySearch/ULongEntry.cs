@@ -41,11 +41,11 @@ public struct ULongEntry : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static ULongEntry? LookupByKey(VectorOffset vectorOffset, ulong key, ByteBuffer bb) {
+  public static ULongEntry? LookupByKey( int bb_pos, VectorOffset fieldDataOffset, ulong key, ulong defaultKeyValue , ByteBuffer bb) {
     int vectorLocation = bb.Length - vectorOffset.Value;
     int span = bb.GetInt(vectorLocation);
-    int start = 0;
     vectorLocation += 4;
+    int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);

@@ -41,5 +41,33 @@ public final class ULongEntry extends Table {
     long val_2 = _bb.getLong(o2+__offset(4, o2, _bb));
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
+
+  public static int lookupByKey( int bb_pos, int fieldDataOffset, long key, long defaultKeyValue , ByteBuffer bb) {
+    if ( fieldDataOffset == 0 )
+        return 0;
+    int vectorOffsetPos = bb_pos + fieldDataOffset;
+    int vectorLocation = bb.getInt( vectorOffsetPos ) + vectorOffsetPos;
+    int span = bb.getInt(vectorLocation);
+    vectorLocation += 4;
+    long comparableKey = Unsigneds.asComparable(  key );
+    long comparableDefault = Unsigneds.asComparable( defaultKeyValue );
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int keyValueOffset = __offset( 4, tableOffset, bb );
+      long val = keyValueOffset != 0 ? Unsigneds.asComparable( bb.getLong(tableOffset + keyValueOffset) ): comparableDefault;
+      if (comparableKey < val) {
+        span = middle;
+      } else if (comparableKey > val) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
 }
 

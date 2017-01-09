@@ -41,11 +41,11 @@ public struct ShortEntry : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static ShortEntry? LookupByKey(VectorOffset vectorOffset, short key, ByteBuffer bb) {
+  public static ShortEntry? LookupByKey( int bb_pos, VectorOffset fieldDataOffset, short key, short defaultKeyValue , ByteBuffer bb) {
     int vectorLocation = bb.Length - vectorOffset.Value;
     int span = bb.GetInt(vectorLocation);
-    int start = 0;
     vectorLocation += 4;
+    int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);

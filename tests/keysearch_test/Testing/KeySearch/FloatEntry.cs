@@ -41,11 +41,11 @@ public struct FloatEntry : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static FloatEntry? LookupByKey(VectorOffset vectorOffset, float key, ByteBuffer bb) {
+  public static FloatEntry? LookupByKey( int bb_pos, VectorOffset fieldDataOffset, float key, float defaultKeyValue , ByteBuffer bb) {
     int vectorLocation = bb.Length - vectorOffset.Value;
     int span = bb.GetInt(vectorLocation);
-    int start = 0;
     vectorLocation += 4;
+    int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);

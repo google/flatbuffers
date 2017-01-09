@@ -47,7 +47,7 @@ public final class Monster extends Table {
   public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public Monster testarrayoftablesByKey(String key) { return testarrayoftablesByKey(new Monster(), key); }
-  public Monster testarrayoftablesByKey(Monster obj, String key) { int o = __lookupByStringKey(26, 10, key); return o != 0 ? obj.__assign(o, bb) : null; }
+  public Monster testarrayoftablesByKey(Monster obj, String key) { int o = obj.lookupByKey( bb_pos, __offset(26), key, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public Monster enemy() { return enemy(new Monster()); }
   public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
@@ -212,5 +212,32 @@ public final class Monster extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(10, o1, _bb), o2+__offset(10, o2, _bb), _bb); }
+
+  public static int lookupByKey( int bb_pos, int fieldDataOffset, String key , ByteBuffer bb) {
+    if ( fieldDataOffset == 0 )
+        return 0;
+    int vectorOffsetPos = bb_pos + fieldDataOffset;
+    int vectorLocation = bb.getInt( vectorOffsetPos ) + vectorOffsetPos;
+    int span = bb.getInt(vectorLocation);
+    vectorLocation += 4;
+    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int keyValueOffset = __offset( 10, tableOffset, bb );
+int comp = compareStrings(tableOffset + keyValueOffset, byteKey, bb);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
 }
 

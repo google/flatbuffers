@@ -19,8 +19,10 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 #include "src/compiler/cpp_generator.h"
+#include "src/compiler/go_generator.h"
 
 namespace flatbuffers {
 
@@ -50,6 +52,14 @@ class FlatBufMethod : public grpc_generator::Method {
   }
   std::string output_type_name() const {
     return GRPCType(*method_->response);
+  }
+
+  std::string input_name() const {
+    return (*method_->request).name;
+  }
+
+  std::string output_name() const {
+    return (*method_->response).name;
   }
 
   bool NoStreaming() const { return streaming_ == kNone; }
@@ -159,6 +169,10 @@ class FlatBufFile : public grpc_generator::File {
     return "#include \"flatbuffers/grpc.h\"\n";
   }
 
+  std::string additional_imports() const {
+    return "import \"github.com/google/flatbuffers/go\"";
+  }
+
   int service_count() const {
     return static_cast<int>(parser_.services_.vec.size());
   };
@@ -178,7 +192,47 @@ class FlatBufFile : public grpc_generator::File {
   const std::string &file_name_;
 };
 
-bool GenerateGRPC(const Parser &parser,
+class GoGRPCGenerator : public flatbuffers::BaseGenerator {
+ public:
+  GoGRPCGenerator(const Parser &parser, const std::string &path,
+                  const std::string &file_name)
+    : BaseGenerator(parser, path, file_name, "", "" /*Unused*/),
+      parser_(parser), path_(path), file_name_(file_name) {}
+
+  bool generate() {
+    FlatBufFile file(parser_, file_name_);
+    grpc_go_generator::Parameters p;
+    p.custom_method_io_type = "flatbuffers.Builder";
+    for (int i = 0; i < file.service_count(); i++) {
+      auto service = file.service(i);
+      const Definition *def = parser_.services_.vec[i];
+      p.package_name = LastNamespacePart(*(def->defined_namespace));
+      std::string output = grpc_go_generator::GenerateServiceSource(&file, service.get(), &p);
+      std::string filename = NamespaceDir(*def->defined_namespace) + def->name + "_grpc.go";
+      if (!flatbuffers::SaveFile(filename.c_str(), output, false))
+        return false;
+    }
+    return true;
+  }
+
+ protected:
+  const Parser &parser_;
+  const std::string &path_, &file_name_;
+};
+
+bool GenerateGoGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name) {
+  int nservices = 0;
+  for (auto it = parser.services_.vec.begin();
+       it != parser.services_.vec.end(); ++it) {
+    if (!(*it)->generated) nservices++;
+  }
+  if (!nservices) return true;
+  return GoGRPCGenerator(parser, path, file_name).generate();
+}
+
+bool GenerateCppGRPC(const Parser &parser,
                   const std::string &/*path*/,
                   const std::string &file_name) {
 

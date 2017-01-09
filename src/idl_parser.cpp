@@ -680,6 +680,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+
+  field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
+  if (field->native_inline && !IsStruct(field->value.type))
+    return Error("native_inline can only be defined on structs'");
+
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
     if (nested->type.base_type != BASE_TYPE_STRING)
@@ -1832,6 +1837,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();
+  field_stack_.clear();
   builder_.Clear();
   // Start with a blank namespace just in case this file doesn't have one.
   namespaces_.push_back(new Namespace());

@@ -18,67 +18,67 @@ public final class MasterDict extends Table {
   public UByteEntry ubyteEntries(UByteEntry obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ubyteEntriesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
   public UByteEntry ubyteEntriesByKey(int key) { return ubyteEntriesByKey(new UByteEntry(), key); }
-  public UByteEntry ubyteEntriesByKey(UByteEntry obj, int key) { int o = __lookupByUByteKey(4, 4, key, 0); return o != 0 ? obj.__assign(o, bb) : null; }
+  public UByteEntry ubyteEntriesByKey(UByteEntry obj, int key) { int o = obj.lookupByKey( bb_pos, __offset(4), key, 0, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public ByteEntry byteEntries(int j) { return byteEntries(new ByteEntry(), j); }
   public ByteEntry byteEntries(ByteEntry obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int byteEntriesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public ByteEntry byteEntriesByKey(byte key) { return byteEntriesByKey(new ByteEntry(), key); }
-  public ByteEntry byteEntriesByKey(ByteEntry obj, byte key) { int o = __lookupByByteKey(6, 4, key, -128); return o != 0 ? obj.__assign(o, bb) : null; }
+  public ByteEntry byteEntriesByKey(ByteEntry obj, byte key) { int o = obj.lookupByKey( bb_pos, __offset(6), key, (byte)-128, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public BoolEntry boolEntries(int j) { return boolEntries(new BoolEntry(), j); }
   public BoolEntry boolEntries(BoolEntry obj, int j) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int boolEntriesLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public BoolEntry boolEntriesByKey(boolean key) { return boolEntriesByKey(new BoolEntry(), key); }
-  public BoolEntry boolEntriesByKey(BoolEntry obj, boolean key) { int o = __lookupByBooleanKey(8, 4, key, false); return o != 0 ? obj.__assign(o, bb) : null; }
+  public BoolEntry boolEntriesByKey(BoolEntry obj, boolean key) { int o = obj.lookupByKey( bb_pos, __offset(8), key, false, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public ShortEntry shortEntries(int j) { return shortEntries(new ShortEntry(), j); }
   public ShortEntry shortEntries(ShortEntry obj, int j) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int shortEntriesLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
   public ShortEntry shortEntriesByKey(short key) { return shortEntriesByKey(new ShortEntry(), key); }
-  public ShortEntry shortEntriesByKey(ShortEntry obj, short key) { int o = __lookupByShortKey(10, 4, key, -32768); return o != 0 ? obj.__assign(o, bb) : null; }
+  public ShortEntry shortEntriesByKey(ShortEntry obj, short key) { int o = obj.lookupByKey( bb_pos, __offset(10), key, (short)-32768, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public UShortEntry ushortEntries(int j) { return ushortEntries(new UShortEntry(), j); }
   public UShortEntry ushortEntries(UShortEntry obj, int j) { int o = __offset(12); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ushortEntriesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
   public UShortEntry ushortEntriesByKey(int key) { return ushortEntriesByKey(new UShortEntry(), key); }
-  public UShortEntry ushortEntriesByKey(UShortEntry obj, int key) { int o = __lookupByUShortKey(12, 4, key, 0); return o != 0 ? obj.__assign(o, bb) : null; }
+  public UShortEntry ushortEntriesByKey(UShortEntry obj, int key) { int o = obj.lookupByKey( bb_pos, __offset(12), key, 0, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public IntEntry intEntries(int j) { return intEntries(new IntEntry(), j); }
   public IntEntry intEntries(IntEntry obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int intEntriesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public IntEntry intEntriesByKey(int key) { return intEntriesByKey(new IntEntry(), key); }
-  public IntEntry intEntriesByKey(IntEntry obj, int key) { int o = __lookupByIntKey(14, 4, key, -2147483648); return o != 0 ? obj.__assign(o, bb) : null; }
+  public IntEntry intEntriesByKey(IntEntry obj, int key) { int o = obj.lookupByKey( bb_pos, __offset(14), key, -2147483648, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public UIntEntry uintEntries(int j) { return uintEntries(new UIntEntry(), j); }
   public UIntEntry uintEntries(UIntEntry obj, int j) { int o = __offset(16); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int uintEntriesLength() { int o = __offset(16); return o != 0 ? __vector_len(o) : 0; }
   public UIntEntry uintEntriesByKey(long key) { return uintEntriesByKey(new UIntEntry(), key); }
-  public UIntEntry uintEntriesByKey(UIntEntry obj, long key) { int o = __lookupByUIntKey(16, 4, key, 0L); return o != 0 ? obj.__assign(o, bb) : null; }
+  public UIntEntry uintEntriesByKey(UIntEntry obj, long key) { int o = obj.lookupByKey( bb_pos, __offset(16), key, 0L, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public FloatEntry floatEntries(int j) { return floatEntries(new FloatEntry(), j); }
   public FloatEntry floatEntries(FloatEntry obj, int j) { int o = __offset(18); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int floatEntriesLength() { int o = __offset(18); return o != 0 ? __vector_len(o) : 0; }
   public FloatEntry floatEntriesByKey(float key) { return floatEntriesByKey(new FloatEntry(), key); }
-  public FloatEntry floatEntriesByKey(FloatEntry obj, float key) { int o = __lookupByFloatKey(18, 4, key, 0.0f); return o != 0 ? obj.__assign(o, bb) : null; }
+  public FloatEntry floatEntriesByKey(FloatEntry obj, float key) { int o = obj.lookupByKey( bb_pos, __offset(18), key, 0.0f, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public LongEntry longEntries(int j) { return longEntries(new LongEntry(), j); }
   public LongEntry longEntries(LongEntry obj, int j) { int o = __offset(20); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int longEntriesLength() { int o = __offset(20); return o != 0 ? __vector_len(o) : 0; }
   public LongEntry longEntriesByKey(long key) { return longEntriesByKey(new LongEntry(), key); }
-  public LongEntry longEntriesByKey(LongEntry obj, long key) { int o = __lookupByLongKey(20, 4, key, 0L); return o != 0 ? obj.__assign(o, bb) : null; }
+  public LongEntry longEntriesByKey(LongEntry obj, long key) { int o = obj.lookupByKey( bb_pos, __offset(20), key, 0L, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public ULongEntry ulongEntries(int j) { return ulongEntries(new ULongEntry(), j); }
   public ULongEntry ulongEntries(ULongEntry obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int ulongEntriesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
   public ULongEntry ulongEntriesByKey(long key) { return ulongEntriesByKey(new ULongEntry(), key); }
-  public ULongEntry ulongEntriesByKey(ULongEntry obj, long key) { int o = __lookupByULongKey(22, 4, key, 0L); return o != 0 ? obj.__assign(o, bb) : null; }
+  public ULongEntry ulongEntriesByKey(ULongEntry obj, long key) { int o = obj.lookupByKey( bb_pos, __offset(22), key, 0L, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public DoubleEntry doubleEntries(int j) { return doubleEntries(new DoubleEntry(), j); }
   public DoubleEntry doubleEntries(DoubleEntry obj, int j) { int o = __offset(24); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int doubleEntriesLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
   public DoubleEntry doubleEntriesByKey(double key) { return doubleEntriesByKey(new DoubleEntry(), key); }
-  public DoubleEntry doubleEntriesByKey(DoubleEntry obj, double key) { int o = __lookupByDoubleKey(24, 4, key, 0.0); return o != 0 ? obj.__assign(o, bb) : null; }
+  public DoubleEntry doubleEntriesByKey(DoubleEntry obj, double key) { int o = obj.lookupByKey( bb_pos, __offset(24), key, 0.0, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public StringEntry stringEntries(int j) { return stringEntries(new StringEntry(), j); }
   public StringEntry stringEntries(StringEntry obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int stringEntriesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public StringEntry stringEntriesByKey(String key) { return stringEntriesByKey(new StringEntry(), key); }
-  public StringEntry stringEntriesByKey(StringEntry obj, String key) { int o = __lookupByStringKey(26, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
+  public StringEntry stringEntriesByKey(StringEntry obj, String key) { int o = obj.lookupByKey( bb_pos, __offset(26), key, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public EnumEntry enumEntries(int j) { return enumEntries(new EnumEntry(), j); }
   public EnumEntry enumEntries(EnumEntry obj, int j) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int enumEntriesLength() { int o = __offset(28); return o != 0 ? __vector_len(o) : 0; }
   public EnumEntry enumEntriesByKey(int key) { return enumEntriesByKey(new EnumEntry(), key); }
-  public EnumEntry enumEntriesByKey(EnumEntry obj, int key) { int o = __lookupByIntKey(28, 4, key, 0); return o != 0 ? obj.__assign(o, bb) : null; }
+  public EnumEntry enumEntriesByKey(EnumEntry obj, int key) { int o = obj.lookupByKey( bb_pos, __offset(28), key, 0, bb); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createMasterDict(FlatBufferBuilder builder,
       int ubyteEntriesOffset,
