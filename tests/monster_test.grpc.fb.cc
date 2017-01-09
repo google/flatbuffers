@@ -18,8 +18,8 @@ namespace MyGame {
 namespace Example {
 
 static const char* MonsterStorage_method_names[] = {
-  "/MyGame.Example..MonsterStorage/Store",
-  "/MyGame.Example..MonsterStorage/Retrieve",
+  "/MyGame.Example.MonsterStorage/Store",
+  "/MyGame.Example.MonsterStorage/Retrieve",
 };
 
 std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
