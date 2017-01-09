@@ -738,25 +738,51 @@ std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
   return key_offset;
 }
 
-std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
+std::string GenTypeGetForKey(const Type &type) {
+  switch ( type.base_type ) {
+  case BASE_TYPE_BOOL:
+    return "byte";
+  case BASE_TYPE_UCHAR:
+  case BASE_TYPE_USHORT:
+    return "int";
+  default:
+    return GenTypeGet( type );
+  }
+}
+
+std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field, bool keyWithUnsignedCompare, const std::string &defaultVar ) {
   std::string key_getter = "      ";
   key_getter += "int tableOffset = " + lang_.accessor_prefix_static;
   key_getter += "__indirect(vectorLocation + 4 * (start + middle)";
   key_getter += ", bb);\n      ";
+  auto genCSharp = lang_.language == IDLOptions::kCSharp;
+  if ( !genCSharp ) {
+    key_getter += "int keyValueOffset = __offset( ";
+    key_getter += NumToString( key_field->value.offset );
+    key_getter += ", tableOffset, bb );\n";
+  }
   if (key_field->value.type.base_type == BASE_TYPE_STRING) {
     key_getter += "int comp = " + lang_.accessor_prefix_static;
     key_getter += FunctionStart('C') + "ompareStrings(";
-    key_getter += GenOffsetGetter(key_field);
+    if (genCSharp)
+      key_getter += GenOffsetGetter( key_field );
+    else
+      key_getter += "tableOffset + keyValueOffset";
     key_getter += ", byteKey, bb);\n";
   } else {
-    auto get_val = GenGetter(key_field->value.type) +
-      "(" + GenOffsetGetter(key_field) + ")";
-    if (lang_.language == IDLOptions::kCSharp) {
-      key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
+    auto get_val_prefix = GenGetter(key_field->value.type, genCSharp ) + "(";
+    if (genCSharp) {
+      key_getter += "int comp = " + get_val_prefix 
+                    + GenOffsetGetter( key_field ) + ").CompareTo(key);\n";
     } else {
-      key_getter += GenTypeGet(key_field->value.type) + " val = ";
-      key_getter += get_val + ";\n";
-      key_getter += "      int comp = val > key ? 1 : val < key ? -1 : 0;\n";
+      key_getter += "      " + GenTypeGetForKey(key_field->value.type) + " val = ";
+      key_getter += "keyValueOffset != 0 ? ";
+      if ( keyWithUnsignedCompare )
+        key_getter += "Unsigneds.asComparable( ";
+      key_getter += get_val_prefix + "tableOffset + keyValueOffset) ";
+      if (keyWithUnsignedCompare)
+        key_getter += ")";
+      key_getter += ": " + defaultVar + ";\n";
     }
   }
   return key_getter;
@@ -1090,13 +1116,17 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
 
       code += "  public " + type_name + " " + byKeyMethodName;
       code += "(" + type_name + " obj, " + element_type_name + " key) { ";
-      code += "int o = __lookupBy" + GenElementTypeLookUp(*element_key_field);
-      code += "Key(" + NumToString(field.value.offset);
-      code += ", " + NumToString(element_key_field->value.offset);
-      code += ", key";
-      if (element_key_field->value.type.base_type != BASE_TYPE_STRING)
-        code += ", " + GenDefaultValue(element_key_field->value);
-      code += "); ";
+      code += "int o = obj.lookupByKey( bb_pos, __offset(" + NumToString(field.value.offset);
+      code += "), key";
+      if (element_key_field->value.type.base_type != BASE_TYPE_STRING) {
+        code += ", ";
+        if (element_key_field->value.type.base_type == BASE_TYPE_SHORT)
+          code += "(short)";
+        else if (element_key_field->value.type.base_type == BASE_TYPE_CHAR)
+          code += "(byte)";
+        code += GenDefaultValue(element_key_field->value);
+      }
+      code += ", bb); ";
       code += "return o != 0 ? obj.__assign(o, bb) : null; }\n";
     }
     // Generate a ByteBuffer accessor for strings & vectors of scalars.
@@ -1402,41 +1432,98 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
     }
 
-    if (lang_.language != IDLOptions::kJava) {
-      code += "\n  public static " + struct_def.name + lang_.optional_suffix;
-      code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
-      code += " vectorOffset, " + GenTypeNameDest(key_field->value.type);
-      code += " key, ByteBuffer bb) {\n";
-      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
-        code += "    byte[] byteKey = ";
-        if (lang_.language == IDLOptions::kJava)
-          code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
-        else
-          code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
-      }
+    auto isStringKey = key_field->value.type.base_type == BASE_TYPE_STRING;
+    auto keyRetType = lang_.language == IDLOptions::kJava ? "int" : struct_def.name;
+    code += "\n  public static " + keyRetType + lang_.optional_suffix;
+    code += " " + FunctionStart('L') + "ookupByKey( int bb_pos, ";
+    code += GenVectorOffsetType();
+    code += " fieldDataOffset, " + GenTypeNameDest(key_field->value.type) + " key";
+    if ( !isStringKey )
+      code += ", " + GenTypeNameDest( key_field->value.type ) + " defaultKeyValue";
+    code += " , ByteBuffer bb) {\n";
+    if (lang_.language == IDLOptions::kJava ) {
+      code += "    if ( fieldDataOffset == 0 )\n";
+      code += "        return 0;\n";
+      code += "    int vectorOffsetPos = bb_pos + fieldDataOffset;\n";
+      code += "    int vectorLocation = bb.getInt( vectorOffsetPos ) + vectorOffsetPos;\n";
+      code += "    int span = bb.getInt(vectorLocation);\n";
+      code += "    vectorLocation += 4;\n";
+    }
+    if (isStringKey) {
+      code += "    byte[] byteKey = ";
+      if (lang_.language == IDLOptions::kJava)
+        code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+      else
+        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+    }
+    bool keyWithUnsignedCompare;
+    bool convertKey;
+    switch (key_field->value.type.base_type) {
+      case BASE_TYPE_UCHAR:
+      case BASE_TYPE_USHORT:
+      case BASE_TYPE_UINT:
+      case BASE_TYPE_ULONG:
+        keyWithUnsignedCompare = lang_.language == IDLOptions::kJava;
+        convertKey = keyWithUnsignedCompare;
+        break;
+      case BASE_TYPE_BOOL:
+        keyWithUnsignedCompare = false;
+        convertKey = lang_.language == IDLOptions::kJava;
+        break;
+      default:
+        keyWithUnsignedCompare = false;
+        convertKey = false;
+        break;
+    }
+    std::string keyVar = "key";
+    std::string defaultVar = "defaultKeyValue";
+    if (convertKey) {
+      keyVar = "comparableKey";
+      defaultVar = "comparableDefault";
+      auto convertPre = keyWithUnsignedCompare 
+        ? ("Unsigneds.asComparable( " + SourceCast( key_field->value.type, true ) )
+        : "";
+      std::string convertPost = keyWithUnsignedCompare ? " )" 
+        : " ? (byte)1 : (byte)0";
+      code += "    " + GenTypeGetForKey( key_field->value.type ) + " " + keyVar
+        + " = " + convertPre + " key" + convertPost + ";\n";
+      code += "    " + GenTypeGetForKey( key_field->value.type ) + " " + defaultVar
+        + " = " + convertPre + "defaultKeyValue" + convertPost + ";\n";
+    }
+    auto keyUseComp = isStringKey  || lang_.language != IDLOptions::kJava;
+    std::string keyGT = keyUseComp ? "comp > 0" : ( keyVar + " < val" );
+    std::string keyLT = keyUseComp ? "comp < 0" : ( keyVar + " > val" );
+    if (lang_.language == IDLOptions::kCSharp) {
       code += "    int vectorLocation = " + GenByteBufferLength("bb");
       code += " - vectorOffset";
-      if (lang_.language == IDLOptions::kCSharp) code += ".Value";
+      code += ".Value";
       code += ";\n    int span = ";
       code += "bb." + FunctionStart('G') + "etInt(vectorLocation);\n";
-      code += "    int start = 0;\n";
       code += "    vectorLocation += 4;\n";
-      code += "    while (span != 0) {\n";
-      code += "      int middle = span / 2;\n";
-      code += GenLookupKeyGetter(key_field);
-      code += "      if (comp > 0) {\n";
-      code += "        span = middle;\n";
-      code += "      } else if (comp < 0) {\n";
-      code += "        middle++;\n";
-      code += "        start += middle;\n";
-      code += "        span -= middle;\n";
-      code += "      } else {\n";
+    }
+    code += "    int start = 0;\n";
+    code += "    while (span != 0) {\n";
+    code += "      int middle = span / 2;\n";
+    code += GenLookupKeyGetter(key_field, keyWithUnsignedCompare, defaultVar);
+    code += "      if (" + keyGT + ") {\n";
+    code += "        span = middle;\n";
+    code += "      } else if (" + keyLT + ") {\n";
+    code += "        middle++;\n";
+    code += "        start += middle;\n";
+    code += "        span -= middle;\n";
+    code += "      } else {\n";
+    if (lang_.language != IDLOptions::kJava) {
       code += "        return new " + struct_def.name;
       code += "().__assign(tableOffset, bb);\n";
-      code += "      }\n    }\n";
-      code += "    return null;\n";
-      code += "  }\n";
+    } else {
+      code += "        return tableOffset;\n";
     }
+    code += "      }\n    }\n";
+    if (lang_.language != IDLOptions::kJava )
+      code += "    return null;\n";
+    else
+      code += "    return 0;\n";
+    code += "  }\n";
   }
   code += "}";
   // Java does not need the closing semi-colon on class definitions.
