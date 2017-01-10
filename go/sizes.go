@@ -1,7 +1,7 @@
 package flatbuffers
 
 import (
-        "unsafe"
+	"unsafe"
 )
 
 const (

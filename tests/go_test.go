@@ -1251,9 +1251,9 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 			len(want), want, len(got), got)
 	}
 
-	table0 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
-	table1 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
-	table2 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj2}
+	table0 := &flatbuffers.Table{Bytes: b.Bytes, UOffset: flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
+	table1 := &flatbuffers.Table{Bytes: b.Bytes, UOffset: flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
+	table2 := &flatbuffers.Table{Bytes: b.Bytes, UOffset: flatbuffers.UOffsetT(len(b.Bytes)) - obj2}
 
 	testTable := func(tab *flatbuffers.Table, a flatbuffers.VOffsetT, b, c, d byte) {
 		// vtable size
