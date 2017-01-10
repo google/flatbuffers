@@ -352,6 +352,7 @@ CheckedError Parser::Next() {
           cursor_++;
           // TODO: make nested.
           while (*cursor_ != '*' || cursor_[1] != '/') {
+            if (*cursor_ == '\n') line_++;
             if (!*cursor_) return Error("end of file in comment");
             cursor_++;
           }
@@ -657,6 +658,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
               "only int, uint, long and ulong data types support hashing.");
     }
   }
+  auto cpp_type = field->attributes.Lookup("cpp_type");
+  if (cpp_type) {
+    if (!hash_name)
+      return Error("cpp_type can only be used with a hashed field");
+  }
   if (field->deprecated && struct_def.fixed)
     return Error("can't deprecate fields in a struct");
   field->required = field->attributes.Lookup("required") != nullptr;
@@ -674,6 +680,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+
+  field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
+  if (field->native_inline && !IsStruct(field->value.type))
+    return Error("native_inline can only be defined on structs'");
+
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
     if (nested->type.base_type != BASE_TYPE_STRING)
@@ -1346,10 +1357,11 @@ CheckedError Parser::ParseDecl() {
     auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
     if (force_align->type.base_type != BASE_TYPE_INT ||
         align < struct_def->minalign ||
-        align > 16 ||
+        align > FLATBUFFERS_MAX_ALIGNMENT ||
         align & (align - 1))
       return Error("force_align must be a power of two integer ranging from the"
-            "struct\'s natural alignment to 16");
+                   "struct\'s natural alignment to " +
+                   NumToString(FLATBUFFERS_MAX_ALIGNMENT));
     struct_def->minalign = align;
   }
   struct_def->PadLastField(struct_def->minalign);
@@ -1825,6 +1837,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   source_ = cursor_ = source;
   line_ = 1;
   error_.clear();
+  field_stack_.clear();
   builder_.Clear();
   // Start with a blank namespace just in case this file doesn't have one.
   namespaces_.push_back(new Namespace());

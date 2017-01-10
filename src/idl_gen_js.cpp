@@ -557,13 +557,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@returns {boolean}");
 
       code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
-      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ")\n\n";
+      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ");\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
       code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
       code += "  return true;\n";
-      code += "}\n\n";
+      code += "};\n\n";
     }
 
     // Emit vector helpers
@@ -576,12 +576,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 
       // For scalar types, emit a typed array helper
       auto vectorType = field.value.type.VectorType();
-      if (IsScalar(vectorType.base_type)) {
+      if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
         code += object_name + ".prototype." + MakeCamel(field.name, false);
         code += "Array = function() {\n" + offset_prefix;
         code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
-          "this.bb.__vector(this.bb_pos + offset), "
+          "this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), "
           "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
       }
     }

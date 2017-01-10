@@ -23,10 +23,6 @@
 
 namespace flatbuffers {
 
-struct IsAlnum {
-  bool operator()(char c) { return !isalnum(c); }
-};
-
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name) {
   return path + file_name + "_generated.h";
@@ -38,51 +34,62 @@ class CppGenerator : public BaseGenerator {
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::"),
-        cur_name_space_(nullptr){};
+        cur_name_space_(nullptr) {}
+
+  std::string GenIncludeGuard() const {
+    // Generate include guard.
+    std::string guard = file_name_;
+    // Remove any non-alpha-numeric characters that may appear in a filename.
+    struct IsAlnum {
+      bool operator()(char c) { return !isalnum(c); }
+    };
+    guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
+                guard.end());
+    guard = "FLATBUFFERS_GENERATED_" + guard;
+    guard += "_";
+    // For further uniqueness, also add the namespace.
+    auto name_space = parser_.namespaces_.back();
+    for (auto it = name_space->components.begin();
+         it != name_space->components.end(); ++it) {
+      guard += *it + "_";
+    }
+    guard += "H_";
+    std::transform(guard.begin(), guard.end(), guard.begin(), ::toupper);
+    return guard;
+  }
+
+  void GenIncludeDependencies(std::string* code_ptr) const {
+    std::string& code = *code_ptr;
+
+    int num_includes = 0;
+    for (auto it = parser_.included_files_.begin();
+         it != parser_.included_files_.end(); ++it) {
+      const std::string basename =
+          flatbuffers::StripPath(flatbuffers::StripExtension(it->first));
+      if (basename != file_name_) {
+        code += "#include \"" + basename + "_generated.h\"\n";
+        num_includes++;
+      }
+    }
+    if (num_includes) code += "\n";
+  }
+
   // Iterate through all definitions we haven't generate code for (enums,
-  // structs,
-  // and tables) and output them to a single file.
+  // structs, and tables) and output them to a single file.
   bool generate() {
     if (IsEverythingGenerated()) return true;
 
     std::string code;
     code = code + "// " + FlatBuffersGeneratedWarning();
 
-    // Generate include guard.
-    std::string include_guard_ident = file_name_;
-    // Remove any non-alpha-numeric characters that may appear in a filename.
-    include_guard_ident.erase(
-        std::remove_if(include_guard_ident.begin(), include_guard_ident.end(),
-                       IsAlnum()),
-        include_guard_ident.end());
-    std::string include_guard = "FLATBUFFERS_GENERATED_" + include_guard_ident;
-    include_guard += "_";
-    // For further uniqueness, also add the namespace.
-    auto name_space = parser_.namespaces_.back();
-    for (auto it = name_space->components.begin();
-         it != name_space->components.end(); ++it) {
-      include_guard += *it + "_";
-    }
-    include_guard += "H_";
-    std::transform(include_guard.begin(), include_guard.end(),
-                   include_guard.begin(), ::toupper);
+    const std::string include_guard = GenIncludeGuard();
     code += "#ifndef " + include_guard + "\n";
     code += "#define " + include_guard + "\n\n";
 
     code += "#include \"flatbuffers/flatbuffers.h\"\n\n";
 
     if (parser_.opts.include_dependence_headers) {
-      int num_includes = 0;
-      for (auto it = parser_.included_files_.begin();
-           it != parser_.included_files_.end(); ++it) {
-        auto basename =
-            flatbuffers::StripPath(flatbuffers::StripExtension(it->first));
-        if (basename != file_name_) {
-          code += "#include \"" + basename + "_generated.h\"\n";
-          num_includes++;
-        }
-      }
-      if (num_includes) code += "\n";
+      GenIncludeDependencies(&code);
     }
 
     assert(!cur_name_space_);
@@ -91,7 +98,7 @@ class CppGenerator : public BaseGenerator {
     // have circular references.
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      const auto &struct_def = **it;
       if (!struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
         code += "struct " + struct_def.name + ";\n";
@@ -105,17 +112,17 @@ class CppGenerator : public BaseGenerator {
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      auto &enum_def = **it;
+      const auto &enum_def = **it;
       if (!enum_def.generated) {
-        SetNameSpace((**it).defined_namespace, &code);
-        GenEnum(**it, &code);
+        SetNameSpace(enum_def.defined_namespace, &code);
+        GenEnum(enum_def, &code);
       }
     }
 
     // Generate code for all structs, then all tables.
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      const auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
         GenStruct(struct_def, &code);
@@ -123,7 +130,7 @@ class CppGenerator : public BaseGenerator {
     }
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
         GenTable(struct_def, &code);
@@ -131,7 +138,7 @@ class CppGenerator : public BaseGenerator {
     }
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace, &code);
         GenTablePost(struct_def, &code);
@@ -141,7 +148,7 @@ class CppGenerator : public BaseGenerator {
     // Generate code for union verifiers.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      auto &enum_def = **it;
+      const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
         SetNameSpace(enum_def.defined_namespace, &code);
         GenUnionPost(enum_def, &code);
@@ -151,64 +158,78 @@ class CppGenerator : public BaseGenerator {
     // Generate convenient global helper functions:
     if (parser_.root_struct_def_) {
       SetNameSpace((*parser_.root_struct_def_).defined_namespace, &code);
-      auto &name = parser_.root_struct_def_->name;
-      std::string qualified_name =
+      const std::string &name = parser_.root_struct_def_->name;
+      const std::string qualified_name =
           parser_.namespaces_.back()->GetFullyQualifiedName(name);
-      std::string cpp_qualified_name = TranslateNameSpace(qualified_name);
+      const std::string cpp_name = TranslateNameSpace(qualified_name);
 
       // The root datatype accessor:
-      code += "inline const " + cpp_qualified_name + " *Get";
-      code += name;
-      code += "(const void *buf) { return flatbuffers::GetRoot<";
-      code += cpp_qualified_name + ">(buf); }\n\n";
+      code += "inline ";
+      code += "const " + cpp_name + " *Get" + name + "(const void *buf) {\n";
+      code += "  return flatbuffers::GetRoot<" + cpp_name + ">(buf);\n";
+      code += "}\n\n";
+
       if (parser_.opts.mutable_buffer) {
-        code += "inline " + name + " *GetMutable";
-        code += name;
-        code += "(void *buf) { return flatbuffers::GetMutableRoot<";
-        code += name + ">(buf); }\n\n";
+        code += "inline " + name + " *GetMutable" + name + "(void *buf) {\n";
+        code += "  return flatbuffers::GetMutableRoot<" + name + ">(buf);\n";
+        code += "}\n\n";
       }
 
       if (parser_.file_identifier_.length()) {
         // Return the identifier
-        code += "inline const char *" + name;
-        code += "Identifier() { return \"" + parser_.file_identifier_;
-        code += "\"; }\n\n";
+        code += "inline const char *" + name + "Identifier() {\n";
+        code += "  return \"" + parser_.file_identifier_ + "\";\n";
+        code += "}\n\n";
 
         // Check if a buffer has the identifier.
-        code += "inline bool " + name;
-        code += "BufferHasIdentifier(const void *buf) { return flatbuffers::";
-        code += "BufferHasIdentifier(buf, ";
-        code += name + "Identifier()); }\n\n";
+        code += "inline ";
+        code += "bool " + name + "BufferHasIdentifier(const void *buf) {\n";
+        code += "  return flatbuffers::BufferHasIdentifier(buf, ";
+        code += name + "Identifier());\n";
+        code += "}\n\n";
       }
 
-      // The root verifier:
-      code += "inline bool Verify";
-      code += name;
-      code +=
-          "Buffer(flatbuffers::Verifier &verifier) { "
-          "return verifier.VerifyBuffer<";
-      code += cpp_qualified_name + ">(";
+      // The root verifier.
+      code += "inline bool Verify" + name + "Buffer(";
+      code += "flatbuffers::Verifier &verifier) {\n";
+      code += "  return verifier.VerifyBuffer<" + cpp_name + ">(";
       if (parser_.file_identifier_.length())
         code += name + "Identifier()";
       else
         code += "nullptr";
-      code += "); }\n\n";
+      code += ");\n";
+      code += "}\n\n";
 
       if (parser_.file_extension_.length()) {
         // Return the extension
-        code += "inline const char *" + name;
-        code += "Extension() { return \"" + parser_.file_extension_;
-        code += "\"; }\n\n";
+        code += "inline const char *" + name + "Extension() {\n";
+        code += "  return \"" + parser_.file_extension_ + "\";\n";
+        code += "}\n\n";
       }
 
       // Finish a buffer with a given root object:
-      code += "inline void Finish" + name;
-      code +=
-          "Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<";
-      code += cpp_qualified_name + "> root) { fbb.Finish(root";
+      code += "inline void Finish" + name + "Buffer";
+      code += "(flatbuffers::FlatBufferBuilder &fbb, ";
+      code += "flatbuffers::Offset<" + cpp_name + "> root) {\n";
       if (parser_.file_identifier_.length())
-        code += ", " + name + "Identifier()";
-      code += "); }\n\n";
+        code += "  fbb.Finish(root, " + name + "Identifier());\n";
+      else
+        code += "  fbb.Finish(root);\n";
+      code += "}\n\n";
+
+      if (parser_.opts.generate_object_based_api) {
+        // A convenient root unpack function.
+        auto native_name =
+            NativeName(WrapInNameSpace(*parser_.root_struct_def_));
+        code += "inline " + GenTypeNativePtr(native_name, nullptr, false);
+        code += " UnPack" + name;
+        code += "(const void *buf, const flatbuffers::resolver_function_t *";
+        code += "resolver = nullptr) {\n";
+        code += "  return ";
+        code += GenTypeNativePtr(native_name, nullptr, true);
+        code += "(Get" + name + "(buf)->UnPack(resolver));\n";
+        code += "}\n\n";
+      }
     }
 
     assert(cur_name_space_);
@@ -224,7 +245,7 @@ class CppGenerator : public BaseGenerator {
   // This tracks the current namespace so we can insert namespace declarations.
   const Namespace *cur_name_space_;
 
-  const Namespace *CurrentNameSpace() { return cur_name_space_; }
+  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
   // Translates a qualified name in flatbuffer text format to the same name in
   // the equivalent C++ namespace.
@@ -239,7 +260,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Return a C++ type from the table in idl.h
-  std::string GenTypeBasic(const Type &type, bool user_facing_type) {
+  std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             #CTYPE,
@@ -255,66 +276,104 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
   // and vector element types.
-  std::string GenTypePointer(const Type &type) {
+  std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
-      case BASE_TYPE_STRING:
+      case BASE_TYPE_STRING: {
         return "flatbuffers::String";
-      case BASE_TYPE_VECTOR:
-        return "flatbuffers::Vector<" +
-               GenTypeWire(type.VectorType(), "", false) + ">";
-      case BASE_TYPE_STRUCT:
+      }
+      case BASE_TYPE_VECTOR: {
+        const auto type_name = GenTypeWire(type.VectorType(), "", false);
+        return "flatbuffers::Vector<" + type_name + ">";
+      }
+      case BASE_TYPE_STRUCT: {
         return WrapInNameSpace(*type.struct_def);
+      }
       case BASE_TYPE_UNION:
       // fall through
-      default:
+      default: {
         return "void";
+      }
     }
   }
 
   // Return a C++ type for any type (scalar/pointer) specifically for
   // building a flatbuffer.
   std::string GenTypeWire(const Type &type, const char *postfix,
-                          bool user_facing_type) {
-    return IsScalar(type.base_type)
-               ? GenTypeBasic(type, user_facing_type) + postfix
-               : IsStruct(type) ? "const " + GenTypePointer(type) + " *"
-                                : "flatbuffers::Offset<" +
-                                      GenTypePointer(type) + ">" + postfix;
+                          bool user_facing_type) const {
+    if (IsScalar(type.base_type)) {
+      return GenTypeBasic(type, user_facing_type) + postfix;
+    } else if (IsStruct(type)) {
+      return "const " + GenTypePointer(type) + " *";
+    } else {
+      return "flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
+    }
   }
 
   // Return a C++ type for any type (scalar/pointer) that reflects its
   // serialized size.
-  std::string GenTypeSize(const Type &type) {
-    return IsScalar(type.base_type) ? GenTypeBasic(type, false)
-                                    : IsStruct(type) ? GenTypePointer(type)
-                                                     : "flatbuffers::uoffset_t";
+  std::string GenTypeSize(const Type &type) const {
+    if (IsScalar(type.base_type)) {
+      return GenTypeBasic(type, false);
+    } else if (IsStruct(type)) {
+      return GenTypePointer(type);
+    } else {
+      return "flatbuffers::uoffset_t";
+    }
   }
 
   // TODO(wvo): make this configurable.
-  std::string NativeName(const std::string &name) { return name + "T"; }
+  static std::string NativeName(const std::string &name) { return name + "T"; }
 
-  std::string GenTypeNative(const Type &type, bool invector) {
+  const std::string &PtrType(const FieldDef *field) {
+    auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
+    return attr ? attr->constant : parser_.opts.cpp_object_api_pointer_type;
+  }
+
+  std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
+                               bool is_constructor) {
+    auto &ptr_type = PtrType(field);
+    if (ptr_type != "naked") {
+      return ptr_type + "<" + type + ">";
+    } else if (is_constructor) {
+      return "";
+    } else {
+      return type + " *";
+    }
+  }
+
+  std::string GenPtrGet(const FieldDef &field) {
+    auto &ptr_type = PtrType(&field);
+    return ptr_type == "naked" ? "" : ".get()";
+  }
+
+  std::string GenTypeNative(const Type &type, bool invector,
+                            const FieldDef &field) {
     switch (type.base_type) {
-      case BASE_TYPE_STRING:
+      case BASE_TYPE_STRING: {
         return "std::string";
-      case BASE_TYPE_VECTOR:
-        return "std::vector<" + GenTypeNative(type.VectorType(), true) + ">";
-      case BASE_TYPE_STRUCT:
+      }
+      case BASE_TYPE_VECTOR: {
+        const auto type_name = GenTypeNative(type.VectorType(), true, field);
+        return "std::vector<" + type_name + ">";
+      }
+      case BASE_TYPE_STRUCT: {
+        const auto type_name = WrapInNameSpace(*type.struct_def);
         if (IsStruct(type)) {
-          if (invector) {
-            return WrapInNameSpace(*type.struct_def);
+          if (invector || field.native_inline) {
+            return type_name;
           } else {
-            return "std::unique_ptr<" +
-                   WrapInNameSpace(*type.struct_def) + ">";
+            return GenTypeNativePtr(type_name, &field, false);
           }
         } else {
-          return "std::unique_ptr<" +
-                 NativeName(WrapInNameSpace(*type.struct_def)) + ">";
+          return GenTypeNativePtr(NativeName(type_name), &field, false);
         }
-      case BASE_TYPE_UNION:
+      }
+      case BASE_TYPE_UNION: {
         return type.enum_def->name + "Union";
-      default:
+      }
+      default: {
         return GenTypeBasic(type, true);
+      }
     }
   }
 
@@ -323,25 +382,27 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypeGet(const Type &type, const char *afterbasic,
                          const char *beforeptr, const char *afterptr,
                          bool user_facing_type) {
-    return IsScalar(type.base_type)
-               ? GenTypeBasic(type, user_facing_type) + afterbasic
-               : beforeptr + GenTypePointer(type) + afterptr;
+    if (IsScalar(type.base_type)) {
+      return GenTypeBasic(type, user_facing_type) + afterbasic;
+    } else {
+      return beforeptr + GenTypePointer(type) + afterptr;
+    }
   }
 
-  static std::string GenEnumDecl(const EnumDef &enum_def,
-                                 const IDLOptions &opts) {
+  std::string GenEnumDecl(const EnumDef &enum_def) const {
+    const IDLOptions &opts = parser_.opts;
     return (opts.scoped_enums ? "enum class " : "enum ") + enum_def.name;
   }
 
-  static std::string GenEnumValDecl(const EnumDef &enum_def,
-                                   const std::string &enum_val,
-                                   const IDLOptions &opts) {
+  std::string GenEnumValDecl(const EnumDef &enum_def,
+                             const std::string &enum_val) const {
+    const IDLOptions &opts = parser_.opts;
     return opts.prefixed_enums ? enum_def.name + "_" + enum_val : enum_val;
   }
 
-  static std::string GetEnumValUse(const EnumDef &enum_def,
-                                   const EnumVal &enum_val,
-                                   const IDLOptions &opts) {
+  std::string GetEnumValUse(const EnumDef &enum_def,
+                            const EnumVal &enum_val) const {
+    const IDLOptions &opts = parser_.opts;
     if (opts.scoped_enums) {
       return enum_def.name + "::" + enum_val.name;
     } else if (opts.prefixed_enums) {
@@ -351,53 +412,75 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  std::string UnionVerifySignature(EnumDef &enum_def) {
+  static std::string UnionVerifySignature(const EnumDef &enum_def) {
     return "inline bool Verify" + enum_def.name +
            "(flatbuffers::Verifier &verifier, const void *union_obj, " +
            enum_def.name + " type)";
   }
 
-  std::string UnionUnPackSignature(EnumDef &enum_def, bool inclass) {
+  static std::string UnionUnPackSignature(const EnumDef &enum_def,
+                                          bool inclass) {
     return (inclass ? "static " : "") +
            std::string("flatbuffers::NativeTable *") +
            (inclass ? "" : enum_def.name + "Union::") +
-           "UnPack(const void *union_obj, " + enum_def.name + " type)";
+           "UnPack(const void *union_obj, " + enum_def.name +
+           " type, const flatbuffers::resolver_function_t *resolver)";
   }
 
-  std::string UnionPackSignature(EnumDef &enum_def, bool inclass) {
+  static std::string UnionPackSignature(const EnumDef &enum_def, bool inclass) {
     return "flatbuffers::Offset<void> " +
            (inclass ? "" : enum_def.name + "Union::") +
-           "Pack(flatbuffers::FlatBufferBuilder &_fbb) const";
+           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
+           "const flatbuffers::rehasher_function_t *rehasher" +
+           (inclass ? " = nullptr" : "") + ") const";
   }
 
-  std::string TableCreateSignature(StructDef &struct_def) {
+  static std::string TableCreateSignature(const StructDef &struct_def,
+                                          bool predecl) {
     return "inline flatbuffers::Offset<" + struct_def.name + "> Create" +
            struct_def.name  +
            "(flatbuffers::FlatBufferBuilder &_fbb, const " +
-           NativeName(struct_def.name) + " *_o)";
+           NativeName(struct_def.name) +
+           " *_o, const flatbuffers::rehasher_function_t *rehasher" +
+           (predecl ? " = nullptr" : "") + ")";
   }
 
-  std::string TableUnPackSignature(StructDef &struct_def, bool inclass) {
-    return "std::unique_ptr<" + NativeName(struct_def.name) + "> " +
-           (inclass ? "" : struct_def.name + "::") + "UnPack() const";
+  static std::string TablePackSignature(const StructDef &struct_def,
+                                        bool inclass) {
+    return std::string(inclass ? "static " : "") +
+           "flatbuffers::Offset<" + struct_def.name + "> " +
+           (inclass ? "" : struct_def.name + "::") +
+           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
+           "const " + NativeName(struct_def.name) + "* _o, " +
+           "const flatbuffers::rehasher_function_t *_rehasher" +
+           (inclass ? " = nullptr" : "") + ")";
+  }
+
+  static std::string TableUnPackSignature(const StructDef &struct_def,
+                                          bool inclass) {
+    return NativeName(struct_def.name) + " *" +
+           (inclass ? "" : struct_def.name + "::") +
+           "UnPack(const flatbuffers::resolver_function_t *resolver" +
+           (inclass ? " = nullptr" : "") + ") const";
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
-    code += GenEnumDecl(enum_def, parser_.opts);
+    code += GenEnumDecl(enum_def);
     if (parser_.opts.scoped_enums)
       code += " : " + GenTypeBasic(enum_def.underlying_type, false);
     code += " {\n";
     int64_t anyv = 0;
-    EnumVal *minv = nullptr, *maxv = nullptr;
+    const EnumVal *minv = nullptr, *maxv = nullptr;
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
-      auto &ev = **it;
+      const auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "  ");
-      code += "  " + GenEnumValDecl(enum_def, ev.name, parser_.opts) + " = ";
-      code += NumToString(ev.value) + ",\n";
+      code += "  " + GenEnumValDecl(enum_def, ev.name) + " = ";
+      code += NumToString(ev.value);
+      if (it != enum_def.vals.vec.end() - 1) code += ",\n";
       minv = !minv || minv->value > ev.value ? &ev : minv;
       maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
       anyv |= ev.value;
@@ -406,52 +489,27 @@ class CppGenerator : public BaseGenerator {
       assert(minv && maxv);
       if (enum_def.attributes.Lookup("bit_flags")) {
         if (minv->value != 0)  // If the user didn't defined NONE value
-          code += "  " + GenEnumValDecl(enum_def, "NONE", parser_.opts) + " = 0,\n";
+          code += ",\n";
+          code += "  " + GenEnumValDecl(enum_def, "NONE") + " = 0";
         if (maxv->value != anyv)  // If the user didn't defined ANY value
-          code += "  " + GenEnumValDecl(enum_def, "ANY", parser_.opts) + " = " +
-                  NumToString(anyv) + "\n";
+          code += ",\n";
+          code += "  " + GenEnumValDecl(enum_def, "ANY") + " = " +
+                  NumToString(anyv);
       } else {  // MIN & MAX are useless for bit_flags
-        code += "  " + GenEnumValDecl(enum_def, "MIN", parser_.opts) + " = ";
-        code += GenEnumValDecl(enum_def, minv->name, parser_.opts) + ",\n";
-        code += "  " + GenEnumValDecl(enum_def, "MAX", parser_.opts) + " = ";
-        code += GenEnumValDecl(enum_def, maxv->name, parser_.opts) + "\n";
+        code += ",\n";
+        code += "  " + GenEnumValDecl(enum_def, "MIN") + " = ";
+        code += GenEnumValDecl(enum_def, minv->name);
+        code += ",\n";
+        code += "  " + GenEnumValDecl(enum_def, "MAX") + " = ";
+        code += GenEnumValDecl(enum_def, maxv->name);
       }
     }
+    code += "\n";
     code += "};\n";
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags"))
       code += "DEFINE_BITMASK_OPERATORS(" + enum_def.name + ", " +
               GenTypeBasic(enum_def.underlying_type, false) + ")\n";
     code += "\n";
-
-    if (parser_.opts.generate_object_based_api && enum_def.is_union) {
-      // Generate a union type
-      code += "struct " + enum_def.name + "Union {\n";
-      code += "  " + enum_def.name + " type;\n\n";
-      code += "  flatbuffers::NativeTable *table;\n";
-      code += "  " + enum_def.name + "Union() : type(";
-      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"), parser_.opts);
-      code += "), table(nullptr) {}\n";
-      code += "  " + enum_def.name + "Union(const ";
-      code += enum_def.name + "Union &);\n";
-      code += "  " + enum_def.name + "Union &operator=(const ";
-      code += enum_def.name + "Union &);\n";
-      code += "  ~" + enum_def.name + "Union();\n\n";
-      code += "  " + UnionUnPackSignature(enum_def, true) + ";\n";
-      code += "  " + UnionPackSignature(enum_def, true) + ";\n\n";
-      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-           ++it) {
-        auto &ev = **it;
-        if (ev.value) {
-          auto native_name = NativeName(WrapInNameSpace(*ev.struct_def));
-          code += "  " + native_name + " *As";
-          code += ev.name + "() { return type == ";
-          code += GetEnumValUse(enum_def, ev, parser_.opts);
-          code += " ? reinterpret_cast<" + native_name;
-          code += " *>(table) : nullptr; }\n";
-        }
-      }
-      code += "};\n\n";
-    }
 
     // Generate a generate string table for enum values.
     // Problem is, if values are very sparse that could generate really big
@@ -469,19 +527,83 @@ class CppGenerator : public BaseGenerator {
       auto val = enum_def.vals.vec.front()->value;
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
-        while (val++ != (*it)->value) code += "\"\", ";
-        code += "\"" + (*it)->name + "\", ";
+        const auto &ev = **it;
+        while (val++ != ev.value) code += "\"\", ";
+        code += "\"" + ev.name + "\", ";
       }
-      code += "nullptr };\n  return names;\n}\n\n";
+      code += "nullptr };\n";
+      code += "  return names;\n";
+      code += "}\n\n";
       code += "inline const char *EnumName" + enum_def.name;
       code += "(" + enum_def.name + " e) { return EnumNames" + enum_def.name;
       code += "()[static_cast<int>(e)";
       if (enum_def.vals.vec.front()->value) {
         code += " - static_cast<int>(";
-        code += GetEnumValUse(enum_def, *enum_def.vals.vec.front(), parser_.opts) +
-                ")";
+        code += GetEnumValUse(enum_def, *enum_def.vals.vec.front()) + ")";
       }
       code += "]; }\n\n";
+    }
+
+    // Generate type traits for unions to map from a type to union enum value.
+    if (enum_def.is_union) {
+      for (auto it = enum_def.vals.vec.begin();
+        it != enum_def.vals.vec.end();
+        ++it) {
+        const auto &ev = **it;
+        if (it == enum_def.vals.vec.begin()) {
+          code += "template<typename T> struct " + enum_def.name + "Traits {\n";
+        }
+        else {
+          code += "template<> struct " + enum_def.name + "Traits<" +
+                  WrapInNameSpace(*ev.struct_def) + "> {\n";
+        }
+        code += "  static const " + enum_def.name + " enum_value = " +
+                GetEnumValUse(enum_def, ev) + ";\n";
+        code += "};\n\n";
+      }
+    }
+
+    if (parser_.opts.generate_object_based_api && enum_def.is_union) {
+      // Generate a union type
+      code += "struct " + enum_def.name + "Union {\n";
+      code += "  " + enum_def.name + " type;\n\n";
+      code += "  flatbuffers::NativeTable *table;\n";
+      code += "  " + enum_def.name + "Union() : type(";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"));
+      code += "), table(nullptr) {}\n";
+      code += "  " + enum_def.name + "Union(const ";
+      code += enum_def.name + "Union &);\n";
+      code += "  " + enum_def.name + "Union &operator=(const ";
+      code += enum_def.name + "Union &);\n";
+      code += "  ~" + enum_def.name + "Union() { Reset(); }\n";
+      code += "  void Reset();\n\n";
+
+      code += "  template <typename T>\n";
+      code += "  void Set(T&& value) {\n";
+      code += "    Reset();\n";
+      code += "    type = " + enum_def.name;
+      code += "Traits<typename T::TableType>::enum_value;\n";
+      code += "    if (type != ";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"));
+      code += ") {\n";
+      code += "      table = new T(std::forward<T>(value));\n";
+      code += "    }\n";
+      code += "  }\n\n";
+      code += "  " + UnionUnPackSignature(enum_def, true) + ";\n";
+      code += "  " + UnionPackSignature(enum_def, true) + ";\n\n";
+      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+           ++it) {
+        const auto &ev = **it;
+        if (ev.value) {
+          auto native_name = NativeName(WrapInNameSpace(*ev.struct_def));
+          code += "  " + native_name + " *As";
+          code += ev.name + "() { return type == ";
+          code += GetEnumValUse(enum_def, ev);
+          code += " ? reinterpret_cast<" + native_name;
+          code += " *>(table) : nullptr; }\n";
+        }
+      }
+      code += "};\n\n";
     }
 
     if (enum_def.is_union) {
@@ -489,18 +611,19 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  void GenUnionPost(EnumDef &enum_def, std::string *code_ptr) {
+  void GenUnionPost(const EnumDef &enum_def, std::string *code_ptr) {
     // Generate a verifier function for this union that can be called by the
     // table verifier functions. It uses a switch case to select a specific
     // verifier function to call, this should be safe even if the union type
     // has been corrupted, since the verifiers will simply fail when called
     // on the wrong type.
     std::string &code = *code_ptr;
-    code += UnionVerifySignature(enum_def) + " {\n  switch (type) {\n";
+    code += UnionVerifySignature(enum_def) + " {\n";
+    code += "  switch (type) {\n";
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
-      auto &ev = **it;
-      code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
+      const auto &ev = **it;
+      code += "    case " + GetEnumValUse(enum_def, ev);
       if (!ev.value) {
         code += ": return true;\n";  // "NONE" enum value.
       } else {
@@ -509,57 +632,69 @@ class CppGenerator : public BaseGenerator {
         code += " *>(union_obj));\n";
       }
     }
-    code += "    default: return false;\n  }\n}\n\n";
+    code += "    default: return false;\n";
+    code += "  }\n";
+    code += "}\n\n";
 
     if (parser_.opts.generate_object_based_api) {
       // Generate a union pack & unpack function.
       code += "inline " + UnionUnPackSignature(enum_def, false);
-      code += " {\n  switch (type) {\n";
+      code += " {\n";
+      code += "  switch (type) {\n";
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
-        auto &ev = **it;
-        code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
+        const auto &ev = **it;
+        code += "    case " + GetEnumValUse(enum_def, ev);
         if (!ev.value) {
           code += ": return nullptr;\n";  // "NONE" enum value.
         } else {
           code += ": return reinterpret_cast<const ";
           code += WrapInNameSpace(*ev.struct_def);
-          code += " *>(union_obj)->UnPack().release();\n";
+          code += " *>(union_obj)->UnPack(resolver);\n";
         }
       }
-      code += "    default: return nullptr;\n  }\n}\n\n";
-      code += "inline " + UnionPackSignature(enum_def, false);
-      code += " {\n  switch (type) {\n";
+      code += "    default: return nullptr;\n";
+      code += "  }\n";
+      code += "}\n\n";
+      code += "inline " + UnionPackSignature(enum_def, false) + " {\n";
+      code += "  switch (type) {\n";
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
         auto &ev = **it;
-        code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
+        code += "    case " + GetEnumValUse(enum_def, ev);
         if (!ev.value) {
           code += ": return 0;\n";  // "NONE" enum value.
         } else {
           code += ": return Create" + ev.struct_def->name;
           code += "(_fbb, reinterpret_cast<const ";
           code += NativeName(WrapInNameSpace(*ev.struct_def));
-          code += " *>(table)).Union();\n";
+          code += " *>(table), rehasher).Union();\n";
         }
       }
-      code += "    default: return 0;\n  }\n}\n\n";
+      code += "    default: return 0;\n";
+      code += "  }\n";
+      code += "}\n\n";
 
       // Generate a union destructor.
-      code += "inline " + enum_def.name + "Union::~";
-      code += enum_def.name + "Union() {\n";
+      code += "inline void " + enum_def.name + "Union::Reset() {\n";
       code += "  switch (type) {\n";
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
-        auto &ev = **it;
+        const auto &ev = **it;
         if (ev.value) {
-          code += "    case " + GetEnumValUse(enum_def, ev, parser_.opts);
+          code += "    case " + GetEnumValUse(enum_def, ev);
           code += ": delete reinterpret_cast<";
           code += NativeName(WrapInNameSpace(*ev.struct_def));
           code += " *>(table); break;\n";
         }
       }
-      code += "    default:;\n  }\n}\n\n";
+      code += "    default: break;\n";
+      code += "  }\n";
+      code += "  table = nullptr;\n";
+      code += "  type = ";
+      code += GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE"));
+      code += ";\n";
+      code += "}\n\n";
     }
   }
 
@@ -587,7 +722,9 @@ class CppGenerator : public BaseGenerator {
     return "VT_" + uname;
   }
 
-  void GenFullyQualifiedNameGetter(const std::string &name, std::string &code) {
+  void GenFullyQualifiedNameGetter(const std::string &name,
+                                   std::string *code_ptr) {
+    std::string &code = *code_ptr;
     if (parser_.opts.generate_name_strings) {
       code +=
           "  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() "
@@ -604,28 +741,81 @@ class CppGenerator : public BaseGenerator {
                : field.value.constant;
   }
 
-  void GenSimpleParam(std::string &code, FieldDef &field) {
-    code += ",\n    " + GenTypeWire(field.value.type, " ", true);
-    code += field.name + " = ";
+  std::string GetDefaultScalarValue(const FieldDef &field) {
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
           static_cast<int>(StringToInt(field.value.constant.c_str())), false);
       if (ev) {
-        code += WrapInNameSpace(
+        return WrapInNameSpace(
             field.value.type.enum_def->defined_namespace,
-            GetEnumValUse(*field.value.type.enum_def, *ev, parser_.opts));
+            GetEnumValUse(*field.value.type.enum_def, *ev));
       } else {
-        code += GenUnderlyingCast(field, true, field.value.constant);
+        return GenUnderlyingCast(field, true, field.value.constant);
       }
     } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
-      code += field.value.constant == "0" ? "false" : "true";
+      return field.value.constant == "0" ? "false" : "true";
     } else {
-      code += GenDefaultConstant(field);
+      return GenDefaultConstant(field);
     }
   }
 
+  void GenSimpleParam(const FieldDef &field, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += ",\n";
+    code += "    " + GenTypeWire(field.value.type, " ", true);
+    code += field.name + " = " + GetDefaultScalarValue(field);
+  }
+
+  // Generate a member, including a default value for scalars and raw pointers.
+  void GenMember(const FieldDef &field, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    if (!field.deprecated &&  // Deprecated fields won't be accessible.
+        field.value.type.base_type != BASE_TYPE_UTYPE) {
+      auto type = GenTypeNative(field.value.type, false, field);
+      auto cpp_type = field.attributes.Lookup("cpp_type");
+      code += "  " + (cpp_type ? cpp_type->constant + " *" : type+ " ") +
+              field.name + ";\n";
+    }
+  }
+
+  // Generate the default constructor for this struct. Properly initialize all
+  // scalar members with default values.
+  void GenDefaultConstructor(const StructDef& struct_def,
+                             std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "  " + NativeName(struct_def.name) + "()";
+    std::string initializer_list;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (!field.deprecated &&  // Deprecated fields won't be accessible.
+          field.value.type.base_type != BASE_TYPE_UTYPE) {
+        auto cpp_type = field.attributes.Lookup("cpp_type");
+        // Scalar types get parsed defaults, raw pointers get nullptrs.
+        if (IsScalar(field.value.type.base_type)) {
+          if (!initializer_list.empty()) {
+            initializer_list += ",\n      ";
+          }
+          initializer_list += field.name;
+          initializer_list += "(" + GetDefaultScalarValue(field) + ")";
+        } else if (cpp_type) {
+          if (!initializer_list.empty()) {
+            code += ",\n";
+            code += "      ";
+          }
+          initializer_list += field.name + "(0)";
+        }
+      }
+    }
+    if (!initializer_list.empty()) {
+      code += "\n";
+      code += "    : " + initializer_list;
+    }
+    code += " {}\n";
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
-  void GenTable(StructDef &struct_def, std::string *code_ptr) {
+  void GenTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
     if (parser_.opts.generate_object_based_api) {
@@ -633,15 +823,15 @@ class CppGenerator : public BaseGenerator {
       // table.
       code += "struct " + NativeName(struct_def.name);
       code += " : public flatbuffers::NativeTable {\n";
+      code += "  typedef " + struct_def.name + " TableType;\n";
+      // Generate GetFullyQualifiedName
+      GenFullyQualifiedNameGetter(NativeName(struct_def.name), &code);
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
-        if (!field.deprecated &&  // Deprecated fields won't be accessible.
-            field.value.type.base_type != BASE_TYPE_UTYPE) {
-          code += "  " + GenTypeNative(field.value.type, false) + " ";
-          code += field.name + ";\n";
-        }
+        const auto &field = **it;
+        GenMember(field, &code);
       }
+      GenDefaultConstructor(struct_def, &code);
       code += "};\n\n";
     }
 
@@ -651,8 +841,12 @@ class CppGenerator : public BaseGenerator {
     code += "struct " + struct_def.name;
     code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
     code += " {\n";
+    if (parser_.opts.generate_object_based_api) {
+      code += "  typedef " + NativeName(struct_def.name) +
+              " NativeTableType;\n";
+    }
     // Generate GetFullyQualifiedName
-    GenFullyQualifiedNameGetter(struct_def.name, code);
+    GenFullyQualifiedNameGetter(struct_def.name, &code);
     // Generate field id constants.
     if (struct_def.fields.vec.size() > 0) {
       code += "  enum {\n";
@@ -660,7 +854,7 @@ class CppGenerator : public BaseGenerator {
           true;  // track the first field that's not deprecated
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        const auto &field = **it;
         if (!field.deprecated) {  // Deprecated fields won't be accessible.
           if (!is_first_field) {
             // Add trailing comma and newline to previous element. Don't add
@@ -674,12 +868,13 @@ class CppGenerator : public BaseGenerator {
           code += NumToString(field.value.offset);
         }
       }
-      code += "\n  };\n";
+      code += "\n";
+      code += "  };\n";
     }
     // Generate the accessors.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (!field.deprecated) {  // Deprecated fields won't be accessible.
         auto is_scalar = IsScalar(field.value.type.base_type);
         GenComment(field.doc_comment, code_ptr, nullptr, "  ");
@@ -762,7 +957,7 @@ class CppGenerator : public BaseGenerator {
     std::string prefix = " &&\n           ";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (!field.deprecated) {
         code += prefix + "VerifyField";
         if (field.required) code += "Required";
@@ -809,41 +1004,47 @@ class CppGenerator : public BaseGenerator {
       }
     }
     code += prefix + "verifier.EndTable()";
-    code += ";\n  }\n";
+    code += ";\n";
+    code += "  }\n";
 
     if (parser_.opts.generate_object_based_api) {
       // Generate the UnPack() pre declaration.
       code += "  " + TableUnPackSignature(struct_def, true) + ";\n";
+      code += "  " + TablePackSignature(struct_def, true) + ";\n";
     }
 
     code += "};\n\n";  // End of table.
 
     // Generate a builder struct, with methods of the form:
-    // void add_name(type name) { fbb_.AddElement<type>(offset, name, default);
+    // void add_name(type name) {
+    //   fbb_.AddElement<type>(offset, name, default);
     // }
-    code += "struct " + struct_def.name;
-    code += "Builder {\n  flatbuffers::FlatBufferBuilder &fbb_;\n";
+    code += "struct " + struct_def.name + "Builder {\n";
+    code += "  flatbuffers::FlatBufferBuilder &fbb_;\n";
     code += "  flatbuffers::uoffset_t start_;\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (!field.deprecated) {
         code += "  void add_" + field.name + "(";
         code += GenTypeWire(field.value.type, " ", true) + field.name;
-        code += ") { fbb_.Add";
+        code += ") {\n";
+
+        code += "    fbb_.Add";
         if (IsScalar(field.value.type.base_type)) {
-          code += "Element<" + GenTypeWire(field.value.type, "", false);
-          code += ">";
+          code += "Element<" + GenTypeWire(field.value.type, "", false) + ">";
         } else if (IsStruct(field.value.type)) {
           code += "Struct";
         } else {
           code += "Offset";
         }
+
         code += "(" + struct_def.name + "::" + GenFieldOffsetName(field) + ", ";
         code += GenUnderlyingCast(field, false, field.name);
         if (IsScalar(field.value.type.base_type))
           code += ", " + GenDefaultConstant(field);
-        code += "); }\n";
+        code += ");\n";
+        code += "  }\n";
       }
     }
     code += "  " + struct_def.name;
@@ -852,19 +1053,22 @@ class CppGenerator : public BaseGenerator {
     code += "  " + struct_def.name + "Builder &operator=(const ";
     code += struct_def.name + "Builder &);\n";
     code += "  flatbuffers::Offset<" + struct_def.name;
-    code += "> Finish() {\n    auto o = flatbuffers::Offset<" + struct_def.name;
+    code += "> Finish() {\n";
+    code += "    auto o = flatbuffers::Offset<" + struct_def.name;
     code += ">(fbb_.EndTable(start_, ";
     code += NumToString(struct_def.fields.vec.size()) + "));\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (!field.deprecated && field.required) {
         code += "    fbb_.Required(o, ";
         code += struct_def.name + "::" + GenFieldOffsetName(field);
         code += ");  // " + field.name + "\n";
       }
     }
-    code += "    return o;\n  }\n};\n\n";
+    code += "    return o;\n";
+    code += "  }\n";
+    code += "};\n\n";
 
     // Generate a convenient CreateX function that uses the above builder
     // to create a table in one go.
@@ -874,28 +1078,30 @@ class CppGenerator : public BaseGenerator {
     code += "(flatbuffers::FlatBufferBuilder &_fbb";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (!field.deprecated) {
         if (field.value.type.base_type == BASE_TYPE_STRING ||
             field.value.type.base_type == BASE_TYPE_VECTOR) {
           gen_vector_pars = true;
         }
-        GenSimpleParam(code, field);
+        GenSimpleParam(field, &code);
       }
     }
-    code += ") {\n  " + struct_def.name + "Builder builder_(_fbb);\n";
+    code += ") {\n";
+    code += "  " + struct_def.name + "Builder builder_(_fbb);\n";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
       for (auto it = struct_def.fields.vec.rbegin();
            it != struct_def.fields.vec.rend(); ++it) {
-        auto &field = **it;
+        const auto &field = **it;
         if (!field.deprecated && (!struct_def.sortbysize ||
                                   size == SizeOf(field.value.type.base_type))) {
           code += "  builder_.add_" + field.name + "(" + field.name + ");\n";
         }
       }
     }
-    code += "  return builder_.Finish();\n}\n\n";
+    code += "  return builder_.Finish();\n";
+    code += "}\n\n";
 
     // Generate a CreateXDirect function with vector types as parameters
     if (gen_vector_pars) {
@@ -904,27 +1110,27 @@ class CppGenerator : public BaseGenerator {
       code += "Direct(flatbuffers::FlatBufferBuilder &_fbb";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        const auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            code += ",\n    const char *";
+            code += ",\n";
+            code += "    const char *";
             code += field.name + " = nullptr";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code += ",\n    const std::vector<";
+            code += ",\n";
+            code += "    const std::vector<";
             code += GenTypeWire(field.value.type.VectorType(), "", false);
             code += "> *" + field.name + " = nullptr";
           } else {
-            GenSimpleParam(code, field);
+            GenSimpleParam(field, &code);
           }
         }
       }
-      code += ") {\n  ";
-      code += "return Create";
-      code += struct_def.name;
-      code += "(_fbb";
+      code += ") {\n";
+      code += "  return Create" + struct_def.name + "(_fbb";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        const auto &field = **it;
         if (!field.deprecated) {
           if (field.value.type.base_type == BASE_TYPE_STRING) {
             code += ", " + field.name + " ? ";
@@ -939,67 +1145,77 @@ class CppGenerator : public BaseGenerator {
           }
         }
       }
-      code += ");\n}\n\n";
+      code += ");\n";
+      code += "}\n\n";
     }
 
     if (parser_.opts.generate_object_based_api) {
       // Generate a pre-declaration for a CreateX method that works with an
       // unpacked C++ object.
-      code += TableCreateSignature(struct_def) + ";\n\n";
+      code += TableCreateSignature(struct_def, true) + ";\n\n";
     }
   }
 
+  std::string GenUnpackVal(const Type &type, const std::string &val,
+                           bool invector, const FieldDef &afield) {
+    switch (type.base_type) {
+      case BASE_TYPE_STRING: {
+        return val + "->str()";
+      }
+      case BASE_TYPE_STRUCT: {
+        const auto name = WrapInNameSpace(*type.struct_def);
+        if (IsStruct(type)) {
+          if (invector || afield.native_inline) {
+            return "*" + val;
+          } else {
+            const auto ptype = GenTypeNativePtr(name, &afield, true);
+            return ptype + "(new " + name + "(*" + val + "))";
+          }
+        } else {
+          const auto ptype = GenTypeNativePtr(NativeName(name), &afield, true);
+          return ptype + "(" + val + "->UnPack(resolver))";
+        }
+      }
+      default: {
+        return val;
+        break;
+      }
+    }
+  };
+
   // Generate code for tables that needs to come after the regular definition.
-  void GenTablePost(StructDef &struct_def, std::string *code_ptr) {
+  void GenTablePost(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
     if (parser_.opts.generate_object_based_api) {
       // Generate the UnPack() method.
       code += "inline " + TableUnPackSignature(struct_def, false) + " {\n";
+      code += "  (void)resolver;\n";
       code += "  auto _o = new " + NativeName(struct_def.name) + "();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        const auto &field = **it;
         if (!field.deprecated) {
           auto prefix = "  { auto _e = " + field.name + "(); ";
           if (!IsScalar(field.value.type.base_type)) prefix += "if (_e) ";
           auto deref = "_o->";
           auto dest = deref + field.name;
           auto assign = prefix + dest + " = ";
-          auto gen_unpack_val = [&](const Type &type, const std::string &val,
-                                    bool invector) -> std::string {
-            switch (type.base_type) {
-              case BASE_TYPE_STRING:
-                return val + "->str()";
-              case BASE_TYPE_STRUCT:
-                if (IsStruct(type)) {
-                  if (invector) {
-                    return "*" + val;
-                  } else {
-                    return "std::unique_ptr<" +
-                           WrapInNameSpace (*type.struct_def) +
-                           ">(new " +
-                           WrapInNameSpace (*type.struct_def) + "(*" + val + "))";
-                  }
-                } else {
-                  return val + "->UnPack()";
-                }
-              default:
-                return val;
-                break;
-            }
-          };
           switch (field.value.type.base_type) {
             case BASE_TYPE_VECTOR: {
               code += prefix;
               code += "{ for (flatbuffers::uoffset_t _i = 0;";
               code += " _i < _e->size(); _i++) { ";
               code += dest + ".push_back(";
-              std::string indexing = "_e->Get(_i)";
+              std::string indexing;
+              if (field.value.type.enum_def) {
+                indexing += "(" + field.value.type.enum_def->name + ")";
+              }
+              indexing += "_e->Get(_i)";
               if (field.value.type.element == BASE_TYPE_BOOL)
                 indexing += "!=0";
-              code += gen_unpack_val(field.value.type.VectorType(),
-                                     indexing, true);
+              code += GenUnpackVal(field.value.type.VectorType(),
+                                   indexing, true, field);
               code += "); } }";
               break;
             }
@@ -1009,25 +1225,44 @@ class CppGenerator : public BaseGenerator {
               code += prefix + deref + union_field.name + ".type = _e;";
               break;
             }
-            case BASE_TYPE_UNION:
+            case BASE_TYPE_UNION: {
               code += prefix + dest + ".table = ";
               code += field.value.type.enum_def->name;
               code += "Union::UnPack(_e, ";
-              code += field.name + UnionTypeFieldSuffix() + "());";
+              code += field.name + UnionTypeFieldSuffix() + "(), resolver);";
               break;
-            default:
-              code += assign + gen_unpack_val(field.value.type, "_e", false);
+            }
+            default: {
+              auto cpp_type = field.attributes.Lookup("cpp_type");
+              if (cpp_type) {
+                code += prefix;
+                code += "if (resolver) (*resolver)(reinterpret_cast<void **>(&";
+                code += dest;
+                code += "), static_cast<flatbuffers::hash_value_t>(_e)); else ";
+                code += dest + " = nullptr";
+              } else {
+                code += assign;
+                code += GenUnpackVal(field.value.type, "_e", false, field);
+              }
               code += ";";
               break;
+            }
           }
           code += " };\n";
         }
       }
-      code += "  return std::unique_ptr<" + NativeName(struct_def.name);
-      code += ">(_o);\n}\n\n";
+      code += "  return _o;\n";
+      code += "}\n\n";
+
+      // Generate the X::Pack member function that simply calls the global
+      // CreateX function.
+      code += "inline " + TablePackSignature(struct_def, false) + " {\n";
+      code += "  return Create" + struct_def.name + "(_fbb, _o, _rehasher);\n";
+      code += "}\n\n";
 
       // Generate a CreateX method that works with an unpacked C++ object.
-      code += TableCreateSignature(struct_def) + " {\n";
+      code += TableCreateSignature(struct_def, false) + " {\n";
+      code += "  (void)rehasher;\n";
       auto before_return_statement = code.size();
       code += "  return Create";
       code += struct_def.name + "(_fbb";
@@ -1044,6 +1279,10 @@ class CppGenerator : public BaseGenerator {
             field_name += ".type";
           }
           auto accessor = "_o->" + field_name;
+          if (field.attributes.Lookup("cpp_type"))
+            accessor = "rehasher ? static_cast<" +
+                       GenTypeBasic(field.value.type, false) +
+                       ">((*rehasher)(" + accessor + ")) : 0";
           auto ptrprefix = accessor + " ? ";
           auto stlprefix = accessor + ".size() ? ";
           auto postfix = " : 0";
@@ -1053,7 +1292,8 @@ class CppGenerator : public BaseGenerator {
             stlprefix = "";
             postfix = "";
           }
-          code += ",\n    ";
+          code += ",\n";
+          code += "    ";
           switch (field.value.type.base_type) {
             case BASE_TYPE_STRING:
               code += stlprefix + "_fbb.CreateString(" + accessor + ")";
@@ -1071,15 +1311,27 @@ class CppGenerator : public BaseGenerator {
                     code += "_fbb.CreateVectorOfStructs(" + accessor + ")";
                   } else {
                     code += "_fbb.CreateVector<flatbuffers::Offset<";
-                    code += vector_type.struct_def->name + ">>(" + accessor;
+                    code += WrapInNameSpace(*vector_type.struct_def) + ">>(" +
+                            accessor;
                     code += ".size(), [&](size_t i) { return Create";
                     code += vector_type.struct_def->name + "(_fbb, " + accessor;
-                    code += "[i].get()); })";
+                    code += "[i]" + GenPtrGet(field) + ", rehasher); })";
                   }
                   break;
-                default:
+                case BASE_TYPE_BOOL:
                   code += "_fbb.CreateVector(" + accessor + ")";
                   break;
+                default: {
+                  std::string args = accessor;
+                  if (field.value.type.enum_def) {
+                    const std::string basetype = GenTypeBasic(
+                        field.value.type.enum_def->underlying_type, false);
+                    args = "(const " + basetype + "*)" + accessor +
+                           ".data(), " + accessor + ".size()";
+                  }
+                  code += "_fbb.CreateVector(" + args + ")";
+                  break;
+                }
               }
               code += postfix;
               break;
@@ -1089,11 +1341,16 @@ class CppGenerator : public BaseGenerator {
               break;
             case BASE_TYPE_STRUCT:
               if (IsStruct(field.value.type)) {
-                code += ptrprefix + accessor + ".get()" + postfix;
+                if (field.native_inline) {
+                  code += "&" + accessor;
+                } else {
+                  code += ptrprefix + accessor + GenPtrGet(field) + postfix;
+                }
               } else {
                 code += ptrprefix + "Create";
                 code += field.value.type.struct_def->name;
-                code += "(_fbb, " + accessor + ".get())" + postfix;
+                code += "(_fbb, " + accessor + GenPtrGet(field) + ", rehasher)";
+                code += postfix;
               }
               break;
             default:
@@ -1102,41 +1359,40 @@ class CppGenerator : public BaseGenerator {
           }
         }
       }
-      code += ");\n}\n\n";
+      code += ");\n";
+      code += "}\n\n";
       if (!any_fields) code.insert(before_return_statement, "  (void)_o;\n");
     }
   }
 
-  static void GenPadding(const FieldDef &field, std::string &code,
-                         int &padding_id,
-                         const std::function<void(int bits, std::string &code,
-                                                  int &padding_id)> &f) {
+  static void GenPadding(
+      const FieldDef &field, std::string *code_ptr, int *id,
+      const std::function<void(int bits, std::string *code_ptr, int *id)> &f) {
     if (field.padding) {
       for (int i = 0; i < 4; i++)
         if (static_cast<int>(field.padding) & (1 << i))
-          f((1 << i) * 8, code, padding_id);
+          f((1 << i) * 8, code_ptr, id);
       assert(!(field.padding & ~0xF));
     }
   }
 
-  static void PaddingDefinition(int bits, std::string &code, int &padding_id) {
-    code += "  int" + NumToString(bits) + "_t __padding" +
-            NumToString(padding_id++) + ";\n";
+  static void PaddingDefinition(int bits, std::string *code_ptr, int *id) {
+    *code_ptr += "  int" + NumToString(bits) + "_t __padding" +
+        NumToString((*id)++) + ";\n";
   }
 
-  static void PaddingDeclaration(int bits, std::string &code, int &padding_id) {
+  static void PaddingDeclaration(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    code += " (void)__padding" + NumToString(padding_id++) + ";";
+    *code_ptr += " (void)__padding" + NumToString((*id)++) + ";";
   }
 
-  static void PaddingInitializer(int bits, std::string &code, int &padding_id) {
+  static void PaddingInitializer(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    code += ", __padding" + NumToString(padding_id++) + "(0)";
+    *code_ptr += ", __padding" + NumToString((*id)++) + "(0)";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
-  void GenStruct(StructDef &struct_def, std::string *code_ptr) {
-    if (struct_def.generated) return;
+  void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
     // Generate an accessor struct, with private variables of the form:
@@ -1147,19 +1403,21 @@ class CppGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     code +=
         "MANUALLY_ALIGNED_STRUCT(" + NumToString(struct_def.minalign) + ") ";
-    code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n private:\n";
+    code += struct_def.name + " FLATBUFFERS_FINAL_CLASS {\n";
+    code += " private:\n";
     int padding_id = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       code += "  " + GenTypeGet(field.value.type, " ", "", " ", false);
       code += field.name + "_;\n";
-      GenPadding(field, code, padding_id, PaddingDefinition);
+      GenPadding(field, &code, &padding_id, PaddingDefinition);
     }
 
     // Generate GetFullyQualifiedName
-    code += "\n public:\n";
-    GenFullyQualifiedNameGetter(struct_def.name, code);
+    code += "\n";
+    code += " public:\n";
+    GenFullyQualifiedNameGetter(struct_def.name, &code);
 
     // Generate a default constructor.
     code += "  " + struct_def.name + "() { memset(this, 0, sizeof(";
@@ -1174,16 +1432,17 @@ class CppGenerator : public BaseGenerator {
     code += "  " + struct_def.name + "(";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (it != struct_def.fields.vec.begin()) code += ", ";
       code += GenTypeGet(field.value.type, " ", "const ", " &", true);
       code += "_" + field.name;
     }
-    code += ")\n    : ";
+    code += ")\n";
+    code += "    : ";
     padding_id = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (it != struct_def.fields.vec.begin()) code += ", ";
       code += field.name + "_(";
       if (IsScalar(field.value.type.base_type)) {
@@ -1193,15 +1452,15 @@ class CppGenerator : public BaseGenerator {
       } else {
         code += "_" + field.name + ")";
       }
-      GenPadding(field, code, padding_id, PaddingInitializer);
+      GenPadding(field, &code, &padding_id, PaddingInitializer);
     }
 
     code += " {";
     padding_id = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      GenPadding(field, code, padding_id, PaddingDeclaration);
+      auto field = *it;
+      GenPadding(*field, &code, &padding_id, PaddingDeclaration);
     }
     code += " }\n\n";
 
@@ -1209,7 +1468,7 @@ class CppGenerator : public BaseGenerator {
     // type name() const { return flatbuffers::EndianScalar(name_); }
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       GenComment(field.doc_comment, code_ptr, nullptr, "  ");
       auto is_scalar = IsScalar(field.value.type.base_type);
       code += "  " + GenTypeGet(field.value.type, " ", "const ", " &", true);
@@ -1235,15 +1494,16 @@ class CppGenerator : public BaseGenerator {
         }
       }
     }
-    code += "};\nSTRUCT_END(" + struct_def.name + ", ";
+    code += "};\n";
+    code += "STRUCT_END(" + struct_def.name + ", ";
     code += NumToString(struct_def.bytesize) + ");\n\n";
   }
 
-  // Set up the correct namespace. Only open a namespace if
-  // the existing one is different (closing/opening only what is necessary) :
+  // Set up the correct namespace. Only open a namespace if the existing one is
+  // different (closing/opening only what is necessary).
   //
-  // the file must start and end with an empty (or null) namespace
-  // so that namespaces are properly opened and closed
+  // The file must start and end with an empty (or null) namespace so that
+  // namespaces are properly opened and closed.
   void SetNameSpace(const Namespace *ns, std::string *code_ptr) {
     if (cur_name_space_ == ns) return;
     // compute the size of the longest common namespace prefix.
@@ -1283,10 +1543,10 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
 
 std::string CPPMakeRule(const Parser &parser, const std::string &path,
                         const std::string &file_name) {
-  std::string filebase =
+  const std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
+  const auto included_files = parser.GetIncludedFilesRecursive(file_name);
   std::string make_rule = GeneratedFileName(path, filebase) + ": ";
-  auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
     make_rule += " " + *it;
   }

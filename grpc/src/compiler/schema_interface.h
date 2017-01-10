@@ -34,8 +34,9 @@
 #ifndef GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 #define GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 
- #include <memory>
- #include <vector>
+#include <map>
+#include <memory>
+#include <vector>
 
  #ifndef GRPC_CUSTOM_STRING
  #include <string>
@@ -58,6 +59,8 @@ namespace grpc_generator {
 
     virtual grpc::string input_type_name() const = 0;
     virtual grpc::string output_type_name() const = 0;
+    virtual grpc::string input_name() const = 0;
+    virtual grpc::string output_name() const = 0;
 
     virtual bool NoStreaming() const = 0;
     virtual bool ClientOnlyStreaming() const = 0;
@@ -97,6 +100,7 @@ namespace grpc_generator {
     virtual grpc::string package() const = 0;
     virtual std::vector<grpc::string> package_parts() const = 0;
     virtual grpc::string additional_headers() const = 0;
+    virtual grpc::string additional_imports() const = 0;
 
     virtual int service_count() const = 0;
     virtual std::unique_ptr<const Service> service(int i) const = 0;

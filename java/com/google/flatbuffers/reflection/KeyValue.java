@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class KeyValue extends Table {
   public static KeyValue getRootAsKeyValue(ByteBuffer _bb) { return getRootAsKeyValue(_bb, new KeyValue()); }
   public static KeyValue getRootAsKeyValue(ByteBuffer _bb, KeyValue obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public KeyValue __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String key() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
@@ -38,29 +37,6 @@ public final class KeyValue extends Table {
   }
 
   @Override
-  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static KeyValue lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new KeyValue().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(4, o1, _bb), o2+__offset(4, o2, _bb), _bb); }
 }
 

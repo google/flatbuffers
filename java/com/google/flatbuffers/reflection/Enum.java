@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class Enum extends Table {
   public static Enum getRootAsEnum(ByteBuffer _bb) { return getRootAsEnum(_bb, new Enum()); }
   public static Enum getRootAsEnum(ByteBuffer _bb, Enum obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Enum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
@@ -19,15 +18,16 @@ public final class Enum extends Table {
   public EnumVal values(int j) { return values(new EnumVal(), j); }
   public EnumVal values(EnumVal obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int valuesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
-  public EnumVal valuesByKey( long key ) { int vectorOffset = __vector(__offset(6)) - 4; return vectorOffset != 0 ? EnumVal.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public EnumVal valuesByKey(long key) { return valuesByKey(new EnumVal(), key); }
+  public EnumVal valuesByKey(EnumVal obj, long key) { int o = __lookupByLongKey(6, 6, key, 0L); return o != 0 ? obj.__assign(o, bb) : null; }
   public boolean isUnion() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean mutateIsUnion(boolean is_union) { int o = __offset(8); if (o != 0) { bb.put(o + bb_pos, (byte)(is_union ? 1 : 0)); return true; } else { return false; } }
   public Type underlyingType() { return underlyingType(new Type()); }
   public Type underlyingType(Type obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(12); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
-  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(12)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public KeyValue attributesByKey(String key) { return attributesByKey(new KeyValue(), key); }
+  public KeyValue attributesByKey(KeyValue obj, String key) { int o = __lookupByStringKey(12, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createEnum(FlatBufferBuilder builder,
       int nameOffset,
@@ -63,29 +63,6 @@ public final class Enum extends Table {
   }
 
   @Override
-  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static Enum lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new Enum().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(4, o1, _bb), o2+__offset(4, o2, _bb), _bb); }
 }
 

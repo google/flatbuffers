@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class Field extends Table {
   public static Field getRootAsField(ByteBuffer _bb) { return getRootAsField(_bb, new Field()); }
   public static Field getRootAsField(ByteBuffer _bb, Field obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Field __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
@@ -19,23 +18,17 @@ public final class Field extends Table {
   public Type type() { return type(new Type()); }
   public Type type(Type obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int id() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateId(int id) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)id); return true; } else { return false; } }
   public int offset() { int o = __offset(10); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateOffset(int offset) { int o = __offset(10); if (o != 0) { bb.putShort(o + bb_pos, (short)offset); return true; } else { return false; } }
-  public long defaultInteger() { int o = __offset(12); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
-  public boolean mutateDefaultInteger(long default_integer) { int o = __offset(12); if (o != 0) { bb.putLong(o + bb_pos, default_integer); return true; } else { return false; } }
+  public long defaultInteger() { int o = __offset(12); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public double defaultReal() { int o = __offset(14); return o != 0 ? bb.getDouble(o + bb_pos) : 0.0; }
-  public boolean mutateDefaultReal(double default_real) { int o = __offset(14); if (o != 0) { bb.putDouble(o + bb_pos, default_real); return true; } else { return false; } }
   public boolean deprecated() { int o = __offset(16); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean mutateDeprecated(boolean deprecated) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte)(deprecated ? 1 : 0)); return true; } else { return false; } }
   public boolean required() { int o = __offset(18); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean mutateRequired(boolean required) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos, (byte)(required ? 1 : 0)); return true; } else { return false; } }
   public boolean key() { int o = __offset(20); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean mutateKey(boolean key) { int o = __offset(20); if (o != 0) { bb.put(o + bb_pos, (byte)(key ? 1 : 0)); return true; } else { return false; } }
   public KeyValue attributes(int j) { return attributes(new KeyValue(), j); }
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
-  public KeyValue attributesByKey( String key ) { int vectorOffset = __vector(__offset(22)) - 4; return vectorOffset != 0 ? KeyValue.lookupByKey(bb.array().length - vectorOffset, key, bb) : null;  }
+  public KeyValue attributesByKey(String key) { return attributesByKey(new KeyValue(), key); }
+  public KeyValue attributesByKey(KeyValue obj, String key) { int o = __lookupByStringKey(22, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -65,9 +58,9 @@ public final class Field extends Table {
   public static void startField(FlatBufferBuilder builder) { builder.startObject(10); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(0, nameOffset, 0); }
   public static void addType(FlatBufferBuilder builder, int typeOffset) { builder.addOffset(1, typeOffset, 0); }
-  public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short)id, 0); }
-  public static void addOffset(FlatBufferBuilder builder, int offset) { builder.addShort(3, (short)offset, 0); }
-  public static void addDefaultInteger(FlatBufferBuilder builder, long defaultInteger) { builder.addLong(4, defaultInteger, 0); }
+  public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short)id, (short)0); }
+  public static void addOffset(FlatBufferBuilder builder, int offset) { builder.addShort(3, (short)offset, (short)0); }
+  public static void addDefaultInteger(FlatBufferBuilder builder, long defaultInteger) { builder.addLong(4, defaultInteger, 0L); }
   public static void addDefaultReal(FlatBufferBuilder builder, double defaultReal) { builder.addDouble(5, defaultReal, 0.0); }
   public static void addDeprecated(FlatBufferBuilder builder, boolean deprecated) { builder.addBoolean(6, deprecated, false); }
   public static void addRequired(FlatBufferBuilder builder, boolean required) { builder.addBoolean(7, required, false); }
@@ -83,29 +76,6 @@ public final class Field extends Table {
   }
 
   @Override
-  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(4, o1, _bb), __offset(4, o2, _bb), _bb); }
-
-  public static Field lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
-    int start = 0;
-    vectorLocation += 4;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(4, bb.array().length - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new Field().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(4, o1, _bb), o2+__offset(4, o2, _bb), _bb); }
 }
 

@@ -50,6 +50,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
+  grpc/src/compiler/go_generator.h
+  grpc/src/compiler/go_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -99,7 +101,10 @@ set(FlatBuffers_GRPCTest_SRCS
 # source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
 # source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
 
-if(APPLE)
+if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+  # do not apply any global settings if the toolchain
+  # is being configured externally
+elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
@@ -114,7 +119,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
   if (GCC_VERSION VERSION_GREATER 4.4)
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result")
+      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result \
+                          -Wunused-parameter -Werror=unused-parameter")
   endif()
 
   # Certain platforms such as ARM do not use signed chars by default
@@ -122,7 +128,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wall -pedantic -Werror \
                           -Wextra")
@@ -197,6 +203,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  set_property(TARGET flattests
+    PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+    FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
