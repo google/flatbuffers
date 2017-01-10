@@ -759,7 +759,7 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field, bool keyWithUns
   if ( !genCSharp ) {
     key_getter += "int keyValueOffset = __offset( ";
     key_getter += NumToString( key_field->value.offset );
-    key_getter += ", tableOffset, bb );\n";
+    key_getter += ", tableOffset, bb );\n      ";
   }
   if (key_field->value.type.base_type == BASE_TYPE_STRING) {
     key_getter += "int comp = " + lang_.accessor_prefix_static;
