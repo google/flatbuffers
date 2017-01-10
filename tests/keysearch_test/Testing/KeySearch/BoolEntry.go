@@ -22,6 +22,10 @@ func (rcv *BoolEntry) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *BoolEntry) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *BoolEntry) Key() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {

@@ -19,7 +19,7 @@ public final class Enum extends Table {
   public EnumVal values(EnumVal obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int valuesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public EnumVal valuesByKey(long key) { return valuesByKey(new EnumVal(), key); }
-  public EnumVal valuesByKey(EnumVal obj, long key) { int o = __lookupByLongKey(6, 6, key, 0L); return o != 0 ? obj.__assign(o, bb) : null; }
+  public EnumVal valuesByKey(EnumVal obj, long key) { int o = obj.lookupByKey( bb_pos, __offset(6), key, 0L, bb); return o != 0 ? obj.__assign(o, bb) : null; }
   public boolean isUnion() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   public Type underlyingType() { return underlyingType(new Type()); }
   public Type underlyingType(Type obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
@@ -27,7 +27,7 @@ public final class Enum extends Table {
   public KeyValue attributes(KeyValue obj, int j) { int o = __offset(12); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
   public KeyValue attributesByKey(String key) { return attributesByKey(new KeyValue(), key); }
-  public KeyValue attributesByKey(KeyValue obj, String key) { int o = __lookupByStringKey(12, 4, key); return o != 0 ? obj.__assign(o, bb) : null; }
+  public KeyValue attributesByKey(KeyValue obj, String key) { int o = obj.lookupByKey( bb_pos, __offset(12), key, bb); return o != 0 ? obj.__assign(o, bb) : null; }
 
   public static int createEnum(FlatBufferBuilder builder,
       int nameOffset,
@@ -64,5 +64,32 @@ public final class Enum extends Table {
 
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(o1+__offset(4, o1, _bb), o2+__offset(4, o2, _bb), _bb); }
+
+  public static int lookupByKey( int bb_pos, int fieldDataOffset, String key , ByteBuffer bb) {
+    if ( fieldDataOffset == 0 )
+        return 0;
+    int vectorOffsetPos = bb_pos + fieldDataOffset;
+    int vectorLocation = bb.getInt( vectorOffsetPos ) + vectorOffsetPos;
+    int span = bb.getInt(vectorLocation);
+    vectorLocation += 4;
+    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    int start = 0;
+    while (span != 0) {
+      int middle = span / 2;
+      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
+      int keyValueOffset = __offset( 4, tableOffset, bb );
+int comp = compareStrings(tableOffset + keyValueOffset, byteKey, bb);
+      if (comp > 0) {
+        span = middle;
+      } else if (comp < 0) {
+        middle++;
+        start += middle;
+        span -= middle;
+      } else {
+        return tableOffset;
+      }
+    }
+    return 0;
+  }
 }
 
