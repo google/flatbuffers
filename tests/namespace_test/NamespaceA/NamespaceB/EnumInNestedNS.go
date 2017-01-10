@@ -9,7 +9,8 @@ const (
 )
 
 var EnumNamesEnumInNestedNS = map[int]string{
-	EnumInNestedNSA: "A",
-	EnumInNestedNSB: "B",
-	EnumInNestedNSC: "C",
+	EnumInNestedNSA:"A",
+	EnumInNestedNSB:"B",
+	EnumInNestedNSC:"C",
 }
+
