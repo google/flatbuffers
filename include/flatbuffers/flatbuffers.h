@@ -720,7 +720,7 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] bool fd When set to `true`, always serializes default values.
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
-  /// @brief Vtables are deduped in order to save space.
+  /// @brief By default vtables are deduped in order to save space.
   /// @param[in] bool dedup When set to `true`, dedup vtables.
   void DedupVtables(bool dedup) { dedup_vtables_ = dedup; }
 
@@ -1269,7 +1269,7 @@ FLATBUFFERS_FINAL_CLASS
 
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
 
-  bool dedup_vtables_;  // Dedup vtables.
+  bool dedup_vtables_;
 
   struct StringOffsetCompare {
     StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
