@@ -814,40 +814,9 @@ class CppGenerator : public BaseGenerator {
     code += " {}\n";
   }
 
-  // Generate an accessor struct, builder structs & function for a table.
-  void GenTable(const StructDef &struct_def, std::string *code_ptr) {
+  void GenTableFieldIdConstants(const StructDef &struct_def,
+                                std::string *code_ptr) {
     std::string &code = *code_ptr;
-
-    if (parser_.opts.generate_object_based_api) {
-      // Generate a C++ object that can hold an unpacked version of this
-      // table.
-      code += "struct " + NativeName(struct_def.name);
-      code += " : public flatbuffers::NativeTable {\n";
-      code += "  typedef " + struct_def.name + " TableType;\n";
-      // Generate GetFullyQualifiedName
-      GenFullyQualifiedNameGetter(NativeName(struct_def.name), &code);
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        GenMember(field, &code);
-      }
-      GenDefaultConstructor(struct_def, &code);
-      code += "};\n\n";
-    }
-
-    // Generate an accessor struct, with methods of the form:
-    // type name() const { return GetField<type>(offset, defaultval); }
-    GenComment(struct_def.doc_comment, code_ptr, nullptr);
-    code += "struct " + struct_def.name;
-    code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
-    code += " {\n";
-    if (parser_.opts.generate_object_based_api) {
-      code += "  typedef " + NativeName(struct_def.name) +
-              " NativeTableType;\n";
-    }
-    // Generate GetFullyQualifiedName
-    GenFullyQualifiedNameGetter(struct_def.name, &code);
-    // Generate field id constants.
     if (struct_def.fields.vec.size() > 0) {
       code += "  enum {\n";
       bool is_first_field =
@@ -871,7 +840,11 @@ class CppGenerator : public BaseGenerator {
       code += "\n";
       code += "  };\n";
     }
-    // Generate the accessors.
+  }
+
+  void GenTableAccessors(const StructDef &struct_def,
+                         std::string *code_ptr) {
+    std::string &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -950,8 +923,11 @@ class CppGenerator : public BaseGenerator {
         }
       }
     }
-    // Generate a verifier function that can check a buffer from an untrusted
-    // source will never cause reads outside the buffer.
+  }
+
+  void GenTableVerifier(const StructDef &struct_def,
+                        std::string *code_ptr) {
+    std::string &code = *code_ptr;
     code += "  bool Verify(flatbuffers::Verifier &verifier) const {\n";
     code += "    return VerifyTableStart(verifier)";
     std::string prefix = " &&\n           ";
@@ -1006,19 +982,11 @@ class CppGenerator : public BaseGenerator {
     code += prefix + "verifier.EndTable()";
     code += ";\n";
     code += "  }\n";
+  }
 
-    if (parser_.opts.generate_object_based_api) {
-      // Generate the UnPack() pre declaration.
-      code += "  " + TableUnPackSignature(struct_def, true) + ";\n";
-      code += "  " + TablePackSignature(struct_def, true) + ";\n";
-    }
-
-    code += "};\n\n";  // End of table.
-
-    // Generate a builder struct, with methods of the form:
-    // void add_name(type name) {
-    //   fbb_.AddElement<type>(offset, name, default);
-    // }
+  void GenTableBuilder(const StructDef &struct_def,
+                       std::string *code_ptr) {
+    std::string &code = *code_ptr;
     code += "struct " + struct_def.name + "Builder {\n";
     code += "  flatbuffers::FlatBufferBuilder &fbb_;\n";
     code += "  flatbuffers::uoffset_t start_;\n";
@@ -1069,9 +1037,11 @@ class CppGenerator : public BaseGenerator {
     code += "    return o;\n";
     code += "  }\n";
     code += "};\n\n";
+  }
 
-    // Generate a convenient CreateX function that uses the above builder
-    // to create a table in one go.
+  void GenTableFactoryMethods(const StructDef &struct_def,
+                              std::string *code_ptr) {
+    std::string &code = *code_ptr;
     bool gen_vector_pars = false;
     code += "inline flatbuffers::Offset<" + struct_def.name + "> Create";
     code += struct_def.name;
@@ -1148,6 +1118,66 @@ class CppGenerator : public BaseGenerator {
       code += ");\n";
       code += "}\n\n";
     }
+  }
+
+  // Generate an accessor struct, builder structs & function for a table.
+  void GenTable(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    if (parser_.opts.generate_object_based_api) {
+      // Generate a C++ object that can hold an unpacked version of this
+      // table.
+      code += "struct " + NativeName(struct_def.name);
+      code += " : public flatbuffers::NativeTable {\n";
+      code += "  typedef " + struct_def.name + " TableType;\n";
+      // Generate GetFullyQualifiedName
+      GenFullyQualifiedNameGetter(NativeName(struct_def.name), &code);
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        GenMember(field, &code);
+      }
+      GenDefaultConstructor(struct_def, &code);
+      code += "};\n\n";
+    }
+
+    // Generate an accessor struct, with methods of the form:
+    // type name() const { return GetField<type>(offset, defaultval); }
+    GenComment(struct_def.doc_comment, code_ptr, nullptr);
+    code += "struct " + struct_def.name;
+    code += " FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table";
+    code += " {\n";
+    if (parser_.opts.generate_object_based_api) {
+      code += "  typedef " + NativeName(struct_def.name) +
+              " NativeTableType;\n";
+    }
+    // Generate GetFullyQualifiedName
+    GenFullyQualifiedNameGetter(struct_def.name, &code);
+    // Generate field id constants.
+    GenTableFieldIdConstants(struct_def, code_ptr);
+    // Generate the accessors.
+    GenTableAccessors(struct_def, code_ptr);
+    // Generate a verifier function that can check a buffer from an untrusted
+    // source will never cause reads outside the buffer.
+    GenTableVerifier(struct_def, code_ptr);
+
+    if (parser_.opts.generate_object_based_api) {
+      // Generate the UnPack() pre declaration.
+      code += "  " + TableUnPackSignature(struct_def, true) + ";\n";
+      code += "  " + TablePackSignature(struct_def, true) + ";\n";
+    }
+
+    code += "};\n\n";  // End of table.
+
+    // Generate a builder struct, with methods of the form:
+    // void add_name(type name) {
+    //   fbb_.AddElement<type>(offset, name, default);
+    // }
+    GenTableBuilder(struct_def, code_ptr);
+
+    // Generate a convenient CreateX function that uses the above builder
+    // to create a table in one go.
+    GenTableFactoryMethods(struct_def, code_ptr);
 
     if (parser_.opts.generate_object_based_api) {
       // Generate a pre-declaration for a CreateX method that works with an
