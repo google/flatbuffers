@@ -194,6 +194,7 @@ template<typename T> class SymbolTable {
 // A name space, as set in the schema.
 struct Namespace {
   std::vector<std::string> components;
+  SymbolTable<Value> attributes;
 
   // Given a (potentally unqualified) name, return the "fully qualified" name
   // which has a full namespaced descriptor.
@@ -458,6 +459,7 @@ class Parser : public ParserState {
     known_attributes_["idempotent"] = true;
     known_attributes_["cpp_type"] = true;
     known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["java_prefix"] = true;
     known_attributes_["native_inline"] = true;
   }
 

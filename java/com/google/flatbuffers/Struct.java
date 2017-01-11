@@ -28,6 +28,15 @@ public class Struct {
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Struct. */
   protected ByteBuffer bb;
+  /**
+   * Initialized this {@link Struct} to the given position for the giver {@code ByteBuffer}.
+   *
+   * @param position position of this {@link Struct} in the {@code ByteBuffer}.
+   * @param bb the {@code ByteBuffer} whose contains this {@link Struct}.
+   */
+  public void __init(int position, ByteBuffer bb) {
+    bb_pos = position; this.bb = bb;
+  }
 }
 
 /// @endcond

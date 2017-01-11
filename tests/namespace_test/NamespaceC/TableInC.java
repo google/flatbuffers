@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class TableInC extends Table {
   public static TableInC getRootAsTableInC(ByteBuffer _bb) { return getRootAsTableInC(_bb, new TableInC()); }
   public static TableInC getRootAsTableInC(ByteBuffer _bb, TableInC obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public TableInC __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceA.TableInFirstNS referToA1() { return referToA1(new NamespaceA.TableInFirstNS()); }

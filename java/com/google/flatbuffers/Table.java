@@ -37,7 +37,7 @@ public class Table {
       return Charset.forName("UTF-8").newDecoder();
     }
   };
-  public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
+  protected final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
     @Override
     protected Charset initialValue() {
       return Charset.forName("UTF-8");
@@ -57,6 +57,16 @@ public class Table {
   public ByteBuffer getByteBuffer() { return bb; }
 
   /**
+   * Initialized this {@link Table} to the given position for the giver {@code ByteBuffer}.
+   *
+   * @param position position of this {@link Table} in the {@code ByteBuffer}.
+   * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
+   */
+  public void __init(int position, ByteBuffer bb) {
+    bb_pos = position; this.bb = bb;
+  }
+
+  /**
    * Look up a field in the vtable.
    *
    * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
@@ -67,9 +77,17 @@ public class Table {
     return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
   }
 
-  protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
-    int vtable = bb.array().length - offset;
-    return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable;
+  /**
+   * Look up a field in the vtable.
+   * Sames as new Table(table_offset, bb).__offset( vtable_offset )
+   * @param vtable_offset An `int` offset to the vtable in the Table's ByteBuffer.
+   * @param table_offset Offset of the table in bb (same as bb_pos field in Table).
+   * @param bb the {@code ByteBuffer} whose contains this {@link Table}.
+   * @return Returns an offset into the object, or `0` if the field is not present.
+   */
+  protected static int __offset(int vtable_offset, int table_offset, ByteBuffer bb) {
+    int vtable = table_offset - bb.getInt(table_offset);
+    return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
   }
 
   /**
@@ -212,10 +230,13 @@ public class Table {
    */
   protected void sortTables(int[] offsets, final ByteBuffer bb) {
     Integer[] off = new Integer[offsets.length];
+    final int bufferSize = bb.array().length;
     for (int i = 0; i < offsets.length; i++) off[i] = offsets[i];
     java.util.Arrays.sort(off, new java.util.Comparator<Integer>() {
       public int compare(Integer o1, Integer o2) {
-        return keysCompare(o1, o2, bb);
+        // createSortedVectorOfTables() is called with offset relative to the end of the bufer,
+        // we adjust them for keysCompare() that expect offset relative to the start of the buffer
+        return keysCompare(bufferSize-o1, bufferSize-o2, bb);
       }
     });
     for (int i = 0; i < offsets.length; i++) offsets[i] = off[i];
@@ -273,6 +294,7 @@ public class Table {
     }
     return len_1 - len_2;
   }
+
 }
 
 /// @endcond

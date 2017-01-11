@@ -1478,6 +1478,7 @@ CheckedError Parser::ParseNamespace() {
       if (Is('.')) NEXT() else break;
     }
   }
+  ECHECK(ParseMetaData(&ns->attributes));
   EXPECT(';');
   return NoError();
 }

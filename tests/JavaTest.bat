@@ -16,6 +16,24 @@ rem limitations under the License.
 rem Compile then run the Java test.
 
 set batch_file_dir=%~d0%~p0
+set targetdir=%batch_file_dir%\target
 
-javac -g -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest.java
-java -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test JavaTest
+
+if exist "%targetdir%" (
+    echo clean target
+    rmdir /Q /S %targetdir%
+)
+
+mkdir %targetdir%
+
+rem remove previous class from previous build style
+@echo Deleting old class files in source folders
+del /S ..\java\*.class
+del /S *.class
+
+@echo Compile
+javac -g -d %targetdir% -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\keysearch_test JavaTest.java
+@echo Execute JavaTest
+java -ea -classpath %targetdir% JavaTest
+
+rmdir /Q /S %targetdir%

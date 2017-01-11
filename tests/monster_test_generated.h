@@ -347,6 +347,18 @@ struct MonsterT : public flatbuffers::NativeTable {
   float testf2;
   float testf3;
   std::vector<std::string> testarrayofstring2;
+  std::vector<int8_t> testarrayofbytes;
+  std::vector<int16_t> testarrayofshort;
+  std::vector<uint16_t> testarrayofushort;
+  std::vector<int32_t> testarrayofint;
+  std::vector<uint32_t> testarrayofuint;
+  std::vector<int64_t> testarrayoflong;
+  std::vector<uint64_t> testarrayofulong;
+  std::vector<float> testarrayoffloat;
+  std::vector<double> testarrayofdouble;
+  double testdouble;
+  int8_t testbyte;
+  uint8_t testubyte;
   MonsterT()
     : mana(150),
       hp(100),
@@ -362,7 +374,10 @@ struct MonsterT : public flatbuffers::NativeTable {
       testhashu64_fnv1a(0),
       testf(3.14159f),
       testf2(3.0f),
-      testf3(0.0f) {}
+      testf3(0.0f),
+      testdouble(0.0),
+      testbyte(0),
+      testubyte(0) {}
 };
 
 /// an example documentation comment: monster object
@@ -396,7 +411,19 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TESTF = 54,
     VT_TESTF2 = 56,
     VT_TESTF3 = 58,
-    VT_TESTARRAYOFSTRING2 = 60
+    VT_TESTARRAYOFSTRING2 = 60,
+    VT_TESTARRAYOFBYTES = 62,
+    VT_TESTARRAYOFSHORT = 64,
+    VT_TESTARRAYOFUSHORT = 66,
+    VT_TESTARRAYOFINT = 68,
+    VT_TESTARRAYOFUINT = 70,
+    VT_TESTARRAYOFLONG = 72,
+    VT_TESTARRAYOFULONG = 74,
+    VT_TESTARRAYOFFLOAT = 76,
+    VT_TESTARRAYOFDOUBLE = 78,
+    VT_TESTDOUBLE = 80,
+    VT_TESTBYTE = 82,
+    VT_TESTUBYTE = 84
   };
   const Vec3 *pos() const { return GetStruct<const Vec3 *>(VT_POS); }
   Vec3 *mutable_pos() { return GetStruct<Vec3 *>(VT_POS); }
@@ -459,6 +486,30 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_testf3(float _testf3) { return SetField(VT_TESTF3, _testf3); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING2); }
   flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *mutable_testarrayofstring2() { return GetPointer<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING2); }
+  const flatbuffers::Vector<int8_t> *testarrayofbytes() const { return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_TESTARRAYOFBYTES); }
+  flatbuffers::Vector<int8_t> *mutable_testarrayofbytes() { return GetPointer<flatbuffers::Vector<int8_t> *>(VT_TESTARRAYOFBYTES); }
+  const flatbuffers::Vector<int16_t> *testarrayofshort() const { return GetPointer<const flatbuffers::Vector<int16_t> *>(VT_TESTARRAYOFSHORT); }
+  flatbuffers::Vector<int16_t> *mutable_testarrayofshort() { return GetPointer<flatbuffers::Vector<int16_t> *>(VT_TESTARRAYOFSHORT); }
+  const flatbuffers::Vector<uint16_t> *testarrayofushort() const { return GetPointer<const flatbuffers::Vector<uint16_t> *>(VT_TESTARRAYOFUSHORT); }
+  flatbuffers::Vector<uint16_t> *mutable_testarrayofushort() { return GetPointer<flatbuffers::Vector<uint16_t> *>(VT_TESTARRAYOFUSHORT); }
+  const flatbuffers::Vector<int32_t> *testarrayofint() const { return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_TESTARRAYOFINT); }
+  flatbuffers::Vector<int32_t> *mutable_testarrayofint() { return GetPointer<flatbuffers::Vector<int32_t> *>(VT_TESTARRAYOFINT); }
+  const flatbuffers::Vector<uint32_t> *testarrayofuint() const { return GetPointer<const flatbuffers::Vector<uint32_t> *>(VT_TESTARRAYOFUINT); }
+  flatbuffers::Vector<uint32_t> *mutable_testarrayofuint() { return GetPointer<flatbuffers::Vector<uint32_t> *>(VT_TESTARRAYOFUINT); }
+  const flatbuffers::Vector<int64_t> *testarrayoflong() const { return GetPointer<const flatbuffers::Vector<int64_t> *>(VT_TESTARRAYOFLONG); }
+  flatbuffers::Vector<int64_t> *mutable_testarrayoflong() { return GetPointer<flatbuffers::Vector<int64_t> *>(VT_TESTARRAYOFLONG); }
+  const flatbuffers::Vector<uint64_t> *testarrayofulong() const { return GetPointer<const flatbuffers::Vector<uint64_t> *>(VT_TESTARRAYOFULONG); }
+  flatbuffers::Vector<uint64_t> *mutable_testarrayofulong() { return GetPointer<flatbuffers::Vector<uint64_t> *>(VT_TESTARRAYOFULONG); }
+  const flatbuffers::Vector<float> *testarrayoffloat() const { return GetPointer<const flatbuffers::Vector<float> *>(VT_TESTARRAYOFFLOAT); }
+  flatbuffers::Vector<float> *mutable_testarrayoffloat() { return GetPointer<flatbuffers::Vector<float> *>(VT_TESTARRAYOFFLOAT); }
+  const flatbuffers::Vector<double> *testarrayofdouble() const { return GetPointer<const flatbuffers::Vector<double> *>(VT_TESTARRAYOFDOUBLE); }
+  flatbuffers::Vector<double> *mutable_testarrayofdouble() { return GetPointer<flatbuffers::Vector<double> *>(VT_TESTARRAYOFDOUBLE); }
+  double testdouble() const { return GetField<double>(VT_TESTDOUBLE, 0.0); }
+  bool mutate_testdouble(double _testdouble) { return SetField(VT_TESTDOUBLE, _testdouble); }
+  int8_t testbyte() const { return GetField<int8_t>(VT_TESTBYTE, 0); }
+  bool mutate_testbyte(int8_t _testbyte) { return SetField(VT_TESTBYTE, _testbyte); }
+  uint8_t testubyte() const { return GetField<uint8_t>(VT_TESTUBYTE, 0); }
+  bool mutate_testubyte(uint8_t _testubyte) { return SetField(VT_TESTUBYTE, _testubyte); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -503,6 +554,27 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSTRING2) &&
            verifier.Verify(testarrayofstring2()) &&
            verifier.VerifyVectorOfStrings(testarrayofstring2()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFBYTES) &&
+           verifier.Verify(testarrayofbytes()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSHORT) &&
+           verifier.Verify(testarrayofshort()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFUSHORT) &&
+           verifier.Verify(testarrayofushort()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFINT) &&
+           verifier.Verify(testarrayofint()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFUINT) &&
+           verifier.Verify(testarrayofuint()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFLONG) &&
+           verifier.Verify(testarrayoflong()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFULONG) &&
+           verifier.Verify(testarrayofulong()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFFLOAT) &&
+           verifier.Verify(testarrayoffloat()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFDOUBLE) &&
+           verifier.Verify(testarrayofdouble()) &&
+           VerifyField<double>(verifier, VT_TESTDOUBLE) &&
+           VerifyField<int8_t>(verifier, VT_TESTBYTE) &&
+           VerifyField<uint8_t>(verifier, VT_TESTUBYTE) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
@@ -596,10 +668,46 @@ struct MonsterBuilder {
   void add_testarrayofstring2(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring2) {
     fbb_.AddOffset(Monster::VT_TESTARRAYOFSTRING2, testarrayofstring2);
   }
+  void add_testarrayofbytes(flatbuffers::Offset<flatbuffers::Vector<int8_t>> testarrayofbytes) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFBYTES, testarrayofbytes);
+  }
+  void add_testarrayofshort(flatbuffers::Offset<flatbuffers::Vector<int16_t>> testarrayofshort) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFSHORT, testarrayofshort);
+  }
+  void add_testarrayofushort(flatbuffers::Offset<flatbuffers::Vector<uint16_t>> testarrayofushort) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFUSHORT, testarrayofushort);
+  }
+  void add_testarrayofint(flatbuffers::Offset<flatbuffers::Vector<int32_t>> testarrayofint) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFINT, testarrayofint);
+  }
+  void add_testarrayofuint(flatbuffers::Offset<flatbuffers::Vector<uint32_t>> testarrayofuint) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFUINT, testarrayofuint);
+  }
+  void add_testarrayoflong(flatbuffers::Offset<flatbuffers::Vector<int64_t>> testarrayoflong) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFLONG, testarrayoflong);
+  }
+  void add_testarrayofulong(flatbuffers::Offset<flatbuffers::Vector<uint64_t>> testarrayofulong) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFULONG, testarrayofulong);
+  }
+  void add_testarrayoffloat(flatbuffers::Offset<flatbuffers::Vector<float>> testarrayoffloat) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFFLOAT, testarrayoffloat);
+  }
+  void add_testarrayofdouble(flatbuffers::Offset<flatbuffers::Vector<double>> testarrayofdouble) {
+    fbb_.AddOffset(Monster::VT_TESTARRAYOFDOUBLE, testarrayofdouble);
+  }
+  void add_testdouble(double testdouble) {
+    fbb_.AddElement<double>(Monster::VT_TESTDOUBLE, testdouble, 0.0);
+  }
+  void add_testbyte(int8_t testbyte) {
+    fbb_.AddElement<int8_t>(Monster::VT_TESTBYTE, testbyte, 0);
+  }
+  void add_testubyte(uint8_t testubyte) {
+    fbb_.AddElement<uint8_t>(Monster::VT_TESTUBYTE, testubyte, 0);
+  }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 29));
+    auto o = flatbuffers::Offset<Monster>(fbb_.EndTable(start_, 41));
     fbb_.Required(o, Monster::VT_NAME);  // name
     return o;
   }
@@ -633,12 +741,34 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     float testf = 3.14159f,
     float testf2 = 3.0f,
     float testf3 = 0.0f,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring2 = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring2 = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int8_t>> testarrayofbytes = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int16_t>> testarrayofshort = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint16_t>> testarrayofushort = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> testarrayofint = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint32_t>> testarrayofuint = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int64_t>> testarrayoflong = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> testarrayofulong = 0,
+    flatbuffers::Offset<flatbuffers::Vector<float>> testarrayoffloat = 0,
+    flatbuffers::Offset<flatbuffers::Vector<double>> testarrayofdouble = 0,
+    double testdouble = 0.0,
+    int8_t testbyte = 0,
+    uint8_t testubyte = 0) {
   MonsterBuilder builder_(_fbb);
+  builder_.add_testdouble(testdouble);
   builder_.add_testhashu64_fnv1a(testhashu64_fnv1a);
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_testarrayofdouble(testarrayofdouble);
+  builder_.add_testarrayoffloat(testarrayoffloat);
+  builder_.add_testarrayofulong(testarrayofulong);
+  builder_.add_testarrayoflong(testarrayoflong);
+  builder_.add_testarrayofuint(testarrayofuint);
+  builder_.add_testarrayofint(testarrayofint);
+  builder_.add_testarrayofushort(testarrayofushort);
+  builder_.add_testarrayofshort(testarrayofshort);
+  builder_.add_testarrayofbytes(testarrayofbytes);
   builder_.add_testarrayofstring2(testarrayofstring2);
   builder_.add_testf3(testf3);
   builder_.add_testf2(testf2);
@@ -660,6 +790,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   builder_.add_pos(pos);
   builder_.add_hp(hp);
   builder_.add_mana(mana);
+  builder_.add_testubyte(testubyte);
+  builder_.add_testbyte(testbyte);
   builder_.add_testbool(testbool);
   builder_.add_test_type(test_type);
   builder_.add_color(color);
@@ -694,8 +826,20 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(flatbuffers::FlatBufferB
     float testf = 3.14159f,
     float testf2 = 3.0f,
     float testf3 = 0.0f,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr) {
-  return CreateMonster(_fbb, pos, mana, hp, name ? _fbb.CreateString(name) : 0, inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0, color, test_type, test, test4 ? _fbb.CreateVector<const Test *>(*test4) : 0, testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0, testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0, enemy, testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0, testempty, testbool, testhashs32_fnv1, testhashu32_fnv1, testhashs64_fnv1, testhashu64_fnv1, testhashs32_fnv1a, testhashu32_fnv1a, testhashs64_fnv1a, testhashu64_fnv1a, testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0, testf, testf2, testf3, testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0);
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr,
+    const std::vector<int8_t> *testarrayofbytes = nullptr,
+    const std::vector<int16_t> *testarrayofshort = nullptr,
+    const std::vector<uint16_t> *testarrayofushort = nullptr,
+    const std::vector<int32_t> *testarrayofint = nullptr,
+    const std::vector<uint32_t> *testarrayofuint = nullptr,
+    const std::vector<int64_t> *testarrayoflong = nullptr,
+    const std::vector<uint64_t> *testarrayofulong = nullptr,
+    const std::vector<float> *testarrayoffloat = nullptr,
+    const std::vector<double> *testarrayofdouble = nullptr,
+    double testdouble = 0.0,
+    int8_t testbyte = 0,
+    uint8_t testubyte = 0) {
+  return CreateMonster(_fbb, pos, mana, hp, name ? _fbb.CreateString(name) : 0, inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0, color, test_type, test, test4 ? _fbb.CreateVector<const Test *>(*test4) : 0, testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0, testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0, enemy, testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0, testempty, testbool, testhashs32_fnv1, testhashu32_fnv1, testhashs64_fnv1, testhashu64_fnv1, testhashs32_fnv1a, testhashu32_fnv1a, testhashs64_fnv1a, testhashu64_fnv1a, testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0, testf, testf2, testf3, testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0, testarrayofbytes ? _fbb.CreateVector<int8_t>(*testarrayofbytes) : 0, testarrayofshort ? _fbb.CreateVector<int16_t>(*testarrayofshort) : 0, testarrayofushort ? _fbb.CreateVector<uint16_t>(*testarrayofushort) : 0, testarrayofint ? _fbb.CreateVector<int32_t>(*testarrayofint) : 0, testarrayofuint ? _fbb.CreateVector<uint32_t>(*testarrayofuint) : 0, testarrayoflong ? _fbb.CreateVector<int64_t>(*testarrayoflong) : 0, testarrayofulong ? _fbb.CreateVector<uint64_t>(*testarrayofulong) : 0, testarrayoffloat ? _fbb.CreateVector<float>(*testarrayoffloat) : 0, testarrayofdouble ? _fbb.CreateVector<double>(*testarrayofdouble) : 0, testdouble, testbyte, testubyte);
 }
 
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
@@ -793,6 +937,18 @@ inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *resolve
   { auto _e = testf2(); _o->testf2 = _e; };
   { auto _e = testf3(); _o->testf3 = _e; };
   { auto _e = testarrayofstring2(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2.push_back(_e->Get(_i)->str()); } } };
+  { auto _e = testarrayofbytes(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbytes.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofshort(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofshort.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofushort(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofushort.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofint(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofint.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofuint(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofuint.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayoflong(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoflong.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofulong(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofulong.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayoffloat(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoffloat.push_back(_e->Get(_i)); } } };
+  { auto _e = testarrayofdouble(); if (_e) { for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofdouble.push_back(_e->Get(_i)); } } };
+  { auto _e = testdouble(); _o->testdouble = _e; };
+  { auto _e = testbyte(); _o->testbyte = _e; };
+  { auto _e = testubyte(); _o->testubyte = _e; };
   return _o;
 }
 
@@ -830,7 +986,19 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
     _o->testf,
     _o->testf2,
     _o->testf3,
-    _o->testarrayofstring2.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring2) : 0);
+    _o->testarrayofstring2.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring2) : 0,
+    _o->testarrayofbytes.size() ? _fbb.CreateVector(_o->testarrayofbytes) : 0,
+    _o->testarrayofshort.size() ? _fbb.CreateVector(_o->testarrayofshort) : 0,
+    _o->testarrayofushort.size() ? _fbb.CreateVector(_o->testarrayofushort) : 0,
+    _o->testarrayofint.size() ? _fbb.CreateVector(_o->testarrayofint) : 0,
+    _o->testarrayofuint.size() ? _fbb.CreateVector(_o->testarrayofuint) : 0,
+    _o->testarrayoflong.size() ? _fbb.CreateVector(_o->testarrayoflong) : 0,
+    _o->testarrayofulong.size() ? _fbb.CreateVector(_o->testarrayofulong) : 0,
+    _o->testarrayoffloat.size() ? _fbb.CreateVector(_o->testarrayoffloat) : 0,
+    _o->testarrayofdouble.size() ? _fbb.CreateVector(_o->testarrayofdouble) : 0,
+    _o->testdouble,
+    _o->testbyte,
+    _o->testubyte);
 }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *union_obj, Any type) {

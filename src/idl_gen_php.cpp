@@ -84,7 +84,7 @@ namespace php {
         if (!classcode.length()) return true;
 
         std::string code = "";
-        BeginFile(FullNamespace("\\", *def.defined_namespace),
+        BeginFile(FullNamespace(parser_.opts.lang, "\\", *def.defined_namespace),
                   needs_imports, &code);
         code += classcode;
 

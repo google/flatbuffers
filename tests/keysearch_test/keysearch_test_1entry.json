@@ -1,0 +1,15 @@
+{
+  "ubyteEntries": [{"key": 212}],
+  "byteEntries": [{"key": -212}],
+  "boolEntries": [{"key": true}],
+  "shortEntries": [{"key": -16123}],
+  "ushortEntries": [{"key": 61234}],
+  "intEntries": [{"key": -2123456789}],
+  "uintEntries": [{"key": 4123456789}],
+  "floatEntries": [{"key": 12345.5}],
+  "longEntries": [{"key": -41234567890}],
+  "ulongEntries": [{"key": 41234567890}],
+  "doubleEntries": [{"key": 1234567890.5}],
+  "stringEntries": [{"key": "some key"}],
+  "enumEntries": [{"key": "Apricot"}]
+}

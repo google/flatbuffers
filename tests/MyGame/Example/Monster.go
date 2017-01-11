@@ -419,8 +419,197 @@ func (rcv *Monster) Testarrayofstring2Length() int {
 	return 0
 }
 
+func (rcv *Monster) Testarrayofbytes(j int) int8 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofbytesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofshort(j int) int16 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt16(a + flatbuffers.UOffsetT(j*2))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofshortLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofushort(j int) uint16 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(66))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint16(a + flatbuffers.UOffsetT(j*2))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofushortLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(66))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofint(j int) int32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt32(a + flatbuffers.UOffsetT(j*4))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofintLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofuint(j int) uint32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint32(a + flatbuffers.UOffsetT(j*4))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofuintLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayoflong(j int) int64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayoflongLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofulong(j int) uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofulongLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayoffloat(j int) float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(76))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetFloat32(a + flatbuffers.UOffsetT(j*4))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayoffloatLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(76))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testarrayofdouble(j int) float64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetFloat64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestarrayofdoubleLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Testdouble() float64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
+	}
+	return 0.0
+}
+
+func (rcv *Monster) MutateTestdouble(n float64) bool {
+	return rcv._tab.MutateFloat64Slot(80, n)
+}
+
+func (rcv *Monster) Testbyte() int8 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(82))
+	if o != 0 {
+		return rcv._tab.GetInt8(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateTestbyte(n int8) bool {
+	return rcv._tab.MutateInt8Slot(82, n)
+}
+
+func (rcv *Monster) Testubyte() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateTestubyte(n byte) bool {
+	return rcv._tab.MutateByteSlot(84, n)
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(29)
+	builder.StartObject(41)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -526,6 +715,69 @@ func MonsterAddTestarrayofstring2(builder *flatbuffers.Builder, testarrayofstrin
 }
 func MonsterStartTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddTestarrayofbytes(builder *flatbuffers.Builder, testarrayofbytes flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(29, flatbuffers.UOffsetT(testarrayofbytes), 0)
+}
+func MonsterStartTestarrayofbytesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
+}
+func MonsterAddTestarrayofshort(builder *flatbuffers.Builder, testarrayofshort flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(30, flatbuffers.UOffsetT(testarrayofshort), 0)
+}
+func MonsterStartTestarrayofshortVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(2, numElems, 2)
+}
+func MonsterAddTestarrayofushort(builder *flatbuffers.Builder, testarrayofushort flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(31, flatbuffers.UOffsetT(testarrayofushort), 0)
+}
+func MonsterStartTestarrayofushortVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(2, numElems, 2)
+}
+func MonsterAddTestarrayofint(builder *flatbuffers.Builder, testarrayofint flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(32, flatbuffers.UOffsetT(testarrayofint), 0)
+}
+func MonsterStartTestarrayofintVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddTestarrayofuint(builder *flatbuffers.Builder, testarrayofuint flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(33, flatbuffers.UOffsetT(testarrayofuint), 0)
+}
+func MonsterStartTestarrayofuintVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddTestarrayoflong(builder *flatbuffers.Builder, testarrayoflong flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(34, flatbuffers.UOffsetT(testarrayoflong), 0)
+}
+func MonsterStartTestarrayoflongVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddTestarrayofulong(builder *flatbuffers.Builder, testarrayofulong flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(35, flatbuffers.UOffsetT(testarrayofulong), 0)
+}
+func MonsterStartTestarrayofulongVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddTestarrayoffloat(builder *flatbuffers.Builder, testarrayoffloat flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(36, flatbuffers.UOffsetT(testarrayoffloat), 0)
+}
+func MonsterStartTestarrayoffloatVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddTestarrayofdouble(builder *flatbuffers.Builder, testarrayofdouble flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(37, flatbuffers.UOffsetT(testarrayofdouble), 0)
+}
+func MonsterStartTestarrayofdoubleVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddTestdouble(builder *flatbuffers.Builder, testdouble float64) {
+	builder.PrependFloat64Slot(38, testdouble, 0.0)
+}
+func MonsterAddTestbyte(builder *flatbuffers.Builder, testbyte int8) {
+	builder.PrependInt8Slot(39, testbyte, 0)
+}
+func MonsterAddTestubyte(builder *flatbuffers.Builder, testubyte byte) {
+	builder.PrependByteSlot(40, testubyte, 0)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

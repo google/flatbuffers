@@ -50,6 +50,15 @@ table Monster {
   testarrayofstring:[string] (id: 10);
   testarrayofstring2:[string] (id: 28);
   testarrayofbools:[bool] (id: 24);
+  testarrayofbytes:[byte] (id: 29);
+  testarrayofshort:[short] (id: 30);
+  testarrayofushort:[ushort] (id: 31);
+  testarrayofint:[int] (id: 32);
+  testarrayofuint:[uint] (id: 33);
+  testarrayoflong:[long] (id: 34);
+  testarrayofulong:[ulong] (id: 35);
+  testarrayoffloat:[float] (id: 36);
+  testarrayofdouble:[double] (id: 37);
   enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
   test4:[Test] (id: 9);
@@ -67,6 +76,9 @@ table Monster {
   testf:float = 3.14159 (id:25);
   testf2:float = 3 (id:26);
   testf3:float (id:27);
+  testdouble:double (id:38);
+  testbyte:byte (id:39);
+  testubyte:ubyte (id:40);
 }
 
 rpc_service MonsterStorage {

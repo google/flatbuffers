@@ -28,8 +28,9 @@ class BaseGenerator {
                                   const Namespace &ns) {
     EnsureDirExists(path.c_str());
     if (parser.opts.one_file) return path;
-    std::string namespace_dir = path;  // Either empty or ends in separator.
-    auto &namespaces = ns.components;
+    auto namespace_dir = path;  // Either empty or ends in separator.
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(ns, parser.opts.lang, &namespaces);
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       namespace_dir += *it + kPathSeparator;
       EnsureDirExists(namespace_dir.c_str());
@@ -74,9 +75,37 @@ class BaseGenerator {
     return true;
   }
 
-  static std::string FullNamespace(const char *separator, const Namespace &ns) {
+  static void NamespacePrefixAsComponents(const std::string &prefix, std::vector<std::string> *namespaces)
+  {
+    auto component_start = std::string::size_type(0);
+    auto component_end = std::string::npos;
+    for (;;)
+    {
+      component_end = prefix.find_first_of('.', component_start);
+      if (component_end == std::string::npos)
+        break;
+      namespaces->push_back(prefix.substr(component_start, component_end - component_start));
+      component_start = component_end + 1;
+    }
+    if (component_start < prefix.length())
+      namespaces->push_back(prefix.substr(component_start, prefix.length() - component_start));
+  }
+
+  // Returns namespace components, including the language specific prefix splitted by '.'
+  static void PrefixedNamespaceComponents(const Namespace &ns, IDLOptions::Language language, std::vector<std::string> *namespaces)
+  {
+    auto java_prefix = ns.attributes.Lookup("java_prefix");
+    if (language == IDLOptions::kJava && java_prefix) {
+      NamespacePrefixAsComponents(java_prefix->constant, namespaces);
+    }
+    namespaces->insert(namespaces->end(), ns.components.begin(), ns.components.end());
+  }
+
+
+  std::string FullNamespace(IDLOptions::Language language, const char *separator, const Namespace &ns) {
     std::string namespace_name;
-    auto &namespaces = ns.components;
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(ns, language, &namespaces);
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (namespace_name.length()) namespace_name += separator;
       namespace_name += *it;
@@ -103,7 +132,9 @@ class BaseGenerator {
                               const std::string &name) const {
     if (CurrentNameSpace() == ns) return name;
     std::string qualified_name = qualifying_start_;
-    for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+    auto namespaces = std::vector<std::string>();
+    PrefixedNamespaceComponents(*ns, parser_.opts.lang, &namespaces);
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it)
       qualified_name += *it + qualifying_separator_;
     return qualified_name + name;
   }

@@ -11,7 +11,6 @@ import com.google.flatbuffers.*;
 public final class TableInFirstNS extends Table {
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb) { return getRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceA.NamespaceB.TableInNestedNS fooTable() { return fooTable(new NamespaceA.NamespaceB.TableInNestedNS()); }
