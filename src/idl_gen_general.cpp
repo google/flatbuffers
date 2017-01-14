@@ -39,37 +39,6 @@ std::string MakeCamel(const std::string &in, bool first) {
   return s;
 }
 
-struct CommentConfig {
-  const char *first_line;
-  const char *content_line_prefix;
-  const char *last_line;
-};
-
-// Generate a documentation comment, if available.
-void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
-                const CommentConfig *config, const char *prefix) {
-  if (dc.begin() == dc.end()) {
-    // Don't output empty comment blocks with 0 lines of comment content.
-    return;
-  }
-
-  std::string &code = *code_ptr;
-  if (config != nullptr && config->first_line != nullptr) {
-    code += std::string(prefix) + std::string(config->first_line) + "\n";
-  }
-  std::string line_prefix = std::string(prefix) +
-      ((config != nullptr && config->content_line_prefix != nullptr) ?
-       config->content_line_prefix : "///");
-  for (auto it = dc.begin();
-       it != dc.end();
-       ++it) {
-    code += line_prefix + *it + "\n";
-  }
-  if (config != nullptr && config->last_line != nullptr) {
-    code += std::string(prefix) + std::string(config->last_line) + "\n";
-  }
-}
-
 // These arrays need to correspond to the IDLOptions::k enum.
 
 struct LanguageParameters {
@@ -495,7 +464,7 @@ std::string GenDefaultValue(const Value &value, bool enableLangOverrides) {
   switch (value.type.base_type) {
     case BASE_TYPE_FLOAT: return value.constant + "f";
     case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
-    case BASE_TYPE_ULONG: 
+    case BASE_TYPE_ULONG:
     {
       if (lang_.language != IDLOptions::kJava)
         return value.constant;
