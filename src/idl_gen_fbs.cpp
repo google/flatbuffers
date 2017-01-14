@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 

@@ -592,13 +592,6 @@ private:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
 
-struct CommentConfig;
-
-extern void GenComment(const std::vector<std::string> &dc,
-                       std::string *code_ptr,
-                       const CommentConfig *config,
-                       const char *prefix = "");
-
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // If ident_step is 0, no indentation will be generated. Additionally,
