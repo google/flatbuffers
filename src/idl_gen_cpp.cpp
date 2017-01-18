@@ -525,16 +525,13 @@ class CppGenerator : public BaseGenerator {
 
       code_.SetValue("SEP", ",\n");
       if (enum_def.attributes.Lookup("bit_flags")) {
-        if (minv->value != 0) {  // If the user didn't defined NONE value
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "NONE"));
-          code_.SetValue("VALUE", "0");
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-        }
-        if (maxv->value != anyv) {  // If the user didn't defined ANY value
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "ANY"));
-          code_.SetValue("VALUE", NumToString(anyv));
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-        }
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "NONE"));
+        code_.SetValue("VALUE", "0");
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
+
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "ANY"));
+        code_.SetValue("VALUE", NumToString(anyv));
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       } else {  // MIN & MAX are useless for bit_flags
         code_.SetValue("KEY",GenEnumValDecl(enum_def, "MIN"));
         code_.SetValue("VALUE", GenEnumValDecl(enum_def, minv->name));
