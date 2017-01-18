@@ -722,8 +722,17 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
     case BASE_TYPE_UNION: {
       assert(field);
       std::string constant;
-      if (!parent_fieldn ||
-          field_stack_.back().second->value.type.base_type != BASE_TYPE_UTYPE) {
+      // Find corresponding type field we may have already parsed.
+      for (auto elem = field_stack_.rbegin();
+           elem != field_stack_.rbegin() + parent_fieldn; ++elem) {
+        auto &type = elem->second->value.type;
+        if (type.base_type == BASE_TYPE_UTYPE &&
+            type.enum_def == val.type.enum_def) {
+          constant = elem->first.constant;
+          break;
+        }
+      }
+      if (constant.empty()) {
         // We haven't seen the type field yet. Sadly a lot of JSON writers
         // output these in alphabetical order, meaning it comes after this
         // value. So we scan past the value to find it, then come back here.
@@ -750,8 +759,6 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         constant = type_val.constant;
         // Got the information we needed, now rewind:
         *static_cast<ParserState *>(this) = backup;
-      } else {
-        constant = field_stack_.back().first.constant;
       }
       uint8_t enum_idx;
       ECHECK(atot(constant.c_str(), *this, &enum_idx));
@@ -830,16 +837,18 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       } else {
         Value val = field->value;
         ECHECK(ParseAnyValue(val, field, fieldn, &struct_def));
-        size_t i = field_stack_.size();
         // Hardcoded insertion-sort with error-check.
         // If fields are specified in order, then this loop exits immediately.
-        for (; i > field_stack_.size() - fieldn; i--) {
-          auto existing_field = field_stack_[i - 1].second;
+        auto elem = field_stack_.rbegin();
+        for (; elem != field_stack_.rbegin() + fieldn; ++elem) {
+          auto existing_field = elem->second;
           if (existing_field == field)
             return Error("field set more than once: " + field->name);
           if (existing_field->value.offset < field->value.offset) break;
         }
-        field_stack_.insert(field_stack_.begin() + i, std::make_pair(val, field));
+        // Note: elem points to before the insertion point, thus .base() points
+        // to the correct spot.
+        field_stack_.insert(elem.base(), std::make_pair(val, field));
         fieldn++;
       }
     }
