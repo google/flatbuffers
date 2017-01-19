@@ -105,6 +105,22 @@ inline Table *GetFieldT(const Table &table,
   return table.GetPointer<Table *>(field.offset());
 }
 
+// Get a field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Table &table,
+                                    const reflection::Field &field) {
+  // TODO: This does NOT check if the field is a table or struct, but we'd need
+  // access to the schema to check the is_struct flag.
+  assert(field.type()->base_type() == reflection::Obj);
+  return table.GetStruct<const Struct *>(field.offset());
+}
+
+// Get a structure's field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Struct &structure,
+                                    const reflection::Field &field) {
+  assert(field.type()->base_type() == reflection::Obj);
+  return structure.GetStruct<const Struct *>(field.offset());
+}
+
 // Raw helper functions used below: get any value in memory as a 64bit int, a
 // double or a string.
 // All scalars get static_cast to an int64_t, strings use strtoull, every other
@@ -427,6 +443,15 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Object &objectdef,
                                 const Table &table,
                                 bool use_string_pooling = false);
+
+// Verifies the provided flatbuffer using reflection.
+// root should point to the root type for this flatbuffer.
+// buf should point to the start of flatbuffer data.
+// length specifies the size of the flatbuffer data.
+bool Verify(const reflection::Schema &schema,
+            const reflection::Object &root,
+            const uint8_t *buf,
+            size_t length);
 
 }  // namespace flatbuffers
 

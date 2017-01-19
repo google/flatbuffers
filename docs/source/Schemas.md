@@ -285,9 +285,6 @@ Current understood attributes:
     code may access it directly, without checking for NULL. If the constructing
     code does not initialize this field, they will get an assert, and also
     the verifier will fail on buffers that have missing required fields.
--   `original_order` (on a table): since elements in a table do not need
-    to be stored in any particular order, they are often optimized for
-    space by sorting them to size. This attribute stops that from happening.
 -   `force_align: size` (on a struct): force the alignment of this struct
     to be something higher than what it is naturally aligned to. Causes
     these structs to be aligned to that amount inside a buffer, IF that
@@ -308,6 +305,14 @@ Current understood attributes:
     value during JSON parsing is allowed to be a string, which will then be
     stored as its hash. The value of attribute is the hashing algorithm to
     use, one of `fnv1_32` `fnv1_64` `fnv1a_32` `fnv1a_64`.
+-   `original_order` (on a table): since elements in a table do not need
+    to be stored in any particular order, they are often optimized for
+    space by sorting them to size. This attribute stops that from happening.
+    There should generally not be any reason to use this flag.
+-   'native_*'.  Several attributes have been added to support the [C++ object
+    Based API](@ref flatbuffers_cpp_object_based_api).  All such attributes
+    are prefixed with the term "native_".
+
 
 ## JSON Parsing
 
@@ -362,6 +367,66 @@ When parsing JSON, it recognizes the following escape codes in strings:
 
 It also generates these escape codes back again when generating JSON from a
 binary representation.
+
+## Guidelines
+
+### Efficiency
+
+FlatBuffers is all about efficiency, but to realize that efficiency you
+require an efficient schema. There are usually multiple choices on
+how to represent data that have vastly different size characteristics.
+
+It is very common nowadays to represent any kind of data as dictionaries
+(as in e.g. JSON), because of its flexibility and extensibility. While
+it is possible to emulate this in FlatBuffers (as a vector
+of tables with key and value(s)), this is a bad match for a strongly
+typed system like FlatBuffers, leading to relatively large binaries.
+FlatBuffer tables are more flexible than classes/structs in most systems,
+since having a large number of fields only few of which are actually
+used is still efficient. You should thus try to organize your data
+as much as possible such that you can use tables where you might be
+tempted to use a dictionary.
+
+Similarly, strings as values should only be used when they are
+truely open-ended. If you can, always use an enum instead.
+
+FlatBuffers doesn't have inheritance, so the way to represent a set
+of related data structures is a union. Unions do have a cost however,
+so an alternative to a union is to have a single table that has
+all the fields of all the data structures you are trying to
+represent, if they are relatively similar / share many fields.
+Again, this is efficient because optional fields are cheap.
+
+FlatBuffers supports the full range of integer sizes, so try to pick
+the smallest size needed, rather than defaulting to int/long.
+
+Remember that you can share data (refer to the same string/table
+within a buffer), so factoring out repeating data into its own
+data structure may be worth it.
+
+### Style guide
+
+Identifiers in a schema are meant to translate to many different programming
+languages, so using the style of your "main" language is generally a bad idea.
+
+For this reason, below is a suggested style guide to adhere to, to keep schemas
+consistent for interoperation regardless of the target language.
+
+Where possible, the code generators for specific languages will generate
+identifiers that adhere to the language style, based on the schema identifiers.
+
+- Table, struct, enum and rpc names (types): UpperCamelCase.
+- Table and struct field names: snake_case. This is translated to lowerCamelCase
+  automatically for some languages, e.g. Java.
+- Enum values: UpperCamelCase.
+- namespaces: UpperCamelCase.
+
+Formatting (this is less important, but still worth adhering to):
+
+- Opening brace: on the same line as the start of the declaration.
+- Spacing: Indent by 2 spaces. None around `:` for types, on both sides for `=`.
+
+For an example, see the schema at the top of this file.
 
 ## Gotchas
 

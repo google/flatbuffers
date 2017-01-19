@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#define FLATBUFFERS_DEBUG_VERIFICATION_FAILURE 1
-#define FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -493,8 +490,15 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
+  
+
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
+
+  // Verify the buffer first using reflection based verification
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), flatbuf, length),
+          true);
+
   auto hp = flatbuffers::GetFieldI<uint16_t>(root, hp_field);
   TEST_EQ(hp, 80);
 
@@ -506,6 +510,20 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ(hp_double, 80.0);
   auto hp_string = flatbuffers::GetAnyFieldS(root, hp_field, &schema);
   TEST_EQ_STR(hp_string.c_str(), "80");
+
+  // Get struct field through reflection
+  auto pos_struct = flatbuffers::GetFieldStruct(root, *pos_field_ptr);
+  TEST_NOTNULL(pos_struct);
+  TEST_EQ(flatbuffers::GetAnyFieldF(
+    *pos_struct, *pos_table_ptr->fields()->LookupByKey("z")), 3.0f);
+
+  auto test3_field = pos_table_ptr->fields()->LookupByKey("test3");
+  auto test3_struct = flatbuffers::GetFieldStruct(*pos_struct, *test3_field);
+  TEST_NOTNULL(test3_struct);
+  auto test3_object = schema.objects()->Get(test3_field->type()->index());
+
+  TEST_EQ(flatbuffers::GetAnyFieldF(
+    *test3_struct, *test3_object->fields()->LookupByKey("a")), 10);
 
   // We can also modify it.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 200);
@@ -522,6 +540,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   flatbuffers::SetAnyFieldS(&root, hp_field, "300");
   hp_int64 = flatbuffers::GetAnyFieldI(root, hp_field);
   TEST_EQ(hp_int64, 300);
+
+  // Test buffer is valid after the modifications
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), flatbuf, length),
+          true);
 
   // Reset it, for further tests.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 80);
@@ -584,6 +606,11 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
         reinterpret_cast<const uint8_t *>(resizingbuf.data()),
         resizingbuf.size());
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
+    
+  // Test buffer is valid using reflection as well
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
+                              resizingbuf.size()), true);
+  
   // As an additional test, also set it on the name field.
   // Note: unlike the name change above, this just overwrites the offset,
   // rather than changing the string in-place.
@@ -600,6 +627,10 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   fbb.Finish(root_offset, MonsterIdentifier());
   // Test that it was copied correctly:
   AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
+
+  // Test buffer is valid using reflection as well
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                              fbb.GetBufferPointer(), fbb.GetSize()), true);
 }
 
 // Parse a .proto schema, output as .fbs

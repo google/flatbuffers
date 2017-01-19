@@ -88,7 +88,7 @@
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 1
-#define FLATBUFFERS_VERSION_MINOR 0
+#define FLATBUFFERS_VERSION_MINOR 5
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
@@ -252,9 +252,9 @@ template<typename T> struct IndirectHelper<const T *> {
 // calling Get() for every element.
 template<typename T, typename IT>
 struct VectorIterator
-    : public std::iterator<std::input_iterator_tag, IT, uoffset_t> {
+    : public std::iterator<std::random_access_iterator_tag, IT, uoffset_t> {
 
-  typedef std::iterator<std::input_iterator_tag, IT, uoffset_t> super_type;
+  typedef std::iterator<std::random_access_iterator_tag, IT, uoffset_t> super_type;
 
 public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
@@ -274,15 +274,15 @@ public:
     return *this;
   }
 
-  bool operator==(const VectorIterator& other) const {
+  bool operator==(const VectorIterator &other) const {
     return data_ == other.data_;
   }
 
-  bool operator!=(const VectorIterator& other) const {
+  bool operator!=(const VectorIterator &other) const {
     return data_ != other.data_;
   }
 
-  ptrdiff_t operator-(const VectorIterator& other) const {
+  ptrdiff_t operator-(const VectorIterator &other) const {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
@@ -300,9 +300,38 @@ public:
   }
 
   VectorIterator operator++(int) {
-    VectorIterator temp(data_,0);
+    VectorIterator temp(data_, 0);
     data_ += IndirectHelper<T>::element_stride;
     return temp;
+  }
+
+  VectorIterator operator+(const uoffset_t &offset) {
+    return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator+=(const uoffset_t &offset) {
+    data_ += offset * IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator &operator--() {
+    data_ -= IndirectHelper<T>::element_stride;
+    return *this;
+  }
+
+  VectorIterator operator--(int) {
+    VectorIterator temp(data_, 0);
+    data_ -= IndirectHelper<T>::element_stride;
+    return temp;
+  }
+
+  VectorIterator operator-(const uoffset_t &offset) {
+    return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride, 0);
+  }
+
+  VectorIterator& operator-=(const uoffset_t &offset) {
+    data_ -= offset * IndirectHelper<T>::element_stride;
+    return *this;
   }
 
 private:
@@ -510,17 +539,7 @@ class vector_downward {
 
   uint8_t *make_space(size_t len) {
     if (len > static_cast<size_t>(cur_ - buf_)) {
-      auto old_size = size();
-      auto largest_align = AlignOf<largest_scalar_t>();
-      reserved_ += (std::max)(len, growth_policy(reserved_));
-      // Round up to avoid undefined behavior from unaligned loads and stores.
-      reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
-      auto new_buf = allocator_.allocate(reserved_);
-      auto new_cur = new_buf + reserved_ - old_size;
-      memcpy(new_cur, cur_, old_size);
-      cur_ = new_cur;
-      allocator_.deallocate(buf_);
-      buf_ = new_buf;
+      reallocate(len);
     }
     cur_ -= len;
     // Beyond this, signed offsets may not have enough range:
@@ -564,6 +583,20 @@ class vector_downward {
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   const simple_allocator &allocator_;
+
+  void reallocate(size_t len) {
+    auto old_size = size();
+    auto largest_align = AlignOf<largest_scalar_t>();
+    reserved_ += (std::max)(len, growth_policy(reserved_));
+    // Round up to avoid undefined behavior from unaligned loads and stores.
+    reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
+    auto new_buf = allocator_.allocate(reserved_);
+    auto new_cur = new_buf + reserved_ - old_size;
+    memcpy(new_cur, cur_, old_size);
+    cur_ = new_cur;
+    allocator_.deallocate(buf_);
+    buf_ = new_buf;
+  }
 };
 
 // Converts a Field ID to a virtual table offset.
@@ -614,7 +647,7 @@ FLATBUFFERS_FINAL_CLASS
                              const simple_allocator *allocator = nullptr)
       : buf_(initial_size, allocator ? *allocator : default_allocator),
         nested(false), finished(false), minalign_(1), force_defaults_(false),
-        string_pool(nullptr) {
+        dedup_vtables_(true), string_pool(nullptr) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -690,6 +723,10 @@ FLATBUFFERS_FINAL_CLASS
   /// don't get serialized into the buffer.
   /// @param[in] bool fd When set to `true`, always serializes default values.
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
+
+  /// @brief By default vtables are deduped in order to save space.
+  /// @param[in] bool dedup When set to `true`, dedup vtables.
+  void DedupVtables(bool dedup) { dedup_vtables_ = dedup; }
 
   /// @cond FLATBUFFERS_INTERNAL
   void Pad(size_t num_bytes) { buf_.fill(num_bytes); }
@@ -828,13 +865,15 @@ FLATBUFFERS_FINAL_CLASS
     auto vt_use = GetSize();
     // See if we already have generated a vtable with this exact same
     // layout before. If so, make it point to the old one, remove this one.
-    for (auto it = vtables_.begin(); it != vtables_.end(); ++it) {
-      auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*it));
-      auto vt2_size = *vt2;
-      if (vt1_size != vt2_size || memcmp(vt2, vt1, vt1_size)) continue;
-      vt_use = *it;
-      buf_.pop(GetSize() - vtableoffsetloc);
-      break;
+    if (dedup_vtables_) {
+      for (auto it = vtables_.begin(); it != vtables_.end(); ++it) {
+        auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*it));
+        auto vt2_size = *vt2;
+        if (vt1_size != vt2_size || memcmp(vt2, vt1, vt1_size)) continue;
+        vt_use = *it;
+        buf_.pop(GetSize() - vtableoffsetloc);
+        break;
+      }
     }
     // If this is a new vtable, remember it.
     if (vt_use == GetSize()) {
@@ -1234,6 +1273,8 @@ FLATBUFFERS_FINAL_CLASS
 
   bool force_defaults_;  // Serialize values equal to their defaults anyway.
 
+  bool dedup_vtables_;
+
   struct StringOffsetCompare {
     StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
     bool operator() (const Offset<String> &a, const Offset<String> &b) const {
@@ -1295,7 +1336,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      , upper_bound_(buf)
+        , upper_bound_(buf)
     #endif
     {}
 
@@ -1453,9 +1494,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   size_t max_depth_;
   size_t num_tables_;
   size_t max_tables_;
-  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+#ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable const uint8_t *upper_bound_;
-  #endif
+#endif
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around
@@ -1473,7 +1514,7 @@ template<typename T> struct BufferRef : BufferRefBase {
 
   bool Verify() {
     Verifier verifier(buf, len);
-    return verifier.VerifyBuffer<T>();
+    return verifier.VerifyBuffer<T>(nullptr);
   }
 
   uint8_t *buf;
