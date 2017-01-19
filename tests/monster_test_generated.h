@@ -200,7 +200,9 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
         padding1__(0),
         test3_(_test3),
         padding2__(0) {
-    (void)padding0__;(void)padding1__;(void)padding2__;
+    (void)padding0__;
+    (void)padding1__;
+    (void)padding2__;
   }
   float x() const {
     return flatbuffers::EndianScalar(x_);

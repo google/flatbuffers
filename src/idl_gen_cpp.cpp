@@ -1618,14 +1618,14 @@ class CppGenerator : public BaseGenerator {
         NumToString((*id)++) + "__;";
   }
 
-  static void PaddingDeclaration(int bits, std::string *code_ptr, int *id) {
-    (void)bits;
-    *code_ptr += "(void)padding" + NumToString((*id)++) + "__;";
-  }
-
   static void PaddingInitializer(int bits, std::string *code_ptr, int *id) {
     (void)bits;
     *code_ptr += ",\n        padding" + NumToString((*id)++) + "__(0)";
+  }
+
+  static void PaddingNoop(int bits, std::string *code_ptr, int *id) {
+    (void)bits;
+    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1704,20 +1704,20 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
-    padding_id = 0;
-    std::string padding_list;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto field = *it;
-      GenPadding(*field, &padding_list, &padding_id, PaddingDeclaration);
-    }
-
     code_.SetValue("ARG_LIST", arg_list);
     code_.SetValue("INIT_LIST", init_list);
-    code_.SetValue("PADDING_LIST", padding_list);
     code_ += "  {{STRUCT_NAME}}({{ARG_LIST}})";
     code_ += "      : {{INIT_LIST}} {";
-    if (padding_list.length()) code_ += "    {{PADDING_LIST}}";
+    padding_id = 0;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.padding) {
+        std::string padding;
+        GenPadding(field, &padding, &padding_id, PaddingNoop);
+        code_ += padding;
+      }
+    }
     code_ += "  }";
 
     // Generate accessor methods of the form:
