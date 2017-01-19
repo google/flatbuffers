@@ -309,6 +309,10 @@ Current understood attributes:
     to be stored in any particular order, they are often optimized for
     space by sorting them to size. This attribute stops that from happening.
     There should generally not be any reason to use this flag.
+-   'native_*'.  Several attributes have been added to support the [C++ object
+    Based API](@ref flatbuffers_cpp_object_based_api).  All such attributes
+    are prefixed with the term "native_".
+
 
 ## JSON Parsing
 

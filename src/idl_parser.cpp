@@ -174,7 +174,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(Include, 269, "include") \
   TD(Attribute, 270, "attribute") \
   TD(Null, 271, "null") \
-  TD(Service, 272, "rpc_service")
+  TD(Service, 272, "rpc_service") \
+  TD(NativeInclude, 273, "native_include")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -430,6 +431,10 @@ CheckedError Parser::Next() {
           }
           if (attribute_ == "rpc_service") {
             token_ = kTokenService;
+            return NoError();
+          }
+          if (attribute_ == "native_include") {
+            token_ = kTokenNativeInclude;
             return NoError();
           }
           // If not, it is a user-defined identifier:
@@ -1857,6 +1862,10 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         (attribute_ == "option" || attribute_ == "syntax" ||
          attribute_ == "package")) {
         ECHECK(ParseProtoDecl());
+    } else if (Is(kTokenNativeInclude)) {
+      NEXT();
+      native_included_files_.emplace_back(attribute_);
+      EXPECT(kTokenStringConstant);
     } else if (Is(kTokenInclude) ||
                (opts.proto_mode &&
                 attribute_ == "import" &&
