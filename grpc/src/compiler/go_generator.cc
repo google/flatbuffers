@@ -50,7 +50,7 @@ namespace grpc_go_generator {
 grpc::string unexportName(grpc::string s) {
 	if (s.empty())
 		return s;
-	s[0] = std::tolower(s[0]);
+	s[0] = static_cast<char>(std::tolower(s[0]));
 	return s;
 }
 
@@ -58,7 +58,7 @@ grpc::string unexportName(grpc::string s) {
 grpc::string exportName(grpc::string s) {
 	if (s.empty())
 		return s;
-	s[0] = std::toupper(s[0]);
+	s[0] = static_cast<char>(std::toupper(s[0]));
 	return s;
 }
 
