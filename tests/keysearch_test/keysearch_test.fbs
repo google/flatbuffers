@@ -1,0 +1,132 @@
+// test schema file that contains object with all type of keys
+
+namespace Testing.KeySearch;
+
+enum FruitFilter:int (bit_flags) { 
+    Apple,
+    Apricot,
+    Avocado,
+    Banana,
+    
+    Bilberry,
+    Blackberry,
+    Blackcurrant,
+    Blueberry,
+    
+    Boysenberry,
+    Currant,
+    Cherry,
+    Cherimoya,
+    
+    Cloudberry,
+    Coconut,
+    Cranberry,
+    Damson,
+
+    // 16 values
+    Date,  
+    Dragonfruit,
+    Durian,
+    Elderberry,
+    
+    Feijoa,
+    Fig,
+    Gojiberry,
+    Gooseberry,
+    
+    Grape,
+    Raisin,
+    Grapefruit,
+    Guava
+}
+
+
+table MasterDict {
+  ubyteEntries: [UByteEntry];
+  byteEntries: [ByteEntry];
+  boolEntries: [BoolEntry];
+  shortEntries: [ShortEntry];
+  ushortEntries: [UShortEntry];
+  intEntries: [IntEntry];
+  uintEntries: [UIntEntry];
+  floatEntries: [FloatEntry];
+  longEntries: [LongEntry];
+  ulongEntries: [ULongEntry];
+  doubleEntries: [DoubleEntry];
+  stringEntries: [StringEntry];
+  enumEntries: [EnumEntry];
+}
+
+// Remarks: we set default value for signed type keys below to check that 
+// the lookup correctly handle "missing" key (key that have the default value).
+// For unsigned types, this already occurs with value 0.
+
+table UByteEntry {
+  key: ubyte (key);
+  value: ubyte = 255;
+}
+
+table ByteEntry {
+  key: byte = -128 (key);
+  value: byte = -128;
+}
+
+table BoolEntry {
+  key: bool (key);
+  value: bool = true;
+}
+
+table ShortEntry {
+  key: short = -32768 (key);
+  value: short = -32768;
+}
+
+table UShortEntry {
+  key: ushort (key);
+  value: ushort = 65535;
+}
+
+table IntEntry {
+  key: int = -2147483648 (key);
+  value: int = -2147483648;
+}
+
+table UIntEntry {
+  key: uint (key);
+  value: uint = 4294967295;
+}
+
+table FloatEntry {
+  key: float (key);
+  value: float = 1234;
+}
+
+table LongEntry {
+  key: long (key);
+  value: long = -9223372036854775808;
+}
+
+table ULongEntry {
+  key: ulong (key);
+  value: ulong = 9223372036854775807; // keep default within signed range for portability across languages
+}
+
+table DoubleEntry {
+  key: double (key);
+  value: double = 4567;
+}
+
+table StringEntry {
+  key: string (key);
+  value: int = 7890;
+}
+
+table EnumEntry {
+  key: FruitFilter (key);
+  value: int = 7412;
+}
+
+root_type MasterDict;
+
+file_identifier "FBMD";
+file_extension "mdict";
