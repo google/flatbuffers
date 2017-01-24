@@ -99,6 +99,7 @@ struct EquipmentUnion {
 };
 
 bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *obj, Equipment type);
+bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
 MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -508,6 +509,17 @@ inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *obj, Eq
     }
     default: return false;
   }
+}
+
+inline bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyEquipment(
+        verifier,  values->Get(i), types->GetEnum<Equipment>(i))) { 
+      return false; 
+    }
+  }
+  return true;
 }
 
 inline flatbuffers::NativeTable *EquipmentUnion::UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver) {
