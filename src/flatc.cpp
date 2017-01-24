@@ -47,17 +47,17 @@ struct Generator {
 const Generator generators[] = {
   { flatbuffers::GenerateBinary,   "-b", "--binary", "binary",
     nullptr,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kBinary,
     "Generate wire format binaries for any data definitions",
     flatbuffers::BinaryMakeRule },
   { flatbuffers::GenerateTextFile, "-t", "--json", "text",
     nullptr,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kJson,
     "Generate text output for any data definitions",
     flatbuffers::TextMakeRule },
   { flatbuffers::GenerateCPP,      "-c", "--cpp", "C++",
     flatbuffers::GenerateCppGRPC,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kCpp,
     "Generate C++ headers for tables/structs",
     flatbuffers::CPPMakeRule },
   { flatbuffers::GenerateGo,       "-g", "--go", "Go",
@@ -72,7 +72,7 @@ const Generator generators[] = {
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GenerateJS,       "-s", "--js", "JavaScript",
     nullptr,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kJs,
     "Generate JavaScript code for tables/structs",
     flatbuffers::JSMakeRule },
   { flatbuffers::GenerateGeneral,  "-n", "--csharp", "C#",
@@ -82,12 +82,12 @@ const Generator generators[] = {
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePython,   "-p", "--python", "Python",
     nullptr,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kPython,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
     nullptr,
-    flatbuffers::IDLOptions::kMAX,
+    flatbuffers::IDLOptions::kPhp,
     "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
 };
@@ -267,6 +267,7 @@ int main(int argc, const char *argv[]) {
                arg == generators[i].generator_opt_short)) {
             generator_enabled[i] = true;
             any_generator = true;
+            opts.lang_to_generate |= generators[i].lang;
             goto found;
           }
         }

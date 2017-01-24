@@ -136,6 +136,7 @@ struct AnyUnion {
 };
 
 bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type);
+bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
 MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
@@ -1196,6 +1197,17 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type
     }
     default: return false;
   }
+}
+
+inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyAny(
+        verifier,  values->Get(i), types->GetEnum<Any>(i))) { 
+      return false; 
+    }
+  }
+  return true;
 }
 
 inline flatbuffers::NativeTable *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {

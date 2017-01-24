@@ -158,6 +158,10 @@ If you have a need to distinguish between different FlatBuffers in a more
 open-ended way, for example for use as files, see the file identification
 feature below.
 
+There is an experimental support only in C++ for a vector of unions
+(and types). In the example IDL file above, use [Any] to add a
+vector of Any to Monster table.
+
 ### Namespaces
 
 These will generate the corresponding namespace in C++ for all helper
