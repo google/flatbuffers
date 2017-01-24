@@ -1,0 +1,31 @@
+language: cpp
+
+os:
+- linux
+- osx
+
+compiler:
+  - gcc
+  #- clang
+
+env:
+  matrix:
+    - BUILD_TYPE=Debug BIICODE=false
+    - BUILD_TYPE=Release BIICODE=false
+    # biicode .deb files no longer available.
+    # - BUILD_TYPE=Release BIICODE=true
+    # - BUILD_TYPE=Debug BIICODE=true
+  global:
+    - GCC_VERSION="4.9"
+
+before_install:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
+
+script:
+- if [ "$BIICODE" == "false" ]; then cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test; fi
+- if [ "$BIICODE" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then ./biicode/support/bii-travis.sh $BUILD_TYPE; fi
