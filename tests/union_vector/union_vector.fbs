@@ -1,0 +1,24 @@
+table MuLan {
+  sword_attack_damage: int;
+}
+
+table Rapunzel {
+  hair_length: int;
+}
+
+table Belle {
+  books_read: int;
+}
+
+union Character {
+  MuLan,
+  Rapunzel,
+  Belle,
+}
+
+table Movie {
+  characters: [Character];
+}
+
+root_type Movie;
+file_identifier "MOVI";

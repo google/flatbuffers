@@ -454,6 +454,13 @@ class CppGenerator : public BaseGenerator {
            enum_def.name + " type)";
   }
 
+  static std::string UnionVectorVerifySignature(const EnumDef &enum_def) {
+    return "bool Verify" + enum_def.name + "Vector" +
+           "(flatbuffers::Verifier &verifier, " +
+           "const flatbuffers::Vector<flatbuffers::Offset<void>> *values, " +
+           "const flatbuffers::Vector<uint8_t> *types)";
+  }
+
   static std::string UnionUnPackSignature(const EnumDef &enum_def,
                                           bool inclass) {
     return (inclass ? "static " : "") +
@@ -685,6 +692,7 @@ class CppGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       code_ += UnionVerifySignature(enum_def) + ";";
+      code_ += UnionVectorVerifySignature(enum_def) + ";";
       code_ += "";
     }
   }
@@ -718,6 +726,18 @@ class CppGenerator : public BaseGenerator {
     }
     code_ += "    default: return false;";
     code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
+    code_ += "inline " + UnionVectorVerifySignature(enum_def) + " {";
+    code_ += "  if (values->size() != types->size()) return false;";
+    code_ += "  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {";
+    code_ += "    if (!Verify" + enum_def.name + "(";
+    code_ += "        verifier,  values->Get(i), types->GetEnum<" + enum_def.name + ">(i))) { ";
+    code_ += "      return false; ";
+    code_ += "    }";
+    code_ += "  }";
+    code_ += "  return true;";
     code_ += "}";
     code_ += "";
 
@@ -993,6 +1013,10 @@ class CppGenerator : public BaseGenerator {
             if (!field.value.type.struct_def->fixed) {
               code_ += "{{PRE}}verifier.VerifyVectorOfTables({{NAME}}())\\";
             }
+            break;
+          }
+          case BASE_TYPE_UNION: {
+            code_ += "{{PRE}}Verify{{ENUM_NAME}}Vector(verifier, {{NAME}}(), {{NAME}}_type())\\";
             break;
           }
           default:
