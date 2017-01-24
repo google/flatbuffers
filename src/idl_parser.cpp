@@ -554,12 +554,6 @@ CheckedError Parser::ParseType(Type &type) {
         return Error(
               "nested vector types not supported (wrap in table first).");
       }
-      if (subtype.base_type == BASE_TYPE_UNION) {
-        // We could support this if we stored a struct of 2 elements per
-        // union element.
-        return Error(
-              "vector of union types not supported (wrap in table first).");
-      }
       type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
       type.element = subtype.base_type;
       EXPECT(']');
@@ -611,6 +605,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // with a special suffix.
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
+  } else if (type.base_type == BASE_TYPE_VECTOR &&
+             type.element == BASE_TYPE_UNION) {
+    // Only cpp supports the union vector feature so far.
+    if (opts.lang_to_generate != IDLOptions::kCpp) {
+      return Error("Vectors of unions are not yet supported in all "
+                   "the specified programming languages.");
+    }
+    // For vector of union fields, add a second auto-generated vector field to
+    // hold the types, with a special suffix.
+    Type union_vector(BASE_TYPE_VECTOR, nullptr, type.enum_def);
+    union_vector.element = BASE_TYPE_UTYPE;
+    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
+                    union_vector, &typefield));
   }
 
   FieldDef *field;

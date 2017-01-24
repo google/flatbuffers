@@ -16,7 +16,7 @@
 
 ../flatc --cpp --java --csharp --go --binary --python --js --php --grpc --gen-mutable --gen-object-api --no-includes monster_test.fbs monsterdata_test.json
 ../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-../flatc --binary --schema monster_test.fbs
+../flatc --cpp -o union_vector ./union_vector/union_vector.fbs
 cd ../samples
 ../flatc --cpp --gen-mutable --gen-object-api monster.fbs
 cd ../reflection

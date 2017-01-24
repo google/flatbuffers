@@ -21,6 +21,7 @@
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
+#include "union_vector/union_vector_generated.h"
 
 #ifndef FLATBUFFERS_CPP98_STL
   #include <random>
@@ -954,7 +955,6 @@ void ErrorTest() {
   TestError("@", "illegal");
   TestError("table 1", "expecting");
   TestError("table X { Y:[[int]]; }", "nested vector");
-  TestError("union Z { X } table X { Y:[Z]; }", "vector of union");
   TestError("table X { Y:1; }", "illegal type");
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("struct X { Y:string; }", "only scalar");
@@ -1276,6 +1276,67 @@ void ParseUnionTest() {
                         "{ e_type: N_A, e: {} }"), true);
 }
 
+void UnionVectorTest() {
+  // load FlatBuffer fbs schema.
+  // TODO: load a JSON file with such a vector when JSON support is ready.
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile(
+    "tests/union_vector/union_vector.fbs", false, &schemafile), true);
+
+  // parse schema.
+  flatbuffers::IDLOptions idl_opts;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kCpp;
+  flatbuffers::Parser parser(idl_opts);
+  const char *include_directories[] = { "tests/union_vector", nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  flatbuffers::FlatBufferBuilder fbb;
+
+  // union types.
+  std::vector<uint8_t> types;
+  types.push_back(static_cast<uint8_t>(Character_Belle));
+  types.push_back(static_cast<uint8_t>(Character_Rapunzel));
+  types.push_back(static_cast<uint8_t>(Character_MuLan));
+
+  // union values.
+  std::vector<flatbuffers::Offset<void>> characters;
+  characters.push_back(CreateBelle(fbb, /*books_read=*/7).Union());
+  characters.push_back(CreateRapunzel(fbb, /*hair_length=*/6).Union());
+  characters.push_back(CreateMuLan(fbb, /*sward_attack_damage=*/5).Union());
+
+  // create Movie.
+  const auto movie_offset =
+      CreateMovie(fbb, fbb.CreateVector(types), fbb.CreateVector(characters));
+  FinishMovieBuffer(fbb, movie_offset);
+  uint8_t *buf = fbb.GetBufferPointer();
+
+  flatbuffers::Verifier verifier(buf, fbb.GetSize());
+  TEST_EQ(VerifyMovieBuffer(verifier), true);
+
+  const Movie *movie = GetMovie(buf);
+  TEST_EQ(movie->characters_type()->size(), 3);
+  TEST_EQ(
+      movie->characters_type()->GetEnum<Character>(0) == Character_Belle,
+      true);
+  TEST_EQ(
+      movie->characters_type()->GetEnum<Character>(1) == Character_Rapunzel,
+      true);
+  TEST_EQ(
+      movie->characters_type()->GetEnum<Character>(2) == Character_MuLan,
+      true);
+
+  TEST_EQ(movie->characters()->size(), 3);
+  const Belle *belle =
+      reinterpret_cast<const Belle*>(movie->characters()->Get(0));
+  TEST_EQ(belle->books_read(), 7);
+  const Rapunzel *rapunzel =
+      reinterpret_cast<const Rapunzel*>(movie->characters()->Get(1));
+  TEST_EQ(rapunzel->hair_length(), 6);
+  const MuLan *mu_lan =
+      reinterpret_cast<const MuLan*>(movie->characters()->Get(2));
+  TEST_EQ(mu_lan->sword_attack_damage(), 5);
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -1330,6 +1391,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
+  UnionVectorTest();
   ConformTest();
 
   if (!testing_fails) {
