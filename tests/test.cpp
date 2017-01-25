@@ -1374,6 +1374,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ParseAndGenerateTextTest();
   ReflectionTest(flatbuf.get(), rawbuf.length());
   ParseProtoTest();
+  UnionVectorTest();
   #endif
 
   FuzzTest1();
@@ -1391,7 +1392,6 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
-  UnionVectorTest();
   ConformTest();
 
   if (!testing_fails) {
