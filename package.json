@@ -1,0 +1,27 @@
+{
+  "name": "flatbuffers",
+  "version": "<version>",
+  "description": "Memory Efficient Serialization Library",
+  "files": ["js/flatbuffers.js"],
+  "main": "js/flatbuffers.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "tests/JavaScriptTest.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/google/flatbuffers.git"
+  },
+  "keywords": [
+    "flatbuffers"
+  ],
+  "author": "<author>",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "bugs": {
+    "url": "https://github.com/google/flatbuffers/issues"
+  },
+  "homepage": "https://google.github.io/flatbuffers/"
+}
