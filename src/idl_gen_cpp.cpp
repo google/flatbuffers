@@ -733,8 +733,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "  if (values->size() != types->size()) return false;";
     code_ += "  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {";
     code_ += "    if (!Verify" + enum_def.name + "(";
-    code_ += "        verifier,  values->Get(i), types->GetEnum<" + enum_def.name + ">(i))) { ";
-    code_ += "      return false; ";
+    code_ += "        verifier,  values->Get(i), types->GetEnum<" + enum_def.name + ">(i))) {";
+    code_ += "      return false;";
     code_ += "    }";
     code_ += "  }";
     code_ += "  return true;";

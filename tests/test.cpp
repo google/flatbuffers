@@ -1302,7 +1302,7 @@ void UnionVectorTest() {
   std::vector<flatbuffers::Offset<void>> characters;
   characters.push_back(CreateBelle(fbb, /*books_read=*/7).Union());
   characters.push_back(CreateRapunzel(fbb, /*hair_length=*/6).Union());
-  characters.push_back(CreateMuLan(fbb, /*sward_attack_damage=*/5).Union());
+  characters.push_back(CreateMuLan(fbb, /*sword_attack_damage=*/5).Union());
 
   // create Movie.
   const auto movie_offset =
