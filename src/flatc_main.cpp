@@ -18,16 +18,17 @@
 
 static const char *g_program_name = nullptr;
 
-static void Warn(const flatbuffers::FlatCompiler* flatc,
+static void Warn(const flatbuffers::FlatCompiler *flatc,
                  const std::string &warn,
                  bool show_exe_name) {
+  (void)flatc;
   if (show_exe_name) {
     printf("%s: ", g_program_name);
   }
   printf("warning: %s\n", warn.c_str());
 }
 
-static void Error(const flatbuffers::FlatCompiler* flatc,
+static void Error(const flatbuffers::FlatCompiler *flatc,
                   const std::string &err,
                   bool usage,
                   bool show_exe_name) {
