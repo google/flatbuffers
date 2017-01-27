@@ -578,6 +578,7 @@ private:
                                        BaseType baseType);
 
  public:
+  SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
   SymbolTable<ServiceDef> services_;
