@@ -1314,6 +1314,8 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     }
   }
   if (dest) *dest = &enum_def;
+  types_.Add(namespaces_.back()->GetFullyQualifiedName(enum_def.name),
+             new Type(BASE_TYPE_UNION, nullptr, &enum_def));
   return NoError();
 }
 
@@ -1419,6 +1421,8 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
+  types_.Add(namespaces_.back()->GetFullyQualifiedName(struct_def->name),
+             new Type(BASE_TYPE_STRUCT, struct_def, nullptr));
   return NoError();
 }
 

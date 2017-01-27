@@ -266,8 +266,8 @@ inline bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuf
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyCharacter(
-        verifier,  values->Get(i), types->GetEnum<Character>(i))) { 
-      return false; 
+        verifier,  values->Get(i), types->GetEnum<Character>(i))) {
+      return false;
     }
   }
   return true;
