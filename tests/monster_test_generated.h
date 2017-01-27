@@ -1203,8 +1203,8 @@ inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyAny(
-        verifier,  values->Get(i), types->GetEnum<Any>(i))) { 
-      return false; 
+        verifier,  values->Get(i), types->GetEnum<Any>(i))) {
+      return false;
     }
   }
   return true;

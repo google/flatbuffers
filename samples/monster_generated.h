@@ -515,8 +515,8 @@ inline bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuf
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyEquipment(
-        verifier,  values->Get(i), types->GetEnum<Equipment>(i))) { 
-      return false; 
+        verifier,  values->Get(i), types->GetEnum<Equipment>(i))) {
+      return false;
     }
   }
   return true;

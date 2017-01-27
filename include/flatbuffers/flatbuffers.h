@@ -560,16 +560,28 @@ class vector_downward {
 
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
-  // push() & fill() are most frequently called with small byte counts (<= 4),
-  // which is why we're using loops rather than calling memcpy/memset.
   void push(const uint8_t *bytes, size_t num) {
     auto dest = make_space(num);
-    for (size_t i = 0; i < num; i++) dest[i] = bytes[i];
+    memcpy(dest, bytes, num);
   }
 
+  // Specialized version of push() that avoids memcpy call for small data.
+  template<typename T> void push_small(T little_endian_t) {
+    auto dest = make_space(sizeof(T));
+    *reinterpret_cast<T *>(dest) = little_endian_t;
+  }
+
+  // fill() is most frequently called with small byte counts (<= 4),
+  // which is why we're using loops rather than calling memset.
   void fill(size_t zero_pad_bytes) {
     auto dest = make_space(zero_pad_bytes);
     for (size_t i = 0; i < zero_pad_bytes; i++) dest[i] = 0;
+  }
+
+  // Version for when we know the size is larger.
+  void fill_big(size_t zero_pad_bytes) {
+    auto dest = make_space(zero_pad_bytes);
+    memset(dest, 0, zero_pad_bytes);
   }
 
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
@@ -762,7 +774,7 @@ FLATBUFFERS_FINAL_CLASS
     AssertScalarT<T>();
     T litle_endian_element = EndianScalar(element);
     Align(sizeof(T));
-    PushBytes(reinterpret_cast<uint8_t *>(&litle_endian_element), sizeof(T));
+    buf_.push_small(litle_endian_element);
     return GetSize();
   }
 
@@ -794,7 +806,7 @@ FLATBUFFERS_FINAL_CLASS
   template<typename T> void AddStruct(voffset_t field, const T *structptr) {
     if (!structptr) return;  // Default, don't store.
     Align(AlignOf<T>());
-    PushBytes(reinterpret_cast<const uint8_t *>(structptr), sizeof(T));
+    buf_.push_small(*structptr);
     TrackField(field, GetSize());
   }
 
@@ -845,7 +857,7 @@ FLATBUFFERS_FINAL_CLASS
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
     // by the offsets themselves. In reverse:
-    buf_.fill(numfields * sizeof(voffset_t));
+    buf_.fill_big(numfields * sizeof(voffset_t));
     auto table_object_size = vtableoffsetloc - start;
     assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
     PushElement<voffset_t>(static_cast<voffset_t>(table_object_size));
@@ -1239,7 +1251,7 @@ FLATBUFFERS_FINAL_CLASS
              minalign_);
     if (file_identifier) {
       assert(strlen(file_identifier) == kFileIdentifierLength);
-      buf_.push(reinterpret_cast<const uint8_t *>(file_identifier),
+      PushBytes(reinterpret_cast<const uint8_t *>(file_identifier),
                 kFileIdentifierLength);
     }
     PushElement(ReferTo(root));  // Location of root.
