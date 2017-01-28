@@ -274,6 +274,66 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   code += "\n";
 }
 
+// Returns the numpy dtype string for the base type of field.
+// If the base type doesn't have a corresponding numpy type,
+// then an empty string will be returned.
+std::string NumpyType(const FieldDef &field) {
+  auto baseType = field.value.type.VectorType().base_type;
+
+  switch (baseType) {
+  case BASE_TYPE_CHAR:
+    return "<i1";
+  case BASE_TYPE_UCHAR:
+    return "<u1";
+  case BASE_TYPE_SHORT:
+    return "<i2";
+  case BASE_TYPE_USHORT:
+    return "<u2";
+  case BASE_TYPE_INT:
+    return "<i4";
+  case BASE_TYPE_UINT:
+    return "<u4";
+  case BASE_TYPE_LONG:
+    return "<i8";
+  case BASE_TYPE_ULONG:
+    return "<u8";
+  case BASE_TYPE_FLOAT:
+    return "<f4";
+  case BASE_TYPE_DOUBLE:
+    return "<f8";
+  default:
+    return "";
+  }
+}
+
+// Get the contents of a vector as a Numpy array.
+static void GetVectorAsNumpyArray(const StructDef &struct_def,
+                                  const FieldDef &field,
+                                  std::string *code_ptr) {
+  // If npType is empty string, then this vector can't be
+  // accessed as a numpy array.
+  auto npType = NumpyType(field);
+  if (npType == "") {
+    return;
+  }
+
+  std::string &code = *code_ptr;
+
+  GenReceiver(struct_def, code_ptr);
+  code += MakeCamel(field.name) + "_as_numpy_array";
+  code += "(self):\n";
+  code += Indent + Indent + "import numpy";
+  code += OffsetPrefix(field);
+  code += Indent + Indent + Indent + "return numpy.frombuffer(\n";
+  code += Indent + Indent + Indent + Indent + "self._tab.Bytes,\n";
+  code += Indent + Indent + Indent + Indent + "numpy.dtype('" + npType + "'),\n";
+  code += Indent + Indent + Indent + Indent + "self._tab.VectorLen(o),\n";
+  code += Indent + Indent + Indent + Indent + "self._tab.Vector(o)\n";
+  code += Indent + Indent + Indent + ")\n";
+  code += Indent + Indent + "return None\n";
+  code += "\n";
+}
+
 // Begin the creator function signature.
 static void BeginBuilderArgs(const StructDef &struct_def,
                              std::string *code_ptr) {
@@ -414,7 +474,8 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
 // Generate a struct field, conditioned on its child type(s).
 static void GenStructAccessor(const StructDef &struct_def,
                               const FieldDef &field,
-                              std::string *code_ptr) {
+                              std::string *code_ptr,
+                              bool gen_numpy) {
   GenComment(field.doc_comment, code_ptr, nullptr, "# ");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
@@ -440,6 +501,9 @@ static void GenStructAccessor(const StructDef &struct_def,
           GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
         } else {
           GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+          if (gen_numpy) {
+            GetVectorAsNumpyArray(struct_def, field, code_ptr);
+          }
         }
         break;
       }
@@ -478,7 +542,8 @@ static void GenTableBuilders(const StructDef &struct_def,
 
 // Generate struct or table methods.
 static void GenStruct(const StructDef &struct_def,
-                      std::string *code_ptr) {
+                      std::string *code_ptr,
+                      bool gen_numpy) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
@@ -497,7 +562,7 @@ static void GenStruct(const StructDef &struct_def,
     auto &field = **it;
     if (field.deprecated) continue;
 
-    GenStructAccessor(struct_def, field, code_ptr);
+    GenStructAccessor(struct_def, field, code_ptr, gen_numpy);
   }
 
   if (struct_def.fixed) {
@@ -620,7 +685,7 @@ class PythonGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       std::string declcode;
-      GenStruct(struct_def, &declcode);
+      GenStruct(struct_def, &declcode, parser_.opts.generate_numpy_accessors);
       if (!SaveType(struct_def, declcode, true)) return false;
     }
     return true;
