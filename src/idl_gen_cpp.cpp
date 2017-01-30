@@ -1016,6 +1016,7 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION: {
+            code_.SetValue("ENUM_NAME", field.value.type.enum_def->name);
             code_ += "{{PRE}}Verify{{ENUM_NAME}}Vector(verifier, {{NAME}}(), {{NAME}}_type())\\";
             break;
           }
