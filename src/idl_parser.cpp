@@ -109,6 +109,12 @@ template<typename T> inline CheckedError atot(const char *s, Parser &parser,
   *val = (T)i;
   return NoError();
 }
+template<> inline CheckedError atot<uint64_t>(const char *s, Parser &parser,
+                                              uint64_t *val) {
+  (void)parser;
+  *val = StringToUInt(s);
+  return NoError();
+}
 template<> inline CheckedError atot<bool>(const char *s, Parser &parser,
                                           bool *val) {
   (void)parser;
@@ -213,7 +219,7 @@ std::string Parser::TokenToStringId(int t) {
 }
 
 // Parses exactly nibbles worth of hex digits into a number, or error.
-CheckedError Parser::ParseHexNum(int nibbles, int64_t *val) {
+CheckedError Parser::ParseHexNum(int nibbles, uint64_t *val) {
   for (int i = 0; i < nibbles; i++)
     if (!isxdigit(static_cast<const unsigned char>(cursor_[i])))
       return Error("escape code must be followed by " + NumToString(nibbles) +
@@ -280,14 +286,14 @@ CheckedError Parser::Next() {
               case '/':  attribute_ += '/';  cursor_++; break;
               case 'x': {  // Not in the JSON standard
                 cursor_++;
-                int64_t val;
+                uint64_t val;
                 ECHECK(ParseHexNum(2, &val));
                 attribute_ += static_cast<char>(val);
                 break;
               }
               case 'u': {
                 cursor_++;
-                int64_t val;
+                uint64_t val;
                 ECHECK(ParseHexNum(4, &val));
                 if (val >= 0xD800 && val <= 0xDBFF) {
                   if (unicode_high_surrogate != -1) {
@@ -442,7 +448,8 @@ CheckedError Parser::Next() {
           return NoError();
         } else if (isdigit(static_cast<unsigned char>(c)) || c == '-') {
           const char *start = cursor_ - 1;
-          if (c == '-' && *cursor_ == '0' && (cursor_[1] == 'x' || cursor_[1] == 'X')) {
+          if (c == '-' && *cursor_ == '0' &&
+              (cursor_[1] == 'x' || cursor_[1] == 'X')) {
             ++start;
             ++cursor_;
             attribute_.append(&c, &c + 1);
@@ -452,7 +459,8 @@ CheckedError Parser::Next() {
               cursor_++;
               while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
               attribute_.append(start + 2, cursor_);
-              attribute_ = NumToString(StringToUInt(attribute_.c_str(), nullptr, 16));
+              attribute_ = NumToString(static_cast<int64_t>(
+                             StringToUInt(attribute_.c_str(), nullptr, 16)));
               token_ = kTokenIntegerConstant;
               return NoError();
           }

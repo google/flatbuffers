@@ -95,7 +95,8 @@ inline std::string IntToStringHex(int i, int xdigits) {
 }
 
 // Portable implementation of strtoll().
-inline int64_t StringToInt(const char *str, char **endptr = nullptr, int base = 10) {
+inline int64_t StringToInt(const char *str, char **endptr = nullptr,
+                           int base = 10) {
   #ifdef _MSC_VER
     return _strtoi64(str, endptr, base);
   #else
@@ -104,7 +105,8 @@ inline int64_t StringToInt(const char *str, char **endptr = nullptr, int base = 
 }
 
 // Portable implementation of strtoull().
-inline int64_t StringToUInt(const char *str, char **endptr = nullptr, int base = 10) {
+inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
+                             int base = 10) {
   #ifdef _MSC_VER
     return _strtoui64(str, endptr, base);
   #else
