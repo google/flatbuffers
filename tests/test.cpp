@@ -491,7 +491,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
 
-  
+
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
@@ -607,11 +607,11 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
         reinterpret_cast<const uint8_t *>(resizingbuf.data()),
         resizingbuf.size());
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
-    
+
   // Test buffer is valid using reflection as well
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
                               resizingbuf.size()), true);
-  
+
   // As an additional test, also set it on the name field.
   // Note: unlike the name change above, this just overwrites the offset,
   // rather than changing the string in-place.
@@ -994,14 +994,13 @@ template<typename T> T TestValue(const char *json, const char *type_name) {
   flatbuffers::Parser parser;
 
   // Simple schema.
-  TEST_EQ(parser.Parse(std::string("table X { Y:" + std::string(type_name) + "; } root_type X;").c_str()), true);
+  TEST_EQ(parser.Parse(std::string("table X { Y:" + std::string(type_name) +
+                                   "; } root_type X;").c_str()), true);
 
   TEST_EQ(parser.Parse(json), true);
-  auto root = flatbuffers::GetRoot<T>(parser.builder_.GetBufferPointer());
-  // root will point to the table, which is a 32bit vtable offset followed
-  // by a float:
-  TEST_EQ(sizeof(flatbuffers::soffset_t), 4);  // Test assumes 32bit offsets
-  return root[1];
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(
+                parser.builder_.GetBufferPointer());
+  return root->GetField<T>(flatbuffers::FieldIndexToOffset(0), 0);
 }
 
 bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
@@ -1009,13 +1008,19 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 // Additional parser testing not covered elsewhere.
 void ValueTest() {
   // Test scientific notation numbers.
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }","float"), (float)3.14159), true);
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }","float"),
+                       (float)3.14159), true);
 
   // Test conversion functions.
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }","float"), -1), true);
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }","float"), -1),
+          true);
 
   // Test negative hex constant.
-  TEST_EQ(TestValue<int>("{ Y:-0x80 }","int") == -128, true);
+  TEST_EQ(TestValue<int>("{ Y:-0x80 }","int"), -128);
+
+  // Make sure we do unsigned 64bit correctly.
+  TEST_EQ(TestValue<uint64_t>("{ Y:12335089644688340133 }","ulong"),
+                              12335089644688340133ULL);
 }
 
 void EnumStringsTest() {
