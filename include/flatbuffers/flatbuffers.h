@@ -1128,6 +1128,27 @@ FLATBUFFERS_FINAL_CLASS
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
+  #ifndef FLATBUFFERS_CPP98_STL
+  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @param[in] f A function that takes the current iteration 0..vector_size-1
+  /// and a pointer to the struct that must be filled.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  /// This is mostly useful when flatbuffers are generated with mutation
+  /// accessors.
+  template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
+      size_t vector_size, const std::function<void(size_t i, T *)> &filler) {
+    StartVector(vector_size * sizeof(T) / AlignOf<T>(), AlignOf<T>());
+    T *structs = reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
+    for (size_t i = 0; i < vector_size; i++) {
+      filler(i, structs);
+      structs++;
+    }
+    return Offset<Vector<const T *>>(EndVector(vector_size));
+  }
+  #endif
+
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` struct elements.
   /// @param[in]] v A const reference to the `std::vector` of structs to
