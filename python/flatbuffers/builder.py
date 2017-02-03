@@ -403,6 +403,8 @@ class Builder(object):
             x = s.encode(encoding, errors)
         elif isinstance(s, compat.binary_types):
             x = s
+        elif isinstance(s, bytearray):
+            x = s
         else:
             raise TypeError("non-string passed to CreateString")
 
