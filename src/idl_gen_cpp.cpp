@@ -650,7 +650,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  flatbuffers::NativeTable *table;";
       code_ += "";
       code_ += "  {{NAME}}Union() : type({{NONE}}), table(nullptr) {}";
-      code_ += "  {{NAME}}Union({{NAME}}Union &&) = default;";
+      code_ += "  {{NAME}}Union({{NAME}}Union&& u):";
+      code_ += "    type(std::move(u.type)), table(std::move(u.table)) {}";
       code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
       code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &);";
       code_ += "  ~{{NAME}}Union() { Reset(); }";
