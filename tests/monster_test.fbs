@@ -7,7 +7,7 @@ namespace MyGame.Example2;
 table Monster {}  // Test having same name as below, but in different namespace.
 
 /// This will test a potential "ambiguous call to overloaded function" using the same data from different namespace.
-table MonsterStatusService {
+table MonsterStatus {
 	status:MyGame.Example.Stat;
 }
 
@@ -80,7 +80,7 @@ rpc_service MonsterStorage {
 }
 
 /// Also exist in MyGame.Example2 using the Stat table from this namespace.
-table MonsterStatusService {
+table MonsterStatus {
 	status:Stat;
 }
 
