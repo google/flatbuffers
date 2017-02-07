@@ -6,6 +6,11 @@ namespace MyGame.Example2;
 
 table Monster {}  // Test having same name as below, but in different namespace.
 
+/// This will test a potential "ambiguous call to overloaded function" using the same data from different namespace.
+table MonsterStatusService {
+	status:MyGame.Example.Stat;
+}
+
 namespace MyGame.Example;
 
 attribute "priority";
@@ -72,6 +77,11 @@ table Monster {
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (streaming: "server", idempotent);
+}
+
+/// Also exist in MyGame.Example2 using the Stat table from this namespace.
+table MonsterStatusService {
+	status:Stat;
 }
 
 root_type Monster;
