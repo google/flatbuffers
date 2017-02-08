@@ -1373,8 +1373,8 @@ void FlexBuffersTest() {
       slb.IndirectFloat(4.0f);
     });
     int ints[] = { 1, 2, 3 };
-    slb.Add("bar", ints);
-    slb.FixedTypedVector("bar3", ints, sizeof(ints) / sizeof(int));
+    slb.Vector("bar", ints, 3);
+    slb.FixedTypedVector("bar3", ints, 3);
     slb.Double("foo", 100);
     slb.Map("mymap", [&]() {
       slb.String("foo", "Fred");  // Testing key and string reuse.
