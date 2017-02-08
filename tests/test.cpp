@@ -1372,9 +1372,9 @@ void FlexBuffersTest() {
       slb += "Fred";
       slb.IndirectFloat(4.0f);
     });
-    std::vector<int> ints = { 1, 2, 3 };
+    int ints[] = { 1, 2, 3 };
     slb.Add("bar", ints);
-    slb.FixedTypedVector("bar3", ints.data(), ints.size());  // Static size.
+    slb.FixedTypedVector("bar3", ints, sizeof(ints) / sizeof(int));
     slb.Double("foo", 100);
     slb.Map("mymap", [&]() {
       slb.String("foo", "Fred");  // Testing key and string reuse.
