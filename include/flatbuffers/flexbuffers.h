@@ -946,6 +946,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       EndVector(start, false, false);
     }
   }
+  template<typename T> void Vector(const char *key, const T *elems,
+                                   size_t len) {
+    Key(key);
+    Vector(elems, len);
+  }
   template<typename T> void Vector(const std::vector<T> &vec) {
     Vector(vec.data(), vec.size());
   }
