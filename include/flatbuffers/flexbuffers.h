@@ -141,8 +141,8 @@ inline uint64_t ReadUInt64(const uint8_t *data, uint8_t byte_width) {
   // the conditionals in ReadSizedScalar. Can also use inline asm.
   #ifdef _MSC_VER
     uint64_t u = 0;
-    __movsb(reinterpret_cast<int8_t *>(&u),
-            reinterpret_cast<const int8_t *>(data), byte_width);
+    __movsb(reinterpret_cast<uint8_t *>(&u),
+            reinterpret_cast<const uint8_t *>(data), byte_width);
     return flatbuffers::EndianScalar(u);
   #else
     return ReadSizedScalar<uint64_t, uint8_t, uint16_t, uint32_t, uint64_t>(
@@ -307,7 +307,8 @@ class Map : public Vector {
     const size_t num_prefixed_fields = 3;
     auto keys_offset = data_ - byte_width_ * num_prefixed_fields;
     return TypedVector(Indirect(keys_offset, byte_width_),
-                       ReadUInt64(keys_offset + byte_width_, byte_width_),
+                       static_cast<uint8_t>(
+                         ReadUInt64(keys_offset + byte_width_, byte_width_)),
                        TYPE_KEY);
   }
 
@@ -878,7 +879,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // Remove temp elements and return vector.
     stack_.resize(start);
     stack_.push_back(vec);
-    return vec.u_;
+    return static_cast<size_t>(vec.u_);
   }
 
   size_t EndMap(size_t start) {
@@ -904,7 +905,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
     auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
-    std::sort(dict, dict + len, [&](const TwoValue &a, const TwoValue &b) {
+    std::sort(dict, dict + len,
+              [&](const TwoValue &a, const TwoValue &b) -> bool {
       auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
       auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
       auto comp = strcmp(as, bs);
@@ -921,7 +923,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // Remove temp elements and return map.
     stack_.resize(start);
     stack_.push_back(vec);
-    return vec.u_;
+    return static_cast<size_t>(vec.u_);
   }
 
   template<typename F> size_t Vector(F f) {
