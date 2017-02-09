@@ -93,6 +93,12 @@ Additional options:
     output (by default the case for C++ and JS), all code will end up in
     this one file.
 
+-   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
+
+-   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
+    instead of Node.js style exporting.  Needed for compatibility with the
+    Google closure compiler (useful for JS).
+
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 
