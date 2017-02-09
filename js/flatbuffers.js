@@ -2,6 +2,15 @@
 /// @addtogroup flatbuffers_javascript_api
 /// @{
 /// @cond FLATBUFFERS_INTERNAL
+
+/**
+ * @fileoverview
+ *
+ * Need to suppress 'global this' error so the Node.js export line doesn't cause
+ * closure compile to error out.
+ * @suppress {globalThis}
+ */
+
 /**
  * @const
  * @namespace
@@ -530,6 +539,10 @@ flatbuffers.Builder.prototype.offset = function() {
  * @param {flatbuffers.ByteBuffer} bb The current buffer with the existing data
  * @returns {flatbuffers.ByteBuffer} A new byte buffer with the old data copied
  * to it. The data is located at the end of the buffer.
+ *
+ * uint8Array.set() formally takes {Array<number>|ArrayBufferView}, so to pass
+ * it a uint8Array we need to suppress the type check:
+ * @suppress {checkTypes}
  */
 flatbuffers.Builder.growByteBuffer = function(bb) {
   var old_buf_size = bb.capacity();

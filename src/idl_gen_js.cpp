@@ -113,7 +113,11 @@ class JsGenerator : public BaseGenerator {
     code += "/**\n * @const\n * @namespace\n */\n";
     if (it->find('.') == std::string::npos) {
       code += "var ";
-      exports += "this." + *it + " = " + *it + ";\n";
+      if(parser_.opts.use_goog_js_export_format) {
+        exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
+      } else {
+        exports += "this." + *it + " = " + *it + ";\n";
+      }
     }
     code += *it + " = " + *it + " || {};\n\n";
   }
@@ -172,7 +176,12 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
   GenDocComment(enum_def.doc_comment, code_ptr, "@enum");
   if (enum_def.defined_namespace->components.empty()) {
     code += "var ";
-    exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
+    if(parser_.opts.use_goog_js_export_format) {
+      exports += "goog.exportSymbol('" + enum_def.name + "', " + enum_def.name +
+        ");\n";
+    } else {
+      exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
+    }
   }
   code += WrapInNameSpace(enum_def) + " = {\n";
   for (auto it = enum_def.vals.vec.begin();
@@ -236,6 +245,9 @@ std::string GenDefaultValue(const Value &value, const std::string &context) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
       return WrapInNameSpace(*value.type.enum_def) + "." + val->name;
+    } else {
+      return "/** @type {" + WrapInNameSpace(*value.type.enum_def) + "} */ ("
+        + value.constant + ")";
     }
   }
 
@@ -371,7 +383,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   std::string object_name = WrapInNameSpace(struct_def);
   GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
   if (isStatement) {
-    exports += "this." + struct_def.name + " = " + struct_def.name + ";\n";
+    if(parser_.opts.use_goog_js_export_format) {
+      exports += "goog.exportSymbol('" + struct_def.name + "', " +
+        struct_def.name + ");\n";
+    } else {
+      exports += "this." + struct_def.name + " = " + struct_def.name + ";\n";
+    }
     code += "function " + object_name;
   } else {
     code += object_name + " = function";
@@ -526,7 +543,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
               field.value.type.element == BASE_TYPE_ULONG) {
             code += "this.bb.createLong(0, 0)";
           } else if (IsScalar(field.value.type.element)) {
-            code += "0";
+            if (field.value.type.enum_def) {
+              code += "/** @type {" +
+                WrapInNameSpace(*field.value.type.enum_def) + "} */ (" +
+                field.value.constant + ")";
+            } else {
+              code += "0";
+            }
           } else {
             code += "null";
           }
@@ -550,6 +573,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     }
     code += "};\n\n";
 
+    if(parser_.opts.use_goog_js_export_format) {
+      exports += "goog.exportProperty(" + object_name + ".prototype, '" +
+        MakeCamel(field.name, false) + "', " + object_name + ".prototype." +
+        MakeCamel(field.name, false) + ");\n";
+    }
+
     // Adds the mutable scalar value to the output
     if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer) {
       std::string annotations = "@param {" + GenTypeName(field.value.type, true) + "} value\n";
@@ -564,6 +593,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
       code += "  return true;\n";
       code += "};\n\n";
+
+      if(parser_.opts.use_goog_js_export_format) {
+        exports += "goog.exportProperty(" + object_name +
+          ".prototype, 'mutate_" + field.name + "', " + object_name +
+          ".prototype.mutate_" + field.name + ");\n";
+      }
     }
 
     // Emit vector helpers
@@ -574,6 +609,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       code += "Length = function() {\n" + offset_prefix;
       code += "this.bb.__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
 
+      if(parser_.opts.use_goog_js_export_format) {
+        exports += "goog.exportProperty(" + object_name + ".prototype, '" +
+          MakeCamel(field.name, false) + "Length', " + object_name +
+          ".prototype." + MakeCamel(field.name, false) + "Length);\n";
+      }
+
       // For scalar types, emit a typed array helper
       auto vectorType = field.value.type.VectorType();
       if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
@@ -583,6 +624,12 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
           "this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), "
           "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+
+        if(parser_.opts.use_goog_js_export_format) {
+          exports += "goog.exportProperty(" + object_name + ".prototype, '" +
+            MakeCamel(field.name, false) + "Array', " + object_name +
+            ".prototype." + MakeCamel(field.name, false) + "Array);\n";
+        }
       }
     }
   }
