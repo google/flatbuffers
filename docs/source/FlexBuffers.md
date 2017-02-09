@@ -18,7 +18,7 @@ FlexBuffers can also be accessed without parsing / copying / object allocation.
 This is a huge win in efficiency / memory friendly-ness, and allows unique
 use cases such as mmap-ing large amounts of free-form data.
 
-FlexBuffers design and implementation allows for a very compact encoding,
+FlexBuffers' design and implementation allows for a very compact encoding,
 combining automatic pooling of strings with automatic sizing of containers to
 their smallest possible representation (8/16/32/64 bits). Many values and
 offsets can be encoded in just 8 bits. While a schema-less representation is
