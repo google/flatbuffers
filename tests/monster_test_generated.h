@@ -439,7 +439,7 @@ inline flatbuffers::Offset<Stat> CreateStatDirect(
     const char *id = nullptr,
     int64_t val = 0,
     uint16_t count = 0) {
-  return CreateStat(
+  return MyGame::Example::CreateStat(
       _fbb,
       id ? _fbb.CreateString(id) : 0,
       val,
@@ -952,7 +952,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     float testf2 = 3.0f,
     float testf3 = 0.0f,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr) {
-  return CreateMonster(
+  return MyGame::Example::CreateMonster(
       _fbb,
       pos,
       mana,
@@ -1008,7 +1008,7 @@ inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder
 inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  return CreateMonster(
+  return MyGame::Example2::CreateMonster(
       _fbb);
 }
 
@@ -1036,7 +1036,7 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   (void)_rehasher;
   (void)_o;
   auto _color = _o->color;
-  return CreateTestSimpleTableWithEnum(
+  return MyGame::Example::CreateTestSimpleTableWithEnum(
       _fbb,
       _color);
 }
@@ -1065,7 +1065,7 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   auto _id = _o->id.size() ? _fbb.CreateString(_o->id) : 0;
   auto _val = _o->val;
   auto _count = _o->count;
-  return CreateStat(
+  return MyGame::Example::CreateStat(
       _fbb,
       _id,
       _val,
@@ -1146,7 +1146,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _testf2 = _o->testf2;
   auto _testf3 = _o->testf3;
   auto _testarrayofstring2 = _o->testarrayofstring2.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring2) : 0;
-  return CreateMonster(
+  return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
       _mana,
