@@ -97,6 +97,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "                     an evolution of. Gives errors if not.\n"
       "  --conform-includes Include path for the schema given with --conform\n"
       "    PATH             \n"
+      "  --include-prefix   Prefix this path to any generated include statements.\n"
+      "    PATH\n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -142,6 +144,11 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if (arg == "--conform-includes") {
         if (++argi >= argc) Error("missing path following" + arg, true);
         conform_include_directories.push_back(argv[argi]);
+      } else if (arg == "--include-prefix") {
+        if (++argi >= argc) Error("missing path following" + arg, true);
+        opts.include_prefix = argv[argi];
+        if (opts.include_prefix.back() != '/' &&
+            opts.include_prefix.back() != '\\') opts.include_prefix += "/";
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
       } else if(arg == "--allow-non-utf8") {

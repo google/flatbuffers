@@ -355,6 +355,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   bool union_value_namespacing;
   bool allow_non_utf8;
+  std::string include_prefix;
 
   // Possible options for the more general generator below.
   enum Language {

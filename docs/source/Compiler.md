@@ -118,5 +118,8 @@ Additional options:
     an evolution of. Gives errors if not. Useful to check if schema
     modifications don't break schema evolution rules.
 
+-   `--include-prefix PATH` : Prefix this path to any generated include
+    statements.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
