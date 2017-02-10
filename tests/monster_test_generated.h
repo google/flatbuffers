@@ -103,6 +103,8 @@ struct AnyUnion {
   flatbuffers::NativeTable *table;
 
   AnyUnion() : type(Any_NONE), table(nullptr) {}
+  AnyUnion(AnyUnion&& u):
+    type(std::move(u.type)), table(std::move(u.table)) {}
   AnyUnion(const AnyUnion &);
   AnyUnion &operator=(const AnyUnion &);
   ~AnyUnion() { Reset(); }
