@@ -194,7 +194,7 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValueDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *key = nullptr,
     const char *value = nullptr) {
-  return CreateKeyValue(
+  return reflection::CreateKeyValue(
       _fbb,
       key ? _fbb.CreateString(key) : 0,
       value ? _fbb.CreateString(value) : 0);
@@ -281,7 +281,7 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<Object> object = 0) {
-  return CreateEnumVal(
+  return reflection::CreateEnumVal(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       value,
@@ -390,7 +390,7 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
     bool is_union = false,
     flatbuffers::Offset<Type> underlying_type = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateEnum(
+  return reflection::CreateEnum(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       values ? _fbb.CreateVector<flatbuffers::Offset<EnumVal>>(*values) : 0,
@@ -553,7 +553,7 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
     bool required = false,
     bool key = false,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateField(
+  return reflection::CreateField(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       type,
@@ -678,7 +678,7 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
     int32_t minalign = 0,
     int32_t bytesize = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr) {
-  return CreateObject(
+  return reflection::CreateObject(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       fields ? _fbb.CreateVector<flatbuffers::Offset<Field>>(*fields) : 0,
@@ -784,7 +784,7 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     const char *file_ident = nullptr,
     const char *file_ext = nullptr,
     flatbuffers::Offset<Object> root_table = 0) {
-  return CreateSchema(
+  return reflection::CreateSchema(
       _fbb,
       objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0,
       enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0,

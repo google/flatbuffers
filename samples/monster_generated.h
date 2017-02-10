@@ -326,7 +326,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const std::vector<flatbuffers::Offset<Weapon>> *weapons = nullptr,
     Equipment equipped_type = Equipment_NONE,
     flatbuffers::Offset<void> equipped = 0) {
-  return CreateMonster(
+  return MyGame::Sample::CreateMonster(
       _fbb,
       pos,
       mana,
@@ -415,7 +415,7 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     int16_t damage = 0) {
-  return CreateWeapon(
+  return MyGame::Sample::CreateWeapon(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       damage);
@@ -459,7 +459,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _weapons = _o->weapons.size() ? _fbb.CreateVector<flatbuffers::Offset<Weapon>>(_o->weapons.size(), [&](size_t i) { return CreateWeapon(_fbb, _o->weapons[i].get(), _rehasher); }) : 0;
   auto _equipped_type = _o->equipped.type;
   auto _equipped = _o->equipped.Pack(_fbb);
-  return CreateMonster(
+  return MyGame::Sample::CreateMonster(
       _fbb,
       _pos,
       _mana,
@@ -494,7 +494,7 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &
   (void)_o;
   auto _name = _o->name.size() ? _fbb.CreateString(_o->name) : 0;
   auto _damage = _o->damage;
-  return CreateWeapon(
+  return MyGame::Sample::CreateWeapon(
       _fbb,
       _name,
       _damage);
