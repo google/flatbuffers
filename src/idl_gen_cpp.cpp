@@ -1356,8 +1356,12 @@ class CppGenerator : public BaseGenerator {
         }
       }
 
+      // Need to call "Create" with the struct namespace.
+      const auto qualified_create_name = struct_def.defined_namespace->GetFullyQualifiedName("Create");
+      code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
+
       code_ += ") {";
-      code_ += "  return Create{{STRUCT_NAME}}(";
+      code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
       code_ += "      _fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
@@ -1658,8 +1662,11 @@ class CppGenerator : public BaseGenerator {
         }
         code_ += "  auto _" + field.name + " = " + GenCreateParam(field) + ";";
       }
+      // Need to call "Create" with the struct namespace.
+      const auto qualified_create_name = struct_def.defined_namespace->GetFullyQualifiedName("Create");
+      code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
 
-      code_ += "  return Create{{STRUCT_NAME}}(";
+      code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
       code_ += "      _fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
