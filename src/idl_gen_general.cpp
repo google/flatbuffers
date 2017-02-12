@@ -587,6 +587,19 @@ std::string GenGetter(const Type &type) {
   }
 }
 
+// Returns the function name that is able to read a value of the given type.
+std::string GenGetterForLookupByKey(const Type &type,
+                                    const std::string data_buffer) {
+  auto getter = data_buffer + "." + FunctionStart('G') + "et";
+  if (type.base_type == BASE_TYPE_BOOL) {
+    getter = "0!=" + getter;
+  }
+  else if (GenTypeBasic(type, false) != "byte") {
+    getter += MakeCamel(GenTypeBasic(type, false));
+  }
+  return getter;
+}
+
 // Direct mutation is only allowed for scalar fields.
 // Hence a setter method will only be generated for such fields.
 std::string GenSetter(const Type &type) {
@@ -699,7 +712,7 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
     key_getter += GenOffsetGetter(key_field);
     key_getter += ", byteKey, bb);\n";
   } else {
-    auto get_val = GenGetter(key_field->value.type) +
+    auto get_val = GenGetterForLookupByKey(key_field->value.type, "bb") +
       "(" + GenOffsetGetter(key_field) + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
@@ -728,11 +741,11 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += ";";
   }
   else {
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+    auto field_getter = GenGetterForLookupByKey(key_field->value.type, data_buffer) +
       "(" + GenOffsetGetter(key_field, "o1") + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+      field_getter = GenGetterForLookupByKey(key_field->value.type, data_buffer) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += ".CompareTo(" + field_getter + ")";
     }
@@ -740,7 +753,7 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
       key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
       key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+      field_getter = GenGetterForLookupByKey(key_field->value.type, data_buffer) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += field_getter + ";\n";
       key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
