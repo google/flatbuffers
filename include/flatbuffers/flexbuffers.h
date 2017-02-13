@@ -912,7 +912,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       auto comp = strcmp(as, bs);
       // If this assertion hits, you've added two keys with the same value to
       // this map.
-      assert(comp);
+      // TODO: Have to check for pointer equality, as some sort implementation
+      // apparently call this function with the same element?? Why?
+      assert(comp || &a == &b);
       return comp < 0;
     });
     // First create a vector out of all keys.
