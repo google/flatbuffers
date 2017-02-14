@@ -356,6 +356,7 @@ struct IDLOptions {
   bool union_value_namespacing;
   bool allow_non_utf8;
   std::string include_prefix;
+  bool binary_schema_comments;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -396,6 +397,7 @@ struct IDLOptions {
       cpp_object_api_pointer_type("std::unique_ptr"),
       union_value_namespacing(true),
       allow_non_utf8(false),
+      binary_schema_comments(false),
       lang(IDLOptions::kJava),
       lang_to_generate(0) {}
 };

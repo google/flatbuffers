@@ -93,6 +93,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --proto            Input is a .proto, translate to .fbs.\n"
       "  --grpc             Generate GRPC interfaces for the specified languages\n"
       "  --schema           Serialize schemas instead of JSON (use with -b)\n"
+      "  --bfbs-comments    Add doc comments to the binary schema files.\n"
       "  --conform FILE     Specify a schema the following schemas should be\n"
       "                     an evolution of. Gives errors if not.\n"
       "  --conform-includes Include path for the schema given with --conform\n"
@@ -204,6 +205,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         exit(0);
       } else if(arg == "--grpc") {
         grpc_enabled = true;
+      } else if(arg == "--bfbs-comments") {
+        opts.binary_schema_comments = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
