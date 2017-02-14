@@ -728,11 +728,13 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += ";";
   }
   else {
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+    auto substr_len = 2;
+    if (key_field->value.type.base_type == BASE_TYPE_BOOL) substr_len = 5;
+    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
       "(" + GenOffsetGetter(key_field, "o1") + ")";
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+      field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += ".CompareTo(" + field_getter + ")";
     }
@@ -740,10 +742,13 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
       key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
       key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
+      field_getter = data_buffer + GenGetter(key_field->value.type).substr(substr_len) +
         "(" + GenOffsetGetter(key_field, "o2") + ")";
       key_getter += field_getter + ";\n";
-      key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
+      if (key_field->value.type.base_type == BASE_TYPE_BOOL)
+        key_getter += "    return val_1 == true ? 0 : val_2 == true ? 1 : 0;\n ";
+      else
+        key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
   }
   return key_getter;
