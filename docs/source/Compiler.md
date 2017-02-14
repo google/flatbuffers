@@ -114,6 +114,8 @@ Additional options:
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
 
+-   `--bfbs-comments`: Add doc comments to the binary schema files.
+
 -   `--conform FILE` : Specify a schema the following schemas should be
     an evolution of. Gives errors if not. Useful to check if schema
     modifications don't break schema evolution rules.

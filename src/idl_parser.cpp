@@ -2086,7 +2086,11 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
                                   fixed,
                                   static_cast<int>(minalign),
                                   static_cast<int>(bytesize),
-                                  SerializeAttributes(builder, parser));
+                                  SerializeAttributes(builder, parser),
+                                  parser.opts.binary_schema_comments
+                                    ? builder->CreateVectorOfStrings(
+                                        doc_comment)
+                                    : 0);
 }
 
 Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
@@ -2106,7 +2110,10 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
                                  deprecated,
                                  required,
                                  key,
-                                 SerializeAttributes(builder, parser));
+                                 SerializeAttributes(builder, parser),
+                                 parser.opts.binary_schema_comments
+                                   ? builder->CreateVectorOfStrings(doc_comment)
+                                   : 0);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
@@ -2123,7 +2130,10 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
                                 builder->CreateVector(enumval_offsets),
                                 is_union,
                                 underlying_type.Serialize(builder),
-                                SerializeAttributes(builder, parser));
+                                SerializeAttributes(builder, parser),
+                                parser.opts.binary_schema_comments
+                                  ? builder->CreateVectorOfStrings(doc_comment)
+                                  : 0);
 }
 
 Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder) const
