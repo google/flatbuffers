@@ -46,7 +46,7 @@ void FlatCompiler::Error(const std::string &err, bool usage,
 
 std::string FlatCompiler::GetUsageString(const char* program_name) const {
   std::stringstream ss;
-  ss << "Usageaa: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
+  ss << "Usage: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator& g = params_.generators[i];
 
