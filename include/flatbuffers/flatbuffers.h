@@ -496,12 +496,11 @@ class vector_downward {
  public:
   explicit vector_downward(size_t initial_size,
                            const simple_allocator &allocator)
-    : reserved_(initial_size),
+    : reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
+        ~(sizeof(largest_scalar_t) - 1)),
       buf_(allocator.allocate(reserved_)),
       cur_(buf_ + reserved_),
-      allocator_(allocator) {
-    assert((initial_size & (sizeof(largest_scalar_t) - 1)) == 0);
-  }
+      allocator_(allocator) {}
 
   ~vector_downward() {
     if (buf_)
