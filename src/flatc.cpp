@@ -16,7 +16,7 @@
 
 #include "flatbuffers/flatc.h"
 
-#define FLATC_VERSION "1.5.0 (" __DATE__ ")"
+#define FLATC_VERSION "1.6.0 (" __DATE__ ")"
 
 namespace flatbuffers {
 
