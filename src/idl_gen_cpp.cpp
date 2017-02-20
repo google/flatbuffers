@@ -1118,6 +1118,45 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return {{FIELD_VALUE}};";
       code_ += "  }";
 
+      if (field.value.type.base_type == BASE_TYPE_UNION) {
+        auto u = field.value.type.enum_def;
+
+        code_ += "  template<typename T> "
+                "const T *{{FIELD_NAME}}_as() const;";
+
+        for (auto u_it = u->vals.vec.begin();
+             u_it != u->vals.vec.end(); ++u_it) {
+          if (!(*u_it)->struct_def) {
+            continue;
+          }
+          auto struct_def = (*u_it)->struct_def;
+          auto full_struct_name = WrapInNameSpace(*struct_def);
+
+          // @TODO: Mby make this decisions more universal? How?
+          code_.SetValue("U_GET_TYPE", field.name + UnionTypeFieldSuffix());
+          code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(
+                         u->defined_namespace, GetEnumValUse(*u, **u_it)));
+          code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
+          code_.SetValue("U_ELEMENT_NAME", full_struct_name);
+          code_.SetValue("U_FIELD_NAME",
+                         field.name + "_as_" + struct_def->name);
+
+          // `const Type *union_name_asType() const` accessor.
+          code_ += "  {{U_FIELD_TYPE}}{{U_FIELD_NAME}}() const {";
+          code_ += "    return ({{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}})? "
+                  "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
+                  ": nullptr;";
+          code_ += "  }";
+
+          // `template<> const T *union_name_as<T>() const` accessor.
+          code_ += "  template<> "
+                  "{{U_FIELD_TYPE}}{{FIELD_NAME}}_as<{{U_ELEMENT_NAME}}>"
+                  "() const {";
+          code_ += "    return {{U_FIELD_NAME}}();";
+          code_ += "  }";
+        }
+      }
+
       if (parser_.opts.mutable_buffer) {
         if (is_scalar) {
           code_.SetValue("OFFSET_NAME", offset_str);
