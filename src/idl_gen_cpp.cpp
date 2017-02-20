@@ -1139,7 +1139,7 @@ class CppGenerator : public BaseGenerator {
           code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
           code_.SetValue("U_ELEMENT_NAME", full_struct_name);
           code_.SetValue("U_FIELD_NAME",
-                         field.name + "_as_" + struct_def->name);
+                         field.name + "_as_" + (*u_it)->name);
 
           // `const Type *union_name_asType() const` accessor.
           code_ += "  {{U_FIELD_TYPE}}{{U_FIELD_NAME}}() const {";
