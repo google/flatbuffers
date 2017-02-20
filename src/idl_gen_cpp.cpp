@@ -1076,9 +1076,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "  };";
     }
 
-    // Found fields with union type.
-    std::vector<const FieldDef*> union_fields;
-
     // Generate the accessors.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1122,7 +1119,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "  }";
 
       if (field.value.type.base_type == BASE_TYPE_UNION) {
-        union_fields.push_back(&field);
         auto u = field.value.type.enum_def;
 
         code_ += "  template<typename T> "
@@ -1259,11 +1255,15 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     // Explicit specializations for union accessors
-    for (auto it = union_fields.begin();
-         it != union_fields.end(); ++it) {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      auto u = field.value.type.enum_def;
+      if (field.deprecated ||
+          field.value.type.base_type != BASE_TYPE_UNION) {
+        continue;
+      }
 
+      auto u = field.value.type.enum_def;
       code_.SetValue("FIELD_NAME", field.name);
 
       for (auto u_it = u->vals.vec.begin();
@@ -1288,6 +1288,7 @@ class CppGenerator : public BaseGenerator {
                 "<{{U_ELEMENT_NAME}}>() const {";
         code_ += "  return {{U_FIELD_NAME}}();";
         code_ += "}";
+        code_ += "";
       }
     }
 

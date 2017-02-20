@@ -582,6 +582,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const void *test() const {
     return GetPointer<const void *>(VT_TEST);
   }
+  template<typename T> const T *test_as() const;
+  const Monster *test_as_Monster() const {
+    return (test_type() == Any_Monster)? static_cast<const Monster *>(test()) : nullptr;
+  }
+  const TestSimpleTableWithEnum *test_as_TestSimpleTableWithEnum() const {
+    return (test_type() == Any_TestSimpleTableWithEnum)? static_cast<const TestSimpleTableWithEnum *>(test()) : nullptr;
+  }
+  const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
+    return (test_type() == Any_MyGame_Example2_Monster)? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
+  }
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
   }
@@ -761,6 +771,18 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
+
+template<> inline const Monster *Monster::test_as<Monster>() const {
+  return test_as_Monster();
+}
+
+template<> inline const TestSimpleTableWithEnum *Monster::test_as<TestSimpleTableWithEnum>() const {
+  return test_as_TestSimpleTableWithEnum();
+}
+
+template<> inline const MyGame::Example2::Monster *Monster::test_as<MyGame::Example2::Monster>() const {
+  return test_as_MyGame_Example2_Monster();
+}
 
 struct MonsterBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
