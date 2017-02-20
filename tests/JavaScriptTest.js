@@ -67,7 +67,7 @@ function main() {
   // Tests mutation first.  This will verify that we did not trample any other
   // part of the byte buffer.
   testMutation(fbb.dataBuffer());
-  
+
   testBuffer(fbb.dataBuffer());
 
   test64bit();
@@ -156,7 +156,8 @@ function test64bit() {
   var mon2 = MyGame.Example.Monster.endMonster(fbb);
 
   MyGame.Example.Stat.startStat(fbb);
-  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x12345678, 0x23456789));
+  // 2541551405100253985 = 0x87654321(low part) + 0x23456789 * 0x100000000(high part);
+  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x87654321, 0x23456789));    // the low part is Uint32
   var stat = MyGame.Example.Stat.endStat(fbb);
 
   MyGame.Example.Monster.startMonster(fbb);
@@ -177,8 +178,7 @@ function test64bit() {
   var stat = mon.testempty();
   assert.strictEqual(stat != null, true);
   assert.strictEqual(stat.val() != null, true);
-  assert.strictEqual(stat.val().low, 0x12345678);
-  assert.strictEqual(stat.val().high, 0x23456789);
+  assert.strictEqual(stat.val().toFloat64(), 2541551405100253985);
 
   var mon2 = mon.enemy();
   assert.strictEqual(mon2 != null, true);

@@ -115,7 +115,7 @@ flatbuffers.Long.create = function(low, high) {
  * @returns {number}
  */
 flatbuffers.Long.prototype.toFloat64 = function() {
-  return this.low + this.high * 0x100000000;
+  return (this.low >>> 0) + this.high * 0x100000000;
 };
 
 /**
