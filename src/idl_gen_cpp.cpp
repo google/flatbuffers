@@ -1129,8 +1129,8 @@ class CppGenerator : public BaseGenerator {
           if (!(*u_it)->struct_def) {
             continue;
           }
-          auto struct_def = (*u_it)->struct_def;
-          auto full_struct_name = WrapInNameSpace(*struct_def);
+          auto arg_struct_def = (*u_it)->struct_def;
+          auto full_struct_name = WrapInNameSpace(*arg_struct_def);
 
           // @TODO: Mby make this decisions more universal? How?
           code_.SetValue("U_GET_TYPE", field.name + UnionTypeFieldSuffix());
