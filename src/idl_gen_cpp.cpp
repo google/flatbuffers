@@ -1438,12 +1438,13 @@ class CppGenerator : public BaseGenerator {
         //   for (uoffset_t i = 0; i < _e->size(); ++i) {
         //     _o->field.push_back(_e->Get(_i));
         //   }
+        code += "{ _o->" + field.name + ".resize(_e->size()); ";
         code += "for (flatbuffers::uoffset_t _i = 0;";
         code += " _i < _e->size(); _i++) { ";
-        code += "_o->" + field.name + ".push_back(";
+        code += "_o->" + field.name + "[_i] = ";
         code += GenUnpackVal(field.value.type.VectorType(),
                                   indexing, true, field);
-        code += "); }";
+        code += "; } }";
         break;
       }
       case BASE_TYPE_UTYPE: {
