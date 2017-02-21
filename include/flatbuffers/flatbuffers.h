@@ -565,7 +565,7 @@ class vector_downward {
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
-  template<typename T> void push_small(T little_endian_t) {
+  template<typename T> void push_small(const T& little_endian_t) {
     auto dest = make_space(sizeof(T));
     *reinterpret_cast<T *>(dest) = little_endian_t;
   }
