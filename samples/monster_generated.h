@@ -74,7 +74,8 @@ struct EquipmentUnion {
   flatbuffers::NativeTable *table;
 
   EquipmentUnion() : type(Equipment_NONE), table(nullptr) {}
-  EquipmentUnion(EquipmentUnion&& u) : EquipmentUnion()
+  EquipmentUnion(EquipmentUnion&& u):
+    type(Equipment_NONE), table(nullptr)
     { std::swap(type, u.type); std::swap(table, u.table); }
   EquipmentUnion(const EquipmentUnion &);
   EquipmentUnion &operator=(const EquipmentUnion &);
