@@ -40,7 +40,8 @@ namespace FlatBuffers
         public static int __offset(int vtableOffset, int offset, ByteBuffer bb)
         {
             int vtable = bb.Length - offset;
-            return (int)bb.GetShort(vtable + vtableOffset - bb.GetInt(vtable)) + vtable;
+            return bb.GetShort(vtable + vtableOffset - bb.GetInt(vtable)) != 0 ? 
+                (int)bb.GetShort(vtable + vtableOffset - bb.GetInt(vtable)) + vtable : 0;
         }
 
         // Retrieve the relative offset stored at "offset"
