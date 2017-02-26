@@ -1110,15 +1110,15 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = mana(); _o->mana = _e; };
   { auto _e = hp(); _o->hp = _e; };
   { auto _e = name(); if (_e) _o->name = _e->str(); };
-  { auto _e = inventory(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory.push_back(_e->Get(_i)); } };
+  { auto _e = inventory(); if (_e) { _o->inventory.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory[_i] = _e->Get(_i); } } };
   { auto _e = color(); _o->color = _e; };
   { auto _e = test_type(); _o->test.type = _e; };
   { auto _e = test(); if (_e) _o->test.table = AnyUnion::UnPack(_e, test_type(),_resolver); };
-  { auto _e = test4(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4.push_back(*_e->Get(_i)); } };
-  { auto _e = testarrayofstring(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring.push_back(_e->Get(_i)->str()); } };
-  { auto _e = testarrayoftables(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables.push_back(std::unique_ptr<MonsterT>(_e->Get(_i)->UnPack(_resolver))); } };
+  { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } };
+  { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } };
+  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables[_i] = std::unique_ptr<MonsterT>(_e->Get(_i)->UnPack(_resolver)); } } };
   { auto _e = enemy(); if (_e) _o->enemy = std::unique_ptr<MonsterT>(_e->UnPack(_resolver)); };
-  { auto _e = testnestedflatbuffer(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testnestedflatbuffer.push_back(_e->Get(_i)); } };
+  { auto _e = testnestedflatbuffer(); if (_e) { _o->testnestedflatbuffer.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testnestedflatbuffer[_i] = _e->Get(_i); } } };
   { auto _e = testempty(); if (_e) _o->testempty = std::unique_ptr<StatT>(_e->UnPack(_resolver)); };
   { auto _e = testbool(); _o->testbool = _e; };
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; };
@@ -1129,11 +1129,11 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = testhashu32_fnv1a(); if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), static_cast<flatbuffers::hash_value_t>(_e)); else _o->testhashu32_fnv1a = nullptr; };
   { auto _e = testhashs64_fnv1a(); _o->testhashs64_fnv1a = _e; };
   { auto _e = testhashu64_fnv1a(); _o->testhashu64_fnv1a = _e; };
-  { auto _e = testarrayofbools(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools.push_back(_e->Get(_i) != 0); } };
+  { auto _e = testarrayofbools(); if (_e) { _o->testarrayofbools.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofbools[_i] = _e->Get(_i) != 0; } } };
   { auto _e = testf(); _o->testf = _e; };
   { auto _e = testf2(); _o->testf2 = _e; };
   { auto _e = testf3(); _o->testf3 = _e; };
-  { auto _e = testarrayofstring2(); if (_e) for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2.push_back(_e->Get(_i)->str()); } };
+  { auto _e = testarrayofstring2(); if (_e) { _o->testarrayofstring2.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring2[_i] = _e->Get(_i)->str(); } } };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
