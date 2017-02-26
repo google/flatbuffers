@@ -75,7 +75,8 @@ struct EquipmentUnion {
 
   EquipmentUnion() : type(Equipment_NONE), table(nullptr) {}
   EquipmentUnion(EquipmentUnion&& u):
-    type(std::move(u.type)), table(std::move(u.table)) {}
+    type(Equipment_NONE), table(nullptr)
+    { std::swap(type, u.type); std::swap(table, u.table); }
   EquipmentUnion(const EquipmentUnion &);
   EquipmentUnion &operator=(const EquipmentUnion &);
   ~EquipmentUnion() { Reset(); }
