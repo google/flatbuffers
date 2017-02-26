@@ -589,12 +589,9 @@ std::string GenGetter(const Type &type) {
 
 // Returns the function name that is able to read a value of the given type.
 std::string GenGetterForLookupByKey(const Type &type,
-                                    const std::string data_buffer) {
+                                    const std::string &data_buffer) {
   auto getter = data_buffer + "." + FunctionStart('G') + "et";
-  if (type.base_type == BASE_TYPE_BOOL) {
-    getter = "0!=" + getter;
-  }
-  else if (GenTypeBasic(type, false) != "byte") {
+  if (GenTypeBasic(type, false) != "byte") {
     getter += MakeCamel(GenTypeBasic(type, false));
   }
   return getter;
