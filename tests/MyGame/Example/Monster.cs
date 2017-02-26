@@ -133,12 +133,12 @@ public struct Monster : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static Monster? LookupByKey(VectorOffset vectorOffset, string key, ByteBuffer bb) {
+  public static Monster? LookupByKey( int bb_pos, VectorOffset fieldDataOffset, string key , ByteBuffer bb) {
     byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
     int vectorLocation = bb.Length - vectorOffset.Value;
     int span = bb.GetInt(vectorLocation);
-    int start = 0;
     vectorLocation += 4;
+    int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
