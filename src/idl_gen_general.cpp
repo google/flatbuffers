@@ -587,6 +587,22 @@ std::string GenGetter(const Type &type) {
   }
 }
 
+// Returns the function name that is able to read a value of the given type.
+std::string GenGetterForLookupByKey(flatbuffers::FieldDef *key_field,
+                                    const std::string &data_buffer,
+                                    const char *num = nullptr) {
+  auto type = key_field->value.type;
+  auto dest_mask = DestinationMask(type, true);
+  auto dest_cast = DestinationCast(type);
+  auto getter = data_buffer + "." + FunctionStart('G') + "et";
+  if (GenTypeBasic(type, false) != "byte") {
+    getter += MakeCamel(GenTypeBasic(type, false));
+  }
+  getter = dest_cast + getter + "(" + GenOffsetGetter(key_field, num) + ")"
+    + dest_mask;
+  return getter;
+}
+
 // Direct mutation is only allowed for scalar fields.
 // Hence a setter method will only be generated for such fields.
 std::string GenSetter(const Type &type) {
@@ -699,12 +715,11 @@ std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) {
     key_getter += GenOffsetGetter(key_field);
     key_getter += ", byteKey, bb);\n";
   } else {
-    auto get_val = GenGetter(key_field->value.type) +
-      "(" + GenOffsetGetter(key_field) + ")";
+    auto get_val = GenGetterForLookupByKey(key_field, "bb");
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
     } else {
-      key_getter += GenTypeGet(key_field->value.type) + " val = ";
+      key_getter += GenTypeNameDest(key_field->value.type) + " val = ";
       key_getter += get_val + ";\n";
       key_getter += "      int comp = val > key ? 1 : val < key ? -1 : 0;\n";
     }
@@ -728,20 +743,17 @@ std::string GenKeyGetter(flatbuffers::FieldDef *key_field) {
       key_getter += ";";
   }
   else {
-    auto field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-      "(" + GenOffsetGetter(key_field, "o1") + ")";
+    auto field_getter = GenGetterForLookupByKey(key_field, data_buffer, "o1");
     if (lang_.language == IDLOptions::kCSharp) {
       key_getter += field_getter;
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-        "(" + GenOffsetGetter(key_field, "o2") + ")";
+      field_getter = GenGetterForLookupByKey(key_field, data_buffer, "o2");
       key_getter += ".CompareTo(" + field_getter + ")";
     }
     else {
-      key_getter += "\n    " + GenTypeGet(key_field->value.type) + " val_1 = ";
-      key_getter += field_getter + ";\n    " + GenTypeGet(key_field->value.type);
+      key_getter += "\n    " + GenTypeNameDest(key_field->value.type) + " val_1 = ";
+      key_getter += field_getter + ";\n    " + GenTypeNameDest(key_field->value.type);
       key_getter += " val_2 = ";
-      field_getter = data_buffer + GenGetter(key_field->value.type).substr(2) +
-        "(" + GenOffsetGetter(key_field, "o2") + ")";
+      field_getter = GenGetterForLookupByKey(key_field, data_buffer, "o2");
       key_getter += field_getter + ";\n";
       key_getter += "    return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;\n ";
     }
@@ -1299,7 +1311,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
 
     code += "\n  public static " + struct_def.name + lang_.optional_suffix;
     code += " " + FunctionStart('L') + "ookupByKey(" + GenVectorOffsetType();
-    code += " vectorOffset, " + GenTypeGet(key_field->value.type);
+    code += " vectorOffset, " + GenTypeNameDest(key_field->value.type);
     code += " key, ByteBuffer bb) {\n";
     if (key_field->value.type.base_type == BASE_TYPE_STRING) {
       code += "    byte[] byteKey = ";
