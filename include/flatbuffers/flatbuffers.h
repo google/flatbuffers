@@ -1057,8 +1057,12 @@ FLATBUFFERS_FINAL_CLASS
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
     StartVector(len, sizeof(T));
-    for (auto i = len; i > 0; ) {
-      PushElement(v[--i]);
+    if (sizeof(T) == 1) {
+      PushBytes(reinterpret_cast<const uint8_t *>(v), len);
+    } else {
+      for (auto i = len; i > 0; ) {
+        PushElement(v[--i]);
+      }
     }
     return Offset<Vector<T>>(EndVector(len));
   }
