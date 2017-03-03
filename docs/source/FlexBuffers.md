@@ -125,7 +125,7 @@ map["unknown"].IsNull();  // true
 # Binary encoding
 
 A description of how FlexBuffers are encoded is in the
-[internals](@ref flatbuffers_internals) document.
+[internals](Internals.md#flexbuffers) document.
 
 
 # Efficiency tips

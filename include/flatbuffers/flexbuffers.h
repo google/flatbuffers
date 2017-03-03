@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_FLEXBUFFERS_H_
 #define FLATBUFFERS_FLEXBUFFERS_H_
 
+#include <map>
 // We use the basic binary writing functions from the regular FlatBuffers.
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/util.h"
