@@ -604,20 +604,22 @@ class CppGenerator : public BaseGenerator {
       code_ += "  return names;";
       code_ += "}";
       code_ += "";
-
-      code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
-
-      code_ += "  const size_t index = static_cast<int>(e)\\";
-      if (enum_def.vals.vec.front()->value) {
-        auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
-        code_ += " - static_cast<int>(" + vals + ")\\";
-      }
-      code_ += ";";
-
-      code_ += "  return EnumNames{{ENUM_NAME}}()[index];";
-      code_ += "}";
-      code_ += "";
     }
+
+    code_ += "inline const char *EnumName{{ENUM_NAME}}(const {{ENUM_NAME}} e, const char* u=\"<unknown>\") {";
+    code_ += "  switch (e) {";
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      const auto &ev = **it;
+      code_.SetValue("KEY", GetEnumValUse(enum_def, ev));
+      code_.SetValue("VALUE", ev.name);
+      code_ += "    case {{KEY}}: return \"{{VALUE}}\";";
+    }
+    code_ += "    default: return u;";
+    code_ += "  }"; // end of switch statement
+    code_ += "}";
+    code_ += "";
+
 
     // Generate type traits for unions to map from a type to union enum value.
     if (enum_def.is_union) {
