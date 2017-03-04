@@ -343,6 +343,7 @@ struct IDLOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
+  bool separate_enums;
   bool include_dependence_headers;
   bool mutable_buffer;
   bool one_file;
@@ -385,6 +386,7 @@ struct IDLOptions {
       output_default_scalars_in_json(false),
       indent_step(2),
       output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
+      separate_enums(false),
       include_dependence_headers(true),
       mutable_buffer(false),
       one_file(false),
