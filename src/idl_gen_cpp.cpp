@@ -1943,6 +1943,30 @@ class CppGenerator : public BaseGenerator {
           code_ += "  }";
         }
       }
+
+      // Generate a comparison function for this field if it is a key.
+      if (field.key) {
+        code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
+        code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
+        code_ += "  }";
+        auto type = GenTypeBasic(field.value.type, false);
+        if (parser_.opts.scoped_enums && field.value.type.enum_def &&
+            IsScalar(field.value.type.base_type)) {
+          type = GenTypeGet(field.value.type, " ", "const ", " *", true);
+        }
+
+        code_.SetValue("KEY_TYPE", type);
+        code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
+        code_ += "    const auto key = {{FIELD_NAME}}();";
+        code_ += "    if (key < val) {";
+        code_ += "      return -1;";
+        code_ += "    } else if (key > val) {";
+        code_ += "      return 1;";
+        code_ += "    } else {";
+        code_ += "      return 0;";
+        code_ += "    }";
+        code_ += "  }";
+      }
     }
     code_ += "};";
 
