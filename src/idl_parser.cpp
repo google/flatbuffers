@@ -1874,6 +1874,10 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   namespaces_.push_back(new Namespace());
   ECHECK(SkipByteOrderMark());
   NEXT();
+
+  if (Is(kTokenEof))
+      return Error("json file is empty");
+
   // Includes must come before type declarations:
   for (;;) {
     // Parse pre-include proto statements if any:
