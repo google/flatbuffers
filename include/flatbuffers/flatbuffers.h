@@ -1487,6 +1487,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
+  template<typename T> bool VerifyBuffer() {
+    return VerifyBuffer<T>(nullptr);
+  }
+
   template<typename T> bool VerifyBuffer(const char *identifier) {
     return VerifyBufferFromStart<T>(identifier, buf_);
   }
