@@ -107,6 +107,11 @@
   #define FLATBUFFERS_CONSTEXPR
 #endif
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) // C4127: conditional expression is constant
+#endif
+
 /// @endcond
 
 /// @file
@@ -1856,5 +1861,9 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
     }
 /// @endcond
 }  // namespace flatbuffers
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 #endif  // FLATBUFFERS_H_
