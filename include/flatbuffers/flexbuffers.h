@@ -26,6 +26,11 @@
 #include <intrin.h>
 #endif
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) // C4127: conditional expression is constant
+#endif
+
 namespace flexbuffers {
 
 class Reference;
@@ -1339,5 +1344,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 };
 
 }  // namespace flexbuffers
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 #endif  // FLATBUFFERS_FLEXBUFFERS_H_
