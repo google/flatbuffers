@@ -145,7 +145,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 
 elseif(MSVC)
   # warning C4512: assignment operator could not be generated
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4512")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
