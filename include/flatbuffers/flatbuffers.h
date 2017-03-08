@@ -1053,11 +1053,6 @@ FLATBUFFERS_FINAL_CLASS
   }
   /// @endcond
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4127) // C4127: conditional expression is constant
-#endif
-
   /// @brief Serialize an array into a FlatBuffer `vector`.
   /// @tparam T The data type of the array elements.
   /// @param[in] v A pointer to the array of type `T` to serialize into the
@@ -1076,10 +1071,6 @@ FLATBUFFERS_FINAL_CLASS
     }
     return Offset<Vector<T>>(EndVector(len));
   }
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
   /// @brief Serialize a `std::vector` into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` elements.
