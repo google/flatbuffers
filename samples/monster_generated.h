@@ -224,10 +224,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const void *equipped() const {
     return GetPointer<const void *>(VT_EQUIPPED);
   }
-  template<typename T> const T *equipped_as() const;
-  const Weapon *equipped_as_Weapon() const {
-    return (equipped_type() == Equipment_Weapon)? static_cast<const Weapon *>(equipped()) : nullptr;
-  }
   void *mutable_equipped() {
     return GetPointer<void *>(VT_EQUIPPED);
   }
@@ -253,10 +249,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
-
-template<> inline const Weapon *Monster::equipped_as<Weapon>() const {
-  return equipped_as_Weapon();
-}
 
 struct MonsterBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
