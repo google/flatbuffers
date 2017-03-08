@@ -105,7 +105,7 @@ inline Type ToTypedVectorElementType(Type t) {
 inline Type ToFixedTypedVectorElementType(Type t, uint8_t *len) {
   assert(IsFixedTypedVector(t));
   auto fixed_type = t - TYPE_VECTOR_INT2;
-  *len = fixed_type / 3 + 2;  // 3 types each, starting from length 2.
+  *len = static_cast<uint8_t>(fixed_type / 3 + 2);  // 3 types each, starting from length 2.
   return static_cast<Type>(fixed_type % 3 + TYPE_INT);
 }
 
@@ -602,7 +602,7 @@ class Reference {
 
   template<typename T> bool Mutate(const uint8_t *dest, T t, size_t byte_width,
                                    BitWidth value_width) {
-    auto fits = static_cast<size_t>(1U << value_width) <= byte_width;
+    auto fits = static_cast<size_t>(static_cast<size_t>(1U) << value_width) <= byte_width;
     if (fits) {
       t = flatbuffers::EndianScalar(t);
       memcpy(const_cast<uint8_t *>(dest), &t, byte_width);
@@ -1073,7 +1073,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     auto byte_width = 1U << alignment;
     buf_.insert(buf_.end(), flatbuffers::PaddingBytes(buf_.size(), byte_width),
                 0);
-    return byte_width;
+    return static_cast<uint8_t>(byte_width);
   }
 
   void WriteBytes(const void *val, size_t size) {
@@ -1177,7 +1177,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
           auto offset = offset_loc - u_;
           // Does it fit?
           auto bit_width = WidthU(offset);
-          if (static_cast<size_t>(1U << bit_width) == byte_width)
+          if (static_cast<size_t>(static_cast<size_t>(1U) << bit_width) == byte_width)
             return bit_width;
         }
         assert(false);  // Must match one of the sizes above.
