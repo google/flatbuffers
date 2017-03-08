@@ -233,7 +233,7 @@ bool GenerateGoGRPC(const Parser &parser,
 }
 
 bool GenerateCppGRPC(const Parser &parser,
-                  const std::string &/*path*/,
+                  const std::string &path,
                   const std::string &file_name) {
 
   int nservices = 0;
@@ -261,9 +261,9 @@ bool GenerateCppGRPC(const Parser &parser,
       grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
       grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
 
-  return flatbuffers::SaveFile((file_name + ".grpc.fb.h").c_str(),
+  return flatbuffers::SaveFile((path + file_name + ".grpc.fb.h").c_str(),
                                header_code, false) &&
-         flatbuffers::SaveFile((file_name + ".grpc.fb.cc").c_str(),
+         flatbuffers::SaveFile((path + file_name + ".grpc.fb.cc").c_str(),
                                source_code, false);
 }
 
