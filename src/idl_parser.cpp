@@ -1876,7 +1876,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   NEXT();
 
   if (Is(kTokenEof))
-      return Error("json file is empty");
+      return Error("input file is empty");
 
   // Includes must come before type declarations:
   for (;;) {
