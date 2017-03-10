@@ -144,8 +144,8 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
 elseif(MSVC)
-  # warning C4512: assignment operator could not be generated
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4512")
+  # Visual Studio pedantic build settings
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
