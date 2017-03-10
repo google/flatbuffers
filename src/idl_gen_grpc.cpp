@@ -24,6 +24,11 @@
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4512) // C4512: 'class' : assignment operator could not be generated
+#endif
+
 namespace flatbuffers {
 
 class FlatBufMethod : public grpc_generator::Method {
@@ -268,4 +273,8 @@ bool GenerateCppGRPC(const Parser &parser,
 }
 
 }  // namespace flatbuffers
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
