@@ -200,6 +200,15 @@ pointer type (`my_ptr<T>`), or by specifying `naked` as the type to get `T *`
 pointers. Unlike the smart pointers, naked pointers do not manage memory for
 you, so you'll have to manage their lifecycles manually.
 
+
+# Using different string type.
+
+By default the object tree is built out of `std::string`, but you can
+influence this either globally (using the `--cpp-str-type` argument to
+`flatc`) or per field using the `cpp_str_type` attribute.
+
+The type must support T::c_str() and T::length() as member functions.
+
 ## Reflection (& Resizing)
 
 There is experimental support for reflection in FlatBuffers, allowing you to
