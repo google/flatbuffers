@@ -441,6 +441,10 @@ protected:
   uoffset_t length_;
 
 private:
+  // This class is a pointer. Copying will therefore create an invalid object.
+  // Private and unimplemented copy constructor.
+  Vector(const Vector&);
+
   template<typename K> static int KeyCompare(const void *ap, const void *bp) {
     const K *key = reinterpret_cast<const K *>(ap);
     const uint8_t *data = reinterpret_cast<const uint8_t *>(bp);
@@ -468,6 +472,9 @@ protected:
   VectorOfAny();
 
   uoffset_t length_;
+  
+private:
+  VectorOfAny(const VectorOfAny&);
 };
 
 // Convenient helper function to get the length of any vector, regardless
