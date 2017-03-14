@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <string>
+#include <sstream>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -724,9 +725,15 @@ static void GenStructBuilder(const StructDef &struct_def,
 class GoGenerator : public BaseGenerator {
  public:
   GoGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "" /* not used*/,
-                      "" /* not used */){};
+              const std::string &file_name, const std::string &go_namespace)
+      : BaseGenerator(parser, path, file_name, "" /* not used*/, "" /* not used */) {
+    std::istringstream iss(go_namespace);
+    std::string component;
+    while (std::getline(iss, component, '.')) {
+      go_namespace_.components.push_back(component);
+    }
+  }
+
   bool generate() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -764,19 +771,22 @@ class GoGenerator : public BaseGenerator {
                 bool needs_imports) {
     if (!classcode.length()) return true;
 
+    Namespace& ns = go_namespace_.components.empty() ? *def.defined_namespace : go_namespace_;
     std::string code = "";
-    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
+    BeginFile(LastNamespacePart(ns), needs_imports, &code);
     code += classcode;
     std::string filename =
-        NamespaceDir(*def.defined_namespace) + def.name + ".go";
+        NamespaceDir(ns) + def.name + ".go";
     return SaveFile(filename.c_str(), code, false);
   }
+
+  Namespace go_namespace_;
 };
 }  // namespace go
 
 bool GenerateGo(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  go::GoGenerator generator(parser, path, file_name);
+  go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
 }
 
