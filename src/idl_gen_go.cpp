@@ -36,7 +36,7 @@ namespace flatbuffers {
 namespace go {
 
 // see https://golang.org/ref/spec#Keywords
-static std::vector<std::string> g_golang_keywords {
+static const char *g_golang_keywords[] = {
   "break", "default", "func", "interface", "select", "case", "defer", "go",
   "map", "struct", "chan", "else", "goto", "package", "switch", "const",
   "fallthrough", "if", "range", "type", "continue", "for", "import", "return", "var",
@@ -51,8 +51,10 @@ static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
 static std::string GoIdentity(const std::string& name) {
-  if (std::find(std::begin(g_golang_keywords), std::end(g_golang_keywords), name) != std::end(g_golang_keywords)) {
-    return MakeCamel(name + "_", false);
+  for (size_t i=0; i<sizeof(g_golang_keywords)/sizeof(g_golang_keywords[0]); i++) {
+    if (name == g_golang_keywords[i]) {
+      return MakeCamel(name + "_", false);
+    }
   }
 
   return MakeCamel(name, false);
