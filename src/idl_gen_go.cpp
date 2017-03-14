@@ -35,6 +35,13 @@
 namespace flatbuffers {
 namespace go {
 
+// see https://golang.org/ref/spec#Keywords
+static std::vector<std::string> g_golang_keywords {
+  "break", "default", "func", "interface", "select", "case", "defer", "go",
+  "map", "struct", "chan", "else", "goto", "package", "switch", "const",
+  "fallthrough", "if", "range", "type", "continue", "for", "import", "return", "var",
+};
+
 static std::string GenGetter(const Type &type);
 static std::string GenMethod(const FieldDef &field);
 static void GenStructBuilder(const StructDef &struct_def,
@@ -43,6 +50,13 @@ static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
 static std::string GenTypeBasic(const Type &type);
 static std::string GenTypeGet(const Type &type);
 static std::string TypeName(const FieldDef &field);
+static std::string GoIdentity(const std::string& name) {
+  if (std::find(std::begin(g_golang_keywords), std::end(g_golang_keywords), name) != std::end(g_golang_keywords)) {
+    return MakeCamel(name + "_", false);
+  }
+
+  return MakeCamel(name, false);
+}
 
 
 // Most field accessors need to retrieve and test the field offset first,
@@ -368,7 +382,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
     } else {
       std::string &code = *code_ptr;
       code += (std::string)", " + nameprefix;
-      code += MakeCamel(field.name, false);
+      code += GoIdentity(field.name);
       code += " " + GenTypeBasic(field.value.type);
     }
   }
@@ -400,7 +414,7 @@ static void StructBuilderBody(const StructDef &struct_def,
                         code_ptr);
     } else {
       code += "\tbuilder.Prepend" + GenMethod(field) + "(";
-      code += nameprefix + MakeCamel(field.name, false) + ")\n";
+      code += nameprefix + GoIdentity(field.name) + ")\n";
     }
   }
 }
@@ -430,7 +444,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   std::string &code = *code_ptr;
   code += "func " + struct_def.name + "Add" + MakeCamel(field.name);
   code += "(builder *flatbuffers.Builder, ";
-  code += MakeCamel(field.name, false) + " ";
+  code += GoIdentity(field.name) + " ";
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "flatbuffers.UOffsetT";
   } else {
@@ -443,9 +457,9 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
     code += "flatbuffers.UOffsetT";
     code += "(";
-    code += MakeCamel(field.name, false) + ")";
+    code += GoIdentity(field.name) + ")";
   } else {
-    code += MakeCamel(field.name, false);
+    code += GoIdentity(field.name);
   }
   code += ", " + field.value.constant;
   code += ")\n}\n";
