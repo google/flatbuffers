@@ -29,7 +29,7 @@ For any schema input files, one or more generators can be specified:
 
 -   `--python`, `-p`: Generate Python code.
 
--   `--javascript`, `-s`: Generate JavaScript code.
+-   `--js`, `-s`: Generate JavaScript code.
 
 -   `--php`: Generate PHP code.
 
