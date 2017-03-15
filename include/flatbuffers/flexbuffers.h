@@ -218,7 +218,8 @@ class String : public Sized {
 
   size_t length() const { return size(); }
   const char *c_str() const { return reinterpret_cast<const char *>(data_); }
-
+  std::string str() const { return c_str(); }
+    
   static String EmptyString() {
     static const uint8_t empty_string[] = { 0/*len*/, 0/*terminator*/ };
     return String(empty_string + 1, 1);
