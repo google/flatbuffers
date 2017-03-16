@@ -58,6 +58,18 @@ inline const Table *GetAnyRoot(const uint8_t *flatbuf) {
   return GetRoot<Table>(flatbuf);
 }
 
+// Get a field's default, if you know it's an integer, and its exact type.
+template<typename T> T GetFieldDefaultI(const reflection::Field &field) {
+  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
+  return static_cast<T>(field.default_integer());
+}
+
+// Get a field's default, if you know it's floating point and its exact type.
+template<typename T> T GetFieldDefaultF(const reflection::Field &field) {
+  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
+  return static_cast<T>(field.default_real());
+}
+
 // Get a field, if you know it's an integer, and its exact type.
 template<typename T> T GetFieldI(const Table &table,
                                  const reflection::Field &field) {
@@ -243,7 +255,28 @@ template<typename T> T *GetAnyFieldAddressOf(const Struct &st,
 template<typename T> bool SetField(Table *table, const reflection::Field &field,
                                    T val) {
   assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
-  return table->SetField(field.offset(), val);
+  T def;
+  switch (field.type()->base_type()) {
+    case reflection::UType:
+    case reflection::Bool:
+    case reflection::UByte:
+    case reflection::Byte:
+    case reflection::Short:
+    case reflection::UShort:
+    case reflection::Int:
+    case reflection::UInt:
+    case reflection::Long:
+    case reflection::ULong:
+      def = GetFieldDefaultI<T>(field);
+      break;
+    case reflection::Float:
+    case reflection::Double:
+      def = GetFieldDefaultF<T>(field);
+      break;
+    default:
+      return false;
+  }
+  return table->SetField(field.offset(), val, def);
 }
 
 // Raw helper functions used below: set any value in memory as a 64bit int, a
@@ -258,7 +291,7 @@ void SetAnyValueS(reflection::BaseType type, uint8_t *data, const char *val);
 inline bool SetAnyFieldI(Table *table, const reflection::Field &field,
                          int64_t val) {
   auto field_ptr = table->GetAddressOf(field.offset());
-  if (!field_ptr) return false;
+  if (!field_ptr) return val == GetFieldDefaultI<int64_t>(field);
   SetAnyValueI(field.type()->base_type(), field_ptr, val);
   return true;
 }
@@ -267,7 +300,7 @@ inline bool SetAnyFieldI(Table *table, const reflection::Field &field,
 inline bool SetAnyFieldF(Table *table, const reflection::Field &field,
                          double val) {
   auto field_ptr = table->GetAddressOf(field.offset());
-  if (!field_ptr) return false;
+  if (!field_ptr) return val == GetFieldDefaultF<double>(field);
   SetAnyValueF(field.type()->base_type(), field_ptr, val);
   return true;
 }

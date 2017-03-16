@@ -1153,14 +1153,17 @@ class CppGenerator : public BaseGenerator {
 
       if (parser_.opts.mutable_buffer) {
         if (is_scalar) {
+          const auto type = GenTypeWire(field.value.type, "", false);
+          code_.SetValue("SET_FN", "SetField<" + type + ">");
           code_.SetValue("OFFSET_NAME", offset_str);
           code_.SetValue("FIELD_TYPE", GenTypeBasic(field.value.type, true));
           code_.SetValue("FIELD_VALUE",
                         GenUnderlyingCast(field, false, "_" + field.name));
+          code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
 
           code_ += "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} "
                   "_{{FIELD_NAME}}) {";
-          code_ += "    return SetField({{OFFSET_NAME}}, {{FIELD_VALUE}});";
+          code_ += "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, {{DEFAULT_VALUE}});";
           code_ += "  }";
         } else {
           auto type = GenTypeGet(field.value.type, " ", "", " *", true);
