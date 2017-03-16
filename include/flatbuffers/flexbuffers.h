@@ -161,7 +161,7 @@ inline double ReadDouble(const uint8_t *data, uint8_t byte_width) {
            byte_width);
 }
 
-const uint8_t *Indirect(const uint8_t *offset, uint8_t byte_width) {
+inline const uint8_t *Indirect(const uint8_t *offset, uint8_t byte_width) {
   return offset - ReadUInt64(offset, byte_width);
 }
 
@@ -169,7 +169,7 @@ template<typename T> const uint8_t *Indirect(const uint8_t *offset) {
   return offset - flatbuffers::ReadScalar<T>(offset);
 }
 
-static BitWidth WidthU(uint64_t u) {
+inline BitWidth WidthU(uint64_t u) {
   #define FLATBUFFERS_GET_FIELD_BIT_WIDTH(value, width) { \
     if (!((u) & ~((1ULL << (width)) - 1ULL))) return BIT_WIDTH_##width; \
   }
@@ -180,12 +180,12 @@ static BitWidth WidthU(uint64_t u) {
   return BIT_WIDTH_64;
 }
 
-static BitWidth WidthI(int64_t i) {
+inline BitWidth WidthI(int64_t i) {
   auto u = static_cast<uint64_t>(i) << 1;
   return WidthU(i >= 0 ? u : ~u);
 }
 
-static BitWidth WidthF(double f) {
+inline BitWidth WidthF(double f) {
   return static_cast<double>(static_cast<float>(f)) == f ? BIT_WIDTH_32
                                                          : BIT_WIDTH_64;
 }
@@ -218,7 +218,8 @@ class String : public Sized {
 
   size_t length() const { return size(); }
   const char *c_str() const { return reinterpret_cast<const char *>(data_); }
-
+  std::string str() const { return c_str(); }
+    
   static String EmptyString() {
     static const uint8_t empty_string[] = { 0/*len*/, 0/*terminator*/ };
     return String(empty_string + 1, 1);
