@@ -240,7 +240,7 @@ std::string GenDefaultValue(const Value &value, const std::string &context) {
   if (value.type.enum_def) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
-      return WrapInNameSpace(*value.type.enum_def) + "." + val->name;
+      return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def), value.type.enum_def->file) + "." + val->name;
     } else {
       return "/** @type {" + WrapInNameSpace(*value.type.enum_def) + "} */ ("
         + value.constant + ")";
@@ -464,7 +464,11 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       } else {
         code += prefix;
       }
-      code += "):" + GenTypeName(field.value.type, false) + " {\n";
+      if (field.value.type.enum_def) {
+        code += "):" + GenPrefixedTypeName(GenTypeName(field.value.type, false), field.value.type.enum_def->file) + " {\n";
+      } else {
+        code += "):" + GenTypeName(field.value.type, false) + " {\n";
+      }
       if (struct_def.fixed) {
         code += "  return " + GenGetter(field.value.type, "(this.bb_pos" +
           MaybeAdd(field.value.offset) + ")") + ";\n";
@@ -588,7 +592,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
 
-      code += "mutate_" + field.name + "(value:" + GenTypeName(field.value.type, true) + "):boolean {\n";
+      std::string type;
+      if (field.value.type.enum_def) {
+        type = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
+      } else {
+        type = GenTypeName(field.value.type, true);
+      }
+
+      code += "mutate_" + field.name + "(value:" + type + "):boolean {\n";
       code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ");\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
@@ -655,8 +666,16 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.Builder} builder\n"
         "@param {" + GenTypeName(field.value.type, true) + "} " +
         argname);
+
+      std::string argType;
+      if (field.value.type.enum_def) {
+        argType = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
+      } else {
+        argType = GenTypeName(field.value.type, true);
+      }
+
       code += "static add" + MakeCamel(field.name);
-      code += "(builder:flatbuffers.Builder, " + argname + ":" + GenTypeName(field.value.type, true) + ") {\n";
+      code += "(builder:flatbuffers.Builder, " + argname + ":" + argType + ") {\n";
       code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
       code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
       if (field.value.type.base_type == BASE_TYPE_BOOL) {
