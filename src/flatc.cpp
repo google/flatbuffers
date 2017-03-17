@@ -100,6 +100,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "    PATH             \n"
       "  --include-prefix   Prefix this path to any generated include statements.\n"
       "    PATH\n"
+      "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
       "FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -207,6 +208,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         grpc_enabled = true;
       } else if(arg == "--bfbs-comments") {
         opts.binary_schema_comments = true;
+      } else if(arg == "--no-fb-import") {
+        opts.skip_flatbuffers_import = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

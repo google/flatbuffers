@@ -357,6 +357,7 @@ struct IDLOptions {
   bool allow_non_utf8;
   std::string include_prefix;
   bool binary_schema_comments;
+  bool skip_flatbuffers_import;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -369,6 +370,7 @@ struct IDLOptions {
     kPhp    = 1 << 6,
     kJson   = 1 << 7,
     kBinary = 1 << 8,
+    kTs     = 1 << 9,
     kMAX
   };
 
@@ -398,6 +400,7 @@ struct IDLOptions {
       union_value_namespacing(true),
       allow_non_utf8(false),
       binary_schema_comments(false),
+      skip_flatbuffers_import(false),
       lang(IDLOptions::kJava),
       lang_to_generate(0) {}
 };
@@ -654,6 +657,13 @@ extern bool GenerateJS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
 
+// Generate TypeScript code from the definitions in the Parser object.
+// See idl_gen_ts.
+extern std::string GenerateTS(const Parser &parser);
+extern bool GenerateTS(const Parser &parser,
+                       const std::string &path,
+                       const std::string &file_name);
+
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser,
@@ -701,6 +711,12 @@ extern bool GenerateFBS(const Parser &parser,
 // Generate a make rule for the generated JavaScript code.
 // See idl_gen_js.cpp.
 extern std::string JSMakeRule(const Parser &parser,
+                              const std::string &path,
+                              const std::string &file_name);
+
+// Generate a make rule for the generated TypeScript code.
+// See idl_gen_ts.cpp.
+extern std::string TSMakeRule(const Parser &parser,
                               const std::string &path,
                               const std::string &file_name);
 
