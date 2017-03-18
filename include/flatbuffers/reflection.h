@@ -254,27 +254,14 @@ template<typename T> T *GetAnyFieldAddressOf(const Struct &st,
 // Set any scalar field, if you know its exact type.
 template<typename T> bool SetField(Table *table, const reflection::Field &field,
                                    T val) {
-  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
-  T def;
-  switch (field.type()->base_type()) {
-    case reflection::UType:
-    case reflection::Bool:
-    case reflection::UByte:
-    case reflection::Byte:
-    case reflection::Short:
-    case reflection::UShort:
-    case reflection::Int:
-    case reflection::UInt:
-    case reflection::Long:
-    case reflection::ULong:
-      def = GetFieldDefaultI<T>(field);
-      break;
-    case reflection::Float:
-    case reflection::Double:
-      def = GetFieldDefaultF<T>(field);
-      break;
-    default:
-      return false;
+  reflection::BaseType type = field.type()->base_type();
+  assert(sizeof(T) == GetTypeSize(type));
+  T def{};
+  // type != reflection::None, otherwise it would fail assert above
+  if (type <= reflection::ULong) {
+    def = GetFieldDefaultI<T>(field);
+  } else if (type <= reflection::Double) {
+    def = GetFieldDefaultF<T>(field);
   }
   return table->SetField(field.offset(), val, def);
 }
