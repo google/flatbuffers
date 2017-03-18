@@ -256,7 +256,7 @@ template<typename T> bool SetField(Table *table, const reflection::Field &field,
                                    T val) {
   reflection::BaseType type = field.type()->base_type();
   assert(sizeof(T) == GetTypeSize(type));
-  T def{};
+  T def = T();
   // type != reflection::None, otherwise it would fail assert above
   if (type <= reflection::ULong) {
     def = GetFieldDefaultI<T>(field);
