@@ -30,6 +30,15 @@ namespace flatbuffers {
 
 // ------------------------- GETTERS -------------------------
 
+inline bool IsScalar (reflection::BaseType t) { return t >= reflection::UType &&
+                                                       t <= reflection::Double; }
+inline bool IsInteger(reflection::BaseType t) { return t >= reflection::UType &&
+                                                       t <= reflection::ULong; }
+inline bool IsFloat  (reflection::BaseType t) { return t == reflection::Float ||
+                                                       t == reflection::Double; }
+inline bool IsLong   (reflection::BaseType t) { return t == reflection::Long ||
+                                                       t == reflection::ULong; }
+
 // Size of a basic type, don't use with structs.
 inline size_t GetTypeSize(reflection::BaseType base_type) {
   // This needs to correspond to the BaseType enum.
