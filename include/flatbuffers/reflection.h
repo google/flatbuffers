@@ -264,12 +264,14 @@ template<typename T> T *GetAnyFieldAddressOf(const Struct &st,
 template<typename T> bool SetField(Table *table, const reflection::Field &field,
                                    T val) {
   reflection::BaseType type = field.type()->base_type();
+  if (!IsScalar(type)) {
+    return false;
+  }
   assert(sizeof(T) == GetTypeSize(type));
   T def;
-  // type != reflection::None, otherwise it would fail assert above
-  if (type <= reflection::ULong) {
+  if (IsInteger(type)) {
     def = GetFieldDefaultI<T>(field);
-  } else if (type <= reflection::Double) {
+  } else if (IsFloat(type)) {
     def = GetFieldDefaultF<T>(field);
   } else {
     return false;
