@@ -358,6 +358,7 @@ struct IDLOptions {
   bool allow_non_utf8;
   std::string include_prefix;
   bool binary_schema_comments;
+  std::string go_namespace;
 
   // Possible options for the more general generator below.
   enum Language {
