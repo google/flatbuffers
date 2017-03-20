@@ -86,6 +86,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --gen-object-api   Generate an additional object-based API.\n"
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
+      "  --cpp-str-type T   Set object API string type (default std::string)\n"
+      "                     T::c_str() and T::length() must be supported\n"
       "  --no-js-exports    Removes Node.js style export lines in JS.\n"
       "  --goog-js-export   Uses goog.exports* for closure compiler exporting in JS.\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
@@ -178,6 +180,9 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];
+      } else if (arg == "--cpp-str-type") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.cpp_object_api_string_type = argv[argi];
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;

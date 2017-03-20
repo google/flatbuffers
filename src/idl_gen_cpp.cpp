@@ -362,6 +362,15 @@ class CppGenerator : public BaseGenerator {
     return attr ? attr->constant : parser_.opts.cpp_object_api_pointer_type;
   }
 
+  const std::string NativeString(const FieldDef *field) {
+    auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
+    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_string_type;
+    if (ret.empty()) {
+      return "std::string";
+    }
+    return ret;
+  }
+
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
@@ -383,7 +392,7 @@ class CppGenerator : public BaseGenerator {
                             const FieldDef &field) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
-        return "std::string";
+        return NativeString(&field);
       }
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
