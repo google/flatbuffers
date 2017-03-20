@@ -981,6 +981,15 @@ FLATBUFFERS_FINAL_CLASS
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
+  /// @param[in] str A const reference to a std::string like type with support
+  /// of T::c_str() and T::length() to store in the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  template<typename T>
+    Offset<String> CreateString(const T &str) {
+    return CreateString(str.c_str(), str.length());
+  }
+
+  /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string.
   /// @param[in] str A const char pointer to the data to be stored as a string.
