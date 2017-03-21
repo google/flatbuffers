@@ -312,7 +312,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2));
   }
   bool mutate_color(Color _color) {
-    return SetField(VT_COLOR, static_cast<int8_t>(_color));
+    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -380,13 +380,13 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<int64_t>(VT_VAL, 0);
   }
   bool mutate_val(int64_t _val) {
-    return SetField(VT_VAL, _val);
+    return SetField<int64_t>(VT_VAL, _val, 0);
   }
   uint16_t count() const {
     return GetField<uint16_t>(VT_COUNT, 0);
   }
   bool mutate_count(uint16_t _count) {
-    return SetField(VT_COUNT, _count);
+    return SetField<uint16_t>(VT_COUNT, _count, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -542,13 +542,13 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<int16_t>(VT_MANA, 150);
   }
   bool mutate_mana(int16_t _mana) {
-    return SetField(VT_MANA, _mana);
+    return SetField<int16_t>(VT_MANA, _mana, 150);
   }
   int16_t hp() const {
     return GetField<int16_t>(VT_HP, 100);
   }
   bool mutate_hp(int16_t _hp) {
-    return SetField(VT_HP, _hp);
+    return SetField<int16_t>(VT_HP, _hp, 100);
   }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -572,13 +572,13 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 8));
   }
   bool mutate_color(Color _color) {
-    return SetField(VT_COLOR, static_cast<int8_t>(_color));
+    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 8);
   }
   Any test_type() const {
     return static_cast<Any>(GetField<uint8_t>(VT_TEST_TYPE, 0));
   }
   bool mutate_test_type(Any _test_type) {
-    return SetField(VT_TEST_TYPE, static_cast<uint8_t>(_test_type));
+    return SetField<uint8_t>(VT_TEST_TYPE, static_cast<uint8_t>(_test_type), 0);
   }
   const void *test() const {
     return GetPointer<const void *>(VT_TEST);
@@ -642,55 +642,55 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<uint8_t>(VT_TESTBOOL, 0) != 0;
   }
   bool mutate_testbool(bool _testbool) {
-    return SetField(VT_TESTBOOL, static_cast<uint8_t>(_testbool));
+    return SetField<uint8_t>(VT_TESTBOOL, static_cast<uint8_t>(_testbool), 0);
   }
   int32_t testhashs32_fnv1() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0);
   }
   bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) {
-    return SetField(VT_TESTHASHS32_FNV1, _testhashs32_fnv1);
+    return SetField<int32_t>(VT_TESTHASHS32_FNV1, _testhashs32_fnv1, 0);
   }
   uint32_t testhashu32_fnv1() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1, 0);
   }
   bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) {
-    return SetField(VT_TESTHASHU32_FNV1, _testhashu32_fnv1);
+    return SetField<uint32_t>(VT_TESTHASHU32_FNV1, _testhashu32_fnv1, 0);
   }
   int64_t testhashs64_fnv1() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1, 0);
   }
   bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) {
-    return SetField(VT_TESTHASHS64_FNV1, _testhashs64_fnv1);
+    return SetField<int64_t>(VT_TESTHASHS64_FNV1, _testhashs64_fnv1, 0);
   }
   uint64_t testhashu64_fnv1() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1, 0);
   }
   bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) {
-    return SetField(VT_TESTHASHU64_FNV1, _testhashu64_fnv1);
+    return SetField<uint64_t>(VT_TESTHASHU64_FNV1, _testhashu64_fnv1, 0);
   }
   int32_t testhashs32_fnv1a() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1A, 0);
   }
   bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) {
-    return SetField(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a);
+    return SetField<int32_t>(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a, 0);
   }
   uint32_t testhashu32_fnv1a() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1A, 0);
   }
   bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) {
-    return SetField(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a);
+    return SetField<uint32_t>(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a, 0);
   }
   int64_t testhashs64_fnv1a() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1A, 0);
   }
   bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) {
-    return SetField(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a);
+    return SetField<int64_t>(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a, 0);
   }
   uint64_t testhashu64_fnv1a() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1A, 0);
   }
   bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) {
-    return SetField(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a);
+    return SetField<uint64_t>(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a, 0);
   }
   const flatbuffers::Vector<uint8_t> *testarrayofbools() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS);
@@ -702,19 +702,19 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<float>(VT_TESTF, 3.14159f);
   }
   bool mutate_testf(float _testf) {
-    return SetField(VT_TESTF, _testf);
+    return SetField<float>(VT_TESTF, _testf, 3.14159f);
   }
   float testf2() const {
     return GetField<float>(VT_TESTF2, 3.0f);
   }
   bool mutate_testf2(float _testf2) {
-    return SetField(VT_TESTF2, _testf2);
+    return SetField<float>(VT_TESTF2, _testf2, 3.0f);
   }
   float testf3() const {
     return GetField<float>(VT_TESTF3, 0.0f);
   }
   bool mutate_testf3(float _testf3) {
-    return SetField(VT_TESTF3, _testf3);
+    return SetField<float>(VT_TESTF3, _testf3, 0.0f);
   }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING2);
