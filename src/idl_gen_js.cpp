@@ -377,7 +377,7 @@ static std::string MaybeScale(T value) {
 }
 
 static std::string GenFileNamespacePrefix(const std::string &file) {
-  return "NS" + std::to_string(std::hash<std::string>{}(file));
+  return "NS" + std::to_string(std::hash<std::string>()(file));
 }
 
 // Adds a source-dependent prefix, for of import * statements.
