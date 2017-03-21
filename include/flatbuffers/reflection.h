@@ -271,10 +271,9 @@ template<typename T> bool SetField(Table *table, const reflection::Field &field,
   T def;
   if (IsInteger(type)) {
     def = GetFieldDefaultI<T>(field);
-  } else if (IsFloat(type)) {
-    def = GetFieldDefaultF<T>(field);
   } else {
-    return false;
+    assert(IsFloat(type));
+    def = GetFieldDefaultF<T>(field);
   }
   return table->SetField(field.offset(), val, def);
 }
