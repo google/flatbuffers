@@ -40,7 +40,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<int8_t>(VT_FOO_ENUM, 0));
   }
   bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum) {
-    return SetField(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum));
+    return SetField<int8_t>(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum), 0);
   }
   const NamespaceA::NamespaceB::StructInNestedNS *foo_struct() const {
     return GetStruct<const NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);

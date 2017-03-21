@@ -285,10 +285,23 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   auto hp_ok = monster->mutate_hp(10);
   TEST_EQ(hp_ok, true);  // Field was present.
   TEST_EQ(monster->hp(), 10);
+  // Mutate to default value
+  auto hp_ok_default = monster->mutate_hp(100);
+  TEST_EQ(hp_ok_default, true);  // Field was present.
+  TEST_EQ(monster->hp(), 100);
+  // Test that mutate to default above keeps field valid for further mutations
+  auto hp_ok_2 = monster->mutate_hp(20);
+  TEST_EQ(hp_ok_2, true);
+  TEST_EQ(monster->hp(), 20);
   monster->mutate_hp(80);
 
+  // Monster originally at 150 mana (default value)
+  auto mana_default_ok = monster->mutate_mana(150);  // Mutate to default value.
+  TEST_EQ(mana_default_ok, true);  // Mutation should succeed, because default value.
+  TEST_EQ(monster->mana(), 150);
   auto mana_ok = monster->mutate_mana(10);
   TEST_EQ(mana_ok, false);  // Field was NOT present, because default value.
+  TEST_EQ(monster->mana(), 150);
 
   // Mutate structs.
   auto pos = monster->mutable_pos();

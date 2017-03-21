@@ -1646,9 +1646,9 @@ class Table {
     return field_offset ? reinterpret_cast<P>(p) : nullptr;
   }
 
-  template<typename T> bool SetField(voffset_t field, T val) {
+  template<typename T> bool SetField(voffset_t field, T val, T def) {
     auto field_offset = GetOptionalFieldOffset(field);
-    if (!field_offset) return false;
+    if (!field_offset) return val == def;
     WriteScalar(data_ + field_offset, val);
     return true;
   }
