@@ -183,13 +183,13 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<int16_t>(VT_MANA, 150);
   }
   bool mutate_mana(int16_t _mana) {
-    return SetField(VT_MANA, _mana);
+    return SetField<int16_t>(VT_MANA, _mana, 150);
   }
   int16_t hp() const {
     return GetField<int16_t>(VT_HP, 100);
   }
   bool mutate_hp(int16_t _hp) {
-    return SetField(VT_HP, _hp);
+    return SetField<int16_t>(VT_HP, _hp, 100);
   }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -207,7 +207,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2));
   }
   bool mutate_color(Color _color) {
-    return SetField(VT_COLOR, static_cast<int8_t>(_color));
+    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
   }
   const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *weapons() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS);
@@ -219,7 +219,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return static_cast<Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0));
   }
   bool mutate_equipped_type(Equipment _equipped_type) {
-    return SetField(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type));
+    return SetField<uint8_t>(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type), 0);
   }
   const void *equipped() const {
     return GetPointer<const void *>(VT_EQUIPPED);
@@ -375,7 +375,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<int16_t>(VT_DAMAGE, 0);
   }
   bool mutate_damage(int16_t _damage) {
-    return SetField(VT_DAMAGE, _damage);
+    return SetField<int16_t>(VT_DAMAGE, _damage, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
