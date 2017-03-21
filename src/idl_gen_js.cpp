@@ -82,7 +82,8 @@ class JsGenerator : public BaseGenerator {
   // Generate code for imports
   void generateImportDependencies(std::string *code_ptr, const ImportedFileSet &importedFiles) {
     std::string &code = *code_ptr;
-    for (const auto &file : importedFiles) {
+    for (auto it = importedFiles.begin(); it != importedFiles.end(); ++it) {
+      const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
       if (basename != file_name_) {
