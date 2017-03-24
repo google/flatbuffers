@@ -23,16 +23,6 @@
 
 namespace flatbuffers {
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.js";
-}
-
-static std::string GeneratedTsFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.ts";
-}
-
 struct JsLanguageParameters {
   IDLOptions::Language language;
   std::string file_extension;
@@ -56,6 +46,12 @@ const JsLanguageParameters& GetJsLangParams(IDLOptions::Language lang) {
     assert(lang == IDLOptions::kTs);
     return js_language_parameters[1];
   }
+}
+
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name,
+                                     const JsLanguageParameters &lang) {
+  return path + file_name + "_generated" + lang.file_extension;
 }
 
 namespace js {
@@ -93,14 +89,7 @@ class JsGenerator : public BaseGenerator {
       code += exports_code;
     }
 
-    std::string filename = "";
-    if (ts) {
-      filename = GeneratedTsFileName(path_, file_name_);
-    }
-    else {
-      filename = GeneratedFileName(path_, file_name_);
-    }
-    return SaveFile(filename.c_str(), code, false);
+    return SaveFile(GeneratedFileName(path_, file_name_, lang_).c_str(), code, false);
   }
 
  private:
@@ -998,7 +987,7 @@ std::string JSMakeRule(const Parser &parser,
 
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));
-  std::string make_rule = path + filebase + "_generated" + lang.file_extension + ": ";
+  std::string make_rule = GeneratedFileName(path, filebase, lang) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin();
