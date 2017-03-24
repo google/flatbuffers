@@ -25,18 +25,24 @@ namespace flatbuffers {
 
 struct JsLanguageParameters {
   IDLOptions::Language language;
+  bool forward_namespaces;
   std::string file_extension;
+  std::string prelude;
 };
 
 const JsLanguageParameters& GetJsLangParams(IDLOptions::Language lang) {
   static JsLanguageParameters js_language_parameters[] = {
     {
       IDLOptions::kJs,
-      ".js"
+      true,
+      ".js",
+      ""
     },
     {
       IDLOptions::kTs,
-      ".ts"
+      false,
+      ".ts",
+      "import {flatbuffers} from \"./flatbuffers\"\n"
     },
   };
 
@@ -77,8 +83,12 @@ class JsGenerator : public BaseGenerator {
 
     code = code + "// " + FlatBuffersGeneratedWarning();
 
-    // Generate code for all the namespace declarations.
-    GenNamespaces(&code, &exports_code);
+    code += lang_.prelude;
+
+    if (lang_.forward_namespaces) {
+      // Generate code for all the namespace declarations.
+      GenNamespaces(&code, &exports_code);
+    }
 
     // Output the main declaration code from above.
     code += enum_code;
@@ -141,24 +151,16 @@ class JsGenerator : public BaseGenerator {
     std::string &exports = *exports_ptr;
     for (auto it = sorted_namespaces.begin();
         it != sorted_namespaces.end(); it++) {
-      if (!ts) {
-        code += "/**\n * @const\n * @namespace\n */\n";
-      }
+      code += "/**\n * @const\n * @namespace\n */\n";
       if (it->find('.') == std::string::npos) {
-        if (ts) {
-          code += "import {flatbuffers} from \"./flatbuffers\"\n";
+        code += "var ";
+        if(parser_.opts.use_goog_js_export_format) {
+          exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
         } else {
-          code += "var ";
-          if(parser_.opts.use_goog_js_export_format) {
-            exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
-          } else {
-            exports += "this." + *it + " = " + *it + ";\n";
-          }
+          exports += "this." + *it + " = " + *it + ";\n";
         }
       }
-      if (!ts) {
-        code += *it + " = " + *it + " || {};\n\n";
-      }
+      code += *it + " = " + *it + " || {};\n\n";
     }
   }
 
