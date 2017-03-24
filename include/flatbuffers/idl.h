@@ -371,6 +371,7 @@ struct IDLOptions {
     kPhp    = 1 << 6,
     kJson   = 1 << 7,
     kBinary = 1 << 8,
+    kTs     = 1 << 9,
     kMAX
   };
 
@@ -657,6 +658,13 @@ extern bool GenerateJS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
 
+// Generate TypeScript code from the definitions in the Parser object.
+// See idl_gen_js.
+extern std::string GenerateTS(const Parser &parser);
+extern bool GenerateTS(const Parser &parser,
+	                   const std::string &path,
+	                   const std::string &file_name);
+
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser,
@@ -706,6 +714,11 @@ extern bool GenerateFBS(const Parser &parser,
 extern std::string JSMakeRule(const Parser &parser,
                               const std::string &path,
                               const std::string &file_name);
+// Generate a make rule for the generated TypeScript code.
+// See idl_gen_js.cpp.
+extern std::string TSMakeRule(const Parser &parser,
+	                          const std::string &path,
+	                          const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.

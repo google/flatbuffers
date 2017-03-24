@@ -113,7 +113,6 @@ class BaseGenerator {
                               const std::string &name) const;
 
   std::string WrapInNameSpace(const Definition &def) const;
-
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
