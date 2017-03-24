@@ -33,15 +33,42 @@ static std::string GeneratedTsFileName(const std::string &path,
   return path + file_name + "_generated.ts";
 }
 
+struct JsLanguageParameters {
+  IDLOptions::Language language;
+  std::string file_extension;
+};
+
+const JsLanguageParameters& GetJsLangParams(IDLOptions::Language lang) {
+  static JsLanguageParameters js_language_parameters[] = {
+    {
+      IDLOptions::kJs,
+      ".js"
+    },
+    {
+      IDLOptions::kTs,
+      ".ts"
+    },
+  };
+
+  if (lang == IDLOptions::kJs) {
+    return js_language_parameters[0];
+  } else {
+    assert(lang == IDLOptions::kTs);
+    return js_language_parameters[1];
+  }
+}
+
 namespace js {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 class JsGenerator : public BaseGenerator {
  public:
   JsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, const bool &gen_ts)
-      : BaseGenerator(parser, path, file_name, "", "."), ts(gen_ts){};
-  bool ts = false;
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", "."),
+        lang_(GetJsLangParams(parser_.opts.lang)),
+        ts(parser_.opts.lang == IDLOptions::kTs) {
+  }
 
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
@@ -950,41 +977,29 @@ class JsGenerator : public BaseGenerator {
       code += "}\n}\n";
     }
   }
+
+  const JsLanguageParameters& lang_;
+  // TODO: deprecate
+  bool ts;
 };
 }  // namespace js
 
 bool GenerateJS(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name, false);
-  return generator.generate();
-}
-
-bool GenerateTS(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name, true);
+  js::JsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
 std::string JSMakeRule(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name) {
-  std::string filebase = flatbuffers::StripPath(
-      flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedFileName(path, filebase) + ": ";
-  auto included_files = parser.GetIncludedFilesRecursive(file_name);
-  for (auto it = included_files.begin();
-       it != included_files.end(); ++it) {
-    make_rule += " " + *it;
-  }
-  return make_rule;
-}
+  assert(parser.opts.lang <= IDLOptions::kMAX);
+  const auto &lang = GetJsLangParams(parser.opts.lang);
 
-std::string TSMakeRule(const Parser &parser,
-                       const std::string &path,
-                       const std::string &file_name) {
   std::string filebase = flatbuffers::StripPath(
       flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedTsFileName(path, filebase) + ": ";
+  std::string make_rule = path + filebase + "_generated" + lang.file_extension + ": ";
+
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin();
        it != included_files.end(); ++it) {
