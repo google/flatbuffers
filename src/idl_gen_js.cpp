@@ -103,7 +103,7 @@ class JsGenerator : public BaseGenerator {
   }
 
  private:
-  const JsLanguageParameters lang_;
+  JsLanguageParameters lang_;
 
   // Generate code for imports
   void generateImportDependencies(std::string *code_ptr, const imported_fileset &imported_files) {
