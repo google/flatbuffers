@@ -137,10 +137,10 @@ flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   // Create an array of sorted structs,
   // can be used with binary search when read:
   std::vector<Ability> abilities;
-  abilities.push_back({4, 40});
-  abilities.push_back({3, 30});
-  abilities.push_back({2, 20});
-  abilities.push_back({1, 10});
+  abilities.push_back(Ability(4, 40));
+  abilities.push_back(Ability(3, 30));
+  abilities.push_back(Ability(2, 20));
+  abilities.push_back(Ability(1, 10));
   auto vecofstructs = builder.CreateVectorOfSortedStructs(&abilities);
 
   // shortcut for creating monster with all fields set:
