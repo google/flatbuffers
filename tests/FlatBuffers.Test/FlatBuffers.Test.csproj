@@ -104,6 +104,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FlatBuffersExampleTests.cs" />
     <Compile Include="TestTable.cs" />
+    <Compile Include="Ability.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\monsterdata_test.mon">
