@@ -19,12 +19,18 @@
 
 #include <assert.h>
 
+#ifndef ARDUINO
 #include <cstdint>
+#endif
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#ifndef ARDUINO
 #include <utility>
+#else
+#include <utility.h>
+#endif
 #include <type_traits>
 #include <vector>
 #include <set>
@@ -1388,8 +1394,8 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
-  Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
-           size_t _max_tables = 1000000)
+  Verifier(const uint8_t *buf, size_t buf_len, uoffset_t _max_depth = 64,
+           uoffset_t _max_tables = 1000000)
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -1551,10 +1557,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
-  size_t depth_;
-  size_t max_depth_;
-  size_t num_tables_;
-  size_t max_tables_;
+  uoffset_t depth_;
+  uoffset_t max_depth_;
+  uoffset_t num_tables_;
+  uoffset_t max_tables_;
 #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable const uint8_t *upper_bound_;
 #endif
