@@ -653,17 +653,10 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
-// Generate JavaScript code from the definitions in the Parser object.
+// Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
 extern std::string GenerateJS(const Parser &parser);
 extern bool GenerateJS(const Parser &parser,
-                       const std::string &path,
-                       const std::string &file_name);
-
-// Generate TypeScript code from the definitions in the Parser object.
-// See idl_gen_ts.
-extern std::string GenerateTS(const Parser &parser);
-extern bool GenerateTS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
 
@@ -711,15 +704,9 @@ extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
-// Generate a make rule for the generated JavaScript code.
+// Generate a make rule for the generated JavaScript or TypeScript code.
 // See idl_gen_js.cpp.
 extern std::string JSMakeRule(const Parser &parser,
-                              const std::string &path,
-                              const std::string &file_name);
-
-// Generate a make rule for the generated TypeScript code.
-// See idl_gen_ts.cpp.
-extern std::string TSMakeRule(const Parser &parser,
                               const std::string &path,
                               const std::string &file_name);
 

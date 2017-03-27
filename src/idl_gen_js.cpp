@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <unordered_set>
+#include <cassert>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -24,10 +25,37 @@
 
 namespace flatbuffers {
 
+const std::string kGeneratedFileNamePostfix = "_generated";
+
+struct JsLanguageParameters {
+  IDLOptions::Language language;
+  std::string file_extension;
+};
+
+const JsLanguageParameters& GetJsLangParams(IDLOptions::Language lang) {
+  static JsLanguageParameters js_language_parameters[] = {
+    {
+      IDLOptions::kJs,
+      ".js",
+    },
+    {
+      IDLOptions::kTs,
+      ".ts",
+    },
+  };
+
+  if (lang == IDLOptions::kJs) {
+    return js_language_parameters[0];
+  } else {
+    assert(lang == IDLOptions::kTs);
+    return js_language_parameters[1];
+  }
+}
+
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name,
-                                     bool ts) {
-  return path + file_name + ((ts) ? ("_generated.ts") : ("_generated.js"));
+                                     const JsLanguageParameters &lang) {
+  return path + file_name + kGeneratedFileNamePostfix + lang.file_extension;
 }
 
 namespace js {
@@ -35,12 +63,12 @@ namespace js {
 // and tables) and output them to a single file.
 class JsGenerator : public BaseGenerator {
  public:
-  typedef std::unordered_set<std::string> ImportedFileSet;
+  typedef std::unordered_set<std::string> imported_fileset;
 
   JsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, bool ts)
-      : BaseGenerator(parser, path, file_name, "", ".")
-      , ts_(ts)
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", "."),
+        lang_(GetJsLangParams(parser_.opts.lang))
   {
   };
   // Iterate through all definitions we haven't generate code for (enums,
@@ -48,12 +76,12 @@ class JsGenerator : public BaseGenerator {
   bool generate() {
     if (IsEverythingGenerated()) return true;
 
-    ImportedFileSet importedFiles;
+    imported_fileset imported_files;
 
     std::string enum_code, struct_code, import_code, exports_code, code;
     generateEnums(&enum_code, &exports_code);
-    generateStructs(&struct_code, &exports_code, importedFiles);
-    generateImportDependencies(&import_code, importedFiles);
+    generateStructs(&struct_code, &exports_code, imported_files);
+    generateImportDependencies(&import_code, imported_files);
 
     code = code + "// " + FlatBuffersGeneratedWarning();
 
@@ -61,33 +89,31 @@ class JsGenerator : public BaseGenerator {
     GenNamespaces(&code, &exports_code);
 
     // Output the main declaration code from above.
-    if (ts_) {
-        code += import_code;
-    }
+    code += import_code;
 
     code += enum_code;
     code += struct_code;
 
-    if (!ts_ && !exports_code.empty() && !parser_.opts.skip_js_exports) {
+    if (lang_.language == IDLOptions::kJs && !exports_code.empty() && !parser_.opts.skip_js_exports) {
       code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
-    return SaveFile(GeneratedFileName(path_, file_name_, ts_).c_str(), code, false);
+    return SaveFile(GeneratedFileName(path_, file_name_, lang_).c_str(), code, false);
   }
 
  private:
-  bool ts_;
+  const JsLanguageParameters& lang_;
 
   // Generate code for imports
-  void generateImportDependencies(std::string *code_ptr, const ImportedFileSet &importedFiles) {
+  void generateImportDependencies(std::string *code_ptr, const imported_fileset &imported_files) {
     std::string &code = *code_ptr;
-    for (auto it = importedFiles.begin(); it != importedFiles.end(); ++it) {
+    for (auto it = imported_files.begin(); it != imported_files.end(); ++it) {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
       if (basename != file_name_) {
-        code += "import * as "+ GenFileNamespacePrefix(file) + " from \"./" + basename + "_generated\";\n";
+        code += "import * as "+ GenFileNamespacePrefix(file) + " from \"./" + basename + kGeneratedFileNamePostfix + "\";\n";
       }
     }
   }
@@ -105,15 +131,15 @@ class JsGenerator : public BaseGenerator {
   // Generate code for all structs.
   void generateStructs(std::string *decl_code_ptr,
                        std::string *exports_code_ptr,
-                       ImportedFileSet &importedFiles) {
+                       imported_fileset &imported_files) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr, importedFiles);
+      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr, imported_files);
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
-  if (ts_ && parser_.opts.skip_flatbuffers_import) {
+  if (lang_.language == IDLOptions::kTs && parser_.opts.skip_flatbuffers_import) {
     return;
   }
 
@@ -144,7 +170,7 @@ class JsGenerator : public BaseGenerator {
   std::string &exports = *exports_ptr;
   for (auto it = sorted_namespaces.begin();
        it != sorted_namespaces.end(); it++) {
-    if (ts_) {
+    if (lang_.language == IDLOptions::kTs) {
       if (it->find('.') == std::string::npos) {
         code += "import { flatbuffers } from \"./flatbuffers\"\n";
         break;
@@ -215,7 +241,7 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
   GenDocComment(enum_def.doc_comment, code_ptr, "@enum");
-  if (ts_) {
+  if (lang_.language == IDLOptions::kTs) {
     code += "export namespace " + GetNameSpace(enum_def) + "{\n" + "export enum " + enum_def.name + "{\n";
   } else {
     if (enum_def.defined_namespace->components.empty()) {
@@ -238,11 +264,11 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
       }
       GenDocComment(ev.doc_comment, code_ptr, "", "  ");
     }
-    code += "  " + ev.name + ((ts_) ? ("= ") : (": ")) + NumToString(ev.value);
+    code += "  " + ev.name + ((lang_.language == IDLOptions::kTs) ? ("= ") : (": ")) + NumToString(ev.value);
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
   }
 
-  if (ts_) {
+  if (lang_.language == IDLOptions::kTs) {
     code += "}};\n\n";
   } else {
     code += "};\n\n";
@@ -294,7 +320,7 @@ std::string GenDefaultValue(const Value &value, const std::string &context) {
   if (value.type.enum_def) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def), value.type.enum_def->file) + "." + val->name;
       } else {
         return WrapInNameSpace(*value.type.enum_def) + "." + val->name;
@@ -406,7 +432,7 @@ void GenStructArgs(const StructDef &struct_def,
       *annotations += "@param {" + GenTypeName(field.value.type, true);
       *annotations += "} " + nameprefix + field.name + "\n";
 
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
           *arguments += ", " + nameprefix + field.name + ": " + GenTypeName(field.value.type, true);
       } else {
           *arguments += ", " + nameprefix + field.name;
@@ -446,7 +472,7 @@ static void GenStructBody(const StructDef &struct_def,
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
 void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr,
-               ImportedFileSet &importedFiles) {
+               imported_fileset &imported_files) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
@@ -454,7 +480,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   std::string object_name;
 
   // Emit constructor
-  if (ts_) {
+  if (lang_.language == IDLOptions::kTs) {
     object_name = struct_def.name;
     std::string object_namespace = GetNameSpace(struct_def);
     GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
@@ -506,7 +532,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   code += " * @returns {" + object_name + "}\n";
   code += " */\n";
 
-  if (ts_) {
+  if (lang_.language == IDLOptions::kTs) {
     code += "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
   } else {
     code += object_name + ".prototype.__init = function(i, bb) {\n";
@@ -524,7 +550,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@param {flatbuffers.ByteBuffer} bb\n"
       "@param {" + object_name + "=} obj\n"
       "@returns {" + object_name + "}");
-    if (ts_) {
+    if (lang_.language == IDLOptions::kTs) {
       code += "static getRootAs" + struct_def.name;
       code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" + object_name + " {\n";
     } else {
@@ -541,7 +567,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr,
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         code += "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {\n";
       } else {
         code += object_name + ".bufferHasIdentifier = function(bb) {\n";
@@ -567,7 +593,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         std::string(field.value.type.base_type == BASE_TYPE_STRING ?
           "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
         "@returns {" + GenTypeName(field.value.type, false) + "}");
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         std::string prefix = MakeCamel(field.name, false) + "(";
         if (field.value.type.base_type == BASE_TYPE_STRING) {
           code += prefix + "):string\n";
@@ -611,7 +637,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           auto type = WrapInNameSpace(*field.value.type.struct_def);
           GenDocComment(field.doc_comment, code_ptr,
             "@param {" + type + "=} obj\n@returns {" + type + "}");
-          if (ts_) {
+          if (lang_.language == IDLOptions::kTs) {
             type = GenPrefixedTypeName(type, field.value.type.struct_def->file);
             code += MakeCamel(field.name, false);
             code += "(obj?:" + type + "):" + type + " {\n";
@@ -632,8 +658,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             code += ", this.bb) : null;\n";
           }
 
-          if (ts_) {
-            importedFiles.insert(field.value.type.struct_def->file);
+          if (lang_.language == IDLOptions::kTs) {
+            imported_files.insert(field.value.type.struct_def->file);
           }
 
           break;
@@ -653,13 +679,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           }
           GenDocComment(field.doc_comment, code_ptr, args +
             "@returns {" + vectortypename + "}");
-          if (ts_) {
+          if (lang_.language == IDLOptions::kTs) {
             std::string prefix = MakeCamel(field.name, false);
             prefix += "(index: number";
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               vectortypename = GenPrefixedTypeName(vectortypename, vectortype.struct_def->file);
               code += prefix + ", obj?:" + vectortypename;
-              importedFiles.insert(vectortype.struct_def->file);
+              imported_files.insert(vectortype.struct_def->file);
             } else if (vectortype.base_type == BASE_TYPE_STRING) {
               code += prefix + "):string\n";
               code += prefix + ",optionalEncoding:flatbuffers.Encoding" + "):" + vectortypename + "\n";
@@ -717,7 +743,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           GenDocComment(field.doc_comment, code_ptr,
             "@param {flatbuffers.Table} obj\n"
             "@returns {?flatbuffers.Table}");
-          if (ts_) {
+          if (lang_.language == IDLOptions::kTs) {
             code += MakeCamel(field.name, false);
             code += "<T extends flatbuffers.Table>(obj:T):T {\n";
           } else {
@@ -747,7 +773,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
 
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         std::string type;
         if (field.value.type.enum_def) {
           type = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
@@ -779,7 +805,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       // Emit a length helper
       GenDocComment(code_ptr, "@returns {number}");
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         code += MakeCamel(field.name, false);
         code += "Length():number {\n" + offset_prefix;
       } else {
@@ -800,7 +826,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
         GenDocComment(code_ptr, "@returns {" + GenType(vectorType) + "Array}");
 
-        if (ts_) {
+        if (lang_.language == IDLOptions::kTs) {
           code += MakeCamel(field.name, false);
           code += "Array():" + GenType(vectorType) + "Array {\n" + offset_prefix;
         } else {
@@ -829,7 +855,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     GenDocComment(code_ptr, annotations +
       "@returns {flatbuffers.Offset}");
 
-    if (ts_) {
+    if (lang_.language == IDLOptions::kTs) {
       code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
       code += arguments + "):flatbuffers.Offset {\n";
     } else {
@@ -844,7 +870,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     GenDocComment(code_ptr,
       "@param {flatbuffers.Builder} builder");
 
-    if (ts_) {
+    if (lang_.language == IDLOptions::kTs) {
       code += "static start" + struct_def.name;
       code += "(builder:flatbuffers.Builder) {\n";
     } else {
@@ -872,7 +898,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {" + GenTypeName(field.value.type, true) + "} " +
         argname);
 
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         std::string argType;
         if (field.value.type.enum_def) {
           argType = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
@@ -916,7 +942,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             ">} data\n"
             "@returns {flatbuffers.Offset}");
 
-          if (ts_) {
+          if (lang_.language == IDLOptions::kTs) {
             code += "static create" + MakeCamel(field.name);
             std::string type = GenTypeName(vector_type, true) + "[]";
             if (type == "number[]") {
@@ -947,7 +973,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
           "@param {flatbuffers.Builder} builder\n"
           "@param {number} numElems");
 
-        if (ts_) {
+        if (lang_.language == IDLOptions::kTs) {
           code += "static start" + MakeCamel(field.name);
           code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
         } else {
@@ -966,7 +992,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@param {flatbuffers.Builder} builder\n"
       "@returns {flatbuffers.Offset}");
 
-    if (ts_) {
+    if (lang_.language == IDLOptions::kTs) {
       code += "static end" + struct_def.name;
       code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
     } else {
@@ -993,7 +1019,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.Builder} builder\n"
         "@param {flatbuffers.Offset} offset");
 
-      if (ts_) {
+      if (lang_.language == IDLOptions::kTs) {
         code += "static finish" + struct_def.name + "Buffer";
         code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       } else {
@@ -1010,50 +1036,35 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
     }
   }
 
-  if (ts_) {
+  if (lang_.language == IDLOptions::kTs) {
     code += "}\n}\n";
   }
 }
 };
 }  // namespace js
 
-std::string MakeRule(const Parser &parser,
-                     const std::string &path,
-                     const std::string &file_name,
-                     bool ts) {
-  std::string filebase = flatbuffers::StripPath(
-      flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedFileName(path, filebase, ts) + ": ";
-  auto included_files = parser.GetIncludedFilesRecursive(file_name);
-  for (auto it = included_files.begin();
-       it != included_files.end(); ++it) {
-    make_rule += " " + *it;
-  }
-  return make_rule;
-}
-
 bool GenerateJS(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name, false);
+  js::JsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
 std::string JSMakeRule(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name) {
-  return MakeRule(parser, path, file_name, false);
-}
+  assert(parser.opts.lang <= IDLOptions::kMAX);
+  const auto &lang = GetJsLangParams(parser.opts.lang);
 
-bool GenerateTS(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name, true);
-  return generator.generate();
-}
+  std::string filebase = flatbuffers::StripPath(
+      flatbuffers::StripExtension(file_name));
+  std::string make_rule = GeneratedFileName(path, filebase, lang) + ": ";
 
-std::string TSMakeRule(const Parser &parser,
-                       const std::string &path,
-                       const std::string &file_name) {
-  return MakeRule(parser, path, file_name, true);
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin();
+       it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+return make_rule;
 }
 
 }  // namespace flatbuffers
