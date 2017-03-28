@@ -483,6 +483,20 @@ private:
   VectorOfAny(const VectorOfAny&);
 };
 
+#ifndef FLATBUFFERS_CPP98_STL
+template<typename T, typename U>
+Vector<Offset<T>> *VectorCast(Vector<Offset<U>> *ptr) {
+  static_assert(std::is_base_of<T, U>::value, "Unrelated types");
+  return reinterpret_cast<Vector<Offset<T>> *>(ptr);
+}
+
+template<typename T, typename U>
+const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
+  static_assert(std::is_base_of<T, U>::value, "Unrelated types");
+  return reinterpret_cast<const Vector<Offset<T>> *>(ptr);
+}
+#endif
+
 // Convenient helper function to get the length of any vector, regardless
 // of wether it is null or not (the field is not set).
 template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
