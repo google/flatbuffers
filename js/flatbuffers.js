@@ -944,9 +944,17 @@ flatbuffers.ByteBuffer.prototype.readFloat64 = function(offset) {
 
 /**
  * @param {number} offset
- * @param {number} value
+ * @param {number|boolean} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt8 = function(offset, value) {
+  this.bytes_[offset] = /** @type {number} */(value);
+};
+
+/**
+ * @param {number} offset
+ * @param {number} value
+ */
+flatbuffers.ByteBuffer.prototype.writeUint8 = function(offset, value) {
   this.bytes_[offset] = value;
 };
 
