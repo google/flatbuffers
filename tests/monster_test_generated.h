@@ -276,13 +276,7 @@ MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   }
   int KeyCompareWithValue(uint32_t val) const {
     const auto key = id();
-    if (key < val) {
-      return -1;
-    } else if (key > val) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return static_cast<int>(key > val) - static_cast<int>(key < val);
   }
   uint32_t distance() const {
     return flatbuffers::EndianScalar(distance_);

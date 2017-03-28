@@ -1958,13 +1958,7 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("KEY_TYPE", type);
         code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
         code_ += "    const auto key = {{FIELD_NAME}}();";
-        code_ += "    if (key < val) {";
-        code_ += "      return -1;";
-        code_ += "    } else if (key > val) {";
-        code_ += "      return 1;";
-        code_ += "    } else {";
-        code_ += "      return 0;";
-        code_ += "    }";
+        code_ += "    return static_cast<int>(key > val) - static_cast<int>(key < val);";
         code_ += "  }";
       }
     }

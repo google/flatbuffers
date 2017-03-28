@@ -472,7 +472,7 @@ protected:
   VectorOfAny();
 
   uoffset_t length_;
-  
+
 private:
   VectorOfAny(const VectorOfAny&);
 };
@@ -1184,6 +1184,18 @@ FLATBUFFERS_FINAL_CLASS
     return CreateVectorOfStructs(data(v), v.size());
   }
 
+  /// @cond FLATBUFFERS_INTERNAL
+  template<typename T>
+  struct StructKeyComparator {
+    bool operator()(const T &a, const T &b) const {
+      return a.KeyCompareLessThan(&b);
+    }
+
+  private:
+    StructKeyComparator& operator= (const StructKeyComparator&);
+  };
+  /// @endcond
+
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`
   /// in sorted order.
   /// @tparam T The data type of the `std::vector` struct elements.
@@ -1193,7 +1205,7 @@ FLATBUFFERS_FINAL_CLASS
   /// where the vector is stored.
   template<typename T> Offset<Vector<const T *>> CreateVectorOfSortedStructs(
       std::vector<T> *v) {
-    return CreateVectorOfSortedStruct(data(*v), v->size());
+    return CreateVectorOfSortedStructs(data(*v), v->size());
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector` in sorted
@@ -1204,11 +1216,9 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T> Offset<Vector<const T *>> CreateVectorOfSortedStruct(
+  template<typename T> Offset<Vector<const T *>> CreateVectorOfSortedStructs(
       T *v, size_t len) {
-    std::sort(v, v + len, [](const T& s1, const T& s2) {
-      return s1.KeyCompareLessThan(&s2);
-    });
+    std::sort(v, v + len, StructKeyComparator<T>());
     return CreateVectorOfStructs(v, len);
   }
 
