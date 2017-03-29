@@ -243,7 +243,7 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
   const Test &test3() const {
     return test3_;
   }
-  const Test &mutable_test3() {
+  Test &mutable_test3() {
     return test3_;
   }
 };
