@@ -3,8 +3,8 @@
 namespace NamespaceA.NamespaceB
 {
 
-using System;
-using FlatBuffers;
+using global::System;
+using global::FlatBuffers;
 
 public struct StructInNestedNS : IFlatbufferObject
 {

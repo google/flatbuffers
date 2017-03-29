@@ -3,8 +3,8 @@
 namespace MyGame.Example
 {
 
-using System;
-using FlatBuffers;
+using global::System;
+using global::FlatBuffers;
 
 public struct Vec3 : IFlatbufferObject
 {

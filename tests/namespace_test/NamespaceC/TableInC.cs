@@ -3,8 +3,8 @@
 namespace NamespaceC
 {
 
-using System;
-using FlatBuffers;
+using global::System;
+using global::FlatBuffers;
 
 public struct TableInC : IFlatbufferObject
 {

@@ -128,7 +128,7 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "__p.",
       "Table.",
       "?",
-      "using System;\nusing FlatBuffers;\n\n",
+      "using global::System;\nusing global::FlatBuffers;\n\n",
       {
         nullptr,
         "///",
