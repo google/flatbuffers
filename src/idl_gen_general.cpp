@@ -1291,7 +1291,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "); }\n";
     }
   }
-  if (struct_def.has_key) {
+  // Only generate key compare function for table,
+  // because `key_field` is not set for struct
+  if (struct_def.has_key && !struct_def.fixed) {
     if (lang_.language == IDLOptions::kJava) {
       code += "\n  @Override\n  protected int keysCompare(";
       code += "Integer o1, Integer o2, ByteBuffer _bb) {";
