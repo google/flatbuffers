@@ -6,6 +6,12 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#if defined(_MSC_VER)
+#define NOEXCEPT
+#else
+#define NOEXCEPT noexcept
+#endif
+
 namespace MyGame {
 namespace Example2 {
 
@@ -103,13 +109,13 @@ struct AnyUnion {
   flatbuffers::NativeTable *table;
 
   AnyUnion() : type(Any_NONE), table(nullptr) {}
-  AnyUnion(AnyUnion&& u) noexcept :
+  AnyUnion(AnyUnion&& u) NOEXCEPT :
     type(Any_NONE), table(nullptr)
     { std::swap(type, u.type); std::swap(table, u.table); }
   AnyUnion(const AnyUnion &);
   AnyUnion &operator=(const AnyUnion &);
-  AnyUnion &operator=(AnyUnion &&u) noexcept
-    { AnyUnion(std::move(u)); return *this; }
+  AnyUnion &operator=(AnyUnion &&u) NOEXCEPT
+    { std::swap(type, u.type); std::swap(table, u.table); return *this; }
   ~AnyUnion() { Reset(); }
 
   void Reset();

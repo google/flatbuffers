@@ -100,6 +100,13 @@ class CppGenerator : public BaseGenerator {
 
     assert(!cur_name_space_);
 
+    code_ += "#if defined(_MSC_VER)";
+    code_ += "#define NOEXCEPT";
+    code_ += "#else";
+    code_ += "#define NOEXCEPT noexcept";
+    code_ += "#endif";
+    code_ += "";
+
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
     for (auto it = parser_.structs_.vec.begin();
@@ -660,13 +667,13 @@ class CppGenerator : public BaseGenerator {
       code_ += "  flatbuffers::NativeTable *table;";
       code_ += "";
       code_ += "  {{NAME}}Union() : type({{NONE}}), table(nullptr) {}";
-      code_ += "  {{NAME}}Union({{NAME}}Union&& u) noexcept :";
+      code_ += "  {{NAME}}Union({{NAME}}Union&& u) NOEXCEPT :";
       code_ += "    type({{NONE}}), table(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(table, u.table); }";
       code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
       code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &);";
-      code_ += "  {{NAME}}Union &operator=({{NAME}}Union &&u) noexcept";
-      code_ += "    { {{NAME}}Union(std::move(u)); return *this; }";
+      code_ += "  {{NAME}}Union &operator=({{NAME}}Union &&u) NOEXCEPT";
+      code_ += "    { std::swap(type, u.type); std::swap(table, u.table); return *this; }";
       code_ += "  ~{{NAME}}Union() { Reset(); }";
       code_ += "";
       code_ += "  void Reset();";

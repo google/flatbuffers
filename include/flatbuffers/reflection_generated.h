@@ -6,6 +6,12 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#if defined(_MSC_VER)
+#define NOEXCEPT
+#else
+#define NOEXCEPT noexcept
+#endif
+
 namespace reflection {
 
 struct Type;
