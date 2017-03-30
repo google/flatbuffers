@@ -86,26 +86,29 @@ CheckedError Parser::Error(const std::string &msg) {
 
 inline CheckedError NoError() { return CheckedError(false); }
 
+inline std::string OutOfRangeErrorMsg(int64_t val, const std::string& op,
+                                      int64_t limit) {
+  const std::string cause = NumToString(val) + op + NumToString(limit);
+  return "constant does not fit (" + cause + ")";
+}
+
 // Ensure that integer values we parse fit inside the declared integer type.
-CheckedError Parser::CheckBitsFit(int64_t val, size_t bits) {
-  // Left-shifting a 64-bit value by 64 bits or more is undefined
-  // behavior (C99 6.5.7), so check *before* we shift.
-  if (bits < 64) {
-    // Bits we allow to be used.
-    auto mask = static_cast<int64_t>((1ull << bits) - 1);
-    if ((val & ~mask) != 0 &&  // Positive or unsigned.
-        (val |  mask) != -1)   // Negative.
-      return Error("constant does not fit in a " + NumToString(bits) +
-                   "-bit field");
-  }
-  return NoError();
+CheckedError Parser::CheckInRange(int64_t val, int64_t min, int64_t max) {
+  if (val < min)
+    return Error(OutOfRangeErrorMsg(val, " < ", min));
+  else if (val > max)
+    return Error(OutOfRangeErrorMsg(val, " > ", max));
+  else
+    return NoError();
 }
 
 // atot: templated version of atoi/atof: convert a string to an instance of T.
 template<typename T> inline CheckedError atot(const char *s, Parser &parser,
                                               T *val) {
   int64_t i = StringToInt(s);
-  ECHECK(parser.CheckBitsFit(i, sizeof(T) * 8));
+  const int64_t min = std::numeric_limits<T>::min();
+  const int64_t max = std::numeric_limits<T>::max();
+  ECHECK(parser.CheckInRange(i, min, max));
   *val = (T)i;
   return NoError();
 }

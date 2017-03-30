@@ -981,7 +981,7 @@ void TestError(const char *src, const char *error_substr,
 // Also useful for coverage, making sure these paths are run.
 void ErrorTest() {
   // In order they appear in idl_parser.cpp
-  TestError("table X { Y:byte; } root_type X; { Y: 999 }", "bit field");
+  TestError("table X { Y:byte; } root_type X; { Y: 999 }", "does not fit");
   TestError(".0", "floating point");
   TestError("\"\0", "illegal");
   TestError("\"\\q", "escape code");
@@ -1069,30 +1069,49 @@ void EnumStringsTest() {
 }
 
 void IntegerOutOfRangeTest() {
-  TestError("table T { F:byte; } root_type T; { F:256 }",
+  TestError("table T { F:byte; } root_type T; { F:128 }",
             "constant does not fit");
-  TestError("table T { F:byte; } root_type T; { F:-257 }",
+  TestError("table T { F:byte; } root_type T; { F:-129 }",
             "constant does not fit");
   TestError("table T { F:ubyte; } root_type T; { F:256 }",
             "constant does not fit");
-  TestError("table T { F:ubyte; } root_type T; { F:-257 }",
+  TestError("table T { F:ubyte; } root_type T; { F:-1 }",
             "constant does not fit");
-  TestError("table T { F:short; } root_type T; { F:65536 }",
+  TestError("table T { F:short; } root_type T; { F:32768 }",
             "constant does not fit");
-  TestError("table T { F:short; } root_type T; { F:-65537 }",
+  TestError("table T { F:short; } root_type T; { F:-32769 }",
             "constant does not fit");
   TestError("table T { F:ushort; } root_type T; { F:65536 }",
             "constant does not fit");
-  TestError("table T { F:ushort; } root_type T; { F:-65537 }",
+  TestError("table T { F:ushort; } root_type T; { F:-1 }",
             "constant does not fit");
-  TestError("table T { F:int; } root_type T; { F:4294967296 }",
+  TestError("table T { F:int; } root_type T; { F:2147483648 }",
             "constant does not fit");
-  TestError("table T { F:int; } root_type T; { F:-4294967297 }",
+  TestError("table T { F:int; } root_type T; { F:-2147483649 }",
             "constant does not fit");
   TestError("table T { F:uint; } root_type T; { F:4294967296 }",
             "constant does not fit");
-  TestError("table T { F:uint; } root_type T; { F:-4294967297 }",
+  TestError("table T { F:uint; } root_type T; { F:-1 }",
             "constant does not fit");
+}
+
+void IntegerBoundaryTest() {
+  TEST_EQ(TestValue<int8_t>("{ Y:127 }","byte"), 127);
+  TEST_EQ(TestValue<int8_t>("{ Y:-128 }","byte"), -128);
+  TEST_EQ(TestValue<uint8_t>("{ Y:255 }","ubyte"), 255);
+  TEST_EQ(TestValue<uint8_t>("{ Y:0 }","ubyte"), 0);
+  TEST_EQ(TestValue<int16_t>("{ Y:32767 }","short"), 32767);
+  TEST_EQ(TestValue<int16_t>("{ Y:-32768 }","short"), -32768);
+  TEST_EQ(TestValue<uint16_t>("{ Y:65535 }","ushort"), 65535);
+  TEST_EQ(TestValue<uint16_t>("{ Y:0 }","ushort"), 0);
+  TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }","int"), 2147483647);
+  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }","int"), -2147483648);
+  TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }","uint"), 4294967295);
+  TEST_EQ(TestValue<uint32_t>("{ Y:0 }","uint"), 0);
+  TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }","long"), 9223372036854775807);
+  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }","long"), (-9223372036854775807 - 1));
+  TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }","ulong"), 18446744073709551615U);
+  TEST_EQ(TestValue<uint64_t>("{ Y:0 }","ulong"), 0);
 }
 
 void UnicodeTest() {
@@ -1483,6 +1502,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ValueTest();
   EnumStringsTest();
   IntegerOutOfRangeTest();
+  IntegerBoundaryTest();
   UnicodeTest();
   UnicodeTestAllowNonUTF8();
   UnicodeTestGenerateTextFailsOnNonUTF8();
