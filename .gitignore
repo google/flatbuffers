@@ -69,3 +69,4 @@ Testing/Temporary
 .cproject
 .settings/
 .project
+net/**/obj

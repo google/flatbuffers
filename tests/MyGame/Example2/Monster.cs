@@ -3,8 +3,8 @@
 namespace MyGame.Example2
 {
 
-using System;
-using FlatBuffers;
+using global::System;
+using global::FlatBuffers;
 
 public struct Monster : IFlatbufferObject
 {

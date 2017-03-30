@@ -19,12 +19,18 @@
 
 #include <assert.h>
 
+#ifndef ARDUINO
 #include <cstdint>
+#endif
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#ifndef ARDUINO
 #include <utility>
+#else
+#include <utility.h>
+#endif
 #include <type_traits>
 #include <vector>
 #include <set>
@@ -105,6 +111,13 @@
   #define FLATBUFFERS_CONSTEXPR constexpr
 #else
   #define FLATBUFFERS_CONSTEXPR
+#endif
+
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) && __GNUC__ * 10 + __GNUC_MINOR__ >= 46 || \
+    defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026
+  #define FLATBUFFERS_NOEXCEPT noexcept
+#else
+  #define FLATBUFFERS_NOEXCEPT
 #endif
 
 #if defined(_MSC_VER)
@@ -472,10 +485,24 @@ protected:
   VectorOfAny();
 
   uoffset_t length_;
-  
+
 private:
   VectorOfAny(const VectorOfAny&);
 };
+
+#ifndef FLATBUFFERS_CPP98_STL
+template<typename T, typename U>
+Vector<Offset<T>> *VectorCast(Vector<Offset<U>> *ptr) {
+  static_assert(std::is_base_of<T, U>::value, "Unrelated types");
+  return reinterpret_cast<Vector<Offset<T>> *>(ptr);
+}
+
+template<typename T, typename U>
+const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
+  static_assert(std::is_base_of<T, U>::value, "Unrelated types");
+  return reinterpret_cast<const Vector<Offset<T>> *>(ptr);
+}
+#endif
 
 // Convenient helper function to get the length of any vector, regardless
 // of wether it is null or not (the field is not set).
@@ -1186,6 +1213,44 @@ FLATBUFFERS_FINAL_CLASS
 
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T>
+  struct StructKeyComparator {
+    bool operator()(const T &a, const T &b) const {
+      return a.KeyCompareLessThan(&b);
+    }
+
+  private:
+    StructKeyComparator& operator= (const StructKeyComparator&);
+  };
+  /// @endcond
+
+  /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`
+  /// in sorted order.
+  /// @tparam T The data type of the `std::vector` struct elements.
+  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// serialize into the buffer as a `vector`.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T> Offset<Vector<const T *>> CreateVectorOfSortedStructs(
+      std::vector<T> *v) {
+    return CreateVectorOfSortedStructs(data(*v), v->size());
+  }
+
+  /// @brief Serialize an array of structs into a FlatBuffer `vector` in sorted
+  /// order.
+  /// @tparam T The data type of the struct array elements.
+  /// @param[in] v A pointer to the array of type `T` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T> Offset<Vector<const T *>> CreateVectorOfSortedStructs(
+      T *v, size_t len) {
+    std::sort(v, v + len, StructKeyComparator<T>());
+    return CreateVectorOfStructs(v, len);
+  }
+
+  /// @cond FLATBUFFERS_INTERNAL
+  template<typename T>
   struct TableKeyComparator {
   TableKeyComparator(vector_downward& buf) : buf_(buf) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
@@ -1388,8 +1453,8 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
-  Verifier(const uint8_t *buf, size_t buf_len, size_t _max_depth = 64,
-           size_t _max_tables = 1000000)
+  Verifier(const uint8_t *buf, size_t buf_len, uoffset_t _max_depth = 64,
+           uoffset_t _max_tables = 1000000)
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
       num_tables_(0), max_tables_(_max_tables)
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -1551,10 +1616,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
  private:
   const uint8_t *buf_;
   const uint8_t *end_;
-  size_t depth_;
-  size_t max_depth_;
-  size_t num_tables_;
-  size_t max_tables_;
+  uoffset_t depth_;
+  uoffset_t max_depth_;
+  uoffset_t num_tables_;
+  uoffset_t max_tables_;
 #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable const uint8_t *upper_bound_;
 #endif
