@@ -113,6 +113,13 @@
   #define FLATBUFFERS_CONSTEXPR
 #endif
 
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) && __GNUC__ * 10 + __GNUC_MINOR__ >= 46 || \
+    defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026
+  #define FLATBUFFERS_NOEXCEPT noexcept
+#else
+  #define FLATBUFFERS_NOEXCEPT
+#endif
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4127) // C4127: conditional expression is constant
