@@ -660,11 +660,13 @@ class CppGenerator : public BaseGenerator {
       code_ += "  flatbuffers::NativeTable *table;";
       code_ += "";
       code_ += "  {{NAME}}Union() : type({{NONE}}), table(nullptr) {}";
-      code_ += "  {{NAME}}Union({{NAME}}Union&& u):";
+      code_ += "  {{NAME}}Union({{NAME}}Union&& u) FLATBUFFERS_NOEXCEPT :";
       code_ += "    type({{NONE}}), table(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(table, u.table); }";
       code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
       code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &);";
+      code_ += "  {{NAME}}Union &operator=({{NAME}}Union &&u) FLATBUFFERS_NOEXCEPT";
+      code_ += "    { std::swap(type, u.type); std::swap(table, u.table); return *this; }";
       code_ += "  ~{{NAME}}Union() { Reset(); }";
       code_ += "";
       code_ += "  void Reset();";

@@ -74,11 +74,13 @@ struct EquipmentUnion {
   flatbuffers::NativeTable *table;
 
   EquipmentUnion() : type(Equipment_NONE), table(nullptr) {}
-  EquipmentUnion(EquipmentUnion&& u):
+  EquipmentUnion(EquipmentUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Equipment_NONE), table(nullptr)
     { std::swap(type, u.type); std::swap(table, u.table); }
   EquipmentUnion(const EquipmentUnion &);
   EquipmentUnion &operator=(const EquipmentUnion &);
+  EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(table, u.table); return *this; }
   ~EquipmentUnion() { Reset(); }
 
   void Reset();
