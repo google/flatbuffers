@@ -1105,7 +1105,7 @@ void IntegerBoundaryTest() {
   TEST_EQ(TestValue<uint16_t>("{ Y:65535 }","ushort"), 65535);
   TEST_EQ(TestValue<uint16_t>("{ Y:0 }","ushort"), 0);
   TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }","int"), 2147483647);
-  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }","int"), -2147483648);
+  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }","int"), (-2147483647 - 1));
   TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }","uint"), 4294967295);
   TEST_EQ(TestValue<uint32_t>("{ Y:0 }","uint"), 0);
   TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }","long"), 9223372036854775807);
