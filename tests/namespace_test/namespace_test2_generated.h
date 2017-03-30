@@ -8,12 +8,6 @@
 
 #include "namespace_test1_generated.h"
 
-#if defined(_MSC_VER)
-#define NOEXCEPT
-#else
-#define NOEXCEPT noexcept
-#endif
-
 namespace NamespaceA {
 
 struct TableInFirstNS;

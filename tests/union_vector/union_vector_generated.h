@@ -6,12 +6,6 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#if defined(_MSC_VER)
-#define NOEXCEPT
-#else
-#define NOEXCEPT noexcept
-#endif
-
 struct MuLan;
 
 struct Rapunzel;
