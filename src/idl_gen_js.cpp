@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <unordered_set>
+#include <unordered_map>
 #include <cassert>
 
 #include "flatbuffers/flatbuffers.h"
@@ -30,6 +31,12 @@ const std::string kGeneratedFileNamePostfix = "_generated";
 struct JsLanguageParameters {
   IDLOptions::Language language;
   std::string file_extension;
+};
+
+struct ReexportDescription {
+  std::string symbol;
+  std::string source_namespace;
+  std::string target_namespace;
 };
 
 const JsLanguageParameters& GetJsLangParams(IDLOptions::Language lang) {
@@ -64,6 +71,7 @@ namespace js {
 class JsGenerator : public BaseGenerator {
  public:
   typedef std::unordered_set<std::string> imported_fileset;
+  typedef std::unordered_multimap<std::string, ReexportDescription> reexport_map;
 
   JsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
@@ -77,11 +85,13 @@ class JsGenerator : public BaseGenerator {
     if (IsEverythingGenerated()) return true;
 
     imported_fileset imported_files;
+    reexport_map reexports;
 
     std::string enum_code, struct_code, import_code, exports_code, code;
-    generateEnums(&enum_code, &exports_code);
+    generateEnums(&enum_code, &exports_code, reexports);
     generateStructs(&struct_code, &exports_code, imported_files);
     generateImportDependencies(&import_code, imported_files);
+    generateReexports(&import_code, reexports, imported_files);
 
     code = code + "// " + FlatBuffersGeneratedWarning();
 
@@ -113,18 +123,48 @@ class JsGenerator : public BaseGenerator {
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
       if (basename != file_name_) {
-        code += "import * as "+ GenFileNamespacePrefix(file) + " from \"./" + basename + kGeneratedFileNamePostfix + "\";\n";
+        const auto file_name = basename + kGeneratedFileNamePostfix;
+        code += GenPrefixedImport(file, file_name);
       }
     }
   }
 
+  // Generate reexports, which might not have been explicitly imported using the "export import" trick
+  void generateReexports(std::string *code_ptr,
+                         const reexport_map &reexports,
+                         imported_fileset imported_files) {
+      if (!parser_.opts.reexport_ts_modules || lang_.language != IDLOptions::kTs) {
+          return;
+      }
+
+      std::string &code = *code_ptr;
+      for (auto it = reexports.begin(); it != reexports.end(); ++it) {
+        const auto &file = *it;
+        const auto basename =
+            flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
+        if (basename != file_name_) {
+          const auto file_name = basename + kGeneratedFileNamePostfix;
+
+          if (imported_files.find(file.first) == imported_files.end()) {
+            code += GenPrefixedImport(file.first, file_name);
+            imported_files.emplace(file.first);
+          }
+
+          code += "export namespace " + file.second.target_namespace + " { \n";
+          code += "export import " + file.second.symbol + " = ";
+          code += GenFileNamespacePrefix(file.first) + "." + file.second.source_namespace + "." + file.second.symbol + "; }\n";
+        }
+      }
+  }
+
   // Generate code for all enums.
   void generateEnums(std::string *enum_code_ptr,
-                     std::string *exports_code_ptr) {
+                     std::string *exports_code_ptr,
+                     reexport_map &reexports) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports);
     }
   }
 
@@ -236,7 +276,7 @@ static void GenDocComment(std::string *code_ptr,
 
 // Generate an enum declaration and an enum string lookup table.
 void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-                    std::string *exports_ptr) {
+             std::string *exports_ptr, reexport_map &reexports) {
   if (enum_def.generated) return;
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
@@ -266,6 +306,11 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     }
     code += "  " + ev.name + ((lang_.language == IDLOptions::kTs) ? ("= ") : (": ")) + NumToString(ev.value);
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
+
+    if (ev.struct_def) {
+        ReexportDescription desc = { ev.name, GetNameSpace(*ev.struct_def), GetNameSpace(enum_def) };
+        reexports.insert(std::make_pair(ev.struct_def->file, std::move(desc)));
+    }
   }
 
   if (lang_.language == IDLOptions::kTs) {
@@ -404,6 +449,11 @@ static std::string MaybeScale(T value) {
 
 static std::string GenFileNamespacePrefix(const std::string &file) {
   return "NS" + std::to_string(static_cast<unsigned long long>(std::hash<std::string>()(file)));
+}
+
+static std::string GenPrefixedImport(const std::string &full_file_name,
+                                     const std::string &base_file_name) {
+  return "import * as "+ GenFileNamespacePrefix(full_file_name) + " from \"./" + base_file_name + "\";\n";
 }
 
 // Adds a source-dependent prefix, for of import * statements.

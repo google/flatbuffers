@@ -360,6 +360,7 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool skip_flatbuffers_import;
   std::string go_namespace;
+  bool reexport_ts_modules;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -403,6 +404,7 @@ struct IDLOptions {
       allow_non_utf8(false),
       binary_schema_comments(false),
       skip_flatbuffers_import(false),
+      reexport_ts_modules(true),
       lang(IDLOptions::kJava),
       lang_to_generate(0) {}
 };

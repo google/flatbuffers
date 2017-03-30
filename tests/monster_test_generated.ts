@@ -419,6 +419,90 @@ static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, 
  * @constructor
  */
 export namespace MyGame.Example{
+export class Ability {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer= null;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {Ability}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):Ability {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @returns {number}
+ */
+id():number {
+  return this.bb.readUint32(this.bb_pos);
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_id(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 0);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+distance():number {
+  return this.bb.readUint32(this.bb_pos + 4);
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_distance(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} id
+ * @param {number} distance
+ * @returns {flatbuffers.Offset}
+ */
+static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
+  builder.prep(4, 8);
+  builder.writeInt32(distance);
+  builder.writeInt32(id);
+  return builder.offset();
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
 export class Stat {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -1162,10 +1246,28 @@ testarrayofstring2Length():number {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Ability=} obj
+ * @returns {MyGame.Example.Ability}
+ */
+testarrayofsortedstruct(index: number, obj?:MyGame.Example.Ability):MyGame.Example.Ability {
+  var offset = this.bb.__offset(this.bb_pos, 62);
+  return offset ? (obj || new MyGame.Example.Ability).__init(this.bb.__vector(this.bb_pos + offset) + index * 8, this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+testarrayofsortedstructLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 62);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(29);
+  builder.startObject(30);
 };
 
 /**
@@ -1542,6 +1644,22 @@ if(!data){
  */
 static startTestarrayofstring2Vector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testarrayofsortedstructOffset
+ */
+static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsortedstructOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 4);
 };
 
 /**
