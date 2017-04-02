@@ -41,8 +41,18 @@ for (_index = 0; _index < sizeof(expected); _index++) { \
     TEST_EQ(data[_index], expected[_index]);\
 }\
 
+#define partCheck(...) {\
+unsigned char expected[] = {__VA_ARGS__}; \
+for (unsigned long i = 0; _index + i < sizeof(expected); i++) { \
+TEST_EQ(data[_index+i], expected[i]);\
+}\
+_index += sizeof(expected);\
+}
+
+#define skip(i) _index += i;
+
 #define start() flexbuffers::Builder slb(512, flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
-#define finish() slb.Finish(); auto data = slb.GetBuffer().data();
+#define finish() slb.Finish(); auto data = slb.GetBuffer().data(); _index = 0UL;
 #define dump() for (size_t i = 0; i < slb.GetBuffer().size(); i++)\
 printf("%d, ", data[i]);\
 printf("\n");
@@ -165,7 +175,9 @@ void FlexBuffersEncodingTest() {
         int64_t arr[] = { 1, 55555555500, 3 };
         slb.Vector(arr, 3);
         finish()
-        check(3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
+        partCheck(3)
+        skip(7UL)
+        partCheck(1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
     }
     { // encode unsigned byte vector
         start()
@@ -193,7 +205,9 @@ void FlexBuffersEncodingTest() {
         uint64_t arr[] = { 1, 55555555500, 3 };
         slb.Vector(arr, 3);
         finish()
-        check(3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 51, 1)
+        partCheck(3)
+        skip(7UL)
+        partCheck(1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 51, 1)
     }
     { // encode float vector (4byte)
         start()
@@ -207,7 +221,9 @@ void FlexBuffersEncodingTest() {
         double arr[] = { 1.1, 2.2, 3.3 };
         slb.Vector(arr, 3);
         finish()
-        check(3, 0, 0, 0, 0, 0, 0, 0, 154, 153, 153, 153, 153, 153, 241, 63, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 10, 64, 24, 55, 1)
+        partCheck(3)
+        skip(7UL)
+        partCheck(154, 153, 153, 153, 153, 153, 241, 63, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 10, 64, 24, 55, 1)
     }
     { // encode bool vector
         start()
@@ -266,7 +282,9 @@ void FlexBuffersEncodingTest() {
             slb.Add(29.2);
         });
         finish()
-        check(3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 64, 51, 51, 51, 51, 51, 147, 83, 64, 51, 51, 51, 51, 51, 51, 61, 64, 15, 15, 15, 27, 43, 1)
+        partCheck(3)
+        skip(7UL)
+        partCheck(0, 0, 0, 0, 0, 0, 18, 64, 51, 51, 51, 51, 51, 147, 83, 64, 51, 51, 51, 51, 51, 51, 61, 64, 15, 15, 15, 27, 43, 1)
     }
     { // encode int vector not typed
         start()
