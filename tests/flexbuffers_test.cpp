@@ -141,78 +141,78 @@ void FlexBuffersEncodingTest() {
     }
     { // encode 1byte vector
         start()
-        std::vector<int8_t> arr = { 1, 2, 3 };
-        slb.Add(arr);
+        int8_t arr[] = { 1, 2, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 1, 2, 3, 3, 44, 1)
     }
     { // encode unsigned 2byte int vector
         start()
-        std::vector<int16_t> arr = { 1, 555, 3 };
-        slb.Add(arr);
+        int16_t arr[] = { 1, 555, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 1, 0, 43, 2, 3, 0, 6, 45, 1)
     }
     { // encode unsigned 4byte int vector
         start()
-        std::vector<int> arr = { 1, 55500, 3 };
-        slb.Add(arr);
+        int arr[] = { 1, 55500, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 1, 0, 0, 0, 204, 216, 0, 0, 3, 0, 0, 0, 12, 46, 1)
     }
     { // encode unsigned 8byte int vector
         start()
-        std::vector<int64_t> arr = { 1, 55555555500, 3 };
-        slb.Add(arr);
+        int64_t arr[] = { 1, 55555555500, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
     }
     { // encode unsigned byte vector
         start()
-        std::vector<uint8_t> arr = { 1, 2, 3 };
-        slb.Add(arr);
+        uint8_t arr[] = { 1, 2, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 1, 2, 3, 3, 48, 1)
     }
     { // encode unsigned 2byte vector
         start()
-        std::vector<uint16_t> arr = { 1, 555, 3 };
-        slb.Add(arr);
+        uint16_t arr[] = { 1, 555, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 1, 0, 43, 2, 3, 0, 6, 49, 1)
     }
     { // encode unsigned 4byte vector
         start()
-        std::vector<uint32_t> arr = { 1, 55500, 3 };
-        slb.Add(arr);
+        uint32_t arr[] = { 1, 55500, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 1, 0, 0, 0, 204, 216, 0, 0, 3, 0, 0, 0, 12, 50, 1)
     }
     { // encode unsigned 8byte vector
         start()
-        std::vector<uint64_t> arr = { 1, 55555555500, 3 };
-        slb.Add(arr);
+        uint64_t arr[] = { 1, 55555555500, 3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 51, 1)
     }
     { // encode float vector (4byte)
         start()
-        std::vector<float> arr = { 1.5, 2.5, 3.5 };
-        slb.Add(arr);
+        float arr[] = { 1.5, 2.5, 3.5 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 0, 0, 192, 63, 0, 0, 32, 64, 0, 0, 96, 64, 12, 54, 1)
     }
     { // encode double vector (8byte)
         start()
-        std::vector<double> arr = { 1.1, 2.2, 3.3 };
-        slb.Add(arr);
+        double arr[] = { 1.1, 2.2, 3.3 };
+        slb.Vector(arr, 3);
         finish()
         check(3, 0, 0, 0, 0, 0, 0, 0, 154, 153, 153, 153, 153, 153, 241, 63, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 10, 64, 24, 55, 1)
     }
     { // encode bool vector
         start()
-        std::vector<int8_t> arr = { true, false, true };
-        slb.Add(arr);
+        int8_t arr[] = { true, false, true };
+        slb.Vector(arr, 3);
         finish()
         check(3, 1, 0, 1, 3, 44, 1)
     }
@@ -248,7 +248,7 @@ void FlexBuffersEncodingTest() {
         finish()
         check(3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 0, 3, 15, 11, 7, 20, 20, 20, 6, 40, 1)
     }
-    { // encode string vector
+    { // encode typed string vector
         start()
         slb.TypedVector([&]() {
             slb.Add("foo");
@@ -257,13 +257,6 @@ void FlexBuffersEncodingTest() {
         });
         finish()
         check(3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 0, 3, 15, 11, 7, 3, 60, 1)
-    }
-    { // encode string vector stl
-        start()
-        std::vector<std::string> arr = { "foo", "bar", "baz" };
-        slb.Add(arr);
-        finish()
-        check(3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 0, 3, 15, 11, 7, 20, 20, 20, 6, 40, 1)
     }
     { // encode floats vector not fixed
         start()
@@ -275,7 +268,7 @@ void FlexBuffersEncodingTest() {
         finish()
         check(3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 64, 51, 51, 51, 51, 51, 147, 83, 64, 51, 51, 51, 51, 51, 51, 61, 64, 15, 15, 15, 27, 43, 1)
     }
-    { // encode int vector not fixed
+    { // encode int vector not typed
         start()
         slb.Vector([&]() {
             slb.Add(4);
