@@ -1454,6 +1454,8 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
 }
 
+void FlexBuffersEncodingTest();
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1492,9 +1494,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
-
+    
   FlexBuffersTest();
-
+  FlexBuffersEncodingTest();
+    
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
     return 0;
