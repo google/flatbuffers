@@ -194,6 +194,16 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     DEPENDS flatc)
 endfunction()
 
+function(compile_fbs_to_cpp SRC_FBS)
+  get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
+  string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+  add_custom_command(
+    OUTPUT ${GEN_HEADER}
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c -o "${SRC_FBS_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    DEPENDS flatc)
+endfunction()
+
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
@@ -216,6 +226,17 @@ if(FLATBUFFERS_BUILD_TESTS)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+
+  SET(INCLUDE_RTT_TEST "tests/include_root_type_test")
+  compile_fbs_to_cpp(${INCLUDE_RTT_TEST}/root1.fbs)
+  compile_fbs_to_cpp(${INCLUDE_RTT_TEST}/root2.fbs)
+  compile_fbs_to_cpp(${INCLUDE_RTT_TEST}/non-root1.fbs)
+  add_executable(include_root_type_test 
+    ${INCLUDE_RTT_TEST}/include_test.cpp
+    ${INCLUDE_RTT_TEST}/root1_generated.h
+    ${INCLUDE_RTT_TEST}/root2_generated.h
+    ${INCLUDE_RTT_TEST}/non-root1_generated.h
+    )
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
