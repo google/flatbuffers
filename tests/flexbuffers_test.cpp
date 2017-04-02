@@ -13,7 +13,7 @@
 
 static int testing_fails2 = 0;
 
-static unsigned long _index = -1;
+static unsigned long _index = -1UL;
 
 static void TestFail2(const char *expval, const char *val, const char *exp,
               const char *file, int line) {
