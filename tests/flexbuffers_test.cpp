@@ -44,8 +44,8 @@ for (_index = 0; _index < sizeof(expected); _index++) { \
 #define initCheck() _index = 0UL;
 #define partCheck(...) {\
 unsigned char expected[] = {__VA_ARGS__}; \
-for (unsigned long i = 0; _index + i < sizeof(expected); i++) { \
-TEST_EQ(data[_index+i], expected[i]);\
+for (unsigned long __i = 0; _index + __i < sizeof(expected); __i++) { \
+TEST_EQ(data[_index+__i], expected[__i]);\
 }\
 _index += sizeof(expected);\
 }
