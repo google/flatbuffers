@@ -70,3 +70,4 @@ Testing/Temporary
 .settings/
 .project
 net/**/obj
+node_modules/
