@@ -840,7 +840,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
-      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, value);\n";
+
+      // special case for bools, which are treated as uint8
+      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, ";
+      if (field.value.type.base_type == BASE_TYPE_BOOL && lang_.language == IDLOptions::kTs) {
+          code += "+";
+      }
+
+      code += "value);\n";
       code += "  return true;\n";
       code += "};\n\n";
 
