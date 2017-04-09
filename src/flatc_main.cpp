@@ -91,6 +91,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::IDLOptions::kPhp,
       "Generate PHP files for tables/structs",
       flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateJS,       nullptr, "--ts", "TypeScript",
+      nullptr,
+      flatbuffers::IDLOptions::kTs,
+      "Generate TypeScript code for tables/structs",
+      flatbuffers::JSMakeRule },
     };
 
   flatbuffers::FlatCompiler::InitParams params;
