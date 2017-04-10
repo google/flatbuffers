@@ -411,4 +411,22 @@ manually wrap it in synchronisation primites. There's no automatic way to
 accomplish this, by design, as we feel multithreaded construction
 of a single buffer will be rare, and synchronisation overhead would be costly.
 
+## Advanced union features
+
+The C++ implementation currently supports vectors of unions (i.e. you can
+declare a field as `[T]` where `T` is a union type instead of a table type). It
+also supports structs and strings in unions, besides tables.
+
+For an example of these features, see `tests/union_vector`, and
+`UnionVectorTest` in `test.cpp`.
+
+Since these features haven't been ported to other languages yet, if you
+choose to use them, you won't be able to use these buffers in other languages
+(`flatc` will refuse to compile a schema that uses these features).
+
+These features reduce the amount of "table wrapping" that was previously
+needed to use unions.
+
+To use scalars, simply wrap them in a struct.
+
 <br>

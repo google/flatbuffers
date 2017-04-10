@@ -360,6 +360,8 @@ private:
   const uint8_t *data_;
 };
 
+struct String;
+
 // This is used as a helper type for accessing vectors.
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
@@ -389,6 +391,18 @@ public:
   // type E.
   template<typename E> E GetEnum(uoffset_t i) const {
     return static_cast<E>(Get(i));
+  }
+
+  // If this a vector of unions, this does the cast for you. There's no check
+  // to make sure this is the right type!
+  template<typename U> const U *GetAs(uoffset_t i) const {
+    return reinterpret_cast<const U *>(Get(i));
+  }
+
+  // If this a vector of unions, this does the cast for you. There's no check
+  // to make sure this is actually a string!
+  const String *GetAsString(uoffset_t i) const {
+    return reinterpret_cast<const String *>(Get(i));
   }
 
   const void *GetStructFromOffset(size_t o) const {
@@ -1325,6 +1339,13 @@ FLATBUFFERS_FINAL_CLASS
       size_t len, T **buf) {
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
+  }
+
+  /// @brief Write a struct by itself, typically to be part of a union.
+  template<typename T> Offset<const T *> CreateStruct(const T &structobj) {
+    Align(AlignOf<T>());
+    buf_.push_small(structobj);
+    return Offset<const T *>(GetSize());
   }
 
   /// @brief The length of a FlatBuffer file header.
