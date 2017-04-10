@@ -1693,9 +1693,9 @@ public:
 
   inline operator bool() const { return val_; }
 
-  inline const T *get() const { return val_; }
-  inline operator const T * () const { return val_; }
-  inline const T * operator ->() const { return val_; }
+  inline T *get() const { return val_; }
+  inline operator T * () const { return val_; }
+  inline T * operator ->() const { return val_; }
 
   inline T *create() { delete val_; val_ = new T(); return val_; }
   inline void release() { delete val_; val_ = nullptr; }
