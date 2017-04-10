@@ -178,12 +178,12 @@ void FlexBuffersEncodingTest() {
         int64_t arr[] = { 1, 55555555500, 3 };
         slb.Vector(arr, 3);
         finish()
-        
-        initCheck()
-        partCheck(3)
-        skip(7UL)
-        partCheck(1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
-        endCheck()
+        check(3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
+//        initCheck()
+//        partCheck(3)
+//        skip(7UL)
+//        partCheck(1, 0, 0, 0, 0, 0, 0, 0, 172, 128, 94, 239, 12, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 24, 47, 1)
+//        endCheck()
     }
     { // encode unsigned byte vector
         start()
@@ -368,6 +368,16 @@ void FlexBuffersEncodingTest() {
         });
         finish()
         check(99, 0, 45, 97, 0, 236, 98, 0, 0, 0, 240, 64, 100, 0, 0, 0, 57, 180, 200, 118, 190, 15, 76, 64, 4, 22, 20, 27, 16, 4, 1, 4, 27, 25, 32, 19, 24, 34, 28, 35, 8, 36, 1)
+    }
+    { // encode map with indirect values
+        start()
+        slb.Map([&]() {
+            slb.IndirectFloat("a", 2.5);
+        });
+        finish()
+        check(97, 0, 0, 0, 0, 0, 32, 64, 1, 9, 1, 1, 1, 9, 34, 2, 36, 1)
+        auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
+        TEST_OUTPUT_LINE("%f", map["a"].AsFloat());
     }
     { // encode vector with indirect values
         start()
