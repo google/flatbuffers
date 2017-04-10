@@ -71,35 +71,35 @@ template<> struct EquipmentTraits<Weapon> {
 
 struct EquipmentUnion {
   Equipment type;
-  flatbuffers::NativeTable *table;
+  void *value;
 
-  EquipmentUnion() : type(Equipment_NONE), table(nullptr) {}
+  EquipmentUnion() : type(Equipment_NONE), value(nullptr) {}
   EquipmentUnion(EquipmentUnion&& u) FLATBUFFERS_NOEXCEPT :
-    type(Equipment_NONE), table(nullptr)
-    { std::swap(type, u.type); std::swap(table, u.table); }
+    type(Equipment_NONE), value(nullptr)
+    { std::swap(type, u.type); std::swap(value, u.value); }
   EquipmentUnion(const EquipmentUnion &);
   EquipmentUnion &operator=(const EquipmentUnion &);
   EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
-    { std::swap(type, u.type); std::swap(table, u.table); return *this; }
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~EquipmentUnion() { Reset(); }
 
   void Reset();
 
   template <typename T>
-  void Set(T&& value) {
+  void Set(T&& val) {
     Reset();
     type = EquipmentTraits<typename T::TableType>::enum_value;
     if (type != Equipment_NONE) {
-      table = new T(std::forward<T>(value));
+      value = new T(std::forward<T>(val));
     }
   }
 
-  static flatbuffers::NativeTable *UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver);
+  static void *UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
 
   WeaponT *AsWeapon() {
     return type == Equipment_Weapon ?
-      reinterpret_cast<WeaponT *>(table) : nullptr;
+      reinterpret_cast<WeaponT *>(value) : nullptr;
   }
 };
 
@@ -228,7 +228,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   template<typename T> const T *equipped_as() const;
   const Weapon *equipped_as_Weapon() const {
-    return (equipped_type() == Equipment_Weapon)? static_cast<const Weapon *>(equipped()) : nullptr;
+    return equipped_type() == Equipment_Weapon ? static_cast<const Weapon *>(equipped()) : nullptr;
   }
   void *mutable_equipped() {
     return GetPointer<void *>(VT_EQUIPPED);
@@ -451,7 +451,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = color(); _o->color = _e; };
   { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->weapons[_i] = std::unique_ptr<WeaponT>(_e->Get(_i)->UnPack(_resolver)); } } };
   { auto _e = equipped_type(); _o->equipped.type = _e; };
-  { auto _e = equipped(); if (_e) _o->equipped.table = EquipmentUnion::UnPack(_e, equipped_type(),_resolver); };
+  { auto _e = equipped(); if (_e) _o->equipped.value = EquipmentUnion::UnPack(_e, equipped_type(), _resolver); };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -535,7 +535,7 @@ inline bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuf
   return true;
 }
 
-inline flatbuffers::NativeTable *EquipmentUnion::UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver) {
+inline void *EquipmentUnion::UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver) {
   switch (type) {
     case Equipment_Weapon: {
       auto ptr = reinterpret_cast<const Weapon *>(obj);
@@ -548,7 +548,7 @@ inline flatbuffers::NativeTable *EquipmentUnion::UnPack(const void *obj, Equipme
 inline flatbuffers::Offset<void> EquipmentUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
   switch (type) {
     case Equipment_Weapon: {
-      auto ptr = reinterpret_cast<const WeaponT *>(table);
+      auto ptr = reinterpret_cast<const WeaponT *>(value);
       return CreateWeapon(_fbb, ptr, _rehasher).Union();
     }
     default: return 0;
@@ -558,13 +558,13 @@ inline flatbuffers::Offset<void> EquipmentUnion::Pack(flatbuffers::FlatBufferBui
 inline void EquipmentUnion::Reset() {
   switch (type) {
     case Equipment_Weapon: {
-      auto ptr = reinterpret_cast<WeaponT *>(table);
+      auto ptr = reinterpret_cast<WeaponT *>(value);
       delete ptr;
       break;
     }
     default: break;
   }
-  table = nullptr;
+  value = nullptr;
   type = Equipment_NONE;
 }
 

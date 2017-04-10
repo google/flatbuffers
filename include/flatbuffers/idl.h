@@ -283,18 +283,18 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val)
-    : name(_name), value(_val), struct_def(nullptr) {}
+    : name(_name), value(_val) {}
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder) const;
 
   std::string name;
   std::vector<std::string> doc_comment;
   int64_t value;
-  StructDef *struct_def;  // only set if this is a union
+  Type union_type;
 };
 
 struct EnumDef : public Definition {
-  EnumDef() : is_union(false) {}
+  EnumDef() : is_union(false), uses_type_aliases(false) {}
 
   EnumVal *ReverseLookup(int enum_idx, bool skip_union_default = true) {
     for (auto it = vals.vec.begin() + static_cast<int>(is_union &&
@@ -312,6 +312,7 @@ struct EnumDef : public Definition {
 
   SymbolTable<EnumVal> vals;
   bool is_union;
+  bool uses_type_aliases;
   Type underlying_type;
 };
 
@@ -548,6 +549,7 @@ private:
                                      const std::string &name, const Type &type,
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
+  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def);

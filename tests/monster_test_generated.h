@@ -102,43 +102,43 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
 
 struct AnyUnion {
   Any type;
-  flatbuffers::NativeTable *table;
+  void *value;
 
-  AnyUnion() : type(Any_NONE), table(nullptr) {}
+  AnyUnion() : type(Any_NONE), value(nullptr) {}
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
-    type(Any_NONE), table(nullptr)
-    { std::swap(type, u.type); std::swap(table, u.table); }
+    type(Any_NONE), value(nullptr)
+    { std::swap(type, u.type); std::swap(value, u.value); }
   AnyUnion(const AnyUnion &);
   AnyUnion &operator=(const AnyUnion &);
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
-    { std::swap(type, u.type); std::swap(table, u.table); return *this; }
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~AnyUnion() { Reset(); }
 
   void Reset();
 
   template <typename T>
-  void Set(T&& value) {
+  void Set(T&& val) {
     Reset();
     type = AnyTraits<typename T::TableType>::enum_value;
     if (type != Any_NONE) {
-      table = new T(std::forward<T>(value));
+      value = new T(std::forward<T>(val));
     }
   }
 
-  static flatbuffers::NativeTable *UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver);
+  static void *UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
 
   MonsterT *AsMonster() {
     return type == Any_Monster ?
-      reinterpret_cast<MonsterT *>(table) : nullptr;
+      reinterpret_cast<MonsterT *>(value) : nullptr;
   }
   TestSimpleTableWithEnumT *AsTestSimpleTableWithEnum() {
     return type == Any_TestSimpleTableWithEnum ?
-      reinterpret_cast<TestSimpleTableWithEnumT *>(table) : nullptr;
+      reinterpret_cast<TestSimpleTableWithEnumT *>(value) : nullptr;
   }
   MyGame::Example2::MonsterT *AsMyGame_Example2_Monster() {
     return type == Any_MyGame_Example2_Monster ?
-      reinterpret_cast<MyGame::Example2::MonsterT *>(table) : nullptr;
+      reinterpret_cast<MyGame::Example2::MonsterT *>(value) : nullptr;
   }
 };
 
@@ -629,13 +629,13 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   template<typename T> const T *test_as() const;
   const Monster *test_as_Monster() const {
-    return (test_type() == Any_Monster)? static_cast<const Monster *>(test()) : nullptr;
+    return test_type() == Any_Monster ? static_cast<const Monster *>(test()) : nullptr;
   }
   const TestSimpleTableWithEnum *test_as_TestSimpleTableWithEnum() const {
-    return (test_type() == Any_TestSimpleTableWithEnum)? static_cast<const TestSimpleTableWithEnum *>(test()) : nullptr;
+    return test_type() == Any_TestSimpleTableWithEnum ? static_cast<const TestSimpleTableWithEnum *>(test()) : nullptr;
   }
   const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
-    return (test_type() == Any_MyGame_Example2_Monster)? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
+    return test_type() == Any_MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
   }
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
@@ -1172,7 +1172,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = inventory(); if (_e) { _o->inventory.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory[_i] = _e->Get(_i); } } };
   { auto _e = color(); _o->color = _e; };
   { auto _e = test_type(); _o->test.type = _e; };
-  { auto _e = test(); if (_e) _o->test.table = AnyUnion::UnPack(_e, test_type(),_resolver); };
+  { auto _e = test(); if (_e) _o->test.value = AnyUnion::UnPack(_e, test_type(), _resolver); };
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } };
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } };
   { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables[_i] = std::unique_ptr<MonsterT>(_e->Get(_i)->UnPack(_resolver)); } } };
@@ -1297,7 +1297,7 @@ inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::
   return true;
 }
 
-inline flatbuffers::NativeTable *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {
+inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {
   switch (type) {
     case Any_Monster: {
       auto ptr = reinterpret_cast<const Monster *>(obj);
@@ -1318,15 +1318,15 @@ inline flatbuffers::NativeTable *AnyUnion::UnPack(const void *obj, Any type, con
 inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
   switch (type) {
     case Any_Monster: {
-      auto ptr = reinterpret_cast<const MonsterT *>(table);
+      auto ptr = reinterpret_cast<const MonsterT *>(value);
       return CreateMonster(_fbb, ptr, _rehasher).Union();
     }
     case Any_TestSimpleTableWithEnum: {
-      auto ptr = reinterpret_cast<const TestSimpleTableWithEnumT *>(table);
+      auto ptr = reinterpret_cast<const TestSimpleTableWithEnumT *>(value);
       return CreateTestSimpleTableWithEnum(_fbb, ptr, _rehasher).Union();
     }
     case Any_MyGame_Example2_Monster: {
-      auto ptr = reinterpret_cast<const MyGame::Example2::MonsterT *>(table);
+      auto ptr = reinterpret_cast<const MyGame::Example2::MonsterT *>(value);
       return CreateMonster(_fbb, ptr, _rehasher).Union();
     }
     default: return 0;
@@ -1336,23 +1336,23 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
 inline void AnyUnion::Reset() {
   switch (type) {
     case Any_Monster: {
-      auto ptr = reinterpret_cast<MonsterT *>(table);
+      auto ptr = reinterpret_cast<MonsterT *>(value);
       delete ptr;
       break;
     }
     case Any_TestSimpleTableWithEnum: {
-      auto ptr = reinterpret_cast<TestSimpleTableWithEnumT *>(table);
+      auto ptr = reinterpret_cast<TestSimpleTableWithEnumT *>(value);
       delete ptr;
       break;
     }
     case Any_MyGame_Example2_Monster: {
-      auto ptr = reinterpret_cast<MyGame::Example2::MonsterT *>(table);
+      auto ptr = reinterpret_cast<MyGame::Example2::MonsterT *>(value);
       delete ptr;
       break;
     }
     default: break;
   }
-  table = nullptr;
+  value = nullptr;
   type = Any_NONE;
 }
 

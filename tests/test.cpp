@@ -1334,46 +1334,78 @@ void UnionVectorTest() {
   // union types.
   std::vector<uint8_t> types;
   types.push_back(static_cast<uint8_t>(Character_Belle));
-  types.push_back(static_cast<uint8_t>(Character_Rapunzel));
   types.push_back(static_cast<uint8_t>(Character_MuLan));
+  types.push_back(static_cast<uint8_t>(Character_BookFan));
+  types.push_back(static_cast<uint8_t>(Character_Other));
+  types.push_back(static_cast<uint8_t>(Character_Unused));
 
   // union values.
   std::vector<flatbuffers::Offset<void>> characters;
-  characters.push_back(CreateBelle(fbb, /*books_read=*/7).Union());
-  characters.push_back(CreateRapunzel(fbb, /*hair_length=*/6).Union());
-  characters.push_back(CreateMuLan(fbb, /*sword_attack_damage=*/5).Union());
+  characters.push_back(fbb.CreateStruct(BookReader(/*books_read=*/7)).Union());
+  characters.push_back(CreateAttacker(fbb, /*sword_attack_damage=*/5).Union());
+  characters.push_back(fbb.CreateStruct(BookReader(/*books_read=*/2)).Union());
+  characters.push_back(fbb.CreateString("Other").Union());
+  characters.push_back(fbb.CreateString("Unused").Union());
 
   // create Movie.
   const auto movie_offset =
-      CreateMovie(fbb, fbb.CreateVector(types), fbb.CreateVector(characters));
+      CreateMovie(fbb,
+                  Character_Rapunzel,
+                  fbb.CreateStruct(Rapunzel(/*hair_length=*/6)).Union(),
+                  fbb.CreateVector(types),
+                  fbb.CreateVector(characters));
   FinishMovieBuffer(fbb, movie_offset);
-  uint8_t *buf = fbb.GetBufferPointer();
+  auto buf = fbb.GetBufferPointer();
 
   flatbuffers::Verifier verifier(buf, fbb.GetSize());
   TEST_EQ(VerifyMovieBuffer(verifier), true);
 
-  const Movie *movie = GetMovie(buf);
-  TEST_EQ(movie->characters_type()->size(), 3);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(0) == Character_Belle,
-      true);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(1) == Character_Rapunzel,
-      true);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(2) == Character_MuLan,
-      true);
+  auto flat_movie = GetMovie(buf);
 
-  TEST_EQ(movie->characters()->size(), 3);
-  const Belle *belle =
-      reinterpret_cast<const Belle*>(movie->characters()->Get(0));
-  TEST_EQ(belle->books_read(), 7);
-  const Rapunzel *rapunzel =
-      reinterpret_cast<const Rapunzel*>(movie->characters()->Get(1));
-  TEST_EQ(rapunzel->hair_length(), 6);
-  const MuLan *mu_lan =
-      reinterpret_cast<const MuLan*>(movie->characters()->Get(2));
-  TEST_EQ(mu_lan->sword_attack_damage(), 5);
+  auto TestMovie = [](const Movie *movie) {
+    TEST_EQ(movie->main_character_type() == Character_Rapunzel, true);
+
+    auto cts = movie->characters_type();
+    TEST_EQ(movie->characters_type()->size(), 5);
+    TEST_EQ(cts->GetEnum<Character>(0) == Character_Belle, true);
+    TEST_EQ(cts->GetEnum<Character>(1) == Character_MuLan, true);
+    TEST_EQ(cts->GetEnum<Character>(2) == Character_BookFan, true);
+    TEST_EQ(cts->GetEnum<Character>(3) == Character_Other, true);
+    TEST_EQ(cts->GetEnum<Character>(4) == Character_Unused, true);
+
+    auto rapunzel = movie->main_character_as_Rapunzel();
+    TEST_EQ(rapunzel->hair_length(), 6);
+
+    auto cs = movie->characters();
+    TEST_EQ(cs->size(), 5);
+    auto belle = cs->GetAs<BookReader>(0);
+    TEST_EQ(belle->books_read(), 7);
+    auto mu_lan = cs->GetAs<Attacker>(1);
+    TEST_EQ(mu_lan->sword_attack_damage(), 5);
+    auto book_fan = cs->GetAs<BookReader>(2);
+    TEST_EQ(book_fan->books_read(), 2);
+    auto other = cs->GetAsString(3);
+    TEST_EQ_STR(other->c_str(), "Other");
+    auto unused = cs->GetAsString(4);
+    TEST_EQ_STR(unused->c_str(), "Unused");
+  };
+
+  TestMovie(flat_movie);
+
+  auto movie_object = flat_movie->UnPack();
+  TEST_EQ(movie_object->main_character.AsRapunzel()->hair_length(), 6);
+  TEST_EQ(movie_object->characters[0].AsBelle()->books_read(), 7);
+  TEST_EQ(movie_object->characters[1].AsMuLan()->sword_attack_damage, 5);
+  TEST_EQ(movie_object->characters[2].AsBookFan()->books_read(), 2);
+  TEST_EQ_STR(movie_object->characters[3].AsOther()->c_str(), "Other");
+  TEST_EQ_STR(movie_object->characters[4].AsUnused()->c_str(), "Unused");
+
+  fbb.Clear();
+  fbb.Finish(Movie::Pack(fbb, movie_object));
+
+  auto repacked_movie = GetMovie(fbb.GetBufferPointer());
+
+  TestMovie(repacked_movie);
 }
 
 void ConformTest() {
