@@ -135,6 +135,20 @@ std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
   return WrapInNameSpace(def.defined_namespace, def.name);
 }
 
+std::string BaseGenerator::GetNameSpace(const Definition &def) const {
+  const Namespace *ns = def.defined_namespace;
+  if (CurrentNameSpace() == ns) return "";
+  std::string qualified_name = qualifying_start_;
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+    qualified_name += *it;
+    if (std::next(it) != ns->components.end()) {
+        qualified_name += qualifying_separator_;
+    }
+  }
+
+  return qualified_name;
+}
+
 // Generate a documentation comment, if available.
 void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
                 const CommentConfig *config, const char *prefix) {
