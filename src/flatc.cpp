@@ -75,6 +75,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --no-prefix        Don\'t prefix enum values with the enum type in C++.\n"
       "  --scoped-enums     Use C++11 style scoped and strongly typed enums.\n"
       "                     also implies --no-prefix.\n"
+      "  --separate-enums   Declare/define enums in a separate C/C++ header file,\n"
+      "                     as 'filename_genum.h'.\n"
       "  --gen-includes     (deprecated), this is the default behavior.\n"
       "                     If the original behavior is required (no include\n"
       "                     statements) use --no-includes.\n"
@@ -175,6 +177,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if(arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;
+      } else if(arg == "--separate-enums") {
+        opts.separate_enums = true;
       } else if (arg == "--no-union-value-namespacing") {
         opts.union_value_namespacing = false;
       } else if(arg == "--gen-mutable") {
