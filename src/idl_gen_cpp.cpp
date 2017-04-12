@@ -28,10 +28,6 @@ static std::string GeneratedFileName(const std::string &path,
   return path + file_name + "_generated.h";
 }
 
-char ToUpper(char c) {
-  return static_cast<char>(::toupper(c));
-}
-
 namespace cpp {
 class CppGenerator : public BaseGenerator {
  public:
