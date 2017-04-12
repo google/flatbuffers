@@ -145,9 +145,8 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 
 elseif(MSVC)
   # Visual Studio pedantic build settings
-  # warning C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data
   # warning C4512: assignment operator could not be generated
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4244 /wd4512")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)

@@ -28,6 +28,10 @@ static std::string GeneratedFileName(const std::string &path,
   return path + file_name + "_generated.h";
 }
 
+char ToUpper(char c) {
+  return static_cast<char>(::toupper(c));
+}
+
 namespace cpp {
 class CppGenerator : public BaseGenerator {
  public:
@@ -54,7 +58,7 @@ class CppGenerator : public BaseGenerator {
       guard += *it + "_";
     }
     guard += "H_";
-    std::transform(guard.begin(), guard.end(), guard.begin(), ::toupper);
+    std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
     return guard;
   }
 
@@ -852,7 +856,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string GenFieldOffsetName(const FieldDef &field) {
     std::string uname = field.name;
-    std::transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+    std::transform(uname.begin(), uname.end(), uname.begin(), ToUpper);
     return "VT_" + uname;
   }
 
