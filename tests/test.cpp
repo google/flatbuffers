@@ -261,7 +261,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // Test accessing a vector of sorted structs
   auto vecofstructs = monster->testarrayofsortedstruct();
   if (vecofstructs) {  // not filled in monster_test.bfbs
-    for (size_t i = 0; i < vecofstructs->size()-1; i++) {
+    for (flatbuffers::uoffset_t i = 0; i < vecofstructs->size()-1; i++) {
       auto left = vecofstructs->Get(i);
       auto right = vecofstructs->Get(i+1);
       TEST_EQ(true, (left->KeyCompareLessThan(right)));

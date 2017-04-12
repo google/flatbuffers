@@ -54,7 +54,7 @@ class CppGenerator : public BaseGenerator {
       guard += *it + "_";
     }
     guard += "H_";
-    std::transform(guard.begin(), guard.end(), guard.begin(), ::toupper);
+    std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
     return guard;
   }
 
@@ -852,7 +852,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string GenFieldOffsetName(const FieldDef &field) {
     std::string uname = field.name;
-    std::transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+    std::transform(uname.begin(), uname.end(), uname.begin(), ToUpper);
     return "VT_" + uname;
   }
 
