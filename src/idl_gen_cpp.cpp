@@ -478,6 +478,7 @@ class CppGenerator : public BaseGenerator {
           : ev.name;
     } else {
       assert(false);
+      return ev.name;
     }
   }
 

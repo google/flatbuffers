@@ -49,7 +49,7 @@ void OutputIdentifier(const std::string &name, const IDLOptions &opts,
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
 template<typename T> bool Print(T val, Type type, int /*indent*/,
-                                Type */*union_type*/,
+                                Type * /*union_type*/,
                                 const IDLOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
