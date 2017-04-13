@@ -114,6 +114,11 @@ inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
   #endif
 }
 
+// Pedantic warning free version of toupper().
+inline char ToUpper(char c) {
+  return static_cast<char>(::toupper(c));
+}
+
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);

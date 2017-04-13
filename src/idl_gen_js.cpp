@@ -71,7 +71,8 @@ namespace js {
 class JsGenerator : public BaseGenerator {
  public:
   typedef std::unordered_set<std::string> imported_fileset;
-  typedef std::unordered_multimap<std::string, ReexportDescription> reexport_map;
+  typedef std::unordered_multimap<std::string, ReexportDescription>
+          reexport_map;
 
   JsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
@@ -104,19 +105,22 @@ class JsGenerator : public BaseGenerator {
     code += enum_code;
     code += struct_code;
 
-    if (lang_.language == IDLOptions::kJs && !exports_code.empty() && !parser_.opts.skip_js_exports) {
+    if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
+        !parser_.opts.skip_js_exports) {
       code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
-    return SaveFile(GeneratedFileName(path_, file_name_, lang_).c_str(), code, false);
+    return SaveFile(GeneratedFileName(path_, file_name_, lang_).c_str(), code,
+                    false);
   }
 
  private:
   JsLanguageParameters lang_;
 
   // Generate code for imports
-  void generateImportDependencies(std::string *code_ptr, const imported_fileset &imported_files) {
+  void generateImportDependencies(std::string *code_ptr,
+                                  const imported_fileset &imported_files) {
     std::string &code = *code_ptr;
     for (auto it = imported_files.begin(); it != imported_files.end(); ++it) {
       const auto &file = *it;
@@ -129,11 +133,13 @@ class JsGenerator : public BaseGenerator {
     }
   }
 
-  // Generate reexports, which might not have been explicitly imported using the "export import" trick
+  // Generate reexports, which might not have been explicitly imported using the
+  // "export import" trick
   void generateReexports(std::string *code_ptr,
                          const reexport_map &reexports,
                          imported_fileset imported_files) {
-      if (!parser_.opts.reexport_ts_modules || lang_.language != IDLOptions::kTs) {
+      if (!parser_.opts.reexport_ts_modules ||
+          lang_.language != IDLOptions::kTs) {
           return;
       }
 
@@ -152,7 +158,9 @@ class JsGenerator : public BaseGenerator {
 
           code += "export namespace " + file.second.target_namespace + " { \n";
           code += "export import " + file.second.symbol + " = ";
-          code += GenFileNamespacePrefix(file.first) + "." + file.second.source_namespace + "." + file.second.symbol + "; }\n";
+          code += GenFileNamespacePrefix(file.first) + "." +
+                  file.second.source_namespace + "." + file.second.symbol +
+                  "; }\n";
         }
       }
   }
@@ -175,11 +183,13 @@ class JsGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr, imported_files);
+      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr,
+                imported_files);
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
-  if (lang_.language == IDLOptions::kTs && parser_.opts.skip_flatbuffers_import) {
+  if (lang_.language == IDLOptions::kTs &&
+      parser_.opts.skip_flatbuffers_import) {
     return;
   }
 
@@ -282,13 +292,14 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
   std::string &exports = *exports_ptr;
   GenDocComment(enum_def.doc_comment, code_ptr, "@enum");
   if (lang_.language == IDLOptions::kTs) {
-    code += "export namespace " + GetNameSpace(enum_def) + "{\n" + "export enum " + enum_def.name + "{\n";
+    code += "export namespace " + GetNameSpace(enum_def) + "{\n" +
+            "export enum " + enum_def.name + "{\n";
   } else {
     if (enum_def.defined_namespace->components.empty()) {
       code += "var ";
       if(parser_.opts.use_goog_js_export_format) {
-        exports += "goog.exportSymbol('" + enum_def.name + "', " + enum_def.name +
-          ");\n";
+        exports += "goog.exportSymbol('" + enum_def.name + "', " +
+                   enum_def.name + ");\n";
       } else {
         exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
       }
@@ -304,12 +315,19 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
       }
       GenDocComment(ev.doc_comment, code_ptr, "", "  ");
     }
-    code += "  " + ev.name + ((lang_.language == IDLOptions::kTs) ? ("= ") : (": ")) + NumToString(ev.value);
+    code += "  " + ev.name;
+    code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+    code += NumToString(ev.value);
     code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
 
-    if (ev.struct_def) {
-        ReexportDescription desc = { ev.name, GetNameSpace(*ev.struct_def), GetNameSpace(enum_def) };
-        reexports.insert(std::make_pair(ev.struct_def->file, std::move(desc)));
+    if (ev.union_type.struct_def) {
+        ReexportDescription desc = {
+          ev.name,
+          GetNameSpace(*ev.union_type.struct_def),
+          GetNameSpace(enum_def)
+        };
+        reexports.insert(std::make_pair(ev.union_type.struct_def->file,
+                                        std::move(desc)));
     }
   }
 
@@ -366,7 +384,8 @@ std::string GenDefaultValue(const Value &value, const std::string &context) {
     if (auto val = value.type.enum_def->ReverseLookup(
         atoi(value.constant.c_str()), false)) {
       if (lang_.language == IDLOptions::kTs) {
-        return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def), value.type.enum_def->file) + "." + val->name;
+        return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
+                                   value.type.enum_def->file) + "." + val->name;
       } else {
         return WrapInNameSpace(*value.type.enum_def) + "." + val->name;
       }
@@ -448,17 +467,21 @@ static std::string MaybeScale(T value) {
 }
 
 static std::string GenFileNamespacePrefix(const std::string &file) {
-  return "NS" + std::to_string(static_cast<unsigned long long>(std::hash<std::string>()(file)));
+  return "NS" + std::to_string(
+        static_cast<unsigned long long>(std::hash<std::string>()(file)));
 }
 
 static std::string GenPrefixedImport(const std::string &full_file_name,
                                      const std::string &base_file_name) {
-  return "import * as "+ GenFileNamespacePrefix(full_file_name) + " from \"./" + base_file_name + "\";\n";
+  return "import * as "+ GenFileNamespacePrefix(full_file_name) +
+         " from \"./" + base_file_name + "\";\n";
 }
 
 // Adds a source-dependent prefix, for of import * statements.
-std::string GenPrefixedTypeName(const std::string &typeName, const std::string &file) {
-  const auto basename = flatbuffers::StripPath(flatbuffers::StripExtension(file));
+std::string GenPrefixedTypeName(const std::string &typeName,
+                                const std::string &file) {
+  const auto basename =
+      flatbuffers::StripPath(flatbuffers::StripExtension(file));
   if (basename == file_name_) {
     return typeName;
   }
@@ -483,7 +506,8 @@ void GenStructArgs(const StructDef &struct_def,
       *annotations += "} " + nameprefix + field.name + "\n";
 
       if (lang_.language == IDLOptions::kTs) {
-          *arguments += ", " + nameprefix + field.name + ": " + GenTypeName(field.value.type, true);
+          *arguments += ", " + nameprefix + field.name + ": " +
+                        GenTypeName(field.value.type, true);
       } else {
           *arguments += ", " + nameprefix + field.name;
       }
@@ -521,7 +545,8 @@ static void GenStructBody(const StructDef &struct_def,
 }
 
 // Generate an accessor struct with constructor for a flatbuffers struct.
-void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_ptr, std::string *exports_ptr,
+void GenStruct(const Parser &parser, StructDef &struct_def,
+               std::string *code_ptr, std::string *exports_ptr,
                imported_fileset &imported_files) {
   if (struct_def.generated) return;
   std::string &code = *code_ptr;
@@ -583,7 +608,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
   code += " */\n";
 
   if (lang_.language == IDLOptions::kTs) {
-    code += "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+    code += "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name +
+            " {\n";
   } else {
     code += object_name + ".prototype.__init = function(i, bb) {\n";
   }
@@ -602,7 +628,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       "@returns {" + object_name + "}");
     if (lang_.language == IDLOptions::kTs) {
       code += "static getRootAs" + struct_def.name;
-      code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" + object_name + " {\n";
+      code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name + "):" +
+              object_name + " {\n";
     } else {
       code += object_name + ".getRootAs" + struct_def.name;
       code += " = function(bb, obj) {\n";
@@ -618,7 +645,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         "@param {flatbuffers.ByteBuffer} bb\n"
         "@returns {boolean}");
       if (lang_.language == IDLOptions::kTs) {
-        code += "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {\n";
+        code +=
+            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {\n";
       } else {
         code += object_name + ".bufferHasIdentifier = function(bb) {\n";
       }
@@ -647,13 +675,16 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
         std::string prefix = MakeCamel(field.name, false) + "(";
         if (field.value.type.base_type == BASE_TYPE_STRING) {
           code += prefix + "):string\n";
-          code += prefix + "optionalEncoding:flatbuffers.Encoding"+"):" + GenTypeName(field.value.type, false)+"\n";
+          code += prefix + "optionalEncoding:flatbuffers.Encoding"+"):" +
+                  GenTypeName(field.value.type, false)+"\n";
           code += prefix + "optionalEncoding?:any";
         } else {
           code += prefix;
         }
         if (field.value.type.enum_def) {
-          code += "):" + GenPrefixedTypeName(GenTypeName(field.value.type, false), field.value.type.enum_def->file) + " {\n";
+          code += "):" +
+                  GenPrefixedTypeName(GenTypeName(field.value.type, false),
+                                      field.value.type.enum_def->file) + " {\n";
         } else {
           code += "):" + GenTypeName(field.value.type, false) + " {\n";
         }
@@ -733,12 +764,14 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             std::string prefix = MakeCamel(field.name, false);
             prefix += "(index: number";
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              vectortypename = GenPrefixedTypeName(vectortypename, vectortype.struct_def->file);
+              vectortypename = GenPrefixedTypeName(vectortypename,
+                                                   vectortype.struct_def->file);
               code += prefix + ", obj?:" + vectortypename;
               imported_files.insert(vectortype.struct_def->file);
             } else if (vectortype.base_type == BASE_TYPE_STRING) {
               code += prefix + "):string\n";
-              code += prefix + ",optionalEncoding:flatbuffers.Encoding" + "):" + vectortypename + "\n";
+              code += prefix + ",optionalEncoding:flatbuffers.Encoding" + "):" +
+                      vectortypename + "\n";
               code += prefix + ",optionalEncoding?:any";
             } else {
               code += prefix;
@@ -819,31 +852,37 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 
     // Adds the mutable scalar value to the output
     if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer) {
-      std::string annotations = "@param {" + GenTypeName(field.value.type, true) + "} value\n";
+      std::string annotations =
+          "@param {" + GenTypeName(field.value.type, true) + "} value\n";
       GenDocComment(code_ptr, annotations +
         "@returns {boolean}");
 
       if (lang_.language == IDLOptions::kTs) {
         std::string type;
         if (field.value.type.enum_def) {
-          type = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
+          type = GenPrefixedTypeName(GenTypeName(field.value.type, true),
+                                     field.value.type.enum_def->file);
         } else {
           type = GenTypeName(field.value.type, true);
         }
 
         code += "mutate_" + field.name + "(value:" + type + "):boolean {\n";
       } else {
-        code += object_name + ".prototype.mutate_" + field.name + " = function(value) {\n";
+        code += object_name + ".prototype.mutate_" + field.name +
+                " = function(value) {\n";
       }
 
-      code += "  var offset = this.bb.__offset(this.bb_pos, " + NumToString(field.value.offset) + ");\n\n";
+      code += "  var offset = this.bb.__offset(this.bb_pos, " +
+              NumToString(field.value.offset) + ");\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
 
       // special case for bools, which are treated as uint8
-      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, ";
-      if (field.value.type.base_type == BASE_TYPE_BOOL && lang_.language == IDLOptions::kTs) {
+      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) +
+              "(this.bb_pos + offset, ";
+      if (field.value.type.base_type == BASE_TYPE_BOOL &&
+          lang_.language == IDLOptions::kTs) {
           code += "+";
       }
 
@@ -885,7 +924,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
 
         if (lang_.language == IDLOptions::kTs) {
           code += MakeCamel(field.name, false);
-          code += "Array():" + GenType(vectorType) + "Array {\n" + offset_prefix;
+          code += "Array():" + GenType(vectorType) + "Array {\n" +
+                  offset_prefix;
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += "Array = function() {\n" + offset_prefix;
@@ -958,13 +998,15 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
       if (lang_.language == IDLOptions::kTs) {
         std::string argType;
         if (field.value.type.enum_def) {
-          argType = GenPrefixedTypeName(GenTypeName(field.value.type, true), field.value.type.enum_def->file);
+          argType = GenPrefixedTypeName(GenTypeName(field.value.type, true),
+                                        field.value.type.enum_def->file);
         } else {
           argType = GenTypeName(field.value.type, true);
         }
 
         code += "static add" + MakeCamel(field.name);
-        code += "(builder:flatbuffers.Builder, " + argname + ":" + argType + ") {\n";
+        code += "(builder:flatbuffers.Builder, " + argname + ":" + argType +
+                ") {\n";
       } else {
         code += object_name + ".add" + MakeCamel(field.name);
         code += " = function(builder, " + argname + ") {\n";
@@ -1005,7 +1047,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def, std::string *code_pt
             if (type == "number[]") {
               type += " | Uint8Array";
             }
-            code += "Vector(builder:flatbuffers.Builder, data:" + type+"):flatbuffers.Offset {\n";
+            code += "Vector(builder:flatbuffers.Builder, data:" + type +
+                    "):flatbuffers.Offset {\n";
             code += "if(!data){\n  return null\n}\n";
           } else {
             code += object_name + ".create" + MakeCamel(field.name);
