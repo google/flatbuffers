@@ -31,7 +31,7 @@ test_script:
   - rem "---------------- JS -----------------"
   - "node --version"
   - "..\\%CONFIGURATION%\\flatc -b monster_test.fbs unicode_test.json"
-  - "node JavaScriptTest"
+  - "node JavaScriptTest ./monster_test_generated"
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only
   # supports building one project??
