@@ -62,6 +62,9 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/go_generator.cc
   grpc/src/compiler/java_generator.h
   grpc/src/compiler/java_generator.cc
+  grpc/src/compiler/python_generator.h
+  grpc/src/compiler/python_private_generator.h
+  grpc/src/compiler/python_generator.cc
 )
 
 set(FlatHash_SRCS
