@@ -86,7 +86,7 @@ CheckedError Parser::Error(const std::string &msg) {
 
 inline CheckedError NoError() { return CheckedError(false); }
 
-inline std::string OutOfRangeErrorMsg(int64_t val, const std::string& op,
+inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
                                       int64_t limit) {
   const std::string cause = NumToString(val) + op + NumToString(limit);
   return "constant does not fit (" + cause + ")";
