@@ -108,8 +108,8 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &);
-  AnyUnion &operator=(const AnyUnion &);
+  AnyUnion(const AnyUnion &) { assert(false); }
+  AnyUnion &operator=(const AnyUnion &) { assert(false); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~AnyUnion() { Reset(); }
