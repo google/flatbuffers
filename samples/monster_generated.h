@@ -77,8 +77,8 @@ struct EquipmentUnion {
   EquipmentUnion(EquipmentUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Equipment_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  EquipmentUnion(const EquipmentUnion &);
-  EquipmentUnion &operator=(const EquipmentUnion &);
+  EquipmentUnion(const EquipmentUnion &) { assert(false); }
+  EquipmentUnion &operator=(const EquipmentUnion &) { assert(false); return *this; }
   EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~EquipmentUnion() { Reset(); }
