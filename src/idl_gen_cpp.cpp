@@ -1319,16 +1319,17 @@ class CppGenerator : public BaseGenerator {
         field_type.base_type == BASE_TYPE_VECTOR) {
 
         auto vector_type = field_type.VectorType();
-        const bool vector_type_scalar = IsScalar(vector_type.base_type);
-        code_.SetValue("VECTOR_TYPE", GenTypeGet(vector_type, "", "", "", false));
-
-        if (!vector_type_scalar) {
-          code_ += "  const {{VECTOR_TYPE}}& "
-                  "{{FIELD_NAME}}(int index) const { "
-                  "return *{{FIELD_NAME}}()->Get(index); }";
-        } else {
-          code_ += "  {{VECTOR_TYPE}} {{FIELD_NAME}}(int index) const { "
-                  "return {{FIELD_NAME}}()->Get(index); }";
+        if (vector_type.base_type != BASE_TYPE_UNION) {
+          const bool vector_type_scalar = IsScalar(vector_type.base_type);
+          code_.SetValue("VECTOR_TYPE", GenTypeGet(vector_type, "", "", "", false));
+          if (!vector_type_scalar) {
+            code_ += "  const {{VECTOR_TYPE}}& "
+                    "{{FIELD_NAME}}(int index) const { "
+                    "return *{{FIELD_NAME}}()->Get(index); }";
+          } else {
+            code_ += "  {{VECTOR_TYPE}} {{FIELD_NAME}}(int index) const { "
+                     "return {{FIELD_NAME}}()->Get(index); }";
+          }
         }
       }
 

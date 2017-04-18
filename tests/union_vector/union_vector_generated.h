@@ -266,7 +266,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool has_characters() const { return flatbuffers::IsFieldPresent(this, VT_MAIN_CHARACTER_TYPE); }
   int characters_size() const { return has_characters() ? characters()->size() : 0; }
-  const void& characters(int index) const { return *characters()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&
