@@ -3,14 +3,18 @@
 /// @{
 /// @cond FLATBUFFERS_INTERNAL
 
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = { flatbuffers: factory() } :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.flatbuffers = factory());
-}(this, (function () { 'use strict';
 /**
-* @exports flatbuffers
-*/
+ * @fileoverview
+ *
+ * Need to suppress 'global this' error so the Node.js export line doesn't cause
+ * closure compile to error out.
+ * @suppress {globalThis}
+ */
+
+/**
+ * @const
+ * @namespace
+ */
 var flatbuffers = {};
 
 /**
@@ -1185,9 +1189,8 @@ flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
 
-return flatbuffers;
-
-})));
+// Exports for Node.js and RequireJS
+this.flatbuffers = flatbuffers;
 
 /// @endcond
 /// @}
