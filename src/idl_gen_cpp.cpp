@@ -1297,6 +1297,41 @@ class CppGenerator : public BaseGenerator {
         }
       }
 
+     // Generate a method to determine if the field is present in the table.
+      code_ += "  bool has_{{FIELD_NAME}}() const { return "
+               "flatbuffers::IsFieldPresent(this, {{OFFSET_NAME}}); }";
+
+      // Generate a method to get count of repeated fields or the length of
+      // a string field.
+      auto field_type = field.value.type;
+      if (!is_scalar && !IsStruct(field_type) &&
+          (field_type.base_type == BASE_TYPE_STRING ||
+           field_type.base_type == BASE_TYPE_VECTOR)) {
+
+          code_ += "  int {{FIELD_NAME}}_size() const { return "
+                  "has_{{FIELD_NAME}}() ? {{FIELD_NAME}}()->size()"
+                  " : 0; }";
+      }
+
+      // Generate a method to get the member at a specified index from
+      // a repeated field.
+      if (!is_scalar && !IsStruct(field_type) &&
+        field_type.base_type == BASE_TYPE_VECTOR) {
+
+        auto vector_type = field_type.VectorType();
+        const bool vector_type_scalar = IsScalar(vector_type.base_type);
+        code_.SetValue("VECTOR_TYPE", GenTypeGet(vector_type, "", "", "", false));
+
+        if (!vector_type_scalar) {
+          code_ += "  const {{VECTOR_TYPE}}& "
+                  "{{FIELD_NAME}}(int index) const { "
+                  "return *{{FIELD_NAME}}()->Get(index); }";
+        } else {
+          code_ += "  {{VECTOR_TYPE}} {{FIELD_NAME}}(int index) const { "
+                  "return {{FIELD_NAME}}()->Get(index); }";
+        }
+      }
+
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
         std::string qualified_name =

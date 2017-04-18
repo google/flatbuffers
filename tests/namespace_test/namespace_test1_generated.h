@@ -77,6 +77,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_foo(int32_t _foo) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
+  bool has_foo() const { return flatbuffers::IsFieldPresent(this, VT_FOO); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FOO) &&

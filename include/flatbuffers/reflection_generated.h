@@ -80,12 +80,15 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   BaseType base_type() const {
     return static_cast<BaseType>(GetField<int8_t>(VT_BASE_TYPE, 0));
   }
+  bool has_base_type() const { return flatbuffers::IsFieldPresent(this, VT_INDEX); }
   BaseType element() const {
     return static_cast<BaseType>(GetField<int8_t>(VT_ELEMENT, 0));
   }
+  bool has_element() const { return flatbuffers::IsFieldPresent(this, VT_INDEX); }
   int32_t index() const {
     return GetField<int32_t>(VT_INDEX, -1);
   }
+  bool has_index() const { return flatbuffers::IsFieldPresent(this, VT_INDEX); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_BASE_TYPE) &&
@@ -139,6 +142,8 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *key() const {
     return GetPointer<const flatbuffers::String *>(VT_KEY);
   }
+  bool has_key() const { return flatbuffers::IsFieldPresent(this, VT_VALUE); }
+  int key_size() const { return has_key() ? key()->size() : 0; }
   bool KeyCompareLessThan(const KeyValue *o) const {
     return *key() < *o->key();
   }
@@ -148,6 +153,8 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *value() const {
     return GetPointer<const flatbuffers::String *>(VT_VALUE);
   }
+  bool has_value() const { return flatbuffers::IsFieldPresent(this, VT_VALUE); }
+  int value_size() const { return has_value() ? value()->size() : 0; }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_KEY) &&
@@ -210,9 +217,12 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_UNION_TYPE); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   int64_t value() const {
     return GetField<int64_t>(VT_VALUE, 0);
   }
+  bool has_value() const { return flatbuffers::IsFieldPresent(this, VT_UNION_TYPE); }
   bool KeyCompareLessThan(const EnumVal *o) const {
     return value() < o->value();
   }
@@ -229,9 +239,11 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Object *object() const {
     return GetPointer<const Object *>(VT_OBJECT);
   }
+  bool has_object() const { return flatbuffers::IsFieldPresent(this, VT_UNION_TYPE); }
   const Type *union_type() const {
     return GetPointer<const Type *>(VT_UNION_TYPE);
   }
+  bool has_union_type() const { return flatbuffers::IsFieldPresent(this, VT_UNION_TYPE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
@@ -313,6 +325,8 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   bool KeyCompareLessThan(const Enum *o) const {
     return *name() < *o->name();
   }
@@ -322,18 +336,29 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<EnumVal>> *values() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<EnumVal>> *>(VT_VALUES);
   }
+  bool has_values() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int values_size() const { return has_values() ? values()->size() : 0; }
+  const EnumVal& values(int index) const { return *values()->Get(index); }
   bool is_union() const {
     return GetField<uint8_t>(VT_IS_UNION, 0) != 0;
   }
+  bool has_is_union() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   const Type *underlying_type() const {
     return GetPointer<const Type *>(VT_UNDERLYING_TYPE);
   }
+  bool has_underlying_type() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *attributes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *>(VT_ATTRIBUTES);
   }
+  bool has_attributes() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int attributes_size() const { return has_attributes() ? attributes()->size() : 0; }
+  const KeyValue& attributes(int index) const { return *attributes()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  bool has_documentation() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int documentation_size() const { return has_documentation() ? documentation()->size() : 0; }
+  const flatbuffers::String& documentation(int index) const { return *documentation()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
@@ -443,6 +468,8 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   bool KeyCompareLessThan(const Field *o) const {
     return *name() < *o->name();
   }
@@ -452,33 +479,47 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Type *type() const {
     return GetPointer<const Type *>(VT_TYPE);
   }
+  bool has_type() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   uint16_t id() const {
     return GetField<uint16_t>(VT_ID, 0);
   }
+  bool has_id() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   uint16_t offset() const {
     return GetField<uint16_t>(VT_OFFSET, 0);
   }
+  bool has_offset() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   int64_t default_integer() const {
     return GetField<int64_t>(VT_DEFAULT_INTEGER, 0);
   }
+  bool has_default_integer() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   double default_real() const {
     return GetField<double>(VT_DEFAULT_REAL, 0.0);
   }
+  bool has_default_real() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   bool deprecated() const {
     return GetField<uint8_t>(VT_DEPRECATED, 0) != 0;
   }
+  bool has_deprecated() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   bool required() const {
     return GetField<uint8_t>(VT_REQUIRED, 0) != 0;
   }
+  bool has_required() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   bool key() const {
     return GetField<uint8_t>(VT_KEY, 0) != 0;
   }
+  bool has_key() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *attributes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *>(VT_ATTRIBUTES);
   }
+  bool has_attributes() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int attributes_size() const { return has_attributes() ? attributes()->size() : 0; }
+  const KeyValue& attributes(int index) const { return *attributes()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  bool has_documentation() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int documentation_size() const { return has_documentation() ? documentation()->size() : 0; }
+  const flatbuffers::String& documentation(int index) const { return *documentation()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
@@ -621,6 +662,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   bool KeyCompareLessThan(const Object *o) const {
     return *name() < *o->name();
   }
@@ -630,21 +673,33 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<Field>> *fields() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Field>> *>(VT_FIELDS);
   }
+  bool has_fields() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int fields_size() const { return has_fields() ? fields()->size() : 0; }
+  const Field& fields(int index) const { return *fields()->Get(index); }
   bool is_struct() const {
     return GetField<uint8_t>(VT_IS_STRUCT, 0) != 0;
   }
+  bool has_is_struct() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   int32_t minalign() const {
     return GetField<int32_t>(VT_MINALIGN, 0);
   }
+  bool has_minalign() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   int32_t bytesize() const {
     return GetField<int32_t>(VT_BYTESIZE, 0);
   }
+  bool has_bytesize() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
   const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *attributes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<KeyValue>> *>(VT_ATTRIBUTES);
   }
+  bool has_attributes() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int attributes_size() const { return has_attributes() ? attributes()->size() : 0; }
+  const KeyValue& attributes(int index) const { return *attributes()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  bool has_documentation() const { return flatbuffers::IsFieldPresent(this, VT_DOCUMENTATION); }
+  int documentation_size() const { return has_documentation() ? documentation()->size() : 0; }
+  const flatbuffers::String& documentation(int index) const { return *documentation()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
@@ -754,18 +809,29 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<Object>> *objects() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Object>> *>(VT_OBJECTS);
   }
+  bool has_objects() const { return flatbuffers::IsFieldPresent(this, VT_ROOT_TABLE); }
+  int objects_size() const { return has_objects() ? objects()->size() : 0; }
+  const Object& objects(int index) const { return *objects()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<Enum>> *enums() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Enum>> *>(VT_ENUMS);
   }
+  bool has_enums() const { return flatbuffers::IsFieldPresent(this, VT_ROOT_TABLE); }
+  int enums_size() const { return has_enums() ? enums()->size() : 0; }
+  const Enum& enums(int index) const { return *enums()->Get(index); }
   const flatbuffers::String *file_ident() const {
     return GetPointer<const flatbuffers::String *>(VT_FILE_IDENT);
   }
+  bool has_file_ident() const { return flatbuffers::IsFieldPresent(this, VT_ROOT_TABLE); }
+  int file_ident_size() const { return has_file_ident() ? file_ident()->size() : 0; }
   const flatbuffers::String *file_ext() const {
     return GetPointer<const flatbuffers::String *>(VT_FILE_EXT);
   }
+  bool has_file_ext() const { return flatbuffers::IsFieldPresent(this, VT_ROOT_TABLE); }
+  int file_ext_size() const { return has_file_ext() ? file_ext()->size() : 0; }
   const Object *root_table() const {
     return GetPointer<const Object *>(VT_ROOT_TABLE);
   }
+  bool has_root_table() const { return flatbuffers::IsFieldPresent(this, VT_ROOT_TABLE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_OBJECTS) &&

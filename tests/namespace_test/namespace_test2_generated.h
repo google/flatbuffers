@@ -36,18 +36,21 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   NamespaceA::NamespaceB::TableInNestedNS *mutable_foo_table() {
     return GetPointer<NamespaceA::NamespaceB::TableInNestedNS *>(VT_FOO_TABLE);
   }
+  bool has_foo_table() const { return flatbuffers::IsFieldPresent(this, VT_FOO_STRUCT); }
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum() const {
     return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<int8_t>(VT_FOO_ENUM, 0));
   }
   bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum) {
     return SetField<int8_t>(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum), 0);
   }
+  bool has_foo_enum() const { return flatbuffers::IsFieldPresent(this, VT_FOO_ENUM); }
   const NamespaceA::NamespaceB::StructInNestedNS *foo_struct() const {
     return GetStruct<const NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);
   }
   NamespaceA::NamespaceB::StructInNestedNS *mutable_foo_struct() {
     return GetStruct<NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);
   }
+  bool has_foo_struct() const { return flatbuffers::IsFieldPresent(this, VT_FOO_ENUM); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_FOO_TABLE) &&
@@ -109,12 +112,14 @@ struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   NamespaceA::TableInFirstNS *mutable_refer_to_a1() {
     return GetPointer<NamespaceA::TableInFirstNS *>(VT_REFER_TO_A1);
   }
+  bool has_refer_to_a1() const { return flatbuffers::IsFieldPresent(this, VT_REFER_TO_A2); }
   const NamespaceA::SecondTableInA *refer_to_a2() const {
     return GetPointer<const NamespaceA::SecondTableInA *>(VT_REFER_TO_A2);
   }
   NamespaceA::SecondTableInA *mutable_refer_to_a2() {
     return GetPointer<NamespaceA::SecondTableInA *>(VT_REFER_TO_A2);
   }
+  bool has_refer_to_a2() const { return flatbuffers::IsFieldPresent(this, VT_REFER_TO_A2); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_REFER_TO_A1) &&
@@ -170,6 +175,7 @@ struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   NamespaceC::TableInC *mutable_refer_to_c() {
     return GetPointer<NamespaceC::TableInC *>(VT_REFER_TO_C);
   }
+  bool has_refer_to_c() const { return flatbuffers::IsFieldPresent(this, VT_REFER_TO_C); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_REFER_TO_C) &&

@@ -161,6 +161,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_sword_attack_damage(int32_t _sword_attack_damage) {
     return SetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, _sword_attack_damage, 0);
   }
+  bool has_sword_attack_damage() const { return flatbuffers::IsFieldPresent(this, VT_SWORD_ATTACK_DAMAGE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE) &&
@@ -221,6 +222,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_main_character_type(Character _main_character_type) {
     return SetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, static_cast<uint8_t>(_main_character_type), 0);
   }
+  bool has_main_character_type() const { return flatbuffers::IsFieldPresent(this, VT_MAIN_CHARACTER_TYPE); }
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
   }
@@ -246,18 +248,25 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_main_character() {
     return GetPointer<void *>(VT_MAIN_CHARACTER);
   }
+  bool has_main_character() const { return flatbuffers::IsFieldPresent(this, VT_MAIN_CHARACTER_TYPE); }
   const flatbuffers::Vector<uint8_t> *characters_type() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_CHARACTERS_TYPE);
   }
   flatbuffers::Vector<uint8_t> *mutable_characters_type() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_CHARACTERS_TYPE);
   }
+  bool has_characters_type() const { return flatbuffers::IsFieldPresent(this, VT_MAIN_CHARACTER_TYPE); }
+  int characters_type_size() const { return has_characters_type() ? characters_type()->size() : 0; }
+  uint8_t characters_type(int index) const { return characters_type()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<void>> *characters() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<void>> *>(VT_CHARACTERS);
   }
   flatbuffers::Vector<flatbuffers::Offset<void>> *mutable_characters() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<void>> *>(VT_CHARACTERS);
   }
+  bool has_characters() const { return flatbuffers::IsFieldPresent(this, VT_MAIN_CHARACTER_TYPE); }
+  int characters_size() const { return has_characters() ? characters()->size() : 0; }
+  const void& characters(int index) const { return *characters()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&

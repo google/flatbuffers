@@ -2,7 +2,6 @@
 
 import { flatbuffers } from "./flatbuffers"
 import * as NS9459827973991502386 from "./namespace_test1_generated";
-export * from "./namespace_test1_generated";
 /**
  * @constructor
  */
