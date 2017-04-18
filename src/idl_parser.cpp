@@ -1098,14 +1098,24 @@ CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
   assert(field);
   Value *hash_name = field->attributes.Lookup("hash");
   switch (e.type.base_type) {
-    case BASE_TYPE_INT:
+    case BASE_TYPE_INT: {
+      auto hash = FindHashFunction32(hash_name->constant.c_str());
+      int32_t hashed_value = static_cast<int32_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_UINT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
       uint32_t hashed_value = hash(attribute_.c_str());
       e.constant = NumToString(hashed_value);
       break;
     }
-    case BASE_TYPE_LONG:
+    case BASE_TYPE_LONG: {
+      auto hash = FindHashFunction64(hash_name->constant.c_str());
+      int64_t hashed_value = static_cast<int64_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_ULONG: {
       auto hash = FindHashFunction64(hash_name->constant.c_str());
       uint64_t hashed_value = hash(attribute_.c_str());
