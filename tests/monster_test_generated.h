@@ -108,8 +108,9 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &) { assert(false); }
-  AnyUnion &operator=(const AnyUnion &) { assert(false); return *this; }
+  AnyUnion(const AnyUnion &) FLATBUFFERS_NOEXCEPT;
+  AnyUnion &operator=(AnyUnion u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~AnyUnion() { Reset(); }
@@ -1330,6 +1331,25 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
       return CreateMonster(_fbb, ptr, _rehasher).Union();
     }
     default: return 0;
+  }
+}
+
+inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case Any_Monster: {
+      assert(false);  // MonsterT not copyable.
+      break;
+    }
+    case Any_TestSimpleTableWithEnum: {
+      value = new TestSimpleTableWithEnumT(*reinterpret_cast<TestSimpleTableWithEnumT *>(u.value));
+      break;
+    }
+    case Any_MyGame_Example2_Monster: {
+      value = new MyGame::Example2::MonsterT(*reinterpret_cast<MyGame::Example2::MonsterT *>(u.value));
+      break;
+    }
+    default:
+      break;
   }
 }
 

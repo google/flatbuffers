@@ -55,8 +55,9 @@ struct CharacterUnion {
   CharacterUnion(CharacterUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Character_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  CharacterUnion(const CharacterUnion &) { assert(false); }
-  CharacterUnion &operator=(const CharacterUnion &) { assert(false); return *this; }
+  CharacterUnion(const CharacterUnion &) FLATBUFFERS_NOEXCEPT;
+  CharacterUnion &operator=(CharacterUnion u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   CharacterUnion &operator=(CharacterUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~CharacterUnion() { Reset(); }
@@ -488,6 +489,37 @@ inline flatbuffers::Offset<void> CharacterUnion::Pack(flatbuffers::FlatBufferBui
       return _fbb.CreateString(*ptr).Union();
     }
     default: return 0;
+  }
+}
+
+inline CharacterUnion::CharacterUnion(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case Character_MuLan: {
+      value = new AttackerT(*reinterpret_cast<AttackerT *>(u.value));
+      break;
+    }
+    case Character_Rapunzel: {
+      value = new Rapunzel(*reinterpret_cast<Rapunzel *>(u.value));
+      break;
+    }
+    case Character_Belle: {
+      value = new BookReader(*reinterpret_cast<BookReader *>(u.value));
+      break;
+    }
+    case Character_BookFan: {
+      value = new BookReader(*reinterpret_cast<BookReader *>(u.value));
+      break;
+    }
+    case Character_Other: {
+      value = new std::string(*reinterpret_cast<std::string *>(u.value));
+      break;
+    }
+    case Character_Unused: {
+      value = new std::string(*reinterpret_cast<std::string *>(u.value));
+      break;
+    }
+    default:
+      break;
   }
 }
 
