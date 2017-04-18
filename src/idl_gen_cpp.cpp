@@ -688,8 +688,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "    type({{NONE}}), value(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); }";
       code_ += "  {{NAME}}Union(const {{NAME}}Union &) FLATBUFFERS_NOEXCEPT;";
-      code_ += "  {{NAME}}Union &operator=({{NAME}}Union u) FLATBUFFERS_NOEXCEPT";
-      code_ += "    { std::swap(type, u.type); std::swap(value, u.value); return *this; }";
+      code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &u) FLATBUFFERS_NOEXCEPT";
+      code_ += "    { {{NAME}}Union t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }";
       code_ += "  {{NAME}}Union &operator=({{NAME}}Union &&u) FLATBUFFERS_NOEXCEPT";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); return *this; }";
       code_ += "  ~{{NAME}}Union() { Reset(); }";

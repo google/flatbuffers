@@ -56,8 +56,8 @@ struct CharacterUnion {
     type(Character_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
   CharacterUnion(const CharacterUnion &) FLATBUFFERS_NOEXCEPT;
-  CharacterUnion &operator=(CharacterUnion u) FLATBUFFERS_NOEXCEPT
-    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
+  CharacterUnion &operator=(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT
+    { CharacterUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   CharacterUnion &operator=(CharacterUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~CharacterUnion() { Reset(); }

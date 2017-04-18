@@ -78,8 +78,8 @@ struct EquipmentUnion {
     type(Equipment_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
   EquipmentUnion(const EquipmentUnion &) FLATBUFFERS_NOEXCEPT;
-  EquipmentUnion &operator=(EquipmentUnion u) FLATBUFFERS_NOEXCEPT
-    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
+  EquipmentUnion &operator=(const EquipmentUnion &u) FLATBUFFERS_NOEXCEPT
+    { EquipmentUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~EquipmentUnion() { Reset(); }
