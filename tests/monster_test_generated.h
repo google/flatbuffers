@@ -357,6 +357,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   bool mutate_color(Color _color) {
     return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
   }
+  bool has_color() const { return flatbuffers::IsFieldPresent(this, VT_COLOR); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_COLOR) &&
@@ -419,18 +420,22 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_id() {
     return GetPointer<flatbuffers::String *>(VT_ID);
   }
+  bool has_id() const { return flatbuffers::IsFieldPresent(this, VT_COUNT); }
+  int id_size() const { return has_id() ? id()->size() : 0; }
   int64_t val() const {
     return GetField<int64_t>(VT_VAL, 0);
   }
   bool mutate_val(int64_t _val) {
     return SetField<int64_t>(VT_VAL, _val, 0);
   }
+  bool has_val() const { return flatbuffers::IsFieldPresent(this, VT_VAL); }
   uint16_t count() const {
     return GetField<uint16_t>(VT_COUNT, 0);
   }
   bool mutate_count(uint16_t _count) {
     return SetField<uint16_t>(VT_COUNT, _count, 0);
   }
+  bool has_count() const { return flatbuffers::IsFieldPresent(this, VT_COUNT); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_ID) &&
@@ -583,24 +588,29 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Vec3 *mutable_pos() {
     return GetStruct<Vec3 *>(VT_POS);
   }
+  bool has_pos() const { return flatbuffers::IsFieldPresent(this, VT_TESTARRAYOFSORTEDSTRUCT); }
   int16_t mana() const {
     return GetField<int16_t>(VT_MANA, 150);
   }
   bool mutate_mana(int16_t _mana) {
     return SetField<int16_t>(VT_MANA, _mana, 150);
   }
+  bool has_mana() const { return flatbuffers::IsFieldPresent(this, VT_MANA); }
   int16_t hp() const {
     return GetField<int16_t>(VT_HP, 100);
   }
   bool mutate_hp(int16_t _hp) {
     return SetField<int16_t>(VT_HP, _hp, 100);
   }
+  bool has_hp() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
   flatbuffers::String *mutable_name() {
     return GetPointer<flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   bool KeyCompareLessThan(const Monster *o) const {
     return *name() < *o->name();
   }
@@ -613,18 +623,23 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<uint8_t> *mutable_inventory() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
+  bool has_inventory() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
+  int inventory_size() const { return has_inventory() ? inventory()->size() : 0; }
+  uint8_t inventory(int index) const { return inventory()->Get(index); }
   Color color() const {
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 8));
   }
   bool mutate_color(Color _color) {
     return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 8);
   }
+  bool has_color() const { return flatbuffers::IsFieldPresent(this, VT_COLOR); }
   Any test_type() const {
     return static_cast<Any>(GetField<uint8_t>(VT_TEST_TYPE, 0));
   }
   bool mutate_test_type(Any _test_type) {
     return SetField<uint8_t>(VT_TEST_TYPE, static_cast<uint8_t>(_test_type), 0);
   }
+  bool has_test_type() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
   const void *test() const {
     return GetPointer<const void *>(VT_TEST);
   }
@@ -641,18 +656,25 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
   }
+  bool has_test() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
   const flatbuffers::Vector<const Test *> *test4() const {
     return GetPointer<const flatbuffers::Vector<const Test *> *>(VT_TEST4);
   }
   flatbuffers::Vector<const Test *> *mutable_test4() {
     return GetPointer<flatbuffers::Vector<const Test *> *>(VT_TEST4);
   }
+  bool has_test4() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
+  int test4_size() const { return has_test4() ? test4()->size() : 0; }
+  const Test& test4(int index) const { return *test4()->Get(index); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING);
   }
   flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *mutable_testarrayofstring() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING);
   }
+  bool has_testarrayofstring() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
+  int testarrayofstring_size() const { return has_testarrayofstring() ? testarrayofstring()->size() : 0; }
+  const flatbuffers::String& testarrayofstring(int index) const { return *testarrayofstring()->Get(index); }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
   const flatbuffers::Vector<flatbuffers::Offset<Monster>> *testarrayoftables() const {
@@ -661,18 +683,25 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<Monster>> *mutable_testarrayoftables() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Monster>> *>(VT_TESTARRAYOFTABLES);
   }
+  bool has_testarrayoftables() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
+  int testarrayoftables_size() const { return has_testarrayoftables() ? testarrayoftables()->size() : 0; }
+  const Monster& testarrayoftables(int index) const { return *testarrayoftables()->Get(index); }
   const Monster *enemy() const {
     return GetPointer<const Monster *>(VT_ENEMY);
   }
   Monster *mutable_enemy() {
     return GetPointer<Monster *>(VT_ENEMY);
   }
+  bool has_enemy() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
   const flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   flatbuffers::Vector<uint8_t> *mutable_testnestedflatbuffer() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
+  bool has_testnestedflatbuffer() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
+  int testnestedflatbuffer_size() const { return has_testnestedflatbuffer() ? testnestedflatbuffer()->size() : 0; }
+  uint8_t testnestedflatbuffer(int index) const { return testnestedflatbuffer()->Get(index); }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
     const uint8_t* data = testnestedflatbuffer()->Data();
     return flatbuffers::GetRoot<MyGame::Example::Monster>(data);
@@ -683,96 +712,118 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Stat *mutable_testempty() {
     return GetPointer<Stat *>(VT_TESTEMPTY);
   }
+  bool has_testempty() const { return flatbuffers::IsFieldPresent(this, VT_TEST_TYPE); }
   bool testbool() const {
     return GetField<uint8_t>(VT_TESTBOOL, 0) != 0;
   }
   bool mutate_testbool(bool _testbool) {
     return SetField<uint8_t>(VT_TESTBOOL, static_cast<uint8_t>(_testbool), 0);
   }
+  bool has_testbool() const { return flatbuffers::IsFieldPresent(this, VT_TESTBOOL); }
   int32_t testhashs32_fnv1() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0);
   }
   bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) {
     return SetField<int32_t>(VT_TESTHASHS32_FNV1, _testhashs32_fnv1, 0);
   }
+  bool has_testhashs32_fnv1() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHS32_FNV1); }
   uint32_t testhashu32_fnv1() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1, 0);
   }
   bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) {
     return SetField<uint32_t>(VT_TESTHASHU32_FNV1, _testhashu32_fnv1, 0);
   }
+  bool has_testhashu32_fnv1() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHU32_FNV1); }
   int64_t testhashs64_fnv1() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1, 0);
   }
   bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) {
     return SetField<int64_t>(VT_TESTHASHS64_FNV1, _testhashs64_fnv1, 0);
   }
+  bool has_testhashs64_fnv1() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHS64_FNV1); }
   uint64_t testhashu64_fnv1() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1, 0);
   }
   bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) {
     return SetField<uint64_t>(VT_TESTHASHU64_FNV1, _testhashu64_fnv1, 0);
   }
+  bool has_testhashu64_fnv1() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHU64_FNV1); }
   int32_t testhashs32_fnv1a() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1A, 0);
   }
   bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) {
     return SetField<int32_t>(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a, 0);
   }
+  bool has_testhashs32_fnv1a() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHS32_FNV1A); }
   uint32_t testhashu32_fnv1a() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1A, 0);
   }
   bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) {
     return SetField<uint32_t>(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a, 0);
   }
+  bool has_testhashu32_fnv1a() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHU32_FNV1A); }
   int64_t testhashs64_fnv1a() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1A, 0);
   }
   bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) {
     return SetField<int64_t>(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a, 0);
   }
+  bool has_testhashs64_fnv1a() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHS64_FNV1A); }
   uint64_t testhashu64_fnv1a() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1A, 0);
   }
   bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) {
     return SetField<uint64_t>(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a, 0);
   }
+  bool has_testhashu64_fnv1a() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHU64_FNV1A); }
   const flatbuffers::Vector<uint8_t> *testarrayofbools() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS);
   }
   flatbuffers::Vector<uint8_t> *mutable_testarrayofbools() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS);
   }
+  bool has_testarrayofbools() const { return flatbuffers::IsFieldPresent(this, VT_TESTHASHU64_FNV1A); }
+  int testarrayofbools_size() const { return has_testarrayofbools() ? testarrayofbools()->size() : 0; }
+  uint8_t testarrayofbools(int index) const { return testarrayofbools()->Get(index); }
   float testf() const {
     return GetField<float>(VT_TESTF, 3.14159f);
   }
   bool mutate_testf(float _testf) {
     return SetField<float>(VT_TESTF, _testf, 3.14159f);
   }
+  bool has_testf() const { return flatbuffers::IsFieldPresent(this, VT_TESTF); }
   float testf2() const {
     return GetField<float>(VT_TESTF2, 3.0f);
   }
   bool mutate_testf2(float _testf2) {
     return SetField<float>(VT_TESTF2, _testf2, 3.0f);
   }
+  bool has_testf2() const { return flatbuffers::IsFieldPresent(this, VT_TESTF2); }
   float testf3() const {
     return GetField<float>(VT_TESTF3, 0.0f);
   }
   bool mutate_testf3(float _testf3) {
     return SetField<float>(VT_TESTF3, _testf3, 0.0f);
   }
+  bool has_testf3() const { return flatbuffers::IsFieldPresent(this, VT_TESTF3); }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING2);
   }
   flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *mutable_testarrayofstring2() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TESTARRAYOFSTRING2);
   }
+  bool has_testarrayofstring2() const { return flatbuffers::IsFieldPresent(this, VT_TESTF3); }
+  int testarrayofstring2_size() const { return has_testarrayofstring2() ? testarrayofstring2()->size() : 0; }
+  const flatbuffers::String& testarrayofstring2(int index) const { return *testarrayofstring2()->Get(index); }
   const flatbuffers::Vector<const Ability *> *testarrayofsortedstruct() const {
     return GetPointer<const flatbuffers::Vector<const Ability *> *>(VT_TESTARRAYOFSORTEDSTRUCT);
   }
   flatbuffers::Vector<const Ability *> *mutable_testarrayofsortedstruct() {
     return GetPointer<flatbuffers::Vector<const Ability *> *>(VT_TESTARRAYOFSORTEDSTRUCT);
   }
+  bool has_testarrayofsortedstruct() const { return flatbuffers::IsFieldPresent(this, VT_TESTF3); }
+  int testarrayofsortedstruct_size() const { return has_testarrayofsortedstruct() ? testarrayofsortedstruct()->size() : 0; }
+  const Ability& testarrayofsortedstruct(int index) const { return *testarrayofsortedstruct()->Get(index); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
