@@ -77,8 +77,9 @@ struct EquipmentUnion {
   EquipmentUnion(EquipmentUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Equipment_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  EquipmentUnion(const EquipmentUnion &) { assert(false); }
-  EquipmentUnion &operator=(const EquipmentUnion &) { assert(false); return *this; }
+  EquipmentUnion(const EquipmentUnion &) FLATBUFFERS_NOEXCEPT;
+  EquipmentUnion &operator=(EquipmentUnion u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~EquipmentUnion() { Reset(); }
@@ -552,6 +553,17 @@ inline flatbuffers::Offset<void> EquipmentUnion::Pack(flatbuffers::FlatBufferBui
       return CreateWeapon(_fbb, ptr, _rehasher).Union();
     }
     default: return 0;
+  }
+}
+
+inline EquipmentUnion::EquipmentUnion(const EquipmentUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case Equipment_Weapon: {
+      value = new WeaponT(*reinterpret_cast<WeaponT *>(u.value));
+      break;
+    }
+    default:
+      break;
   }
 }
 
