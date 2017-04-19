@@ -1753,7 +1753,9 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_STRUCT: {
             if (IsStruct(vector_type)) {
-              code += "_fbb.CreateVectorOfStructs(" + value + ")";
+              code += "_fbb.CreateVectorOfStructs<";
+              code += WrapInNameSpace(*vector_type.struct_def) + ">";
+              code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">>";
