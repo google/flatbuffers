@@ -327,7 +327,7 @@ public:
     return temp;
   }
 
-  VectorIterator operator+(const uoffset_t &offset) {
+  VectorIterator operator+(const uoffset_t &offset) const {
     return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
   }
 
