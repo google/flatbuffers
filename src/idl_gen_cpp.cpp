@@ -1753,7 +1753,15 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_STRUCT: {
             if (IsStruct(vector_type)) {
-              code += "_fbb.CreateVectorOfStructs(" + value + ")";
+              auto native_type =
+                field.value.type.struct_def->attributes.Lookup("native_type");
+              if (native_type) {
+                code += "_fbb.CreateVectorOfNativeStructs<";
+                code += WrapInNameSpace(*vector_type.struct_def) + ">";
+              } else {
+                code += "_fbb.CreateVectorOfStructs";              	
+              }
+              code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">>";
