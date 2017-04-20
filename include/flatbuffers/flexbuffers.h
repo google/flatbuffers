@@ -1088,8 +1088,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                 reinterpret_cast<const uint8_t *>(val) + size);
   }
 
-  // For values T >= byte_width
   template<typename T> void Write(T val, size_t byte_width) {
+    assert(sizeof(T) >= byte_width);
     val = flatbuffers::EndianScalar(val);
     WriteBytes(&val, byte_width);
   }
@@ -1239,7 +1239,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // TODO: instead of asserting, could write vector with larger elements
     // instead, though that would be wasteful.
     assert(WidthU(len) <= bit_width);
-    if (!fixed) Write(len, byte_width);
+    if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
     for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);
     stack_.push_back(Value(static_cast<uint64_t>(vloc),
@@ -1281,9 +1281,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {
       WriteOffset(keys->u_, byte_width);
-      Write(1U << keys->min_bit_width_, byte_width);
+      Write<uint64_t>(1U << keys->min_bit_width_, byte_width);
     }
-    if (!fixed) Write(vec_len, byte_width);
+    if (!fixed) Write<uint64_t>(vec_len, byte_width);
     // Then the actual data.
     auto vloc = buf_.size();
     for (size_t i = start; i < stack_.size(); i += step) {
