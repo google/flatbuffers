@@ -106,6 +106,22 @@ public class FlatBufferBuilder {
         return this;
     }
 
+    /**
+     * Reset the FlatBufferBuilder by purging all data that it holds.
+     */
+    public void clear(){
+        space = bb.capacity();
+        bb.clear();
+        minalign = 1;
+        while(vtable_in_use > 0) vtable[--vtable_in_use] = 0;
+        vtable_in_use = 0;
+        nested = false;
+        finished = false;
+        object_start = 0;
+        num_vtables = 0;
+        vector_num_elems = 0;
+    }
+
     /// @cond FLATBUFFERS_INTERNAL
     /**
      * Create a `ByteBuffer` with a given capacity.
