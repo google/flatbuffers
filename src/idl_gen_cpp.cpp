@@ -23,6 +23,11 @@
 
 namespace flatbuffers {
 
+// Pedantic warning free version of toupper().
+inline char ToUpper(char c) {
+  return static_cast<char>(::toupper(c));
+}
+
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name) {
   return path + file_name + "_generated.h";
