@@ -42,6 +42,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+
 namespace flatbuffers {
 
 // Convert an integer or floating point value to a string.
@@ -112,11 +113,6 @@ inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
   #else
     return strtoull(str, endptr, base);
   #endif
-}
-
-// Pedantic warning free version of toupper().
-inline char ToUpper(char c) {
-  return static_cast<char>(::toupper(c));
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
