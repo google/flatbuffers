@@ -3,7 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 var flatbuffers = require('../js/flatbuffers').flatbuffers;
-var MyGame = require('./monster_test_generated').MyGame;
+var MyGame = require(process.argv[2]).MyGame;
 
 function main() {
 
