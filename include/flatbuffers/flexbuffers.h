@@ -1281,7 +1281,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {
       WriteOffset(keys->u_, byte_width);
-      Write<uint64_t>(1U << keys->min_bit_width_, byte_width);
+      Write<uint64_t>(1ULL << keys->min_bit_width_, byte_width);
     }
     if (!fixed) Write<uint64_t>(vec_len, byte_width);
     // Then the actual data.
