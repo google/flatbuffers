@@ -1650,8 +1650,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     }
 
     // Call T::Verify, which must be in the generated code for this type.
-    return Verify<uoffset_t>(start) &&
-      reinterpret_cast<const T *>(start + ReadScalar<uoffset_t>(start))->
+    auto o = VerifyOffset(start);
+    return o &&
+      reinterpret_cast<const T *>(start + o)->
         Verify(*this)
         #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
           && GetComputedSize()
@@ -1672,6 +1673,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Verify<uoffset_t>(buf_) &&
            ReadScalar<uoffset_t>(buf_) == end_ - buf_ - sizeof(uoffset_t) &&
            VerifyBufferFromStart<T>(identifier, buf_ + sizeof(uoffset_t));
+  }
+
+  uoffset_t VerifyOffset(const uint8_t *start) const {
+    if (!Verify<uoffset_t>(start)) return false;
+    auto o = ReadScalar<uoffset_t>(start);
+    Check(o != 0);
+    return o;
   }
 
   // Called at the start of a table to increase counters measuring data
@@ -1850,10 +1858,22 @@ class Table {
 
   // VerifyField for required fields.
   template<typename T> bool VerifyFieldRequired(const Verifier &verifier,
-                                        voffset_t field) const {
+                                                voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
            verifier.Verify<T>(data_ + field_offset);
+  }
+
+  // Versions for offsets.
+  bool VerifyOffset(const Verifier &verifier, voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return !field_offset || verifier.VerifyOffset(data_ + field_offset);
+  }
+
+  bool VerifyOffsetRequired(const Verifier &verifier, voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return verifier.Check(field_offset != 0) &&
+           verifier.VerifyOffset(data_ + field_offset);
   }
 
  private:
