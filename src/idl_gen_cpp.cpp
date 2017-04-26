@@ -1110,7 +1110,12 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REQUIRED", field.required ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
-    code_ += "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_ +=
+          "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+    } else {
+      code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+    }
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_UNION: {
@@ -1764,7 +1769,7 @@ class CppGenerator : public BaseGenerator {
                 code += "_fbb.CreateVectorOfNativeStructs<";
                 code += WrapInNameSpace(*vector_type.struct_def) + ">";
               } else {
-                code += "_fbb.CreateVectorOfStructs";              	
+                code += "_fbb.CreateVectorOfStructs";
               }
               code += "(" + value + ")";
             } else {

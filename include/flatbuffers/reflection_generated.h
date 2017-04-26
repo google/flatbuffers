@@ -150,9 +150,9 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_KEY) &&
+           VerifyOffsetRequired(verifier, VT_KEY) &&
            verifier.Verify(key()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_VALUE) &&
+           VerifyOffset(verifier, VT_VALUE) &&
            verifier.Verify(value()) &&
            verifier.EndTable();
   }
@@ -234,12 +234,12 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyField<int64_t>(verifier, VT_VALUE) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_OBJECT) &&
+           VerifyOffset(verifier, VT_OBJECT) &&
            verifier.VerifyTable(object()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_UNION_TYPE) &&
+           VerifyOffset(verifier, VT_UNION_TYPE) &&
            verifier.VerifyTable(union_type()) &&
            verifier.EndTable();
   }
@@ -336,18 +336,18 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_VALUES) &&
+           VerifyOffsetRequired(verifier, VT_VALUES) &&
            verifier.Verify(values()) &&
            verifier.VerifyVectorOfTables(values()) &&
            VerifyField<uint8_t>(verifier, VT_IS_UNION) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_UNDERLYING_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_UNDERLYING_TYPE) &&
            verifier.VerifyTable(underlying_type()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ATTRIBUTES) &&
+           VerifyOffset(verifier, VT_ATTRIBUTES) &&
            verifier.Verify(attributes()) &&
            verifier.VerifyVectorOfTables(attributes()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_DOCUMENTATION) &&
+           VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.Verify(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
            verifier.EndTable();
@@ -481,9 +481,9 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyTable(type()) &&
            VerifyField<uint16_t>(verifier, VT_ID) &&
            VerifyField<uint16_t>(verifier, VT_OFFSET) &&
@@ -492,10 +492,10 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_DEPRECATED) &&
            VerifyField<uint8_t>(verifier, VT_REQUIRED) &&
            VerifyField<uint8_t>(verifier, VT_KEY) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ATTRIBUTES) &&
+           VerifyOffset(verifier, VT_ATTRIBUTES) &&
            verifier.Verify(attributes()) &&
            verifier.VerifyVectorOfTables(attributes()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_DOCUMENTATION) &&
+           VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.Verify(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
            verifier.EndTable();
@@ -647,18 +647,18 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_FIELDS) &&
+           VerifyOffsetRequired(verifier, VT_FIELDS) &&
            verifier.Verify(fields()) &&
            verifier.VerifyVectorOfTables(fields()) &&
            VerifyField<uint8_t>(verifier, VT_IS_STRUCT) &&
            VerifyField<int32_t>(verifier, VT_MINALIGN) &&
            VerifyField<int32_t>(verifier, VT_BYTESIZE) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ATTRIBUTES) &&
+           VerifyOffset(verifier, VT_ATTRIBUTES) &&
            verifier.Verify(attributes()) &&
            verifier.VerifyVectorOfTables(attributes()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_DOCUMENTATION) &&
+           VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.Verify(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
            verifier.EndTable();
@@ -768,17 +768,17 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_OBJECTS) &&
+           VerifyOffsetRequired(verifier, VT_OBJECTS) &&
            verifier.Verify(objects()) &&
            verifier.VerifyVectorOfTables(objects()) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_ENUMS) &&
+           VerifyOffsetRequired(verifier, VT_ENUMS) &&
            verifier.Verify(enums()) &&
            verifier.VerifyVectorOfTables(enums()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FILE_IDENT) &&
+           VerifyOffset(verifier, VT_FILE_IDENT) &&
            verifier.Verify(file_ident()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FILE_EXT) &&
+           VerifyOffset(verifier, VT_FILE_EXT) &&
            verifier.Verify(file_ext()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ROOT_TABLE) &&
+           VerifyOffset(verifier, VT_ROOT_TABLE) &&
            verifier.VerifyTable(root_table()) &&
            verifier.EndTable();
   }

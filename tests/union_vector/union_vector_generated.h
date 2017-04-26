@@ -261,11 +261,11 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_MAIN_CHARACTER) &&
+           VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
            VerifyCharacter(verifier, main_character(), main_character_type()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_CHARACTERS_TYPE) &&
+           VerifyOffset(verifier, VT_CHARACTERS_TYPE) &&
            verifier.Verify(characters_type()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_CHARACTERS) &&
+           VerifyOffset(verifier, VT_CHARACTERS) &&
            verifier.Verify(characters()) &&
            VerifyCharacterVector(verifier, characters(), characters_type()) &&
            verifier.EndTable();

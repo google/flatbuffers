@@ -239,16 +239,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Vec3>(verifier, VT_POS) &&
            VerifyField<int16_t>(verifier, VT_MANA) &&
            VerifyField<int16_t>(verifier, VT_HP) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffset(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_INVENTORY) &&
+           VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.Verify(inventory()) &&
            VerifyField<int8_t>(verifier, VT_COLOR) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_WEAPONS) &&
+           VerifyOffset(verifier, VT_WEAPONS) &&
            verifier.Verify(weapons()) &&
            verifier.VerifyVectorOfTables(weapons()) &&
            VerifyField<uint8_t>(verifier, VT_EQUIPPED_TYPE) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_EQUIPPED) &&
+           VerifyOffset(verifier, VT_EQUIPPED) &&
            VerifyEquipment(verifier, equipped(), equipped_type()) &&
            verifier.EndTable();
   }
@@ -382,7 +382,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffset(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyField<int16_t>(verifier, VT_DAMAGE) &&
            verifier.EndTable();
