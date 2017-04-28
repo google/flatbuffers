@@ -1893,6 +1893,14 @@ bool Parser::Parse(const char *source, const char **include_paths,
   return !DoParse(source, include_paths, source_filename).Check();
 }
 
+bool Parser::Parse(std::initializer_list<std::tuple<const char*, const char*>> filename_source,
+             const char **include_paths) {
+  return std::all_of(filename_source.begin(), filename_source.end(), [this, &include_paths](const std::tuple<const char*, const char*>& _file_source) {
+    return Parse(std::get<1>(_file_source), include_paths, std::get<0>(_file_source));
+  });
+}
+
+
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";

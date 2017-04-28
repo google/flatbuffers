@@ -21,6 +21,9 @@
 #include <stack>
 #include <memory>
 #include <functional>
+#include <initializer_list>
+#include <tuple>
+
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
@@ -510,6 +513,11 @@ class Parser : public ParserState {
   // supply its name in source_filename.
   bool Parse(const char *_source, const char **include_paths = nullptr,
              const char *source_filename = nullptr);
+
+  // Parse the schemas provided in the initializer list
+  // The tuple maps the filename to its content.
+  bool Parse(std::initializer_list<std::tuple<const char*, const char*>> filename_source,
+             const char **include_paths = nullptr);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
