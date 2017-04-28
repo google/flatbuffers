@@ -25,7 +25,7 @@ NamespaceA.TableInFirstNS = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -141,7 +141,7 @@ NamespaceC.TableInC = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -226,7 +226,7 @@ NamespaceA.SecondTableInA = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
