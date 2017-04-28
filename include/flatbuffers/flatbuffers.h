@@ -77,7 +77,7 @@
 // the common platforms).
 #if !defined(FLATBUFFERS_LITTLEENDIAN)
   #if defined(__GNUC__) || defined(__clang__)
-    #ifdef __BIG_ENDIAN__
+    #if defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN)
       #define FLATBUFFERS_LITTLEENDIAN 0
     #else
       #define FLATBUFFERS_LITTLEENDIAN 1
