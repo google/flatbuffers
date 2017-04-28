@@ -108,8 +108,9 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &);
-  AnyUnion &operator=(const AnyUnion &);
+  AnyUnion(const AnyUnion &) FLATBUFFERS_NOEXCEPT;
+  AnyUnion &operator=(const AnyUnion &u) FLATBUFFERS_NOEXCEPT
+    { AnyUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
   ~AnyUnion() { Reset(); }
@@ -432,7 +433,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ID) &&
+           VerifyOffset(verifier, VT_ID) &&
            verifier.Verify(id()) &&
            VerifyField<int64_t>(verifier, VT_VAL) &&
            VerifyField<uint16_t>(verifier, VT_COUNT) &&
@@ -777,27 +778,27 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Vec3>(verifier, VT_POS) &&
            VerifyField<int16_t>(verifier, VT_MANA) &&
            VerifyField<int16_t>(verifier, VT_HP) &&
-           VerifyFieldRequired<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_INVENTORY) &&
+           VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.Verify(inventory()) &&
            VerifyField<int8_t>(verifier, VT_COLOR) &&
            VerifyField<uint8_t>(verifier, VT_TEST_TYPE) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEST) &&
+           VerifyOffset(verifier, VT_TEST) &&
            VerifyAny(verifier, test(), test_type()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEST4) &&
+           VerifyOffset(verifier, VT_TEST4) &&
            verifier.Verify(test4()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSTRING) &&
+           VerifyOffset(verifier, VT_TESTARRAYOFSTRING) &&
            verifier.Verify(testarrayofstring()) &&
            verifier.VerifyVectorOfStrings(testarrayofstring()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFTABLES) &&
+           VerifyOffset(verifier, VT_TESTARRAYOFTABLES) &&
            verifier.Verify(testarrayoftables()) &&
            verifier.VerifyVectorOfTables(testarrayoftables()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_ENEMY) &&
+           VerifyOffset(verifier, VT_ENEMY) &&
            verifier.VerifyTable(enemy()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTNESTEDFLATBUFFER) &&
+           VerifyOffset(verifier, VT_TESTNESTEDFLATBUFFER) &&
            verifier.Verify(testnestedflatbuffer()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTEMPTY) &&
+           VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
            VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
            VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1) &&
@@ -808,15 +809,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1A) &&
            VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1A) &&
            VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1A) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFBOOLS) &&
+           VerifyOffset(verifier, VT_TESTARRAYOFBOOLS) &&
            verifier.Verify(testarrayofbools()) &&
            VerifyField<float>(verifier, VT_TESTF) &&
            VerifyField<float>(verifier, VT_TESTF2) &&
            VerifyField<float>(verifier, VT_TESTF3) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSTRING2) &&
+           VerifyOffset(verifier, VT_TESTARRAYOFSTRING2) &&
            verifier.Verify(testarrayofstring2()) &&
            verifier.VerifyVectorOfStrings(testarrayofstring2()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TESTARRAYOFSORTEDSTRUCT) &&
+           VerifyOffset(verifier, VT_TESTARRAYOFSORTEDSTRUCT) &&
            verifier.Verify(testarrayofsortedstruct()) &&
            verifier.EndTable();
   }
@@ -1330,6 +1331,25 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
       return CreateMonster(_fbb, ptr, _rehasher).Union();
     }
     default: return 0;
+  }
+}
+
+inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case Any_Monster: {
+      assert(false);  // MonsterT not copyable.
+      break;
+    }
+    case Any_TestSimpleTableWithEnum: {
+      value = new TestSimpleTableWithEnumT(*reinterpret_cast<TestSimpleTableWithEnumT *>(u.value));
+      break;
+    }
+    case Any_MyGame_Example2_Monster: {
+      value = new MyGame::Example2::MonsterT(*reinterpret_cast<MyGame::Example2::MonsterT *>(u.value));
+      break;
+    }
+    default:
+      break;
   }
 }
 

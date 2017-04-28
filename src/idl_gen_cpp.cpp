@@ -23,6 +23,11 @@
 
 namespace flatbuffers {
 
+// Pedantic warning free version of toupper().
+inline char ToUpper(char c) {
+  return static_cast<char>(::toupper(c));
+}
+
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name) {
   return path + file_name + "_generated.h";
@@ -687,8 +692,9 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {{NAME}}Union({{NAME}}Union&& u) FLATBUFFERS_NOEXCEPT :";
       code_ += "    type({{NONE}}), value(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); }";
-      code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
-      code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &);";
+      code_ += "  {{NAME}}Union(const {{NAME}}Union &) FLATBUFFERS_NOEXCEPT;";
+      code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &u) FLATBUFFERS_NOEXCEPT";
+      code_ += "    { {{NAME}}Union t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }";
       code_ += "  {{NAME}}Union &operator=({{NAME}}Union &&u) FLATBUFFERS_NOEXCEPT";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); return *this; }";
       code_ += "  ~{{NAME}}Union() { Reset(); }";
@@ -865,6 +871,49 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      // Union copy constructor
+      code_ += "inline {{ENUM_NAME}}Union::{{ENUM_NAME}}Union(const "
+               "{{ENUM_NAME}}Union &u) FLATBUFFERS_NOEXCEPT : type(u.type), "
+               "value(nullptr) {";
+      code_ += "  switch (type) {";
+      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+           ++it) {
+        const auto &ev = **it;
+        if (!ev.value) {
+          continue;
+        }
+        code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
+        code_.SetValue("TYPE", NativeName(GetUnionElement(ev, true, true, true),
+                                          ev.union_type.struct_def));
+        code_ += "    case {{LABEL}}: {";
+        bool copyable = true;
+        if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+          // Don't generate code to copy if table is not copyable.
+          // TODO(wvo): make tables copyable instead.
+          for (auto fit = ev.union_type.struct_def->fields.vec.begin();
+               fit != ev.union_type.struct_def->fields.vec.end(); ++fit) {
+            const auto &field = **fit;
+            if (!field.deprecated && field.value.type.struct_def) {
+              copyable = false;
+              break;
+            }
+          }
+        }
+        if (copyable) {
+          code_ += "      value = new {{TYPE}}(*reinterpret_cast<{{TYPE}} *>"
+                   "(u.value));";
+        } else {
+          code_ += "      assert(false);  // {{TYPE}} not copyable.";
+        }
+        code_ += "      break;";
+        code_ += "    }";
+      }
+      code_ += "    default:";
+      code_ += "      break;";
+      code_ += "  }";
+      code_ += "}";
+      code_ += "";
+
       // Union Reset() function.
       code_.SetValue("NONE",
           GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE")));
@@ -877,11 +926,9 @@ class CppGenerator : public BaseGenerator {
         if (!ev.value) {
           continue;
         }
-
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
         code_.SetValue("TYPE", NativeName(GetUnionElement(ev, true, true, true),
                                           ev.union_type.struct_def));
-
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<{{TYPE}} *>(value);";
         code_ += "      delete ptr;";
@@ -1063,7 +1110,12 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REQUIRED", field.required ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
-    code_ += "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_ +=
+          "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+    } else {
+      code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+    }
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_UNION: {
@@ -1711,7 +1763,15 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_STRUCT: {
             if (IsStruct(vector_type)) {
-              code += "_fbb.CreateVectorOfStructs(" + value + ")";
+              auto native_type =
+                field.value.type.struct_def->attributes.Lookup("native_type");
+              if (native_type) {
+                code += "_fbb.CreateVectorOfNativeStructs<";
+                code += WrapInNameSpace(*vector_type.struct_def) + ">";
+              } else {
+                code += "_fbb.CreateVectorOfStructs";
+              }
+              code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">>";
