@@ -18,7 +18,7 @@ export class TableInNestedNS {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -101,7 +101,7 @@ export class StructInNestedNS {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
