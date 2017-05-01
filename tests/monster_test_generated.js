@@ -50,7 +50,7 @@ MyGame.Example2.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -101,7 +101,7 @@ MyGame.Example.Test = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -185,7 +185,7 @@ MyGame.Example.TestSimpleTableWithEnum = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -267,7 +267,7 @@ MyGame.Example.Vec3 = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -439,7 +439,7 @@ MyGame.Example.Ability = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -522,7 +522,7 @@ MyGame.Example.Stat = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -552,7 +552,7 @@ MyGame.Example.Stat.getRootAsStat = function(bb, obj) {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
 MyGame.Example.Stat.prototype.id = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -654,7 +654,7 @@ MyGame.Example.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = null;
+  this.bb = undefined;
 
   /**
    * @type {number}
@@ -747,7 +747,7 @@ MyGame.Example.Monster.prototype.mutate_hp = function(value) {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
 MyGame.Example.Monster.prototype.name = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 10);

@@ -414,13 +414,16 @@ std::string GenDefaultValue(const Value &value, const std::string &context) {
   }
 }
 
-std::string GenTypeName(const Type &type, bool input) {
+std::string GenTypeName(const Type &type, bool input, bool allowNull = false) {
   if (!input) {
-    if (type.base_type == BASE_TYPE_STRING) {
-      return "string|Uint8Array";
-    }
-    if (type.base_type == BASE_TYPE_STRUCT) {
-      return WrapInNameSpace(*type.struct_def);
+    if (type.base_type == BASE_TYPE_STRING || type.base_type == BASE_TYPE_STRUCT) {
+      std::string name;
+      if (type.base_type == BASE_TYPE_STRING) {
+        name = "string|Uint8Array";
+      } else {
+        name = WrapInNameSpace(*type.struct_def);
+      }
+      return (allowNull) ? (name + "|null") : (name);
     }
   }
 
@@ -565,7 +568,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  bb: flatbuffers.ByteBuffer= null;\n";
+    code += "  bb: flatbuffers.ByteBuffer;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";
@@ -590,7 +593,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  this.bb = null;\n";
+    code += "  this.bb = undefined;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";
@@ -670,23 +673,23 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
       GenDocComment(field.doc_comment, code_ptr,
         std::string(field.value.type.base_type == BASE_TYPE_STRING ?
           "@param {flatbuffers.Encoding=} optionalEncoding\n" : "") +
-        "@returns {" + GenTypeName(field.value.type, false) + "}");
+        "@returns {" + GenTypeName(field.value.type, false, true) + "}");
       if (lang_.language == IDLOptions::kTs) {
         std::string prefix = MakeCamel(field.name, false) + "(";
         if (field.value.type.base_type == BASE_TYPE_STRING) {
-          code += prefix + "):string\n";
+          code += prefix + "):string|null\n";
           code += prefix + "optionalEncoding:flatbuffers.Encoding"+"):" +
-                  GenTypeName(field.value.type, false)+"\n";
+                  GenTypeName(field.value.type, false, true)+"\n";
           code += prefix + "optionalEncoding?:any";
         } else {
           code += prefix;
         }
         if (field.value.type.enum_def) {
           code += "):" +
-                  GenPrefixedTypeName(GenTypeName(field.value.type, false),
+                  GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                       field.value.type.enum_def->file) + " {\n";
         } else {
-          code += "):" + GenTypeName(field.value.type, false) + " {\n";
+          code += "):" + GenTypeName(field.value.type, false, true) + " {\n";
         }
       } else {
         code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -717,11 +720,11 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
         case BASE_TYPE_STRUCT: {
           auto type = WrapInNameSpace(*field.value.type.struct_def);
           GenDocComment(field.doc_comment, code_ptr,
-            "@param {" + type + "=} obj\n@returns {" + type + "}");
+            "@param {" + type + "=} obj\n@returns {" + type + "|null}");
           if (lang_.language == IDLOptions::kTs) {
             type = GenPrefixedTypeName(type, field.value.type.struct_def->file);
             code += MakeCamel(field.name, false);
-            code += "(obj?:" + type + "):" + type + " {\n";
+            code += "(obj?:" + type + "):" + type + "|null {\n";
           } else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
             code += " = function(obj) {\n";
@@ -776,7 +779,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
             } else {
               code += prefix;
             }
-            code += "):" + vectortypename + " {\n";
+            code += "):" + vectortypename + "|null {\n";
           } else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
             code += " = function(index";
@@ -828,7 +831,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
             "@returns {?flatbuffers.Table}");
           if (lang_.language == IDLOptions::kTs) {
             code += MakeCamel(field.name, false);
-            code += "<T extends flatbuffers.Table>(obj:T):T {\n";
+            code += "<T extends flatbuffers.Table>(obj:T):T|null {\n";
           } else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
             code += " = function(obj) {\n";
@@ -924,7 +927,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
 
         if (lang_.language == IDLOptions::kTs) {
           code += MakeCamel(field.name, false);
-          code += "Array():" + GenType(vectorType) + "Array {\n" +
+          code += "Array():" + GenType(vectorType) + "Array|null {\n" +
                   offset_prefix;
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
@@ -954,7 +957,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
 
     if (lang_.language == IDLOptions::kTs) {
       code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
-      code += arguments + "):flatbuffers.Offset {\n";
+      code += arguments + "):flatbuffers.Offset|null {\n";
     } else {
       code += object_name + ".create" + struct_def.name + " = function(builder";
       code += arguments + ") {\n";
@@ -1048,8 +1051,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               type += " | Uint8Array";
             }
             code += "Vector(builder:flatbuffers.Builder, data:" + type +
-                    "):flatbuffers.Offset {\n";
-            code += "if(!data){\n  return null\n}\n";
+                    "):flatbuffers.Offset|null {\n";
+            code += "if(!data){\n  return null;\n}\n";
           } else {
             code += object_name + ".create" + MakeCamel(field.name);
             code += "Vector = function(builder, data) {\n";

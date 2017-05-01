@@ -29,7 +29,7 @@ export class Monster {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -81,7 +81,7 @@ export class Test {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -166,7 +166,7 @@ export class TestSimpleTableWithEnum {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -249,7 +249,7 @@ export class Vec3 {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -422,7 +422,7 @@ export class Ability {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -506,7 +506,7 @@ export class Stat {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -534,10 +534,10 @@ static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
-id():string
-id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array
+id():string|null
+id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 id(optionalEncoding?:any):string|Uint8Array {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
@@ -641,7 +641,7 @@ export class Monster {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer= null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -732,10 +732,10 @@ mutate_hp(value:number):boolean {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
-name():string
-name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array
+name():string|null
+name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 name(optionalEncoding?:any):string|Uint8Array {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;

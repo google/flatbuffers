@@ -18,6 +18,6 @@ pushd "$(dirname $0)" >/dev/null
 ../flatc --ts --no-fb-import --gen-mutable -o ts monster_test.fbs
 ../flatc -b monster_test.fbs unicode_test.json
 npm install @types/flatbuffers
-tsc ts/monster_test_generated.ts
+tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
 npm uninstall @types/flatbuffers
 node JavaScriptTest ./ts/monster_test_generated
