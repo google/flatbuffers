@@ -971,6 +971,15 @@ flatbuffers.ByteBuffer.prototype.writeInt16 = function(offset, value) {
  * @param {number} offset
  * @param {number} value
  */
+flatbuffers.ByteBuffer.prototype.writeUint16 = function(offset, value) {
+    this.bytes_[offset] = value;
+    this.bytes_[offset + 1] = value >> 8;
+};
+
+/**
+ * @param {number} offset
+ * @param {number} value
+ */
 flatbuffers.ByteBuffer.prototype.writeInt32 = function(offset, value) {
   this.bytes_[offset] = value;
   this.bytes_[offset + 1] = value >> 8;
@@ -980,11 +989,31 @@ flatbuffers.ByteBuffer.prototype.writeInt32 = function(offset, value) {
 
 /**
  * @param {number} offset
+ * @param {number} value
+ */
+flatbuffers.ByteBuffer.prototype.writeUint32 = function(offset, value) {
+    this.bytes_[offset] = value;
+    this.bytes_[offset + 1] = value >> 8;
+    this.bytes_[offset + 2] = value >> 16;
+    this.bytes_[offset + 3] = value >> 24;
+};
+
+/**
+ * @param {number} offset
  * @param {flatbuffers.Long} value
  */
 flatbuffers.ByteBuffer.prototype.writeInt64 = function(offset, value) {
   this.writeInt32(offset, value.low);
   this.writeInt32(offset + 4, value.high);
+};
+
+/**
+ * @param {number} offset
+ * @param {flatbuffers.Long} value
+ */
+flatbuffers.ByteBuffer.prototype.writeUint64 = function(offset, value) {
+    this.writeUint32(offset, value.low);
+    this.writeUint32(offset + 4, value.high);
 };
 
 /**

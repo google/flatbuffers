@@ -42,6 +42,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+
 namespace flatbuffers {
 
 // Convert an integer or floating point value to a string.

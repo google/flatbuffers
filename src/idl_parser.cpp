@@ -86,26 +86,29 @@ CheckedError Parser::Error(const std::string &msg) {
 
 inline CheckedError NoError() { return CheckedError(false); }
 
+inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
+                                      int64_t limit) {
+  const std::string cause = NumToString(val) + op + NumToString(limit);
+  return "constant does not fit (" + cause + ")";
+}
+
 // Ensure that integer values we parse fit inside the declared integer type.
-CheckedError Parser::CheckBitsFit(int64_t val, size_t bits) {
-  // Left-shifting a 64-bit value by 64 bits or more is undefined
-  // behavior (C99 6.5.7), so check *before* we shift.
-  if (bits < 64) {
-    // Bits we allow to be used.
-    auto mask = static_cast<int64_t>((1ull << bits) - 1);
-    if ((val & ~mask) != 0 &&  // Positive or unsigned.
-        (val |  mask) != -1)   // Negative.
-      return Error("constant does not fit in a " + NumToString(bits) +
-                   "-bit field");
-  }
-  return NoError();
+CheckedError Parser::CheckInRange(int64_t val, int64_t min, int64_t max) {
+  if (val < min)
+    return Error(OutOfRangeErrorMsg(val, " < ", min));
+  else if (val > max)
+    return Error(OutOfRangeErrorMsg(val, " > ", max));
+  else
+    return NoError();
 }
 
 // atot: templated version of atoi/atof: convert a string to an instance of T.
 template<typename T> inline CheckedError atot(const char *s, Parser &parser,
                                               T *val) {
   int64_t i = StringToInt(s);
-  ECHECK(parser.CheckBitsFit(i, sizeof(T) * 8));
+  const int64_t min = std::numeric_limits<T>::min();
+  const int64_t max = std::numeric_limits<T>::max();
+  ECHECK(parser.CheckInRange(i, min, max));
   *val = (T)i;
   return NoError();
 }
@@ -735,6 +738,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   return NoError();
 }
 
+CheckedError Parser::ParseString(Value &val) {
+  auto s = attribute_;
+  EXPECT(kTokenStringConstant);
+  val.constant = NumToString(builder_.CreateString(s).o);
+  return NoError();
+}
+
 CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
                                    size_t parent_fieldn,
                                    const StructDef *parent_struct_def) {
@@ -784,16 +794,27 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(atot(constant.c_str(), *this, &enum_idx));
       auto enum_val = val.type.enum_def->ReverseLookup(enum_idx);
       if (!enum_val) return Error("illegal type id for: " + field->name);
-      ECHECK(ParseTable(*enum_val->struct_def, &val.constant, nullptr));
+      if (enum_val->union_type.base_type == BASE_TYPE_STRUCT) {
+        ECHECK(ParseTable(*enum_val->union_type.struct_def, &val.constant,
+                          nullptr));
+        if (enum_val->union_type.struct_def->fixed) {
+          // All BASE_TYPE_UNION values are offsets, so turn this into one.
+          SerializeStruct(*enum_val->union_type.struct_def, val);
+          builder_.ClearOffsets();
+          val.constant = NumToString(builder_.GetSize());
+        }
+      } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
+        ECHECK(ParseString(val));
+      } else {
+        assert(false);
+      }
       break;
     }
     case BASE_TYPE_STRUCT:
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
-      auto s = attribute_;
-      EXPECT(kTokenStringConstant);
-      val.constant = NumToString(builder_.CreateString(s).o);
+      ECHECK(ParseString(val));
       break;
     }
     case BASE_TYPE_VECTOR: {
@@ -1077,14 +1098,24 @@ CheckedError Parser::ParseHash(Value &e, FieldDef* field) {
   assert(field);
   Value *hash_name = field->attributes.Lookup("hash");
   switch (e.type.base_type) {
-    case BASE_TYPE_INT:
+    case BASE_TYPE_INT: {
+      auto hash = FindHashFunction32(hash_name->constant.c_str());
+      int32_t hashed_value = static_cast<int32_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_UINT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
       uint32_t hashed_value = hash(attribute_.c_str());
       e.constant = NumToString(hashed_value);
       break;
     }
-    case BASE_TYPE_LONG:
+    case BASE_TYPE_LONG: {
+      auto hash = FindHashFunction64(hash_name->constant.c_str());
+      int64_t hashed_value = static_cast<int64_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_ULONG: {
       auto hash = FindHashFunction64(hash_name->constant.c_str());
       uint64_t hashed_value = hash(attribute_.c_str());
@@ -1290,7 +1321,16 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         return Error("enum value already exists: " + value_name);
       ev.doc_comment = value_comment;
       if (is_union) {
-        ev.struct_def = LookupCreateStruct(full_name);
+        if (Is(':')) {
+          NEXT();
+          ECHECK(ParseType(ev.union_type));
+          if (ev.union_type.base_type != BASE_TYPE_STRUCT &&
+              ev.union_type.base_type != BASE_TYPE_STRING)
+            return Error("union value type may only be table/struct/string");
+          enum_def.uses_type_aliases = true;
+        } else {
+          ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+        }
       }
       if (Is('=')) {
         NEXT();
@@ -1335,7 +1375,7 @@ CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   struct_def.file = file_being_parsed_;
   // Move this struct to the back of the vector just in case it was predeclared,
   // to preserve declaration order.
-  *remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
+  *std::remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) = &struct_def;
   *dest = &struct_def;
   return NoError();
 }
@@ -1994,6 +2034,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       return Error("type referenced but not defined: " + (*it)->name);
     }
   }
+  // This check has to happen here and not earlier, because only now do we
+  // know for sure what the type of these are.
   for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
     auto &enum_def = **it;
     if (enum_def.is_union) {
@@ -2001,8 +2043,11 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
            val_it != enum_def.vals.vec.end();
            ++val_it) {
         auto &val = **val_it;
-        if (val.struct_def && val.struct_def->fixed)
-          return Error("only tables can be union elements: " + val.name);
+        if (opts.lang_to_generate != IDLOptions::kCpp &&
+            val.union_type.struct_def && val.union_type.struct_def->fixed)
+          return Error(
+                "only tables can be union elements in the generated language: "
+                + val.name);
       }
     }
   }
@@ -2145,9 +2190,11 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder) const
   return reflection::CreateEnumVal(*builder,
                                    builder->CreateString(name),
                                    value,
-                                   struct_def
-                                     ? struct_def->serialized_location
-                                     : 0);
+                                   union_type.struct_def
+                                     ? union_type.struct_def->
+                                         serialized_location
+                                     : 0,
+                                   union_type.Serialize(builder));
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {

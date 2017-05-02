@@ -42,7 +42,8 @@ table KeyValue {
 table EnumVal {
     name:string (required);
     value:long (key);
-    object:Object;  // Only if part of a union.
+    object:Object;  // Will be deprecated in favor of union_type in the future.
+    union_type:Type;
 }
 
 table Enum {

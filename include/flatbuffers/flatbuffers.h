@@ -296,6 +296,10 @@ public:
     return data_ == other.data_;
   }
 
+  bool operator<(const VectorIterator &other) const {
+    return data_ < other.data_;
+  }
+
   bool operator!=(const VectorIterator &other) const {
     return data_ != other.data_;
   }
@@ -323,7 +327,7 @@ public:
     return temp;
   }
 
-  VectorIterator operator+(const uoffset_t &offset) {
+  VectorIterator operator+(const uoffset_t &offset) const {
     return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride, 0);
   }
 
@@ -356,6 +360,8 @@ private:
   const uint8_t *data_;
 };
 
+struct String;
+
 // This is used as a helper type for accessing vectors.
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T> class Vector {
@@ -385,6 +391,18 @@ public:
   // type E.
   template<typename E> E GetEnum(uoffset_t i) const {
     return static_cast<E>(Get(i));
+  }
+
+  // If this a vector of unions, this does the cast for you. There's no check
+  // to make sure this is the right type!
+  template<typename U> const U *GetAs(uoffset_t i) const {
+    return reinterpret_cast<const U *>(Get(i));
+  }
+
+  // If this a vector of unions, this does the cast for you. There's no check
+  // to make sure this is actually a string!
+  const String *GetAsString(uoffset_t i) const {
+    return reinterpret_cast<const String *>(Get(i));
   }
 
   const void *GetStructFromOffset(size_t o) const {
@@ -1179,6 +1197,24 @@ FLATBUFFERS_FINAL_CLASS
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
+  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @tparam S The data type of the native struct array elements.
+  /// @param[in] v A pointer to the array of type `S` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S> Offset<Vector<const T *>> CreateVectorOfNativeStructs(
+      const S *v, size_t len) {
+    extern T Pack(const S&);
+    typedef T (*Pack_t)(const S&);
+    std::vector<T> vv(len);
+    std::transform(v, v+len, vv.begin(), *(Pack_t)&Pack);
+    return CreateVectorOfStructs<T>(vv.data(), vv.size());
+  }
+
+
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
@@ -1211,6 +1247,19 @@ FLATBUFFERS_FINAL_CLASS
     return CreateVectorOfStructs(data(v), v.size());
   }
 
+  /// @brief Serialize a `std::vector` of native structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the `std::vector` struct elements.
+  /// @tparam S The data type of the `std::vector` native struct elements.
+  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// serialize into the buffer as a `vector`.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S> Offset<Vector<const T *>> CreateVectorOfNativeStructs(
+      const std::vector<S> &v) {
+    return CreateVectorOfNativeStructs<T, S>(data(v), v.size());
+  }
+
+
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T>
   struct StructKeyComparator {
@@ -1235,6 +1284,19 @@ FLATBUFFERS_FINAL_CLASS
     return CreateVectorOfSortedStructs(data(*v), v->size());
   }
 
+  /// @brief Serialize a `std::vector` of native structs into a FlatBuffer `vector`
+  /// in sorted order.
+  /// @tparam T The data type of the `std::vector` struct elements.
+  /// @tparam S The data type of the `std::vector` native struct elements.
+  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// serialize into the buffer as a `vector`.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S> Offset<Vector<const T *>> CreateVectorOfSortedNativeStructs(
+      std::vector<S> *v) {
+    return CreateVectorOfSortedNativeStructs<T, S>(data(*v), v->size());
+  }
+
   /// @brief Serialize an array of structs into a FlatBuffer `vector` in sorted
   /// order.
   /// @tparam T The data type of the struct array elements.
@@ -1247,6 +1309,24 @@ FLATBUFFERS_FINAL_CLASS
       T *v, size_t len) {
     std::sort(v, v + len, StructKeyComparator<T>());
     return CreateVectorOfStructs(v, len);
+  }
+
+  /// @brief Serialize an array of native structs into a FlatBuffer `vector` in sorted
+  /// order.
+  /// @tparam T The data type of the struct array elements.
+  /// @tparam S The data type of the native struct array elements.
+  /// @param[in] v A pointer to the array of type `S` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S> Offset<Vector<const T *>> CreateVectorOfSortedNativeStructs(
+      S *v, size_t len) {
+    extern T Pack(const S&);
+    typedef T (*Pack_t)(const S&);
+    std::vector<T> vv(len);
+    std::transform(v, v+len, vv.begin(), *(Pack_t)&Pack);
+    return CreateVectorOfSortedStructs<T>(vv, len);
   }
 
   /// @cond FLATBUFFERS_INTERNAL
@@ -1321,6 +1401,13 @@ FLATBUFFERS_FINAL_CLASS
       size_t len, T **buf) {
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
+  }
+
+  /// @brief Write a struct by itself, typically to be part of a union.
+  template<typename T> Offset<const T *> CreateStruct(const T &structobj) {
+    Align(AlignOf<T>());
+    buf_.push_small(structobj);
+    return Offset<const T *>(GetSize());
   }
 
   /// @brief The length of a FlatBuffer file header.
@@ -1563,8 +1650,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     }
 
     // Call T::Verify, which must be in the generated code for this type.
-    return Verify<uoffset_t>(start) &&
-      reinterpret_cast<const T *>(start + ReadScalar<uoffset_t>(start))->
+    auto o = VerifyOffset(start);
+    return o &&
+      reinterpret_cast<const T *>(start + o)->
         Verify(*this)
         #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
           && GetComputedSize()
@@ -1585,6 +1673,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Verify<uoffset_t>(buf_) &&
            ReadScalar<uoffset_t>(buf_) == end_ - buf_ - sizeof(uoffset_t) &&
            VerifyBufferFromStart<T>(identifier, buf_ + sizeof(uoffset_t));
+  }
+
+  uoffset_t VerifyOffset(const uint8_t *start) const {
+    if (!Verify<uoffset_t>(start)) return false;
+    auto o = ReadScalar<uoffset_t>(start);
+    Check(o != 0);
+    return o;
   }
 
   // Called at the start of a table to increase counters measuring data
@@ -1763,10 +1858,22 @@ class Table {
 
   // VerifyField for required fields.
   template<typename T> bool VerifyFieldRequired(const Verifier &verifier,
-                                        voffset_t field) const {
+                                                voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
            verifier.Verify<T>(data_ + field_offset);
+  }
+
+  // Versions for offsets.
+  bool VerifyOffset(const Verifier &verifier, voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return !field_offset || verifier.VerifyOffset(data_ + field_offset);
+  }
+
+  bool VerifyOffsetRequired(const Verifier &verifier, voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return verifier.Check(field_offset != 0) &&
+           verifier.VerifyOffset(data_ + field_offset);
   }
 
  private:

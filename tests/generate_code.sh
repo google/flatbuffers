@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-../flatc --cpp --java --csharp --go --binary --python --js --php --grpc --gen-mutable --gen-object-api --no-includes monster_test.fbs monsterdata_test.json
-../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-../flatc --cpp -o union_vector ./union_vector/union_vector.fbs
+../flatc --cpp --java --csharp --go --binary --python --js --ts --php --grpc --gen-mutable --gen-object-api --no-includes --no-fb-import monster_test.fbs monsterdata_test.json
+../flatc --cpp --java --csharp --go --binary --python --js --ts --php --gen-mutable --no-fb-import -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+../flatc --cpp --gen-mutable --gen-object-api -o union_vector ./union_vector/union_vector.fbs
 ../flatc -b --schema --bfbs-comments monster_test.fbs
 cd ../samples
 ../flatc --cpp --gen-mutable --gen-object-api monster.fbs

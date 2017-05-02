@@ -49,7 +49,7 @@ void OutputIdentifier(const std::string &name, const IDLOptions &opts,
 // for a single FlatBuffer value into JSON format.
 // The general case for scalars:
 template<typename T> bool Print(T val, Type type, int /*indent*/,
-                                StructDef * /*union_sd*/,
+                                Type * /*union_type*/,
                                 const IDLOptions &opts,
                                 std::string *_text) {
   std::string &text = *_text;
@@ -169,22 +169,16 @@ static bool EscapeString(const String &s, std::string *_text, const IDLOptions& 
 // Specialization of Print above for pointer types.
 template<> bool Print<const void *>(const void *val,
                                     Type type, int indent,
-                                    StructDef *union_sd,
+                                    Type *union_type,
                                     const IDLOptions &opts,
                                     std::string *_text) {
   switch (type.base_type) {
     case BASE_TYPE_UNION:
       // If this assert hits, you have an corrupt buffer, a union type field
       // was not present or was out of range.
-      assert(union_sd);
-      if (!GenStruct(*union_sd,
-                     reinterpret_cast<const Table *>(val),
-                     indent,
-                     opts,
-                     _text)) {
-        return false;
-      }
-      break;
+      assert(union_type);
+      return Print<const void *>(val, *union_type, indent, nullptr, opts,
+                                 _text);
     case BASE_TYPE_STRUCT:
       if (!GenStruct(*type.struct_def,
                      reinterpret_cast<const Table *>(val),
@@ -236,7 +230,7 @@ template<typename T> static bool GenField(const FieldDef &fd,
 
 // Generate text for non-scalar field.
 static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
-                           int indent, StructDef *union_sd,
+                           int indent, Type *union_type,
                            const IDLOptions &opts, std::string *_text) {
   const void *val = nullptr;
   if (fixed) {
@@ -249,7 +243,7 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
       ? table->GetStruct<const void *>(fd.value.offset)
       : table->GetPointer<const void *>(fd.value.offset);
   }
-  return Print(val, fd.value.type, indent, union_sd, opts, _text);
+  return Print(val, fd.value.type, indent, union_type, opts, _text);
 }
 
 // Generate text for a struct or table, values separated by commas, indented,
@@ -260,7 +254,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
   std::string &text = *_text;
   text += "{";
   int fieldout = 0;
-  StructDef *union_sd = nullptr;
+  Type *union_type = nullptr;
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end();
        ++it) {
@@ -296,7 +290,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
               if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
-                                  union_sd, opts, _text)) {
+                                  union_type, opts, _text)) {
                 return false;
               }
               break;
@@ -305,7 +299,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
           auto enum_val = fd.value.type.enum_def->ReverseLookup(
                                   table->GetField<uint8_t>(fd.value.offset, 0));
           assert(enum_val);
-          union_sd = enum_val->struct_def;
+          union_type = &enum_val->union_type;
         }
       }
       else

@@ -15,5 +15,9 @@
 # limitations under the License.
 
 pushd "$(dirname $0)" >/dev/null
+../flatc --ts --no-fb-import --gen-mutable -o ts monster_test.fbs
 ../flatc -b monster_test.fbs unicode_test.json
-node JavaScriptTest ./monster_test_generated
+npm install @types/flatbuffers
+tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
+npm uninstall @types/flatbuffers
+node JavaScriptTest ./ts/monster_test_generated

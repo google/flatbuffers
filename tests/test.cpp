@@ -261,7 +261,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // Test accessing a vector of sorted structs
   auto vecofstructs = monster->testarrayofsortedstruct();
   if (vecofstructs) {  // not filled in monster_test.bfbs
-    for (size_t i = 0; i < vecofstructs->size()-1; i++) {
+    for (flatbuffers::uoffset_t i = 0; i < vecofstructs->size()-1; i++) {
       auto left = vecofstructs->Get(i);
       auto right = vecofstructs->Get(i+1);
       TEST_EQ(true, (left->KeyCompareLessThan(right)));
@@ -981,7 +981,7 @@ void TestError(const char *src, const char *error_substr,
 // Also useful for coverage, making sure these paths are run.
 void ErrorTest() {
   // In order they appear in idl_parser.cpp
-  TestError("table X { Y:byte; } root_type X; { Y: 999 }", "bit field");
+  TestError("table X { Y:byte; } root_type X; { Y: 999 }", "does not fit");
   TestError(".0", "floating point");
   TestError("\"\0", "illegal");
   TestError("\"\\q", "escape code");
@@ -1069,30 +1069,49 @@ void EnumStringsTest() {
 }
 
 void IntegerOutOfRangeTest() {
-  TestError("table T { F:byte; } root_type T; { F:256 }",
+  TestError("table T { F:byte; } root_type T; { F:128 }",
             "constant does not fit");
-  TestError("table T { F:byte; } root_type T; { F:-257 }",
+  TestError("table T { F:byte; } root_type T; { F:-129 }",
             "constant does not fit");
   TestError("table T { F:ubyte; } root_type T; { F:256 }",
             "constant does not fit");
-  TestError("table T { F:ubyte; } root_type T; { F:-257 }",
+  TestError("table T { F:ubyte; } root_type T; { F:-1 }",
             "constant does not fit");
-  TestError("table T { F:short; } root_type T; { F:65536 }",
+  TestError("table T { F:short; } root_type T; { F:32768 }",
             "constant does not fit");
-  TestError("table T { F:short; } root_type T; { F:-65537 }",
+  TestError("table T { F:short; } root_type T; { F:-32769 }",
             "constant does not fit");
   TestError("table T { F:ushort; } root_type T; { F:65536 }",
             "constant does not fit");
-  TestError("table T { F:ushort; } root_type T; { F:-65537 }",
+  TestError("table T { F:ushort; } root_type T; { F:-1 }",
             "constant does not fit");
-  TestError("table T { F:int; } root_type T; { F:4294967296 }",
+  TestError("table T { F:int; } root_type T; { F:2147483648 }",
             "constant does not fit");
-  TestError("table T { F:int; } root_type T; { F:-4294967297 }",
+  TestError("table T { F:int; } root_type T; { F:-2147483649 }",
             "constant does not fit");
   TestError("table T { F:uint; } root_type T; { F:4294967296 }",
             "constant does not fit");
-  TestError("table T { F:uint; } root_type T; { F:-4294967297 }",
+  TestError("table T { F:uint; } root_type T; { F:-1 }",
             "constant does not fit");
+}
+
+void IntegerBoundaryTest() {
+  TEST_EQ(TestValue<int8_t>("{ Y:127 }","byte"), 127);
+  TEST_EQ(TestValue<int8_t>("{ Y:-128 }","byte"), -128);
+  TEST_EQ(TestValue<uint8_t>("{ Y:255 }","ubyte"), 255);
+  TEST_EQ(TestValue<uint8_t>("{ Y:0 }","ubyte"), 0);
+  TEST_EQ(TestValue<int16_t>("{ Y:32767 }","short"), 32767);
+  TEST_EQ(TestValue<int16_t>("{ Y:-32768 }","short"), -32768);
+  TEST_EQ(TestValue<uint16_t>("{ Y:65535 }","ushort"), 65535);
+  TEST_EQ(TestValue<uint16_t>("{ Y:0 }","ushort"), 0);
+  TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }","int"), 2147483647);
+  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }","int"), (-2147483647 - 1));
+  TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }","uint"), 4294967295);
+  TEST_EQ(TestValue<uint32_t>("{ Y:0 }","uint"), 0);
+  TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }","long"), 9223372036854775807);
+  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }","long"), (-9223372036854775807 - 1));
+  TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }","ulong"), 18446744073709551615U);
+  TEST_EQ(TestValue<uint64_t>("{ Y:0 }","ulong"), 0);
 }
 
 void UnicodeTest() {
@@ -1334,46 +1353,78 @@ void UnionVectorTest() {
   // union types.
   std::vector<uint8_t> types;
   types.push_back(static_cast<uint8_t>(Character_Belle));
-  types.push_back(static_cast<uint8_t>(Character_Rapunzel));
   types.push_back(static_cast<uint8_t>(Character_MuLan));
+  types.push_back(static_cast<uint8_t>(Character_BookFan));
+  types.push_back(static_cast<uint8_t>(Character_Other));
+  types.push_back(static_cast<uint8_t>(Character_Unused));
 
   // union values.
   std::vector<flatbuffers::Offset<void>> characters;
-  characters.push_back(CreateBelle(fbb, /*books_read=*/7).Union());
-  characters.push_back(CreateRapunzel(fbb, /*hair_length=*/6).Union());
-  characters.push_back(CreateMuLan(fbb, /*sword_attack_damage=*/5).Union());
+  characters.push_back(fbb.CreateStruct(BookReader(/*books_read=*/7)).Union());
+  characters.push_back(CreateAttacker(fbb, /*sword_attack_damage=*/5).Union());
+  characters.push_back(fbb.CreateStruct(BookReader(/*books_read=*/2)).Union());
+  characters.push_back(fbb.CreateString("Other").Union());
+  characters.push_back(fbb.CreateString("Unused").Union());
 
   // create Movie.
   const auto movie_offset =
-      CreateMovie(fbb, fbb.CreateVector(types), fbb.CreateVector(characters));
+      CreateMovie(fbb,
+                  Character_Rapunzel,
+                  fbb.CreateStruct(Rapunzel(/*hair_length=*/6)).Union(),
+                  fbb.CreateVector(types),
+                  fbb.CreateVector(characters));
   FinishMovieBuffer(fbb, movie_offset);
-  uint8_t *buf = fbb.GetBufferPointer();
+  auto buf = fbb.GetBufferPointer();
 
   flatbuffers::Verifier verifier(buf, fbb.GetSize());
   TEST_EQ(VerifyMovieBuffer(verifier), true);
 
-  const Movie *movie = GetMovie(buf);
-  TEST_EQ(movie->characters_type()->size(), 3);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(0) == Character_Belle,
-      true);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(1) == Character_Rapunzel,
-      true);
-  TEST_EQ(
-      movie->characters_type()->GetEnum<Character>(2) == Character_MuLan,
-      true);
+  auto flat_movie = GetMovie(buf);
 
-  TEST_EQ(movie->characters()->size(), 3);
-  const Belle *belle =
-      reinterpret_cast<const Belle*>(movie->characters()->Get(0));
-  TEST_EQ(belle->books_read(), 7);
-  const Rapunzel *rapunzel =
-      reinterpret_cast<const Rapunzel*>(movie->characters()->Get(1));
-  TEST_EQ(rapunzel->hair_length(), 6);
-  const MuLan *mu_lan =
-      reinterpret_cast<const MuLan*>(movie->characters()->Get(2));
-  TEST_EQ(mu_lan->sword_attack_damage(), 5);
+  auto TestMovie = [](const Movie *movie) {
+    TEST_EQ(movie->main_character_type() == Character_Rapunzel, true);
+
+    auto cts = movie->characters_type();
+    TEST_EQ(movie->characters_type()->size(), 5);
+    TEST_EQ(cts->GetEnum<Character>(0) == Character_Belle, true);
+    TEST_EQ(cts->GetEnum<Character>(1) == Character_MuLan, true);
+    TEST_EQ(cts->GetEnum<Character>(2) == Character_BookFan, true);
+    TEST_EQ(cts->GetEnum<Character>(3) == Character_Other, true);
+    TEST_EQ(cts->GetEnum<Character>(4) == Character_Unused, true);
+
+    auto rapunzel = movie->main_character_as_Rapunzel();
+    TEST_EQ(rapunzel->hair_length(), 6);
+
+    auto cs = movie->characters();
+    TEST_EQ(cs->size(), 5);
+    auto belle = cs->GetAs<BookReader>(0);
+    TEST_EQ(belle->books_read(), 7);
+    auto mu_lan = cs->GetAs<Attacker>(1);
+    TEST_EQ(mu_lan->sword_attack_damage(), 5);
+    auto book_fan = cs->GetAs<BookReader>(2);
+    TEST_EQ(book_fan->books_read(), 2);
+    auto other = cs->GetAsString(3);
+    TEST_EQ_STR(other->c_str(), "Other");
+    auto unused = cs->GetAsString(4);
+    TEST_EQ_STR(unused->c_str(), "Unused");
+  };
+
+  TestMovie(flat_movie);
+
+  auto movie_object = flat_movie->UnPack();
+  TEST_EQ(movie_object->main_character.AsRapunzel()->hair_length(), 6);
+  TEST_EQ(movie_object->characters[0].AsBelle()->books_read(), 7);
+  TEST_EQ(movie_object->characters[1].AsMuLan()->sword_attack_damage, 5);
+  TEST_EQ(movie_object->characters[2].AsBookFan()->books_read(), 2);
+  TEST_EQ_STR(movie_object->characters[3].AsOther()->c_str(), "Other");
+  TEST_EQ_STR(movie_object->characters[4].AsUnused()->c_str(), "Unused");
+
+  fbb.Clear();
+  fbb.Finish(Movie::Pack(fbb, movie_object));
+
+  auto repacked_movie = GetMovie(fbb.GetBufferPointer());
+
+  TestMovie(repacked_movie);
 }
 
 void ConformTest() {
@@ -1485,6 +1536,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ValueTest();
   EnumStringsTest();
   IntegerOutOfRangeTest();
+  IntegerBoundaryTest();
   UnicodeTest();
   UnicodeTestAllowNonUTF8();
   UnicodeTestGenerateTextFailsOnNonUTF8();
