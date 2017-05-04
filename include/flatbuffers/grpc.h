@@ -37,6 +37,7 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
     auto slice = gpr_slice_from_copied_buffer(
                    reinterpret_cast<const char *>(msg.buf), msg.len);
     *buffer = grpc_raw_byte_buffer_create(&slice, 1);
+    grpc_slice_unref(slice);
     *own_buffer = true;
     return grpc::Status();
   }
