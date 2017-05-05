@@ -48,10 +48,7 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
     // TODO(wvo): make this more efficient / zero copy when possible.
     auto len = grpc_byte_buffer_length(buffer);
     if(msg->buf != nullptr){
-         // It happens Invalid free. But type of msg->buf is uint8_t *
-         // https://github.com/google/flatbuffers/blob/8b92122f33c2e2aa07e335341503ce19b4989abb/include/flatbuffers/flatbuffers.h#L1741
-         // so, No problem
-         delete reinterpret_cast<uint8_t *>(msg->buf);
+         free(msg->buf);
     }    
     msg->buf = reinterpret_cast<uint8_t *>(malloc(len));
     msg->len = static_cast<flatbuffers::uoffset_t>(len);
