@@ -47,6 +47,9 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
   static grpc::Status Deserialize(grpc_byte_buffer *buffer, T *msg) {
     // TODO(wvo): make this more efficient / zero copy when possible.
     auto len = grpc_byte_buffer_length(buffer);
+    if(msg->buf != nullptr){
+         free(msg->buf);
+    }    
     msg->buf = reinterpret_cast<uint8_t *>(malloc(len));
     msg->len = static_cast<flatbuffers::uoffset_t>(len);
     msg->must_free = true;
