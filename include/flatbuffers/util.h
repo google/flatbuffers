@@ -50,7 +50,7 @@ namespace flatbuffers {
 // converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
   std::stringstream ss;
-  ss << t;
+  ss << std::fixed << t;
   return ss.str();
 }
 // Avoid char types used as character data.
