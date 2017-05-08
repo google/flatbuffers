@@ -301,7 +301,7 @@ Type DestinationType(const Type &type, bool vectorelem) {
     case BASE_TYPE_VECTOR:
       if (vectorelem)
         return DestinationType(type.VectorType(), vectorelem);
-      // else fall thru:
+      // else fall thru
     default: return type;
   }
 }
@@ -348,7 +348,7 @@ std::string DestinationMask(const Type &type, bool vectorelem) {
     case BASE_TYPE_VECTOR:
       if (vectorelem)
         return DestinationMask(type.VectorType(), vectorelem);
-      // else fall thru:
+      // else fall thru
     default: return "";
   }
 }
