@@ -43,29 +43,25 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
     return grpc::Status::OK;
   }
   virtual ::grpc::Status Retrieve(::grpc::ServerContext *context,
-                                  const flatbuffers::BufferRef<Stat> *request,
-                                   ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer)
-                                  override {
+                               const flatbuffers::BufferRef<Stat> *request,
+                               ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer)
+                               override {
+
+    for (int i=0; i<10; i++) {
        fbb_.Clear();
-       std::cout << "Hello, " << request->GetRoot()->id()->str()
-                 << request->GetRoot()->val()
-                 << request->GetRoot()->count()
-                 << std::endl;
-       std::cout << "Streaming test.\n";
+       // Create 10 monsters for resposne.
+       auto monster_offset =
+       CreateMonster(fbb_, 0, 0, 0, fbb_.CreateString(
+         request->GetRoot()->id()->str() + " No." + std::to_string(i)));
+       fbb_.Finish(monster_offset);
 
-       for (int i=0; i<10; i++) {
-         fbb_.Clear();
-         auto monster_offset =
-           CreateMonster(fbb_, 0, 0, 0, fbb_.CreateString("Fred No." + std::to_string(i)));
-         fbb_.Finish(monster_offset);
-
-         flatbuffers::BufferRef<Monster> result(
-           fbb_.GetBufferPointer(), fbb_.GetSize());
-
-         writer->Write(result);
-       }
-
-       return grpc::Status::OK;
+       flatbuffers::BufferRef<Monster> monsterRef(
+         fbb_.GetBufferPointer(), fbb_.GetSize()
+       );
+       // Send monster to client using streaming.
+       writer->Write(monsterRef);
+     }
+     return grpc::Status::OK;
   }
 
  private:
@@ -111,10 +107,11 @@ int main(int /*argc*/, const char * /*argv*/[]) {
                                      grpc::InsecureChannelCredentials());
   auto stub = MyGame::Example::MonsterStorage::NewStub(channel);
 
+
+  flatbuffers::FlatBufferBuilder fbb;
   {
     grpc::ClientContext context;
     // Build a request with the name set.
-    flatbuffers::FlatBufferBuilder fbb;
     auto monster_offset = CreateMonster(fbb, 0, 0, 0, fbb.CreateString("Fred"));
     fbb.Finish(monster_offset);
     auto request = flatbuffers::BufferRef<Monster>(fbb.GetBufferPointer(),
@@ -132,21 +129,20 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     }
   }
   {
-      grpc::ClientContext context;
-      // Build a request with the name set.
-      flatbuffers::FlatBufferBuilder fbb;
-      auto stat_offset = CreateStat(fbb, fbb.CreateString("Hi! I want to Fred"));
-      fbb.Finish(stat_offset);
-      auto request = flatbuffers::BufferRef<Stat>(
-        fbb.GetBufferPointer(),fbb.GetSize()
-      );
+    grpc::ClientContext context;
+    fbb.Clear();
+    auto stat_offset = CreateStat(fbb, fbb.CreateString("Fred"));
+    fbb.Finish(stat_offset);
+    auto request = flatbuffers::BufferRef<Stat>(
+      fbb.GetBufferPointer(),fbb.GetSize()
+    );
 
-      flatbuffers::BufferRef<Monster> response;
-      auto stream = stub->Retrieve(&context, request);
-      while (stream->Read(&response)) {
-        auto resp = response.GetRoot()->name();
-        std::cout << "RPC Streaming response: " << resp->str() << std::endl;
-      }
+    flatbuffers::BufferRef<Monster> response;
+    auto stream = stub->Retrieve(&context, request);
+    while (stream->Read(&response)) {
+      auto resp = response.GetRoot()->name();
+      std::cout << "RPC Streaming response: " << resp->str() << std::endl;
+    }
   }
 
   server_instance->Shutdown();
