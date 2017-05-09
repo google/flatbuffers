@@ -83,8 +83,13 @@ static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
 }
 
 // Begin enum code with a class declaration.
-static void BeginEnum(std::string *code_ptr) {
+static void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
+  code += "type ";
+  code += enum_def.name;
+  code += " ";
+  code += GenTypeBasic(enum_def.underlying_type);
+  code += "\n\n";
   code += "const (\n";
 }
 
@@ -93,8 +98,9 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
                        std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t";
-  code += enum_def.name;
   code += ev.name;
+  code += " ";
+  code += enum_def.name;
   code += " = ";
   code += NumToString(ev.value) + "\n";
 }
@@ -654,7 +660,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
-  BeginEnum(code_ptr);
+  BeginEnum(enum_def, code_ptr);
   for (auto it = enum_def.vals.vec.begin();
        it != enum_def.vals.vec.end();
        ++it) {
