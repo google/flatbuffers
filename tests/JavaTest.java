@@ -63,7 +63,7 @@ class JavaTest {
         Monster.addName(fbb, names[2]);
         off[2] = Monster.endMonster(fbb);
         int sortMons = fbb.createSortedVectorOfTables(new Monster(), off);
-		
+
         // We set up the same values as monsterdata.json:
 
         int str = fbb.createString("MyMonster");
@@ -135,16 +135,16 @@ class JavaTest {
         // the mana field should retain its default value
         TestEq(monster.mutateMana((short)10), false);
         TestEq(monster.mana(), (short)150);
-		
+
 		// Accessing a vector of sorted by the key tables
         TestEq(monster.testarrayoftables(0).name(), "Barney");
         TestEq(monster.testarrayoftables(1).name(), "Frodo");
         TestEq(monster.testarrayoftables(2).name(), "Wilma");
-		
+
 		// Example of searching for a table by the key
-        TestEq(Monster.lookupByKey(sortMons, "Frodo", fbb.dataBuffer()).name(), "Frodo");
-        TestEq(Monster.lookupByKey(sortMons, "Barney", fbb.dataBuffer()).name(), "Barney");
-        TestEq(Monster.lookupByKey(sortMons, "Wilma", fbb.dataBuffer()).name(), "Wilma");
+        TestEq(monster.testarrayoftablesByKey("Frodo").name(), "Frodo");
+        TestEq(monster.testarrayoftablesByKey("Barney").name(), "Barney");
+        TestEq(monster.testarrayoftablesByKey("Wilma").name(), "Wilma");
 
         // testType is an existing field and mutating it should succeed
         TestEq(monster.testType(), (byte)Any.Monster);
@@ -201,7 +201,7 @@ class JavaTest {
 
     static void TestBuffer(ByteBuffer bb) {
         TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
-        
+
         Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
@@ -259,25 +259,25 @@ class JavaTest {
 
         TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
     }
-    
+
     static void TestNamespaceNesting() {
         // reference / manipulate these to verify compilation
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
-        
+
         TableInNestedNS.startTableInNestedNS(fbb);
         TableInNestedNS.addFoo(fbb, 1234);
         int nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb);
-        
-        TableInFirstNS.startTableInFirstNS(fbb);      
+
+        TableInFirstNS.startTableInFirstNS(fbb);
         TableInFirstNS.addFooTable(fbb, nestedTableOff);
         int off = TableInFirstNS.endTableInFirstNS(fbb);
     }
-    
+
     static void TestNestedFlatBuffer() {
         final String nestedMonsterName = "NestedMonsterName";
         final short nestedMonsterHp = 600;
         final short nestedMonsterMana = 1024;
-        
+
         FlatBufferBuilder fbb1 = new FlatBufferBuilder(16);
         int str1 = fbb1.createString(nestedMonsterName);
         Monster.startMonster(fbb1);
@@ -288,8 +288,8 @@ class JavaTest {
         Monster.finishMonsterBuffer(fbb1, monster1);
         byte[] fbb1Bytes = fbb1.sizedByteArray();
         fbb1 = null;
-        
-        FlatBufferBuilder fbb2 = new FlatBufferBuilder(16);        
+
+        FlatBufferBuilder fbb2 = new FlatBufferBuilder(16);
         int str2 = fbb2.createString("My Monster");
         int nestedBuffer = Monster.createTestnestedflatbufferVector(fbb2, fbb1Bytes);
         Monster.startMonster(fbb2);
@@ -299,7 +299,7 @@ class JavaTest {
         Monster.addTestnestedflatbuffer(fbb2, nestedBuffer);
         int monster = Monster.endMonster(fbb2);
         Monster.finishMonsterBuffer(fbb2, monster);
-        
+
         // Now test the data extracted from the nested buffer
         Monster mons = Monster.getRootAsMonster(fbb2.dataBuffer());
         Monster nestedMonster = mons.testnestedflatbufferAsMonster();
