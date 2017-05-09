@@ -66,7 +66,7 @@ namespace php {
                      const bool needs_imports, std::string *code_ptr) {
         std::string &code = *code_ptr;
         code += "<?php\n";
-        code = code + "// " + FlatBuffersGeneratedWarning();
+        code = code + "// " + GeneratedWarning + "\n\n";
         code += "namespace " + name_space_name + ";\n\n";
 
         if (needs_imports) {
