@@ -44,6 +44,14 @@ grpc::string as_string(T x) {
 	return out.str();
 }
 
+inline bool ClientOnlyStreaming(const grpc_generator::Method *method) {
+  return method->ClientStreaming() && !method->ServerStreaming();
+}
+
+inline bool ServerOnlyStreaming(const grpc_generator::Method *method) {
+  return !method->ClientStreaming() && method->ServerStreaming();
+}
+
 namespace grpc_go_generator {
 
 // Returns string with first letter to lowerCase
@@ -70,8 +78,8 @@ void GenerateImports(grpc_generator::File *file, grpc_generator::Printer *printe
 	printer->Print("//If you make any local changes, they will be lost\n");
 	printer->Print(vars, "//source: $filename$\n\n");
 	printer->Print(vars, "package $Package$\n\n");
-	if (file->additional_imports() != "") {
-		printer->Print(file->additional_imports().c_str());
+	if (file->additional_headers() != "") {
+		printer->Print(file->additional_headers().c_str());
 		printer->Print("\n\n");
 	}
 	printer->Print("import (\n");
@@ -86,11 +94,11 @@ void GenerateImports(grpc_generator::File *file, grpc_generator::Printer *printe
 void GenerateServerMethodSignature(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = method->input_name();
-	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_name() : vars["CustomMethodIO"];
+	vars["Request"] = method->input_type_name();
+	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_type_name() : vars["CustomMethodIO"];
 	if (method->NoStreaming()) {
 		printer->Print(vars, "$Method$($context$.Context, *$Request$) (*$Response$, error)");
-	} else if (method->ServerOnlyStreaming()) {
+	} else if (ServerOnlyStreaming(method)) {
 		printer->Print(vars, "$Method$(*$Request$, $Service$_$Method$Server) error");
 	} else {
 		printer->Print(vars, "$Method$($Service$_$Method$Server) error");
@@ -100,8 +108,8 @@ void GenerateServerMethodSignature(const grpc_generator::Method *method, grpc_ge
 void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                           std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = method->input_name();
-	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_name() : vars["CustomMethodIO"];
+	vars["Request"] = method->input_type_name();
+	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_type_name() : vars["CustomMethodIO"];
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	vars["Handler"] = "_" + vars["Service"] + "_" + vars["Method"] + "_Handler";
 	if (method->NoStreaming()) {
@@ -129,7 +137,7 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	vars["StreamType"] = vars["ServiceUnexported"] + vars["Method"] + "Server";
 	printer->Print(vars, "func $Handler$(srv interface{}, stream $grpc$.ServerStream) error {\n");
 	printer->Indent();
-	if (method->ServerOnlyStreaming()) {
+	if (ServerOnlyStreaming(method)) {
 		printer->Print(vars, "m := new($Request$)\n");
 		printer->Print(vars, "if err := stream.RecvMsg(m); err != nil { return err }\n");
 		printer->Print(vars, "return srv.($Service$Server).$Method$(m, &$StreamType${stream})\n");
@@ -139,9 +147,9 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Outdent();
 	printer->Print("}\n\n");
 
-	bool genSend = method->BidiStreaming() || method->ServerOnlyStreaming();
-	bool genRecv = method->BidiStreaming() || method->ClientOnlyStreaming();
-	bool genSendAndClose = method->ClientOnlyStreaming();
+	bool genSend = method->BidiStreaming() || ServerOnlyStreaming(method);
+	bool genRecv = method->BidiStreaming() || ClientOnlyStreaming(method);
+	bool genSendAndClose = ClientOnlyStreaming(method);
 
 	printer->Print(vars, "type $Service$_$Method$Server interface { \n");
 	printer->Indent();
@@ -194,12 +202,12 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 void GenerateClientMethodSignature(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = ", in *" + ((vars["CustomMethodIO"] == "") ? method->input_name() : vars["CustomMethodIO"]);
-	if (method->ClientOnlyStreaming() || method->BidiStreaming()) {
+	vars["Request"] = ", in *" + ((vars["CustomMethodIO"] == "") ? method->input_type_name() : vars["CustomMethodIO"]);
+	if (ClientOnlyStreaming(method) || method->BidiStreaming()) {
 		vars["Request"] = "";
 	}
-	vars["Response"] = "* " + method->output_name();
-	if (method->ClientOnlyStreaming() || method->BidiStreaming() || method->ServerOnlyStreaming()) {
+	vars["Response"] = "* " + method->output_type_name();
+	if (ClientOnlyStreaming(method) || method->BidiStreaming() || ServerOnlyStreaming(method)) {
 		vars["Response"] = vars["Service"] + "_" + vars["Method"] + "Client" ;
 	}
 	printer->Print(vars, "$Method$(ctx $context$.Context$Request$, \n\topts... $grpc$.CallOption) ($Response$, error)");
@@ -213,8 +221,8 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Print(" {\n");
 	printer->Indent();
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->input_name() : vars["CustomMethodIO"];
-	vars["Response"] = method->output_name();
+	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->input_type_name() : vars["CustomMethodIO"];
+	vars["Response"] = method->output_type_name();
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	if (method->NoStreaming()) {
 		printer->Print(vars, "out := new($Response$)\n");
@@ -230,7 +238,7 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Print("if err != nil { return nil, err }\n");
 
 	printer->Print(vars, "x := &$StreamType${stream}\n");
-	if (method->ServerOnlyStreaming()) {
+	if (ServerOnlyStreaming(method)) {
 		printer->Print("if err := x.ClientStream.SendMsg(in); err != nil { return nil, err }\n");
 		printer->Print("if err := x.ClientStream.CloseSend(); err != nil { return nil, err }\n");
 	}
@@ -238,9 +246,9 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Outdent();
 	printer->Print("}\n\n");
 
-	bool genSend = method->BidiStreaming() || method->ClientOnlyStreaming();
-	bool genRecv = method->BidiStreaming() || method->ServerOnlyStreaming();
-	bool genCloseAndRecv = method->ClientOnlyStreaming();
+	bool genSend = method->BidiStreaming() || ClientOnlyStreaming(method);
+	bool genRecv = method->BidiStreaming() || ServerOnlyStreaming(method);
+	bool genCloseAndRecv = ClientOnlyStreaming(method);
 
 	//Stream interface
 	printer->Print(vars, "type $Service$_$Method$Client interface {\n");
@@ -396,9 +404,9 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 			printer->Indent();
 			printer->Print(vars, "StreamName: \"$Method$\",\n");
 			printer->Print(vars, "Handler: $Handler$, \n");
-			if (method->ClientOnlyStreaming()) {
+			if (ClientOnlyStreaming(method.get())) {
 				printer->Print("ClientStreams: true,\n");
-			} else if (method->ServerOnlyStreaming()) {
+			} else if (ServerOnlyStreaming(method.get())) {
 				printer->Print("ServerStreams: true,\n");
 			} else {
 				printer->Print("ServerStreams: true,\n");
