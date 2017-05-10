@@ -224,7 +224,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
   endif()
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctest grpc++_unsecure grpc pthread dl)
+  target_link_libraries(grpctest grpc++_unsecure pthread dl)
 endif()
 
 if(FLATBUFFERS_INSTALL)

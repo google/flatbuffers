@@ -46,30 +46,52 @@ class FlatBufMethod : public grpc_generator::Method {
     }
   }
 
+  grpc::string GetLeadingComments(const grpc::string) const {
+    return "";
+  }
+  grpc::string GetTrailingComments(const grpc::string) const {
+    return "";
+  }
+  std::vector<grpc::string> GetAllComments() const {
+    return std::vector<grpc::string>();
+  }
+
   std::string name() const { return method_->name; }
 
   std::string GRPCType(const StructDef &sd) const {
     return "flatbuffers::BufferRef<" + sd.name + ">";
   }
 
+  std::string get_input_type_name() const {
+    return GRPCType(*method_->request);
+  }
+  std::string get_output_type_name() const {
+    return GRPCType(*method_->response);
+  }
+
+  bool get_module_and_message_path_input(
+      grpc::string * /*str*/, grpc::string /*generator_file_name*/,
+      bool /*generate_in_pb2_grpc*/, grpc::string /*import_prefix*/) const {
+    return true;
+  }
+
+  bool get_module_and_message_path_output(
+      grpc::string * /*str*/, grpc::string /*generator_file_name*/,
+      bool /*generate_in_pb2_grpc*/, grpc::string /*import_prefix*/) const {
+    return true;
+  }
+
   std::string input_type_name() const {
     return GRPCType(*method_->request);
   }
+
   std::string output_type_name() const {
     return GRPCType(*method_->response);
   }
 
-  std::string input_name() const {
-    return (*method_->request).name;
-  }
-
-  std::string output_name() const {
-    return (*method_->response).name;
-  }
-
   bool NoStreaming() const { return streaming_ == kNone; }
-  bool ClientOnlyStreaming() const { return streaming_ == kClient; }
-  bool ServerOnlyStreaming() const { return streaming_ == kServer; }
+  bool ClientStreaming() const { return streaming_ == kClient; }
+  bool ServerStreaming() const { return streaming_ == kServer; }
   bool BidiStreaming() const { return streaming_ == kBiDi; }
 
  private:
@@ -80,6 +102,16 @@ class FlatBufMethod : public grpc_generator::Method {
 class FlatBufService : public grpc_generator::Service {
  public:
   FlatBufService(const ServiceDef *service) : service_(service) {}
+
+  grpc::string GetLeadingComments(const grpc::string) const {
+    return "";
+  }
+  grpc::string GetTrailingComments(const grpc::string) const {
+    return "";
+  }
+  std::vector<grpc::string> GetAllComments() const {
+    return std::vector<grpc::string>();
+  }
 
   std::string name() const { return service_->name; }
 
@@ -153,6 +185,16 @@ class FlatBufFile : public grpc_generator::File {
   FlatBufFile(const Parser &parser, const std::string &file_name)
     : parser_(parser), file_name_(file_name) {}
   FlatBufFile &operator=(const FlatBufFile &);
+
+  grpc::string GetLeadingComments(const grpc::string) const {
+    return "";
+  }
+  grpc::string GetTrailingComments(const grpc::string) const {
+    return "";
+  }
+  std::vector<grpc::string> GetAllComments() const {
+    return std::vector<grpc::string>();
+  }
 
   std::string filename() const { return file_name_; }
   std::string filename_without_ext() const {
