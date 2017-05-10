@@ -40,8 +40,8 @@
 namespace grpc_cpp_generator {
 namespace {
 
-grpc::string message_header_ext() { return ".pb.h"; }
-grpc::string service_header_ext() { return ".grpc.pb.h"; }
+grpc::string message_header_ext() { return "_generated.h"; }
+grpc::string service_header_ext() { return ".grpc.fb.h"; }
 
 template <class T>
 grpc::string as_string(T x) {
@@ -127,6 +127,7 @@ grpc::string GetHeaderPrologue(grpc_generator::File *file,
     printer->Print(vars, "#ifndef GRPC_$filename_identifier$__INCLUDED\n");
     printer->Print(vars, "#define GRPC_$filename_identifier$__INCLUDED\n");
     printer->Print(vars, "\n");
+    printer->Print(vars, file->additional_headers().c_str());
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
     printer->Print(vars, "\n");
   }
@@ -1049,7 +1050,6 @@ grpc::string GetSourcePrologue(grpc_generator::File *file,
 
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
     printer->Print(vars, "#include \"$filename_base$$service_header_ext$\"\n");
-    printer->Print(vars, file->additional_headers().c_str());
     printer->Print(vars, "\n");
   }
   return output;
