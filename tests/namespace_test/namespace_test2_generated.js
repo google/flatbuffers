@@ -55,7 +55,7 @@ NamespaceA.TableInFirstNS.getRootAsTableInFirstNS = function(bb, obj) {
 
 /**
  * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
- * @returns {NamespaceA.NamespaceB.TableInNestedNS}
+ * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
 NamespaceA.TableInFirstNS.prototype.fooTable = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -87,7 +87,7 @@ NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
 
 /**
  * @param {NamespaceA.NamespaceB.StructInNestedNS=} obj
- * @returns {NamespaceA.NamespaceB.StructInNestedNS}
+ * @returns {NamespaceA.NamespaceB.StructInNestedNS|null}
  */
 NamespaceA.TableInFirstNS.prototype.fooStruct = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 8);
@@ -171,7 +171,7 @@ NamespaceC.TableInC.getRootAsTableInC = function(bb, obj) {
 
 /**
  * @param {NamespaceA.TableInFirstNS=} obj
- * @returns {NamespaceA.TableInFirstNS}
+ * @returns {NamespaceA.TableInFirstNS|null}
  */
 NamespaceC.TableInC.prototype.referToA1 = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -180,7 +180,7 @@ NamespaceC.TableInC.prototype.referToA1 = function(obj) {
 
 /**
  * @param {NamespaceA.SecondTableInA=} obj
- * @returns {NamespaceA.SecondTableInA}
+ * @returns {NamespaceA.SecondTableInA|null}
  */
 NamespaceC.TableInC.prototype.referToA2 = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 6);
@@ -256,7 +256,7 @@ NamespaceA.SecondTableInA.getRootAsSecondTableInA = function(bb, obj) {
 
 /**
  * @param {NamespaceC.TableInC=} obj
- * @returns {NamespaceC.TableInC}
+ * @returns {NamespaceC.TableInC|null}
  */
 NamespaceA.SecondTableInA.prototype.referToC = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);

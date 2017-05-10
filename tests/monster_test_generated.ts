@@ -148,7 +148,7 @@ mutate_b(value:number):boolean {
  * @param {number} b
  * @returns {flatbuffers.Offset}
  */
-static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
+static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset|null {
   builder.prep(2, 4);
   builder.pad(1);
   builder.writeInt8(b);
@@ -378,9 +378,9 @@ mutate_test2(value:MyGame.Example.Color):boolean {
 
 /**
  * @param {MyGame.Example.Test=} obj
- * @returns {MyGame.Example.Test}
+ * @returns {MyGame.Example.Test|null}
  */
-test3(obj?:MyGame.Example.Test):MyGame.Example.Test {
+test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
   return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb);
 };
 
@@ -395,7 +395,7 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test {
  * @param {number} test3_b
  * @returns {flatbuffers.Offset}
  */
-static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset {
+static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset|null {
   builder.prep(16, 32);
   builder.pad(2);
   builder.prep(2, 4);
@@ -489,7 +489,7 @@ mutate_distance(value:number):boolean {
  * @param {number} distance
  * @returns {flatbuffers.Offset}
  */
-static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
+static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset|null {
   builder.prep(4, 8);
   builder.writeInt32(distance);
   builder.writeInt32(id);
@@ -538,7 +538,7 @@ static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
  */
 id():string|null
 id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-id(optionalEncoding?:any):string|Uint8Array {
+id(optionalEncoding?:any):string|Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -677,9 +677,9 @@ static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
 
 /**
  * @param {MyGame.Example.Vec3=} obj
- * @returns {MyGame.Example.Vec3}
+ * @returns {MyGame.Example.Vec3|null}
  */
-pos(obj?:MyGame.Example.Vec3):MyGame.Example.Vec3 {
+pos(obj?:MyGame.Example.Vec3):MyGame.Example.Vec3|null {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new MyGame.Example.Vec3).__init(this.bb_pos + offset, this.bb) : null;
 };
@@ -736,7 +736,7 @@ mutate_hp(value:number):boolean {
  */
 name():string|null
 name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-name(optionalEncoding?:any):string|Uint8Array {
+name(optionalEncoding?:any):string|Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -745,7 +745,7 @@ name(optionalEncoding?:any):string|Uint8Array {
  * @param {number} index
  * @returns {number}
  */
-inventory(index: number):number {
+inventory(index: number):number|null {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
 };
@@ -761,7 +761,7 @@ inventoryLength():number {
 /**
  * @returns {Uint8Array}
  */
-inventoryArray():Uint8Array {
+inventoryArray():Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
@@ -816,7 +816,7 @@ mutate_test_type(value:MyGame.Example.Any):boolean {
  * @param {flatbuffers.Table} obj
  * @returns {?flatbuffers.Table}
  */
-test<T extends flatbuffers.Table>(obj:T):T {
+test<T extends flatbuffers.Table>(obj:T):T|null {
   var offset = this.bb.__offset(this.bb_pos, 20);
   return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
 };
@@ -826,7 +826,7 @@ test<T extends flatbuffers.Table>(obj:T):T {
  * @param {MyGame.Example.Test=} obj
  * @returns {MyGame.Example.Test}
  */
-test4(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test {
+test4(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
   var offset = this.bb.__offset(this.bb_pos, 22);
   return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
 };
@@ -846,7 +846,7 @@ test4Length():number {
  */
 testarrayofstring(index: number):string
 testarrayofstring(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
-testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array {
+testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 24);
   return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 };
@@ -867,7 +867,7 @@ testarrayofstringLength():number {
  * @param {MyGame.Example.Monster=} obj
  * @returns {MyGame.Example.Monster}
  */
-testarrayoftables(index: number, obj?:MyGame.Example.Monster):MyGame.Example.Monster {
+testarrayoftables(index: number, obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
   var offset = this.bb.__offset(this.bb_pos, 26);
   return offset ? (obj || new MyGame.Example.Monster).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
@@ -882,9 +882,9 @@ testarrayoftablesLength():number {
 
 /**
  * @param {MyGame.Example.Monster=} obj
- * @returns {MyGame.Example.Monster}
+ * @returns {MyGame.Example.Monster|null}
  */
-enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster {
+enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
   var offset = this.bb.__offset(this.bb_pos, 28);
   return offset ? (obj || new MyGame.Example.Monster).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
@@ -893,7 +893,7 @@ enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster {
  * @param {number} index
  * @returns {number}
  */
-testnestedflatbuffer(index: number):number {
+testnestedflatbuffer(index: number):number|null {
   var offset = this.bb.__offset(this.bb_pos, 30);
   return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
 };
@@ -909,16 +909,16 @@ testnestedflatbufferLength():number {
 /**
  * @returns {Uint8Array}
  */
-testnestedflatbufferArray():Uint8Array {
+testnestedflatbufferArray():Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 30);
   return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
  * @param {MyGame.Example.Stat=} obj
- * @returns {MyGame.Example.Stat}
+ * @returns {MyGame.Example.Stat|null}
  */
-testempty(obj?:MyGame.Example.Stat):MyGame.Example.Stat {
+testempty(obj?:MyGame.Example.Stat):MyGame.Example.Stat|null {
   var offset = this.bb.__offset(this.bb_pos, 32);
   return offset ? (obj || new MyGame.Example.Stat).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
@@ -1134,7 +1134,7 @@ mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
  * @param {number} index
  * @returns {boolean}
  */
-testarrayofbools(index: number):boolean {
+testarrayofbools(index: number):boolean|null {
   var offset = this.bb.__offset(this.bb_pos, 52);
   return offset ? !!this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : false;
 };
@@ -1150,7 +1150,7 @@ testarrayofboolsLength():number {
 /**
  * @returns {Int8Array}
  */
-testarrayofboolsArray():Int8Array {
+testarrayofboolsArray():Int8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 52);
   return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
@@ -1231,7 +1231,7 @@ mutate_testf3(value:number):boolean {
  */
 testarrayofstring2(index: number):string
 testarrayofstring2(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
-testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array {
+testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array|null {
   var offset = this.bb.__offset(this.bb_pos, 60);
   return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 };
@@ -1249,7 +1249,7 @@ testarrayofstring2Length():number {
  * @param {MyGame.Example.Ability=} obj
  * @returns {MyGame.Example.Ability}
  */
-testarrayofsortedstruct(index: number, obj?:MyGame.Example.Ability):MyGame.Example.Ability {
+testarrayofsortedstruct(index: number, obj?:MyGame.Example.Ability):MyGame.Example.Ability|null {
   var offset = this.bb.__offset(this.bb_pos, 62);
   return offset ? (obj || new MyGame.Example.Ability).__init(this.bb.__vector(this.bb_pos + offset) + index * 8, this.bb) : null;
 };
@@ -1314,9 +1314,9 @@ static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Off
  * @param {Array.<number>} data
  * @returns {flatbuffers.Offset}
  */
-static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
@@ -1386,9 +1386,9 @@ static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
@@ -1418,9 +1418,9 @@ static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
@@ -1458,9 +1458,9 @@ static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbuffer
  * @param {Array.<number>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
@@ -1570,9 +1570,9 @@ static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:f
  * @param {Array.<boolean>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset {
+static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
@@ -1626,9 +1626,9 @@ static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offs
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
 if(!data){
-  return null
+  return null;
 }
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
