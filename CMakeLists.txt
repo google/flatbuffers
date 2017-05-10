@@ -173,6 +173,10 @@ if(FLATBUFFERS_BUILD_FLATC)
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
   endif()
+  if(MSVC)
+    # Make flatc.exe not depend on runtime dlls for easy distribution.
+    target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
