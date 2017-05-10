@@ -103,6 +103,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "    PATH             \n"
       "  --include-prefix   Prefix this path to any generated include statements.\n"
       "    PATH\n"
+      "  --keep-prefix      Keep original prefix of schema include statement.\n"
       "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
       "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
       "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
@@ -155,6 +156,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         opts.include_prefix = argv[argi];
         if (opts.include_prefix.back() != '/' &&
             opts.include_prefix.back() != '\\') opts.include_prefix += "/";
+      } else if(arg == "--keep-prefix") {
+        opts.keep_include_path = true;
       } else if(arg == "--strict-json") {
         opts.strict_json = true;
       } else if(arg == "--allow-non-utf8") {

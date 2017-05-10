@@ -72,8 +72,9 @@ class CppGenerator : public BaseGenerator {
     }
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
-      const auto basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(it->first));
+      auto basename = flatbuffers::StripExtension(it->first);
+      if (!parser_.opts.keep_include_path)
+        basename = flatbuffers::StripPath(basename);
       if (basename != file_name_) {
         code_ += "#include \"" + parser_.opts.include_prefix + basename +
                  "_generated.h\"";
