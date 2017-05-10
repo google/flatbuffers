@@ -123,5 +123,7 @@ Additional options:
 -   `--include-prefix PATH` : Prefix this path to any generated include
     statements.
 
+-   `--keep-prefix` : Keep original prefix of schema include statement.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
