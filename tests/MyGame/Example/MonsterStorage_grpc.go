@@ -15,7 +15,7 @@ import (
 // Client API for MonsterStorage service
 type MonsterStorageClient interface{
   Store(ctx context.Context, in *flatbuffers.Builder, 
-  	opts... grpc.CallOption) (* flatbuffers::BufferRef<Stat>, error)  
+  	opts... grpc.CallOption) (* Stat, error)  
   Retrieve(ctx context.Context, in *flatbuffers.Builder, 
   	opts... grpc.CallOption) (MonsterStorage_RetrieveClient, error)  
 }
@@ -29,8 +29,8 @@ func NewMonsterStorageClient(cc *grpc.ClientConn) MonsterStorageClient {
 }
 
 func (c *monsterStorageClient) Store(ctx context.Context, in *flatbuffers.Builder, 
-	opts... grpc.CallOption) (* flatbuffers::BufferRef<Stat>, error) {
-  out := new(flatbuffers::BufferRef<Stat>)
+	opts... grpc.CallOption) (* Stat, error) {
+  out := new(Stat)
   err := grpc.Invoke(ctx, "/Example.MonsterStorage/Store", in, out, c.cc, opts...)
   if err != nil { return nil, err }
   return out, nil
@@ -47,7 +47,7 @@ func (c *monsterStorageClient) Retrieve(ctx context.Context, in *flatbuffers.Bui
 }
 
 type MonsterStorage_RetrieveClient interface {
-  Recv() (*flatbuffers::BufferRef<Monster>, error)
+  Recv() (*Monster, error)
   grpc.ClientStream
 }
 
@@ -55,16 +55,16 @@ type monsterStorageRetrieveClient struct{
   grpc.ClientStream
 }
 
-func (x *monsterStorageRetrieveClient) Recv() (*flatbuffers::BufferRef<Monster>, error) {
-  m := new(flatbuffers::BufferRef<Monster>)
+func (x *monsterStorageRetrieveClient) Recv() (*Monster, error) {
+  m := new(Monster)
   if err := x.ClientStream.RecvMsg(m); err != nil { return nil, err }
   return m, nil
 }
 
 // Server API for MonsterStorage service
 type MonsterStorageServer interface {
-  Store(context.Context, *flatbuffers::BufferRef<Monster>) (*flatbuffers.Builder, error)  
-  Retrieve(*flatbuffers::BufferRef<Stat>, MonsterStorage_RetrieveServer) error  
+  Store(context.Context, *Monster) (*flatbuffers.Builder, error)  
+  Retrieve(*Stat, MonsterStorage_RetrieveServer) error  
 }
 
 func RegisterMonsterStorageServer(s *grpc.Server, srv MonsterStorageServer) {
@@ -73,7 +73,7 @@ func RegisterMonsterStorageServer(s *grpc.Server, srv MonsterStorageServer) {
 
 func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context,
 	dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-  in := new(flatbuffers::BufferRef<Monster>)
+  in := new(Monster)
   if err := dec(in); err != nil { return nil, err }
   if interceptor == nil { return srv.(MonsterStorageServer).Store(ctx, in) }
   info := &grpc.UnaryServerInfo{
@@ -82,14 +82,14 @@ func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context,
   }
   
   handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-    return srv.(MonsterStorageServer).Store(ctx, req.(* flatbuffers::BufferRef<Monster>))
+    return srv.(MonsterStorageServer).Store(ctx, req.(* Monster))
   }
   return interceptor(ctx, in, info, handler)
 }
 
 
 func _MonsterStorage_Retrieve_Handler(srv interface{}, stream grpc.ServerStream) error {
-  m := new(flatbuffers::BufferRef<Stat>)
+  m := new(Stat)
   if err := stream.RecvMsg(m); err != nil { return err }
   return srv.(MonsterStorageServer).Retrieve(m, &monsterStorageRetrieveServer{stream})
 }

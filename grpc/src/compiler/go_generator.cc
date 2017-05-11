@@ -94,8 +94,8 @@ void GenerateImports(grpc_generator::File *file, grpc_generator::Printer *printe
 void GenerateServerMethodSignature(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = method->input_type_name();
-	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_type_name() : vars["CustomMethodIO"];
+	vars["Request"] = method->get_input_type_name();
+	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->get_output_type_name() : vars["CustomMethodIO"];
 	if (method->NoStreaming()) {
 		printer->Print(vars, "$Method$($context$.Context, *$Request$) (*$Response$, error)");
 	} else if (ServerOnlyStreaming(method)) {
@@ -108,8 +108,8 @@ void GenerateServerMethodSignature(const grpc_generator::Method *method, grpc_ge
 void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                           std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = method->input_type_name();
-	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->output_type_name() : vars["CustomMethodIO"];
+	vars["Request"] = method->get_input_type_name();
+	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->get_output_type_name() : vars["CustomMethodIO"];
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	vars["Handler"] = "_" + vars["Service"] + "_" + vars["Method"] + "_Handler";
 	if (method->NoStreaming()) {
@@ -202,11 +202,11 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 void GenerateClientMethodSignature(const grpc_generator::Method *method, grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = ", in *" + ((vars["CustomMethodIO"] == "") ? method->input_type_name() : vars["CustomMethodIO"]);
+	vars["Request"] = ", in *" + ((vars["CustomMethodIO"] == "") ? method->get_input_type_name() : vars["CustomMethodIO"]);
 	if (ClientOnlyStreaming(method) || method->BidiStreaming()) {
 		vars["Request"] = "";
 	}
-	vars["Response"] = "* " + method->output_type_name();
+	vars["Response"] = "* " + method->get_output_type_name();
 	if (ClientOnlyStreaming(method) || method->BidiStreaming() || ServerOnlyStreaming(method)) {
 		vars["Response"] = vars["Service"] + "_" + vars["Method"] + "Client" ;
 	}
@@ -221,8 +221,8 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	printer->Print(" {\n");
 	printer->Indent();
 	vars["Method"] = exportName(method->name());
-	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->input_type_name() : vars["CustomMethodIO"];
-	vars["Response"] = method->output_type_name();
+	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->get_input_type_name() : vars["CustomMethodIO"];
+	vars["Response"] = method->get_output_type_name();
 	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
 	if (method->NoStreaming()) {
 		printer->Print(vars, "out := new($Response$)\n");

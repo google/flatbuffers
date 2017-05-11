@@ -63,10 +63,10 @@ class FlatBufMethod : public grpc_generator::Method {
   }
 
   std::string get_input_type_name() const {
-    return GRPCType(*method_->request);
+    return (*method_->request).name;
   }
   std::string get_output_type_name() const {
-    return GRPCType(*method_->response);
+    return (*method_->response).name;
   }
 
   bool get_module_and_message_path_input(
