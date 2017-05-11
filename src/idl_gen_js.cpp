@@ -593,7 +593,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  this.bb = undefined;\n";
+    code += "  this.bb = null;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";

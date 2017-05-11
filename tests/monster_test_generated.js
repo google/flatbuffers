@@ -50,7 +50,7 @@ MyGame.Example2.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -101,7 +101,7 @@ MyGame.Example.Test = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -185,7 +185,7 @@ MyGame.Example.TestSimpleTableWithEnum = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -267,7 +267,7 @@ MyGame.Example.Vec3 = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -439,7 +439,7 @@ MyGame.Example.Ability = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -522,7 +522,7 @@ MyGame.Example.Stat = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -654,7 +654,7 @@ MyGame.Example.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
