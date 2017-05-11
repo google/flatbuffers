@@ -28,7 +28,7 @@ NamespaceA.NamespaceB.TableInNestedNS = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -110,7 +110,7 @@ NamespaceA.NamespaceB.StructInNestedNS = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
