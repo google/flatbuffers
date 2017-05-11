@@ -4,8 +4,7 @@
 
 package Example
 
-#include "flatbuffers/grpc.h"
-
+import "github.com/google/flatbuffers/go"
 
 import (
   context "golang.org/x/net/context"

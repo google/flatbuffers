@@ -182,8 +182,14 @@ class FlatBufPrinter : public grpc_generator::Printer {
 
 class FlatBufFile : public grpc_generator::File {
  public:
-  FlatBufFile(const Parser &parser, const std::string &file_name)
-    : parser_(parser), file_name_(file_name) {}
+  enum Language {
+    kLanguageGo,
+    kLanguageCpp
+  };
+
+  FlatBufFile(
+      const Parser &parser, const std::string &file_name, Language language)
+    : parser_(parser), file_name_(file_name), language_(language) {}
   FlatBufFile &operator=(const FlatBufFile &);
 
   grpc::string GetLeadingComments(const grpc::string) const {
@@ -213,11 +219,15 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::string additional_headers() const {
-    return "#include \"flatbuffers/grpc.h\"\n";
-  }
-
-  std::string additional_imports() const {
-    return "import \"github.com/google/flatbuffers/go\"";
+    switch (language_) {
+      case kLanguageCpp: {
+        return "#include \"flatbuffers/grpc.h\"\n";
+      }
+      case kLanguageGo: {
+        return "import \"github.com/google/flatbuffers/go\"";
+      }
+    }
+    return "";
   }
 
   int service_count() const {
@@ -237,6 +247,7 @@ class FlatBufFile : public grpc_generator::File {
  private:
   const Parser &parser_;
   const std::string &file_name_;
+  const Language language_;
 };
 
 class GoGRPCGenerator : public flatbuffers::BaseGenerator {
@@ -247,7 +258,7 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
       parser_(parser), path_(path), file_name_(file_name) {}
 
   bool generate() {
-    FlatBufFile file(parser_, file_name_);
+    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageGo);
     grpc_go_generator::Parameters p;
     p.custom_method_io_type = "flatbuffers.Builder";
     for (int i = 0; i < file.service_count(); i++) {
@@ -294,7 +305,7 @@ bool GenerateCppGRPC(const Parser &parser,
   // TODO(wvo): make the other parameters in this struct configurable.
   generator_parameters.use_system_headers = true;
 
-  FlatBufFile fbfile(parser, file_name);
+  FlatBufFile fbfile(parser, file_name, FlatBufFile::kLanguageCpp);
 
   std::string header_code =
       grpc_cpp_generator::GetHeaderPrologue(&fbfile, generator_parameters) +
