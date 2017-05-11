@@ -34,15 +34,7 @@
 #ifndef SRC_COMPILER_CONFIG_H
 #define SRC_COMPILER_CONFIG_H
 
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-namespace grpc {
-
-typedef GRPC_CUSTOM_STRING string;
-
-}  // namespace grpc
+// This file is here only because schema_interface.h, which is copied from gRPC,
+// includes it. There is nothing for Flatbuffers to configure.
 
 #endif  // SRC_COMPILER_CONFIG_H
