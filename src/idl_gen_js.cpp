@@ -94,7 +94,7 @@ class JsGenerator : public BaseGenerator {
     generateImportDependencies(&import_code, imported_files);
     generateReexports(&import_code, reexports, imported_files);
 
-    code = code + "// " + GeneratedWarning + "\n\n";
+    code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
 
     // Generate code for all the namespace declarations.
     GenNamespaces(&code, &exports_code);

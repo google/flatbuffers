@@ -89,7 +89,7 @@ class CppGenerator : public BaseGenerator {
     if (IsEverythingGenerated()) return true;
 
     code_.Clear();
-    code_ += "// " + GeneratedWarning + "\n\n";
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     const auto include_guard = GenIncludeGuard();
     code_ += "#ifndef " + include_guard;
