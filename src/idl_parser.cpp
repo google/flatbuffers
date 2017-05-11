@@ -1340,6 +1340,10 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
             enum_def.vals.vec[prevsize - 1]->value >= ev.value)
           return Error("enum values must be specified in ascending order");
       }
+      if (is_union) {
+        if (ev.value < 0 || ev.value >= 256)
+          return Error("union enum value must fit in a ubyte");
+      }
       if (opts.proto_mode && Is('[')) {
         NEXT();
         // ignore attributes on enums.
