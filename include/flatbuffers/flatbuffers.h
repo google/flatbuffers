@@ -820,10 +820,7 @@ FLATBUFFERS_FINAL_CLASS
   template<typename T> void AssertScalarT() {
     #ifndef FLATBUFFERS_CPP98_STL
     // The code assumes power of 2 sizes and endian-swap-ability.
-    static_assert(std::is_scalar<T>::value
-        // The Offset<T> type is essentially a scalar but fails is_scalar.
-        || sizeof(T) == sizeof(Offset<void>),
-           "T must be a scalar type");
+    static_assert(std::is_scalar<T>::value, "T must be a scalar type");
     #endif
   }
 
