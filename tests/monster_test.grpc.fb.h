@@ -36,17 +36,17 @@ class MonsterStorage final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-        virtual ::grpc::Status Store(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, flatbuffers::BufferRef<Stat>* response) = 0;
+    virtual ::grpc::Status Store(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, flatbuffers::BufferRef<Stat>* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>> AsyncStore(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>>(AsyncStoreRaw(context, request, cq));
     }
-            std::unique_ptr< ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>> Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) {
+    std::unique_ptr< ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>> Retrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) {
       return std::unique_ptr< ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>>(RetrieveRaw(context, request));
     }
     std::unique_ptr< ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>> AsyncRetrieve(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>>(AsyncRetrieveRaw(context, request, cq, tag));
     }
-      private:
+  private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< flatbuffers::BufferRef<Stat>>* AsyncStoreRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Monster>& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientReaderInterface< flatbuffers::BufferRef<Monster>>* RetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request) = 0;
     virtual ::grpc::ClientAsyncReaderInterface< flatbuffers::BufferRef<Monster>>* AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::BufferRef<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
@@ -79,9 +79,9 @@ class MonsterStorage final {
    public:
     Service();
     virtual ~Service();
-        virtual ::grpc::Status Store(::grpc::ServerContext* context, const flatbuffers::BufferRef<Monster>* request, flatbuffers::BufferRef<Stat>* response);
-            virtual ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer);
-      };
+    virtual ::grpc::Status Store(::grpc::ServerContext* context, const flatbuffers::BufferRef<Monster>* request, flatbuffers::BufferRef<Stat>* response);
+    virtual ::grpc::Status Retrieve(::grpc::ServerContext* context, const flatbuffers::BufferRef<Stat>* request, ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer);
+  };
   template <class BaseClass>
   class WithAsyncMethod_Store : public BaseClass {
    private:

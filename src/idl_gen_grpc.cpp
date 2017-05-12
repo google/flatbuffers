@@ -154,6 +154,9 @@ class FlatBufPrinter : public grpc_generator::Printer {
   }
 
   void Print(const char *s) {
+    if (s == nullptr || std::strlen(s) == 0) {
+      return;
+    }
     // Add this string, but for each part separated by \n, add indentation.
     for (;;) {
       // Current indentation.
