@@ -89,18 +89,6 @@ std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
   return BaseGenerator::NamespaceDir(parser_, path_, ns);
 }
 
-bool BaseGenerator::IsEverythingGenerated() const {
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      if (!(*it)->generated) return false;
-    }
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      if (!(*it)->generated) return false;
-    }
-    return true;
-  }
-
 std::string BaseGenerator::FullNamespace(const char *separator,
                                          const Namespace &ns) {
   std::string namespace_name;

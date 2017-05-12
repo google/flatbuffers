@@ -83,8 +83,6 @@ class JsGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
-    if (IsEverythingGenerated()) return true;
-
     imported_fileset imported_files;
     reexport_map reexports;
 
