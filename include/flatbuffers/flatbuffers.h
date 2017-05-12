@@ -75,6 +75,9 @@
 
 // The wire format uses a little endian encoding (since that's efficient for
 // the common platforms).
+#if defined(__s390x__)
+  #define FLATBUFFERS_LITTLEENDIAN 0
+#endif // __s390x__
 #if !defined(FLATBUFFERS_LITTLEENDIAN)
   #if defined(__GNUC__) || defined(__clang__)
     #ifdef __BIG_ENDIAN__
