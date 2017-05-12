@@ -154,7 +154,7 @@ typedef uintmax_t largest_scalar_t;
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
-static constexpr size_t kFileIdentifierLength = 4;
+static FLATBUFFERS_CONSTEXPR const size_t kFileIdentifierLength = 4;
 
 typedef std::allocator<uint8_t> DefaultAllocator;
 
@@ -1421,7 +1421,7 @@ FLATBUFFERS_FINAL_CLASS
   }
 
   /// @brief The length of a FlatBuffer file header.
-  static constexpr size_t kFileIdentifierLength = flatbuffers::kFileIdentifierLength;
+  static FLATBUFFERS_CONSTEXPR const size_t kFileIdentifierLength = flatbuffers::kFileIdentifierLength;
 
   /// @brief Finish serializing a buffer by writing the root offset.
   /// @param[in] file_identifier If a `file_identifier` is given, the buffer
