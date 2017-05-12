@@ -27,24 +27,21 @@ using namespace MyGame::Example;
 // code. It implements all rpcs specified in the FlatBuffers schema.
 class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
   virtual ::grpc::Status Store(::grpc::ServerContext* context,
-                               const flatbuffers::BufferRef<Monster> *request,
-                               flatbuffers::BufferRef<Stat> *response)
+                               const flatbuffers::grpc::Message<Monster> *request,
+                               flatbuffers::grpc::Message<Stat> *response)
                                override {
     // Create a response from the incoming request name.
     fbb_.Clear();
     auto stat_offset = CreateStat(fbb_, fbb_.CreateString("Hello, " +
                                         request->GetRoot()->name()->str()));
     fbb_.Finish(stat_offset);
-    // Since we keep reusing the same FlatBufferBuilder, the memory it owns
-    // remains valid until the next call (this BufferRef doesn't own the
-    // memory it points to).
-    *response = flatbuffers::BufferRef<Stat>(fbb_.GetBufferPointer(),
-                                             fbb_.GetSize());
+    // Transfer ownership of the message to gRPC
+    *response = fbb_.ReleaseMessage<Stat>();
     return grpc::Status::OK;
   }
   virtual ::grpc::Status Retrieve(::grpc::ServerContext *context,
-                               const flatbuffers::BufferRef<Stat> *request,
-                               ::grpc::ServerWriter< flatbuffers::BufferRef<Monster>>* writer)
+                               const flatbuffers::grpc::Message<Stat> *request,
+                               ::grpc::ServerWriter< flatbuffers::grpc::Message<Monster>>* writer)
                                override {
 
     for (int i=0; i<10; i++) {
@@ -55,17 +52,16 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
          request->GetRoot()->id()->str() + " No." + std::to_string(i)));
        fbb_.Finish(monster_offset);
 
-       flatbuffers::BufferRef<Monster> monsterRef(
-         fbb_.GetBufferPointer(), fbb_.GetSize()
-       );
+       flatbuffers::grpc::Message<Monster> monster = fbb_.ReleaseMessage<Monster>();
+
        // Send monster to client using streaming.
-       writer->Write(monsterRef);
+       writer->Write(monster);
      }
      return grpc::Status::OK;
   }
 
  private:
-  flatbuffers::FlatBufferBuilder fbb_;
+  flatbuffers::grpc::MessageBuilder fbb_;
 };
 
 // Track the server instance, so we can terminate it later.
@@ -108,15 +104,14 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   auto stub = MyGame::Example::MonsterStorage::NewStub(channel);
 
 
-  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::grpc::MessageBuilder fbb;
   {
     grpc::ClientContext context;
     // Build a request with the name set.
     auto monster_offset = CreateMonster(fbb, 0, 0, 0, fbb.CreateString("Fred"));
     fbb.Finish(monster_offset);
-    auto request = flatbuffers::BufferRef<Monster>(fbb.GetBufferPointer(),
-                                                   fbb.GetSize());
-    flatbuffers::BufferRef<Stat> response;
+    auto request = fbb.ReleaseMessage<Monster>();
+    flatbuffers::grpc::Message<Stat> response;
 
     // The actual RPC.
     auto status = stub->Store(&context, request, &response);
@@ -133,11 +128,9 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     fbb.Clear();
     auto stat_offset = CreateStat(fbb, fbb.CreateString("Fred"));
     fbb.Finish(stat_offset);
-    auto request = flatbuffers::BufferRef<Stat>(
-      fbb.GetBufferPointer(),fbb.GetSize()
-    );
+    auto request = fbb.ReleaseMessage<Stat>();
 
-    flatbuffers::BufferRef<Monster> response;
+    flatbuffers::grpc::Message<Monster> response;
     auto stream = stub->Retrieve(&context, request);
     while (stream->Read(&response)) {
       auto resp = response.GetRoot()->name();

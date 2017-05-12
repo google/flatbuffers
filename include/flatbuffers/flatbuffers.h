@@ -536,6 +536,24 @@ class vector_downward {
     }
   }
 
+  void reset(size_t initial_size = 1024, Allocator *allocator = nullptr,
+             bool own_allocator = false) {
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
+      allocator_->deallocate(buf_, reserved_);
+    }
+    if (own_allocator_ && allocator_ != nullptr) {
+      delete allocator_;
+    }
+    allocator_ = allocator ? allocator : &DefaultAllocator::instance();
+    assert(allocator_);
+    own_allocator_ = own_allocator;
+    reserved_ = (initial_size + sizeof(largest_scalar_t) - 1) &
+                ~(sizeof(largest_scalar_t) - 1);
+    buf_ = allocator_->allocate(reserved_);
+    cur_ = buf_ + reserved_;
+  }
+
   void clear() {
     if (buf_ == nullptr) {
       assert(allocator_ != nullptr);
@@ -571,9 +589,23 @@ class vector_downward {
     return cur_;
   }
 
+  Allocator &get_allocator() { return *allocator_; }
+
   uoffset_t size() const {
     assert(cur_ != nullptr && buf_ != nullptr);
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
+  }
+
+  uoffset_t capacity() const {
+    if (buf_ == nullptr) {
+      return 0;
+    }
+    return reserved_;
+  }
+
+  uint8_t *buf() const {
+    assert(buf_ != nullptr);
+    return buf_;
   }
 
   uint8_t *data() const {
@@ -658,9 +690,6 @@ template <typename T> T* data(std::vector<T> &v) {
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
 class FlatBufferBuilder
-/// @cond FLATBUFFERS_INTERNAL
-FLATBUFFERS_FINAL_CLASS
-/// @endcond
 {
  public:
   /// @brief Default constructor for FlatBufferBuilder.
@@ -683,6 +712,16 @@ FLATBUFFERS_FINAL_CLASS
 
   ~FlatBufferBuilder() {
     if (string_pool) delete string_pool;
+  }
+
+  /// @brief Get the underlying `vector_downward`
+  /// @return Returns the underlying `vector_downward` buffer
+  vector_downward &GetVectorDownward() { return buf_; }
+
+  /// @brief Reset the size/allocator of the underling `vector_downward`
+  void Reset(uoffset_t initial_size = 0, Allocator *allocator = nullptr,
+             bool own_allocator = false) {
+    buf_.reset(initial_size, allocator, own_allocator);
   }
 
   /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
