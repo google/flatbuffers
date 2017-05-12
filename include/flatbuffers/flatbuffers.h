@@ -154,6 +154,10 @@ typedef uintmax_t largest_scalar_t;
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
+static constexpr size_t kFileIdentifierLength = 4;
+
+typedef std::allocator<uint8_t> DefaultAllocator;
+
 #ifndef FLATBUFFERS_CPP98_STL
 // Pointer to relinquished memory.
 typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
@@ -542,22 +546,28 @@ struct String : public Vector<char> {
   }
 };
 
-// Simple indirection for buffer allocation, to allow this to be overridden
-// with custom allocation (see the FlatBufferBuilder constructor).
-class simple_allocator {
- public:
-  virtual ~simple_allocator() {}
-  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
-  virtual void deallocate(uint8_t *p) const { delete[] p; }
-};
-
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
 // in the lowest address in the vector.
+template <typename Allocator = DefaultAllocator>
 class vector_downward {
+ protected:
+  class BufferDeleter : public Allocator {
+   public:
+    BufferDeleter(Allocator &&alloc, uint8_t *p, size_t n)
+        : Allocator(std::forward<Allocator>(alloc)), buffer(p), size(n) {
+    }
+    inline void operator()(uint8_t * /* unused */) {
+      this->deallocate(buffer, size);
+    }
+   protected:
+    uint8_t *buffer;
+    size_t size;
+  };
+
  public:
   explicit vector_downward(size_t initial_size,
-                           const simple_allocator &allocator)
+                           Allocator &&allocator)
     : reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
         ~(sizeof(largest_scalar_t) - 1)),
       buf_(allocator.allocate(reserved_)),
@@ -566,7 +576,7 @@ class vector_downward {
 
   ~vector_downward() {
     if (buf_)
-      allocator_.deallocate(buf_);
+      allocator_.deallocate(buf_, reserved_);
   }
 
   void clear() {
@@ -579,12 +589,9 @@ class vector_downward {
   #ifndef FLATBUFFERS_CPP98_STL
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
-    // Actually deallocate from the start of the allocated memory.
-    std::function<void(uint8_t *)> deleter(
-      std::bind(&simple_allocator::deallocate, allocator_, buf_));
-
     // Point to the desired offset.
-    unique_ptr_t retval(data(), deleter);
+    unique_ptr_t retval(data(),
+        BufferDeleter(std::move(allocator_), buf_, reserved_));
 
     // Don't deallocate when this instance is destroyed.
     buf_ = nullptr;
@@ -649,15 +656,16 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  vector_downward(const vector_downward &);
-  vector_downward &operator=(const vector_downward &);
+  vector_downward<Allocator>(const vector_downward<Allocator> &);
+  vector_downward<Allocator> &operator=(const vector_downward<Allocator> &);
 
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
-  const simple_allocator &allocator_;
+  Allocator allocator_;
 
   void reallocate(size_t len) {
+    size_t old_reserved = reserved_;
     auto old_size = size();
     auto largest_align = AlignOf<largest_scalar_t>();
     reserved_ += (std::max)(len, growth_policy(reserved_));
@@ -667,7 +675,7 @@ class vector_downward {
     auto new_cur = new_buf + reserved_ - old_size;
     memcpy(new_cur, cur_, old_size);
     cur_ = new_cur;
-    allocator_.deallocate(buf_);
+    allocator_.deallocate(buf_, old_reserved);
     buf_ = new_buf;
   }
 };
@@ -697,28 +705,28 @@ template <typename T> T* data(std::vector<T> &v) {
 
 /// @addtogroup flatbuffers_cpp_api
 /// @{
-/// @class FlatBufferBuilder
+/// @class FlatBufferBuilderT
 /// @brief Helper class to hold data needed in creation of a FlatBuffer.
 /// To serialize data, you typically call one of the `Create*()` functions in
 /// the generated code, which in turn call a sequence of `StartTable`/
 /// `PushElement`/`AddElement`/`EndTable`, or the builtin `CreateString`/
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
-class FlatBufferBuilder
+template <typename Allocator = DefaultAllocator>
+class FlatBufferBuilderT
 /// @cond FLATBUFFERS_INTERNAL
 FLATBUFFERS_FINAL_CLASS
 /// @endcond
 {
  public:
-  /// @brief Default constructor for FlatBufferBuilder.
+  /// @brief Default constructor for FlatBufferBuilderT.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to`1024`.
-  /// @param[in] allocator A pointer to the `simple_allocator` that should be
-  /// used. Defaults to `nullptr`, which means the `default_allocator` will be
-  /// be used.
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
-                             const simple_allocator *allocator = nullptr)
-      : buf_(initial_size, allocator ? *allocator : default_allocator),
+  /// @param[in] allocator An `Allocator` to use. Defaults to a
+  /// default-constructed `Allocator`.
+  explicit FlatBufferBuilderT(uoffset_t initial_size = 1024,
+                              Allocator &&allocator = Allocator())
+      : buf_(initial_size, std::forward<Allocator>(allocator)),
         nested(false), finished(false), minalign_(1), force_defaults_(false),
         dedup_vtables_(true), string_pool(nullptr) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
@@ -726,11 +734,11 @@ FLATBUFFERS_FINAL_CLASS
     EndianCheck();
   }
 
-  ~FlatBufferBuilder() {
+  ~FlatBufferBuilderT() {
     if (string_pool) delete string_pool;
   }
 
-  /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
+  /// @brief Reset all the state in this FlatBufferBuilderT so it can be reused
   /// to construct another buffer.
   void Clear() {
     buf_.clear();
@@ -760,7 +768,7 @@ FLATBUFFERS_FINAL_CLASS
 
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Get the released pointer to the serialized buffer.
-  /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
+  /// @warning Do NOT attempt to use this FlatBufferBuilderT afterwards!
   /// @return The `unique_ptr` returned has a special allocator that knows how
   /// to deallocate this pointer (since it points to the middle of an
   /// allocation). Thus, do not mix this pointer with other `unique_ptr`'s, or
@@ -785,7 +793,7 @@ FLATBUFFERS_FINAL_CLASS
   void Finished() const {
     // If you get this assert, you're attempting to get access a buffer
     // which hasn't been finished yet. Be sure to call
-    // FlatBufferBuilder::Finish with your root table.
+    // FlatBufferBuilderT::Finish with your root table.
     // If you really need to access an unfinished buffer, call
     // GetCurrentBufferPointer instead.
     assert(finished);
@@ -1334,13 +1342,13 @@ FLATBUFFERS_FINAL_CLASS
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T>
   struct TableKeyComparator {
-  TableKeyComparator(vector_downward& buf) : buf_(buf) {}
+  TableKeyComparator(vector_downward<Allocator>& buf) : buf_(buf) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
       return table_a->KeyCompareLessThan(table_b);
     }
-    vector_downward& buf_;
+    vector_downward<Allocator>& buf_;
 
   private:
     TableKeyComparator& operator= (const TableKeyComparator&);
@@ -1413,7 +1421,7 @@ FLATBUFFERS_FINAL_CLASS
   }
 
   /// @brief The length of a FlatBuffer file header.
-  static const size_t kFileIdentifierLength = 4;
+  static constexpr size_t kFileIdentifierLength = flatbuffers::kFileIdentifierLength;
 
   /// @brief Finish serializing a buffer by writing the root offset.
   /// @param[in] file_identifier If a `file_identifier` is given, the buffer
@@ -1438,8 +1446,8 @@ FLATBUFFERS_FINAL_CLASS
 
  private:
   // You shouldn't really be copying instances of this class.
-  FlatBufferBuilder(const FlatBufferBuilder &);
-  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+  FlatBufferBuilderT(const FlatBufferBuilderT &);
+  FlatBufferBuilderT &operator=(const FlatBufferBuilderT &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
@@ -1465,9 +1473,7 @@ FLATBUFFERS_FINAL_CLASS
     voffset_t id;
   };
 
-  simple_allocator default_allocator;
-
-  vector_downward buf_;
+  vector_downward<Allocator> buf_;
 
   // Accumulating offsets of table members while it is being built.
   std::vector<FieldLoc> offsetbuf_;
@@ -1487,14 +1493,14 @@ FLATBUFFERS_FINAL_CLASS
   bool dedup_vtables_;
 
   struct StringOffsetCompare {
-    StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
+    StringOffsetCompare(const vector_downward<Allocator> &buf) : buf_(&buf) {}
     bool operator() (const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
       return strncmp(stra->c_str(), strb->c_str(),
                      std::min(stra->size(), strb->size()) + 1) < 0;
     }
-    const vector_downward *buf_;
+    const vector_downward<Allocator> *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
@@ -1502,6 +1508,9 @@ FLATBUFFERS_FINAL_CLASS
   StringOffsetMap *string_pool;
 };
 /// @}
+
+// FlatBufferBuilder typedef for backwards compatibility
+typedef FlatBufferBuilderT<> FlatBufferBuilder;
 
 /// @cond FLATBUFFERS_INTERNAL
 // Helpers to get a typed pointer to the root object contained in the buffer.
@@ -1522,21 +1531,23 @@ template<typename T> const T *GetSizePrefixedRoot(const void *buf) {
 /// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates
 /// the pointer!
-template<typename T> T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb,
-                                                   Offset<T> offset) {
+template <typename T, typename Allocator = DefaultAllocator>
+T *GetMutableTemporaryPointer(FlatBufferBuilderT<Allocator> &fbb,
+                              Offset<T> offset) {
   return reinterpret_cast<T *>(fbb.GetCurrentBufferPointer() +
     fbb.GetSize() - offset.o);
 }
 
-template<typename T> const T *GetTemporaryPointer(FlatBufferBuilder &fbb,
-                                                  Offset<T> offset) {
+template <typename T, typename Allocator = DefaultAllocator>
+const T *GetTemporaryPointer(FlatBufferBuilderT<Allocator> &fbb,
+                             Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
 }
 
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
   return strncmp(reinterpret_cast<const char *>(buf) + sizeof(uoffset_t),
-                 identifier, FlatBufferBuilder::kFileIdentifierLength) == 0;
+                 identifier, kFileIdentifierLength) == 0;
 }
 
 // Helper class to verify the integrity of a FlatBuffer
@@ -1908,7 +1919,7 @@ inline const uint8_t *GetBufferStartFromRootPointer(const void *root) {
   // file_identifier, and alignment padding) to see which points to the root.
   // None of the other values can "impersonate" the root since they will either
   // be 0 or four ASCII characters.
-  static_assert(FlatBufferBuilder::kFileIdentifierLength == sizeof(uoffset_t),
+  static_assert(kFileIdentifierLength == sizeof(uoffset_t),
                 "file_identifier is assumed to be the same size as uoffset_t");
   for (auto possible_roots = FLATBUFFERS_MAX_ALIGNMENT / sizeof(uoffset_t) + 1;
        possible_roots;
