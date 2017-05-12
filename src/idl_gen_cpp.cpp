@@ -87,8 +87,6 @@ class CppGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
-    if (IsEverythingGenerated()) return true;
-
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
 
@@ -261,8 +259,7 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
-    assert(cur_name_space_);
-    SetNameSpace(nullptr);
+    if (cur_name_space_) SetNameSpace(nullptr);
 
     // Close the include guard.
     code_ += "#endif  // " + include_guard;

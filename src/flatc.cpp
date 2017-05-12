@@ -267,101 +267,103 @@ int FlatCompiler::Compile(int argc, const char** argv) {
   for (auto file_it = filenames.begin();
             file_it != filenames.end();
           ++file_it) {
-      std::string contents;
-      if (!flatbuffers::LoadFile(file_it->c_str(), true, &contents))
-        Error("unable to load file: " + *file_it);
+    auto &filename = *file_it;
+    std::string contents;
+    if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
+      Error("unable to load file: " + filename);
 
-      bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
-                       binary_files_from;
-      if (is_binary) {
-        parser->builder_.Clear();
-        parser->builder_.PushFlatBuffer(
-          reinterpret_cast<const uint8_t *>(contents.c_str()),
-          contents.length());
-        if (!raw_binary) {
-          // Generally reading binaries that do not correspond to the schema
-          // will crash, and sadly there's no way around that when the binary
-          // does not contain a file identifier.
-          // We'd expect that typically any binary used as a file would have
-          // such an identifier, so by default we require them to match.
-          if (!parser->file_identifier_.length()) {
-            Error("current schema has no file_identifier: cannot test if \"" +
-                 *file_it +
-                 "\" matches the schema, use --raw-binary to read this file"
-                 " anyway.");
-          } else if (!flatbuffers::BufferHasIdentifier(contents.c_str(),
-                         parser->file_identifier_.c_str())) {
-            Error("binary \"" +
-                 *file_it +
-                 "\" does not have expected file_identifier \"" +
-                 parser->file_identifier_ +
-                 "\", use --raw-binary to read this file anyway.");
-          }
-        }
-      } else {
-        // Check if file contains 0 bytes.
-        if (contents.length() != strlen(contents.c_str())) {
-          Error("input file appears to be binary: " + *file_it, true);
-        }
-        auto is_schema = flatbuffers::GetExtension(*file_it) == "fbs";
-        if (is_schema) {
-          // If we're processing multiple schemas, make sure to start each
-          // one from scratch. If it depends on previous schemas it must do
-          // so explicitly using an include.
-          parser.reset(new flatbuffers::Parser(opts));
-        }
-        ParseFile(*parser.get(), *file_it, contents, include_directories);
-        if (is_schema && !conform_to_schema.empty()) {
-          auto err = parser->ConformTo(conform_parser);
-          if (!err.empty()) Error("schemas don\'t conform: " + err);
-        }
-        if (schema_binary) {
-          parser->Serialize();
-          parser->file_extension_ = reflection::SchemaExtension();
+    bool is_binary = static_cast<size_t>(file_it - filenames.begin()) >=
+                     binary_files_from;
+    auto is_schema = flatbuffers::GetExtension(filename) == "fbs";
+    if (is_binary) {
+      parser->builder_.Clear();
+      parser->builder_.PushFlatBuffer(
+        reinterpret_cast<const uint8_t *>(contents.c_str()),
+        contents.length());
+      if (!raw_binary) {
+        // Generally reading binaries that do not correspond to the schema
+        // will crash, and sadly there's no way around that when the binary
+        // does not contain a file identifier.
+        // We'd expect that typically any binary used as a file would have
+        // such an identifier, so by default we require them to match.
+        if (!parser->file_identifier_.length()) {
+          Error("current schema has no file_identifier: cannot test if \"" +
+               filename +
+               "\" matches the schema, use --raw-binary to read this file"
+               " anyway.");
+        } else if (!flatbuffers::BufferHasIdentifier(contents.c_str(),
+                       parser->file_identifier_.c_str())) {
+          Error("binary \"" +
+               filename +
+               "\" does not have expected file_identifier \"" +
+               parser->file_identifier_ +
+               "\", use --raw-binary to read this file anyway.");
         }
       }
+    } else {
+      // Check if file contains 0 bytes.
+      if (contents.length() != strlen(contents.c_str())) {
+        Error("input file appears to be binary: " + filename, true);
+      }
+      if (is_schema) {
+        // If we're processing multiple schemas, make sure to start each
+        // one from scratch. If it depends on previous schemas it must do
+        // so explicitly using an include.
+        parser.reset(new flatbuffers::Parser(opts));
+      }
+      ParseFile(*parser.get(), filename, contents, include_directories);
+      if (is_schema && !conform_to_schema.empty()) {
+        auto err = parser->ConformTo(conform_parser);
+        if (!err.empty()) Error("schemas don\'t conform: " + err);
+      }
+      if (schema_binary) {
+        parser->Serialize();
+        parser->file_extension_ = reflection::SchemaExtension();
+      }
+    }
 
-      std::string filebase = flatbuffers::StripPath(
-                               flatbuffers::StripExtension(*file_it));
+    std::string filebase = flatbuffers::StripPath(
+                             flatbuffers::StripExtension(filename));
 
-      for (size_t i = 0; i < params_.num_generators; ++i) {
-        parser->opts.lang = params_.generators[i].lang;
-        if (generator_enabled[i]) {
-          if (!print_make_rules) {
-            flatbuffers::EnsureDirExists(output_path);
-            if (!params_.generators[i].generate(*parser.get(), output_path, filebase)) {
-              Error(std::string("Unable to generate ") +
-                    params_.generators[i].lang_name +
-                    " for " +
-                    filebase);
+    for (size_t i = 0; i < params_.num_generators; ++i) {
+      parser->opts.lang = params_.generators[i].lang;
+      if (generator_enabled[i]) {
+        if (!print_make_rules) {
+          flatbuffers::EnsureDirExists(output_path);
+          if ((!params_.generators[i].schema_only || is_schema) &&
+              !params_.generators[i].generate(*parser.get(), output_path, filebase)) {
+            Error(std::string("Unable to generate ") +
+                  params_.generators[i].lang_name +
+                  " for " +
+                  filebase);
+          }
+        } else {
+          std::string make_rule = params_.generators[i].make_rule(
+              *parser.get(), output_path, filename);
+          if (!make_rule.empty())
+            printf("%s\n", flatbuffers::WordWrap(
+                make_rule, 80, " ", " \\").c_str());
+        }
+        if (grpc_enabled) {
+          if (params_.generators[i].generateGRPC != nullptr) {
+            if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
+                                            filebase)) {
+              Error(std::string("Unable to generate GRPC interface for") +
+                    params_.generators[i].lang_name);
             }
           } else {
-            std::string make_rule = params_.generators[i].make_rule(
-                *parser.get(), output_path, *file_it);
-            if (!make_rule.empty())
-              printf("%s\n", flatbuffers::WordWrap(
-                  make_rule, 80, " ", " \\").c_str());
-          }
-          if (grpc_enabled) {
-            if (params_.generators[i].generateGRPC != nullptr) {
-              if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
-                                              filebase)) {
-                Error(std::string("Unable to generate GRPC interface for") +
-                      params_.generators[i].lang_name);
-              }
-            } else {
-              Warn(std::string("GRPC interface generator not implemented for ")
-                   + params_.generators[i].lang_name);
-            }
+            Warn(std::string("GRPC interface generator not implemented for ")
+                 + params_.generators[i].lang_name);
           }
         }
       }
+    }
 
-      if (opts.proto_mode) GenerateFBS(*parser.get(), output_path, filebase);
+    if (opts.proto_mode) GenerateFBS(*parser.get(), output_path, filebase);
 
-      // We do not want to generate code for the definitions in this file
-      // in any files coming up next.
-      parser->MarkGenerated();
+    // We do not want to generate code for the definitions in this file
+    // in any files coming up next.
+    parser->MarkGenerated();
   }
   return 0;
 }

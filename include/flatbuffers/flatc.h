@@ -42,6 +42,7 @@ class FlatCompiler {
     const char *generator_opt_short;
     const char *generator_opt_long;
     const char *lang_name;
+    bool schema_only;
     GenerateFn generateGRPC;
     flatbuffers::IDLOptions::Language lang;
     const char *generator_help;
