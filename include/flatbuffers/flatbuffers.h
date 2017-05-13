@@ -105,8 +105,10 @@
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
   #define FLATBUFFERS_FINAL_CLASS final
+  #define FLATBUFFERS_OVERRIDE override
 #else
   #define FLATBUFFERS_FINAL_CLASS
+  #define FLATBUFFERS_OVERRIDE
 #endif
 
 #if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
@@ -573,16 +575,16 @@ class Allocator {
 
 class DefaultAllocator : public Allocator {
  public:
-  virtual uint8_t *allocate(size_t size) override {
+  virtual uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
     return new uint8_t[size];
   }
 
-  virtual void deallocate(uint8_t *p, size_t /* unused */) override {
+  virtual void deallocate(uint8_t *p, size_t /* unused */) FLATBUFFERS_OVERRIDE {
     delete[] p;
   }
 
   virtual uint8_t *reallocate_downward(
-      uint8_t *old_p, size_t old_size, size_t new_size) override {
+      uint8_t *old_p, size_t old_size, size_t new_size) FLATBUFFERS_OVERRIDE {
     assert(new_size > old_size);  // vector_downward only grows
     uint8_t* new_p = new uint8_t[new_size];
     memcpy(new_p + (new_size - old_size), old_p, old_size);
@@ -590,7 +592,7 @@ class DefaultAllocator : public Allocator {
     return new_p;
   }
 
-  virtual std::unique_ptr<Allocator> release() override {
+  virtual std::unique_ptr<Allocator> release() FLATBUFFERS_OVERRIDE {
     // no state to transfer, so just release a new instance
     return std::unique_ptr<Allocator>(new DefaultAllocator());
   }
