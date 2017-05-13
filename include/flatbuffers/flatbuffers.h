@@ -123,6 +123,15 @@
   #define FLATBUFFERS_NOEXCEPT
 #endif
 
+// NOTE: the FLATBUFFERS_DELETE_FUNC macro may change the access mode to
+// private, so be sure to put it at the end or reset access mode explicitly.
+#if (!defined(_MSC_VER) || _MSC_FULL_VER >= 180020827) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404))
+  #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
+#else
+  #define FLATBUFFERS_DELETE_FUNC(func) private: func;
+#endif
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4127) // C4127: conditional expression is constant
@@ -606,12 +615,13 @@ class BufferDeleter {
     assert(allocator_);
   }
 
-  BufferDeleter(const BufferDeleter& other) = delete;
-  BufferDeleter& operator=(const BufferDeleter& other) = delete;
-
   inline void operator()(uint8_t * /* unused */) {
     allocator_->deallocate(buf_, size_);
   }
+
+  // must stay at end of public section, may change access to private
+  FLATBUFFERS_DELETE_FUNC(BufferDeleter(const BufferDeleter& other))
+  FLATBUFFERS_DELETE_FUNC(BufferDeleter& operator=(const BufferDeleter& other))
 
  protected:
   std::unique_ptr<Allocator> allocator_;
