@@ -647,7 +647,7 @@ class unique_ptr_t {
     deleter_(ptr_);
   }
 
-  inline uint8_t *release() noexcept {
+  inline uint8_t *release() FLATBUFFERS_NOEXCEPT {
     if (ptr_ != nullptr) {
       deleter_(ptr_);
     }
@@ -655,13 +655,13 @@ class unique_ptr_t {
     return nullptr;
   }
 
-  inline void reset(std::nullptr_t /* unused */ = nullptr) noexcept {
+  inline void reset(std::nullptr_t /* unused */ = nullptr) FLATBUFFERS_NOEXCEPT {
     if (ptr_ != nullptr) {
       deleter_(ptr_);
     }
   }
 
-  inline uint8_t *get() const noexcept {
+  inline uint8_t *get() const FLATBUFFERS_NOEXCEPT {
     return ptr_;
   }
 
@@ -669,7 +669,7 @@ class unique_ptr_t {
     return *ptr_;
   }
 
-  inline uint8_t *operator->() const noexcept {
+  inline uint8_t *operator->() const FLATBUFFERS_NOEXCEPT {
     return ptr_;
   }
 
