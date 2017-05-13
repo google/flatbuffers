@@ -666,9 +666,7 @@ class vector_downward {
   unique_ptr_t release() {
     // Point to the desired offset, but set a deleter that owns the released
     // allocator and the original buf/size.
-    unique_ptr_t retval(
-        data(),
-        std::move(BufferDeleter(allocator_->release(), buf_, reserved_)));
+    unique_ptr_t retval(data(), BufferDeleter(allocator_->release(), buf_, reserved_));
 
     // Don't deallocate when this instance is destroyed.
     buf_ = nullptr;
