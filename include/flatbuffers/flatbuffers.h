@@ -646,7 +646,9 @@ class unique_ptr_t {
   }
 
   inline ~unique_ptr_t() {
-    deleter_(ptr_);
+    if (ptr_ != nullptr) {
+      deleter_(ptr_);
+    }
   }
 
   inline uint8_t *release() FLATBUFFERS_NOEXCEPT {
@@ -661,6 +663,7 @@ class unique_ptr_t {
     if (ptr_ != nullptr) {
       deleter_(ptr_);
     }
+    ptr_ = nullptr;
   }
 
   inline uint8_t *get() const FLATBUFFERS_NOEXCEPT {
