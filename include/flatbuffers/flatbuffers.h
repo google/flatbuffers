@@ -555,8 +555,8 @@ class Allocator {
   // `old_size` at `p`. In contrast to a normal realloc, this grows downwards,
   // and is intended specifcally for `vector_downward` use.
   virtual uint8_t *reallocate_downward(
-
       uint8_t *old_p, size_t old_size, size_t new_size) = 0;
+
   // Release myself to the caller by creating a new
   // `std::unique_ptr<Allocator>` move of myself and resetting my own state.
   virtual std::unique_ptr<Allocator> release() = 0;
