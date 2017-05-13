@@ -581,7 +581,7 @@ class DefaultAllocator : public Allocator {
     return new_p;
   }
 
-  virtual std::unique_ptr<Allocator> release() {
+  virtual std::unique_ptr<Allocator> release() override {
     // no state to transfer, so just release a new instance
     return std::unique_ptr<Allocator>(new DefaultAllocator());
   }
