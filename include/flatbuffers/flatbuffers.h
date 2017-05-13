@@ -630,7 +630,57 @@ class BufferDeleter {
 };
 
 // Pointer to relinquished memory.
+#if (!defined(_MSC_VER) || _MSC_VER > 1600)
 typedef std::unique_ptr<uint8_t, BufferDeleter> unique_ptr_t;
+#else  // begin hack for MSVC 16
+class unique_ptr_t {
+ public:
+  inline unique_ptr_t(uint8_t *ptr, BufferDeleter &&deleter)
+    : ptr_(ptr), deleter_(std::forward<BufferDeleter>(deleter)) {
+  }
+
+  inline unique_ptr_t(unique_ptr_t &&other)
+      : ptr_(other.ptr_), deleter_(std::forward<BufferDeleter>(other.deleter_)) {
+  }
+
+  inline ~unique_ptr_t() {
+    deleter_(ptr_);
+  }
+
+  inline uint8_t *release() noexcept {
+    if (ptr_ != nullptr) {
+      deleter_(ptr_);
+    }
+    ptr_ = nullptr;
+    return nullptr;
+  }
+
+  inline void reset(std::nullptr_t /* unused */ = nullptr) noexcept {
+    if (ptr_ != nullptr) {
+      deleter_(ptr_);
+    }
+  }
+
+  inline uint8_t *get() const noexcept {
+    return ptr_;
+  }
+
+  inline uint8_t operator*() const {
+    return *ptr_;
+  }
+
+  inline uint8_t *operator->() const noexcept {
+    return ptr_;
+  }
+
+ protected:
+  unique_ptr_t(const unique_ptr_t& other);  // delete
+  unique_ptr_t& operator=(const unique_ptr_t& other);  // delete
+
+  uint8_t *ptr_;
+  BufferDeleter deleter_;
+};
+#endif  // end hack for MSVC 16
 #endif  // FLATBUFFERS_CPP98_STL
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
