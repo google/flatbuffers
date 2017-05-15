@@ -134,13 +134,20 @@
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
 #endif
 
-#ifdef __GNUC__
-#define DEPRECATED __attribute__((deprecated))
+#if (__cplusplus >= 201402L) && defined(__has_cpp_attribute)
+  #if __has_cpp_attribute(deprecated)
+    #define DEPRECATED(msg, func) [[deprecated(msg)]] func
+  #endif
+#endif
+#ifdef DEPRECATED
+  // do nothing
+#elif defined(__GNUC__)
+  #define DEPRECATED(msg) __attribute__((deprecated(msg)))
 #elif defined(_MSC_VER)
-#define DEPRECATED __declspec(deprecated)
+  #define DEPRECATED(msg) __declspec(deprecated(msg))
 #else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define DEPRECATED
+  #pragma message("WARNING: DEPRECATED is not defined for this compiler")
+  #define DEPRECATED
 #endif
 
 #if defined(_MSC_VER)
@@ -714,7 +721,8 @@ class DetachedBuffer {
 };
 
 // Add deprecated typedef for legacy code, to be removed in a future version.
-DEPRECATED typedef DetachedBuffer unique_ptr_t;
+DEPRECATED("use flatbuffers::DetachedBuffer instead")
+typedef DetachedBuffer unique_ptr_t;
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
@@ -903,8 +911,8 @@ FLATBUFFERS_FINAL_CLASS
   /// to`1024`.
   /// @param[in] allocator An `Allocator` to use. Defaults to a
   /// default-constructed `Allocator`.
-  DEPRECATED explicit FlatBufferBuilder(uoffset_t initial_size,
-                                        Allocator *allocator = nullptr)
+  DEPRECATED("use newer flatbuffers::FlatBufferBuilder ctors instead")
+  explicit FlatBufferBuilder(uoffset_t initial_size, Allocator *allocator)
     : buf_(initial_size, allocator ? allocator : new DefaultAllocator(), false),
       nested(false),
       finished(false),
