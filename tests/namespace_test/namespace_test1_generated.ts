@@ -168,7 +168,7 @@ mutate_b(value:number):boolean {
  * @param {number} b
  * @returns {flatbuffers.Offset}
  */
-static createStructInNestedNS(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
+static createStructInNestedNS(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset|null {
   builder.prep(4, 8);
   builder.writeInt32(b);
   builder.writeInt32(a);

@@ -102,7 +102,7 @@ if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   # is being configured externally
 elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   if(CYGWIN)
     set(CMAKE_CXX_FLAGS
@@ -127,7 +127,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror \
-                          -Wextra")
+                          -Wextra -Wno-unused-parameter")
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
     set(CMAKE_CXX_FLAGS
         "${CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -172,6 +172,10 @@ if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
+  endif()
+  if(MSVC)
+    # Make flatc.exe not depend on runtime dlls for easy distribution.
+    target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
   endif()
 endif()
 
@@ -224,7 +228,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
   endif()
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctest grpc++_unsecure grpc pthread dl)
+  target_link_libraries(grpctest grpc++_unsecure pthread dl)
 endif()
 
 if(FLATBUFFERS_INSTALL)

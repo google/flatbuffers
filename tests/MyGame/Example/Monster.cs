@@ -41,6 +41,7 @@ public struct Monster : IFlatbufferObject
   /// multiline too
   public Monster? Testarrayoftables(int j) { int o = __p.__offset(26); return o != 0 ? (Monster?)(new Monster()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int TestarrayoftablesLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Monster? TestarrayoftablesByKey(string key) { int o = __p.__offset(26); return o != 0 ? Monster.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
   public Monster? Enemy { get { int o = __p.__offset(28); return o != 0 ? (Monster?)(new Monster()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public byte Testnestedflatbuffer(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -132,17 +133,15 @@ public struct Monster : IFlatbufferObject
   }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }
 
-  public static VectorOffset CreateMySortedVectorOfTables(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
+  public static VectorOffset CreateSortedVectorOfMonster(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
     Array.Sort(offsets, (Offset<Monster> o1, Offset<Monster> o2) => Table.CompareStrings(Table.__offset(10, o1.Value, builder.DataBuffer), Table.__offset(10, o2.Value, builder.DataBuffer), builder.DataBuffer));
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static Monster? LookupByKey(VectorOffset vectorOffset, string key, ByteBuffer bb) {
+  public static Monster? __lookup_by_key(int vectorLocation, string key, ByteBuffer bb) {
     byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
-    int vectorLocation = bb.Length - vectorOffset.Value;
-    int span = bb.GetInt(vectorLocation);
+    int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
-    vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);

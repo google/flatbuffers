@@ -50,7 +50,7 @@ MyGame.Example2.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -101,7 +101,7 @@ MyGame.Example.Test = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -185,7 +185,7 @@ MyGame.Example.TestSimpleTableWithEnum = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -267,7 +267,7 @@ MyGame.Example.Vec3 = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -398,7 +398,7 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
 
 /**
  * @param {MyGame.Example.Test=} obj
- * @returns {MyGame.Example.Test}
+ * @returns {MyGame.Example.Test|null}
  */
 MyGame.Example.Vec3.prototype.test3 = function(obj) {
   return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb);
@@ -439,7 +439,7 @@ MyGame.Example.Ability = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -522,7 +522,7 @@ MyGame.Example.Stat = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -654,7 +654,7 @@ MyGame.Example.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  this.bb = undefined;
+  this.bb = null;
 
   /**
    * @type {number}
@@ -692,7 +692,7 @@ MyGame.Example.Monster.bufferHasIdentifier = function(bb) {
 
 /**
  * @param {MyGame.Example.Vec3=} obj
- * @returns {MyGame.Example.Vec3}
+ * @returns {MyGame.Example.Vec3|null}
  */
 MyGame.Example.Monster.prototype.pos = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -893,7 +893,7 @@ MyGame.Example.Monster.prototype.testarrayoftablesLength = function() {
 
 /**
  * @param {MyGame.Example.Monster=} obj
- * @returns {MyGame.Example.Monster}
+ * @returns {MyGame.Example.Monster|null}
  */
 MyGame.Example.Monster.prototype.enemy = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 28);
@@ -927,7 +927,7 @@ MyGame.Example.Monster.prototype.testnestedflatbufferArray = function() {
 
 /**
  * @param {MyGame.Example.Stat=} obj
- * @returns {MyGame.Example.Stat}
+ * @returns {MyGame.Example.Stat|null}
  */
 MyGame.Example.Monster.prototype.testempty = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 32);

@@ -83,8 +83,6 @@ class JsGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
-    if (IsEverythingGenerated()) return true;
-
     imported_fileset imported_files;
     reexport_map reexports;
 
@@ -593,7 +591,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  this.bb = undefined;\n";
+    code += "  this.bb = null;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";
