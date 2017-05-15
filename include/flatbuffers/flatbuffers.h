@@ -134,6 +134,15 @@
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
 #endif
 
+#ifdef __GNUC__
+#define DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED
+#endif
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4127) // C4127: conditional expression is constant
@@ -548,10 +557,7 @@ struct String : public Vector<char> {
 };
 
 // Allocator interface. This is flatbuffers-specific and meant only for
-// `vector_downward` usage. In particular, one important difference from a
-// "normal" allocator is that there is only a single outstanding memory region
-// at a time. This is because the allocator is owned by a single
-// `vector_downward` and it only ever has one region active.
+// `vector_downward` usage.
 class Allocator {
  public:
   virtual ~Allocator() {}
@@ -565,128 +571,150 @@ class Allocator {
   // Reallocate `new_size` bytes of memory, replacing the old region of size
   // `old_size` at `p`. In contrast to a normal realloc, this grows downwards,
   // and is intended specifcally for `vector_downward` use.
-  virtual uint8_t *reallocate_downward(
-      uint8_t *old_p, size_t old_size, size_t new_size) = 0;
-
-  // Release myself to the caller by creating a new
-  // `std::unique_ptr<Allocator>` move of myself and resetting my own state.
-  virtual std::unique_ptr<Allocator> release() = 0;
+  virtual uint8_t *reallocate_downward(uint8_t *old_p,
+                                       size_t old_size,
+                                       size_t new_size) {
+    assert(new_size > old_size);  // vector_downward only grows
+    uint8_t *new_p = allocate(new_size);
+    memcpy(new_p + (new_size - old_size), old_p, old_size);
+    deallocate(old_p, old_size);
+    return new_p;
+  }
 };
 
+// DefaultAllocator uses new/delete to allocate memory regions
 class DefaultAllocator : public Allocator {
  public:
   virtual uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
     return new uint8_t[size];
   }
 
-  virtual void deallocate(uint8_t *p, size_t /* unused */) FLATBUFFERS_OVERRIDE {
+  virtual void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
     delete[] p;
+  }
+};
+
+// simple_allocator is retained for backwards compatibility, but we should
+// eventually deprecate and remove it.
+class simple_allocator : public DefaultAllocator {
+ public:
+  virtual ~simple_allocator() {}
+  virtual uint8_t *allocate(size_t size) {
+    return DefaultAllocator::allocate(size);
+  }
+  virtual void deallocate(uint8_t *p) {
+    DefaultAllocator::deallocate(p, 0);  // size is ignored in DefaultAllocator
+  }
+};
+
+// AllocatorProxy references an externally-managed allocator
+class AllocatorProxy : public Allocator {
+ public:
+  inline AllocatorProxy(Allocator *allocator) : allocator_(allocator) {}
+
+  inline AllocatorProxy(const AllocatorProxy &other)
+    : allocator_(other.allocator_) {}
+
+  inline AllocatorProxy &operator=(const AllocatorProxy &other) {
+    allocator_ = other.allocator_;
+    return *this;
+  }
+
+  virtual inline uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
+    return allocator_->allocate(size);
+  }
+
+  virtual inline void deallocate(uint8_t *p, size_t size) FLATBUFFERS_OVERRIDE {
+    allocator_->deallocate(p, size);
   }
 
   virtual uint8_t *reallocate_downward(
       uint8_t *old_p, size_t old_size, size_t new_size) FLATBUFFERS_OVERRIDE {
-    assert(new_size > old_size);  // vector_downward only grows
-    uint8_t* new_p = new uint8_t[new_size];
-    memcpy(new_p + (new_size - old_size), old_p, old_size);
-    delete[] old_p;
-    return new_p;
+    return allocator_->reallocate_downward(old_p, old_size, new_size);
   }
-
-  virtual std::unique_ptr<Allocator> release() FLATBUFFERS_OVERRIDE {
-    // no state to transfer, so just release a new instance
-    return std::unique_ptr<Allocator>(new DefaultAllocator());
-  }
-};
-
-#ifndef FLATBUFFERS_CPP98_STL
-// BufferDeleter is specific to the `release` functionality, and allows the
-// user to safely gain ownership of a buffer and its associated buffer.
-class BufferDeleter {
- public:
-  BufferDeleter(std::unique_ptr<Allocator> allocator, uint8_t *buf, size_t size)
-      : allocator_(std::forward<std::unique_ptr<Allocator>>(allocator)),
-        buf_(buf),
-        size_(size) {
-    assert(allocator_);
-  }
-
-  BufferDeleter(BufferDeleter &&other)
-      : allocator_(std::forward<std::unique_ptr<Allocator>>(other.allocator_)),
-        buf_(other.buf_),
-        size_(other.size_) {
-    assert(allocator_);
-  }
-
-  inline void operator()(uint8_t * /* unused */) {
-    allocator_->deallocate(buf_, size_);
-  }
-
-  // must stay at end of public section, may change access to private
-  FLATBUFFERS_DELETE_FUNC(BufferDeleter(const BufferDeleter& other))
-  FLATBUFFERS_DELETE_FUNC(BufferDeleter& operator=(const BufferDeleter& other))
 
  protected:
-  std::unique_ptr<Allocator> allocator_;
-  uint8_t *buf_;
-  size_t size_;
+  Allocator *allocator_;
 };
 
-// Pointer to relinquished memory.
-#if (!defined(_MSC_VER) || _MSC_VER > 1600)
-typedef std::unique_ptr<uint8_t, BufferDeleter> unique_ptr_t;
-#else  // begin hack for MSVC 16
-class unique_ptr_t {
+// DetachedBuffer is specific to the `release` functionality, and allows the
+// user to safely transfer ownership of a buffer. This resembles a unique_ptr +
+// custom deleter in many ways, but we do it here explicitly for wider compiler
+// support.
+class DetachedBuffer {
  public:
-  inline unique_ptr_t(uint8_t *ptr, BufferDeleter &&deleter)
-    : ptr_(ptr), deleter_(std::forward<BufferDeleter>(deleter)) {
+  DetachedBuffer(Allocator *allocator, uint8_t *buf, size_t size, uint8_t *cur)
+    : allocator_(allocator), buf_(buf), size_(size), cur_(cur) {
+    assert(allocator_);
   }
 
-  inline unique_ptr_t(unique_ptr_t &&other)
-      : ptr_(other.ptr_), deleter_(std::forward<BufferDeleter>(other.deleter_)) {
+  DetachedBuffer(DetachedBuffer &&other)
+    : allocator_(other.allocator_),
+      buf_(other.buf_),
+      size_(other.size_),
+      cur_(other.cur_) {
+    assert(allocator_);
+    other.allocator_ = nullptr;
+    other.buf_ = nullptr;
+    other.size_ = 0;
+    other.cur_ = nullptr;
   }
 
-  inline ~unique_ptr_t() {
-    if (ptr_ != nullptr) {
-      deleter_(ptr_);
-    }
+  ~DetachedBuffer() {
+    reset(nullptr);
   }
 
   inline uint8_t *release() FLATBUFFERS_NOEXCEPT {
-    if (ptr_ != nullptr) {
-      deleter_(ptr_);
+    uint8_t *retval = buf_;
+    if (allocator_ != nullptr) {
+      delete allocator_;
     }
-    ptr_ = nullptr;
-    return nullptr;
+    allocator_ = nullptr;
+    buf_ = nullptr;
+    size_ = 0;
+    cur_ = nullptr;
+    return retval;
   }
 
   inline void reset(std::nullptr_t /* unused */ = nullptr) FLATBUFFERS_NOEXCEPT {
-    if (ptr_ != nullptr) {
-      deleter_(ptr_);
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
+      allocator_->deallocate(buf_, size_);
     }
-    ptr_ = nullptr;
+    if (allocator_ != nullptr) {
+      delete allocator_;
+    }
+    allocator_ = nullptr;
+    buf_ = nullptr;
+    size_ = 0;
+    cur_ = nullptr;
   }
 
   inline uint8_t *get() const FLATBUFFERS_NOEXCEPT {
-    return ptr_;
+    return cur_;
   }
 
   inline uint8_t operator*() const {
-    return *ptr_;
+    return *cur_;
   }
 
   inline uint8_t *operator->() const FLATBUFFERS_NOEXCEPT {
-    return ptr_;
+    return cur_;
   }
 
- protected:
-  unique_ptr_t(const unique_ptr_t& other);  // delete
-  unique_ptr_t& operator=(const unique_ptr_t& other);  // delete
+  // These may change access mode, leave these at end of public section
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer &operator=(const DetachedBuffer &other))
 
-  uint8_t *ptr_;
-  BufferDeleter deleter_;
+ protected:
+  Allocator* allocator_;
+  uint8_t *buf_;
+  size_t size_;
+  uint8_t *cur_;
 };
-#endif  // end hack for MSVC 16
-#endif  // FLATBUFFERS_CPP98_STL
+
+// Add deprecated typedef for legacy code, to be removed in a future version.
+DEPRECATED typedef DetachedBuffer unique_ptr_t;
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
@@ -694,19 +722,24 @@ class unique_ptr_t {
 class vector_downward {
  public:
   explicit vector_downward(size_t initial_size,
-                           std::unique_ptr<Allocator> &&allocator)
-
-    : allocator_(std::forward<std::unique_ptr<Allocator>>(allocator)),
+                           Allocator *allocator,
+                           bool steal_allocator)
+    : allocator_(steal_allocator ? allocator : new AllocatorProxy(allocator)),
       reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
-        ~(sizeof(largest_scalar_t) - 1)),
+                ~(sizeof(largest_scalar_t) - 1)),
       buf_(allocator_->allocate(reserved_)),
       cur_(buf_ + reserved_) {
     assert(allocator_);
   }
 
   ~vector_downward() {
-    if (buf_)
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
       allocator_->deallocate(buf_, reserved_);
+    }
+    if (allocator_ != nullptr) {
+      delete allocator_;
+    }
   }
 
   void clear() {
@@ -716,20 +749,15 @@ class vector_downward {
     cur_ = buf_ + reserved_;
   }
 
-  #ifndef FLATBUFFERS_CPP98_STL
   // Relinquish the pointer to the caller.
-  unique_ptr_t release() {
-    // Point to the desired offset, but set a deleter that owns the released
-    // allocator and the original buf/size.
-    unique_ptr_t retval(data(), BufferDeleter(allocator_->release(), buf_, reserved_));
-
-    // Don't deallocate when this instance is destroyed.
+  DetachedBuffer release() {
+    DetachedBuffer retval(allocator_, buf_, reserved_, cur_);
+    allocator_ = nullptr;
+    reserved_ = 0;
     buf_ = nullptr;
     cur_ = nullptr;
-
     return retval;
   }
-  #endif
 
   size_t growth_policy(size_t bytes) {
     return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
@@ -786,10 +814,10 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  vector_downward(const vector_downward &);
-  vector_downward &operator=(const vector_downward &);
+  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
+  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &))
 
-  std::unique_ptr<Allocator> allocator_;
+  Allocator* allocator_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -847,14 +875,43 @@ FLATBUFFERS_FINAL_CLASS
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to`1024`.
-  /// @param[in] allocator A `unique_ptr` to an `Allocator` to use. Defaults to
-  /// a default-constructed `DefaultAllocator`.
-  explicit FlatBufferBuilder(
-      uoffset_t initial_size = 1024,
-      std::unique_ptr<Allocator>&& allocator = std::unique_ptr<Allocator>(new DefaultAllocator()))
-      : buf_(initial_size, std::forward<std::unique_ptr<Allocator>>(allocator)),
-        nested(false), finished(false), minalign_(1), force_defaults_(false),
-        dedup_vtables_(true), string_pool(nullptr) {
+  explicit FlatBufferBuilder(uoffset_t initial_size = 1024)
+    : FlatBufferBuilder(initial_size, new DefaultAllocator(), true) {}
+
+  /// @brief Full constructor for FlatBufferBuilder.
+  /// @param[in] initial_size The initial size of the buffer, in bytes.
+  /// @param[in] allocator An `Allocator` to use.
+  /// @param[in] steal_allocator Whether to steal the allocator.
+  explicit FlatBufferBuilder(uoffset_t initial_size,
+                             Allocator *allocator,
+                             bool steal_allocator)
+    : buf_(initial_size, allocator, steal_allocator),
+      nested(false),
+      finished(false),
+      minalign_(1),
+      force_defaults_(false),
+      dedup_vtables_(true),
+      string_pool(nullptr) {
+    offsetbuf_.reserve(16);  // Avoid first few reallocs.
+    vtables_.reserve(16);
+    EndianCheck();
+  }
+
+  /// @brief Legacy constructor for FlatBufferBuilder. The old behavior was to
+  /// borrow the allocator, so this does the same.
+  /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
+  /// to`1024`.
+  /// @param[in] allocator An `Allocator` to use. Defaults to a
+  /// default-constructed `Allocator`.
+  DEPRECATED explicit FlatBufferBuilder(uoffset_t initial_size,
+                                        Allocator *allocator = nullptr)
+    : buf_(initial_size, allocator ? allocator : new DefaultAllocator(), false),
+      nested(false),
+      finished(false),
+      minalign_(1),
+      force_defaults_(false),
+      dedup_vtables_(true),
+      string_pool(nullptr) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -892,18 +949,14 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
-  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Get the released pointer to the serialized buffer.
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
-  /// @return The `unique_ptr` returned has a special allocator that knows how
-  /// to deallocate this pointer (since it points to the middle of an
-  /// allocation). Thus, do not mix this pointer with other `unique_ptr`'s, or
-  /// call `release()`/`reset()` on it.
-  unique_ptr_t ReleaseBufferPointer() {
+  /// @return A `DetachedBuffer` that owns the buffer and its allocator and
+  /// behaves similar to a `unique_ptr` with a deleter.
+  DetachedBuffer ReleaseBufferPointer() {
     Finished();
     return buf_.release();
   }
-  #endif
 
   /// @brief get the minimum alignment this buffer needs to be accessed
   /// properly. This is only known once all elements have been written (after

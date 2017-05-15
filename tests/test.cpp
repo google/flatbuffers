@@ -81,7 +81,7 @@ uint32_t lcg_rand() {
 void lcg_reset() { lcg_seed = 48271; }
 
 // example of how to build up a serialized buffer algorithmically:
-flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
+flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
