@@ -753,10 +753,26 @@ class vector_downward {
     }
   }
 
-  void clear() {
-    if (buf_ == nullptr)
-      buf_ = allocator_->allocate(reserved_);
+  void reset(size_t initial_size, Allocator *allocator, bool steal_allocator) {
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
+      allocator_->deallocate(buf_, reserved_);
+    }
+    if (allocator_ != nullptr) {
+      delete allocator_;
+    }
+    allocator_ = steal_allocator ? allocator : new AllocatorProxy(allocator);
+    reserved_ = (initial_size + sizeof(largest_scalar_t) - 1) &
+                ~(sizeof(largest_scalar_t) - 1);
+    buf_ = allocator_->allocate(reserved_);
+    cur_ = buf_ + reserved_;
+  }
 
+  void clear() {
+    if (buf_ == nullptr) {
+      assert(allocator_ != nullptr);
+      buf_ = allocator_->allocate(reserved_);
+    }
     cur_ = buf_ + reserved_;
   }
 
