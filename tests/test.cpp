@@ -80,6 +80,8 @@ uint32_t lcg_rand() {
 }
 void lcg_reset() { lcg_seed = 48271; }
 
+std::string test_data_path = "tests/";
+
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
@@ -463,13 +465,14 @@ void ParseAndGenerateTextTest() {
   std::string schemafile;
   std::string jsonfile;
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monster_test.fbs", false, &schemafile), true);
+    (test_data_path + "monster_test.fbs").c_str(), false, &schemafile), true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monsterdata_test.golden", false, &jsonfile), true);
+    (test_data_path + "monsterdata_test.golden").c_str(), false, &jsonfile),
+    true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  const char *include_directories[] = { "tests", nullptr };
+  const char *include_directories[] = { test_data_path.c_str(), nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
 
@@ -496,7 +499,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Load a binary schema.
   std::string bfbsfile;
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/monster_test.bfbs", true, &bfbsfile), true);
+    (test_data_path + "monster_test.bfbs").c_str(), true, &bfbsfile),
+    true);
 
   // Verify it, just in case:
   flatbuffers::Verifier verifier(
@@ -674,9 +678,11 @@ void ParseProtoTest() {
   std::string protofile;
   std::string goldenfile;
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/prototest/test.proto", false, &protofile), true);
+    (test_data_path + "prototest/test.proto").c_str(), false, &protofile),
+    true);
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/prototest/test.golden", false, &goldenfile), true);
+    (test_data_path + "prototest/test.golden").c_str(), false, &goldenfile),
+    true);
 
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
@@ -684,7 +690,8 @@ void ParseProtoTest() {
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
-  const char *include_directories[] = { "tests/prototest", nullptr };
+  auto protopath = test_data_path + "prototest/";
+  const char *include_directories[] = { protopath.c_str(), nullptr };
   TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
 
   // Generate fbs.
@@ -1340,14 +1347,14 @@ void UnionVectorTest() {
   // TODO: load a JSON file with such a vector when JSON support is ready.
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile(
-    "tests/union_vector/union_vector.fbs", false, &schemafile), true);
+    (test_data_path + "union_vector/union_vector.fbs").c_str(), false,
+    &schemafile), true);
 
   // parse schema.
   flatbuffers::IDLOptions idl_opts;
   idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kCpp;
   flatbuffers::Parser parser(idl_opts);
-  const char *include_directories[] = { "tests/union_vector", nullptr };
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_EQ(parser.Parse(schemafile.c_str()), true);
 
   flatbuffers::FlatBufferBuilder fbb;
 
@@ -1522,6 +1529,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   SizePrefixedTest();
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
+    #ifdef FLATBUFFERS_TEST_PATH_PREFIX
+      test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
+                       test_data_path;
+    #endif
   ParseAndGenerateTextTest();
   ReflectionTest(flatbuf.get(), rawbuf.length());
   ParseProtoTest();
