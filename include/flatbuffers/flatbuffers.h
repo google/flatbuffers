@@ -607,10 +607,13 @@ class simple_allocator : public DefaultAllocator {
  public:
   virtual ~simple_allocator() {}
   virtual uint8_t *allocate(size_t size) {
-    return DefaultAllocator::allocate(size);
+    return new uint8_t[size];
   }
   virtual void deallocate(uint8_t *p) {
-    DefaultAllocator::deallocate(p, 0);  // size is ignored in DefaultAllocator
+    delete[] p;
+  }
+  virtual void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
+    deallocate(p);
   }
 };
 
