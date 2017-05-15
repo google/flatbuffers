@@ -885,48 +885,17 @@ FLATBUFFERS_FINAL_CLASS
  public:
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
-  /// to`1024`.
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024)
-    : buf_(initial_size, new DefaultAllocator(), true),
-      nested(false),
-      finished(false),
-      minalign_(1),
-      force_defaults_(false),
-      dedup_vtables_(true),
-      string_pool(nullptr) {
-    offsetbuf_.reserve(16);  // Avoid first few reallocs.
-    vtables_.reserve(16);
-    EndianCheck();
-  }
-
-  /// @brief Full constructor for FlatBufferBuilder.
-  /// @param[in] initial_size The initial size of the buffer, in bytes.
-  /// @param[in] allocator An `Allocator` to use.
-  /// @param[in] steal_allocator Whether to steal the allocator.
-  explicit FlatBufferBuilder(uoffset_t initial_size,
-                             Allocator *allocator,
-                             bool steal_allocator)
-    : buf_(initial_size, allocator, steal_allocator),
-      nested(false),
-      finished(false),
-      minalign_(1),
-      force_defaults_(false),
-      dedup_vtables_(true),
-      string_pool(nullptr) {
-    offsetbuf_.reserve(16);  // Avoid first few reallocs.
-    vtables_.reserve(16);
-    EndianCheck();
-  }
-
-  /// @brief Legacy constructor for FlatBufferBuilder. The old behavior was to
-  /// borrow the allocator, so this does the same.
-  /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
-  /// to`1024`.
-  /// @param[in] allocator An `Allocator` to use. Defaults to a
-  /// default-constructed `Allocator`.
-  DEPRECATED("use newer flatbuffers::FlatBufferBuilder ctors instead")
-  explicit FlatBufferBuilder(uoffset_t initial_size, Allocator *allocator)
-    : buf_(initial_size, allocator ? allocator : new DefaultAllocator(), false),
+  /// to `1024`.
+  /// @param[in] allocator An `Allocator` to use. Defaults to a new instance of
+  /// a `DefaultAllocator`.
+  /// @param[in] steal_allocator Whether to steal the allocator. Defaults to
+  /// `false`, unless it's a newly allocated `DefaultAllocator`.
+  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
+                             Allocator *allocator = nullptr,
+                             bool steal_allocator = false)
+    : buf_(initial_size,
+           allocator ? allocator : new DefaultAllocator(),
+           allocator ? steal_allocator : true),
       nested(false),
       finished(false),
       minalign_(1),
