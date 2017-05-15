@@ -884,7 +884,17 @@ FLATBUFFERS_FINAL_CLASS
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to`1024`.
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024)
-    : FlatBufferBuilder(initial_size, new DefaultAllocator(), true) {}
+    : buf_(initial_size, new DefaultAllocator(), true),
+      nested(false),
+      finished(false),
+      minalign_(1),
+      force_defaults_(false),
+      dedup_vtables_(true),
+      string_pool(nullptr) {
+    offsetbuf_.reserve(16);  // Avoid first few reallocs.
+    vtables_.reserve(16);
+    EndianCheck();
+  }
 
   /// @brief Full constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes.
