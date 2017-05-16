@@ -88,7 +88,7 @@ class CppGenerator : public BaseGenerator {
   // structs, and tables) and output them to a single file.
   bool generate() {
     code_.Clear();
-    code_ += "// " + std::string(FlatBuffersGeneratedWarning());
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     const auto include_guard = GenIncludeGuard();
     code_ += "#ifndef " + include_guard;
