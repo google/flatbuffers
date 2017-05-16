@@ -897,6 +897,27 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     EXPECT(',');
   }
 
+  // Check if all required fields are parsed.
+  std::vector<FieldDef*> requiredFields;
+  auto it = requiredFields.begin();
+  for (auto field: struct_def.fields.vec) {
+    if(field->required) {
+      it = requiredFields.insert(it, field);
+    }
+  }
+  for (auto requiredField: requiredFields) {
+    bool found = false;
+    for (auto parsedFields  : field_stack_) {
+      if (parsedFields.second->name == requiredField->name) {
+        found = true;
+        break;
+      }
+    }
+    if(!found) {
+      return Error("required field is missing: " + requiredField->name);
+    }
+  }
+
   if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
