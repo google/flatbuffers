@@ -913,7 +913,10 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
        ++rfIt) {
     auto requiredField = *rfIt;
     bool found = false;
-    for (std::pair<Value, FieldDef *> parsedFields  : field_stack_) {
+    for (auto pfIt = field_stack_.begin();
+         pfIt != field_stack_.end();
+         ++pfIt) {
+      auto parsedFields = *pfIt;
       if (parsedFields.second->name == requiredField->name) {
         found = true;
         break;
