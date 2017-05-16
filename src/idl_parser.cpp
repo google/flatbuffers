@@ -898,32 +898,25 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   }
 
   // Check if all required fields are parsed.
-  std::vector<FieldDef*> requiredFields;
-  auto rfIt = requiredFields.begin();
-  for (auto fieldIt = struct_def.fields.vec.begin();
-            fieldIt != struct_def.fields.vec.end();
-            ++fieldIt) {
-    auto field = *fieldIt;
-    if(field->required) {
-      rfIt = requiredFields.insert(rfIt, field);
+  for (auto field_it = struct_def.fields.vec.begin();
+            field_it != struct_def.fields.vec.end();
+            ++field_it) {
+    auto required_field = *field_it;
+    if (!required_field->required) {
+      continue;
     }
-  }
-  for (rfIt = requiredFields.begin();
-       rfIt != requiredFields.end();
-       ++rfIt) {
-    auto requiredField = *rfIt;
     bool found = false;
-    for (auto pfIt = field_stack_.begin();
-         pfIt != field_stack_.end();
-         ++pfIt) {
-      auto parsedFields = *pfIt;
-      if (parsedFields.second->name == requiredField->name) {
+    for (auto pf_it = field_stack_.begin();
+         pf_it != field_stack_.end();
+         ++pf_it) {
+      auto parsed_fields = *pf_it;
+      if (parsed_fields.second->name == required_field->name) {
         found = true;
         break;
       }
     }
-    if(!found) {
-      return Error("required field is missing: " + requiredField->name);
+    if (!found) {
+      return Error("required field is missing: " + required_field->name);
     }
   }
 
