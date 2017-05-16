@@ -909,8 +909,8 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     for (auto pf_it = field_stack_.begin();
          pf_it != field_stack_.end();
          ++pf_it) {
-      auto parsed_fields = *pf_it;
-      if (parsed_fields.second->name == required_field->name) {
+      auto parsed_field = pf_it->second;
+      if (parsed_field->name == required_field->name) {
         found = true;
         break;
       }
