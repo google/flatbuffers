@@ -773,7 +773,7 @@ class GoGenerator : public BaseGenerator {
   void BeginFile(const std::string name_space_name, const bool needs_imports,
                  std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code = code + "// " + FlatBuffersGeneratedWarning();
+    code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "package " + name_space_name + "\n\n";
     if (needs_imports) {
       code += "import (\n";
