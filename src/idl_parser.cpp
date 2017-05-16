@@ -900,12 +900,18 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   // Check if all required fields are parsed.
   std::vector<FieldDef*> requiredFields;
   auto rfIt = requiredFields.begin();
-  for (FieldDef* field: struct_def.fields.vec) {
+  for (auto fieldIt = struct_def.fields.vec.begin();
+            fieldIt != struct_def.fields.vec.end();
+            ++fieldIt) {
+    auto field = *fieldIt;
     if(field->required) {
       rfIt = requiredFields.insert(rfIt, field);
     }
   }
-  for (FieldDef* requiredField: requiredFields) {
+  for (rfIt = requiredFields.begin();
+       rfIt != requiredFields.end();
+       ++rfIt) {
+    auto requiredField = *rfIt;
     bool found = false;
     for (std::pair<Value, FieldDef *> parsedFields  : field_stack_) {
       if (parsedFields.second->name == requiredField->name) {
