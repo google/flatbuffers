@@ -906,17 +906,17 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       continue;
     }
     bool found = false;
-    for (auto pf_it = field_stack_.begin();
+    for (auto pf_it = field_stack_.end() - fieldn;
          pf_it != field_stack_.end();
          ++pf_it) {
       auto parsed_field = pf_it->second;
-      if (parsed_field->name == required_field->name) {
+      if (parsed_field == required_field) {
         found = true;
         break;
       }
     }
     if (!found) {
-      return Error("required field is missing: " + required_field->name);
+      return Error("required field is missing: " + required_field->name + " in " + struct_def.name);
     }
   }
 
