@@ -1049,8 +1049,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               type += " | Uint8Array";
             }
             code += "Vector(builder:flatbuffers.Builder, data:" + type +
-                    "):flatbuffers.Offset|null {\n";
-            code += "if(!data){\n  return null;\n}\n";
+                    "):flatbuffers.Offset {\n";
           } else {
             code += object_name + ".create" + MakeCamel(field.name);
             code += "Vector = function(builder, data) {\n";
