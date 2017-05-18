@@ -148,7 +148,7 @@ mutate_b(value:number):boolean {
  * @param {number} b
  * @returns {flatbuffers.Offset}
  */
-static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset|null {
+static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
   builder.prep(2, 4);
   builder.pad(1);
   builder.writeInt8(b);
@@ -395,7 +395,7 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
  * @param {number} test3_b
  * @returns {flatbuffers.Offset}
  */
-static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset|null {
+static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset {
   builder.prep(16, 32);
   builder.pad(2);
   builder.prep(2, 4);
@@ -489,7 +489,7 @@ mutate_distance(value:number):boolean {
  * @param {number} distance
  * @returns {flatbuffers.Offset}
  */
-static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset|null {
+static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
   builder.prep(4, 8);
   builder.writeInt32(distance);
   builder.writeInt32(id);
