@@ -955,7 +955,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
 
     if (lang_.language == IDLOptions::kTs) {
       code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
-      code += arguments + "):flatbuffers.Offset|null {\n";
+      code += arguments + "):flatbuffers.Offset {\n";
     } else {
       code += object_name + ".create" + struct_def.name + " = function(builder";
       code += arguments + ") {\n";
@@ -1049,8 +1049,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               type += " | Uint8Array";
             }
             code += "Vector(builder:flatbuffers.Builder, data:" + type +
-                    "):flatbuffers.Offset|null {\n";
-            code += "if(!data){\n  return null;\n}\n";
+                    "):flatbuffers.Offset {\n";
           } else {
             code += object_name + ".create" + MakeCamel(field.name);
             code += "Vector = function(builder, data) {\n";
