@@ -148,7 +148,7 @@ mutate_b(value:number):boolean {
  * @param {number} b
  * @returns {flatbuffers.Offset}
  */
-static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset|null {
+static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
   builder.prep(2, 4);
   builder.pad(1);
   builder.writeInt8(b);
@@ -395,7 +395,7 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
  * @param {number} test3_b
  * @returns {flatbuffers.Offset}
  */
-static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset|null {
+static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset {
   builder.prep(16, 32);
   builder.pad(2);
   builder.prep(2, 4);
@@ -489,7 +489,7 @@ mutate_distance(value:number):boolean {
  * @param {number} distance
  * @returns {flatbuffers.Offset}
  */
-static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset|null {
+static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
   builder.prep(4, 8);
   builder.writeInt32(distance);
   builder.writeInt32(id);
@@ -1314,10 +1314,7 @@ static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Off
  * @param {Array.<number>} data
  * @returns {flatbuffers.Offset}
  */
-static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -1386,10 +1383,7 @@ static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
@@ -1418,10 +1412,7 @@ static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
@@ -1458,10 +1449,7 @@ static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbuffer
  * @param {Array.<number>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -1570,10 +1558,7 @@ static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:f
  * @param {Array.<boolean>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(+data[i]);
@@ -1626,10 +1611,7 @@ static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offs
  * @param {Array.<flatbuffers.Offset>} data
  * @returns {flatbuffers.Offset}
  */
-static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset|null {
-if(!data){
-  return null;
-}
+static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
