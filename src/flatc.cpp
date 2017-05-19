@@ -16,6 +16,8 @@
 
 #include "flatbuffers/flatc.h"
 
+#include <list>
+
 #define FLATC_VERSION "1.6.0 (" __DATE__ ")"
 
 namespace flatbuffers {
@@ -128,6 +130,7 @@ int FlatCompiler::Compile(int argc, const char** argv) {
   bool schema_binary = false;
   bool grpc_enabled = false;
   std::vector<std::string> filenames;
+  std::list<std::string> include_directories_storage;
   std::vector<const char *> include_directories;
   std::vector<const char *> conform_include_directories;
   std::vector<bool> generator_enabled(params_.num_generators, false);
@@ -141,21 +144,27 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         Error("invalid option location: " + arg, true);
       if (arg == "-o") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        output_path = flatbuffers::ConCatPathFileName(argv[argi], "");
+        output_path = flatbuffers::ConCatPathFileName(
+                        flatbuffers::PosixPath(argv[argi]), "");
       } else if(arg == "-I") {
         if (++argi >= argc) Error("missing path following" + arg, true);
-        include_directories.push_back(argv[argi]);
+        include_directories_storage.push_back(
+                                      flatbuffers::PosixPath(argv[argi]));
+        include_directories.push_back(
+                              include_directories_storage.back().c_str());
       } else if(arg == "--conform") {
         if (++argi >= argc) Error("missing path following" + arg, true);
-        conform_to_schema = argv[argi];
+        conform_to_schema = flatbuffers::PosixPath(argv[argi]);
       } else if (arg == "--conform-includes") {
         if (++argi >= argc) Error("missing path following" + arg, true);
-        conform_include_directories.push_back(argv[argi]);
+        include_directories_storage.push_back(
+                                      flatbuffers::PosixPath(argv[argi]));
+        conform_include_directories.push_back(
+                                    include_directories_storage.back().c_str());
       } else if (arg == "--include-prefix") {
         if (++argi >= argc) Error("missing path following" + arg, true);
-        opts.include_prefix = argv[argi];
-        if (opts.include_prefix.back() != '/' &&
-            opts.include_prefix.back() != '\\') opts.include_prefix += "/";
+        opts.include_prefix = flatbuffers::ConCatPathFileName(
+                                flatbuffers::PosixPath(argv[argi]), "");
       } else if(arg == "--keep-prefix") {
         opts.keep_include_path = true;
       } else if(arg == "--strict-json") {
@@ -240,7 +249,7 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         found:;
       }
     } else {
-      filenames.push_back(argv[argi]);
+      filenames.push_back(flatbuffers::PosixPath(argv[argi]));
     }
   }
 
