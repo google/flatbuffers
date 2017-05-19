@@ -1962,7 +1962,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
                 Is(kTokenIdentifier))) {
       NEXT();
       if (opts.proto_mode && attribute_ == "public") NEXT();
-      auto name = attribute_;
+      auto name = flatbuffers::PosixPath(attribute_.c_str());
       EXPECT(kTokenStringConstant);
       // Look for the file in include_paths.
       std::string filepath;
