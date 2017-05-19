@@ -1519,7 +1519,9 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   std::string rawbuf;
   flatbuffers::simple_allocator allocator;
-  auto flatbuf = CreateFlatBufferTest(allocator, rawbuf);
+  // Note: Passing the |allocator| from the outside is necessary because the
+  // returned |flatbuf| implicitly points to it, and uses it on destruction.
+  unique_ptr_t flatbuf = CreateFlatBufferTest(allocator, rawbuf);
 
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
