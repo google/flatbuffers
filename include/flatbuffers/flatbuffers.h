@@ -900,7 +900,15 @@ FLATBUFFERS_FINAL_CLASS
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
   /// @return A `FlatBuffer` that owns the buffer and its allocator and
   /// behaves similar to a `unique_ptr` with a deleter.
+  /// Deprecated: use Release() instead
   FlatBuffer ReleaseBufferPointer() {
+    Finished();
+    return buf_.release();
+  }
+
+  /// @brief Get the released FlatBuffer.
+  /// @return A `FlatBuffer` that owns the buffer and its allocator.
+  FlatBuffer Release() {
     Finished();
     return buf_.release();
   }
