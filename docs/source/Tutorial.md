@@ -1541,10 +1541,10 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  var pos = monster.Pos
-  var x = pos.X
-  var y = pos.Y
-  var z = pos.Z
+  var pos = monster.Pos.Value;
+  var x = pos.X;
+  var y = pos.Y;
+  var z = pos.Z;
 ~~~
 </div>
 <div class="language-go">
@@ -1618,7 +1618,7 @@ FlatBuffers `vector`.
 <div class="language-csharp">
 ~~~{.cs}
   int invLength = monster.InventoryLength;
-  var thirdItem = monster.GetInventory(2);
+  var thirdItem = monster.Inventory(2);
 ~~~
 </div>
 <div class="language-go">
@@ -1675,8 +1675,8 @@ except your need to handle the result as a FlatBuffer `table`:
 <div class="language-csharp">
 ~~~{.cs}
   int weaponsLength = monster.WeaponsLength;
-  var secondWeaponName = monster.GetWeapons(1).Name;
-  var secondWeaponDamage = monster.GetWeapons(1).Damage;
+  var secondWeaponName = monster.Weapons(1).Name;
+  var secondWeaponDamage = monster.Weapons(1).Damage;
 ~~~
 </div>
 <div class="language-go">
@@ -1758,8 +1758,7 @@ We can access the type to dynamically cast the data as needed (since the
   var unionType = monster.EquippedType;
 
   if (unionType == Equipment.Weapon) {
-    var weapon = (Weapon)monster.GetEquipped(new Weapon()); // Requires explicit cast
-                                                            // to `Weapon`.
+    var weapon = monster.Equipped<Weapon>().Value;
 
     var weaponName = weapon.Name;     // "Axe"
     var weaponDamage = weapon.Damage; // 5
