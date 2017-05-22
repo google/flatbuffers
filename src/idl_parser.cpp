@@ -897,6 +897,29 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     EXPECT(',');
   }
 
+  // Check if all required fields are parsed.
+  for (auto field_it = struct_def.fields.vec.begin();
+            field_it != struct_def.fields.vec.end();
+            ++field_it) {
+    auto required_field = *field_it;
+    if (!required_field->required) {
+      continue;
+    }
+    bool found = false;
+    for (auto pf_it = field_stack_.end() - fieldn;
+         pf_it != field_stack_.end();
+         ++pf_it) {
+      auto parsed_field = pf_it->second;
+      if (parsed_field == required_field) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return Error("required field is missing: " + required_field->name + " in " + struct_def.name);
+    }
+  }
+
   if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
@@ -1339,6 +1362,10 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         if (!opts.proto_mode && prevsize &&
             enum_def.vals.vec[prevsize - 1]->value >= ev.value)
           return Error("enum values must be specified in ascending order");
+      }
+      if (is_union) {
+        if (ev.value < 0 || ev.value >= 256)
+          return Error("union enum value must fit in a ubyte");
       }
       if (opts.proto_mode && Is('[')) {
         NEXT();
@@ -1935,7 +1962,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
                 Is(kTokenIdentifier))) {
       NEXT();
       if (opts.proto_mode && attribute_ == "public") NEXT();
-      auto name = attribute_;
+      auto name = flatbuffers::PosixPath(attribute_.c_str());
       EXPECT(kTokenStringConstant);
       // Look for the file in include_paths.
       std::string filepath;

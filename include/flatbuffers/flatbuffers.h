@@ -75,6 +75,9 @@
 
 // The wire format uses a little endian encoding (since that's efficient for
 // the common platforms).
+#if defined(__s390x__)
+  #define FLATBUFFERS_LITTLEENDIAN 0
+#endif // __s390x__
 #if !defined(FLATBUFFERS_LITTLEENDIAN)
   #if defined(__GNUC__) || defined(__clang__)
     #ifdef __BIG_ENDIAN__
@@ -158,11 +161,13 @@ typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
 #endif
 
 // Wrapper for uoffset_t to allow safe template specialization.
+// Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
 template<typename T> struct Offset {
   uoffset_t o;
   Offset() : o(0) {}
   Offset(uoffset_t _o) : o(_o) {}
   Offset<void> Union() const { return Offset<void>(o); }
+  bool IsNull() const { return !o; }
 };
 
 inline void EndianCheck() {
@@ -818,10 +823,7 @@ FLATBUFFERS_FINAL_CLASS
   template<typename T> void AssertScalarT() {
     #ifndef FLATBUFFERS_CPP98_STL
     // The code assumes power of 2 sizes and endian-swap-ability.
-    static_assert(std::is_scalar<T>::value
-        // The Offset<T> type is essentially a scalar but fails is_scalar.
-        || sizeof(T) == sizeof(Offset<void>),
-           "T must be a scalar type");
+    static_assert(std::is_scalar<T>::value, "T must be a scalar type");
     #endif
   }
 
@@ -855,7 +857,7 @@ FLATBUFFERS_FINAL_CLASS
   }
 
   template<typename T> void AddOffset(voffset_t field, Offset<T> off) {
-    if (!off.o) return;  // An offset of 0 means NULL, don't store.
+    if (off.IsNull()) return;  // Don't store.
     AddElement(field, ReferTo(off.o), static_cast<uoffset_t>(0));
   }
 

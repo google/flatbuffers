@@ -83,8 +83,6 @@ class JsGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
-    if (IsEverythingGenerated()) return true;
-
     imported_fileset imported_files;
     reexport_map reexports;
 
@@ -94,7 +92,7 @@ class JsGenerator : public BaseGenerator {
     generateImportDependencies(&import_code, imported_files);
     generateReexports(&import_code, reexports, imported_files);
 
-    code = code + "// " + FlatBuffersGeneratedWarning();
+    code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
 
     // Generate code for all the namespace declarations.
     GenNamespaces(&code, &exports_code);
@@ -593,7 +591,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  this.bb = undefined;\n";
+    code += "  this.bb = null;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";
@@ -957,7 +955,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
 
     if (lang_.language == IDLOptions::kTs) {
       code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
-      code += arguments + "):flatbuffers.Offset|null {\n";
+      code += arguments + "):flatbuffers.Offset {\n";
     } else {
       code += object_name + ".create" + struct_def.name + " = function(builder";
       code += arguments + ") {\n";
@@ -1051,8 +1049,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               type += " | Uint8Array";
             }
             code += "Vector(builder:flatbuffers.Builder, data:" + type +
-                    "):flatbuffers.Offset|null {\n";
-            code += "if(!data){\n  return null;\n}\n";
+                    "):flatbuffers.Offset {\n";
           } else {
             code += object_name + ".create" + MakeCamel(field.name);
             code += "Vector = function(builder, data) {\n";

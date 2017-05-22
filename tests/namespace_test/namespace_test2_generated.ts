@@ -37,9 +37,9 @@ static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):T
 
 /**
  * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
- * @returns {NamespaceA.NamespaceB.TableInNestedNS}
+ * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
-fooTable(obj?:NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS {
+fooTable(obj?:NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS|null {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
@@ -69,9 +69,9 @@ mutate_foo_enum(value:NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS
 
 /**
  * @param {NamespaceA.NamespaceB.StructInNestedNS=} obj
- * @returns {NamespaceA.NamespaceB.StructInNestedNS}
+ * @returns {NamespaceA.NamespaceB.StructInNestedNS|null}
  */
-fooStruct(obj?:NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS {
+fooStruct(obj?:NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS|null {
   var offset = this.bb.__offset(this.bb_pos, 8);
   return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb) : null;
 };
@@ -154,18 +154,18 @@ static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
 
 /**
  * @param {NamespaceA.TableInFirstNS=} obj
- * @returns {NamespaceA.TableInFirstNS}
+ * @returns {NamespaceA.TableInFirstNS|null}
  */
-referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS {
+referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS|null {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new NamespaceA.TableInFirstNS).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
 /**
  * @param {NamespaceA.SecondTableInA=} obj
- * @returns {NamespaceA.SecondTableInA}
+ * @returns {NamespaceA.SecondTableInA|null}
  */
-referToA2(obj?:NamespaceA.SecondTableInA):NamespaceA.SecondTableInA {
+referToA2(obj?:NamespaceA.SecondTableInA):NamespaceA.SecondTableInA|null {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? (obj || new NamespaceA.SecondTableInA).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
@@ -240,9 +240,9 @@ static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):S
 
 /**
  * @param {NamespaceC.TableInC=} obj
- * @returns {NamespaceC.TableInC}
+ * @returns {NamespaceC.TableInC|null}
  */
-referToC(obj?:NamespaceC.TableInC):NamespaceC.TableInC {
+referToC(obj?:NamespaceC.TableInC):NamespaceC.TableInC|null {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new NamespaceC.TableInC).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };

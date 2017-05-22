@@ -47,6 +47,7 @@ public final class Monster extends Table {
   public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
   public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
+  public Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(__vector(o), key, bb) : null; }
   public Monster enemy() { return enemy(new Monster()); }
   public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
@@ -145,12 +146,10 @@ public final class Monster extends Table {
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
-  public static Monster lookupByKey(int vectorOffset, String key, ByteBuffer bb) {
+  public static Monster __lookup_by_key(int vectorLocation, String key, ByteBuffer bb) {
     byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int vectorLocation = bb.array().length - vectorOffset;
-    int span = bb.getInt(vectorLocation);
+    int span = bb.getInt(vectorLocation - 4);
     int start = 0;
-    vectorLocation += 4;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
