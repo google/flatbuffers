@@ -81,22 +81,19 @@ class SampleBinary
     Assert(monster.Color == Color.Red, "monster.Color", Convert.ToString(monster.Color),
            Convert.ToString(Color.Red));
 
-    // C# also allows you to use performance-enhanced methods to fill an object that has already
-    // been created. These functions are prefixed with "Get". For example: `monster.GetPos()`.
-    var myAlreadyCreatedVector = new Vec3();
-    monster.GetPos(myAlreadyCreatedVector); // Instead of `var myNewVec3 = monster.Pos`.
-    Assert(myAlreadyCreatedVector.X == 1.0f, "myAlreadyCreatedVector.X",
-           Convert.ToString(myAlreadyCreatedVector.X), Convert.ToString(1.0f));
-    Assert(myAlreadyCreatedVector.Y == 2.0f, "myAlreadyCreatedVector.Y",
-           Convert.ToString(myAlreadyCreatedVector.Y), Convert.ToString(2.0f));
-    Assert(myAlreadyCreatedVector.Z == 3.0f, "myAlreadyCreatedVector.Z",
-           Convert.ToString(myAlreadyCreatedVector.Z), Convert.ToString(3.0f));
+    var vec = monster.Pos.Value;
+    Assert(vec.X == 1.0f, "vec.X",
+           Convert.ToString(vec.X), Convert.ToString(1.0f));
+    Assert(vec.Y == 2.0f, "vec.Y",
+           Convert.ToString(vec.Y), Convert.ToString(2.0f));
+    Assert(vec.Z == 3.0f, "vec.Z",
+           Convert.ToString(vec.Z), Convert.ToString(3.0f));
 
     // Get and test the `Inventory` FlatBuffer `vector`.
     for (int i = 0; i < monster.InventoryLength; i++)
     {
-      Assert(monster.GetInventory(i) == i, "monster.GetInventory",
-             Convert.ToString(monster.GetInventory(i)), Convert.ToString(i));
+      Assert(monster.Inventory(i) == i, "monster.Inventory",
+             Convert.ToString(monster.Inventory(i)), Convert.ToString(i));
     }
 
     // Get and test the `Weapons` FlatBuffer `vector` of `table`s.
@@ -104,17 +101,17 @@ class SampleBinary
     var expectedWeaponDamages = new short[] {3, 5};
     for (int i = 0; i < monster.WeaponsLength; i++)
     {
-      Assert(monster.GetWeapons(i).Name.Equals(expectedWeaponNames[i], StringComparison.Ordinal),
-             "monster.GetWeapons", monster.GetWeapons(i).Name, expectedWeaponNames[i]);
-      Assert(monster.GetWeapons(i).Damage == expectedWeaponDamages[i], "monster.GetWeapons",
-             Convert.ToString(monster.GetWeapons(i).Damage),
+      Assert(monster.Weapons(i).Value.Name.Equals(expectedWeaponNames[i], StringComparison.Ordinal),
+             "monster.Weapons", monster.Weapons(i).Value.Name, expectedWeaponNames[i]);
+      Assert(monster.Weapons(i).Value.Damage == expectedWeaponDamages[i], "monster.GetWeapons",
+             Convert.ToString(monster.Weapons(i).Value.Damage),
              Convert.ToString(expectedWeaponDamages[i]));
     }
 
     // Get and test the `Equipped` FlatBuffer `union`.
     Assert(monster.EquippedType == Equipment.Weapon, "monster.EquippedType",
            Convert.ToString(monster.EquippedType), Convert.ToString(Equipment.Weapon));
-    var equipped = (Weapon)monster.GetEquipped(new Weapon());
+    var equipped = monster.Equipped<Weapon>().Value;
     Assert(equipped.Name.Equals("Axe", StringComparison.Ordinal), "equipped.Name", equipped.Name,
            "Axe");
     Assert(equipped.Damage == 5, "equipped.Damage", Convert.ToString(equipped.Damage),
