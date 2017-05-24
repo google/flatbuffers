@@ -1922,6 +1922,7 @@ bool Parser::Parse(const char *source, const char **include_paths,
 
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename) {
+  root_struct_def_ = nullptr;
   file_being_parsed_ = source_filename ? source_filename : "";
   if (source_filename &&
       included_files_.find(source_filename) == included_files_.end()) {
