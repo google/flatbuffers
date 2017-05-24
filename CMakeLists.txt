@@ -195,6 +195,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     OUTPUT ${GEN_HEADER}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
             --gen-object-api -o "${SRC_FBS_DIR}"
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
