@@ -105,8 +105,10 @@
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
   #define FLATBUFFERS_FINAL_CLASS final
+  #define FLATBUFFERS_OVERRIDE override
 #else
   #define FLATBUFFERS_FINAL_CLASS
+  #define FLATBUFFERS_OVERRIDE
 #endif
 
 #if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
@@ -121,6 +123,15 @@
   #define FLATBUFFERS_NOEXCEPT noexcept
 #else
   #define FLATBUFFERS_NOEXCEPT
+#endif
+
+// NOTE: the FLATBUFFERS_DELETE_FUNC macro may change the access mode to
+// private, so be sure to put it at the end or reset access mode explicitly.
+#if (!defined(_MSC_VER) || _MSC_FULL_VER >= 180020827) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404))
+  #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
+#else
+  #define FLATBUFFERS_DELETE_FUNC(func) private: func;
 #endif
 
 #if defined(_MSC_VER)
@@ -153,12 +164,6 @@ typedef uintmax_t largest_scalar_t;
 
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
-
-#ifndef FLATBUFFERS_CPP98_STL
-// Pointer to relinquished memory.
-typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
-          unique_ptr_t;
-#endif
 
 // Wrapper for uoffset_t to allow safe template specialization.
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
@@ -542,13 +547,128 @@ struct String : public Vector<char> {
   }
 };
 
-// Simple indirection for buffer allocation, to allow this to be overridden
-// with custom allocation (see the FlatBufferBuilder constructor).
-class simple_allocator {
+// Allocator interface. This is flatbuffers-specific and meant only for
+// `vector_downward` usage.
+class Allocator {
  public:
-  virtual ~simple_allocator() {}
-  virtual uint8_t *allocate(size_t size) const { return new uint8_t[size]; }
-  virtual void deallocate(uint8_t *p) const { delete[] p; }
+  virtual ~Allocator() {}
+
+  // Allocate `size` bytes of memory.
+  virtual uint8_t *allocate(size_t size) = 0;
+
+  // Deallocate `size` bytes of memory at `p` allocated by this allocator.
+  virtual void deallocate(uint8_t *p, size_t size) = 0;
+
+  // Reallocate `new_size` bytes of memory, replacing the old region of size
+  // `old_size` at `p`. In contrast to a normal realloc, this grows downwards,
+  // and is intended specifcally for `vector_downward` use.
+  virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
+                                       size_t new_size) {
+    assert(new_size > old_size);  // vector_downward only grows
+    uint8_t *new_p = allocate(new_size);
+    memcpy(new_p + (new_size - old_size), old_p, old_size);
+    deallocate(old_p, old_size);
+    return new_p;
+  }
+};
+
+// DefaultAllocator uses new/delete to allocate memory regions
+class DefaultAllocator : public Allocator {
+ public:
+  virtual uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
+    return new uint8_t[size];
+  }
+
+  virtual void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
+    delete[] p;
+  }
+
+  static DefaultAllocator &instance() {
+    static DefaultAllocator inst;
+    return inst;
+  }
+};
+
+// DetachedBuffer is a finished flatbuffer memory region, detached from its
+// builder. The original memory region and allocator are also stored so that
+// the DetachedBuffer can manage the memory lifetime.
+class DetachedBuffer {
+ public:
+  DetachedBuffer(Allocator *allocator, bool own_allocator, uint8_t *buf,
+                 size_t reserved, uint8_t *cur, size_t sz)
+    : allocator_(allocator), own_allocator_(own_allocator), buf_(buf),
+      reserved_(reserved), cur_(cur), size_(sz) {
+    assert(allocator_);
+  }
+
+  DetachedBuffer(DetachedBuffer &&other)
+    : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
+      buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
+      size_(other.size_) {
+    assert(allocator_);
+    other.allocator_ = nullptr;
+    other.own_allocator_ = false;
+    other.buf_ = nullptr;
+    other.reserved_ = 0;
+    other.cur_ = nullptr;
+    other.size_ = 0;
+  }
+
+  ~DetachedBuffer() {
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
+      allocator_->deallocate(buf_, reserved_);
+    }
+    if (own_allocator_ && allocator_ != nullptr) {
+      delete allocator_;
+    }
+  }
+
+  const uint8_t *data() const {
+    assert(cur_ != nullptr);
+    return cur_;
+  }
+
+  uint8_t *data() {
+    assert(cur_ != nullptr);
+    return cur_;
+  }
+
+  size_t size() const {
+    assert(cur_ != nullptr);
+    return size_;
+  }
+
+#if 0  // disabled for now due to the ordering of classes in this header
+  template <class T>
+  bool Verify() const {
+    Verifier verifier(data(), size());
+    return verifier.Verify<T>(nullptr);
+  }
+
+  template <class T>
+  const T* GetRoot() const {
+    return flatbuffers::GetRoot<T>(data());
+  }
+
+  template <class T>
+  T* GetRoot() {
+    return flatbuffers::GetRoot<T>(data());
+  }
+#endif
+
+  // These may change access mode, leave these at end of public section
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+  FLATBUFFERS_DELETE_FUNC(
+      DetachedBuffer &operator=(const DetachedBuffer &other))
+
+ protected:
+  Allocator *allocator_;
+  bool own_allocator_;
+  uint8_t *buf_;
+  size_t reserved_;
+  uint8_t *cur_;
+  size_t size_;
 };
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
@@ -556,43 +676,46 @@ class simple_allocator {
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(size_t initial_size,
-                           const simple_allocator &allocator)
-    : reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
-        ~(sizeof(largest_scalar_t) - 1)),
-      buf_(allocator.allocate(reserved_)),
-      cur_(buf_ + reserved_),
-      allocator_(allocator) {}
+  explicit vector_downward(size_t initial_size = 1024,
+                           Allocator *allocator = nullptr,
+                           bool own_allocator = false)
+    : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
+      own_allocator_(own_allocator),
+      reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
+                ~(sizeof(largest_scalar_t) - 1)),
+      buf_(allocator_->allocate(reserved_)), cur_(buf_ + reserved_) {
+    assert(allocator_);
+  }
 
   ~vector_downward() {
-    if (buf_)
-      allocator_.deallocate(buf_);
+    if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
+      allocator_->deallocate(buf_, reserved_);
+    }
+    if (own_allocator_ && allocator_ != nullptr) {
+      delete allocator_;
+    }
   }
 
   void clear() {
-    if (buf_ == nullptr)
-      buf_ = allocator_.allocate(reserved_);
-
+    if (buf_ == nullptr) {
+      assert(allocator_ != nullptr);
+      buf_ = allocator_->allocate(reserved_);
+    }
     cur_ = buf_ + reserved_;
   }
 
-  #ifndef FLATBUFFERS_CPP98_STL
   // Relinquish the pointer to the caller.
-  unique_ptr_t release() {
-    // Actually deallocate from the start of the allocated memory.
-    std::function<void(uint8_t *)> deleter(
-      std::bind(&simple_allocator::deallocate, allocator_, buf_));
-
-    // Point to the desired offset.
-    unique_ptr_t retval(data(), deleter);
-
-    // Don't deallocate when this instance is destroyed.
+  DetachedBuffer release() {
+    DetachedBuffer fb(allocator_, own_allocator_, buf_, reserved_, cur_,
+                      size());
+    allocator_ = nullptr;
+    own_allocator_ = false;
+    reserved_ = 0;
     buf_ = nullptr;
     cur_ = nullptr;
-
-    return retval;
+    return fb;
   }
-  #endif
 
   size_t growth_policy(size_t bytes) {
     return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
@@ -649,26 +772,24 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  vector_downward(const vector_downward &);
-  vector_downward &operator=(const vector_downward &);
+  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
+  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &))
 
+  Allocator *allocator_;
+  bool own_allocator_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
-  const simple_allocator &allocator_;
 
   void reallocate(size_t len) {
+    size_t old_reserved = reserved_;
     auto old_size = size();
     auto largest_align = AlignOf<largest_scalar_t>();
     reserved_ += (std::max)(len, growth_policy(reserved_));
     // Round up to avoid undefined behavior from unaligned loads and stores.
     reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
-    auto new_buf = allocator_.allocate(reserved_);
-    auto new_cur = new_buf + reserved_ - old_size;
-    memcpy(new_cur, cur_, old_size);
-    cur_ = new_cur;
-    allocator_.deallocate(buf_);
-    buf_ = new_buf;
+    buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
+    cur_ = buf_ + reserved_ - old_size;
   }
 };
 
@@ -712,15 +833,17 @@ FLATBUFFERS_FINAL_CLASS
  public:
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
-  /// to`1024`.
-  /// @param[in] allocator A pointer to the `simple_allocator` that should be
-  /// used. Defaults to `nullptr`, which means the `default_allocator` will be
-  /// be used.
+  /// to `1024`.
+  /// @param[in] allocator An `Allocator` to use. Defaults to a new instance of
+  /// a `DefaultAllocator`.
+  /// @param[in] own_allocator Whether the builder/vector should own the
+  /// allocator. Defaults to / `false`.
   explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
-                             const simple_allocator *allocator = nullptr)
-      : buf_(initial_size, allocator ? *allocator : default_allocator),
-        nested(false), finished(false), minalign_(1), force_defaults_(false),
-        dedup_vtables_(true), string_pool(nullptr) {
+                             Allocator *allocator = nullptr,
+                             bool own_allocator = false)
+    : buf_(initial_size, allocator, own_allocator), nested(false),
+      finished(false), minalign_(1), force_defaults_(false),
+      dedup_vtables_(true), string_pool(nullptr) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
     EndianCheck();
@@ -758,18 +881,22 @@ FLATBUFFERS_FINAL_CLASS
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
-  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Get the released pointer to the serialized buffer.
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
-  /// @return The `unique_ptr` returned has a special allocator that knows how
-  /// to deallocate this pointer (since it points to the middle of an
-  /// allocation). Thus, do not mix this pointer with other `unique_ptr`'s, or
-  /// call `release()`/`reset()` on it.
-  unique_ptr_t ReleaseBufferPointer() {
+  /// @return A `FlatBuffer` that owns the buffer and its allocator and
+  /// behaves similar to a `unique_ptr` with a deleter.
+  /// Deprecated: use Release() instead
+  DetachedBuffer ReleaseBufferPointer() {
     Finished();
     return buf_.release();
   }
-  #endif
+
+  /// @brief Get the released DetachedBuffer.
+  /// @return A `DetachedBuffer` that owns the buffer and its allocator.
+  DetachedBuffer Release() {
+    Finished();
+    return buf_.release();
+  }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
   /// properly. This is only known once all elements have been written (after
@@ -1464,8 +1591,6 @@ FLATBUFFERS_FINAL_CLASS
     uoffset_t off;
     voffset_t id;
   };
-
-  simple_allocator default_allocator;
 
   vector_downward buf_;
 

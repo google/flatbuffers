@@ -83,7 +83,7 @@ void lcg_reset() { lcg_seed = 48271; }
 std::string test_data_path = "tests/";
 
 // example of how to build up a serialized buffer algorithmically:
-flatbuffers::unique_ptr_t CreateFlatBufferTest(std::string &buffer) {
+flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
@@ -1520,11 +1520,11 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   auto flatbuf = CreateFlatBufferTest(rawbuf);
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
-  AccessFlatBufferTest(flatbuf.get(), rawbuf.length());
+  AccessFlatBufferTest(flatbuf.data(), flatbuf.size());
 
-  MutateFlatBuffersTest(flatbuf.get(), rawbuf.length());
+  MutateFlatBuffersTest(flatbuf.data(), flatbuf.size());
 
-  ObjectFlatBuffersTest(flatbuf.get());
+  ObjectFlatBuffersTest(flatbuf.data());
 
   SizePrefixedTest();
 
@@ -1534,7 +1534,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
                        test_data_path;
     #endif
   ParseAndGenerateTextTest();
-  ReflectionTest(flatbuf.get(), rawbuf.length());
+  ReflectionTest(flatbuf.data(), flatbuf.size());
   ParseProtoTest();
   UnionVectorTest();
   #endif
