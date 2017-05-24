@@ -72,11 +72,11 @@ class CppGenerator : public BaseGenerator {
     }
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
-      auto basename = flatbuffers::StripExtension(it->first);
-      if (!parser_.opts.keep_include_path)
-        basename = flatbuffers::StripPath(basename);
+      auto noext = flatbuffers::StripExtension(it->first);
+      auto basename = flatbuffers::StripPath(noext);
       if (basename != file_name_) {
-        code_ += "#include \"" + parser_.opts.include_prefix + basename +
+        code_ += "#include \"" + parser_.opts.include_prefix +
+                 (parser_.opts.keep_include_path ? noext : basename) +
                  "_generated.h\"";
         num_includes++;
       }

@@ -35,7 +35,7 @@ test_script:
   - "JavaTest.bat"
   - rem "---------------- JS -----------------"
   - "node --version"
-  - "..\\%CONFIGURATION%\\flatc -b monster_test.fbs unicode_test.json"
+  - "..\\%CONFIGURATION%\\flatc -b -I include_test monster_test.fbs unicode_test.json"
   - "node JavaScriptTest ./monster_test_generated"
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only

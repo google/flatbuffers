@@ -590,7 +590,8 @@ private:
   FLATBUFFERS_CHECKED_ERROR SkipJsonString();
   FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
                                     const char **include_paths,
-                                    const char *source_filename);
+                                    const char *source_filename,
+                                    const char *include_filename);
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*> &fields,
                                        StructDef *struct_def,
                                        const char *suffix,

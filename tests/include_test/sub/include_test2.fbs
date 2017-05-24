@@ -1,4 +1,4 @@
-include "include_test2.fbs";    // should be skipped
+include "sub/include_test2.fbs";    // should be skipped
 
 namespace MyGame.OtherNameSpace;
 

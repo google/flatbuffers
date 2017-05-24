@@ -472,7 +472,11 @@ void ParseAndGenerateTextTest() {
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  const char *include_directories[] = { test_data_path.c_str(), nullptr };
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = {
+    test_data_path.c_str(), include_test_path.c_str(), nullptr
+  };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
 
