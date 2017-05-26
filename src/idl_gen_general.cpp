@@ -851,8 +851,10 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     std::string type_name_dest = GenTypeNameDest(field.value.type);
     std::string conditional_cast = "";
     std::string optional = "";
+    auto isRequired = field.attributes.Lookup("required") != nullptr;
     if (lang_.language == IDLOptions::kCSharp &&
         !struct_def.fixed &&
+        !isRequired &&
         (field.value.type.base_type == BASE_TYPE_STRUCT ||
          field.value.type.base_type == BASE_TYPE_UNION ||
          (field.value.type.base_type == BASE_TYPE_VECTOR &&
@@ -868,12 +870,13 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     std::string obj = lang_.language == IDLOptions::kCSharp
       ? "(new " + type_name + "())"
       : "obj";
-
-    // Most field accessors need to retrieve and test the field offset first,
-    // this is the prefix code for that:
     auto offset_prefix = " { int o = " + lang_.accessor_prefix + "__offset(" +
                          NumToString(field.value.offset) +
-                         "); return o != 0 ? ";
+                         "); return ";
+    // Most field accessors need to retrieve and test the field offset first,
+    // this is the prefix code for that:
+    auto required_prefix = isRequired ? "" : "o != 0 ? ";
+
     // Generate the accessors that don't do object reuse.
     if (field.value.type.base_type == BASE_TYPE_STRUCT) {
       // Calls the accessor that takes an accessor object with a new object.
@@ -928,10 +931,12 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         code += NumToString(field.value.offset) + ")";
         code += dest_mask;
       } else {
-        code += offset_prefix + getter;
+        code += offset_prefix + required_prefix + getter;
         code += "(o + " + lang_.accessor_prefix + "bb_pos)" + dest_mask;
-        code += " : " + default_cast;
-        code += GenDefaultValue(field.value);
+        if (!isRequired) {
+            code += " : " + default_cast;
+            code += GenDefaultValue(field.value);
+        }
       }
     } else {
       switch (field.value.type.base_type) {
@@ -947,20 +952,26 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
             code += "bb_pos + " + NumToString(field.value.offset) + ", ";
             code += lang_.accessor_prefix + "bb)";
           } else {
-            code += offset_prefix + conditional_cast;
+            code += offset_prefix + required_prefix + conditional_cast;
             code += obj + ".__assign(";
             code += field.value.type.struct_def->fixed
                       ? "o + " + lang_.accessor_prefix + "bb_pos"
                       : lang_.accessor_prefix + "__indirect(o + " +
                         lang_.accessor_prefix + "bb_pos)";
-            code += ", " + lang_.accessor_prefix + "bb) : null";
+            code += ", " + lang_.accessor_prefix + "bb)";
+            if (!isRequired) {
+              code += " : null";
+            }
           }
           break;
         case BASE_TYPE_STRING:
           code += lang_.getter_prefix;
           member_suffix += lang_.getter_suffix;
-          code += offset_prefix + getter + "(o + " + lang_.accessor_prefix;
-          code += "bb_pos) : null";
+          code += offset_prefix + required_prefix + getter + "(o + " + lang_.accessor_prefix;
+          code += "bb_pos)";
+          if (!isRequired) {
+            code += " : null";
+          }
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
@@ -970,7 +981,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
               code += type_name + " obj, ";
             getter = obj + ".__assign";
           }
-          code += "int j)" + offset_prefix + conditional_cast + getter +"(";
+          code += "int j)" + offset_prefix + required_prefix + conditional_cast + getter +"(";
           auto index = lang_.accessor_prefix + "__vector(o) + j * " +
                        NumToString(InlineSize(vectortype));
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -981,19 +992,23 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
           } else {
             code += index;
           }
-          code += ")" + dest_mask + " : ";
+          code += ")";
 
-          code += field.value.type.element == BASE_TYPE_BOOL ? "false" :
-            (IsScalar(field.value.type.element) ? default_cast + "0" : "null");
+          if (!isRequired) {
+            code += dest_mask + " : ";
+
+            code += field.value.type.element == BASE_TYPE_BOOL ? "false" :
+              (IsScalar(field.value.type.element) ? default_cast + "0" : "null");
+          }
           break;
         }
         case BASE_TYPE_UNION:
           if (lang_.language == IDLOptions::kCSharp) {
             code += "() where TTable : struct, IFlatbufferObject";
-            code += offset_prefix + "(TTable?)" + getter;
+            code += offset_prefix + required_prefix + "(TTable?)" + getter;
             code += "<TTable>(o) : null";
           } else {
-            code += "(" + type_name + " obj)" + offset_prefix + getter;
+            code += "(" + type_name + " obj)" + offset_prefix + required_prefix + getter;
             code += "(obj, o) : null";
           }
           break;
@@ -1007,9 +1022,12 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       code += "  public int " + MakeCamel(field.name, lang_.first_camel_upper);
       code += "Length";
       code += lang_.getter_prefix;
-      code += offset_prefix;
-      code += lang_.accessor_prefix + "__vector_len(o) : 0; ";
-      code += lang_.getter_suffix;
+      code += offset_prefix + required_prefix;
+      code += lang_.accessor_prefix + "__vector_len(o)";
+      if (!isRequired) {
+        code += " : 0";
+      }
+      code += "; " + lang_.getter_suffix;
       code += "}\n";
       // See if we should generate a by-key accessor.
       if (field.value.type.element == BASE_TYPE_STRUCT &&
@@ -1022,7 +1040,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
             code += "  public " + sd.name + lang_.optional_suffix + " ";
             code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
             code += GenTypeNameDest(key_field.value.type) + " key)";
-            code += offset_prefix;
+            code += offset_prefix + required_prefix;
             code += sd.name + ".__lookup_by_key(";
             code += lang_.accessor_prefix + "__vector(o), key, ";
             code += lang_.accessor_prefix + "bb) : null; ";

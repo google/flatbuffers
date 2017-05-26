@@ -24,7 +24,7 @@ public final class Monster extends Table {
   public boolean mutateMana(short mana) { int o = __offset(6); if (o != 0) { bb.putShort(o + bb_pos, mana); return true; } else { return false; } }
   public short hp() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) : 100; }
   public boolean mutateHp(short hp) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, hp); return true; } else { return false; } }
-  public String name() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
+  public String name() { int o = __offset(10); return __string(o + bb_pos); }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(10, 1); }
   public int inventory(int j) { int o = __offset(14); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int inventoryLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }

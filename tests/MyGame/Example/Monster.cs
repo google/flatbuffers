@@ -24,7 +24,7 @@ public struct Monster : IFlatbufferObject
   public bool MutateMana(short mana) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, mana); return true; } else { return false; } }
   public short Hp { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)100; } }
   public bool MutateHp(short hp) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, hp); return true; } else { return false; } }
-  public string Name { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string Name { get { int o = __p.__offset(10); return __p.__string(o + __p.bb_pos); } }
   public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(10); }
   public byte Inventory(int j) { int o = __p.__offset(14); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __p.__offset(14); return o != 0 ? __p.__vector_len(o) : 0; } }
