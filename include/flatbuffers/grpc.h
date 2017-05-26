@@ -223,12 +223,13 @@ class MessageBuilder : private detail::SliceAllocatorMember,
 template <class T>
 class MessageVerifier {
  public:
-  static inline ::grpc::Status Verify(const Message<T>& msg) {
+  static inline ::grpc::Status Verify(const Message<T> &msg) {
     if (msg.Verify()) {
       return ::grpc::Status::OK;
     } else {
       // DATA_LOSS: "Unrecoverable data loss or corruption."
-      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS, "Message failed verification");
+      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS,
+                            "Message failed verification");
     }
   }
 };
