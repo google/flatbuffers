@@ -220,6 +220,19 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   uoffset_t initial_size_;
 };
 
+template <class T>
+class MessageVerifier {
+ public:
+  static inline ::grpc::Status Verify(const Message<T>& msg) {
+    if (msg.Verify()) {
+      return ::grpc::Status::OK;
+    } else {
+      // DATA_LOSS: "Unrecoverable data loss or corruption."
+      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS, "Message failed verification");
+    }
+  }
+};
+
 }  // namespace grpc
 }  // namespace flatbuffers
 
@@ -265,7 +278,7 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       // We wrap a `Message<T>` around the slice, but steal the reference
       *msg = flatbuffers::grpc::Message<T>(slice, flatbuffers::grpc::STEAL_REF);
     }
-    return grpc::Status();
+    return flatbuffers::grpc::MessageVerifier<T>::Verify(*msg);
   }
 };
 
