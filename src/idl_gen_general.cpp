@@ -1005,11 +1005,17 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         case BASE_TYPE_UNION:
           if (lang_.language == IDLOptions::kCSharp) {
             code += "() where TTable : struct, IFlatbufferObject";
-            code += offset_prefix + required_prefix + "(TTable?)" + getter;
-            code += "<TTable>(o) : null";
+            code += offset_prefix + required_prefix + "(TTable" + optional + ")" + getter;
+            code += "<TTable>(o)";
+            if (!isRequired) {
+              code += " : null";
+            }
           } else {
             code += "(" + type_name + " obj)" + offset_prefix + required_prefix + getter;
-            code += "(obj, o) : null";
+            code += "(obj, o)";
+            if (!isRequired) {
+              code += " : null";
+            }
           }
           break;
         default:
