@@ -40,7 +40,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/base.h"
 
 
 namespace flatbuffers {
