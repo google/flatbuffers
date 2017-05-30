@@ -1917,9 +1917,7 @@ CheckedError Parser::SkipJsonString() {
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  const auto source_basename = flatbuffers::StripPath(source_filename);
-  return !DoParse(source, include_paths, source_filename,
-                  source_basename.c_str()).Check();
+  return !DoParse(source, include_paths, source_filename, nullptr).Check();
 }
 
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
@@ -1928,7 +1926,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   file_being_parsed_ = source_filename ? source_filename : "";
   if (source_filename &&
       included_files_.find(source_filename) == included_files_.end()) {
-    included_files_[source_filename] = include_filename;
+    included_files_[source_filename] = include_filename ? include_filename : "";
     files_included_per_file_[source_filename] = std::set<std::string>();
   }
   if (!include_paths) {
