@@ -57,23 +57,11 @@ class Message {
 
   ~Message() { grpc_slice_unref(slice_); }
 
-  const uint8_t *mutable_data() const { return const_cast<uint8_t *>(data()); }
+  const uint8_t *mutable_data() const { return GRPC_SLICE_START_PTR(slice_); }
 
-  const uint8_t *data() const {
-    if (slice_.refcount != nullptr) {
-      return slice_.data.refcounted.bytes;
-    } else {
-      return slice_.data.inlined.bytes;
-    }
-  }
+  const uint8_t *data() const { return GRPC_SLICE_START_PTR(slice_); }
 
-  size_t size() const {
-    if (slice_.refcount != nullptr) {
-      return slice_.data.refcounted.length;
-    } else {
-      return slice_.data.inlined.length;
-    }
-  }
+  size_t size() const { return GRPC_SLICE_LENGTH(slice_); }
 
   bool Verify() const {
     Verifier verifier(data(), size());
