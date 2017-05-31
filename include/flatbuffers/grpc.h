@@ -245,7 +245,7 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
     // `grpc_slice`. We extract it here using `BorrowSlice()`. The const cast
     // is necesary because the `grpc_raw_byte_buffer_create` func expects
     // non-const slices in order to increment their refcounts.
-    grpc_slice* slice = const_cast<grpc_slice *>(&msg.BorrowSlice());
+    grpc_slice *slice = const_cast<grpc_slice *>(&msg.BorrowSlice());
 
     // Now use `grpc_raw_byte_buffer_create` to package the single slice into a
     // `grpc_byte_buffer`, incrementing the refcount in the process.
