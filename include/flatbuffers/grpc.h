@@ -26,9 +26,6 @@
 namespace flatbuffers {
 namespace grpc {
 
-enum AddRef { ADD_REF };
-enum StealRef { STEAL_REF };
-
 // Message is a typed wrapper around a buffer that manages the underlying
 // `grpc_slice` and also provides flatbuffers-specific helpers such as `Verify`
 // and `GetRoot`. Since it is backed by a `grpc_slice`, the underlying buffer
@@ -38,9 +35,8 @@ class Message {
  public:
   inline Message() : slice_(grpc_empty_slice()) {}
 
-  inline Message(grpc_slice slice, AddRef) : slice_(grpc_slice_ref(slice)) {}
-
-  inline Message(grpc_slice slice, StealRef) : slice_(slice) {}
+  inline Message(grpc_slice slice, bool add_ref)
+    : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
   inline Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
 
@@ -211,8 +207,8 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     // Extract a subslice of the existing slice (increment refcount)
     grpc_slice subslice = grpc_slice_sub(slice, begin, end);
 
-    // Wrap the subslice in a `Message<T>` (steal ref since incremented above)
-    Message<T> msg(subslice, STEAL_REF);
+    // Wrap the subslice in a `Message<T>`, but don't increment refcount
+    Message<T> msg(subslice, false);
 
     return msg;
   }
@@ -274,7 +270,7 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       // If it is, then we can reference the `grpc_slice` directly.
       grpc_slice slice = buffer->data.raw.slice_buffer.slices[0];
       // We wrap a `Message<T>` around the slice, incrementing the refcount.
-      *msg = flatbuffers::grpc::Message<T>(slice, flatbuffers::grpc::ADD_REF);
+      *msg = flatbuffers::grpc::Message<T>(slice, true);
     } else {
       // Otherwise, we need to use `grpc_byte_buffer_reader_readall` to read
       // `buffer` into a single contiguous `grpc_slice`. The gRPC reader gives
@@ -283,8 +279,8 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       grpc_byte_buffer_reader_init(&reader, buffer);
       grpc_slice slice = grpc_byte_buffer_reader_readall(&reader);
       grpc_byte_buffer_reader_destroy(&reader);
-      // We wrap a `Message<T>` around the slice, but steal the reference
-      *msg = flatbuffers::grpc::Message<T>(slice, flatbuffers::grpc::STEAL_REF);
+      // We wrap a `Message<T>` around the slice, but dont increment refcount
+      *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
     return flatbuffers::grpc::MessageVerifier<T>::Verify(*msg);
   }
