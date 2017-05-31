@@ -515,11 +515,12 @@ class DetachedBuffer {
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(size_t initial_size = 1024,
+  explicit vector_downward(uoffset_t initial_size = 1024,
                            Allocator *allocator = nullptr,
                            bool own_allocator = false)
     : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
       own_allocator_(own_allocator),
+      initial_size_(initial_size),
       reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
                 ~(sizeof(largest_scalar_t) - 1)),
       buf_(allocator_->allocate(reserved_)), cur_(buf_ + reserved_) {
@@ -536,19 +537,12 @@ class vector_downward {
     }
   }
 
-  void reset(size_t initial_size = 1024, Allocator *allocator = nullptr,
-             bool own_allocator = false) {
+  void reset() {
+    assert(allocator_ != nullptr);
     if (buf_ != nullptr) {
-      assert(allocator_ != nullptr);
       allocator_->deallocate(buf_, reserved_);
     }
-    if (own_allocator_ && allocator_ != nullptr) {
-      delete allocator_;
-    }
-    allocator_ = allocator ? allocator : &DefaultAllocator::instance();
-    assert(allocator_);
-    own_allocator_ = own_allocator;
-    reserved_ = (initial_size + sizeof(largest_scalar_t) - 1) &
+    reserved_ = (initial_size_ + sizeof(largest_scalar_t) - 1) &
                 ~(sizeof(largest_scalar_t) - 1);
     buf_ = allocator_->allocate(reserved_);
     cur_ = buf_ + reserved_;
@@ -648,6 +642,7 @@ class vector_downward {
 
   Allocator *allocator_;
   bool own_allocator_;
+  uoffset_t initial_size_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -712,12 +707,6 @@ class FlatBufferBuilder
 
   ~FlatBufferBuilder() {
     if (string_pool) delete string_pool;
-  }
-
-  /// @brief Reset the size/allocator of the underling `vector_downward`
-  void Reset(uoffset_t initial_size = 0, Allocator *allocator = nullptr,
-             bool own_allocator = false) {
-    buf_.reset(initial_size, allocator, own_allocator);
   }
 
   /// @brief Reset all the state in this FlatBufferBuilder so it can be reused

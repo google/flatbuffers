@@ -192,7 +192,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   template <class T>
   Message<T> ReleaseMessage() {
     Message<T> msg = GetMessage<T>();
-    Reset(initial_size_, &slice_allocator_, false);
+    buf_.reset();
     return msg;
   }
 
