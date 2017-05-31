@@ -182,10 +182,10 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   // ownership.
   template <class T>
   Message<T> GetMessage() {
-    uint8_t *buf_data = buf_.buf();     // pointer to memory
-    size_t buf_size = buf_.capacity();  // size of memory
-    uint8_t *msg_data = buf_.data();    // pointer to msg
-    size_t msg_size = buf_.size();      // size of msg
+    auto buf_data = buf_.buf();       // pointer to memory
+    auto buf_size = buf_.capacity();  // size of memory
+    auto msg_data = buf_.data();      // pointer to msg
+    auto msg_size = buf_.size();      // size of msg
 
     // Do some sanity checks on data/size
     assert(msg_data >= msg_data);
