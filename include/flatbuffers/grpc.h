@@ -165,8 +165,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
   explicit MessageBuilder(uoffset_t initial_size = 1024)
-    : FlatBufferBuilder(initial_size, &slice_allocator_, false),
-      initial_size_(initial_size) {}
+    : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
@@ -206,7 +205,6 @@ class MessageBuilder : private detail::SliceAllocatorMember,
 
  private:
   // SliceAllocator slice_allocator_;  // part of SliceAllocatorMember
-  uoffset_t initial_size_;
 };
 
 template <class T>
