@@ -33,35 +33,33 @@ namespace grpc {
 template <class T>
 class Message {
  public:
-  inline Message() : slice_(grpc_empty_slice()) {}
+  Message() : slice_(grpc_empty_slice()) {}
 
-  inline Message(grpc_slice slice, bool add_ref)
+  Message(grpc_slice slice, bool add_ref)
     : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
-  inline Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
+  Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
 
-  inline Message(Message &&other) : slice_(other.slice_) {
+  Message(Message &&other) : slice_(other.slice_) {
     other.slice_ = grpc_empty_slice();
   }
 
-  inline Message &operator=(const Message &other) {
+  Message &operator=(const Message &other) {
     slice_ = grpc_slice_ref(other.slice_);
     return *this;
   }
 
-  inline Message &operator=(Message &&other) {
+  Message &operator=(Message &&other) {
     slice_ = other.slice_;
     other.slice_ = grpc_empty_slice();
     return *this;
   }
 
-  inline ~Message() { grpc_slice_unref(slice_); }
+  ~Message() { grpc_slice_unref(slice_); }
 
-  inline const uint8_t *mutable_data() const {
-    return const_cast<uint8_t*>(data());
-  }
+  const uint8_t *mutable_data() const { return const_cast<uint8_t *>(data()); }
 
-  inline const uint8_t *data() const {
+  const uint8_t *data() const {
     if (slice_.refcount != nullptr) {
       return slice_.data.refcounted.bytes;
     } else {
@@ -69,7 +67,7 @@ class Message {
     }
   }
 
-  inline size_t size() const {
+  size_t size() const {
     if (slice_.refcount != nullptr) {
       return slice_.data.refcounted.length;
     } else {
@@ -77,12 +75,12 @@ class Message {
     }
   }
 
-  inline bool Verify() const {
+  bool Verify() const {
     Verifier verifier(data(), size());
     return verifier.VerifyBuffer<T>(nullptr);
   }
 
-  inline ::grpc::Status VerifyGRPC() const {
+  ::grpc::Status VerifyGRPC() const {
     if (Verify()) {
       return ::grpc::Status::OK;
     } else {
@@ -92,16 +90,12 @@ class Message {
     }
   }
 
-  inline T *GetMutableRoot() {
-    return flatbuffers::GetMutableRoot<T>(mutable_data());
-  }
+  T *GetMutableRoot() { return flatbuffers::GetMutableRoot<T>(mutable_data()); }
 
-  inline const T *GetRoot() const {
-    return flatbuffers::GetRoot<T>(data());
-  }
+  const T *GetRoot() const { return flatbuffers::GetRoot<T>(data()); }
 
   // This is only intended for serializer use, or if you know what you're doing
-  inline const grpc_slice &BorrowSlice() const { return slice_; }
+  const grpc_slice &BorrowSlice() const { return slice_; }
 
  private:
   grpc_slice slice_;
@@ -114,28 +108,28 @@ class MessageBuilder;
 // efficient to transfer buffers to gRPC.
 class SliceAllocator : public Allocator {
  public:
-  inline SliceAllocator() : slice_(grpc_empty_slice()) {}
+  SliceAllocator() : slice_(grpc_empty_slice()) {}
 
   SliceAllocator(const SliceAllocator &other) = delete;
   SliceAllocator &operator=(const SliceAllocator &other) = delete;
 
-  virtual inline ~SliceAllocator() { grpc_slice_unref(slice_); }
+  virtual ~SliceAllocator() { grpc_slice_unref(slice_); }
 
-  virtual inline uint8_t *allocate(size_t size) override {
+  virtual uint8_t *allocate(size_t size) override {
     assert(GRPC_SLICE_IS_EMPTY(slice_));
     slice_ = grpc_slice_malloc(size);
     return GRPC_SLICE_START_PTR(slice_);
   }
 
-  virtual inline void deallocate(uint8_t *p, size_t size) override {
+  virtual void deallocate(uint8_t *p, size_t size) override {
     assert(p == GRPC_SLICE_START_PTR(slice_));
     assert(size == GRPC_SLICE_LENGTH(slice_));
     grpc_slice_unref(slice_);
     slice_ = grpc_empty_slice();
   }
 
-  virtual inline uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
-                                              size_t new_size) override {
+  virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
+                                       size_t new_size) override {
     assert(old_p == GRPC_SLICE_START_PTR(slice_));
     assert(old_size == GRPC_SLICE_LENGTH(slice_));
     assert(new_size > old_size);
@@ -149,7 +143,7 @@ class SliceAllocator : public Allocator {
   }
 
  private:
-  inline grpc_slice &get_slice(uint8_t *p, size_t size) {
+  grpc_slice &get_slice(uint8_t *p, size_t size) {
     assert(p == GRPC_SLICE_START_PTR(slice_));
     assert(size == GRPC_SLICE_LENGTH(slice_));
     return slice_;
@@ -174,20 +168,20 @@ struct SliceAllocatorMember {
 class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
-  explicit inline MessageBuilder(uoffset_t initial_size = 1024)
+  explicit MessageBuilder(uoffset_t initial_size = 1024)
     : FlatBufferBuilder(initial_size, &slice_allocator_, false),
       initial_size_(initial_size) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
 
-  inline ~MessageBuilder() {}
+  ~MessageBuilder() {}
 
   // GetMessage extracts the subslice of the buffer corresponding to the
   // flatbuffers-encoded region and wraps it in a `Message<T>` to handle buffer
   // ownership.
   template <class T>
-  inline Message<T> GetMessage() {
+  Message<T> GetMessage() {
     uint8_t *buf_data = buf_.buf();     // pointer to memory
     size_t buf_size = buf_.capacity();  // size of memory
     uint8_t *msg_data = buf_.data();    // pointer to msg
@@ -214,7 +208,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   }
 
   template <class T>
-  inline Message<T> ReleaseMessage() {
+  Message<T> ReleaseMessage() {
     Message<T> msg = GetMessage<T>();
     Reset(initial_size_, &slice_allocator_, false);
     return msg;
@@ -228,7 +222,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
 template <class T>
 class MessageVerifier {
  public:
-  static inline ::grpc::Status Verify(const Message<T> &msg) {
+  static ::grpc::Status Verify(const Message<T> &msg) {
 #if FLATBUFFERS_GRPC_AUTO_VERIFY
     return msg.VerifyGRPC();
 #else
