@@ -86,6 +86,16 @@ class Message {
     return verifier.VerifyBuffer<T>(nullptr);
   }
 
+  inline ::grpc::Status VerifyGRPC() const {
+    if (Verify()) {
+      return ::grpc::Status::OK;
+    } else {
+      // DATA_LOSS: "Unrecoverable data loss or corruption."
+      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS,
+                            "Message failed verification");
+    }
+  }
+
   inline T *GetMutableRoot() {
     return flatbuffers::GetMutableRoot<T>(mutable_data());
   }
@@ -224,13 +234,11 @@ template <class T>
 class MessageVerifier {
  public:
   static inline ::grpc::Status Verify(const Message<T> &msg) {
-    if (msg.Verify()) {
-      return ::grpc::Status::OK;
-    } else {
-      // DATA_LOSS: "Unrecoverable data loss or corruption."
-      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS,
-                            "Message failed verification");
-    }
+#if FLATBUFFERS_GRPC_AUTO_VERIFY
+    return msg.VerifyGRPC();
+#else
+    return ::grpc::Status::OK;
+#endif
   }
 };
 
