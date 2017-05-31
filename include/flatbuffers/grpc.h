@@ -186,24 +186,18 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     auto buf_size = buf_.capacity();  // size of memory
     auto msg_data = buf_.data();      // pointer to msg
     auto msg_size = buf_.size();      // size of msg
-
     // Do some sanity checks on data/size
     assert(msg_data >= msg_data);
     assert(msg_data + msg_size <= buf_data + buf_size);
-
     // Calculate offsets from the buffer start
     size_t begin = msg_data - buf_data;
     size_t end = begin + msg_size;
-
     // Get the slice we are working with (no refcount change)
     grpc_slice slice = slice_allocator_.get_slice(buf_data, buf_size);
-
     // Extract a subslice of the existing slice (increment refcount)
     grpc_slice subslice = grpc_slice_sub(slice, begin, end);
-
     // Wrap the subslice in a `Message<T>`, but don't increment refcount
     Message<T> msg(subslice, false);
-
     return msg;
   }
 
@@ -246,7 +240,6 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
     // is necesary because the `grpc_raw_byte_buffer_create` func expects
     // non-const slices in order to increment their refcounts.
     grpc_slice *slice = const_cast<grpc_slice *>(&msg.BorrowSlice());
-
     // Now use `grpc_raw_byte_buffer_create` to package the single slice into a
     // `grpc_byte_buffer`, incrementing the refcount in the process.
     *buffer = grpc_raw_byte_buffer_create(slice, 1);
