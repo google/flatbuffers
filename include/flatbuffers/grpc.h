@@ -38,16 +38,24 @@ class Message {
   Message(grpc_slice slice, bool add_ref)
     : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
+#if FLATBUFFERS_GRPC_ENABLE_MESSAGE_COPY_CTOR
   Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
+#else
+  Message(const Message &other) = delete;
+#endif
 
   Message(Message &&other) : slice_(other.slice_) {
     other.slice_ = grpc_empty_slice();
   }
 
+#if FLATBUFFERS_GRPC_ENABLE_MESSAGE_ASSIGNMENT
   Message &operator=(const Message &other) {
     slice_ = grpc_slice_ref(other.slice_);
     return *this;
   }
+#else
+  Message &operator=(const Message &other) = delete;
+#endif
 
   Message &operator=(Message &&other) {
     slice_ = other.slice_;
