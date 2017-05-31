@@ -714,10 +714,6 @@ class FlatBufferBuilder
     if (string_pool) delete string_pool;
   }
 
-  /// @brief Get the underlying `vector_downward`
-  /// @return Returns the underlying `vector_downward` buffer
-  vector_downward &GetVectorDownward() { return buf_; }
-
   /// @brief Reset the size/allocator of the underling `vector_downward`
   void Reset(uoffset_t initial_size = 0, Allocator *allocator = nullptr,
              bool own_allocator = false) {
@@ -1434,7 +1430,7 @@ class FlatBufferBuilder
     Finish(root.o, file_identifier, true);
   }
 
- private:
+ protected:
   // You shouldn't really be copying instances of this class.
   FlatBufferBuilder(const FlatBufferBuilder &);
   FlatBufferBuilder &operator=(const FlatBufferBuilder &);
