@@ -37,6 +37,15 @@
 #else
 #include <limits.h>
 #endif
+
+#ifndef realpath
+#  define realpath(x, y) (strcat(y, x))
+#endif
+
+#ifndef M_PI
+#  define M_PI 3.14159265358979323846
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
