@@ -552,7 +552,9 @@ class CppGenerator : public BaseGenerator {
            (inclass ? " = nullptr" : "") + ") const";
   }
 
-  // Generate an enum declaration and an enum string lookup table.
+  // Generate an enum declaration,
+  // an enum string lookup table,
+  // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", enum_def.name);
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
@@ -609,6 +611,22 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
       code_ += "DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
+    code_ += "";
+
+    // Generate an array of all enumeration values
+    auto num_fields = NumToString(enum_def.vals.vec.size());
+    code_ += "inline {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" + num_fields + "] {";
+    code_ += "  static {{ENUM_NAME}} values[] = {";
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      const auto &ev = **it;
+      auto value = GetEnumValUse(enum_def, ev);
+      auto suffix = *it != enum_def.vals.vec.back() ? "," : "";
+      code_ +=  "    " + value + suffix;
+    }
+    code_ += "  };";
+    code_ += "  return values;";
+    code_ += "}";
     code_ += "";
 
     // Generate a generate string table for enum values.
