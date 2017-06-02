@@ -69,7 +69,7 @@ template<typename T> T EndianSwap(T t) {
   }
 }
 
-template<typename T> size_t AlignOf() {
+template<typename T> constexpr size_t AlignOf() {
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -567,7 +567,11 @@ class vector_downward {
   }
 
   size_t growth_policy(size_t bytes) {
-    return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
+    if (bytes == 0) {
+      return initial_size_;
+    } else {
+      return (bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1);
+    }
   }
 
   uint8_t *make_space(size_t len) {
@@ -649,20 +653,15 @@ class vector_downward {
     assert(allocator_ != nullptr);
     auto old_reserved = reserved_;
     auto old_size = size();
-    size_t reserved;
-    if (old_reserved == 0) {
-      reserved = (std::max)(len, static_cast<size_t>(initial_size_));
-    } else {
-      reserved = old_reserved + (std::max)(len, growth_policy(old_reserved));
-    }
-    reserved = RoundUp(reserved, AlignOf<largest_scalar_t>());
-    reserved_ = reserved;
+    reserved_ += (std::max)(len, growth_policy(old_reserved));
+    constexpr size_t alignment = AlignOf<largest_scalar_t>();
+    reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
     if (buf_ == nullptr) {
-      buf_ = allocator_->allocate(reserved);
+      buf_ = allocator_->allocate(reserved_);
     } else {
-      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved);
+      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
     }
-    cur_ = buf_ + reserved - old_size;
+    cur_ = buf_ + reserved_ - old_size;
   }
 };
 

@@ -165,10 +165,6 @@ template<typename T> void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 
-static inline size_t RoundUp(size_t size, size_t round_size) {
-  return (size + round_size - 1) & ~(round_size - 1);
-}
-
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
 // memory).
