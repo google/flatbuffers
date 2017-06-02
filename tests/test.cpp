@@ -145,10 +145,33 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   abilities.push_back(Ability(1, 10));
   auto vecofstructs = builder.CreateVectorOfSortedStructs(&abilities);
 
+  // Create a nested FlatBuffer.
+  // Nested FlatBuffers are stored in a ubyte vector, which can be convenient
+  // since they can be memcpy'd around much easier than other FlatBuffer
+  // values. They have little overhead compared to storing the table directly.
+  // As a test, create a mostly empty Monster buffer:
+  flatbuffers::FlatBufferBuilder nested_builder;
+  auto nmloc = CreateMonster(nested_builder, nullptr, 0, 0,
+                             nested_builder.CreateString("NestedMonster"));
+  FinishMonsterBuffer(nested_builder, nmloc);
+  // Now we can store the buffer in the parent. Note that by default, vectors
+  // are only aligned to their elements or size field, so in this case if the
+  // buffer contains 64-bit elements, they may not be correctly aligned. We fix
+  // that with:
+  builder.ForceVectorAlignment(nested_builder.GetSize(), sizeof(uint8_t),
+                               nested_builder.GetBufferMinAlignment());
+  // If for whatever reason you don't have the nested_builder available, you
+  // can substitute flatbuffers::largest_scalar_t (64-bit) for the alignment, or
+  // the largest force_align value in your schema if you're using it.
+  auto nested_flatbuffer_vector =
+      builder.CreateVector(nested_builder.GetBufferPointer(),
+                           nested_builder.GetSize());
+
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(), // Store a union.
-                            testv, vecofstrings, vecoftables, 0, 0, 0, false,
+                            testv, vecofstrings, vecoftables, 0,
+                            nested_flatbuffer_vector, 0, false,
                             0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
                             vecofstrings2, vecofstructs);
 
@@ -270,6 +293,16 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
     }
     TEST_NOTNULL(vecofstructs->LookupByKey(3));
     TEST_EQ(static_cast<const Ability*>(nullptr), vecofstructs->LookupByKey(5));
+  }
+
+  // Test nested FlatBuffers if available:
+  auto nested_buffer = monster->testnestedflatbuffer();
+  if (nested_buffer) {
+    // nested_buffer is a vector of bytes you can memcpy. However, if you
+    // actually want to access the nested data, this is a convenient
+    // accessor that directly gives you the root table:
+    auto nested_monster = monster->testnestedflatbuffer_nested_root();
+    TEST_EQ_STR(nested_monster->name()->c_str(), "NestedMonster");
   }
 
   // Since Flatbuffers uses explicit mechanisms to override the default
@@ -486,6 +519,9 @@ void ParseAndGenerateTextTest() {
   flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
                                  parser.builder_.GetSize());
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  AccessFlatBufferTest(parser.builder_.GetBufferPointer(),
+                       parser.builder_.GetSize(), false);
 
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
