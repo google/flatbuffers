@@ -128,6 +128,16 @@ A description of how FlexBuffers are encoded is in the
 [internals](Internals.md#flexbuffers) document.
 
 
+# Nesting inside a FlatBuffer
+
+You can mark a field as containing a FlexBuffer, e.g.
+
+    a:[ubyte] (flexbuffer);
+
+A special accessor will be generated that allows you to access the root value
+directly, e.g. `a_flexbuffer_root().AsInt64()`.
+
+
 # Efficiency tips
 
 * Vectors generally are a lot more efficient than maps, so prefer them over maps

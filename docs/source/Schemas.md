@@ -302,6 +302,9 @@ Current understood attributes:
     (which must be a vector of ubyte) contains flatbuffer data, for which the
     root type is given by `table_name`. The generated code will then produce
     a convenient accessor for the nested FlatBuffer.
+-   `flexbuffer` (on a field): this indicates that the field
+    (which must be a vector of ubyte) contains flexbuffer data. The generated
+    code will then produce a convenient accessor for the FlexBuffer root.
 -   `key` (on a field): this field is meant to be used as a key when sorting
     a vector of the type of table it sits in. Can be used for in-place
     binary search.

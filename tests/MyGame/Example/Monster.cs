@@ -83,8 +83,12 @@ public struct Monster : IFlatbufferObject
   public int Testarrayofstring2Length { get { int o = __p.__offset(60); return o != 0 ? __p.__vector_len(o) : 0; } }
   public Ability? Testarrayofsortedstruct(int j) { int o = __p.__offset(62); return o != 0 ? (Ability?)(new Ability()).__assign(__p.__vector(o) + j * 8, __p.bb) : null; }
   public int TestarrayofsortedstructLength { get { int o = __p.__offset(62); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte Flex(int j) { int o = __p.__offset(64); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
+  public int FlexLength { get { int o = __p.__offset(64); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public ArraySegment<byte>? GetFlexBytes() { return __p.__vector_as_arraysegment(64); }
+  public bool MutateFlex(int j, byte flex) { int o = __p.__offset(64); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, flex); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(30); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(31); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -128,6 +132,9 @@ public struct Monster : IFlatbufferObject
   public static void StartTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddTestarrayofsortedstruct(FlatBufferBuilder builder, VectorOffset testarrayofsortedstructOffset) { builder.AddOffset(29, testarrayofsortedstructOffset.Value, 0); }
   public static void StartTestarrayofsortedstructVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 4); }
+  public static void AddFlex(FlatBufferBuilder builder, VectorOffset flexOffset) { builder.AddOffset(30, flexOffset.Value, 0); }
+  public static VectorOffset CreateFlexVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
+  public static void StartFlexVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

@@ -471,6 +471,7 @@ class Parser : public ParserState {
   explicit Parser(const IDLOptions &options = IDLOptions())
     : root_struct_def_(nullptr),
       opts(options),
+      uses_flexbuffers_(false),
       source_(nullptr),
       anonymous_counter(0) {
     // Just in case none are declared:
@@ -493,6 +494,7 @@ class Parser : public ParserState {
     known_attributes_["native_inline"] = true;
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
+    known_attributes_["flexbuffer"] = true;
   }
 
   ~Parser() {
@@ -617,6 +619,7 @@ private:
   std::map<std::string, bool> known_attributes_;
 
   IDLOptions opts;
+  bool uses_flexbuffers_;
 
  private:
   const char *source_;

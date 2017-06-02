@@ -97,6 +97,9 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
+    if (parser_.uses_flexbuffers_) {
+      code_ += "#include \"flatbuffers/flexbuffers.h\"";
+    }
     code_ += "";
 
     if (parser_.opts.include_dependence_headers) {
@@ -1335,8 +1338,16 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
 
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
-        code_ += "    const uint8_t* data = {{FIELD_NAME}}()->Data();";
+        code_ += "    auto data = {{FIELD_NAME}}()->Data();";
         code_ += "    return flatbuffers::GetRoot<{{CPP_NAME}}>(data);";
+        code_ += "  }";
+      }
+
+      if (field.attributes.Lookup("flexbuffer")) {
+        code_ += "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
+                                                                     " const {";
+        code_ += "    auto v = {{FIELD_NAME}}();";
+        code_ += "    return flexbuffers::GetRoot(v->Data(), v->size());";
         code_ += "  }";
       }
 

@@ -73,6 +73,7 @@ table Monster {
   testf:float = 3.14159 (id:25);
   testf2:float = 3 (id:26);
   testf3:float (id:27);
+  flex:[ubyte] (id:30, flexbuffer);
 }
 
 rpc_service MonsterStorage {

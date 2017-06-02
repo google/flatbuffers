@@ -91,8 +91,12 @@ public final class Monster extends Table {
   public Ability testarrayofsortedstruct(int j) { return testarrayofsortedstruct(new Ability(), j); }
   public Ability testarrayofsortedstruct(Ability obj, int j) { int o = __offset(62); return o != 0 ? obj.__assign(__vector(o) + j * 8, bb) : null; }
   public int testarrayofsortedstructLength() { int o = __offset(62); return o != 0 ? __vector_len(o) : 0; }
+  public int flex(int j) { int o = __offset(64); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
+  public int flexLength() { int o = __offset(64); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer flexAsByteBuffer() { return __vector_as_bytebuffer(64, 1); }
+  public boolean mutateFlex(int j, int flex) { int o = __offset(64); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)flex); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(30); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(31); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -136,6 +140,9 @@ public final class Monster extends Table {
   public static void startTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addTestarrayofsortedstruct(FlatBufferBuilder builder, int testarrayofsortedstructOffset) { builder.addOffset(29, testarrayofsortedstructOffset, 0); }
   public static void startTestarrayofsortedstructVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 4); }
+  public static void addFlex(FlatBufferBuilder builder, int flexOffset) { builder.addOffset(30, flexOffset, 0); }
+  public static int createFlexVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static void startFlexVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name
