@@ -567,11 +567,8 @@ class vector_downward {
   }
 
   size_t growth_policy(size_t bytes) {
-    if (bytes == 0) {
-      return initial_size_;
-    } else {
-      return (bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1);
-    }
+    return (bytes == 0) ? initial_size_
+                        : ((bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1));
   }
 
   uint8_t *make_space(size_t len) {
