@@ -211,10 +211,10 @@ template <class T>
 class MessageVerifier {
  public:
   static ::grpc::Status Verify(const Message<T> &msg) {
-#if FLATBUFFERS_GRPC_AUTO_VERIFY
-    return msg.VerifyGRPC();
-#else
+#if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
     return ::grpc::Status::OK;
+#else
+    return msg.VerifyGRPC();
 #endif
   }
 };
