@@ -316,7 +316,22 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterStart(builder): builder.StartObject(30)
+    # Monster
+    def Flex(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(64))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # Monster
+    def FlexLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(64))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MonsterStart(builder): builder.StartObject(31)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -354,4 +369,6 @@ def MonsterAddTestarrayofstring2(builder, testarrayofstring2): builder.PrependUO
 def MonsterStartTestarrayofstring2Vector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstruct): builder.PrependUOffsetTRelativeSlot(29, flatbuffers.number_types.UOffsetTFlags.py_type(testarrayofsortedstruct), 0)
 def MonsterStartTestarrayofsortedstructVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def MonsterAddFlex(builder, flex): builder.PrependUOffsetTRelativeSlot(30, flatbuffers.number_types.UOffsetTFlags.py_type(flex), 0)
+def MonsterStartFlexVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterEnd(builder): return builder.EndObject()

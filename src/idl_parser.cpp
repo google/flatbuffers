@@ -725,6 +725,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     LookupCreateStruct(nested->constant);
   }
 
+  if (field->attributes.Lookup("flexbuffer")) {
+    uses_flexbuffers_ = true;
+    if (field->value.type.base_type != BASE_TYPE_VECTOR ||
+        field->value.type.element != BASE_TYPE_UCHAR)
+      return Error(
+            "flexbuffer attribute may only apply to a vector of ubyte");
+  }
+
   if (typefield) {
     // If this field is a union, and it has a manually assigned id,
     // the automatically added type field should have an id as well (of N - 1).

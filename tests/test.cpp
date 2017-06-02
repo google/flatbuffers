@@ -167,13 +167,19 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
       builder.CreateVector(nested_builder.GetBufferPointer(),
                            nested_builder.GetSize());
 
+  // Test a nested FlexBuffer:
+  flexbuffers::Builder flexbuild;
+  flexbuild.Int(1234);
+  flexbuild.Finish();
+  auto flex = builder.CreateVector(flexbuild.GetBuffer());
+
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(), // Store a union.
                             testv, vecofstrings, vecoftables, 0,
                             nested_flatbuffer_vector, 0, false,
                             0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
-                            vecofstrings2, vecofstructs);
+                            vecofstrings2, vecofstructs, flex);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -204,10 +210,6 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   test_buff.resize(length * 2);
   std::memcpy(&test_buff[0], flatbuf , length);
   std::memcpy(&test_buff[length], flatbuf , length);
-
-  flatbuffers::Verifier verifierl(&test_buff[0], length - 1);
-  TEST_EQ(VerifyMonsterBuffer(verifierl), false);
-  TEST_EQ(verifierl.GetComputedSize(), 0);
 
   flatbuffers::Verifier verifier1(&test_buff[0], length);
   TEST_EQ(VerifyMonsterBuffer(verifier1), true);
@@ -303,6 +305,15 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
     // accessor that directly gives you the root table:
     auto nested_monster = monster->testnestedflatbuffer_nested_root();
     TEST_EQ_STR(nested_monster->name()->c_str(), "NestedMonster");
+  }
+
+  // Test flexbuffer if available:
+  auto flex = monster->flex();
+  if (flex) {
+    // flex is a vector of bytes you can memcpy. However, if you
+    // actually want to access the nested data, this is a convenient
+    // accessor that directly gives you the root value:
+    TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
   }
 
   // Since Flatbuffers uses explicit mechanisms to override the default

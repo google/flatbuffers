@@ -1263,10 +1263,35 @@ testarrayofsortedstructLength():number {
 };
 
 /**
+ * @param {number} index
+ * @returns {number}
+ */
+flex(index: number):number|null {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+flexLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Uint8Array}
+ */
+flexArray():Uint8Array|null {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(30);
+  builder.startObject(31);
 };
 
 /**
@@ -1641,6 +1666,35 @@ static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsorted
  */
 static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} flexOffset
+ */
+static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(30, flexOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createFlexVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**
