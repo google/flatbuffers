@@ -138,6 +138,16 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     }
   }
 
+  {
+    grpc::ClientContext context;
+    flatbuffers::grpc::Message<Monster> request;  // simulate invalid message
+    flatbuffers::grpc::Message<Stat> response;
+    auto status = stub->Store(&context, request, &response);
+    assert(!status.ok());
+    assert(status.error_code() == ::grpc::StatusCode::INTERNAL);
+    assert(strcmp(status.error_message().c_str(), "Message verification failed") == 0);
+  }
+
   server_instance->Shutdown();
 
   server_thread.join();

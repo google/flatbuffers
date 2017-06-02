@@ -246,7 +246,7 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       return ::grpc::Status::OK;
     } else {
       return ::grpc::Status(::grpc::StatusCode::INTERNAL,
-                            "Message failed verification");
+                            "Message verification failed");
     }
 #endif
   }
