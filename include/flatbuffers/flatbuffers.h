@@ -515,7 +515,7 @@ class DetachedBuffer {
 // in the lowest address in the vector.
 class vector_downward {
  public:
-  explicit vector_downward(uoffset_t initial_size = 1024,
+  explicit vector_downward(size_t initial_size = 1024,
                            Allocator *allocator = nullptr,
                            bool own_allocator = false)
     : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
@@ -644,7 +644,7 @@ class vector_downward {
 
   Allocator *allocator_;
   bool own_allocator_;
-  uoffset_t initial_size_;
+  size_t initial_size_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -700,7 +700,7 @@ class FlatBufferBuilder
   /// a `DefaultAllocator`.
   /// @param[in] own_allocator Whether the builder/vector should own the
   /// allocator. Defaults to / `false`.
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
+  explicit FlatBufferBuilder(size_t initial_size = 1024,
                              Allocator *allocator = nullptr,
                              bool own_allocator = false)
     : buf_(initial_size, allocator, own_allocator), nested(false),
