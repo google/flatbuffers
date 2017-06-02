@@ -72,12 +72,12 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
          it != parser.included_files_.end(); ++it) {
+      if (it->second.empty())
+        continue;
       auto basename = flatbuffers::StripPath(
-                        flatbuffers::StripExtension(it->first));
-      if (basename != file_name) {
-        schema += "include \"" + basename + ".fbs\";\n";
-        num_includes++;
-      }
+                        flatbuffers::StripExtension(it->second));
+      schema += "include \"" + basename + ".fbs\";\n";
+      num_includes++;
     }
     if (num_includes) schema += "\n";
     #endif
