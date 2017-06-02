@@ -185,8 +185,8 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     assert(msg_data >= msg_data);
     assert(msg_data + msg_size <= buf_data + buf_size);
     // Calculate offsets from the buffer start
-    size_t begin = msg_data - buf_data;
-    size_t end = begin + msg_size;
+    auto begin = msg_data - buf_data;
+    auto end = begin + msg_size;
     // Get the slice we are working with (no refcount change)
     grpc_slice slice = slice_allocator_.get_slice(buf_data, buf_size);
     // Extract a subslice of the existing slice (increment refcount)
