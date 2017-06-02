@@ -38,18 +38,18 @@ class Message {
   Message(grpc_slice slice, bool add_ref)
     : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
-#if FLATBUFFERS_GRPC_ENABLE_MESSAGE_COPY
+  #if FLATBUFFERS_GRPC_ENABLE_MESSAGE_COPY
   Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
 
   Message &operator=(const Message &other) {
     slice_ = grpc_slice_ref(other.slice_);
     return *this;
   }
-#else
+  #else
   Message &operator=(const Message &other) = delete;
 
   Message(const Message &other) = delete;
-#endif
+  #endif
 
   Message(Message &&other) : slice_(other.slice_) {
     other.slice_ = grpc_empty_slice();
@@ -239,16 +239,16 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       // We wrap a `Message<T>` around the slice, but dont increment refcount
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
-#if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
+    #if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
     return ::grpc::Status::OK;
-#else
+    #else
     if (msg->Verify()) {
       return ::grpc::Status::OK;
     } else {
       return ::grpc::Status(::grpc::StatusCode::INTERNAL,
                             "Message verification failed");
     }
-#endif
+    #endif
   }
 };
 
