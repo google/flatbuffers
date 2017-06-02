@@ -521,8 +521,7 @@ class vector_downward {
     : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
       own_allocator_(own_allocator),
       initial_size_(initial_size),
-      reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
-                ~(sizeof(largest_scalar_t) - 1)),
+      reserved_(RoundUp(initial_size, sizeof(largest_scalar_t))),
       buf_(allocator_->allocate(reserved_)), cur_(buf_ + reserved_) {
     assert(allocator_);
   }
@@ -542,8 +541,7 @@ class vector_downward {
     if (buf_ != nullptr) {
       allocator_->deallocate(buf_, reserved_);
     }
-    reserved_ = (initial_size_ + sizeof(largest_scalar_t) - 1) &
-                ~(sizeof(largest_scalar_t) - 1);
+    reserved_ = RoundUp(initial_size_, sizeof(largest_scalar_t));
     buf_ = allocator_->allocate(reserved_);
     cur_ = buf_ + reserved_;
   }
