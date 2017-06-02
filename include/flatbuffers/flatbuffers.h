@@ -437,14 +437,14 @@ class DetachedBuffer {
                  size_t reserved, uint8_t *cur, size_t sz)
     : allocator_(allocator), own_allocator_(own_allocator), buf_(buf),
       reserved_(reserved), cur_(cur), size_(sz) {
-    assert(allocator_);
+    assert(allocator_ != nullptr);
   }
 
   DetachedBuffer(DetachedBuffer &&other)
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    assert(allocator_);
+    assert(allocator_ != nullptr);
     other.allocator_ = nullptr;
     other.own_allocator_ = false;
     other.buf_ = nullptr;
@@ -519,11 +519,9 @@ class vector_downward {
                            Allocator *allocator = nullptr,
                            bool own_allocator = false)
     : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
-      own_allocator_(own_allocator),
-      initial_size_(initial_size),
-      reserved_(RoundUp(initial_size, sizeof(largest_scalar_t))),
-      buf_(allocator_->allocate(reserved_)), cur_(buf_ + reserved_) {
-    assert(allocator_);
+      own_allocator_(own_allocator), initial_size_(initial_size), reserved_(0),
+      buf_(nullptr), cur_(nullptr) {
+    assert(allocator_ != nullptr);
   }
 
   ~vector_downward() {
@@ -537,21 +535,23 @@ class vector_downward {
   }
 
   void reset() {
-    assert(allocator_ != nullptr);
     if (buf_ != nullptr) {
+      assert(allocator_ != nullptr);
       allocator_->deallocate(buf_, reserved_);
     }
-    reserved_ = RoundUp(initial_size_, sizeof(largest_scalar_t));
-    buf_ = allocator_->allocate(reserved_);
-    cur_ = buf_ + reserved_;
+    reserved_ = 0;
+    buf_ = nullptr;
+    cur_ = nullptr;
   }
 
   void clear() {
     if (buf_ == nullptr) {
-      assert(allocator_ != nullptr);
-      buf_ = allocator_->allocate(reserved_);
+      reserved_ = 0;
+      buf_ = nullptr;
+      cur_ = nullptr;
+    } else {
+      cur_ = buf_ + reserved_;
     }
-    cur_ = buf_ + reserved_;
   }
 
   // Relinquish the pointer to the caller.
@@ -571,6 +571,7 @@ class vector_downward {
   }
 
   uint8_t *make_space(size_t len) {
+    assert(cur_ >= buf_);
     if (len > static_cast<size_t>(cur_ - buf_)) {
       reallocate(len);
     }
@@ -584,7 +585,6 @@ class vector_downward {
   Allocator &get_allocator() { return *allocator_; }
 
   uoffset_t size() const {
-    assert(cur_ != nullptr && buf_ != nullptr);
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
@@ -646,14 +646,23 @@ class vector_downward {
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
 
   void reallocate(size_t len) {
-    size_t old_reserved = reserved_;
+    assert(allocator_ != nullptr);
+    auto old_reserved = reserved_;
     auto old_size = size();
-    auto largest_align = AlignOf<largest_scalar_t>();
-    reserved_ += (std::max)(len, growth_policy(reserved_));
-    // Round up to avoid undefined behavior from unaligned loads and stores.
-    reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
-    buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
-    cur_ = buf_ + reserved_ - old_size;
+    size_t reserved;
+    if (old_reserved == 0) {
+      reserved = (std::max)(len, static_cast<size_t>(initial_size_));
+    } else {
+      reserved = old_reserved + (std::max)(len, growth_policy(old_reserved));
+    }
+    reserved = RoundUp(reserved, AlignOf<largest_scalar_t>());
+    reserved_ = reserved;
+    if (buf_ == nullptr) {
+      buf_ = allocator_->allocate(reserved);
+    } else {
+      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved);
+    }
+    cur_ = buf_ + reserved - old_size;
   }
 };
 
