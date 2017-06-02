@@ -76,16 +76,6 @@ class Message {
     return verifier.VerifyBuffer<T>(nullptr);
   }
 
-  ::grpc::Status VerifyGRPC() const {
-    if (Verify()) {
-      return ::grpc::Status::OK;
-    } else {
-      // DATA_LOSS: "Unrecoverable data loss or corruption."
-      return ::grpc::Status(::grpc::StatusCode::DATA_LOSS,
-                            "Message failed verification");
-    }
-  }
-
   T *GetMutableRoot() { return flatbuffers::GetMutableRoot<T>(mutable_data()); }
 
   const T *GetRoot() const { return flatbuffers::GetRoot<T>(data()); }
@@ -207,18 +197,6 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   // SliceAllocator slice_allocator_;  // part of SliceAllocatorMember
 };
 
-template <class T>
-class MessageVerifier {
- public:
-  static ::grpc::Status Verify(const Message<T> &msg) {
-#if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
-    return ::grpc::Status::OK;
-#else
-    return msg.VerifyGRPC();
-#endif
-  }
-};
-
 }  // namespace grpc
 }  // namespace flatbuffers
 
@@ -263,7 +241,16 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       // We wrap a `Message<T>` around the slice, but dont increment refcount
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
-    return flatbuffers::grpc::MessageVerifier<T>::Verify(*msg);
+#if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
+    return ::grpc::Status::OK;
+#else
+    if (msg->Verify()) {
+      return ::grpc::Status::OK;
+    } else {
+      return ::grpc::Status(::grpc::StatusCode::INTERNAL,
+                            "Message failed verification");
+    }
+#endif
   }
 };
 
