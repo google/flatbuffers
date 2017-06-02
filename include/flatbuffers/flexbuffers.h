@@ -19,7 +19,6 @@
 
 #include <map>
 // We use the basic binary writing functions from the regular FlatBuffers.
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/util.h"
 
 #ifdef _MSC_VER
