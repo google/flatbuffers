@@ -1038,6 +1038,7 @@ void ErrorTest() {
   TestError("table X { Y:[[int]]; }", "nested vector");
   TestError("table X { Y:1; }", "illegal type");
   TestError("table X { Y:int; Y:int; }", "field already");
+  TestError("table X { X:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
