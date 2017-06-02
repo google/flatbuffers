@@ -138,15 +138,20 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     }
   }
 
+#if !FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
   {
+    // Test that an invalid request errors out correctly
     grpc::ClientContext context;
     flatbuffers::grpc::Message<Monster> request;  // simulate invalid message
     flatbuffers::grpc::Message<Stat> response;
     auto status = stub->Store(&context, request, &response);
+    // The rpc status should be INTERNAL to indicate a verification error. This
+    // matches the protobuf gRPC status code for an unparseable message.
     assert(!status.ok());
     assert(status.error_code() == ::grpc::StatusCode::INTERNAL);
     assert(strcmp(status.error_message().c_str(), "Message verification failed") == 0);
   }
+#endif
 
   server_instance->Shutdown();
 
