@@ -853,29 +853,62 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
-  EXPECT('{');
+
+  // takes care of nested json array, e.g. [[1,2], [3,4]]
+  // Field values are mapped to Table fields in order of appearance.
+  const bool is_nested_list = Is('['); 
+
+  if (!is_nested_list) {
+    EXPECT('{');
+  }
+  else {
+    EXPECT('[');
+  }
+
   size_t fieldn = 0;
   for (;;) {
-    if ((!opts.strict_json || !fieldn) && Is('}')) { NEXT(); break; }
-    std::string name = attribute_;
-    if (Is(kTokenStringConstant)) {
-      NEXT();
-    } else {
-      EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+    if ((!opts.strict_json || !fieldn) && (is_nested_list ? Is(']') : Is('}'))) { NEXT(); break; }
+
+    FieldDef* field = nullptr;
+    std::string name;
+    if (is_nested_list)
+    {
+      if (fieldn > struct_def.fields.vec.size()) {
+        return Error("too many unnamed fields in nested array");
+      }
+      field = struct_def.fields.vec[fieldn];
+      name = field->name;
     }
-    auto field = struct_def.fields.Lookup(name);
+    else
+    {
+      name = attribute_;
+      if (Is(kTokenStringConstant)) {
+        NEXT();
+      }
+      else {
+        EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+      }
+      field = struct_def.fields.Lookup(name);
+    }
+
     if (!field) {
       if (!opts.skip_unexpected_fields_in_json) {
         return Error("unknown field: " + name);
-      } else {
+      }
+      else {
         EXPECT(':');
         ECHECK(SkipAnyJsonValue());
       }
-    } else {
-      EXPECT(':');
+    }
+    else {
+
+      if (!is_nested_list)
+        EXPECT(':');
+
       if (Is(kTokenNull)) {
         NEXT(); // Ignore this field.
-      } else {
+      }
+      else {
         Value val = field->value;
         ECHECK(ParseAnyValue(val, field, fieldn, &struct_def));
         // Hardcoded insertion-sort with error-check.
@@ -893,9 +926,20 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         fieldn++;
       }
     }
-    if (Is('}')) { NEXT(); break; }
+    if (is_nested_list ? Is(']') : Is('}')) { NEXT(); break; }
     EXPECT(',');
+
   }
+
+  if (is_nested_list && fieldn != struct_def.fields.vec.size()) {
+    return Error("wrong number of unnamed fields in nested array");
+  }
+
+  return ProcessTableFields(fieldn, struct_def, value, ovalue);
+}
+
+CheckedError Parser::ProcessTableFields(size_t fieldn, const StructDef &struct_def, std::string *value,
+  uoffset_t *ovalue) {
 
   // Check if all required fields are parsed.
   for (auto field_it = struct_def.fields.vec.begin();
@@ -2004,18 +2048,39 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   while (token_ != kTokenEof) {
     if (opts.proto_mode) {
       ECHECK(ParseProtoDecl());
-    } else if (token_ == kTokenNameSpace) {
-      ECHECK(ParseNamespace());
-    } else if (token_ == '{') {
+  }
+  else if (token_ == kTokenNameSpace) {
+    ECHECK(ParseNamespace());
+
+  } else if (token_ == '{' || token_ == '[') {
       if (!root_struct_def_)
         return Error("no root type set to parse json with");
       if (builder_.GetSize()) {
         return Error("cannot have more than one json object in a file");
       }
-      uoffset_t toff;
+
+    uoffset_t toff;
+
+    const bool top_level_list = token_ == '[';
+    if (top_level_list)
+    {
+      if(root_struct_def_->fields.vec.size() > 1)
+        return Error("top level list found with more than one field in schema");
+      
+      auto field = root_struct_def_->fields.vec.front();
+      Value val = field->value;
+      ECHECK(ParseAnyValue(val, field, 0, root_struct_def_));
+      //ECHECK(ProcessTableFields(1, *val.type.struct_def, nullptr, &toff));
+      field_stack_.insert(field_stack_.rbegin().base(), std::make_pair(val, field));
+      ECHECK(ProcessTableFields(1, *root_struct_def_, nullptr, &toff));
+    }
+    else
+    {
       ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
-      builder_.Finish(Offset<Table>(toff),
-                file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+    }
+    builder_.Finish(Offset<Table>(toff),
+      file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+
     } else if (token_ == kTokenEnum) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (token_ == kTokenUnion) {
