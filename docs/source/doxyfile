@@ -765,6 +765,7 @@ INPUT = "FlatBuffers.md" \
         "../../CONTRIBUTING.md" \
         "Tutorial.md" \
         "GoApi.md" \
+        "gRPC/CppUsage.md" \
         "groups" \
         "../../java/com/google/flatbuffers" \
         "../../python/flatbuffers/builder.py" \
