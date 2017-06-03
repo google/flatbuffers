@@ -161,7 +161,9 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     auto msg_data = buf_.data();      // pointer to msg
     auto msg_size = buf_.size();      // size of msg
     // Do some sanity checks on data/size
-    assert(msg_data >= msg_data);
+    assert(msg_data);
+    assert(msg_size);
+    assert(msg_data >= buf_data);
     assert(msg_data + msg_size <= buf_data + buf_size);
     // Calculate offsets from the buffer start
     auto begin = msg_data - buf_data;
@@ -178,7 +180,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   template <class T>
   Message<T> ReleaseMessage() {
     Message<T> msg = GetMessage<T>();
-    buf_.reset();
+    Reset();
     return msg;
   }
 
