@@ -33,8 +33,8 @@ class GreeterClient {
     }
   }
 
-  template <class F>
-  void SayManyHellos(const std::string &name, int num_greetings, F &&callback) {
+  void SayManyHellos(const std::string &name, int num_greetings,
+                     std::function<void(const std::string &)> callback) {
     auto name_offset = mb_.CreateString(name);
     auto request_offset =
         CreateManyHellosRequest(mb_, name_offset, num_greetings);
