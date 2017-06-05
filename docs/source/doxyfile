@@ -891,7 +891,7 @@ EXAMPLE_PATH           = "GoApi_generated.txt" "../../examples"
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       = *.cpp *.h *.txt
+EXAMPLE_PATTERNS       = *.cpp *.h *.txt *.fbs
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands

@@ -15,23 +15,7 @@ NOTE: The examples below are also in the `examples/grpc/greeter` directory.
 
 We will illustrate usage with the following schema:
 
-    table HelloReply {
-      message:string;
-    }
-
-    table HelloRequest {
-      name:string;
-    }
-
-    table ManyHellosRequest {
-      name:string;
-      num_greetings:int;
-    }
-
-    rpc_service Greeter {
-      SayHello(HelloRequest):HelloReply;
-      SayManyHellos(ManyHellosRequest):HelloReply (streaming: "server");
-    }
+@include grpc/greeter/greeter.fbs
 
 When we run `flatc`, we pass in the `--grpc` option and generage an additional
 `greeter.grpc.fb.h` and `greeter.grpc.fb.cc`.
