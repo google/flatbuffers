@@ -69,7 +69,7 @@ template<typename T> T EndianSwap(T t) {
   }
 }
 
-template<typename T> constexpr size_t AlignOf() {
+template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -648,7 +648,7 @@ class vector_downward {
     auto old_reserved = reserved_;
     auto old_size = size();
     reserved_ += (std::max)(len, growth_policy(old_reserved));
-    constexpr size_t alignment = AlignOf<largest_scalar_t>();
+    FLATBUFFERS_CONSTEXPR size_t alignment = AlignOf<largest_scalar_t>();
     reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
     if (buf_) {
       buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
