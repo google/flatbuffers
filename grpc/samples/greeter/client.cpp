@@ -13,10 +13,11 @@ class GreeterClient {
     : stub_(Greeter::NewStub(channel)) {}
 
   std::string SayHello(const std::string &name) {
-    auto name_offset = mb_.CreateString(name);
-    auto request_offset = CreateHelloRequest(mb_, name_offset);
-    mb_.Finish(request_offset);
-    auto request_msg = mb_.ReleaseMessage<HelloRequest>();
+    flatbuffers::grpc::MessageBuilder mb;
+    auto name_offset = mb.CreateString(name);
+    auto request_offset = CreateHelloRequest(mb, name_offset);
+    mb.Finish(request_offset);
+    auto request_msg = mb.ReleaseMessage<HelloRequest>();
 
     flatbuffers::grpc::Message<HelloReply> response_msg;
 
@@ -35,11 +36,12 @@ class GreeterClient {
 
   void SayManyHellos(const std::string &name, int num_greetings,
                      std::function<void(const std::string &)> callback) {
-    auto name_offset = mb_.CreateString(name);
+    flatbuffers::grpc::MessageBuilder mb;
+    auto name_offset = mb.CreateString(name);
     auto request_offset =
-        CreateManyHellosRequest(mb_, name_offset, num_greetings);
-    mb_.Finish(request_offset);
-    auto request_msg = mb_.ReleaseMessage<ManyHellosRequest>();
+        CreateManyHellosRequest(mb, name_offset, num_greetings);
+    mb.Finish(request_offset);
+    auto request_msg = mb.ReleaseMessage<ManyHellosRequest>();
 
     flatbuffers::grpc::Message<HelloReply> response_msg;
 
@@ -60,7 +62,6 @@ class GreeterClient {
 
  private:
   std::unique_ptr<Greeter::Stub> stub_;
-  flatbuffers::grpc::MessageBuilder mb_;
 };
 
 int main(int argc, char **argv) {
