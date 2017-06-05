@@ -12,7 +12,7 @@ class GreeterClient {
   GreeterClient(std::shared_ptr<grpc::Channel> channel)
     : stub_(Greeter::NewStub(channel)) {}
 
-  std::string SayHello(const std::string& name) {
+  std::string SayHello(const std::string &name) {
     auto name_offset = mb_.CreateString(name);
     auto request_offset = CreateHelloRequest(mb_, name_offset);
     mb_.Finish(request_offset);
@@ -24,7 +24,7 @@ class GreeterClient {
 
     auto status = stub_->SayHello(&context, request_msg, &response_msg);
     if (status.ok()) {
-      const HelloReply* response = response_msg.GetRoot();
+      const HelloReply *response = response_msg.GetRoot();
       return response->message()->str();
     } else {
       std::cerr << status.error_code() << ": " << status.error_message()
@@ -34,7 +34,7 @@ class GreeterClient {
   }
 
   template <class F>
-  void SayManyHellos(const std::string& name, int num_greetings, F&& callback) {
+  void SayManyHellos(const std::string &name, int num_greetings, F &&callback) {
     auto name_offset = mb_.CreateString(name);
     auto request_offset =
         CreateManyHellosRequest(mb_, name_offset, num_greetings);
@@ -47,7 +47,7 @@ class GreeterClient {
 
     auto stream = stub_->SayManyHellos(&context, request_msg);
     while (stream->Read(&response_msg)) {
-      const HelloReply* response = response_msg.GetRoot();
+      const HelloReply *response = response_msg.GetRoot();
       callback(response->message()->str());
     }
     auto status = stream->Finish();
@@ -63,7 +63,7 @@ class GreeterClient {
   flatbuffers::grpc::MessageBuilder mb_;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   std::string server_address("localhost:50051");
 
   auto channel =
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   std::cerr << "Greeter received: " << message << std::endl;
 
   int num_greetings = 10;
-  greeter.SayManyHellos(name, num_greetings, [](const std::string& message) {
+  greeter.SayManyHellos(name, num_greetings, [](const std::string &message) {
     std::cerr << "Greeter received: " << message << std::endl;
   });
 
