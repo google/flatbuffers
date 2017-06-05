@@ -127,9 +127,6 @@ public:
   VectorIterator(const uint8_t *data, uoffset_t i) :
       data_(data + IndirectHelper<T>::element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
-  #ifndef FLATBUFFERS_CPP98_STL
-  VectorIterator(VectorIterator &&other) : data_(std::move(other.data_)) {}
-  #endif
 
   VectorIterator &operator=(const VectorIterator &other) {
     data_ = other.data_;
