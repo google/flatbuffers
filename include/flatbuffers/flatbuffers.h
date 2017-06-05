@@ -710,13 +710,8 @@ class FlatBufferBuilder
   }
 
   void Reset() {
-    buf_.reset();
-    offsetbuf_.clear();
-    nested = false;
-    finished = false;
-    vtables_.clear();
-    minalign_ = 1;
-    if (string_pool) string_pool->clear();
+    Clear();  // clear builder state
+    buf_.reset();  // deallocate buffer
   }
 
   /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
