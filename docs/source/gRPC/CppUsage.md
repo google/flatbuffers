@@ -11,19 +11,19 @@ familiar with the following:
 
 ## Using the FlatBuffers gRPC C++ library
 
-NOTE: The examples below are also in the `examples/grpc/greeter` directory.
+NOTE: The examples below are also in the `grpc/samples/greeter` directory.
 
 We will illustrate usage with the following schema:
 
-@include grpc/greeter/greeter.fbs
+@include grpc/samples/greeter/greeter.fbs
 
 When we run `flatc`, we pass in the `--grpc` option and generage an additional
 `greeter.grpc.fb.h` and `greeter.grpc.fb.cc`.
 
 Example server code looks like this:
 
-@include grpc/greeter/server.cpp
+@include grpc/samples/greeter/server.cpp
 
 Example client code looks like this:
 
-@include grpc/greeter/client.cpp
+@include grpc/samples/greeter/client.cpp
