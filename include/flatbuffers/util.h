@@ -72,9 +72,8 @@ template<> inline std::string NumToString<double>(double t) {
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
   auto p = s.find_last_not_of('0');
   if (p != std::string::npos) {
-    s.resize(p + 1);  // Strip trailing zeroes.
-    if (s[s.size() - 1] == '.')
-      s.erase(s.size() - 1, 1);  // Strip '.' if a whole number.
+    // Strip trailing zeroes. If it is a whole number, keep one zero.
+    s.resize(p + (s[p] == '.' ? 2 : 1));
   }
   return s;
 }
@@ -359,6 +358,72 @@ inline std::string WordWrap(const std::string in, size_t max_length,
   wrapped += line;
 
   return wrapped;
+}
+
+inline bool EscapeString(const char *s, size_t length, std::string *_text,
+                         bool allow_non_utf8) {
+  std::string &text = *_text;
+  text += "\"";
+  for (uoffset_t i = 0; i < length; i++) {
+    char c = s[i];
+    switch (c) {
+      case '\n': text += "\\n"; break;
+      case '\t': text += "\\t"; break;
+      case '\r': text += "\\r"; break;
+      case '\b': text += "\\b"; break;
+      case '\f': text += "\\f"; break;
+      case '\"': text += "\\\""; break;
+      case '\\': text += "\\\\"; break;
+      default:
+        if (c >= ' ' && c <= '~') {
+          text += c;
+        } else {
+          // Not printable ASCII data. Let's see if it's valid UTF-8 first:
+          const char *utf8 = s + i;
+          int ucc = FromUTF8(&utf8);
+          if (ucc < 0) {
+            if (allow_non_utf8) {
+              text += "\\x";
+              text += IntToStringHex(static_cast<uint8_t>(c), 2);
+            } else {
+              // There are two cases here:
+              //
+              // 1) We reached here by parsing an IDL file. In that case,
+              // we previously checked for non-UTF-8, so we shouldn't reach
+              // here.
+              //
+              // 2) We reached here by someone calling GenerateText()
+              // on a previously-serialized flatbuffer. The data might have
+              // non-UTF-8 Strings, or might be corrupt.
+              //
+              // In both cases, we have to give up and inform the caller
+              // they have no JSON.
+              return false;
+            }
+          } else {
+            if (ucc <= 0xFFFF) {
+              // Parses as Unicode within JSON's \uXXXX range, so use that.
+              text += "\\u";
+              text += IntToStringHex(ucc, 4);
+            } else if (ucc <= 0x10FFFF) {
+              // Encode Unicode SMP values to a surrogate pair using two \u escapes.
+              uint32_t base = ucc - 0x10000;
+              auto high_surrogate = (base >> 10) + 0xD800;
+              auto low_surrogate = (base & 0x03FF) + 0xDC00;
+              text += "\\u";
+              text += IntToStringHex(high_surrogate, 4);
+              text += "\\u";
+              text += IntToStringHex(low_surrogate, 4);
+            }
+            // Skip past characters recognized.
+            i = static_cast<uoffset_t>(utf8 - s - 1);
+          }
+        }
+        break;
+    }
+  }
+  text += "\"";
+  return true;
 }
 
 }  // namespace flatbuffers

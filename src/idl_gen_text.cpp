@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/flexbuffers.h"
 
 namespace flatbuffers {
 
@@ -101,71 +102,6 @@ template<typename T> bool PrintVector(const Vector<T> &v, Type type,
   return true;
 }
 
-static bool EscapeString(const String &s, std::string *_text, const IDLOptions& opts) {
-  std::string &text = *_text;
-  text += "\"";
-  for (uoffset_t i = 0; i < s.size(); i++) {
-    char c = s[i];
-    switch (c) {
-      case '\n': text += "\\n"; break;
-      case '\t': text += "\\t"; break;
-      case '\r': text += "\\r"; break;
-      case '\b': text += "\\b"; break;
-      case '\f': text += "\\f"; break;
-      case '\"': text += "\\\""; break;
-      case '\\': text += "\\\\"; break;
-      default:
-        if (c >= ' ' && c <= '~') {
-          text += c;
-        } else {
-          // Not printable ASCII data. Let's see if it's valid UTF-8 first:
-          const char *utf8 = s.c_str() + i;
-          int ucc = FromUTF8(&utf8);
-          if (ucc < 0) {
-            if (opts.allow_non_utf8) {
-              text += "\\x";
-              text += IntToStringHex(static_cast<uint8_t>(c), 2);
-            } else {
-              // There are two cases here:
-              //
-              // 1) We reached here by parsing an IDL file. In that case,
-              // we previously checked for non-UTF-8, so we shouldn't reach
-              // here.
-              //
-              // 2) We reached here by someone calling GenerateText()
-              // on a previously-serialized flatbuffer. The data might have
-              // non-UTF-8 Strings, or might be corrupt.
-              //
-              // In both cases, we have to give up and inform the caller
-              // they have no JSON.
-              return false;
-            }
-          } else {
-            if (ucc <= 0xFFFF) {
-              // Parses as Unicode within JSON's \uXXXX range, so use that.
-              text += "\\u";
-              text += IntToStringHex(ucc, 4);
-            } else if (ucc <= 0x10FFFF) {
-              // Encode Unicode SMP values to a surrogate pair using two \u escapes.
-              uint32_t base = ucc - 0x10000;
-              auto high_surrogate = (base >> 10) + 0xD800;
-              auto low_surrogate = (base & 0x03FF) + 0xDC00;
-              text += "\\u";
-              text += IntToStringHex(high_surrogate, 4);
-              text += "\\u";
-              text += IntToStringHex(low_surrogate, 4);
-            }
-            // Skip past characters recognized.
-            i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
-          }
-        }
-        break;
-    }
-  }
-  text += "\"";
-  return true;
-}
-
 // Specialization of Print above for pointer types.
 template<> bool Print<const void *>(const void *val,
                                     Type type, int indent,
@@ -189,7 +125,8 @@ template<> bool Print<const void *>(const void *val,
       }
       break;
     case BASE_TYPE_STRING: {
-      if (!EscapeString(*reinterpret_cast<const String *>(val), _text, opts)) {
+      auto s = reinterpret_cast<const String *>(val);
+      if (!EscapeString(s->c_str(), s->Length(), _text, opts.allow_non_utf8)) {
         return false;
       }
       break;
@@ -238,6 +175,11 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
     assert(IsStruct(fd.value.type));
     val = reinterpret_cast<const Struct *>(table)->
             GetStruct<const void *>(fd.value.offset);
+  } else if (fd.flexbuffer) {
+    auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
+    auto root = flexbuffers::GetRoot(vec->data(), vec->size());
+    root.ToString(true, false, *_text);
+    return true;
   } else {
     val = IsStruct(fd.value.type)
       ? table->GetStruct<const void *>(fd.value.offset)

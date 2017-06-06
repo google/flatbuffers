@@ -457,25 +457,61 @@ class Reference {
   }
 
   // Unlike AsString(), this will convert any type to a std::string.
-  std::string ToString() const {
+  std::string ToString() {
+    std::string s;
+    ToString(false, false, s);
+    return s;
+  }
+
+  // Convert any type to a JSON-like string. strings_quoted determines if
+  // string values at the top level receive "" quotes (inside other values
+  // they always do). keys_quoted determines if keys are quoted, at any level.
+  // TODO(wvo): add further options to have indentation/newlines.
+  void ToString(bool strings_quoted, bool keys_quoted, std::string &s) const {
     if (type_ == TYPE_STRING) {
-      return String(Indirect(), byte_width_).c_str();
+      String str(Indirect(), byte_width_);
+      if (strings_quoted) {
+        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true);
+      } else {
+        s.append(str.c_str(), str.length());
+      }
     } else if (IsKey()) {
-      return AsKey();
+      auto str = AsKey();
+      if (keys_quoted) {
+        flatbuffers::EscapeString(str, strlen(str), &s, true);
+      } else {
+        s += str;
+      }
     } else if (IsInt()) {
-      return flatbuffers::NumToString(AsInt64());
+      s += flatbuffers::NumToString(AsInt64());
     } else if (IsUInt()) {
-      return flatbuffers::NumToString(AsUInt64());
+      s += flatbuffers::NumToString(AsUInt64());
     } else if (IsFloat()) {
-      return flatbuffers::NumToString(AsDouble());
+      s += flatbuffers::NumToString(AsDouble());
     } else if (IsNull()) {
-      return "null";
+      s += "null";
     } else if (IsMap()) {
-      return "{..}";  // TODO: show elements.
+      s += "{ ";
+      auto m = AsMap();
+      auto keys = m.Keys();
+      auto vals = m.Values();
+      for (size_t i = 0; i < keys.size(); i++) {
+        keys[i].ToString(true, keys_quoted, s);
+        s += ": ";
+        vals[i].ToString(true, keys_quoted, s);
+        if (i < keys.size() - 1) s += ", ";
+      }
+      s += " }";
     } else if (IsVector()) {
-      return "[..]";  // TODO: show elements.
+      s += "[ ";
+      auto v = AsVector();
+      for (size_t i = 0; i < v.size(); i++) {
+        v[i].ToString(true, keys_quoted, s);
+        if (i < v.size() - 1) s += ", ";
+      }
+      s += " ]";
     } else {
-      return "(?)";
+      s += "(?)";
     }
   }
 
@@ -744,6 +780,17 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   const std::vector<uint8_t> &GetBuffer() const {
     Finished();
     return buf_;
+  }
+
+  // Reset all state so we can re-use the buffer.
+  void Clear() {
+    buf_.clear();
+    stack_.clear();
+    finished_ = false;
+    // flags_ remains as-is;
+    force_min_bit_width_ = BIT_WIDTH_8;
+    key_pool.clear();
+    string_pool.clear();
   }
 
   // All value constructing functions below have two versions: one that

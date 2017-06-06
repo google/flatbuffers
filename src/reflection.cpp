@@ -87,8 +87,11 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
             auto &fielddef = **it;
             if (!table_field->CheckField(fielddef.offset())) continue;
             auto val = GetAnyFieldS(*table_field, fielddef, schema);
-            if (fielddef.type()->base_type() == reflection::String)
-              val = "\"" + val + "\"";  // Doesn't deal with escape codes etc.
+            if (fielddef.type()->base_type() == reflection::String) {
+              std::string esc;
+              flatbuffers::EscapeString(val.c_str(), val.length(), &esc, true);
+              val = esc;
+            }
             s += fielddef.name()->str();
             s += ": ";
             s += val;

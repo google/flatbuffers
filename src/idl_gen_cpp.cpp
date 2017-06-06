@@ -1343,7 +1343,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "  }";
       }
 
-      if (field.attributes.Lookup("flexbuffer")) {
+      if (field.flexbuffer) {
         code_ += "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
                                                                      " const {";
         code_ += "    auto v = {{FIELD_NAME}}();";
