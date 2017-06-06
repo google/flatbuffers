@@ -309,12 +309,11 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
 
   // Test flexbuffer if available:
   auto flex = monster->flex();
-  if (flex) {
-    // flex is a vector of bytes you can memcpy. However, if you
-    // actually want to access the nested data, this is a convenient
-    // accessor that directly gives you the root value:
-    TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
-  }
+  // flex is a vector of bytes you can memcpy etc.
+  TEST_EQ(flex->size(), 4);  // Encoded FlexBuffer bytes.
+  // However, if you actually want to access the nested data, this is a
+  // convenient accessor that directly gives you the root value:
+  TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
@@ -919,7 +918,8 @@ void FuzzTest2() {
       AddToSchemaAndInstances(("  " + field_name + ":").c_str(),
                               deprecated ? "" : (field_name + ": ").c_str());
       // Pick random type:
-      int base_type = lcg_rand() % (flatbuffers::BASE_TYPE_UNION + 1);
+      auto base_type = static_cast<flatbuffers::BaseType>(
+                         lcg_rand() % (flatbuffers::BASE_TYPE_UNION + 1));
       switch (base_type) {
         case flatbuffers::BASE_TYPE_STRING:
           if (is_struct) {
@@ -970,7 +970,9 @@ void FuzzTest2() {
             // We want each instance to use its own random value.
             for (int inst = 0; inst < instances_per_definition; inst++)
               definitions[definition].instances[inst] +=
-              flatbuffers::NumToString(lcg_rand() % 128).c_str();
+              flatbuffers::IsFloat(base_type)
+                  ? flatbuffers::NumToString<double>(lcg_rand() % 128).c_str()
+                  : flatbuffers::NumToString<int>(lcg_rand() % 128).c_str();
           }
       }
       AddToSchemaAndInstances(
@@ -1548,7 +1550,7 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsDouble(), 4.0);
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");  // This still works though.
-  TEST_EQ_STR(vec[2].ToString().c_str(), "4");  // Or have it converted.
+  TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
@@ -1570,6 +1572,22 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].MutateFloat(2.0f), true);
   TEST_EQ(vec[2].AsFloat(), 2.0f);
   TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
+
+  // Parse from JSON:
+  flatbuffers::Parser parser;
+  slb.Clear();
+  auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\" }";
+  TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb),
+          true);
+  auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
+  auto jmap = jroot.AsMap();
+  auto jvec = jmap["a"].AsVector();
+  TEST_EQ(jvec[0].AsInt64(), 123);
+  TEST_EQ(jvec[1].AsDouble(), 456.0);
+  TEST_EQ_STR(jmap["b"].AsString().c_str(), "hello");
+  // And from FlexBuffer back to JSON:
+  auto jsonback = jroot.ToString();
+  TEST_EQ_STR(jsontest, jsonback.c_str());
 }
 
 int main(int /*argc*/, const char * /*argv*/[]) {

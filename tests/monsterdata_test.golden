@@ -1,9 +1,9 @@
 {
   pos: {
-    x: 1,
-    y: 2,
-    z: 3,
-    test1: 3,
+    x: 1.0,
+    y: 2.0,
+    z: 3.0,
+    test1: 3.0,
     test2: Green,
     test3: {
       a: 10,
@@ -63,5 +63,6 @@
   testhashs32_fnv1a: -1904106383,
   testhashu32_fnv1a: 2390860913,
   testhashs64_fnv1a: 4898026182817603057,
-  testhashu64_fnv1a: 4898026182817603057
+  testhashu64_fnv1a: 4898026182817603057,
+  flex: 1234
 }
