@@ -559,8 +559,10 @@ private:
                                           const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
-  FLATBUFFERS_CHECKED_ERROR ProcessTableFields(size_t fieldn, const StructDef &struct_def,
-                                       std::string *value, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ProcessTableFields(size_t fieldn, 
+                                             const StructDef &struct_def, 
+                                             std::string *value, 
+                                             uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
