@@ -2031,30 +2031,18 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   while (token_ != kTokenEof) {
     if (opts.proto_mode) {
       ECHECK(ParseProtoDecl());
-  } else if (token_ == kTokenNameSpace) {
-    ECHECK(ParseNamespace());
-  } else if (token_ == '{' || token_ == '[') {
-    if (!root_struct_def_)
-      return Error("no root type set to parse json with");
-    if (builder_.GetSize()) {
-      return Error("cannot have more than one json object in a file");
-    }
-    uoffset_t toff;
-    const bool top_level_list = token_ == '[';
-    if (top_level_list) {
-      if(root_struct_def_->fields.vec.size() > 1) {
-        return Error("top level list found with more than one field in schema");
+    } else if (token_ == kTokenNameSpace) {
+      ECHECK(ParseNamespace());
+    } else if (token_ == '{') {
+      if (!root_struct_def_)
+        return Error("no root type set to parse json with");
+      if (builder_.GetSize()) {
+        return Error("cannot have more than one json object in a file");
       }
-      auto field = root_struct_def_->fields.vec.front();
-      Value val = field->value;
-      ECHECK(ParseAnyValue(val, field, 0, root_struct_def_));
-      field_stack_.insert(field_stack_.rbegin().base(), std::make_pair(val, field));
-      ECHECK(ProcessTableFields(1, *root_struct_def_, nullptr, &toff));
-    } else {
+      uoffset_t toff;
       ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
-    }
-    builder_.Finish(Offset<Table>(toff),
-      file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+      builder_.Finish(Offset<Table>(toff),
+                file_identifier_.length() ? file_identifier_.c_str() : nullptr);
     } else if (token_ == kTokenEnum) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (token_ == kTokenUnion) {
