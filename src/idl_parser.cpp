@@ -857,17 +857,34 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
-  EXPECT('{');
+  // We allow tables both as JSON object{ .. } with field names 
+  // or vector[..] with all fields in order
+  const bool is_nested_list = Is('['); 
+  if (is_nested_list) {
+    NEXT();
+  } else {
+    EXPECT('{');
+  }
   size_t fieldn = 0;
   for (;;) {
-    if ((!opts.strict_json || !fieldn) && Is('}')) { NEXT(); break; }
-    std::string name = attribute_;
-    if (Is(kTokenStringConstant)) {
-      NEXT();
+    if ((!opts.strict_json || !fieldn) && Is(is_nested_list ? ']' : '}')) { NEXT(); break; }
+    FieldDef *field = nullptr;
+    std::string name;
+    if (is_nested_list) {
+      if (fieldn > struct_def.fields.vec.size()) {
+        return Error("too many unnamed fields in nested array");
+      }
+      field = struct_def.fields.vec[fieldn];
+      name = field->name;
     } else {
-      EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+      name = attribute_;
+      if (Is(kTokenStringConstant)) {
+        NEXT();
+      } else {
+        EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+      }
+      field = struct_def.fields.Lookup(name);
     }
-    auto field = struct_def.fields.Lookup(name);
     if (!field) {
       if (!opts.skip_unexpected_fields_in_json) {
         return Error("unknown field: " + name);
@@ -876,7 +893,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         ECHECK(SkipAnyJsonValue());
       }
     } else {
-      EXPECT(':');
+      if (!is_nested_list) {
+        EXPECT(':');
+      }
       if (Is(kTokenNull)) {
         NEXT(); // Ignore this field.
       } else {
@@ -897,8 +916,11 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         fieldn++;
       }
     }
-    if (Is('}')) { NEXT(); break; }
+    if (Is(is_nested_list ? ']' : '}')) { NEXT(); break; }
     EXPECT(',');
+  }
+  if (is_nested_list && fieldn != struct_def.fields.vec.size()) {
+    return Error("wrong number of unnamed fields in table vector");
   }
 
   // Check if all required fields are parsed.
