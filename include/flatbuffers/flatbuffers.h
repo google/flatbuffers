@@ -69,7 +69,7 @@ template<typename T> T EndianSwap(T t) {
   }
 }
 
-template<typename T> size_t AlignOf() {
+template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -451,27 +451,27 @@ class DetachedBuffer {
   }
 
   ~DetachedBuffer() {
-    if (buf_ != nullptr) {
-      assert(allocator_ != nullptr);
+    if (buf_) {
+      assert(allocator_);
       allocator_->deallocate(buf_, reserved_);
     }
-    if (own_allocator_ && allocator_ != nullptr) {
+    if (own_allocator_ && allocator_) {
       delete allocator_;
     }
   }
 
   const uint8_t *data() const {
-    assert(cur_ != nullptr);
+    assert(cur_);
     return cur_;
   }
 
   uint8_t *data() {
-    assert(cur_ != nullptr);
+    assert(cur_);
     return cur_;
   }
 
   size_t size() const {
-    assert(cur_ != nullptr);
+    assert(cur_);
     return size_;
   }
 
@@ -516,29 +516,39 @@ class vector_downward {
                            Allocator *allocator = nullptr,
                            bool own_allocator = false)
     : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
-      own_allocator_(own_allocator),
-      reserved_((initial_size + sizeof(largest_scalar_t) - 1) &
-                ~(sizeof(largest_scalar_t) - 1)),
-      buf_(allocator_->allocate(reserved_)), cur_(buf_ + reserved_) {
+      own_allocator_(own_allocator), initial_size_(initial_size), reserved_(0),
+      buf_(nullptr), cur_(nullptr) {
     assert(allocator_);
   }
 
   ~vector_downward() {
-    if (buf_ != nullptr) {
-      assert(allocator_ != nullptr);
+    if (buf_) {
+      assert(allocator_);
       allocator_->deallocate(buf_, reserved_);
     }
-    if (own_allocator_ && allocator_ != nullptr) {
+    if (own_allocator_ && allocator_) {
       delete allocator_;
     }
   }
 
-  void clear() {
-    if (buf_ == nullptr) {
-      assert(allocator_ != nullptr);
-      buf_ = allocator_->allocate(reserved_);
+  void reset() {
+    if (buf_) {
+      assert(allocator_);
+      allocator_->deallocate(buf_, reserved_);
     }
-    cur_ = buf_ + reserved_;
+    reserved_ = 0;
+    buf_ = nullptr;
+    cur_ = nullptr;
+  }
+
+  void clear() {
+    if (buf_) {
+      cur_ = buf_ + reserved_;
+    } else {
+      reserved_ = 0;
+      buf_ = nullptr;
+      cur_ = nullptr;
+    }
   }
 
   // Relinquish the pointer to the caller.
@@ -554,10 +564,12 @@ class vector_downward {
   }
 
   size_t growth_policy(size_t bytes) {
-    return (bytes / 2) & ~(sizeof(largest_scalar_t) - 1);
+    return (bytes == 0) ? initial_size_
+                        : ((bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1));
   }
 
   uint8_t *make_space(size_t len) {
+    assert(cur_ >= buf_);
     if (len > static_cast<size_t>(cur_ - buf_)) {
       reallocate(len);
     }
@@ -568,13 +580,23 @@ class vector_downward {
     return cur_;
   }
 
+  Allocator &get_allocator() { return *allocator_; }
+
   uoffset_t size() const {
-    assert(cur_ != nullptr && buf_ != nullptr);
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
+  uoffset_t capacity() const {
+    return reserved_;
+  }
+
+  uint8_t *buf() const {
+    assert(buf_);
+    return buf_;
+  }
+
   uint8_t *data() const {
-    assert(cur_ != nullptr);
+    assert(cur_);
     return cur_;
   }
 
@@ -613,18 +635,23 @@ class vector_downward {
 
   Allocator *allocator_;
   bool own_allocator_;
+  size_t initial_size_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
 
   void reallocate(size_t len) {
-    size_t old_reserved = reserved_;
+    assert(allocator_);
+    auto old_reserved = reserved_;
     auto old_size = size();
-    auto largest_align = AlignOf<largest_scalar_t>();
-    reserved_ += (std::max)(len, growth_policy(reserved_));
-    // Round up to avoid undefined behavior from unaligned loads and stores.
-    reserved_ = (reserved_ + (largest_align - 1)) & ~(largest_align - 1);
-    buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
+    reserved_ += (std::max)(len, growth_policy(old_reserved));
+    FLATBUFFERS_CONSTEXPR size_t alignment = AlignOf<largest_scalar_t>();
+    reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
+    if (buf_) {
+      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
+    } else {
+      buf_ = allocator_->allocate(reserved_);
+    }
     cur_ = buf_ + reserved_ - old_size;
   }
 };
@@ -655,9 +682,6 @@ template <typename T> T* data(std::vector<T> &v) {
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
 class FlatBufferBuilder
-/// @cond FLATBUFFERS_INTERNAL
-FLATBUFFERS_FINAL_CLASS
-/// @endcond
 {
  public:
   /// @brief Default constructor for FlatBufferBuilder.
@@ -667,7 +691,7 @@ FLATBUFFERS_FINAL_CLASS
   /// a `DefaultAllocator`.
   /// @param[in] own_allocator Whether the builder/vector should own the
   /// allocator. Defaults to / `false`.
-  explicit FlatBufferBuilder(uoffset_t initial_size = 1024,
+  explicit FlatBufferBuilder(size_t initial_size = 1024,
                              Allocator *allocator = nullptr,
                              bool own_allocator = false)
     : buf_(initial_size, allocator, own_allocator), nested(false),
@@ -680,6 +704,11 @@ FLATBUFFERS_FINAL_CLASS
 
   ~FlatBufferBuilder() {
     if (string_pool) delete string_pool;
+  }
+
+  void Reset() {
+    Clear();  // clear builder state
+    buf_.reset();  // deallocate buffer
   }
 
   /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
@@ -1392,7 +1421,7 @@ FLATBUFFERS_FINAL_CLASS
     Finish(root.o, file_identifier, true);
   }
 
- private:
+ protected:
   // You shouldn't really be copying instances of this class.
   FlatBufferBuilder(const FlatBufferBuilder &);
   FlatBufferBuilder &operator=(const FlatBufferBuilder &);
