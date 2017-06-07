@@ -28,6 +28,19 @@ enum Character {
   Character_MAX = Character_Unused
 };
 
+inline Character (&EnumValuesCharacter())[7] {
+  static Character values[] = {
+    Character_NONE,
+    Character_MuLan,
+    Character_Rapunzel,
+    Character_Belle,
+    Character_BookFan,
+    Character_Other,
+    Character_Unused
+  };
+  return values;
+}
+
 inline const char **EnumNamesCharacter() {
   static const char *names[] = {
     "NONE",
