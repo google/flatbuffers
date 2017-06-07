@@ -19,6 +19,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 #ifdef _STLPORT_VERSION
