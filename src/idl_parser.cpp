@@ -876,8 +876,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       name = attribute_;
       if (Is(kTokenStringConstant)) {
         NEXT();
-      }
-      else {
+      } else {
         EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
       }
       field = struct_def.fields.Lookup(name);
