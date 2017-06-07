@@ -1106,6 +1106,13 @@ void ValueTest() {
                               12335089644688340133ULL);
 }
 
+void NestedListTest() {
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse("struct Test { a:short; b:byte; } table T { F:[Test]; }"
+                        "root_type T;"
+                        "{ F:[ [10,20], [30,40]] }"), true);
+}
+
 void EnumStringsTest() {
   flatbuffers::Parser parser1;
   TEST_EQ(parser1.Parse("enum E:byte { A, B, C } table T { F:[E]; }"
