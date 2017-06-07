@@ -122,8 +122,8 @@ struct VectorIterator {
   typedef std::random_access_iterator_tag iterator_category;
   typedef IT value_type;
   typedef uoffset_t difference_type;
-  typedef IT * pointer;
-  typedef IT& reference;
+  typedef IT *pointer;
+  typedef IT &reference;
 
   VectorIterator(const uint8_t *data, uoffset_t i) :
       data_(data + IndirectHelper<T>::element_stride * i) {}
