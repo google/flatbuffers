@@ -21,6 +21,15 @@ enum EnumInNestedNS {
   EnumInNestedNS_MAX = EnumInNestedNS_C
 };
 
+inline EnumInNestedNS (&EnumValuesEnumInNestedNS())[3] {
+  static EnumInNestedNS values[] = {
+    EnumInNestedNS_A,
+    EnumInNestedNS_B,
+    EnumInNestedNS_C
+  };
+  return values;
+}
+
 inline const char **EnumNamesEnumInNestedNS() {
   static const char *names[] = {
     "A",

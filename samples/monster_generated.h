@@ -25,6 +25,15 @@ enum Color {
   Color_MAX = Color_Blue
 };
 
+inline Color (&EnumValuesColor())[3] {
+  static Color values[] = {
+    Color_Red,
+    Color_Green,
+    Color_Blue
+  };
+  return values;
+}
+
 inline const char **EnumNamesColor() {
   static const char *names[] = {
     "Red",
@@ -46,6 +55,14 @@ enum Equipment {
   Equipment_MIN = Equipment_NONE,
   Equipment_MAX = Equipment_Weapon
 };
+
+inline Equipment (&EnumValuesEquipment())[2] {
+  static Equipment values[] = {
+    Equipment_NONE,
+    Equipment_Weapon
+  };
+  return values;
+}
 
 inline const char **EnumNamesEquipment() {
   static const char *names[] = {
