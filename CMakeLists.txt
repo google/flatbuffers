@@ -226,7 +226,7 @@ endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
   if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-shadow")
   endif()
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   target_link_libraries(grpctest grpc++_unsecure pthread dl)
