@@ -855,20 +855,16 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
   // We allow tables both as JSON object{ .. } with field names 
   // or vector[..] with all fields in order
-  
   const bool is_nested_list = Is('['); 
-
   if (is_nested_list) {
     NEXT();
   } else {
     EXPECT('{');
   }
-
   size_t fieldn = 0;
   for (;;) {
     if ((!opts.strict_json || !fieldn) && Is(is_nested_list ? ']' : '}')) { NEXT(); break; }
-
-    FieldDef* field = nullptr;
+    FieldDef *field = nullptr;
     std::string name;
     if (is_nested_list) {
       if (fieldn > struct_def.fields.vec.size()) {
@@ -886,7 +882,6 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       }
       field = struct_def.fields.Lookup(name);
     }
-
     if (!field) {
       if (!opts.skip_unexpected_fields_in_json) {
         return Error("unknown field: " + name);
@@ -895,15 +890,12 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         ECHECK(SkipAnyJsonValue());
       }
     } else {
-
       if (!is_nested_list) {
         EXPECT(':');
       }
-
       if (Is(kTokenNull)) {
         NEXT(); // Ignore this field.
-      }
-      else {
+      } else {
         Value val = field->value;
         ECHECK(ParseAnyValue(val, field, fieldn, &struct_def));
         // Hardcoded insertion-sort with error-check.
@@ -924,17 +916,14 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     if (Is(is_nested_list ? ']' : '}')) { NEXT(); break; }
     EXPECT(',');
   }
-
   if (is_nested_list && fieldn != struct_def.fields.vec.size()) {
     return Error("wrong number of unnamed fields in table vector");
   }
-
   return ProcessTableFields(fieldn, struct_def, value, ovalue);
 }
 
 CheckedError Parser::ProcessTableFields(size_t fieldn, const StructDef &struct_def, std::string *value,
   uoffset_t *ovalue) {
-
   // Check if all required fields are parsed.
   for (auto field_it = struct_def.fields.vec.begin();
             field_it != struct_def.fields.vec.end();
@@ -2042,8 +2031,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   while (token_ != kTokenEof) {
     if (opts.proto_mode) {
       ECHECK(ParseProtoDecl());
-  }
-  else if (token_ == kTokenNameSpace) {
+  } else if (token_ == kTokenNameSpace) {
     ECHECK(ParseNamespace());
   } else if (token_ == '{' || token_ == '[') {
     if (!root_struct_def_)
