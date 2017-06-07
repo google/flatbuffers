@@ -918,11 +918,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   if (is_nested_list && fieldn != struct_def.fields.vec.size()) {
     return Error("wrong number of unnamed fields in table vector");
   }
-  return ProcessTableFields(fieldn, struct_def, value, ovalue);
-}
 
-CheckedError Parser::ProcessTableFields(size_t fieldn, const StructDef &struct_def, std::string *value,
-  uoffset_t *ovalue) {
   // Check if all required fields are parsed.
   for (auto field_it = struct_def.fields.vec.begin();
             field_it != struct_def.fields.vec.end();
