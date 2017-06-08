@@ -199,48 +199,61 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Vec3 *mutable_pos() {
     return GetStruct<Vec3 *>(VT_POS);
   }
+  bool has_pos() const { return flatbuffers::IsFieldPresent(this, VT_EQUIPPED); }
   int16_t mana() const {
     return GetField<int16_t>(VT_MANA, 150);
   }
   bool mutate_mana(int16_t _mana) {
     return SetField<int16_t>(VT_MANA, _mana, 150);
   }
+  bool has_mana() const { return flatbuffers::IsFieldPresent(this, VT_MANA); }
   int16_t hp() const {
     return GetField<int16_t>(VT_HP, 100);
   }
   bool mutate_hp(int16_t _hp) {
     return SetField<int16_t>(VT_HP, _hp, 100);
   }
+  bool has_hp() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
   flatbuffers::String *mutable_name() {
     return GetPointer<flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   const flatbuffers::Vector<uint8_t> *inventory() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
   flatbuffers::Vector<uint8_t> *mutable_inventory() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
+  bool has_inventory() const { return flatbuffers::IsFieldPresent(this, VT_HP); }
+  int inventory_size() const { return has_inventory() ? inventory()->size() : 0; }
+  uint8_t inventory(int index) const { return inventory()->Get(index); }
   Color color() const {
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2));
   }
   bool mutate_color(Color _color) {
     return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
   }
+  bool has_color() const { return flatbuffers::IsFieldPresent(this, VT_COLOR); }
   const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *weapons() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS);
   }
   flatbuffers::Vector<flatbuffers::Offset<Weapon>> *mutable_weapons() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS);
   }
+  bool has_weapons() const { return flatbuffers::IsFieldPresent(this, VT_COLOR); }
+  int weapons_size() const { return has_weapons() ? weapons()->size() : 0; }
+  const Weapon& weapons(int index) const { return *weapons()->Get(index); }
   Equipment equipped_type() const {
     return static_cast<Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0));
   }
   bool mutate_equipped_type(Equipment _equipped_type) {
     return SetField<uint8_t>(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type), 0);
   }
+  bool has_equipped_type() const { return flatbuffers::IsFieldPresent(this, VT_EQUIPPED_TYPE); }
   const void *equipped() const {
     return GetPointer<const void *>(VT_EQUIPPED);
   }
@@ -251,6 +264,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_equipped() {
     return GetPointer<void *>(VT_EQUIPPED);
   }
+  bool has_equipped() const { return flatbuffers::IsFieldPresent(this, VT_EQUIPPED_TYPE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -391,12 +405,15 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_name() {
     return GetPointer<flatbuffers::String *>(VT_NAME);
   }
+  bool has_name() const { return flatbuffers::IsFieldPresent(this, VT_DAMAGE); }
+  int name_size() const { return has_name() ? name()->size() : 0; }
   int16_t damage() const {
     return GetField<int16_t>(VT_DAMAGE, 0);
   }
   bool mutate_damage(int16_t _damage) {
     return SetField<int16_t>(VT_DAMAGE, _damage, 0);
   }
+  bool has_damage() const { return flatbuffers::IsFieldPresent(this, VT_DAMAGE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
