@@ -47,6 +47,7 @@ class Message {
   Message(const Message &other) = delete;
 
   Message &operator=(Message &&other) {
+    grpc_slice_unref(slice_);
     slice_ = other.slice_;
     other.slice_ = grpc_empty_slice();
     return *this;
