@@ -10,6 +10,7 @@ e.g.:
 
     cmake -G "Unix Makefiles"
     cmake -G "Visual Studio 10"
+    or cmake -G "Visual Studio 15 2017 Win64" -T host=x64
     cmake -G "Xcode"
 
 Then, build as normal for your platform. This should result in a `flatc`
