@@ -208,12 +208,15 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
     // `grpc_byte_buffer`, incrementing the refcount in the process.
     *buffer = grpc_raw_byte_buffer_create(slice, 1);
     *own_buffer = true;
-    return grpc::Status();
+    return grpc::Status::OK;
   }
 
   // Deserialize by pulling the
   static grpc::Status Deserialize(grpc_byte_buffer *buffer,
                                   flatbuffers::grpc::Message<T> *msg) {
+    if (!buffer) {
+      return ::grpc::Status(::grpc::StatusCode::INTERNAL, "No payload");
+    }
     // Check if this is a single uncompressed slice.
     if ((buffer->type == GRPC_BB_RAW) &&
         (buffer->data.raw.compression == GRPC_COMPRESS_NONE) &&
@@ -233,6 +236,7 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       // We wrap a `Message<T>` around the slice, but dont increment refcount
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
+    grpc_byte_buffer_destroy(buffer);
     #if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
     return ::grpc::Status::OK;
     #else
