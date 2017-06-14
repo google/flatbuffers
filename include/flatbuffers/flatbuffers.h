@@ -587,7 +587,7 @@ class vector_downward {
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
-  uoffset_t capacity() const {
+  size_t capacity() const {
     return reserved_;
   }
 
