@@ -1640,7 +1640,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
   std::string rawbuf;
-  auto flatbuf = CreateFlatBufferTest(rawbuf);
+  auto flatbuf1 = CreateFlatBufferTest(rawbuf);
+  auto flatbuf = std::move(flatbuf1);  // Test move assignment.
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
   AccessFlatBufferTest(flatbuf.data(), flatbuf.size());

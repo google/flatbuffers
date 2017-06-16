@@ -453,6 +453,16 @@ class DetachedBuffer {
     other.size_ = 0;
   }
 
+  DetachedBuffer &operator=(DetachedBuffer &&other) {
+    std::swap(allocator_, other.allocator_);
+    std::swap(own_allocator_, other.own_allocator_);
+    std::swap(buf_, other.buf_);
+    std::swap(reserved_, other.reserved_);
+    std::swap(cur_, other.cur_);
+    std::swap(size_, other.size_);
+    return *this;
+  }
+
   ~DetachedBuffer() {
     if (buf_) {
       assert(allocator_);
