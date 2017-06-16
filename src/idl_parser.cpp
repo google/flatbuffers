@@ -758,6 +758,11 @@ CheckedError Parser::ParseString(Value &val) {
   return NoError();
 }
 
+CheckedError Parser::ParseComma() {
+  if (!opts.protobuf_ascii_alike) EXPECT(',');
+  return NoError();
+}
+
 CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
                                    size_t parent_fieldn,
                                    const StructDef *parent_struct_def) {
@@ -786,7 +791,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         // Remember where we are in the source file, so we can come back here.
         auto backup = *static_cast<ParserState *>(this);
         ECHECK(SkipAnyJsonValue());  // The table.
-        EXPECT(',');
+        ECHECK(ParseComma());
         auto next_name = attribute_;
         if (Is(kTokenStringConstant)) {
           NEXT();
@@ -891,11 +896,11 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
       } else {
         EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
       }
-      EXPECT(':');
+      if (!opts.protobuf_ascii_alike || !(Is('{') || Is('['))) EXPECT(':');
     }
     ECHECK(body(name));
     if (Is(terminator)) break;
-    EXPECT(',');
+    ECHECK(ParseComma());
   }
   NEXT();
   if (is_nested_vector && fieldn != struct_def->fields.vec.size()) {
@@ -1056,7 +1061,7 @@ CheckedError Parser::ParseVectorDelimiters(size_t &count,
     ECHECK(body());
     count++;
     if (Is(']')) break;
-    EXPECT(',');
+    ECHECK(ParseComma());
   }
   NEXT();
   return NoError();

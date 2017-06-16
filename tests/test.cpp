@@ -1540,6 +1540,26 @@ void ConformTest() {
   test_conform("enum E:byte { B, A }", "values differ for enum");
 }
 
+void ParseProtoBufAsciiTest() {
+  // We can put the parser in a mode where it will accept JSON that looks more
+  // like Protobuf ASCII, for users that have data in that format.
+  // This uses no "" for field names (which we already support by default,
+  // omits `,`, `:` before `{` and a couple of other features.
+  flatbuffers::Parser parser;
+  parser.opts.protobuf_ascii_alike = true;
+  TEST_EQ(parser.Parse(
+            "table S { B:int; } table T { A:[int]; C:S; } root_type T;"), true);
+  TEST_EQ(parser.Parse("{ A [1 2] C { B:2 }}"), true);
+  // Similarly, in text output, it should omit these.
+  std::string text;
+  auto ok = flatbuffers::GenerateText(parser,
+                                      parser.builder_.GetBufferPointer(),
+                                      &text);
+  TEST_EQ(ok, true);
+  TEST_EQ_STR(text.c_str(),
+              "{\n  A [\n    1\n    2\n  ]\n  C {\n    B: 2\n  }\n}\n");
+}
+
 void FlexBuffersTest() {
   flexbuffers::Builder slb(512,
                            flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
@@ -1659,6 +1679,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
+  ParseProtoBufAsciiTest();
 
   FlexBuffersTest();
 
