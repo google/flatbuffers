@@ -1064,7 +1064,7 @@ CheckedError Parser::ParseVectorDelimiters(size_t &count,
 
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
   size_t count = 0;
-  auto err = ParseVectorDelimiters(count, [&]() {
+  auto err = ParseVectorDelimiters(count, [&]() -> CheckedError {
     Value val;
     val.type = type;
     ECHECK(ParseAnyValue(val, nullptr, 0, nullptr));
