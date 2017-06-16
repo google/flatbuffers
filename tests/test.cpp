@@ -1590,6 +1590,8 @@ void FlexBuffersTest() {
   TEST_EQ_STR(jsontest, jsonback.c_str());
 }
 
+void FlexBuffersEncodingTest();
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1633,9 +1635,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   UnknownFieldsTest();
   ParseUnionTest();
   ConformTest();
-
+    
   FlexBuffersTest();
-
+  FlexBuffersEncodingTest();
+    
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
     return 0;
