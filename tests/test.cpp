@@ -17,6 +17,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/registry.h"
 
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
@@ -543,6 +544,31 @@ void ParseAndGenerateTextTest() {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
     TEST_NOTNULL(NULL);
   }
+
+  // We can also do the above using the convenient Registry that knows about
+  // a set of file_identifiers mapped to schemas.
+  flatbuffers::Registry registry;
+  // Make sure schemas can find their includes.
+  registry.AddIncludeDirectory(test_data_path.c_str());
+  registry.AddIncludeDirectory(include_test_path.c_str());
+  // Call this with many schemas if possible.
+  registry.Register(MonsterIdentifier(),
+                    (test_data_path + "monster_test.fbs").c_str());
+  // Now we got this set up, we can parse by just specifying the identifier,
+  // the correct schema will be loaded on the fly:
+  auto buf = registry.TextToFlatBuffer(jsonfile.c_str(),
+                                       MonsterIdentifier());
+  // If this fails, check registry.lasterror_.
+  TEST_NOTNULL(buf.data());
+  // Test the buffer, to be sure:
+  AccessFlatBufferTest(buf.data(), buf.size(), false);
+  // We can use the registry to turn this back into text, in this case it
+  // will get the file_identifier from the binary:
+  std::string text;
+  auto ok = registry.FlatBufferToText(buf.data(), buf.size(), &text);
+  // If this fails, check registry.lasterror_.
+  TEST_EQ(ok, true);
+  TEST_EQ_STR(text.c_str(), jsonfile.c_str());
 }
 
 void ReflectionTest(uint8_t *flatbuf, size_t length) {
