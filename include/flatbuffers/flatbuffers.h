@@ -1110,14 +1110,26 @@ class FlatBufferBuilder
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
     StartVector(len, sizeof(T));
-    if (sizeof(T) == 1) {
-      PushBytes(reinterpret_cast<const uint8_t *>(v), len);
-    } else {
-      for (auto i = len; i > 0; ) {
-        PushElement(v[--i]);
+    #if FLATBUFFERS_LITTLEENDIAN
+      PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
+    #else
+      if (sizeof(T) == 1) {
+        PushBytes(reinterpret_cast<const uint8_t *>(v), len);
+      } else {
+        for (auto i = len; i > 0; ) {
+          PushElement(v[--i]);
+        }
       }
-    }
+    #endif
     return Offset<Vector<T>>(EndVector(len));
+  }
+
+  template<typename T> Offset<Vector<Offset<T>>> CreateVector(const Offset<T> *v, size_t len) {
+    StartVector(len, sizeof(Offset<T>));
+    for (auto i = len; i > 0; ) {
+      PushElement(v[--i]);
+    }
+    return Offset<Vector<Offset<T>>>(EndVector(len));
   }
 
   /// @brief Serialize a `std::vector` into a FlatBuffer `vector`.
