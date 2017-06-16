@@ -80,7 +80,7 @@ template<typename T> bool PrintVector(const Vector<T> &v, Type type,
   text += NewLine(opts);
   for (uoffset_t i = 0; i < v.size(); i++) {
     if (i) {
-      text += ",";
+      if (!opts.protobuf_ascii_alike) text += ",";
       text += NewLine(opts);
     }
     text.append(indent + Indent(opts), ' ');
@@ -207,12 +207,15 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
                          !fd.deprecated;
     if (is_present || output_anyway) {
       if (fieldout++) {
-        text += ",";
+        if (!opts.protobuf_ascii_alike) text += ",";
       }
       text += NewLine(opts);
       text.append(indent + Indent(opts), ' ');
       OutputIdentifier(fd.name, opts, _text);
-      text += ": ";
+      if (!opts.protobuf_ascii_alike ||
+          (fd.value.type.base_type != BASE_TYPE_STRUCT &&
+           fd.value.type.base_type != BASE_TYPE_VECTOR)) text += ":";
+      text += " ";
       if (is_present) {
         switch (fd.value.type.base_type) {
            #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \

@@ -366,6 +366,7 @@ struct IDLOptions {
   bool skip_flatbuffers_import;
   std::string go_namespace;
   bool reexport_ts_modules;
+  bool protobuf_ascii_alike;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -411,6 +412,7 @@ struct IDLOptions {
       binary_schema_comments(false),
       skip_flatbuffers_import(false),
       reexport_ts_modules(true),
+      protobuf_ascii_alike(false),
       lang(IDLOptions::kJava),
       lang_to_generate(0) {}
 };
@@ -564,6 +566,7 @@ private:
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
+  FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def);
