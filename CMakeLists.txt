@@ -24,6 +24,7 @@ endif()
 
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/code_generators.h
+  include/flatbuffers/base.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
@@ -31,6 +32,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
   include/flatbuffers/flexbuffers.h
+  include/flatbuffers/registry.h
   src/code_generators.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp

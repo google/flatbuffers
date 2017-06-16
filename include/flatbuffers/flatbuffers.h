@@ -431,6 +431,9 @@ class DefaultAllocator : public Allocator {
 // the DetachedBuffer can manage the memory lifetime.
 class DetachedBuffer {
  public:
+  DetachedBuffer() : allocator_(nullptr), own_allocator_(false), buf_(nullptr),
+                     reserved_(0), cur_(nullptr), size_(0) {}
+
   DetachedBuffer(Allocator *allocator, bool own_allocator, uint8_t *buf,
                  size_t reserved, uint8_t *cur, size_t sz)
     : allocator_(allocator), own_allocator_(own_allocator), buf_(buf),
@@ -442,7 +445,6 @@ class DetachedBuffer {
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    assert(allocator_);
     other.allocator_ = nullptr;
     other.own_allocator_ = false;
     other.buf_ = nullptr;
@@ -462,17 +464,14 @@ class DetachedBuffer {
   }
 
   const uint8_t *data() const {
-    assert(cur_);
     return cur_;
   }
 
   uint8_t *data() {
-    assert(cur_);
     return cur_;
   }
 
   size_t size() const {
-    assert(cur_);
     return size_;
   }
 
