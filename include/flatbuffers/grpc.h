@@ -38,13 +38,16 @@ class Message {
   Message(grpc_slice slice, bool add_ref)
     : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
-  Message &operator=(const Message &other) = delete;
+  Message(const Message &other) : slice_(grpc_slice_ref(other.slice_)) {}
 
   Message(Message &&other) : slice_(other.slice_) {
     other.slice_ = grpc_empty_slice();
   }
 
-  Message(const Message &other) = delete;
+  Message &operator=(const Message &other) {
+    slice_ = grpc_slice_ref(other.slice_);
+    return *this;
+  }
 
   Message &operator=(Message &&other) {
     grpc_slice_unref(slice_);
