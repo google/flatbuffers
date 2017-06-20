@@ -1119,6 +1119,9 @@ class FlatBufferBuilder
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
+    // If this assert hits, you're specifying a template argument that is
+    // causing the wrong overload to be selected, remove it.
+    AssertScalarT<T>();
     StartVector(len, sizeof(T));
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
