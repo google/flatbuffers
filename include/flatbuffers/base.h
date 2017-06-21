@@ -10,10 +10,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#ifndef ARDUINO
-#include <utility>
-#else
+#if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
 #include <utility.h>
+#else
+#include <utility>
 #endif
 #include <type_traits>
 #include <vector>
