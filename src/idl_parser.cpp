@@ -1632,7 +1632,9 @@ void Parser::MarkGenerated() {
   }
   for (auto it = structs_.vec.begin();
            it != structs_.vec.end(); ++it) {
-    (*it)->generated = true;
+    if (!(*it)->predecl) {
+      (*it)->generated = true;
+    }
   }
   for (auto it = services_.vec.begin();
            it != services_.vec.end(); ++it) {
@@ -2001,7 +2003,7 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  return !DoParse(source, include_paths, source_filename, nullptr).Check();
+  return !ParseRoot(source, include_paths, source_filename).Check();
 }
 
 CheckedError Parser::StartParseFile(const char *source, const char *source_filename) {
@@ -2016,9 +2018,41 @@ CheckedError Parser::StartParseFile(const char *source, const char *source_filen
   return NoError();
 }
 
-CheckedError Parser::DoParse(const char *source, const char **include_paths,
-                             const char *source_filename,
-                             const char *include_filename) {
+CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
+                             const char *source_filename) {
+  ECHECK(DoParse(source, include_paths, source_filename, nullptr));
+
+  // Check that all types were defined.
+  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
+    if ((*it)->predecl) {
+      return Error("type referenced but not defined: " + (*it)->name);
+    }
+  }
+
+  // This check has to happen here and not earlier, because only now do we
+  // know for sure what the type of these are.
+  for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
+    auto &enum_def = **it;
+    if (enum_def.is_union) {
+      for (auto val_it = enum_def.vals.vec.begin();
+           val_it != enum_def.vals.vec.end();
+           ++val_it) {
+        auto &val = **val_it;
+        if (opts.lang_to_generate != IDLOptions::kCpp &&
+            val.union_type.struct_def && val.union_type.struct_def->fixed)
+          return Error(
+                "only tables can be union elements in the generated language: "
+                + val.name);
+      }
+    }
+  }
+  return NoError();
+}
+
+CheckedError Parser::DoParse(const char *source,
+                                    const char **include_paths,
+                                    const char *source_filename,
+                                    const char *include_filename) {
   if (source_filename &&
       included_files_.find(source_filename) == included_files_.end()) {
     included_files_[source_filename] = include_filename ? include_filename : "";
@@ -2145,28 +2179,6 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       ECHECK(ParseService());
     } else {
       ECHECK(ParseDecl());
-    }
-  }
-  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
-    if ((*it)->predecl) {
-      return Error("type referenced but not defined: " + (*it)->name);
-    }
-  }
-  // This check has to happen here and not earlier, because only now do we
-  // know for sure what the type of these are.
-  for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
-    auto &enum_def = **it;
-    if (enum_def.is_union) {
-      for (auto val_it = enum_def.vals.vec.begin();
-           val_it != enum_def.vals.vec.end();
-           ++val_it) {
-        auto &val = **val_it;
-        if (opts.lang_to_generate != IDLOptions::kCpp &&
-            val.union_type.struct_def && val.union_type.struct_def->fixed)
-          return Error(
-                "only tables can be union elements in the generated language: "
-                + val.name);
-      }
     }
   }
   return NoError();
