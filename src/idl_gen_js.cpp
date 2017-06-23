@@ -220,7 +220,7 @@ class JsGenerator : public BaseGenerator {
        it != sorted_namespaces.end(); it++) {
     if (lang_.language == IDLOptions::kTs) {
       if (it->find('.') == std::string::npos) {
-        code += "import { flatbuffers } from \"./flatbuffers\"\n";
+        code += "import { flatbuffers } from \"flatbuffers\"\n";
         break;
       }
     } else {
