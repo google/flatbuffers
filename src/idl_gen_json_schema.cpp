@@ -92,10 +92,15 @@ namespace flatbuffers {
         return unionTypes.str();
       }
       case BASE_TYPE_UTYPE:   
-        return GenType("string");
-      default:
-        return GenType(GenNativeType(type.base_type));
+        return GenTypeRef(type.enum_def->name);      
       }
+      
+      if (type.base_type == BASE_TYPE_CHAR && type.enum_def != nullptr) {
+        // it is a reference to an enum type
+        return GenTypeRef(type.enum_def->name);
+      }
+
+      return GenType(GenNativeType(type.base_type));
     }
 
     class JsonSchemaGenerator : public BaseGenerator {
@@ -116,10 +121,27 @@ namespace flatbuffers {
         code_ += "\"$schema\": \"http://json-schema.org/draft-04/schema#\",";
         code_ += "\"definitions\": {";
 
+        for (auto &e : parser_.enums_.vec) {
+          code_ += "";
+          code_ += "\"" + e->name + "\" : {";
+          code_ += GenType("string") + ",";
+          std::stringstream enumdef;
+          enumdef << "\"enum\": [";
+          for (auto &enumval : e->vals.vec) {
+            enumdef << "\"" + enumval->name + "\"";
+            if (&enumval != &e->vals.vec.back()) {
+              enumdef << ", ";
+            }
+          }
+          enumdef << "]";
+          code_ += enumdef.str();
+          code_ += "},";  // close type
+        }
+
         for (auto &s : parser_.structs_.vec) {
           code_ += "";
           code_ += "\"" + s->name + "\" : {";
-          code_ += "\"type\" : \"object\",";
+          code_ += GenType("object") + ",";
           std::stringstream comment;
           for (auto commentLine : s->doc_comment) {
             comment << commentLine;
@@ -129,7 +151,7 @@ namespace flatbuffers {
 
           for (auto const &prop : s->fields.vec) {
             std::stringstream typeLine;
-            typeLine << "  \""+prop->name+"\" : { " + GenType(prop->value.type) + " }";
+            typeLine << "  \"" + prop->name + "\" : { " + GenType(prop->value.type) + " }";
             
             if (&prop != &s->fields.vec.back()) {
               code_ += typeLine.str() + ",";
