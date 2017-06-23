@@ -96,7 +96,12 @@ int main(int argc, const char *argv[]) {
       flatbuffers::IDLOptions::kPhp,
       "Generate PHP files for tables/structs",
       flatbuffers::GeneralMakeRule },
-    };
+   { flatbuffers::GenerateJsonSchema, "-S", "--jsonschema", "JsonSchema", true,
+      nullptr,
+      flatbuffers::IDLOptions::kJsonSchema,
+      "Generate Json schema",
+      flatbuffers::GeneralMakeRule },
+  };
 
   flatbuffers::FlatCompiler::InitParams params;
   params.generators = generators;
