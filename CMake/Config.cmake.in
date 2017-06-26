@@ -1,0 +1,26 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+check_required_components("@PROJECT_NAME@")
+
+
+# Maintain compatibilty with FindFlatbuffers.cmake
+set(FLATBUFFERS_FOUND TRUE)
+set(FLATBUFFERS_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include")
+if(EXISTS "@CMAKE_INSTALL_PREFIX@/bin/flatc")
+  set(FLATBUFFERS_FLATC_EXECUTABLE "@CMAKE_INSTALL_PREFIX@/bin/flatc")
+endif()
+
+function(FLATBUFFERS_GENERATE_C_HEADERS Name)
+  foreach(FILE ${ARGN})
+    get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
+    set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FLATC_OUTPUT}_generated.h")
+    list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+
+    add_custom_command(OUTPUT ${FLATC_OUTPUT}
+      COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+      ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
+      COMMENT "Building C++ header for ${FILE}"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  endforeach()
+endfunction()
