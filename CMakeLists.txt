@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(FlatBuffers VERSION 1.7.1)
+# Infer version from git describe
+EXECUTE_PROCESS(
+  COMMAND git describe
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(REGEX REPLACE "^v([0-9\\.]+)-.*" "\\1" VERSION "${GIT_VERSION}")
+project(FlatBuffers VERSION "${VERSION}")
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
