@@ -607,10 +607,13 @@ private:
   FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
                                            const char *source_filename);
-  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+  FLATBUFFERS_CHECKED_ERROR ParseRoot(const char *_source,
                                     const char **include_paths,
-                                    const char *source_filename,
-                                    const char *include_filename);
+                                    const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+                                           const char **include_paths,
+                                           const char *source_filename,
+                                           const char *include_filename);
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*> &fields,
                                        StructDef *struct_def,
                                        const char *suffix,
