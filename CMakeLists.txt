@@ -121,28 +121,33 @@ target_include_directories(flatbuffers_headers
 
 # Helper function to add private and public interface properties
 function (configure_cxx_flags_and_headers TARGET_NAME)
-  set_target_properties(${TARGET_NAME}
-      PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        CXX_EXTENSIONS NO
-  )
-  target_compile_options(${TARGET_NAME}
-    PRIVATE
-      # Apple
-      $<$<PLATFORM_ID:Darwin>:-Wall -pedantic -Werror -Wextra -Wno-unused-parameter>
+  if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+    # do not apply any global settings if the toolchain
+    # is being configured externally
+  else()
+    set_target_properties(${TARGET_NAME}
+        PROPERTIES
+          CXX_STANDARD 11
+          CXX_STANDARD_REQUIRED YES
+          CXX_EXTENSIONS NO
+    )
+    target_compile_options(${TARGET_NAME}
+      PRIVATE
+        # Apple
+        $<$<PLATFORM_ID:Darwin>:-Wall -pedantic -Werror -Wextra -Wno-unused-parameter>
 
-      # GNU
-      $<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<PLATFORM_ID:Cygwin>>>:-Wall -pedantic -Werror -Wextra -Werror=shadow>
-      $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>>:-Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter>
-      $<$<CXX_COMPILER_ID:GNU>:-fsigned-char>
+        # GNU
+        $<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<PLATFORM_ID:Cygwin>>>:-Wall -pedantic -Werror -Wextra -Werror=shadow>
+        $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>>:-Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter>
+        $<$<CXX_COMPILER_ID:GNU>:-fsigned-char>
 
-      # Clang
-      $<$<CXX_COMPILER_ID:Clang>:-Wall -pedantic -Werror -Wextra -Wno-unused-parameter -fsigned-char>
+        # Clang
+        $<$<CXX_COMPILER_ID:Clang>:-Wall -pedantic -Werror -Wextra -Wno-unused-parameter -fsigned-char>
 
-      # MSVC
-      $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /wd4512 /wd4316>
-  )
+        # MSVC
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /wd4512 /wd4316>
+    )
+  endif()
   target_link_libraries(${TARGET_NAME}
     PUBLIC
         flatbuffers_headers
