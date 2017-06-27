@@ -48,8 +48,21 @@ namespace flatbuffers {
       }
     }
 
-    std::string GenTypeRef(const std::string &typeName) {
-      return "\"$ref\" : \"#/definitions/" + typeName + "\"";
+    template<class T>
+    std::string GenFullName(const T* enum_def) {
+      std::stringstream fullName;
+      auto nameSpaces = enum_def->defined_namespace->components;
+      for (auto const &ns : nameSpaces) {
+        fullName << ns << "_";
+      }
+
+      fullName << enum_def->name;
+      return fullName.str();
+    }
+
+    template<class T>
+    std::string GenTypeRef(const T* enum_def) {
+      return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
     }
 
     std::string GenType(const std::string &name) {
@@ -62,7 +75,7 @@ namespace flatbuffers {
         std::stringstream typeline;
         typeline << "\"type\" : \"array\", ";
         if (type.element == BASE_TYPE_STRUCT) {
-          typeline << "\"items\" : { " << GenTypeRef(type.struct_def->name) << " }";
+          typeline << "\"items\" : { " << GenTypeRef(type.struct_def) << " }";
         }
         else {
           typeline << "\"items\" : { " << GenType(GenNativeType(type.element)) << " }";
@@ -71,7 +84,7 @@ namespace flatbuffers {
         return typeline.str();
       }
       case BASE_TYPE_STRUCT: {
-        return GenTypeRef(type.struct_def->name);
+        return GenTypeRef(type.struct_def);
       }
       case BASE_TYPE_UNION: {
         std::stringstream unionTypes;
@@ -81,7 +94,7 @@ namespace flatbuffers {
             continue;
           }
           if (ut->union_type.base_type == BASE_TYPE_STRUCT) {
-            unionTypes << "{ " + GenTypeRef(ut->name) + " }";
+            unionTypes << "{ " + GenTypeRef(ut->union_type.struct_def) + " }";
           }
 
           if (&ut != &type.enum_def->vals.vec.back()) {
@@ -92,12 +105,12 @@ namespace flatbuffers {
         return unionTypes.str();
       }
       case BASE_TYPE_UTYPE:   
-        return GenTypeRef(type.enum_def->name);      
+        return GenTypeRef(type.enum_def);      
       }
       
       if (type.base_type == BASE_TYPE_CHAR && type.enum_def != nullptr) {
         // it is a reference to an enum type
-        return GenTypeRef(type.enum_def->name);
+        return GenTypeRef(type.enum_def);
       }
 
       return GenType(GenNativeType(type.base_type));
@@ -115,6 +128,8 @@ namespace flatbuffers {
         : BaseGenerator(base_generator) {
       }
 
+      
+
       bool generate() override {
         code_.Clear();
         code_ += "{";
@@ -123,7 +138,7 @@ namespace flatbuffers {
 
         for (auto &e : parser_.enums_.vec) {
           code_ += "";
-          code_ += "\"" + e->name + "\" : {";
+          code_ += "\"" + GenFullName(e) + "\" : {";
           code_ += GenType("string") + ",";
           std::stringstream enumdef;
           enumdef << "\"enum\": [";
@@ -140,7 +155,7 @@ namespace flatbuffers {
 
         for (auto &s : parser_.structs_.vec) {
           code_ += "";
-          code_ += "\"" + s->name + "\" : {";
+          code_ += "\"" + GenFullName(s) + "\" : {";
           code_ += GenType("object") + ",";
           std::stringstream comment;
           for (auto commentLine : s->doc_comment) {
