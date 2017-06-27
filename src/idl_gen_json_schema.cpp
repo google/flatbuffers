@@ -169,10 +169,25 @@ namespace flatbuffers {
             code_ += "}";  // close type
           }
 
-          // todo
-          // insert required fields 
-          // "required" : [ "prop1", "prop2", ...]
-
+          auto props = s->fields.vec;
+          std::vector<flatbuffers::FieldDef*> requiredProperties;
+          std::copy_if(
+            props.begin(),
+            props.end(),
+            std::back_inserter(requiredProperties),
+            [](flatbuffers::FieldDef *prop) { return prop->required; });
+          if (requiredProperties.size() > 0) {
+            std::stringstream requiredString;
+            requiredString  << "\"required\" : [ ";
+            for (const auto &reqProp : requiredProperties) {
+              requiredString << "\"" << reqProp->name << "\"";
+              if (&reqProp != &requiredProperties.back()) {
+                requiredString << ", ";
+              }
+            }
+            requiredString << "],";
+            code_ += requiredString.str();
+          }          
         }
         code_ += "},";  // close definitions
 
