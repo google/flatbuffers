@@ -1,14 +1,6 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 
-# Infer version from git describe
-EXECUTE_PROCESS(
-  COMMAND git describe
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_VERSION
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-string(REGEX REPLACE "^v([0-9\\.]+)-.*" "\\1" VERSION "${GIT_VERSION}")
-project(FlatBuffers VERSION "${VERSION}")
+project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -294,7 +286,16 @@ if(FLATBUFFERS_INSTALL)
     INSTALL_DESTINATION lib/cmake/flatbuffers
   )
 
+  EXECUTE_PROCESS(
+    COMMAND git describe
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  string(REGEX REPLACE "^v([0-9\\.]+)-.*" "\\1" VERSION "${GIT_VERSION}")
+  
   write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
+      VERSION "${VERSION}"
       COMPATIBILITY AnyNewerVersion
   )
 
