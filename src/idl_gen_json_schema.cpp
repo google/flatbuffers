@@ -175,14 +175,9 @@ namespace flatbuffers {
               code_ += typeLine.str();
             }
           }
-          code_ += "  }";  // close properties
+          
 
-          if (&s != &parser_.structs_.vec.back()) {
-            code_ += "},";  // close type
-          }
-          else {
-            code_ += "}";  // close type
-          }
+          
 
           auto props = s->fields.vec;
           std::vector<flatbuffers::FieldDef*> requiredProperties;
@@ -192,6 +187,7 @@ namespace flatbuffers {
             std::back_inserter(requiredProperties),
             [](flatbuffers::FieldDef *prop) { return prop->required; });
           if (requiredProperties.size() > 0) {
+            code_ += "  },";  // close properties
             std::stringstream requiredString;
             requiredString  << "\"required\" : [ ";
             for (const auto &reqProp : requiredProperties) {
@@ -200,14 +196,23 @@ namespace flatbuffers {
                 requiredString << ", ";
               }
             }
-            requiredString << "],";
+            requiredString << "]";
             code_ += requiredString.str();
-          }          
+          } else {
+            code_ += "  }";  // close properties
+          }
+          
+          if (&s != &parser_.structs_.vec.back()) {
+            code_ += "},";  // close type
+          }
+          else {
+            code_ += "}";  // close type
+          }
         }
         code_ += "},";  // close definitions
 
         // mark root type
-        code_ += "\"$ref\" : \"#/definitions/" + parser_.root_struct_def_->name + "\"";
+        code_ += "\"$ref\" : \"#/definitions/" + GenFullName(parser_.root_struct_def_) + "\"";
         
         code_ += "}";  // close schema root
         const auto file_path = GeneratedFileName(path_, file_name_);
