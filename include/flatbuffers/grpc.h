@@ -45,6 +45,7 @@ class Message {
   }
 
   Message &operator=(const Message &other) {
+    grpc_slice_unref(slice_);
     slice_ = grpc_slice_ref(other.slice_);
     return *this;
   }
