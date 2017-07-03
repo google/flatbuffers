@@ -53,8 +53,9 @@ std::string GenNativeType(BaseType type) {
 
 template <class T> std::string GenFullName(const T *enum_def) {
   std::string fullName;
-  auto nameSpaces = enum_def->defined_namespace->components;
-  for (auto const &ns : nameSpaces) {
+  std::vector<std::string> nameSpaces = enum_def->defined_namespace->components;
+  for (int nsindex = 0; nsindex < nameSpaces.size(); nsindex++) {
+    std::string ns = nameSpaces[nsindex];
     fullName.append(ns + "_");
   }
   fullName.append(enum_def->name);
@@ -88,7 +89,8 @@ std::string GenType(const Type &type) {
     }
     case BASE_TYPE_UNION: {
       std::string unionTypes("\"anyOf\": [");
-      for (auto const &ut : type.enum_def->vals.vec) {
+      for (int index = 0; index < type.enum_def->vals.vec.size(); ++index) {
+        EnumVal* &ut = type.enum_def->vals.vec[index];
         if (ut->union_type.base_type == BASE_TYPE_NONE) {
           continue;
         }
@@ -129,11 +131,14 @@ class JsonSchemaGenerator : public BaseGenerator {
     code_ += "{";
     code_ += "\"$schema\": \"http://json-schema.org/draft-04/schema#\",";
     code_ += "\"definitions\": {";
-    for (auto &e : parser_.enums_.vec) {
+    for (int index = 0; index < parser_.enums_.vec.size(); ++index) {
+      EnumDef *e = parser_.enums_.vec[index];
       code_ += "  \"" + GenFullName(e) + "\" : {";
       code_ += "    " + GenType("string") + ",";
       std::string enumdef("    \"enum\": [");
-      for (auto &enumval : e->vals.vec) {
+
+      for (int valindex = 0; valindex < e->vals.vec.size(); ++valindex) {
+        EnumVal *enumval = e->vals.vec[valindex];
         enumdef.append("\"" + enumval->name + "\"");
         if (&enumval != &e->vals.vec.back()) {
           enumdef.append(", ");
@@ -143,7 +148,9 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += enumdef;
       code_ += "  },";  // close type
     }
-    for (auto &s : parser_.structs_.vec) {
+
+    for (int structindex = 0; structindex < parser_.structs_.vec.size(); structindex++) {
+      StructDef * const &s = parser_.structs_.vec[structindex];
       code_ += "";
       code_ += "\"" + GenFullName(s) + "\" : {";
       code_ += "  " + GenType("object") + ",";
@@ -153,14 +160,16 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       code_ += "  \"description\" : \"" + comment + "\",";
       code_ += "  \"properties\" : {";
-      for (auto const &prop : s->fields.vec) {
+
+      for (int propindex = 0; propindex < s->fields.vec.size(); propindex++) {
+        FieldDef* &prop = s->fields.vec[propindex];
         std::string typeLine("    \"" + prop->name + "\" : { " + GenType(prop->value.type) + " }");
         if (&prop != &s->fields.vec.back()) {
           typeLine.append(",");
         }          
         code_ += typeLine;
       }
-      auto props = s->fields.vec;
+      std::vector<FieldDef*> props = s->fields.vec;
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(props.begin(), props.end(),
                    back_inserter(requiredProperties),
@@ -168,7 +177,8 @@ class JsonSchemaGenerator : public BaseGenerator {
       if (requiredProperties.size() > 0) {
         code_ += "  },";  // close properties
         std::string requiredString("\"required\" : [ ");
-        for (const auto &reqProp : requiredProperties) {
+        for (int reqindex = 0; reqindex < requiredProperties.size(); reqindex++) {
+          FieldDef*const &reqProp = requiredProperties[reqindex];
           requiredString.append("\"" + reqProp->name + "\"");
           if (&reqProp != &requiredProperties.back()) {
             requiredString.append(", ");
@@ -194,8 +204,8 @@ class JsonSchemaGenerator : public BaseGenerator {
              GenFullName(parser_.root_struct_def_) + "\"";
 
     code_ += "}";  // close schema root
-    const auto file_path = GeneratedFileName(path_, file_name_);
-    const auto final_code = code_.ToString();
+    const std::string file_path = GeneratedFileName(path_, file_name_);
+    const std::string final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }
 };
