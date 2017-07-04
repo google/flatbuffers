@@ -45,21 +45,20 @@ std::string GenNativeType(BaseType type) {
       return "number";
     case BASE_TYPE_STRING:
       return "string";
-  default: 
-    std::cerr << "GenNativeType: Invalid base type " << type << "\n";
-    return "\n";
+    default: 
+      std::cerr << "GenNativeType: Invalid base type " << type << "\n";
+      return "\n";
   }
 }
 
 template <class T> std::string GenFullName(const T *enum_def) {
-  std::string fullName;
-  std::vector<std::string> nameSpaces = enum_def->defined_namespace->components;
-  for (int nsindex = 0; nsindex < nameSpaces.size(); nsindex++) {
-    std::string ns = nameSpaces[nsindex];
-    fullName.append(ns + "_");
+  std::string full_name;
+  std::vector<std::string> name_spaces = enum_def->defined_namespace->components;
+  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+    full_name.append(*ns + "_");
   }
-  fullName.append(enum_def->name);
-  return fullName;
+  full_name.append(enum_def->name);
+  return full_name;
 }
 
 template <class T> std::string GenTypeRef(const T *enum_def) {
@@ -74,35 +73,35 @@ std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_VECTOR: {
       std::string typeline;
-      typeline.append("\"type\" : \"array\", ");
+      typeline.append("\"type\" : \"array\", \"items\" : { ");
       if (type.element == BASE_TYPE_STRUCT) {
-        typeline.append("\"items\" : { " + GenTypeRef(type.struct_def) + " }");
+        typeline.append(GenTypeRef(type.struct_def));
       } else {
-        typeline.append("\"items\" : { " +
-                        GenType(GenNativeType(type.element)) +
-                        " }");
+        typeline.append(GenType(GenNativeType(type.element)));
       }
+      typeline.append(" }");
       return typeline;
     }
     case BASE_TYPE_STRUCT: {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
-      std::string unionTypes("\"anyOf\": [");
-      for (int index = 0; index < type.enum_def->vals.vec.size(); ++index) {
-        EnumVal* &ut = type.enum_def->vals.vec[index];
-        if (ut->union_type.base_type == BASE_TYPE_NONE) {
+      std::string union_type_string("\"anyOf\": [");
+      auto &union_types = type.enum_def->vals.vec;
+      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+        auto &union_type = *ut;
+        if (union_type->union_type.base_type == BASE_TYPE_NONE) {
           continue;
         }
-        if (ut->union_type.base_type == BASE_TYPE_STRUCT) {
-          unionTypes.append("{ " + GenTypeRef(ut->union_type.struct_def) + " }");
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+          union_type_string.append("{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
         }
-        if (&ut != &type.enum_def->vals.vec.back()) {
-          unionTypes.append(",");
+        if (union_type != *type.enum_def->vals.vec.rbegin()) {
+          union_type_string.append(",");
         }
       }
-      unionTypes.append("]");
-      return unionTypes;
+      union_type_string.append("]");
+      return union_type_string;
     }
     case BASE_TYPE_UTYPE:
       return GenTypeRef(type.enum_def);
@@ -131,16 +130,17 @@ class JsonSchemaGenerator : public BaseGenerator {
     code_ += "{";
     code_ += "\"$schema\": \"http://json-schema.org/draft-04/schema#\",";
     code_ += "\"definitions\": {";
-    for (int index = 0; index < parser_.enums_.vec.size(); ++index) {
-      EnumDef *e = parser_.enums_.vec[index];
-      code_ += "  \"" + GenFullName(e) + "\" : {";
+    for (auto e = parser_.enums_.vec.cbegin();
+         e != parser_.enums_.vec.cend();
+         ++e) {
+      code_ += "  \"" + GenFullName(*e) + "\" : {";
       code_ += "    " + GenType("string") + ",";
       std::string enumdef("    \"enum\": [");
-
-      for (int valindex = 0; valindex < e->vals.vec.size(); ++valindex) {
-        EnumVal *enumval = e->vals.vec[valindex];
-        enumdef.append("\"" + enumval->name + "\"");
-        if (&enumval != &e->vals.vec.back()) {
+      for (auto enum_value = (*e)->vals.vec.begin(); 
+           enum_value != (*e)->vals.vec.end();
+           ++enum_value) {
+        enumdef.append("\"" + (*enum_value)->name + "\"");
+        if (*enum_value != (*e)->vals.vec.back()) {
           enumdef.append(", ");
         }
       }
@@ -149,52 +149,57 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += "  },";  // close type
     }
 
-    for (int structindex = 0; structindex < parser_.structs_.vec.size(); structindex++) {
-      StructDef * const &s = parser_.structs_.vec[structindex];
+    for (auto s = parser_.structs_.vec.cbegin(); 
+         s != parser_.structs_.vec.cend();
+         ++s) {
+      const auto &structure = *s;
       code_ += "";
-      code_ += "\"" + GenFullName(s) + "\" : {";
+      code_ += "\"" + GenFullName(structure) + "\" : {";
       code_ += "  " + GenType("object") + ",";
       std::string comment;
-      for (const auto &commentLine : s->doc_comment) {
-        comment.append(commentLine);
+      auto &comment_lines = structure->doc_comment;
+      for (auto comment_line = comment_lines.cbegin();
+           comment_line != comment_lines.cend();
+           ++comment_line) {
+        comment.append(*comment_line);
       }
       code_ += "  \"description\" : \"" + comment + "\",";
       code_ += "  \"properties\" : {";
 
-      for (int propindex = 0; propindex < s->fields.vec.size(); propindex++) {
-        FieldDef* &prop = s->fields.vec[propindex];
-        std::string typeLine("    \"" + prop->name + "\" : { " + GenType(prop->value.type) + " }");
-        if (&prop != &s->fields.vec.back()) {
+      const auto &properties = structure->fields.vec;
+      for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
+        const auto &property = *prop;
+        std::string typeLine("    \"" + property->name + "\" : { " + GenType(property->value.type) + " }");
+        if (property != properties.back()) {
           typeLine.append(",");
         }          
         code_ += typeLine;
       }
-      std::vector<FieldDef*> props = s->fields.vec;
       std::vector<FieldDef *> requiredProperties;
-      std::copy_if(props.begin(), props.end(),
+      std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
                    [](FieldDef *prop) { return prop->required; });
       if (requiredProperties.size() > 0) {
         code_ += "  },";  // close properties
-        std::string requiredString("\"required\" : [ ");
-        for (int reqindex = 0; reqindex < requiredProperties.size(); reqindex++) {
-          FieldDef*const &reqProp = requiredProperties[reqindex];
-          requiredString.append("\"" + reqProp->name + "\"");
-          if (&reqProp != &requiredProperties.back()) {
-            requiredString.append(", ");
+        std::string required_string("  \"required\" : [ ");
+        for (auto req_prop = requiredProperties.cbegin();
+             req_prop != requiredProperties.cend();
+             ++req_prop) {
+          required_string.append("\"" + (*req_prop)->name + "\"");
+          if (*req_prop != requiredProperties.back()) {
+            required_string.append(", ");
           }
         }
-        requiredString.append("]");
-        code_ += requiredString;
+        required_string.append("]");
+        code_ += required_string;
       } else {
-        code_ += "  }";  // close properties
+        code_ += "    }";  // close properties
       }
 
-      std::string closeType("}");
-      if (&s != &parser_.structs_.vec.back()) {
+      std::string closeType("  }");
+      if (*s != parser_.structs_.vec.back()) {
         closeType.append(",");
       }
-
       code_ += closeType;  // close type
     }
     code_ += "},";  // close definitions
