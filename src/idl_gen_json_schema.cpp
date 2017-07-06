@@ -87,7 +87,7 @@ std::string GenType(const Type &type) {
     }
     case BASE_TYPE_UNION: {
       std::string union_type_string("\"anyOf\": [");
-      auto &union_types = type.enum_def->vals.vec;
+      const auto &union_types = type.enum_def->vals.vec;
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) {
@@ -125,7 +125,7 @@ class JsonSchemaGenerator : public BaseGenerator {
   explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
       : BaseGenerator(base_generator) {}
 
-  bool generate() override {
+  bool generate() {
     code_.Clear();
     code_ += "{";
     code_ += "\"$schema\": \"http://json-schema.org/draft-04/schema#\",";
@@ -157,7 +157,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += "\"" + GenFullName(structure) + "\" : {";
       code_ += "  " + GenType("object") + ",";
       std::string comment;
-      auto &comment_lines = structure->doc_comment;
+      const auto &comment_lines = structure->doc_comment;
       for (auto comment_line = comment_lines.cbegin();
            comment_line != comment_lines.cend();
            ++comment_line) {
@@ -178,7 +178,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef *prop) { return prop->required; });
+                   [](FieldDef const *prop) { return prop->required; });
       if (requiredProperties.size() > 0) {
         code_ += "  },";  // close properties
         std::string required_string("  \"required\" : [ ");
