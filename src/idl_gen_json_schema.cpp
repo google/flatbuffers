@@ -70,6 +70,10 @@ std::string GenType(const std::string &name) {
 }
 
 std::string GenType(const Type &type) {
+  if (type.base_type == BASE_TYPE_CHAR && type.enum_def != nullptr) {
+    // it is a reference to an enum type
+    return GenTypeRef(type.enum_def);
+  }
   switch (type.base_type) {
     case BASE_TYPE_VECTOR: {
       std::string typeline;
@@ -105,12 +109,9 @@ std::string GenType(const Type &type) {
     }
     case BASE_TYPE_UTYPE:
       return GenTypeRef(type.enum_def);
+    default:
+      return GenType(GenNativeType(type.base_type));
   }
-  if (type.base_type == BASE_TYPE_CHAR && type.enum_def != nullptr) {
-    // it is a reference to an enum type
-    return GenTypeRef(type.enum_def);
-  }
-  return GenType(GenNativeType(type.base_type));
 }
 
 class JsonSchemaGenerator : public BaseGenerator {
