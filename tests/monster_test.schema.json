@@ -1,120 +1,112 @@
 {
-"$schema": "http://json-schema.org/draft-04/schema#",
-"definitions": {
-  "MyGame_OtherNameSpace_FromInclude" : {
-    "type" : "string",
-    "enum": ["IncludeVal"]
-  },
-  "MyGame_Example_Color" : {
-    "type" : "string",
-    "enum": ["Red", "Green", "Blue"]
-  },
-  "MyGame_Example_Any" : {
-    "type" : "string",
-    "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
-  },
-
-"MyGame_OtherNameSpace_Unused" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "MyGame_OtherNameSpace_FromInclude" : {
+      "type" : "string",
+      "enum": ["IncludeVal"]
+    },
+    "MyGame_Example_Color" : {
+      "type" : "string",
+      "enum": ["Red", "Green", "Blue"]
+    },
+    "MyGame_Example_Any" : {
+      "type" : "string",
+      "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
+    },
+    "MyGame_OtherNameSpace_Unused" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+      }
+    },
+    "MyGame_Example2_Monster" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+      }
+    },
+    "MyGame_Example_Test" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+        "a" : { "type" : "number" },
+        "b" : { "type" : "number" }
+      }
+    },
+    "MyGame_Example_TestSimpleTableWithEnum" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+        "color" : { "$ref" : "#/definitions/MyGame_Example_Color" }
+      }
+    },
+    "MyGame_Example_Vec3" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+        "x" : { "type" : "number" },
+        "y" : { "type" : "number" },
+        "z" : { "type" : "number" },
+        "test1" : { "type" : "number" },
+        "test2" : { "$ref" : "#/definitions/MyGame_Example_Color" },
+        "test3" : { "$ref" : "#/definitions/MyGame_Example_Test" }
+      }
+    },
+    "MyGame_Example_Ability" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+        "id" : { "type" : "number" },
+        "distance" : { "type" : "number" }
+      }
+    },
+    "MyGame_Example_Stat" : {
+      "type" : "object",
+      "description" : "",
+      "properties" : {
+        "id" : { "type" : "string" },
+        "val" : { "type" : "number" },
+        "count" : { "type" : "number" }
+      }
+    },
+    "MyGame_Example_Monster" : {
+      "type" : "object",
+      "description" : " an example documentation comment: monster object",
+      "properties" : {
+        "pos" : { "$ref" : "#/definitions/MyGame_Example_Vec3" },
+        "mana" : { "type" : "number" },
+        "hp" : { "type" : "number" },
+        "name" : { "type" : "string" },
+        "friendly" : { "type" : "boolean" },
+        "inventory" : { "type" : "array", "items" : { "type" : "number" } },
+        "color" : { "$ref" : "#/definitions/MyGame_Example_Color" },
+        "test_type" : { "$ref" : "#/definitions/MyGame_Example_Any" },
+        "test" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] },
+        "test4" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
+        "testarrayofstring" : { "type" : "array", "items" : { "type" : "string" } },
+        "testarrayoftables" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Monster" } },
+        "enemy" : { "$ref" : "#/definitions/MyGame_Example_Monster" },
+        "testnestedflatbuffer" : { "type" : "array", "items" : { "type" : "number" } },
+        "testempty" : { "$ref" : "#/definitions/MyGame_Example_Stat" },
+        "testbool" : { "type" : "boolean" },
+        "testhashs32_fnv1" : { "type" : "number" },
+        "testhashu32_fnv1" : { "type" : "number" },
+        "testhashs64_fnv1" : { "type" : "number" },
+        "testhashu64_fnv1" : { "type" : "number" },
+        "testhashs32_fnv1a" : { "type" : "number" },
+        "testhashu32_fnv1a" : { "type" : "number" },
+        "testhashs64_fnv1a" : { "type" : "number" },
+        "testhashu64_fnv1a" : { "type" : "number" },
+        "testarrayofbools" : { "type" : "array", "items" : { "type" : "boolean" } },
+        "testf" : { "type" : "number" },
+        "testf2" : { "type" : "number" },
+        "testf3" : { "type" : "number" },
+        "testarrayofstring2" : { "type" : "array", "items" : { "type" : "string" } },
+        "testarrayofsortedstruct" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Ability" } },
+        "flex" : { "type" : "array", "items" : { "type" : "number" } }
+      },
+      "required" : [ "name"]
     }
   },
-
-"MyGame_Example2_Monster" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    }
-  },
-
-"MyGame_Example_Test" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    "a" : { "type" : "number" },
-    "b" : { "type" : "number" }
-    }
-  },
-
-"MyGame_Example_TestSimpleTableWithEnum" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    "color" : { "$ref" : "#/definitions/MyGame_Example_Color" }
-    }
-  },
-
-"MyGame_Example_Vec3" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    "x" : { "type" : "number" },
-    "y" : { "type" : "number" },
-    "z" : { "type" : "number" },
-    "test1" : { "type" : "number" },
-    "test2" : { "$ref" : "#/definitions/MyGame_Example_Color" },
-    "test3" : { "$ref" : "#/definitions/MyGame_Example_Test" }
-    }
-  },
-
-"MyGame_Example_Ability" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    "id" : { "type" : "number" },
-    "distance" : { "type" : "number" }
-    }
-  },
-
-"MyGame_Example_Stat" : {
-  "type" : "object",
-  "description" : "",
-  "properties" : {
-    "id" : { "type" : "string" },
-    "val" : { "type" : "number" },
-    "count" : { "type" : "number" }
-    }
-  },
-
-"MyGame_Example_Monster" : {
-  "type" : "object",
-  "description" : " an example documentation comment: monster object",
-  "properties" : {
-    "pos" : { "$ref" : "#/definitions/MyGame_Example_Vec3" },
-    "mana" : { "type" : "number" },
-    "hp" : { "type" : "number" },
-    "name" : { "type" : "string" },
-    "friendly" : { "type" : "boolean" },
-    "inventory" : { "type" : "array", "items" : { "type" : "number" } },
-    "color" : { "$ref" : "#/definitions/MyGame_Example_Color" },
-    "test_type" : { "$ref" : "#/definitions/MyGame_Example_Any" },
-    "test" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] },
-    "test4" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
-    "testarrayofstring" : { "type" : "array", "items" : { "type" : "string" } },
-    "testarrayoftables" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Monster" } },
-    "enemy" : { "$ref" : "#/definitions/MyGame_Example_Monster" },
-    "testnestedflatbuffer" : { "type" : "array", "items" : { "type" : "number" } },
-    "testempty" : { "$ref" : "#/definitions/MyGame_Example_Stat" },
-    "testbool" : { "type" : "boolean" },
-    "testhashs32_fnv1" : { "type" : "number" },
-    "testhashu32_fnv1" : { "type" : "number" },
-    "testhashs64_fnv1" : { "type" : "number" },
-    "testhashu64_fnv1" : { "type" : "number" },
-    "testhashs32_fnv1a" : { "type" : "number" },
-    "testhashu32_fnv1a" : { "type" : "number" },
-    "testhashs64_fnv1a" : { "type" : "number" },
-    "testhashu64_fnv1a" : { "type" : "number" },
-    "testarrayofbools" : { "type" : "array", "items" : { "type" : "boolean" } },
-    "testf" : { "type" : "number" },
-    "testf2" : { "type" : "number" },
-    "testf3" : { "type" : "number" },
-    "testarrayofstring2" : { "type" : "array", "items" : { "type" : "string" } },
-    "testarrayofsortedstruct" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Ability" } },
-    "flex" : { "type" : "array", "items" : { "type" : "number" } }
-  },
-  "required" : [ "name"]
-  }
-},
-"$ref" : "#/definitions/MyGame_Example_Monster"
+  "$ref" : "#/definitions/MyGame_Example_Monster"
 }

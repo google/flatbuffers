@@ -128,14 +128,14 @@ class JsonSchemaGenerator : public BaseGenerator {
   bool generate() {
     code_.Clear();
     code_ += "{";
-    code_ += "\"$schema\": \"http://json-schema.org/draft-04/schema#\",";
-    code_ += "\"definitions\": {";
+    code_ += "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",";
+    code_ += "  \"definitions\": {";
     for (auto e = parser_.enums_.vec.cbegin();
          e != parser_.enums_.vec.cend();
          ++e) {
-      code_ += "  \"" + GenFullName(*e) + "\" : {";
-      code_ += "    " + GenType("string") + ",";
-      std::string enumdef("    \"enum\": [");
+      code_ += "    \"" + GenFullName(*e) + "\" : {";
+      code_ += "      " + GenType("string") + ",";
+      std::string enumdef("      \"enum\": [");
       for (auto enum_value = (*e)->vals.vec.begin(); 
            enum_value != (*e)->vals.vec.end();
            ++enum_value) {
@@ -146,16 +146,14 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       enumdef.append("]");
       code_ += enumdef;
-      code_ += "  },";  // close type
+      code_ += "    },";  // close type
     }
-
     for (auto s = parser_.structs_.vec.cbegin(); 
          s != parser_.structs_.vec.cend();
          ++s) {
       const auto &structure = *s;
-      code_ += "";
-      code_ += "\"" + GenFullName(structure) + "\" : {";
-      code_ += "  " + GenType("object") + ",";
+      code_ += "    \"" + GenFullName(structure) + "\" : {";
+      code_ += "      " + GenType("object") + ",";
       std::string comment;
       const auto &comment_lines = structure->doc_comment;
       for (auto comment_line = comment_lines.cbegin();
@@ -163,13 +161,13 @@ class JsonSchemaGenerator : public BaseGenerator {
            ++comment_line) {
         comment.append(*comment_line);
       }
-      code_ += "  \"description\" : \"" + comment + "\",";
-      code_ += "  \"properties\" : {";
+      code_ += "      \"description\" : \"" + comment + "\",";
+      code_ += "      \"properties\" : {";
 
       const auto &properties = structure->fields.vec;
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
-        std::string typeLine("    \"" + property->name + "\" : { " + GenType(property->value.type) + " }");
+        std::string typeLine("        \"" + property->name + "\" : { " + GenType(property->value.type) + " }");
         if (property != properties.back()) {
           typeLine.append(",");
         }          
@@ -180,8 +178,8 @@ class JsonSchemaGenerator : public BaseGenerator {
                    back_inserter(requiredProperties),
                    [](FieldDef const *prop) { return prop->required; });
       if (requiredProperties.size() > 0) {
-        code_ += "  },";  // close properties
-        std::string required_string("  \"required\" : [ ");
+        code_ += "      },";  // close properties
+        std::string required_string("      \"required\" : [ ");
         for (auto req_prop = requiredProperties.cbegin();
              req_prop != requiredProperties.cend();
              ++req_prop) {
@@ -193,19 +191,19 @@ class JsonSchemaGenerator : public BaseGenerator {
         required_string.append("]");
         code_ += required_string;
       } else {
-        code_ += "    }";  // close properties
+        code_ += "      }";  // close properties
       }
 
-      std::string closeType("  }");
+      std::string closeType("    }");
       if (*s != parser_.structs_.vec.back()) {
         closeType.append(",");
       }
       code_ += closeType;  // close type
     }
-    code_ += "},";  // close definitions
+    code_ += "  },";  // close definitions
 
     // mark root type
-    code_ += "\"$ref\" : \"#/definitions/" +
+    code_ += "  \"$ref\" : \"#/definitions/" +
              GenFullName(parser_.root_struct_def_) + "\"";
 
     code_ += "}";  // close schema root
