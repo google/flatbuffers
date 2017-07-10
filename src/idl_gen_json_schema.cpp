@@ -52,7 +52,7 @@ std::string GenNativeType(BaseType type) {
 
 template <class T> std::string GenFullName(const T *enum_def) {
   std::string full_name;
-  std::vector<std::string> name_spaces = enum_def->defined_namespace->components;
+  const auto &name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
     full_name.append(*ns + "_");
   }
