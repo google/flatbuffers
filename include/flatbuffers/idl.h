@@ -380,6 +380,7 @@ struct IDLOptions {
     kJson   = 1 << 7,
     kBinary = 1 << 8,
     kTs     = 1 << 9,
+    kJsonSchema = 1 << 10,
     kMAX
   };
 
@@ -713,6 +714,12 @@ extern bool GeneratePhp(const Parser &parser,
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
 extern bool GeneratePython(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name);
+
+// Generate Json schema file
+// See idl_gen_json_schema.cpp.
+extern bool GenerateJsonSchema(const Parser &parser,
                            const std::string &path,
                            const std::string &file_name);
 

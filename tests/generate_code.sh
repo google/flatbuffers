@@ -18,6 +18,7 @@
 ../flatc --cpp --java --csharp --go --binary --python --js --ts --php --gen-mutable --no-fb-import -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 ../flatc --cpp --gen-mutable --gen-object-api -o union_vector ./union_vector/union_vector.fbs
 ../flatc -b --schema --bfbs-comments -I include_test monster_test.fbs
+../flatc --jsonschema --schema -I include_test monster_test.fbs
 cd ../samples
 ../flatc --cpp --gen-mutable --gen-object-api monster.fbs
 cd ../reflection
