@@ -15,19 +15,16 @@
     },
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
       }
     },
     "MyGame_Example2_Monster" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
       }
     },
     "MyGame_Example_Test" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
         "a" : { "type" : "number" },
         "b" : { "type" : "number" }
@@ -35,14 +32,12 @@
     },
     "MyGame_Example_TestSimpleTableWithEnum" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
         "color" : { "$ref" : "#/definitions/MyGame_Example_Color" }
       }
     },
     "MyGame_Example_Vec3" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
         "x" : { "type" : "number" },
         "y" : { "type" : "number" },
@@ -54,7 +49,6 @@
     },
     "MyGame_Example_Ability" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
         "id" : { "type" : "number" },
         "distance" : { "type" : "number" }
@@ -62,7 +56,6 @@
     },
     "MyGame_Example_Stat" : {
       "type" : "object",
-      "description" : "",
       "properties" : {
         "id" : { "type" : "string" },
         "val" : { "type" : "number" },

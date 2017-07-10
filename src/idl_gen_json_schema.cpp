@@ -161,7 +161,9 @@ class JsonSchemaGenerator : public BaseGenerator {
            ++comment_line) {
         comment.append(*comment_line);
       }
-      code_ += "      \"description\" : \"" + comment + "\",";
+      if (comment.size() > 0) {
+        code_ += "      \"description\" : \"" + comment + "\",";
+      }
       code_ += "      \"properties\" : {";
 
       const auto &properties = structure->fields.vec;
