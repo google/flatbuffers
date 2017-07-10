@@ -45,9 +45,8 @@ std::string GenNativeType(BaseType type) {
       return "number";
     case BASE_TYPE_STRING:
       return "string";
-    default: 
-      std::cerr << "GenNativeType: Invalid base type " << type << "\n";
-      return "\n";
+    default:
+      return "";
   }
 }
 
