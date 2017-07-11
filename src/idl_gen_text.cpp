@@ -165,6 +165,10 @@ template<typename T> static bool GenField(const FieldDef &fd,
                                             opts, _text);
 }
 
+static bool GenStruct(const StructDef &struct_def, const Table *table,
+						  int indent, const IDLOptions &opts,
+						  std::string *_text);
+
 // Generate text for non-scalar field.
 static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
                            int indent, Type *union_type,
@@ -180,6 +184,13 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
     auto root = flexbuffers::GetRoot(vec->data(), vec->size());
     root.ToString(true, opts.strict_json, *_text);
     return true;
+  } else if (fd.nested_flatbuffer) {
+	  auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
+	  auto root = GetRoot<Table>(vec->data());
+	  auto nested = fd.attributes.Lookup("nested_flatbuffer");
+	  return GenStruct(*nested->type.struct_def,
+					   root,
+					   indent, opts, _text);
   } else {
     val = IsStruct(fd.value.type)
       ? table->GetStruct<const void *>(fd.value.offset)
