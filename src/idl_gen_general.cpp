@@ -1065,11 +1065,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       }
     }
   // generate object accessors if is nested_flatbuffer
+  if (field.nested_flatbuffer) {
   auto nested = field.attributes.Lookup("nested_flatbuffer");
-  if (nested) {
-    auto nested_qualified_name =
-      parser_.namespaces_.back()->GetFullyQualifiedName(nested->constant);
-    auto nested_type = parser_.structs_.Lookup(nested_qualified_name);
+	auto nested_type = nested->type.struct_def;
     auto nested_type_name = WrapInNameSpace(*nested_type);
     auto nestedMethodName = MakeCamel(field.name, lang_.first_camel_upper)
       + "As" + nested_type_name;
