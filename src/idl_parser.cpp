@@ -713,6 +713,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
+    field->nested_flatbuffer = true;
     if (nested->type.base_type != BASE_TYPE_STRING)
       return Error(
             "nested_flatbuffer attribute must be a string (the root type)");
@@ -722,7 +723,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
             "nested_flatbuffer attribute may only apply to a vector of ubyte");
     // This will cause an error if the root type of the nested flatbuffer
     // wasn't defined elsewhere.
-    LookupCreateStruct(nested->constant);
+    nested->type.struct_def = LookupCreateStruct(nested->constant);
   }
 
   if (field->attributes.Lookup("flexbuffer")) {

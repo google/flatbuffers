@@ -232,7 +232,7 @@ struct Definition {
 
 struct FieldDef : public Definition {
   FieldDef() : deprecated(false), required(false), key(false),
-               flexbuffer(false), padding(0) {}
+               flexbuffer(false), nested_flatbuffer(false), padding(0) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
@@ -245,6 +245,7 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer; // This field contains FlexBuffer data.
+  bool nested_flatbuffer; // This field contains nested FlatBuffer data.
   size_t padding;  // Bytes to always pad after this field.
 };
 
