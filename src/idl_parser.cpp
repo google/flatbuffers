@@ -942,6 +942,26 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           builder.Finish();
           auto off = parser->builder_.CreateVector(builder.GetBuffer());
           val.constant = NumToString(off.o);
+		} else if (field->nested_flatbuffer) {
+		  auto nested = field->attributes.Lookup("nested_flatbuffer");
+		  flexbuffers::Builder builder(1024,
+										 flexbuffers::BUILDER_FLAG_SHARE_ALL);
+		  ECHECK(ParseFlexBufferValue(&builder));
+		  builder.Finish();
+		  auto fxbuf = builder.GetBuffer();
+		  auto fxroot = flexbuffers::GetRoot(fxbuf.data(), fxbuf.size());
+		  std::string substring;
+		  fxroot.ToString(true, false, substring);
+			
+		  Parser nestedParser;
+		  nestedParser.root_struct_def_ = nested->type.struct_def;
+			
+		  if (!nestedParser.Parse(substring.c_str(), nullptr, nullptr))
+		  {
+			ECHECK(Error(nestedParser.error_));
+		  }
+		  auto off = builder_.CreateVector(nestedParser.builder_.GetBufferPointer(), nestedParser.builder_.GetSize());
+		  val.constant = NumToString(off.o);
         } else {
           ECHECK(parser->ParseAnyValue(val, field, fieldn, struct_def_inner));
         }
