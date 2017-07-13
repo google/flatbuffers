@@ -916,7 +916,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                   [&](const std::string &name) -> CheckedError {
   const char *schema_key = "$schema";
   bool is_schema_key = true;
-  for (int i = 0; i < name.size(); ++i) {
+  for (std::string::size_type i = 0; i < name.size(); ++i) {
     if (tolower(name[i]) != tolower(schema_key[i])) {
       is_schema_key = false;
       break;
