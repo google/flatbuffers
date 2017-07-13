@@ -68,7 +68,7 @@ public class Table {
   }
 
   protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
-    int vtable = bb.array().length - offset;
+    int vtable = bb.capacity() - offset;
     return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable;
   }
 
@@ -245,10 +245,9 @@ public class Table {
     int startPos_1 = offset_1 + SIZEOF_INT;
     int startPos_2 = offset_2 + SIZEOF_INT;
     int len = Math.min(len_1, len_2);
-    byte[] bbArray = bb.array();
     for(int i = 0; i < len; i++) {
-      if (bbArray[i + startPos_1] != bbArray[i + startPos_2])
-        return bbArray[i + startPos_1] - bbArray[i + startPos_2];
+      if (bb.get(i + startPos_1) != bb.get(i + startPos_2))
+        return bb.get(i + startPos_1) - bb.get(i + startPos_2);
     }
     return len_1 - len_2;
   }
@@ -266,10 +265,9 @@ public class Table {
     int len_2 = key.length;
     int startPos_1 = offset_1 + Constants.SIZEOF_INT;
     int len = Math.min(len_1, len_2);
-    byte[] bbArray = bb.array();
     for (int i = 0; i < len; i++) {
-      if (bbArray[i + startPos_1] != key[i])
-        return bbArray[i + startPos_1] - key[i];
+      if (bb.get(i + startPos_1) != key[i])
+        return bb.get(i + startPos_1) - key[i];
     }
     return len_1 - len_2;
   }

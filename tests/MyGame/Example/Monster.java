@@ -160,7 +160,7 @@ public final class Monster extends Table {
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(10, bb.array().length - tableOffset, bb), byteKey, bb);
+      int comp = compareStrings(__offset(10, bb.capacity() - tableOffset, bb), byteKey, bb);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
