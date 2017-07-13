@@ -20,12 +20,16 @@
 #include <map>
 #include <stack>
 #include <memory>
-#include <functional>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/flexbuffers.h"
+
+#if !defined(FLATBUFFERS_CPP98_STL)
+  #include <functional>
+#endif  // !defined(FLATBUFFERS_CPP98_STL)
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -164,7 +168,7 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
-    vec.emplace_back(e);
+    vector_emplace_back(&vec, e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;
@@ -571,15 +575,32 @@ private:
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def);
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseTableDelimitersBody)(
+        const std::string &name, size_t &fieldn, const StructDef *struct_def,
+        void *state);
+  #else
+    typedef std::function<CheckedError(const std::string&, size_t&,
+                                       const StructDef*, void*)>
+            ParseTableDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
   FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
                                                  const StructDef *struct_def,
-              const std::function<CheckedError(const std::string &name)> &body);
+                                                 ParseTableDelimitersBody body,
+                                                 void *state);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
-  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t &count,
-                                     const std::function<CheckedError()> &body);
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseVectorDelimitersBody)(size_t &count,
+                                                      void *state);
+  #else
+    typedef std::function<CheckedError(size_t&, void*)>
+            ParseVectorDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(
+      size_t &count, ParseVectorDelimitersBody body, void *state);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
   FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
   FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,

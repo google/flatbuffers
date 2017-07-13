@@ -31,6 +31,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/util.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
+  include/flatbuffers/stl_emulation.h
   include/flatbuffers/flexbuffers.h
   include/flatbuffers/registry.h
   src/code_generators.cpp
@@ -198,6 +199,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     OUTPUT ${GEN_HEADER}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
             --gen-object-api -o "${SRC_FBS_DIR}"
+            --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)

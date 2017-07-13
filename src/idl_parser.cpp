@@ -106,8 +106,8 @@ CheckedError Parser::CheckInRange(int64_t val, int64_t min, int64_t max) {
 template<typename T> inline CheckedError atot(const char *s, Parser &parser,
                                               T *val) {
   int64_t i = StringToInt(s);
-  const int64_t min = std::numeric_limits<T>::min();
-  const int64_t max = std::numeric_limits<T>::max();
+  const int64_t min = flatbuffers::numeric_limits<T>::min();
+  const int64_t max = flatbuffers::numeric_limits<T>::max();
   ECHECK(parser.CheckInRange(i, min, max));
   *val = (T)i;
   return NoError();
@@ -870,7 +870,8 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
 
 CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
                                           const StructDef *struct_def,
-    const std::function<CheckedError(const std::string &name)> &body) {
+                                          ParseTableDelimitersBody body,
+                                          void *state) {
   // We allow tables both as JSON object{ .. } with field names
   // or vector[..] with all fields in order
   char terminator = '}';
@@ -898,7 +899,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
       }
       if (!opts.protobuf_ascii_alike || !(Is('{') || Is('['))) EXPECT(':');
     }
-    ECHECK(body(name));
+    ECHECK(body(name, fieldn, struct_def, state));
     if (Is(terminator)) break;
     ECHECK(ParseComma());
   }
@@ -911,52 +912,56 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
-  size_t fieldn = 0;
-  auto err = ParseTableDelimiters(fieldn, &struct_def,
-                                  [&](const std::string &name) -> CheckedError {
+  size_t fieldn_outer = 0;
+  auto err = ParseTableDelimiters(fieldn_outer, &struct_def,
+                                  [](const std::string &name, size_t &fieldn,
+                                             const StructDef *struct_def_inner,
+                                             void *state) -> CheckedError {
+    Parser *parser = static_cast<Parser *>(state);
     if (name == "$schema") {
-      EXPECT(kTokenStringConstant);
+      ECHECK(parser->Expect(kTokenStringConstant));
       return NoError();
     }
-    auto field = struct_def.fields.Lookup(name);
+    auto field = struct_def_inner->fields.Lookup(name);
     if (!field) {
-      if (!opts.skip_unexpected_fields_in_json) {
-        return Error("unknown field: " + name);
+      if (!parser->opts.skip_unexpected_fields_in_json) {
+        return parser->Error("unknown field: " + name);
       } else {
-        ECHECK(SkipAnyJsonValue());
+        ECHECK(parser->SkipAnyJsonValue());
       }
     } else {
-      if (Is(kTokenNull)) {
-        NEXT(); // Ignore this field.
+      if (parser->Is(kTokenNull)) {
+        ECHECK(parser->Next());  // Ignore this field.
       } else {
         Value val = field->value;
         if (field->flexbuffer) {
           flexbuffers::Builder builder(1024,
                                        flexbuffers::BUILDER_FLAG_SHARE_ALL);
-          ECHECK(ParseFlexBufferValue(&builder));
+          ECHECK(parser->ParseFlexBufferValue(&builder));
           builder.Finish();
-          auto off = builder_.CreateVector(builder.GetBuffer());
+          auto off = parser->builder_.CreateVector(builder.GetBuffer());
           val.constant = NumToString(off.o);
         } else {
-          ECHECK(ParseAnyValue(val, field, fieldn, &struct_def));
+          ECHECK(parser->ParseAnyValue(val, field, fieldn, struct_def_inner));
         }
         // Hardcoded insertion-sort with error-check.
         // If fields are specified in order, then this loop exits immediately.
-        auto elem = field_stack_.rbegin();
-        for (; elem != field_stack_.rbegin() + fieldn; ++elem) {
+        auto elem = parser->field_stack_.rbegin();
+        for (; elem != parser->field_stack_.rbegin() + fieldn; ++elem) {
           auto existing_field = elem->second;
           if (existing_field == field)
-            return Error("field set more than once: " + field->name);
+            return parser->Error("field set more than once: " + field->name);
           if (existing_field->value.offset < field->value.offset) break;
         }
         // Note: elem points to before the insertion point, thus .base() points
         // to the correct spot.
-        field_stack_.insert(elem.base(), std::make_pair(val, field));
+        parser->field_stack_.insert(elem.base(),
+                                    std::make_pair(val, field));
         fieldn++;
       }
     }
     return NoError();
-  });
+  }, this);
   ECHECK(err);
 
   // Check if all required fields are parsed.
@@ -968,7 +973,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       continue;
     }
     bool found = false;
-    for (auto pf_it = field_stack_.end() - fieldn;
+    for (auto pf_it = field_stack_.end() - fieldn_outer;
          pf_it != field_stack_.end();
          ++pf_it) {
       auto parsed_field = pf_it->second;
@@ -982,7 +987,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     }
   }
 
-  if (struct_def.fixed && fieldn != struct_def.fields.vec.size())
+  if (struct_def.fixed && fieldn_outer != struct_def.fields.vec.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
   auto start = struct_def.fixed
@@ -993,8 +998,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
        size;
        size /= 2) {
     // Go through elements in reverse, since we're building the data backwards.
-    for (auto it = field_stack_.rbegin();
-             it != field_stack_.rbegin() + fieldn; ++it) {
+    for (auto it = field_stack_.rbegin(); it != field_stack_.rbegin() +
+             fieldn_outer;
+         ++it) {
       auto &field_value = it->first;
       auto field = it->second;
       if (!struct_def.sortbysize ||
@@ -1035,7 +1041,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       }
     }
   }
-  for (size_t i = 0; i < fieldn; i++) field_stack_.pop_back();
+  for (size_t i = 0; i < fieldn_outer; i++) field_stack_.pop_back();
 
   if (struct_def.fixed) {
     builder_.ClearOffsets();
@@ -1058,11 +1064,12 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
 }
 
 CheckedError Parser::ParseVectorDelimiters(size_t &count,
-                                    const std::function<CheckedError()> &body) {
+                                           ParseVectorDelimitersBody body,
+                                           void *state) {
   EXPECT('[');
   for (;;) {
     if ((!opts.strict_json || !count) && Is(']')) break;
-    ECHECK(body());
+    ECHECK(body(count, state));
     count++;
     if (Is(']')) break;
     ECHECK(ParseComma());
@@ -1073,13 +1080,18 @@ CheckedError Parser::ParseVectorDelimiters(size_t &count,
 
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
   size_t count = 0;
-  auto err = ParseVectorDelimiters(count, [&]() -> CheckedError {
+  std::pair<Parser *, const Type &> parser_and_type_state(this, type);
+  auto err = ParseVectorDelimiters(count,
+                                   [](size_t &, void *state) -> CheckedError {
+    auto *parser_and_type =
+        static_cast<std::pair<Parser *, const Type &> *>(state);
+    auto *parser = parser_and_type->first;
     Value val;
-    val.type = type;
-    ECHECK(ParseAnyValue(val, nullptr, 0, nullptr));
-    field_stack_.push_back(std::make_pair(val, nullptr));
+    val.type = parser_and_type->second;
+    ECHECK(parser->ParseAnyValue(val, nullptr, 0, nullptr));
+    parser->field_stack_.push_back(std::make_pair(val, nullptr));
     return NoError();
-  });
+  }, &parser_and_type_state);
   ECHECK(err);
 
   builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
@@ -1927,17 +1939,25 @@ CheckedError Parser::ParseTypeFromProtoType(Type *type) {
 CheckedError Parser::SkipAnyJsonValue() {
   switch (token_) {
     case '{': {
-      size_t fieldn = 0;
-      return ParseTableDelimiters(fieldn, nullptr,
-                                  [&](const std::string &) -> CheckedError {
-        ECHECK(SkipAnyJsonValue());
-        fieldn++;
-        return NoError();
-      });
+      size_t fieldn_outer = 0;
+      return ParseTableDelimiters(fieldn_outer, nullptr,
+                                  [](const std::string &,
+                                     size_t &fieldn, const StructDef *,
+                                     void *state) -> CheckedError {
+            auto *parser = static_cast<Parser *>(state);
+            ECHECK(parser->SkipAnyJsonValue());
+            fieldn++;
+            return NoError();
+          },
+          this);
     }
     case '[': {
       size_t count = 0;
-      return ParseVectorDelimiters(count, [&]() { return SkipAnyJsonValue(); });
+      return ParseVectorDelimiters(count, [](size_t &,
+                                             void *state) -> CheckedError {
+          return static_cast<Parser *>(state)->SkipAnyJsonValue();
+        },
+        this);
     }
     case kTokenStringConstant:
       EXPECT(kTokenStringConstant);
@@ -1957,15 +1977,25 @@ CheckedError Parser::SkipAnyJsonValue() {
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
   switch (token_) {
     case '{': {
+      std::pair<Parser *, flexbuffers::Builder *> parser_and_builder_state(
+          this, builder);
       auto start = builder->StartMap();
-      size_t fieldn = 0;
-      auto err = ParseTableDelimiters(fieldn, nullptr,
-                                  [&](const std::string &name) -> CheckedError {
-        builder->Key(name);
-        ECHECK(ParseFlexBufferValue(builder));
-        fieldn++;
-        return NoError();
-      });
+      size_t fieldn_outer = 0;
+      auto err = ParseTableDelimiters(fieldn_outer, nullptr,
+                                      [](const std::string &name,
+                                         size_t &fieldn, const StructDef *,
+                                         void *state) -> CheckedError {
+            auto *parser_and_builder =
+                static_cast<std::pair<Parser *, flexbuffers::Builder *> *>(
+                    state);
+            auto *parser = parser_and_builder->first;
+            auto *current_builder = parser_and_builder->second;
+            current_builder->Key(name);
+            ECHECK(parser->ParseFlexBufferValue(current_builder));
+            fieldn++;
+            return NoError();
+          },
+          &parser_and_builder_state);
       ECHECK(err);
       builder->EndMap(start);
       break;
@@ -1973,9 +2003,17 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
     case '[':{
       auto start = builder->StartVector();
       size_t count = 0;
-      ECHECK(ParseVectorDelimiters(count, [&]() {
-        return ParseFlexBufferValue(builder);
-      }));
+      std::pair<Parser *, flexbuffers::Builder *> parser_and_builder_state(
+          this, builder);
+      ECHECK(ParseVectorDelimiters(count, [](size_t &,
+                                             void *state) -> CheckedError {
+            auto *parser_and_builder =
+                static_cast<std::pair<Parser *, flexbuffers::Builder *> *>(
+                    state);
+            return parser_and_builder->first->ParseFlexBufferValue(
+                parser_and_builder->second);
+          },
+          &parser_and_builder_state));
       builder->EndVector(start, false, false);
       break;
     }
@@ -2082,7 +2120,7 @@ CheckedError Parser::DoParse(const char *source,
         ECHECK(ParseProtoDecl());
     } else if (Is(kTokenNativeInclude)) {
       NEXT();
-      native_included_files_.emplace_back(attribute_);
+      vector_emplace_back(&native_included_files_, attribute_);
       EXPECT(kTokenStringConstant);
     } else if (Is(kTokenInclude) ||
                (opts.proto_mode &&
@@ -2201,7 +2239,10 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
     to_process.pop_front();
     included_files.insert(current);
 
-    auto new_files = files_included_per_file_.at(current);
+    // Workaround the lack of const accessor in C++98 maps.
+    auto &new_files =
+        (*const_cast<std::map<std::string, std::set<std::string>> *>(
+            &files_included_per_file_))[current];
     for (auto it = new_files.begin(); it != new_files.end(); ++it) {
       if (included_files.find(*it) == included_files.end())
         to_process.push_back(*it);

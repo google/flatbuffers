@@ -121,12 +121,13 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   mlocs[2] = mb3.Finish();
 
   // Create an array of strings. Also test string pooling, and lambdas.
-  const char *names[] = { "bob", "fred", "bob", "fred" };
   auto vecofstrings =
       builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(4,
-        [&](size_t i) {
-    return builder.CreateSharedString(names[i]);
-  });
+        [](size_t i, flatbuffers::FlatBufferBuilder *b)
+          -> flatbuffers::Offset<flatbuffers::String> {
+    static const char *names[] = { "bob", "fred", "bob", "fred" };
+    return b->CreateSharedString(names[i]);
+  }, &builder);
 
   // Creating vectors of strings in one convenient call.
   std::vector<std::string> names2;
@@ -541,7 +542,7 @@ void ParseAndGenerateTextTest() {
   TEST_EQ(result, true);
 
   if (jsongen != jsonfile) {
-    printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
+    TEST_OUTPUT_LINE("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
     TEST_NOTNULL(NULL);
   }
 
@@ -671,8 +672,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Get the root.
   // This time we wrap the result from GetAnyRoot in a smartpointer that
   // will keep rroot valid as resizingbuf resizes.
-  auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
-                                resizingbuf);
+  auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(
+      flatbuffers::vector_data(resizingbuf)), resizingbuf);
   SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
   // Here resizingbuf has changed, but rroot is still valid.
@@ -718,12 +719,14 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
   // Test integrity of all resize operations above.
   flatbuffers::Verifier resize_verifier(
-        reinterpret_cast<const uint8_t *>(resizingbuf.data()),
+        reinterpret_cast<const uint8_t *>(
+            flatbuffers::vector_data(resizingbuf)),
         resizingbuf.size());
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
 
   // Test buffer is valid using reflection as well
-  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                              flatbuffers::vector_data(resizingbuf),
                               resizingbuf.size()), true);
 
   // As an additional test, also set it on the name field.
@@ -778,7 +781,7 @@ void ParseProtoTest() {
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
 
   if (fbs != goldenfile) {
-    printf("%s----------------\n%s", fbs.c_str(), goldenfile.c_str());
+    TEST_OUTPUT_LINE("%s----------------\n%s", fbs.c_str(), goldenfile.c_str());
     TEST_NOTNULL(NULL);
   }
 }
@@ -1039,17 +1042,17 @@ void FuzzTest2() {
         i -= std::min(static_cast<size_t>(10), i); // show some context;
         size_t end = std::min(len, i + 20);
         for (; i < end; i++)
-          printf("at %d: found \"%c\", expected \"%c\"\n",
-               static_cast<int>(i), jsongen[i], json[i]);
+          TEST_OUTPUT_LINE("at %d: found \"%c\", expected \"%c\"\n",
+                           static_cast<int>(i), jsongen[i], json[i]);
         break;
       }
     }
     TEST_NOTNULL(NULL);
   }
 
-  printf("%dk schema tested with %dk of json\n",
-         static_cast<int>(schema.length() / 1024),
-         static_cast<int>(json.length() / 1024));
+  TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
+                   static_cast<int>(schema.length() / 1024),
+                   static_cast<int>(json.length() / 1024));
 }
 
 // Test that parser errors are actually generated.
@@ -1526,18 +1529,20 @@ void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
 
-  auto test_conform = [&](const char *test, const char *expected_err) {
+  auto test_conform = [](flatbuffers::Parser &parser1,
+                         const char *test, const char *expected_err) {
     flatbuffers::Parser parser2;
     TEST_EQ(parser2.Parse(test), true);
-    auto err = parser2.ConformTo(parser);
+    auto err = parser2.ConformTo(parser1);
     TEST_NOTNULL(strstr(err.c_str(), expected_err));
   };
 
-  test_conform("table T { A:byte; }", "types differ for field");
-  test_conform("table T { B:int; A:int; }", "offsets differ for field");
-  test_conform("table T { A:int = 1; }", "defaults differ for field");
-  test_conform("table T { B:float; }", "field renamed to different type");
-  test_conform("enum E:byte { B, A }", "values differ for enum");
+  test_conform(parser, "table T { A:byte; }", "types differ for field");
+  test_conform(parser, "table T { B:int; A:int; }", "offsets differ for field");
+  test_conform(parser, "table T { A:int = 1; }", "defaults differ for field");
+  test_conform(parser, "table T { B:float; }",
+               "field renamed to different type");
+  test_conform(parser, "enum E:byte { B, A }", "values differ for enum");
 }
 
 void ParseProtoBufAsciiTest() {
@@ -1566,6 +1571,8 @@ void FlexBuffersTest() {
 
   // Write the equivalent of:
   // { vec: [ -100, "Fred", 4.0 ], bar: [ 1, 2, 3 ], foo: 100 }
+#ifndef FLATBUFFERS_CPP98_STL
+  // It's possible to do this without std::function support as well.
   slb.Map([&]() {
      slb.Vector("vec", [&]() {
       slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
@@ -1581,9 +1588,27 @@ void FlexBuffersTest() {
     });
   });
   slb.Finish();
+#else
+  // It's possible to do this without std::function support as well.
+  slb.Map([](flexbuffers::Builder& slb2) {
+     slb2.Vector("vec", [](flexbuffers::Builder& slb3) {
+      slb3 += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
+      slb3 += "Fred";
+      slb3.IndirectFloat(4.0f);
+    }, slb2);
+    int ints[] = { 1, 2, 3 };
+    slb2.Vector("bar", ints, 3);
+    slb2.FixedTypedVector("bar3", ints, 3);
+    slb2.Double("foo", 100);
+    slb2.Map("mymap", [](flexbuffers::Builder& slb3) {
+      slb3.String("foo", "Fred");  // Testing key and string reuse.
+    }, slb2);
+  }, slb);
+  slb.Finish();
+#endif  // FLATBUFFERS_CPP98_STL
 
   for (size_t i = 0; i < slb.GetBuffer().size(); i++)
-    printf("%d ", slb.GetBuffer().data()[i]);
+    printf("%d ", flatbuffers::vector_data(slb.GetBuffer())[i]);
   printf("\n");
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
@@ -1641,7 +1666,11 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
+#if !defined(FLATBUFFERS_CPP98_STL)
   auto flatbuf = std::move(flatbuf1);  // Test move assignment.
+#else
+  auto &flatbuf = flatbuf1;
+#endif // !defined(FLATBUFFERS_CPP98_STL)
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
   AccessFlatBufferTest(flatbuf.data(), flatbuf.size());
@@ -1692,4 +1721,3 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     return 1;
   }
 }
-

@@ -18,6 +18,18 @@
       "properties" : {
       }
     },
+    "MyGame_OtherNameSpace_TableB" : {
+      "type" : "object",
+      "properties" : {
+        "a" : { "$ref" : "#/definitions/TableA" }
+      }
+    },
+    "TableA" : {
+      "type" : "object",
+      "properties" : {
+        "b" : { "$ref" : "#/definitions/MyGame_OtherNameSpace_TableB" }
+      }
+    },
     "MyGame_Example2_Monster" : {
       "type" : "object",
       "properties" : {
