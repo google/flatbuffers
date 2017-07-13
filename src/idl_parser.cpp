@@ -914,8 +914,20 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   size_t fieldn = 0;
   auto err = ParseTableDelimiters(fieldn, &struct_def,
                                   [&](const std::string &name) -> CheckedError {
-    auto field = struct_def.fields.Lookup(name);
-    if (!field) {
+  const char *schema_key = "$schema";
+  bool is_schema_key = true;
+  for (int i = 0; i < name.size(); ++i) {
+    if (tolower(name[i]) != tolower(schema_key[i])) {
+      is_schema_key = false;
+      break;
+    }
+  }
+  if (is_schema_key) {
+    NEXT(); // Ignore this field.
+    return NoError();
+  }
+  auto field = struct_def.fields.Lookup(name);
+  if (!field) {
       if (!opts.skip_unexpected_fields_in_json) {
         return Error("unknown field: " + name);
       } else {
