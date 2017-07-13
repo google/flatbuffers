@@ -690,7 +690,7 @@ void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
 std::string GenByteBufferLength(const char *bb_name) {
   std::string bb_len = bb_name;
   if (lang_.language == IDLOptions::kCSharp) bb_len += ".Length";
-  else bb_len += ".array().length";
+  else bb_len += ".capacity()";
   return bb_len;
 }
 
