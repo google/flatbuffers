@@ -60,6 +60,20 @@ template<> inline std::string NumToString<signed char>(signed char t) {
 template<> inline std::string NumToString<unsigned char>(unsigned char t) {
   return NumToString(static_cast<int>(t));
 }
+#if defined(FLATBUFFERS_CPP98_STL)
+  template <> inline std::string NumToString<long long>(long long t) {
+    char buf[21]; // (log((1 << 63) - 1) / log(10)) + 2
+    snprintf(buf, sizeof(buf), "%lld", t);
+    return std::string(buf);
+  }
+
+  template <> inline std::string NumToString<unsigned long long>(
+      unsigned long long t) {
+    char buf[22]; // (log((1 << 63) - 1) / log(10)) + 1
+    snprintf(buf, sizeof(buf), "%llu", t);
+    return std::string(buf);
+  }
+#endif  // defined(FLATBUFFERS_CPP98_STL)
 
 // Special versions for floats/doubles.
 template<> inline std::string NumToString<double>(double t) {
@@ -202,9 +216,10 @@ inline std::string ConCatPathFileName(const std::string &path,
                                       const std::string &filename) {
   std::string filepath = path;
   if (filepath.length()) {
-    if (filepath.back() == kPathSeparatorWindows) {
-      filepath.back() = kPathSeparator;
-    } else if (filepath.back() != kPathSeparator) {
+    char filepath_last_character = string_back(filepath);
+    if (filepath_last_character == kPathSeparatorWindows) {
+      filepath_last_character = kPathSeparator;
+    } else if (filepath_last_character != kPathSeparator) {
       filepath += kPathSeparator;
     }
   }

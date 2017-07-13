@@ -16,6 +16,7 @@
 
 #include "flatbuffers/code_generators.h"
 #include <assert.h>
+#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 #if defined(_MSC_VER)
@@ -58,7 +59,7 @@ void CodeWriter::operator+=(std::string text) {
     // Update the text to everything after the }}.
     text = text.substr(end + 2);
   }
-  if (!text.empty() && text.back() == '\\') {
+  if (!text.empty() && string_back(text) == '\\') {
     text.pop_back();
     stream_ << text;
   } else {
@@ -129,8 +130,8 @@ std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
-    if (std::next(it) != ns->components.end()) {
-        qualified_name += qualifying_separator_;
+    if ((it + 1) != ns->components.end()) {
+      qualified_name += qualifying_separator_;
     }
   }
 
@@ -167,4 +168,3 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
-
