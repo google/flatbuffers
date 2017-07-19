@@ -915,7 +915,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   auto err = ParseTableDelimiters(fieldn, &struct_def,
                                   [&](const std::string &name) -> CheckedError {
     if (name == "$schema") {
-      NEXT(); // Ignore this field.
+      EXPECT(kTokenStringConstant);
       return NoError();
     }
     auto field = struct_def.fields.Lookup(name);
