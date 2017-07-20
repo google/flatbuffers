@@ -29,8 +29,7 @@ fi
 
 # Execute `build_apk.sh` to build and run the android app.
 cd android
-./build_apk.sh
+./gradlew build
 
-# Cleanup the temporary files.
-rm build.xml local.properties proguard-project.txt project.properties
-rm -rf bin libs obj
+
+

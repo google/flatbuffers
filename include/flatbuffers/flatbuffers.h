@@ -816,10 +816,8 @@ class FlatBufferBuilder
   void PopBytes(size_t amount) { buf_.pop(amount); }
 
   template<typename T> void AssertScalarT() {
-    #ifndef FLATBUFFERS_CPP98_STL
     // The code assumes power of 2 sizes and endian-swap-ability.
-    static_assert(std::is_scalar<T>::value, "T must be a scalar type");
-    #endif
+    static_assert(flatbuffers::is_scalar<T>::value, "T must be a scalar type");
   }
 
   // Write a single aligned scalar to the buffer
@@ -1182,6 +1180,22 @@ class FlatBufferBuilder
   }
   #endif
 
+  /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
+  /// This is a convenience function that takes care of iteration for you.
+  /// @tparam T The data type of the `std::vector` elements.
+  /// @param f A function that takes the current iteration 0..vector_size-1,
+  /// and the state parameter returning any type that you can construct a
+  /// FlatBuffers vector out of.
+  /// @param state State passed to f.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template <typename T, typename F, typename S> Offset<Vector<T>> CreateVector(
+      size_t vector_size, F f, S *state) {
+    std::vector<T> elems(vector_size);
+    for (size_t i = 0; i < vector_size; i++) elems[i] = f(i, state);
+    return CreateVector(elems);
+  }
+
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
   /// This is a convenience function for a common case.
   /// @param v A const reference to the `std::vector` to serialize into the
@@ -1226,7 +1240,6 @@ class FlatBufferBuilder
     return CreateVectorOfStructs<T>(vv.data(), vv.size());
   }
 
-
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
@@ -1238,15 +1251,33 @@ class FlatBufferBuilder
   /// accessors.
   template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
       size_t vector_size, const std::function<void(size_t i, T *)> &filler) {
-    StartVector(vector_size * sizeof(T) / AlignOf<T>(), AlignOf<T>());
-    T *structs = reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
+    T* structs = StartVectorOfStructs<T>(vector_size);
     for (size_t i = 0; i < vector_size; i++) {
       filler(i, structs);
       structs++;
     }
-    return Offset<Vector<const T *>>(EndVector(vector_size));
+    return EndVectorOfStructs<T>(vector_size);
   }
   #endif
+
+  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @param[in] f A function that takes the current iteration 0..vector_size-1,
+  /// a pointer to the struct that must be filled and the state argument.
+  /// @param[in] state Arbitrary state to pass to f.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  /// This is mostly useful when flatbuffers are generated with mutation
+  /// accessors.
+  template <typename T, typename F, typename S> Offset<Vector<const T *>>
+      CreateVectorOfStructs(size_t vector_size, F f, S *state) {
+    T* structs = StartVectorOfStructs<T>(vector_size);
+    for (size_t i = 0; i < vector_size; i++) {
+      f(i, structs, state);
+      structs++;
+    }
+    return EndVectorOfStructs<T>(vector_size);
+  }
 
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` struct elements.
@@ -1508,6 +1539,21 @@ class FlatBufferBuilder
   // For use with CreateSharedString. Instantiated on first use only.
   typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
   StringOffsetMap *string_pool;
+
+ private:
+  // Allocates space for a vector of structures.
+  // Must be completed with EndVectorOfStructs().
+  template<typename T> const T* StartVectorOfStructs(size_t vector_size) {
+    StartVector(vector_size * sizeof(T) / AlignOf<T>(), AlignOf<T>());
+    return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
+  }
+
+  // End the vector of structues in the flatbuffers.
+  // Vector should have previously be started with StartVectorOfStructs().
+  template<typename T> Offset<Vector<const T *>> EndVectorOfStructs(
+      size_t vector_size) {
+    return Offset<Vector<const T *>>(EndVector(vector_size));
+  }
 };
 /// @}
 

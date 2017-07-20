@@ -18,6 +18,8 @@
 #define FLATBUFFERS_FLEXBUFFERS_H_
 
 #include <map>
+// Used to select STL variant.
+#include "flatbuffers/base.h"
 // We use the basic binary writing functions from the regular FlatBuffers.
 #include "flatbuffers/util.h"
 
@@ -743,7 +745,7 @@ inline Reference GetRoot(const uint8_t *buffer, size_t size) {
 }
 
 inline Reference GetRoot(const std::vector<uint8_t> &buffer) {
-  return GetRoot(buffer.data(), buffer.size());
+  return GetRoot(flatbuffers::vector_data(buffer), buffer.size());
 }
 
 // Flags that configure how the Builder behaves.
@@ -913,7 +915,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return CreateBlob(data, len, 0, TYPE_BLOB);
   }
   size_t Blob(const std::vector<uint8_t> &v) {
-    return CreateBlob(v.data(), v.size(), 0, TYPE_BLOB);
+    return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, TYPE_BLOB);
   }
 
   // TODO(wvo): support all the FlexBuffer types (like flexbuffers::String),
@@ -957,11 +959,15 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // step automatically when appliccable, and encourage people to write in
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
-    auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
+    auto dict =
+        reinterpret_cast<TwoValue *>(flatbuffers::vector_data(stack_) +
+                                     start);
     std::sort(dict, dict + len,
               [&](const TwoValue &a, const TwoValue &b) -> bool {
-      auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
-      auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
+      auto as = reinterpret_cast<const char *>(
+          flatbuffers::vector_data(buf_) + a.key.u_);
+      auto bs = reinterpret_cast<const char *>(
+          flatbuffers::vector_data(buf_) + b.key.u_);
       auto comp = strcmp(as, bs);
       // If this assertion hits, you've added two keys with the same value to
       // this map.
@@ -986,13 +992,25 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndVector(start, false, false);
   }
+  template <typename F, typename T> size_t Vector(F f, T &state) {
+    auto start = StartVector();
+    f(state);
+    return EndVector(start, false, false);
+  }
   template<typename F> size_t Vector(const char *key, F f) {
     auto start = StartVector(key);
     f();
     return EndVector(start, false, false);
   }
+  template <typename F, typename T> size_t Vector(const char *key, F f,
+                                                  T &state) {
+    auto start = StartVector(key);
+    f(state);
+    return EndVector(start, false, false);
+  }
+
   template<typename T> void Vector(const T *elems, size_t len) {
-    if (std::is_scalar<T>::value) {
+    if (flatbuffers::is_scalar<T>::value) {
       // This path should be a lot quicker and use less space.
       ScalarVector(elems, len, false);
     } else {
@@ -1007,7 +1025,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Vector(elems, len);
   }
   template<typename T> void Vector(const std::vector<T> &vec) {
-    Vector(vec.data(), vec.size());
+    Vector(flatbuffers::vector_data(vec), vec.size());
   }
 
   template<typename F> size_t TypedVector(F f) {
@@ -1015,9 +1033,20 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndVector(start, true, false);
   }
+  template <typename F, typename T> size_t TypedVector(F f, T &state) {
+    auto start = StartVector();
+    f(state);
+    return EndVector(start, true, false);
+  }
   template<typename F> size_t TypedVector(const char *key, F f) {
     auto start = StartVector(key);
     f();
+    return EndVector(start, true, false);
+  }
+  template <typename F, typename T> size_t TypedVector(const char *key, F f,
+                                                       T &state) {
+    auto start = StartVector(key);
+    f(state);
     return EndVector(start, true, false);
   }
 
@@ -1026,7 +1055,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // regular typed vector.
     assert(len >= 2 && len <= 4);
     // And only scalar values.
-    assert(std::is_scalar<T>::value);
+    assert(flatbuffers::is_scalar<T>::value);
     return ScalarVector(elems, len, true);
   }
 
@@ -1041,9 +1070,20 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndMap(start);
   }
+  template <typename F, typename T> size_t Map(F f, T &state) {
+    auto start = StartMap();
+    f(state);
+    return EndMap(start);
+  }
   template<typename F> size_t Map(const char *key, F f) {
     auto start = StartMap(key);
     f();
+    return EndMap(start);
+  }
+  template <typename F, typename T> size_t Map(const char *key, F f,
+                                               T &state) {
+    auto start = StartMap(key);
+    f(state);
     return EndMap(start);
   }
   template<typename T> void Map(const std::map<std::string, T> &map) {
@@ -1174,10 +1214,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> static Type GetScalarType() {
-    assert(std::is_scalar<T>::value);
-    return std::is_floating_point<T>::value
+    assert(flatbuffers::is_scalar<T>::value);
+    return flatbuffers::is_floating_point<T>::value
         ? TYPE_FLOAT
-        : (std::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
+        : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
   }
 
   struct Value {
@@ -1364,9 +1404,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   struct KeyOffsetCompare {
     KeyOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
-    bool operator() (size_t a, size_t b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b);
+    bool operator()(size_t a, size_t b) const {
+      auto stra =
+          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + a);
+      auto strb =
+          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + b);
       return strcmp(stra, strb) < 0;
     }
     const std::vector<uint8_t> *buf_;
@@ -1375,9 +1417,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   typedef std::pair<size_t, size_t> StringOffset;
   struct StringOffsetCompare {
     StringOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
-    bool operator() (const StringOffset &a, const StringOffset &b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a.first);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b.first);
+    bool operator()(const StringOffset &a, const StringOffset &b) const {
+      auto stra = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
+                                                 a.first);
+      auto strb = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
+                                                 b.first);
       return strncmp(stra, strb, std::min(a.second, b.second) + 1) < 0;
     }
     const std::vector<uint8_t> *buf_;
