@@ -160,6 +160,7 @@ the `schema` that defines the template for our monsters:
     color:Color = Blue; // Enum.
     weapons:[Weapon];   // Vector of tables.
     equipped:Equipment; // Union.
+    path:[Vec3];        // Vector of structs.
   }
 
   table Weapon {
@@ -799,6 +800,70 @@ elements by calling a lambda. For the common case of `std::vector<std::string>`
 there's also `CreateVectorOfStrings`.
 </div>
 
+Note that vectors of structs are serialized differently from tables, since
+structs are stored in-line in the vector. For example, to create a vector
+for the `path` field above:
+
+<div class="language-cpp">
+~~~{.cpp}
+  Vec3 points[] = { Vec3(1.0f, 2.0f, 3.0f), Vec3(4.0f, 5.0f, 6.0f) };
+  auto path = fbb.CreateVectorOfStructs(points, 2);
+~~~
+</div>
+<div class="language-java">
+~~~{.java}
+  Monster.startPathVector(fbb, 2);
+  Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f);
+  Vec3.createVec3(builder, 4.0f, 5.0f, 6.0f);
+  int path = fbb.endVector();
+~~~
+</div>
+<div class="language-csharp">
+~~~{.cs}
+  Monster.StartPathVector(fbb, 2);
+  Vec3.CreateVec3(builder, 1.0f, 2.0f, 3.0f);
+  Vec3.CreateVec3(builder, 4.0f, 5.0f, 6.0f);
+  var path = fbb.EndVector();
+~~~
+</div>
+<div class="language-go">
+~~~{.go}
+  sample.MonsterStartPathVector(builder, 2)
+  sample.CreateVec3(builder, 1.0, 2.0, 3.0)
+  sample.CreateVec3(builder, 4.0, 5.0, 6.0)
+  path := builder.EndVector(2)
+~~~
+</div>
+<div class="language-python">
+~~~{.py}
+  MyGame.Example.Monster.MonsterStartPathVector(builder, 2)
+  MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
+  MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
+  path = builder.EndVector(2)
+~~~
+</div>
+<div class="language-javascript">
+~~~{.js}
+  MyGame.Example.Monster.startPathVector(builder, 2);
+  MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
+  MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
+  var path = builder.endVector();
+~~~
+</div>
+<div class="language-php">
+~~~{.php}
+  \MyGame\Example\Monster::StartPathVector($builder, 2);
+  \MyGame\Sample\Vec3::CreateVec3($builder, 1.0, 2.0, 3.0);
+  \MyGame\Sample\Vec3::CreateVec3($builder, 1.0, 2.0, 3.0);
+  $path = $builder->endVector();
+~~~
+</div>
+<div class="language-c">
+~~~{.c}
+  // TBD
+~~~
+</div>
+
 We have now serialized the non-scalar components of the orc, so we
 can serialize the monster itself:
 
@@ -812,7 +877,7 @@ can serialize the monster itself:
   // to set all fields.
   auto orc = CreateMonster(builder, Vec3(1.0f, 2.0f, 3.0f), mana, hp, name,
                            inventory, Color_Red, weapons, Equipment_Weapon,
-                           axe.Union());
+                           axe.Union(), path);
 ~~~
 </div>
 <div class="language-java">
@@ -827,6 +892,7 @@ can serialize the monster itself:
   Monster.addWeapons(builder, weapons);
   Monster.addEquippedType(builder, Equipment.Weapon);
   Monster.addEquipped(builder, axe);
+  Monster.addPath(builder, path);
   int orc = Monster.endMonster(builder);
 ~~~
 </div>
@@ -842,6 +908,7 @@ can serialize the monster itself:
   Monster.AddWeapons(builder, weapons);
   Monster.AddEquippedType(builder, Equipment.Weapon);
   Monster.AddEquipped(builder, axe.Value); // Axe
+  Monster.AddPath(builder, path);
   var orc = Monster.EndMonster(builder);
 ~~~
 </div>
@@ -857,6 +924,7 @@ can serialize the monster itself:
   sample.MonsterAddWeapons(builder, weapons)
   sample.MonsterAddEquippedType(builder, sample.EquipmentWeapon)
   sample.MonsterAddEquipped(builder, axe)
+  sample.MonsterAddPath(builder, path)
   orc := sample.MonsterEnd(builder)
 ~~~
 </div>
@@ -875,6 +943,7 @@ can serialize the monster itself:
   MyGame.Sample.Monster.MonsterAddEquippedType(
       builder, MyGame.Sample.Equipment.Equipment().Weapon)
   MyGame.Sample.Monster.MonsterAddEquipped(builder, axe)
+  MyGame.Sample.Monster.MonsterAddPath(builder, path)
   orc = MyGame.Sample.Monster.MonsterEnd(builder)
 ~~~
 </div>
@@ -891,6 +960,7 @@ can serialize the monster itself:
   MyGame.Sample.Monster.addWeapons(builder, weapons);
   MyGame.Sample.Monster.addEquippedType(builder, MyGame.Sample.Equipment.Weapon);
   MyGame.Sample.Monster.addEquipped(builder, axe);
+  MyGame.Sample.Monster.addPath(builder, path);
   var orc = MyGame.Sample.Monster.endMonster(builder);
 ~~~
 </div>
@@ -907,6 +977,7 @@ can serialize the monster itself:
   \MyGame\Sample\Monster::AddWeapons($builder, $weapons);
   \MyGame\Sample\Monster::AddEquippedType($builder, \MyGame\Sample\Equipment::Weapon);
   \MyGame\Sample\Monster::AddEquipped($builder, $axe);
+  \MyGame\Sample\Monster::AddPath($builder, $path);
   $orc = \MyGame\Sample\Monster::EndMonster($builder);
 ~~~
 </div>
@@ -921,7 +992,7 @@ can serialize the monster itself:
   ns(Equipment_union_ref_t) equipped = ns(Equipment_as_Weapon(axe));
   ns(Vec3_t) pos = { 1.0f, 2.0f, 3.0f };
   ns(Monster_create_as_root(B, &pos, mana, hp, name, inventory, ns(Color_Red),
-          weapons, equipped));
+          weapons, equipped, path));
 ~~~
 </div>
 
@@ -929,10 +1000,10 @@ Note how we create `Vec3` struct in-line in the table. Unlike tables, structs
 are simple combinations of scalars that are always stored inline, just like
 scalars themselves.
 
-**Important**: you should not nest tables or any other objects, which is why
-we created all the strings/vectors/tables that this monster refers to before
-`start`. If you try to create any of them between `start` and `end`, you
-will get an assert/exception/panic depending on your language.
+**Important**: Unlike structs, you should not nest tables or other objects,
+which is why we created all the strings/vectors/tables that this monster refers
+to before `start`. If you try to create any of them between `start` and `end`,
+you will get an assert/exception/panic depending on your language.
 
 *Note: Since we are passing `150` as the `mana` field, which happens to be the
 default value, the field will not actually be written to the buffer, since the
@@ -1470,10 +1541,10 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  var pos = monster.Pos
-  var x = pos.X
-  var y = pos.Y
-  var z = pos.Z
+  var pos = monster.Pos.Value;
+  var x = pos.X;
+  var y = pos.Y;
+  var z = pos.Z;
 ~~~
 </div>
 <div class="language-go">
@@ -1547,7 +1618,7 @@ FlatBuffers `vector`.
 <div class="language-csharp">
 ~~~{.cs}
   int invLength = monster.InventoryLength;
-  var thirdItem = monster.GetInventory(2);
+  var thirdItem = monster.Inventory(2);
 ~~~
 </div>
 <div class="language-go">
@@ -1604,8 +1675,8 @@ except your need to handle the result as a FlatBuffer `table`:
 <div class="language-csharp">
 ~~~{.cs}
   int weaponsLength = monster.WeaponsLength;
-  var secondWeaponName = monster.GetWeapons(1).Name;
-  var secondWeaponDamage = monster.GetWeapons(1).Damage;
+  var secondWeaponName = monster.Weapons(1).Name;
+  var secondWeaponDamage = monster.Weapons(1).Damage;
 ~~~
 </div>
 <div class="language-go">
@@ -1687,8 +1758,7 @@ We can access the type to dynamically cast the data as needed (since the
   var unionType = monster.EquippedType;
 
   if (unionType == Equipment.Weapon) {
-    var weapon = (Weapon)monster.GetEquipped(new Weapon()); // Requires explicit cast
-                                                            // to `Weapon`.
+    var weapon = monster.Equipped<Weapon>().Value;
 
     var weaponName = weapon.Name;     // "Axe"
     var weaponDamage = weapon.Damage; // 5

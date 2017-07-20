@@ -55,6 +55,6 @@ you would leave it in.
    [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers
    [FlatBuffers Google Group]: https://groups.google.com/forum/#!forum/flatbuffers
    [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
-   [stackoverflow.com]: http://www.stackoverflow.com
+   [stackoverflow.com]: http://stackoverflow.com/search?q=flatbuffers
    [landing page]: http://google.github.io/flatbuffers
    [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE.txt

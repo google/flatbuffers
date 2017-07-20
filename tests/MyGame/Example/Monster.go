@@ -23,6 +23,10 @@ func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
+func (rcv *Monster) Table() flatbuffers.Table {
+	return rcv._tab
+}
+
 func (rcv *Monster) Pos(obj *Vec3) *Vec3 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
@@ -415,8 +419,52 @@ func (rcv *Monster) Testarrayofstring2Length() int {
 	return 0
 }
 
+func (rcv *Monster) Testarrayofsortedstruct(obj *Ability, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 8
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) TestarrayofsortedstructLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) Flex(j int) byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) FlexLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) FlexBytes() []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
+	if o != 0 {
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+	}
+	return nil
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(29)
+	builder.StartObject(31)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -522,6 +570,18 @@ func MonsterAddTestarrayofstring2(builder *flatbuffers.Builder, testarrayofstrin
 }
 func MonsterStartTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddTestarrayofsortedstruct(builder *flatbuffers.Builder, testarrayofsortedstruct flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(29, flatbuffers.UOffsetT(testarrayofsortedstruct), 0)
+}
+func MonsterStartTestarrayofsortedstructVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 4)
+}
+func MonsterAddFlex(builder *flatbuffers.Builder, flex flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(30, flatbuffers.UOffsetT(flex), 0)
+}
+func MonsterStartFlexVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

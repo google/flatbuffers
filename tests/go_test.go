@@ -78,6 +78,7 @@ func TestAll(t *testing.T) {
 
 	// Verify that GetRootAs works for non-root tables
 	CheckGetRootAsForNonRootTable(t.Fatalf)
+	CheckTableAccessors(t.Fatalf)
 
 	// Verify that using the generated Go code builds a buffer without
 	// returning errors:
@@ -137,155 +138,159 @@ func TestAll(t *testing.T) {
 // CheckReadBuffer checks that the given buffer is evaluated correctly
 // as the example Monster.
 func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, ...interface{})) {
-	monster := example.GetRootAsMonster(buf, offset)
-
-	if got := monster.Hp(); 80 != got {
-		fail(FailString("hp", 80, got))
-	}
-
-	// default
-	if got := monster.Mana(); 150 != got {
-		fail(FailString("mana", 150, got))
-	}
-
-	if got := monster.Name(); !bytes.Equal([]byte("MyMonster"), got) {
-		fail(FailString("name", "MyMonster", got))
-	}
-
-	// initialize a Vec3 from Pos()
-	vec := new(example.Vec3)
-	vec = monster.Pos(vec)
-	if vec == nil {
-		fail("vec3 initialization failed")
-	}
-
-	// check that new allocs equal given ones:
-	vec2 := monster.Pos(nil)
-	if !reflect.DeepEqual(vec, vec2) {
-		fail("fresh allocation failed")
-	}
-
-	// verify the properties of the Vec3
-	if got := vec.X(); float32(1.0) != got {
-		fail(FailString("Pos.X", float32(1.0), got))
-	}
-
-	if got := vec.Y(); float32(2.0) != got {
-		fail(FailString("Pos.Y", float32(2.0), got))
-	}
-
-	if got := vec.Z(); float32(3.0) != got {
-		fail(FailString("Pos.Z", float32(3.0), got))
-	}
-
-	if got := vec.Test1(); float64(3.0) != got {
-		fail(FailString("Pos.Test1", float64(3.0), got))
-	}
-
-	if got := vec.Test2(); int8(2) != got {
-		fail(FailString("Pos.Test2", int8(2), got))
-	}
-
-	// initialize a Test from Test3(...)
-	t := new(example.Test)
-	t = vec.Test3(t)
-	if t == nil {
-		fail("vec.Test3(&t) failed")
-	}
-
-	// check that new allocs equal given ones:
-	t2 := vec.Test3(nil)
-	if !reflect.DeepEqual(t, t2) {
-		fail("fresh allocation failed")
-	}
-
-	// verify the properties of the Test
-	if got := t.A(); int16(5) != got {
-		fail(FailString("t.A()", int16(5), got))
-	}
-
-	if got := t.B(); int8(6) != got {
-		fail(FailString("t.B()", int8(6), got))
-	}
-
-	if got := monster.TestType(); example.AnyMonster != got {
-		fail(FailString("monster.TestType()", example.AnyMonster, got))
-	}
-
-	// initialize a Table from a union field Test(...)
-	var table2 flatbuffers.Table
-	if ok := monster.Test(&table2); !ok {
-		fail("monster.Test(&monster2) failed")
-	}
-
-	// initialize a Monster from the Table from the union
-	var monster2 example.Monster
-	monster2.Init(table2.Bytes, table2.Pos)
-
-	if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
-		fail(FailString("monster2.Name()", "Fred", got))
-	}
-
-	inventorySlice := monster.InventoryBytes()
-	if len(inventorySlice) != monster.InventoryLength() {
-		fail(FailString("len(monster.InventoryBytes) != monster.InventoryLength", len(inventorySlice), monster.InventoryLength()))
-	}
-
-	if got := monster.InventoryLength(); 5 != got {
-		fail(FailString("monster.InventoryLength", 5, got))
-	}
-
-	invsum := 0
-	l := monster.InventoryLength()
-	for i := 0; i < l; i++ {
-		v := monster.Inventory(i)
-		if v != inventorySlice[i] {
-			fail(FailString("monster inventory slice[i] != Inventory(i)", v, inventorySlice[i]))
+	// try the two ways of generating a monster
+	monster1 := example.GetRootAsMonster(buf, offset)
+	monster2 := &example.Monster{}
+	flatbuffers.GetRootAs(buf, offset, monster2)
+	for _, monster := range []*example.Monster{monster1, monster2} {
+		if got := monster.Hp(); 80 != got {
+			fail(FailString("hp", 80, got))
 		}
-		invsum += int(v)
-	}
-	if invsum != 10 {
-		fail(FailString("monster inventory sum", 10, invsum))
-	}
 
-	if got := monster.Test4Length(); 2 != got {
-		fail(FailString("monster.Test4Length()", 2, got))
-	}
+		// default
+		if got := monster.Mana(); 150 != got {
+			fail(FailString("mana", 150, got))
+		}
 
-	var test0 example.Test
-	ok := monster.Test4(&test0, 0)
-	if !ok {
-		fail(FailString("monster.Test4(&test0, 0)", true, ok))
-	}
+		if got := monster.Name(); !bytes.Equal([]byte("MyMonster"), got) {
+			fail(FailString("name", "MyMonster", got))
+		}
 
-	var test1 example.Test
-	ok = monster.Test4(&test1, 1)
-	if !ok {
-		fail(FailString("monster.Test4(&test1, 1)", true, ok))
-	}
+		// initialize a Vec3 from Pos()
+		vec := new(example.Vec3)
+		vec = monster.Pos(vec)
+		if vec == nil {
+			fail("vec3 initialization failed")
+		}
 
-	// the position of test0 and test1 are swapped in monsterdata_java_wire
-	// and monsterdata_test_wire, so ignore ordering
-	v0 := test0.A()
-	v1 := test0.B()
-	v2 := test1.A()
-	v3 := test1.B()
-	sum := int(v0) + int(v1) + int(v2) + int(v3)
+		// check that new allocs equal given ones:
+		vec2 := monster.Pos(nil)
+		if !reflect.DeepEqual(vec, vec2) {
+			fail("fresh allocation failed")
+		}
 
-	if 100 != sum {
-		fail(FailString("test0 and test1 sum", 100, sum))
-	}
+		// verify the properties of the Vec3
+		if got := vec.X(); float32(1.0) != got {
+			fail(FailString("Pos.X", float32(1.0), got))
+		}
 
-	if got := monster.TestarrayofstringLength(); 2 != got {
-		fail(FailString("Testarrayofstring length", 2, got))
-	}
+		if got := vec.Y(); float32(2.0) != got {
+			fail(FailString("Pos.Y", float32(2.0), got))
+		}
 
-	if got := monster.Testarrayofstring(0); !bytes.Equal([]byte("test1"), got) {
-		fail(FailString("Testarrayofstring(0)", "test1", got))
-	}
+		if got := vec.Z(); float32(3.0) != got {
+			fail(FailString("Pos.Z", float32(3.0), got))
+		}
 
-	if got := monster.Testarrayofstring(1); !bytes.Equal([]byte("test2"), got) {
-		fail(FailString("Testarrayofstring(1)", "test2", got))
+		if got := vec.Test1(); float64(3.0) != got {
+			fail(FailString("Pos.Test1", float64(3.0), got))
+		}
+
+		if got := vec.Test2(); int8(2) != got {
+			fail(FailString("Pos.Test2", int8(2), got))
+		}
+
+		// initialize a Test from Test3(...)
+		t := new(example.Test)
+		t = vec.Test3(t)
+		if t == nil {
+			fail("vec.Test3(&t) failed")
+		}
+
+		// check that new allocs equal given ones:
+		t2 := vec.Test3(nil)
+		if !reflect.DeepEqual(t, t2) {
+			fail("fresh allocation failed")
+		}
+
+		// verify the properties of the Test
+		if got := t.A(); int16(5) != got {
+			fail(FailString("t.A()", int16(5), got))
+		}
+
+		if got := t.B(); int8(6) != got {
+			fail(FailString("t.B()", int8(6), got))
+		}
+
+		if got := monster.TestType(); example.AnyMonster != got {
+			fail(FailString("monster.TestType()", example.AnyMonster, got))
+		}
+
+		// initialize a Table from a union field Test(...)
+		var table2 flatbuffers.Table
+		if ok := monster.Test(&table2); !ok {
+			fail("monster.Test(&monster2) failed")
+		}
+
+		// initialize a Monster from the Table from the union
+		var monster2 example.Monster
+		monster2.Init(table2.Bytes, table2.Pos)
+
+		if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
+			fail(FailString("monster2.Name()", "Fred", got))
+		}
+
+		inventorySlice := monster.InventoryBytes()
+		if len(inventorySlice) != monster.InventoryLength() {
+			fail(FailString("len(monster.InventoryBytes) != monster.InventoryLength", len(inventorySlice), monster.InventoryLength()))
+		}
+
+		if got := monster.InventoryLength(); 5 != got {
+			fail(FailString("monster.InventoryLength", 5, got))
+		}
+
+		invsum := 0
+		l := monster.InventoryLength()
+		for i := 0; i < l; i++ {
+			v := monster.Inventory(i)
+			if v != inventorySlice[i] {
+				fail(FailString("monster inventory slice[i] != Inventory(i)", v, inventorySlice[i]))
+			}
+			invsum += int(v)
+		}
+		if invsum != 10 {
+			fail(FailString("monster inventory sum", 10, invsum))
+		}
+
+		if got := monster.Test4Length(); 2 != got {
+			fail(FailString("monster.Test4Length()", 2, got))
+		}
+
+		var test0 example.Test
+		ok := monster.Test4(&test0, 0)
+		if !ok {
+			fail(FailString("monster.Test4(&test0, 0)", true, ok))
+		}
+
+		var test1 example.Test
+		ok = monster.Test4(&test1, 1)
+		if !ok {
+			fail(FailString("monster.Test4(&test1, 1)", true, ok))
+		}
+
+		// the position of test0 and test1 are swapped in monsterdata_java_wire
+		// and monsterdata_test_wire, so ignore ordering
+		v0 := test0.A()
+		v1 := test0.B()
+		v2 := test1.A()
+		v3 := test1.B()
+		sum := int(v0) + int(v1) + int(v2) + int(v3)
+
+		if 100 != sum {
+			fail(FailString("test0 and test1 sum", 100, sum))
+		}
+
+		if got := monster.TestarrayofstringLength(); 2 != got {
+			fail(FailString("Testarrayofstring length", 2, got))
+		}
+
+		if got := monster.Testarrayofstring(0); !bytes.Equal([]byte("test1"), got) {
+			fail(FailString("Testarrayofstring(0)", "test1", got))
+		}
+
+		if got := monster.Testarrayofstring(1); !bytes.Equal([]byte("test2"), got) {
+			fail(FailString("Testarrayofstring(1)", "test2", got))
+		}
 	}
 }
 
@@ -1161,6 +1166,38 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	return b.Bytes, b.Head()
 }
 
+// CheckTableAccessors checks that the table accessors work as expected.
+func CheckTableAccessors(fail func(string, ...interface{})) {
+	// test struct accessor
+	b := flatbuffers.NewBuilder(0)
+	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 4, 5, 6)
+	b.Finish(pos)
+	vec3Bytes := b.FinishedBytes()
+	vec3 := &example.Vec3{}
+	flatbuffers.GetRootAs(vec3Bytes, 0, vec3)
+
+	if bytes.Compare(vec3Bytes, vec3.Table().Bytes) != 0 {
+		fail("invalid vec3 table")
+	}
+
+	// test table accessor
+	b = flatbuffers.NewBuilder(0)
+	str := b.CreateString("MyStat")
+	example.StatStart(b)
+	example.StatAddId(b, str)
+	example.StatAddVal(b, 12345678)
+	example.StatAddCount(b, 12345)
+	pos = example.StatEnd(b)
+	b.Finish(pos)
+	statBytes := b.FinishedBytes()
+	stat := &example.Stat{}
+	flatbuffers.GetRootAs(statBytes, 0, stat)
+
+	if bytes.Compare(statBytes, stat.Table().Bytes) != 0 {
+		fail("invalid stat table")
+	}
+}
+
 // CheckVtableDeduplication verifies that vtables are deduplicated.
 func CheckVtableDeduplication(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)
@@ -1214,9 +1251,9 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 			len(want), want, len(got), got)
 	}
 
-	table0 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
-	table1 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
-	table2 := &flatbuffers.Table{b.Bytes, flatbuffers.UOffsetT(len(b.Bytes)) - obj2}
+	table0 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
+	table1 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
+	table2 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj2}
 
 	testTable := func(tab *flatbuffers.Table, a flatbuffers.VOffsetT, b, c, d byte) {
 		// vtable size

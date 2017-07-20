@@ -40,7 +40,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/base.h"
+
 
 namespace flatbuffers {
 
@@ -71,9 +72,8 @@ template<> inline std::string NumToString<double>(double t) {
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
   auto p = s.find_last_not_of('0');
   if (p != std::string::npos) {
-    s.resize(p + 1);  // Strip trailing zeroes.
-    if (s[s.size() - 1] == '.')
-      s.erase(s.size() - 1, 1);  // Strip '.' if a whole number.
+    // Strip trailing zeroes. If it is a whole number, keep one zero.
+    s.resize(p + (s[p] == '.' ? 2 : 1));
   }
   return s;
 }
@@ -95,7 +95,8 @@ inline std::string IntToStringHex(int i, int xdigits) {
 }
 
 // Portable implementation of strtoll().
-inline int64_t StringToInt(const char *str, char **endptr = nullptr, int base = 10) {
+inline int64_t StringToInt(const char *str, char **endptr = nullptr,
+                           int base = 10) {
   #ifdef _MSC_VER
     return _strtoi64(str, endptr, base);
   #else
@@ -104,7 +105,8 @@ inline int64_t StringToInt(const char *str, char **endptr = nullptr, int base = 
 }
 
 // Portable implementation of strtoull().
-inline int64_t StringToUInt(const char *str, char **endptr = nullptr, int base = 10) {
+inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
+                             int base = 10) {
   #ifdef _MSC_VER
     return _strtoui64(str, endptr, base);
   #else
@@ -155,16 +157,20 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
   return SaveFile(name, buf.c_str(), buf.size(), binary);
 }
 
-// Functionality for minimalistic portable path handling:
+// Functionality for minimalistic portable path handling.
 
-static const char kPosixPathSeparator = '/';
-#ifdef _WIN32
-static const char kPathSeparator = '\\';
+// The functions below behave correctly regardless of whether posix ('/') or
+// Windows ('/' or '\\') separators are used.
+
+// Any new separators inserted are always posix.
+
+// We internally store paths in posix format ('/'). Paths supplied
+// by the user should go through PosixPath to ensure correct behavior
+// on Windows when paths are string-compared.
+
+static const char kPathSeparator = '/';
+static const char kPathSeparatorWindows = '\\';
 static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
-#else
-static const char kPathSeparator = kPosixPathSeparator;
-static const char *PathSeparatorSet = "/";
-#endif // _WIN32
 
 // Returns the path with the extension, if any, removed.
 inline std::string StripExtension(const std::string &filepath) {
@@ -195,11 +201,22 @@ inline std::string StripFileName(const std::string &filepath) {
 inline std::string ConCatPathFileName(const std::string &path,
                                       const std::string &filename) {
   std::string filepath = path;
-  if (path.length() && path[path.size() - 1] != kPathSeparator &&
-                       path[path.size() - 1] != kPosixPathSeparator)
-    filepath += kPathSeparator;
+  if (filepath.length()) {
+    if (filepath.back() == kPathSeparatorWindows) {
+      filepath.back() = kPathSeparator;
+    } else if (filepath.back() != kPathSeparator) {
+      filepath += kPathSeparator;
+    }
+  }
   filepath += filename;
   return filepath;
+}
+
+// Replaces any '\\' separators with '/'
+inline std::string PosixPath(const char *path) {
+  std::string p = path;
+  std::replace(p.begin(), p.end(), '\\', '/');
+  return p;
 }
 
 // This function ensure a directory exists, by recursively
@@ -341,6 +358,72 @@ inline std::string WordWrap(const std::string in, size_t max_length,
   wrapped += line;
 
   return wrapped;
+}
+
+inline bool EscapeString(const char *s, size_t length, std::string *_text,
+                         bool allow_non_utf8) {
+  std::string &text = *_text;
+  text += "\"";
+  for (uoffset_t i = 0; i < length; i++) {
+    char c = s[i];
+    switch (c) {
+      case '\n': text += "\\n"; break;
+      case '\t': text += "\\t"; break;
+      case '\r': text += "\\r"; break;
+      case '\b': text += "\\b"; break;
+      case '\f': text += "\\f"; break;
+      case '\"': text += "\\\""; break;
+      case '\\': text += "\\\\"; break;
+      default:
+        if (c >= ' ' && c <= '~') {
+          text += c;
+        } else {
+          // Not printable ASCII data. Let's see if it's valid UTF-8 first:
+          const char *utf8 = s + i;
+          int ucc = FromUTF8(&utf8);
+          if (ucc < 0) {
+            if (allow_non_utf8) {
+              text += "\\x";
+              text += IntToStringHex(static_cast<uint8_t>(c), 2);
+            } else {
+              // There are two cases here:
+              //
+              // 1) We reached here by parsing an IDL file. In that case,
+              // we previously checked for non-UTF-8, so we shouldn't reach
+              // here.
+              //
+              // 2) We reached here by someone calling GenerateText()
+              // on a previously-serialized flatbuffer. The data might have
+              // non-UTF-8 Strings, or might be corrupt.
+              //
+              // In both cases, we have to give up and inform the caller
+              // they have no JSON.
+              return false;
+            }
+          } else {
+            if (ucc <= 0xFFFF) {
+              // Parses as Unicode within JSON's \uXXXX range, so use that.
+              text += "\\u";
+              text += IntToStringHex(ucc, 4);
+            } else if (ucc <= 0x10FFFF) {
+              // Encode Unicode SMP values to a surrogate pair using two \u escapes.
+              uint32_t base = ucc - 0x10000;
+              auto high_surrogate = (base >> 10) + 0xD800;
+              auto low_surrogate = (base & 0x03FF) + 0xDC00;
+              text += "\\u";
+              text += IntToStringHex(high_surrogate, 4);
+              text += "\\u";
+              text += IntToStringHex(low_surrogate, 4);
+            }
+            // Skip past characters recognized.
+            i = static_cast<uoffset_t>(utf8 - s - 1);
+          }
+        }
+        break;
+    }
+  }
+  text += "\"";
+  return true;
 }
 
 }  // namespace flatbuffers

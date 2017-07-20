@@ -30,6 +30,15 @@ namespace flatbuffers {
 
 // ------------------------- GETTERS -------------------------
 
+inline bool IsScalar (reflection::BaseType t) { return t >= reflection::UType &&
+                                                       t <= reflection::Double; }
+inline bool IsInteger(reflection::BaseType t) { return t >= reflection::UType &&
+                                                       t <= reflection::ULong; }
+inline bool IsFloat  (reflection::BaseType t) { return t == reflection::Float ||
+                                                       t == reflection::Double; }
+inline bool IsLong   (reflection::BaseType t) { return t == reflection::Long ||
+                                                       t == reflection::ULong; }
+
 // Size of a basic type, don't use with structs.
 inline size_t GetTypeSize(reflection::BaseType base_type) {
   // This needs to correspond to the BaseType enum.
@@ -56,6 +65,18 @@ inline Table *GetAnyRoot(uint8_t *flatbuf) {
 }
 inline const Table *GetAnyRoot(const uint8_t *flatbuf) {
   return GetRoot<Table>(flatbuf);
+}
+
+// Get a field's default, if you know it's an integer, and its exact type.
+template<typename T> T GetFieldDefaultI(const reflection::Field &field) {
+  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
+  return static_cast<T>(field.default_integer());
+}
+
+// Get a field's default, if you know it's floating point and its exact type.
+template<typename T> T GetFieldDefaultF(const reflection::Field &field) {
+  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
+  return static_cast<T>(field.default_real());
 }
 
 // Get a field, if you know it's an integer, and its exact type.
@@ -103,6 +124,22 @@ inline Table *GetFieldT(const Table &table,
   assert(field.type()->base_type() == reflection::Obj ||
          field.type()->base_type() == reflection::Union);
   return table.GetPointer<Table *>(field.offset());
+}
+
+// Get a field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Table &table,
+                                    const reflection::Field &field) {
+  // TODO: This does NOT check if the field is a table or struct, but we'd need
+  // access to the schema to check the is_struct flag.
+  assert(field.type()->base_type() == reflection::Obj);
+  return table.GetStruct<const Struct *>(field.offset());
+}
+
+// Get a structure's field, if you know it's a struct.
+inline const Struct *GetFieldStruct(const Struct &structure,
+                                    const reflection::Field &field) {
+  assert(field.type()->base_type() == reflection::Obj);
+  return structure.GetStruct<const Struct *>(field.offset());
 }
 
 // Raw helper functions used below: get any value in memory as a 64bit int, a
@@ -226,8 +263,19 @@ template<typename T> T *GetAnyFieldAddressOf(const Struct &st,
 // Set any scalar field, if you know its exact type.
 template<typename T> bool SetField(Table *table, const reflection::Field &field,
                                    T val) {
-  assert(sizeof(T) == GetTypeSize(field.type()->base_type()));
-  return table->SetField(field.offset(), val);
+  reflection::BaseType type = field.type()->base_type();
+  if (!IsScalar(type)) {
+    return false;
+  }
+  assert(sizeof(T) == GetTypeSize(type));
+  T def;
+  if (IsInteger(type)) {
+    def = GetFieldDefaultI<T>(field);
+  } else {
+    assert(IsFloat(type));
+    def = GetFieldDefaultF<T>(field);
+  }
+  return table->SetField(field.offset(), val, def);
 }
 
 // Raw helper functions used below: set any value in memory as a 64bit int, a
@@ -242,7 +290,7 @@ void SetAnyValueS(reflection::BaseType type, uint8_t *data, const char *val);
 inline bool SetAnyFieldI(Table *table, const reflection::Field &field,
                          int64_t val) {
   auto field_ptr = table->GetAddressOf(field.offset());
-  if (!field_ptr) return false;
+  if (!field_ptr) return val == GetFieldDefaultI<int64_t>(field);
   SetAnyValueI(field.type()->base_type(), field_ptr, val);
   return true;
 }
@@ -251,7 +299,7 @@ inline bool SetAnyFieldI(Table *table, const reflection::Field &field,
 inline bool SetAnyFieldF(Table *table, const reflection::Field &field,
                          double val) {
   auto field_ptr = table->GetAddressOf(field.offset());
-  if (!field_ptr) return false;
+  if (!field_ptr) return val == GetFieldDefaultF<double>(field);
   SetAnyValueF(field.type()->base_type(), field_ptr, val);
   return true;
 }
@@ -427,6 +475,15 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Object &objectdef,
                                 const Table &table,
                                 bool use_string_pooling = false);
+
+// Verifies the provided flatbuffer using reflection.
+// root should point to the root type for this flatbuffer.
+// buf should point to the start of flatbuffer data.
+// length specifies the size of the flatbuffer data.
+bool Verify(const reflection::Schema &schema,
+            const reflection::Object &root,
+            const uint8_t *buf,
+            size_t length);
 
 }  // namespace flatbuffers
 

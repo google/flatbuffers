@@ -29,6 +29,11 @@ struct Vec3 (force_align: 16) {
   test3:Test;
 }
 
+struct Ability {
+  id:uint(key);
+  distance:uint;
+}
+
 table Stat {
   id:string;
   val:long;
@@ -50,6 +55,7 @@ table Monster {
   testarrayofstring:[string] (id: 10);
   testarrayofstring2:[string] (id: 28);
   testarrayofbools:[bool] (id: 24);
+  testarrayofsortedstruct:[Ability] (id: 29);
   enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
   test4:[Test] (id: 9);
@@ -67,11 +73,12 @@ table Monster {
   testf:float = 3.14159 (id:25);
   testf2:float = 3 (id:26);
   testf3:float (id:27);
+  flex:[ubyte] (id:30, flexbuffer);
 }
 
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
-  Retrieve(Stat):Monster (idempotent);
+  Retrieve(Stat):Monster (streaming: "server", idempotent);
 }
 
 root_type Monster;

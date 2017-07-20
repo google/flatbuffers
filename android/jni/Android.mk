@@ -24,7 +24,9 @@ LOCAL_PATH := $(call realpath-portable,$(LOCAL_PATH))
 include $(CLEAR_VARS)
 LOCAL_MODULE := flatbuffers
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_CPPFLAGS := -std=c++11 -fexceptions -Wall -Wno-literal-suffix
+LOCAL_EXPORT_CPPFLAGS := -std=c++11 -fexceptions -Wall \
+    -DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+
 include $(BUILD_STATIC_LIBRARY)
 
 # static library that additionally includes text parsing/generation/reflection
@@ -34,7 +36,8 @@ LOCAL_MODULE := flatbuffers_extra
 LOCAL_SRC_FILES := src/idl_parser.cpp \
                    src/idl_gen_text.cpp \
                    src/reflection.cpp \
-                   src/util.cpp
+                   src/util.cpp \
+                   src/code_generators.cpp
 LOCAL_STATIC_LIBRARIES := flatbuffers
 include $(BUILD_STATIC_LIBRARY)
 

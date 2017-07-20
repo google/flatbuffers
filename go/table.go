@@ -10,7 +10,7 @@ type Table struct {
 
 // Offset provides access into the Table's vtable.
 //
-// Deprecated fields are ignored by checking against the vtable's length.
+// Fields which are deprecated are ignored by checking against the vtable's length.
 func (t *Table) Offset(vtableOffset VOffsetT) VOffsetT {
 	vtable := UOffsetT(SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
 	if vtableOffset < t.GetVOffsetT(vtable) {

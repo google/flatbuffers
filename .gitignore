@@ -48,6 +48,7 @@ tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
 tests/unicode_test.mon
+tests/ts/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -69,3 +70,8 @@ build/VS2010/ipch/**/*.ipch
 dub.selections.json
 *.so
 Testing/Temporary
+.cproject
+.settings/
+.project
+net/**/obj
+node_modules/

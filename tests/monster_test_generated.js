@@ -398,7 +398,7 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
 
 /**
  * @param {MyGame.Example.Test=} obj
- * @returns {MyGame.Example.Test}
+ * @returns {MyGame.Example.Test|null}
  */
 MyGame.Example.Vec3.prototype.test3 = function(obj) {
   return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb);
@@ -429,6 +429,89 @@ MyGame.Example.Vec3.createVec3 = function(builder, x, y, z, test1, test2, test3_
   builder.writeFloat32(z);
   builder.writeFloat32(y);
   builder.writeFloat32(x);
+  return builder.offset();
+};
+
+/**
+ * @constructor
+ */
+MyGame.Example.Ability = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.Ability}
+ */
+MyGame.Example.Ability.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Ability.prototype.id = function() {
+  return this.bb.readUint32(this.bb_pos);
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.Ability.prototype.mutate_id = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 0);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Ability.prototype.distance = function() {
+  return this.bb.readUint32(this.bb_pos + 4);
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.Ability.prototype.mutate_distance = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} id
+ * @param {number} distance
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Ability.createAbility = function(builder, id, distance) {
+  builder.prep(4, 8);
+  builder.writeInt32(distance);
+  builder.writeInt32(id);
   return builder.offset();
 };
 
@@ -469,7 +552,7 @@ MyGame.Example.Stat.getRootAsStat = function(bb, obj) {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
 MyGame.Example.Stat.prototype.id = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -609,7 +692,7 @@ MyGame.Example.Monster.bufferHasIdentifier = function(bb) {
 
 /**
  * @param {MyGame.Example.Vec3=} obj
- * @returns {MyGame.Example.Vec3}
+ * @returns {MyGame.Example.Vec3|null}
  */
 MyGame.Example.Monster.prototype.pos = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
@@ -664,7 +747,7 @@ MyGame.Example.Monster.prototype.mutate_hp = function(value) {
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @returns {string|Uint8Array|null}
  */
 MyGame.Example.Monster.prototype.name = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 10);
@@ -810,7 +893,7 @@ MyGame.Example.Monster.prototype.testarrayoftablesLength = function() {
 
 /**
  * @param {MyGame.Example.Monster=} obj
- * @returns {MyGame.Example.Monster}
+ * @returns {MyGame.Example.Monster|null}
  */
 MyGame.Example.Monster.prototype.enemy = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 28);
@@ -844,7 +927,7 @@ MyGame.Example.Monster.prototype.testnestedflatbufferArray = function() {
 
 /**
  * @param {MyGame.Example.Stat=} obj
- * @returns {MyGame.Example.Stat}
+ * @returns {MyGame.Example.Stat|null}
  */
 MyGame.Example.Monster.prototype.testempty = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 32);
@@ -1171,10 +1254,53 @@ MyGame.Example.Monster.prototype.testarrayofstring2Length = function() {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Ability=} obj
+ * @returns {MyGame.Example.Ability}
+ */
+MyGame.Example.Monster.prototype.testarrayofsortedstruct = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 62);
+  return offset ? (obj || new MyGame.Example.Ability).__init(this.bb.__vector(this.bb_pos + offset) + index * 8, this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testarrayofsortedstructLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 62);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.flex = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.flexLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Uint8Array}
+ */
+MyGame.Example.Monster.prototype.flexArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(29);
+  builder.startObject(31);
 };
 
 /**
@@ -1533,6 +1659,51 @@ MyGame.Example.Monster.createTestarrayofstring2Vector = function(builder, data) 
  */
 MyGame.Example.Monster.startTestarrayofstring2Vector = function(builder, numElems) {
   builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testarrayofsortedstructOffset
+ */
+MyGame.Example.Monster.addTestarrayofsortedstruct = function(builder, testarrayofsortedstructOffset) {
+  builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestarrayofsortedstructVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} flexOffset
+ */
+MyGame.Example.Monster.addFlex = function(builder, flexOffset) {
+  builder.addFieldOffset(30, flexOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createFlexVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startFlexVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**

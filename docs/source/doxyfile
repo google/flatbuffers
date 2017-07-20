@@ -759,11 +759,13 @@ INPUT = "FlatBuffers.md" \
         "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
+        "FlexBuffers.md" \
         "Internals.md" \
         "Grammar.md" \
         "../../CONTRIBUTING.md" \
         "Tutorial.md" \
         "GoApi.md" \
+        "gRPC/CppUsage.md" \
         "groups" \
         "../../java/com/google/flatbuffers" \
         "../../python/flatbuffers/builder.py" \
@@ -882,21 +884,21 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = "GoApi_generated.txt"
+EXAMPLE_PATH           = "GoApi_generated.txt" "../../grpc/samples"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       = *
+EXAMPLE_PATTERNS       = *.cpp *.h *.txt *.fbs
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands
 # irrespective of the value of the RECURSIVE tag.
 # The default value is: NO.
 
-EXAMPLE_RECURSIVE      = NO
+EXAMPLE_RECURSIVE      = YES
 
 # The IMAGE_PATH tag can be used to specify one or more files or directories
 # that contain images that are to be included in the documentation (see the
