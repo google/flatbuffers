@@ -425,12 +425,13 @@ struct IDLOptions {
 
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
-  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+  ParserState() : cursor_(nullptr), line_(1), token_(-1), is_bool_(false) {}
 
  protected:
   const char *cursor_;
   int line_;  // the current line being parsed
   int token_;
+  bool is_bool_;
 
   std::string attribute_;
   std::vector<std::string> doc_comment_;

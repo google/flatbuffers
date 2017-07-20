@@ -1591,7 +1591,7 @@ void FlexBuffersTest() {
                            flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
 
   // Write the equivalent of:
-  // { vec: [ -100, "Fred", 4.0 ], bar: [ 1, 2, 3 ], foo: 100 }
+  // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ], foo: 100, bool: true, mymap: { foo: "Fred", sbool1 : "true", sbool2: "false", sbool3: "0", sbool3: "1" } }
 #ifndef FLATBUFFERS_CPP98_STL
   // It's possible to do this without std::function support as well.
   slb.Map([&]() {
@@ -1601,13 +1601,19 @@ void FlexBuffersTest() {
       slb.IndirectFloat(4.0f);
       uint8_t blob[] = { 77 };
       slb.Blob(blob, 1);
+      slb += false;
     });
     int ints[] = { 1, 2, 3 };
     slb.Vector("bar", ints, 3);
     slb.FixedTypedVector("bar3", ints, 3);
+    slb.Bool("bool", true);
     slb.Double("foo", 100);
     slb.Map("mymap", [&]() {
       slb.String("foo", "Fred");  // Testing key and string reuse.
+      slb.String("sbool1", "true");
+      slb.String("sbool2", "false");
+      slb.String("sbool3", "1");
+      slb.String("sbool4", "0");
     });
   });
   slb.Finish();
@@ -1637,9 +1643,9 @@ void FlexBuffersTest() {
   printf("\n");
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
-  TEST_EQ(map.size(), 5);
+  TEST_EQ(map.size(), 6);
   auto vec = map["vec"].AsVector();
-  TEST_EQ(vec.size(), 4);
+  TEST_EQ(vec.size(), 5);
   TEST_EQ(vec[0].AsInt64(), -100);
   TEST_EQ_STR(vec[1].AsString().c_str(), "Fred");
   TEST_EQ(vec[1].AsInt64(), 0);  // Number parsing failed.
@@ -1652,17 +1658,26 @@ void FlexBuffersTest() {
   auto blob = vec[3].AsBlob();
   TEST_EQ(blob.size(), 1);
   TEST_EQ(blob.data()[0], 77);
+  TEST_EQ(vec[4].IsBool(), true);  // This is a boolean
+  TEST_EQ(vec[4].AsBool(), false);  // This is false
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
   auto tvec3 = map["bar3"].AsFixedTypedVector();
   TEST_EQ(tvec3.size(), 3);
   TEST_EQ(tvec3[2].AsInt8(), 3);
+  auto tboolRef = map["bool"];
+  TEST_EQ(tboolRef.AsBool(), true);
+  TEST_EQ(tboolRef.IsBool(), true);
   TEST_EQ(map["foo"].AsUInt8(), 100);
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
   // These should be equal by pointer equality, since key and value are shared.
-  TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[2].AsKey());
+  TEST_EQ(mymap["sbool1"].AsBool(), true);
+  TEST_EQ(mymap["sbool2"].AsBool(), false);
+  TEST_EQ(mymap["sbool3"].AsBool(), true);
+  TEST_EQ(mymap["sbool4"].AsBool(), false);
+  TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[3].AsKey());
   TEST_EQ(mymap.Values()[0].AsString().c_str(), vec[1].AsString().c_str());
   // We can mutate values in the buffer.
   TEST_EQ(vec[0].MutateInt(-99), true);
@@ -1673,11 +1688,13 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].MutateFloat(2.0f), true);
   TEST_EQ(vec[2].AsFloat(), 2.0f);
   TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
+  TEST_EQ(vec[4].MutateBool(true), true);
+  TEST_EQ(vec[4].AsBool(), true);  // This is true
 
   // Parse from JSON:
   flatbuffers::Parser parser;
   slb.Clear();
-  auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\" }";
+  auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb),
           true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
@@ -1686,6 +1703,10 @@ void FlexBuffersTest() {
   TEST_EQ(jvec[0].AsInt64(), 123);
   TEST_EQ(jvec[1].AsDouble(), 456.0);
   TEST_EQ_STR(jmap["b"].AsString().c_str(), "hello");
+  TEST_EQ(jmap["c"].IsBool(), true);
+  TEST_EQ(jmap["c"].AsBool(), true);
+  TEST_EQ(jmap["d"].IsBool(), true);
+  TEST_EQ(jmap["d"].AsBool(), false);
   // And from FlexBuffer back to JSON:
   auto jsonback = jroot.ToString();
   TEST_EQ_STR(jsontest, jsonback.c_str());

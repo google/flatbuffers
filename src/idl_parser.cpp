@@ -252,6 +252,7 @@ CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
   attribute_.clear();
+  is_bool_ = false;
   for (;;) {
     char c = *cursor_++;
     token_ = c;
@@ -392,6 +393,7 @@ CheckedError Parser::Next() {
           if (attribute_ == "true" || attribute_ == "false") {
             attribute_ = NumToString(attribute_ == "true");
             token_ = kTokenIntegerConstant;
+            is_bool_ = true;
             return NoError();
           }
           // Check for declaration keywords:
@@ -2061,7 +2063,11 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       EXPECT(kTokenStringConstant);
       break;
     case kTokenIntegerConstant:
-      builder->Int(StringToInt(attribute_.c_str()));
+      if (is_bool_) {
+          builder->Bool(StringToInt(attribute_.c_str()) ? true : false);
+      } else {
+          builder->Int(StringToInt(attribute_.c_str()));
+      }
       EXPECT(kTokenIntegerConstant);
       break;
     case kTokenFloatConstant:
