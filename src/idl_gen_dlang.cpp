@@ -307,7 +307,7 @@ public:
                  method_start = std::string("\t") + "auto " + MakeCamel(field.name, false);
                  code += method_start + "() { ";
                  code += "return Iterator!(";
-                 code += struct_def.name + ", " + type_name +", \"" + field.name;
+                 code += struct_def.name + ", " + type_name +", \"" + MakeCamel(field.name, false);
                  code += "\")(this); }\n";
            }
 
