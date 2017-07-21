@@ -72,7 +72,7 @@ private: // Methods.
     /// Look up a field in the vtable, return an offset into the object, or 0 if the field is not present.
 	uint __offset(size_t vtableOffset)
     {
-        auto vtable = _pos - _buffer.get!uint(_pos);
+        auto vtable = _pos - _buffer.get!int(_pos);
         return vtableOffset < _buffer.get!short(vtable) ? cast(
             uint) _buffer.get!short(vtable + vtableOffset) : 0;
     }
@@ -80,13 +80,13 @@ private: // Methods.
     /// Retrieve the relative offset stored at "offset".
 	uint __indirect(size_t offset)
     {
-		return cast(uint)(offset + _buffer.get!uint(offset));
+		return cast(uint)(offset + _buffer.get!int(offset));
     }
 
     /// Create a D string from UTF-8 data stored inside the flatbuffer.
 	string __string(size_t offset)
     {
-        offset += _buffer.get!uint(offset);
+        offset += _buffer.get!int(offset);
         auto len = _buffer.get!uint(offset);
         auto startPos = offset + uint.sizeof;
         return cast(string) _buffer.data[startPos .. startPos + len];
@@ -96,7 +96,7 @@ private: // Methods.
 	uint __vector_len(size_t offset)
     {
         offset += _pos;
-        offset += _buffer.get!uint(offset);
+        offset += _buffer.get!int(offset);
         return _buffer.get!uint(offset);
     }
 
@@ -104,14 +104,14 @@ private: // Methods.
 	uint __dvector(size_t offset)
     {
         offset += _pos;
-		return cast(uint)(offset + _buffer.get!uint(offset) + uint.sizeof); // Data starts after the length.
+		return cast(uint)(offset + _buffer.get!int(offset) + int.sizeof); // Data starts after the length.
     }
 
     /// Initialize any Table-derived type to point to the union at the given offset.
 	T __union(T)(size_t offset)
     {
         offset += _pos;
-        return T.init_((offset + _buffer.get!uint(offset)), _buffer);
+        return T.init_((offset + _buffer.get!int(offset)), _buffer);
     }
 
     static bool __has_identifier(ByteBuffer bb, string ident)
