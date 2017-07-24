@@ -103,6 +103,21 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
+
+#ifndef FLATBUFFERS_CPP98_STL
+  // Create a vector of structures from a lambda.
+  auto testv2 = builder.CreateVectorOfStructs<Test>(
+        2, [&](size_t i, Test* s) -> void {
+          *s = tests[i];
+        });
+#else
+  // Create a vector of structures using a plain old C++ function.
+  auto testv2 = builder.CreateVectorOfStructs<Test>(
+        2, [](size_t i, Test* s, void *state) -> void {
+          *s = (reinterpret_cast<Test*>(state))[i];
+        }, tests);
+#endif  // FLATBUFFERS_CPP98_STL
+
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
   flatbuffers::Offset<Monster> mlocs[3];
@@ -181,7 +196,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
                             testv, vecofstrings, vecoftables, 0,
                             nested_flatbuffer_vector, 0, false,
                             0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f,
-                            vecofstrings2, vecofstructs, flex);
+                            vecofstrings2, vecofstructs, flex, testv2);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -323,16 +338,22 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   TEST_EQ(flatbuffers::AlignOf<Test>(), 2UL);
   TEST_EQ(sizeof(Test), 4UL);
 
-  auto tests = monster->test4();
-  TEST_NOTNULL(tests);
-  auto test_0 = tests->Get(0);
-  auto test_1 = tests->Get(1);
-  TEST_EQ(test_0->a(), 10);
-  TEST_EQ(test_0->b(), 20);
-  TEST_EQ(test_1->a(), 30);
-  TEST_EQ(test_1->b(), 40);
-  for (auto it = tests->begin(); it != tests->end(); ++it) {
-    TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
+  const flatbuffers::Vector<const Test *>* tests_array[] = {
+    monster->test4(),
+    monster->test5(),
+  };
+  for (size_t i = 0; i < sizeof(tests_array) / sizeof(tests_array[0]); ++i) {
+    auto tests = tests_array[i];
+    TEST_NOTNULL(tests);
+    auto test_0 = tests->Get(0);
+    auto test_1 = tests->Get(1);
+    TEST_EQ(test_0->a(), 10);
+    TEST_EQ(test_0->b(), 20);
+    TEST_EQ(test_1->a(), 30);
+    TEST_EQ(test_1->b(), 40);
+    for (auto it = tests->begin(); it != tests->end(); ++it) {
+      TEST_EQ(it->a() == 10 || it->a() == 30, true);  // Just testing iterators.
+    }
   }
 
   // Checking for presence of fields:

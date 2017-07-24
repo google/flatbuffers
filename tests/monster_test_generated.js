@@ -1297,10 +1297,28 @@ MyGame.Example.Monster.prototype.flexArray = function() {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Test=} obj
+ * @returns {MyGame.Example.Test}
+ */
+MyGame.Example.Monster.prototype.test5 = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 66);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.test5Length = function() {
+  var offset = this.bb.__offset(this.bb_pos, 66);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(31);
+  builder.startObject(32);
 };
 
 /**
@@ -1704,6 +1722,22 @@ MyGame.Example.Monster.createFlexVector = function(builder, data) {
  */
 MyGame.Example.Monster.startFlexVector = function(builder, numElems) {
   builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} test5Offset
+ */
+MyGame.Example.Monster.addTest5 = function(builder, test5Offset) {
+  builder.addFieldOffset(31, test5Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTest5Vector = function(builder, numElems) {
+  builder.startVector(4, numElems, 2);
 };
 
 /**
