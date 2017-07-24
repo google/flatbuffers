@@ -1543,7 +1543,7 @@ class FlatBufferBuilder
  private:
   // Allocates space for a vector of structures.
   // Must be completed with EndVectorOfStructs().
-  template<typename T> const T* StartVectorOfStructs(size_t vector_size) {
+  template<typename T> T* StartVectorOfStructs(size_t vector_size) {
     StartVector(vector_size * sizeof(T) / AlignOf<T>(), AlignOf<T>());
     return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
   }
