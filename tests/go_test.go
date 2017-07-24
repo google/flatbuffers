@@ -1085,6 +1085,7 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 	b.PrependByteSlot(7, 1, 0)
 	b.PrependUOffsetTSlot(8, mon2, 0)
 	b.PrependUOffsetTSlot(9, test4, 0)
+	b.PrependUOffsetTSlot(9, test5, 0)
 	mon := b.EndObject()
 
 	b.Finish(mon)
