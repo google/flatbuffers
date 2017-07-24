@@ -714,7 +714,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
-    field->nested_flatbuffer = true;
     if (nested->type.base_type != BASE_TYPE_STRING)
       return Error(
             "nested_flatbuffer attribute must be a string (the root type)");
@@ -726,9 +725,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // wasn't defined elsewhere.
     LookupCreateStruct(nested->constant);
 
-    // Keep a pointer to StructDef in attribute to simplify re-use later
+    // Keep a pointer to StructDef in FieldDef to simplify re-use later
     auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
-    nested->type.struct_def = structs_.Lookup(nested_qualified_name);
+    field->nested_flatbuffer = structs_.Lookup(nested_qualified_name);
   }
 
   if (field->attributes.Lookup("flexbuffer")) {
@@ -1134,24 +1133,15 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
   if (token_ == '[') {// backwards compat for 'legacy' ubyte buffers
     ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def));
   } else {
-    EXPECT('{');
-
-    auto nested = field->attributes.Lookup("nested_flatbuffer");
-    assert(nested);
     auto cursor_at_value_begin = cursor_;
     ECHECK(SkipAnyJsonValue());
     std::string substring(cursor_at_value_begin -1 , cursor_ -1);
 
     //create and initialize new parser
     Parser nested_parser;
-    assert(nested);
-    if (nested->type.struct_def) {
-      nested_parser.root_struct_def_ = nested->type.struct_def;  
-    } else {
-      auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
-      nested_parser.root_struct_def_ = nested->type.struct_def = structs_.Lookup(nested_qualified_name);
-    }
-    assert(nested->type.struct_def);
+    assert(field->nested_flatbuffer);
+    nested_parser.root_struct_def_ = field->nested_flatbuffer;  
+
     nested_parser.types_ = types_;
     nested_parser.structs_ = structs_;
     nested_parser.enums_ = enums_;
