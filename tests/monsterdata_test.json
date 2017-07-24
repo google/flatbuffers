@@ -34,6 +34,16 @@
       a: 30
     }
   ],
+  test5: [
+    {
+      a: 10,
+      b: 20
+    },
+    {
+      b: "40",
+      a: 30
+    }
+  ],
   testarrayofstring: [
     "test1",
     "test2"
