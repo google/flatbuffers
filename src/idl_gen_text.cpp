@@ -178,7 +178,7 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
   } else if (fd.flexbuffer) {
     auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
     auto root = flexbuffers::GetRoot(vec->data(), vec->size());
-    root.ToString(true, false, *_text);
+    root.ToString(true, opts.strict_json, *_text);
     return true;
   } else {
     val = IsStruct(fd.value.type)
