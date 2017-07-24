@@ -1133,25 +1133,53 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                           const StructDef *parent_struct_def) {
   if (token_ == '[') {// backwards compat for 'legacy' ubyte buffers
     ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def));
-  }
-  else if (token_ == '{') {
+  } else {
+    EXPECT('{');
+
     auto nested = field->attributes.Lookup("nested_flatbuffer");
     assert(nested);
-    auto cursorAtValueBegin = cursor_;
+    auto cursor_at_value_begin = cursor_;
     ECHECK(SkipAnyJsonValue());
-    std::string substring(cursorAtValueBegin -1 , cursor_ -1);
+    std::string substring(cursor_at_value_begin -1 , cursor_ -1);
 
-    //create new parser
-    Parser nestedParser;
-    InitializeNestedFlatbufferParser(nestedParser, nested);
-    if (!nestedParser.Parse(substring.c_str(), nullptr, nullptr)) {
-      ECHECK(Error(nestedParser.error_));
+    //create and initialize new parser
+    Parser nested_parser;
+    assert(nested);
+    if (nested->type.struct_def) {
+      nested_parser.root_struct_def_ = nested->type.struct_def;  
+    } else {
+      auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
+      nested_parser.root_struct_def_ = nested->type.struct_def = structs_.Lookup(nested_qualified_name);
     }
-    auto off = builder_.CreateVector(nestedParser.builder_.GetBufferPointer(), nestedParser.builder_.GetSize());
+    assert(nested->type.struct_def);
+    nested_parser.types_ = types_;
+    nested_parser.structs_ = structs_;
+    nested_parser.enums_ = enums_;
+    nested_parser.services_ = services_;
+    std::copy(namespaces_.begin(), namespaces_.end(), std::back_inserter(nested_parser.namespaces_));
+    std::copy(known_attributes_.begin(), known_attributes_.end(), std::insert_iterator<decltype(known_attributes_)>(nested_parser.known_attributes_, nested_parser.known_attributes_.end()));
+    nested_parser.opts = opts;
+    nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
+    //done initializing
+
+    //parse JSON substring into new flatbuffer builder using nested_parser
+    if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
+      ECHECK(Error(nested_parser.error_));
+    }
+    auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(), nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
 
-    //clean nestedParser before destruction to avoid deleting the elements in the SymbolTables
-    CleanupNestedFlatbufferParser(nestedParser);
+    //clean nested_parser before destruction to avoid deleting the elements in the SymbolTables
+    nested_parser.types_.dict.clear();
+    nested_parser.types_.vec.clear();
+    nested_parser.structs_.dict.clear();
+    nested_parser.structs_.vec.clear();
+    nested_parser.enums_.dict.clear();
+    nested_parser.enums_.vec.clear();
+    nested_parser.services_.dict.clear();
+    nested_parser.services_.vec.clear();
+    nested_parser.namespaces_.clear();
+    nested_parser.known_attributes_.clear();
   }
   return NoError();
 }
@@ -1348,38 +1376,6 @@ CheckedError Parser::ParseSingleValue(Value &e) {
     if (!match) return TokenError();
   }
   return NoError();
-}
-
-void Parser::InitializeNestedFlatbufferParser(Parser& nestedParser, Value *const nested) {
-  assert(nested);
-  if (nested->type.struct_def) {
-    nestedParser.root_struct_def_ = nested->type.struct_def;  
-  } else {
-    auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
-    nestedParser.root_struct_def_ = nested->type.struct_def = structs_.Lookup(nested_qualified_name);
-  }
-  assert(nested->type.struct_def);
-  nestedParser.types_ = types_;
-  nestedParser.structs_ = structs_;
-  nestedParser.enums_ = enums_;
-  nestedParser.services_ = services_;
-  std::copy(namespaces_.begin(), namespaces_.end(), std::back_inserter(nestedParser.namespaces_));
-  std::copy(known_attributes_.begin(), known_attributes_.end(), std::insert_iterator<decltype(known_attributes_)>(nestedParser.known_attributes_, nestedParser.known_attributes_.end()));
-  nestedParser.opts = opts;
-  nestedParser.uses_flexbuffers_ = uses_flexbuffers_;
-}
-
-void Parser::CleanupNestedFlatbufferParser(Parser& nestedParser) {
-  nestedParser.types_.dict.clear();
-  nestedParser.types_.vec.clear();
-  nestedParser.structs_.dict.clear();
-  nestedParser.structs_.vec.clear();
-  nestedParser.enums_.dict.clear();
-  nestedParser.enums_.vec.clear();
-  nestedParser.services_.dict.clear();
-  nestedParser.services_.vec.clear();
-  nestedParser.namespaces_.clear();
-  nestedParser.known_attributes_.clear();
 }
 
 StructDef *Parser::LookupCreateStruct(const std::string &name,

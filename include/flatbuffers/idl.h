@@ -644,8 +644,6 @@ private:
                                        StructDef *struct_def,
                                        const char *suffix,
                                        BaseType baseType);
-  void InitializeNestedFlatbufferParser(Parser& nestedParser, Value *const attribute);
-  void CleanupNestedFlatbufferParser(Parser&);
 
  public:
   SymbolTable<Type> types_;
