@@ -1140,14 +1140,8 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     //create and initialize new parser
     Parser nested_parser;
     assert(field->nested_flatbuffer);
-    nested_parser.root_struct_def_ = field->nested_flatbuffer;  
-
-    nested_parser.types_ = types_;
-    nested_parser.structs_ = structs_;
+    nested_parser.root_struct_def_ = field->nested_flatbuffer;
     nested_parser.enums_ = enums_;
-    nested_parser.services_ = services_;
-    std::copy(namespaces_.begin(), namespaces_.end(), std::back_inserter(nested_parser.namespaces_));
-    std::copy(known_attributes_.begin(), known_attributes_.end(), std::insert_iterator<decltype(known_attributes_)>(nested_parser.known_attributes_, nested_parser.known_attributes_.end()));
     nested_parser.opts = opts;
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
     //done initializing
@@ -1160,16 +1154,8 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     val.constant = NumToString(off.o);
 
     //clean nested_parser before destruction to avoid deleting the elements in the SymbolTables
-    nested_parser.types_.dict.clear();
-    nested_parser.types_.vec.clear();
-    nested_parser.structs_.dict.clear();
-    nested_parser.structs_.vec.clear();
     nested_parser.enums_.dict.clear();
     nested_parser.enums_.vec.clear();
-    nested_parser.services_.dict.clear();
-    nested_parser.services_.vec.clear();
-    nested_parser.namespaces_.clear();
-    nested_parser.known_attributes_.clear();
   }
   return NoError();
 }
