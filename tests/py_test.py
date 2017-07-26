@@ -15,6 +15,7 @@
 
 import os.path
 import sys
+import imp
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
@@ -25,6 +26,7 @@ import unittest
 
 from flatbuffers import compat
 from flatbuffers.compat import range_func as compat_range
+from flatbuffers.compat import NumpyRequiredForThisFeature
 
 import flatbuffers
 from flatbuffers import number_types as N
@@ -129,6 +131,18 @@ def CheckReadBuffer(buf, offset):
         v = monster.Inventory(i)
         invsum += int(v)
     asserter(invsum == 10)
+
+    try:
+        imp.find_module('numpy')
+        # if numpy exists, then we should be able to get the
+        # vector as a numpy array
+        asserter(monster.InventoryAsNumpy().sum() == 10)
+    except ImportError:
+        # If numpy does not exist, trying to get vector as numpy
+        # array should raise NumpyRequiredForThisFeature. The way
+        # assertRaises has been implemented prevents us from
+        # asserting this error is raised outside of a test case.
+        pass
 
     asserter(monster.Test4Length() == 2)
 
@@ -962,6 +976,15 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(0, mon2.Testnestedflatbuffer(0))
         self.assertEqual(2, mon2.Testnestedflatbuffer(1))
         self.assertEqual(4, mon2.Testnestedflatbuffer(2))
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            self.assertEqual([0, 2, 4], mon2.TestnestedflatbufferAsNumpy().tolist())
+        except ImportError:
+            assertRaises(self,
+                         lambda: mon2.TestnestedflatbufferAsNumpy(),
+                         NumpyRequiredForThisFeature)
 
     def test_nondefault_monster_testempty(self):
         b = flatbuffers.Builder(0)
