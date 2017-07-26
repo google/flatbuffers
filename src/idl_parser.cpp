@@ -1137,23 +1137,22 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     ECHECK(SkipAnyJsonValue());
     std::string substring(cursor_at_value_begin -1 , cursor_ -1);
 
-    //create and initialize new parser
+    // Create and initialize new parser
     Parser nested_parser;
     assert(field->nested_flatbuffer);
     nested_parser.root_struct_def_ = field->nested_flatbuffer;
     nested_parser.enums_ = enums_;
     nested_parser.opts = opts;
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
-    //done initializing
 
-    //parse JSON substring into new flatbuffer builder using nested_parser
+    // Parse JSON substring into new flatbuffer builder using nested_parser
     if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
       ECHECK(Error(nested_parser.error_));
     }
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(), nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
 
-    //clean nested_parser before destruction to avoid deleting the elements in the SymbolTables
+    // Clean nested_parser before destruction to avoid deleting the elements in the SymbolTables
     nested_parser.enums_.dict.clear();
     nested_parser.enums_.vec.clear();
   }

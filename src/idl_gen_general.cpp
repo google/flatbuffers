@@ -1065,7 +1065,7 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       }
     }
   // generate object accessors if is nested_flatbuffer
-  if (field.nested_flatbuffer) {
+  if (field.nested_flatbuffer != nullptr) {
   auto nested = field.attributes.Lookup("nested_flatbuffer");
 	auto nested_type = nested->type.struct_def;
     auto nested_type_name = WrapInNameSpace(*nested_type);
