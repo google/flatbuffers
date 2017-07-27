@@ -378,7 +378,29 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterStart(builder): builder.StartObject(32)
+    # Monster
+    def VectorOfLongs(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(68))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Int64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VectorOfLongsAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(68))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int64Flags, o)
+        return 0
+
+    # Monster
+    def VectorOfLongsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(68))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MonsterStart(builder): builder.StartObject(33)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -420,4 +442,6 @@ def MonsterAddFlex(builder, flex): builder.PrependUOffsetTRelativeSlot(30, flatb
 def MonsterStartFlexVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterAddTest5(builder, test5): builder.PrependUOffsetTRelativeSlot(31, flatbuffers.number_types.UOffsetTFlags.py_type(test5), 0)
 def MonsterStartTest5Vector(builder, numElems): return builder.StartVector(4, numElems, 2)
+def MonsterAddVectorOfLongs(builder, vectorOfLongs): builder.PrependUOffsetTRelativeSlot(32, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfLongs), 0)
+def MonsterStartVectorOfLongsVector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def MonsterEnd(builder): return builder.EndObject()

@@ -19,6 +19,13 @@
     3,
     4
   ],
+  vector_of_longs: [
+      1,
+      100,
+      10000,
+      1000000,
+      100000000
+  ],
   test_type: Monster,
   test: {
     name: "Fred",

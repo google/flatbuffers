@@ -1315,10 +1315,27 @@ MyGame.Example.Monster.prototype.test5Length = function() {
 };
 
 /**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.vectorOfLongs = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfLongsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(32);
+  builder.startObject(33);
 };
 
 /**
@@ -1738,6 +1755,35 @@ MyGame.Example.Monster.addTest5 = function(builder, test5Offset) {
  */
 MyGame.Example.Monster.startTest5Vector = function(builder, numElems) {
   builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ */
+MyGame.Example.Monster.addVectorOfLongs = function(builder, vectorOfLongsOffset) {
+  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfLongsVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfLongsVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
 };
 
 /**

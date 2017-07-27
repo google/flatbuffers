@@ -89,8 +89,12 @@ public struct Monster : IFlatbufferObject
   public bool MutateFlex(int j, byte flex) { int o = __p.__offset(64); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, flex); return true; } else { return false; } }
   public Test? Test5(int j) { int o = __p.__offset(66); return o != 0 ? (Test?)(new Test()).__assign(__p.__vector(o) + j * 4, __p.bb) : null; }
   public int Test5Length { get { int o = __p.__offset(66); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long VectorOfLongs(int j) { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int VectorOfLongsLength { get { int o = __p.__offset(68); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public ArraySegment<byte>? GetVectorOfLongsBytes() { return __p.__vector_as_arraysegment(68); }
+  public bool MutateVectorOfLongs(int j, long vector_of_longs) { int o = __p.__offset(68); if (o != 0) { __p.bb.PutLong(__p.__vector(o) + j * 8, vector_of_longs); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(32); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(33); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -139,6 +143,9 @@ public struct Monster : IFlatbufferObject
   public static void StartFlexVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddTest5(FlatBufferBuilder builder, VectorOffset test5Offset) { builder.AddOffset(31, test5Offset.Value, 0); }
   public static void StartTest5Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 2); }
+  public static void AddVectorOfLongs(FlatBufferBuilder builder, VectorOffset vectorOfLongsOffset) { builder.AddOffset(32, vectorOfLongsOffset.Value, 0); }
+  public static VectorOffset CreateVectorOfLongsVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
+  public static void StartVectorOfLongsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

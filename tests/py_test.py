@@ -132,11 +132,17 @@ def CheckReadBuffer(buf, offset):
         invsum += int(v)
     asserter(invsum == 10)
 
+    for i in range(5):
+        asserter(monster.VectorOfLongs(i) == 10 ** (i * 2))
+
     try:
         imp.find_module('numpy')
         # if numpy exists, then we should be able to get the
         # vector as a numpy array
         asserter(monster.InventoryAsNumpy().sum() == 10)
+        VectorOfLongs = monster.VectorOfLongsAsNumpy()
+        for i in range(5):
+            asserter(VectorOfLongs[i] == 10 ** (i * 2))
     except ImportError:
         # If numpy does not exist, trying to get vector as numpy
         # array should raise NumpyRequiredForThisFeature. The way
@@ -808,6 +814,14 @@ def make_monster_from_generated_code():
     b.PrependUOffsetTRelative(test1)
     testArrayOfString = b.EndVector(2)
 
+    MyGame.Example.Monster.MonsterStartVectorOfLongsVector(b, 5)
+    b.PrependInt64(100000000)
+    b.PrependInt64(1000000)
+    b.PrependInt64(10000)
+    b.PrependInt64(100)
+    b.PrependInt64(1)
+    VectorOfLongs = b.EndVector(5)
+
     MyGame.Example.Monster.MonsterStart(b)
 
     pos = MyGame.Example.Vec3.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
@@ -820,6 +834,7 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddTest(b, mon2)
     MyGame.Example.Monster.MonsterAddTest4(b, test4)
     MyGame.Example.Monster.MonsterAddTestarrayofstring(b, testArrayOfString)
+    MyGame.Example.Monster.MonsterAddVectorOfLongs(b, VectorOfLongs)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     b.Finish(mon)

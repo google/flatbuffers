@@ -75,6 +75,7 @@ table Monster {
   testf2:float = 3 (id:26);
   testf3:float (id:27);
   flex:[ubyte] (id:30, flexbuffer);
+  vector_of_longs:[long] (id:32);
 }
 
 rpc_service MonsterStorage {
