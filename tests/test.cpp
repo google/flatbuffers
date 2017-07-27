@@ -1599,6 +1599,8 @@ void FlexBuffersTest() {
       slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
       slb += "Fred";
       slb.IndirectFloat(4.0f);
+      uint8_t blob[] = { 77 };
+      slb.Blob(blob, 1);
     });
     int ints[] = { 1, 2, 3 };
     slb.Vector("bar", ints, 3);
@@ -1616,6 +1618,8 @@ void FlexBuffersTest() {
       slb3 += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
       slb3 += "Fred";
       slb3.IndirectFloat(4.0f);
+      uint8_t blob[] = { 77 };
+      slb3.Blob(blob, 1);
     }, slb2);
     int ints[] = { 1, 2, 3 };
     slb2.Vector("bar", ints, 3);
@@ -1635,7 +1639,7 @@ void FlexBuffersTest() {
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 5);
   auto vec = map["vec"].AsVector();
-  TEST_EQ(vec.size(), 3);
+  TEST_EQ(vec.size(), 4);
   TEST_EQ(vec[0].AsInt64(), -100);
   TEST_EQ_STR(vec[1].AsString().c_str(), "Fred");
   TEST_EQ(vec[1].AsInt64(), 0);  // Number parsing failed.
@@ -1643,6 +1647,11 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");  // This still works though.
   TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
+  // Test that the blob can be accessed.
+  TEST_EQ(vec[3].IsBlob(), true);
+  auto blob = vec[3].AsBlob();
+  TEST_EQ(blob.size(), 1);
+  TEST_EQ(blob.data()[0], 77);
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
