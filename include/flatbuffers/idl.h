@@ -109,6 +109,7 @@ inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||
                                            t == BASE_TYPE_DOUBLE; }
 inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
                                            t == BASE_TYPE_ULONG; }
+inline bool IsBool   (BaseType t) { return t == BASE_TYPE_BOOL; }
 
 extern const char *const kTypeNames[];
 extern const char kTypeSizes[];
@@ -425,13 +426,12 @@ struct IDLOptions {
 
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
-  ParserState() : cursor_(nullptr), line_(1), token_(-1), is_bool_(false) {}
+  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
 
  protected:
   const char *cursor_;
   int line_;  // the current line being parsed
   int token_;
-  bool is_bool_;
 
   std::string attribute_;
   std::vector<std::string> doc_comment_;

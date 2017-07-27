@@ -185,7 +185,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(Attribute, 270, "attribute") \
   TD(Null, 271, "null") \
   TD(Service, 272, "rpc_service") \
-  TD(NativeInclude, 273, "native_include")
+  TD(NativeInclude, 273, "native_include") \
+  TD(BooleanConstant, 274, "boolean constant")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -252,7 +253,6 @@ CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
   attribute_.clear();
-  is_bool_ = false;
   for (;;) {
     char c = *cursor_++;
     token_ = c;
@@ -392,8 +392,7 @@ CheckedError Parser::Next() {
           // which simplifies our logic downstream.
           if (attribute_ == "true" || attribute_ == "false") {
             attribute_ = NumToString(attribute_ == "true");
-            token_ = kTokenIntegerConstant;
-            is_bool_ = true;
+            token_ = kTokenBooleanConstant;
             return NoError();
           }
           // Check for declaration keywords:
@@ -1340,6 +1339,11 @@ CheckedError Parser::ParseSingleValue(Value &e) {
                          e,
                          BASE_TYPE_INT,
                          &match));
+    ECHECK(TryTypedValue(kTokenBooleanConstant,
+                         IsBool(e.type.base_type),
+                         e,
+                         BASE_TYPE_BOOL,
+                         &match));
     ECHECK(TryTypedValue(kTokenFloatConstant,
                          IsFloat(e.type.base_type),
                          e,
@@ -2009,6 +2013,9 @@ CheckedError Parser::SkipAnyJsonValue() {
     case kTokenFloatConstant:
       EXPECT(kTokenFloatConstant);
       break;
+    case kTokenBooleanConstant:
+      EXPECT(kTokenBooleanConstant);
+      break;
     default:
       return TokenError();
   }
@@ -2063,12 +2070,12 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       EXPECT(kTokenStringConstant);
       break;
     case kTokenIntegerConstant:
-      if (is_bool_) {
-          builder->Bool(StringToInt(attribute_.c_str()) ? true : false);
-      } else {
-          builder->Int(StringToInt(attribute_.c_str()));
-      }
+      builder->Int(StringToInt(attribute_.c_str()));
       EXPECT(kTokenIntegerConstant);
+      break;
+    case kTokenBooleanConstant:
+      builder->Bool(StringToInt(attribute_.c_str()) != 0);
+      EXPECT(kTokenBooleanConstant);
       break;
     case kTokenFloatConstant:
       builder->Double(strtod(attribute_.c_str(), nullptr));
