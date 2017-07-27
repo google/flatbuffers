@@ -1658,25 +1658,23 @@ void FlexBuffersTest() {
   auto blob = vec[3].AsBlob();
   TEST_EQ(blob.size(), 1);
   TEST_EQ(blob.data()[0], 77);
-  TEST_EQ(vec[4].IsBool(), true);  // This is a boolean
-  TEST_EQ(vec[4].AsBool(), false);  // This is false
+  TEST_EQ(vec[3].IsBool(), true);  // Check if type is a bool
+  TEST_EQ(vec[3].AsBool(), false);  // Check if value is false
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
   auto tvec3 = map["bar3"].AsFixedTypedVector();
   TEST_EQ(tvec3.size(), 3);
   TEST_EQ(tvec3[2].AsInt8(), 3);
-  auto tboolRef = map["bool"];
-  TEST_EQ(tboolRef.AsBool(), true);
-  TEST_EQ(tboolRef.IsBool(), true);
+  TEST_EQ(map["bool"].AsBool(), true);
   TEST_EQ(map["foo"].AsUInt8(), 100);
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
   // These should be equal by pointer equality, since key and value are shared.
-  TEST_EQ(mymap["sbool1"].AsBool(), true);
-  TEST_EQ(mymap["sbool2"].AsBool(), false);
-  TEST_EQ(mymap["sbool3"].AsBool(), true);
-  TEST_EQ(mymap["sbool4"].AsBool(), false);
+  TEST_EQ(mymap["sbool1"].AsBool(), true); // The string "true" is casted to bool true
+  TEST_EQ(mymap["sbool2"].AsBool(), false); // The string "false" is casted to bool false
+  TEST_EQ(mymap["sbool3"].AsBool(), true); // A non zero integer string is casted to bool true
+  TEST_EQ(mymap["sbool4"].AsBool(), false); // A zero integer string is casted to bool false
   TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[3].AsKey());
   TEST_EQ(mymap.Values()[0].AsString().c_str(), vec[1].AsString().c_str());
   // We can mutate values in the buffer.
@@ -1688,8 +1686,9 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].MutateFloat(2.0f), true);
   TEST_EQ(vec[2].AsFloat(), 2.0f);
   TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
-  TEST_EQ(vec[4].MutateBool(true), true);
-  TEST_EQ(vec[4].AsBool(), true);  // This is true
+  TEST_EQ(vec[4].AsBool(), false); // Is false before change
+  TEST_EQ(vec[4].MutateBool(true), true); // Can change a bool
+  TEST_EQ(vec[4].AsBool(), true); // Changed bool is now true
 
   // Parse from JSON:
   flatbuffers::Parser parser;
@@ -1703,10 +1702,10 @@ void FlexBuffersTest() {
   TEST_EQ(jvec[0].AsInt64(), 123);
   TEST_EQ(jvec[1].AsDouble(), 456.0);
   TEST_EQ_STR(jmap["b"].AsString().c_str(), "hello");
-  TEST_EQ(jmap["c"].IsBool(), true);
-  TEST_EQ(jmap["c"].AsBool(), true);
-  TEST_EQ(jmap["d"].IsBool(), true);
-  TEST_EQ(jmap["d"].AsBool(), false);
+  TEST_EQ(jmap["c"].IsBool(), true); // Parsed correctly to a bool
+  TEST_EQ(jmap["c"].AsBool(), true); // Parsed correctly to true
+  TEST_EQ(jmap["d"].IsBool(), true); // Parsed correctly to a bool
+  TEST_EQ(jmap["d"].AsBool(), false); // Parsed correctly to false
   // And from FlexBuffer back to JSON:
   auto jsonback = jroot.ToString();
   TEST_EQ_STR(jsontest, jsonback.c_str());
