@@ -365,6 +365,22 @@ class Reference {
   bool IsMap() const { return type_ == TYPE_MAP; }
   bool IsBlob() const { return type_ == TYPE_BLOB; }
 
+  bool AsBool() const {
+    if (type_ == TYPE_BOOL) {
+      return ReadUInt64(data_, parent_width_) != 0;
+    } else if (type_ == TYPE_STRING) {
+      const char * tmp = AsString().c_str();
+      if (strcmp(tmp, "true") == 0) {
+        return true;
+      }
+      if (strcmp(tmp, "false") == 0) {
+        return false;
+      }
+      return flatbuffers::StringToUInt(tmp) != 0;
+    }
+    return AsUInt64() != 0;
+  }
+
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
   // Truncates floats, strings are attempted to be parsed for a number,
   // vectors/maps return their size. Returns 0 if all else fails.
@@ -383,41 +399,10 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<int64_t>(AsVector().size());
-      case TYPE_BOOL: return static_cast<int64_t>(AsBool());
+      case TYPE_BOOL: return ReadInt64(data_, parent_width_);
       default:
       // Convert other things to int.
       return 0;
-    }
-  }
-
-  bool AsBool() const {
-    if (type_ == TYPE_BOOL) {
-        return ReadUInt64(data_, parent_width_) != 0;
-    }
-    switch (type_) {
-      case TYPE_INT: return ReadInt64(data_, parent_width_) != 0;
-      case TYPE_INDIRECT_INT: return ReadInt64(Indirect(), byte_width_) != 0;
-      case TYPE_UINT: return ReadUInt64(data_, parent_width_) != 0;
-      case TYPE_INDIRECT_UINT: return ReadUInt64(Indirect(), byte_width_) != 0;
-      case TYPE_FLOAT: return ReadDouble(data_, parent_width_) != 0;
-      case TYPE_INDIRECT_FLOAT: return ReadDouble(Indirect(), byte_width_) != 0.0;
-      case TYPE_STRING:
-      {
-          const char * tmp = AsString().c_str();
-          if (strcmp(tmp, "true") == 0) {
-            return true;
-          }
-          if (strcmp(tmp, "false") == 0) {
-            return false;
-          }
-          return flatbuffers::StringToInt(tmp) != 0;
-      }
-      case TYPE_VECTOR:
-      case TYPE_MAP:
-          return AsVector().size() != 0;
-      default:
-      // Everything else is false
-      return false;
     }
   }
 
@@ -442,7 +427,7 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToUInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<uint64_t>(AsVector().size());
-      case TYPE_BOOL: return static_cast<uint64_t>(AsBool());
+      case TYPE_BOOL: return ReadUInt64(data_, parent_width_);
       default:
       // Convert other things to uint.
       return 0;
@@ -470,7 +455,8 @@ class Reference {
       case TYPE_NULL: return 0.0;
       case TYPE_STRING: return strtod(AsString().c_str(), nullptr);
       case TYPE_VECTOR: return static_cast<double>(AsVector().size());
-      case TYPE_BOOL: return static_cast<double>(AsBool());
+      case TYPE_BOOL: return static_cast<double>(
+                               ReadUInt64(data_, parent_width_));
       default:
       // Convert strings and other things to float.
       return 0;
@@ -1281,7 +1267,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
     Value() : i_(0), type_(TYPE_NULL), min_bit_width_(BIT_WIDTH_8) {}
 
-    Value(bool b) : u_(b ? 1 : 0), type_(TYPE_BOOL), min_bit_width_(BIT_WIDTH_8) {}
+    Value(bool b) : u_(static_cast<uint64_t>(b)), type_(TYPE_BOOL), min_bit_width_(BIT_WIDTH_8) {}
 
     Value(int64_t i, Type t, BitWidth bw)
       : i_(i), type_(t), min_bit_width_(bw) {}
