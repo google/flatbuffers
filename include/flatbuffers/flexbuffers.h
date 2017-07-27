@@ -230,14 +230,15 @@ class String : public Sized {
 
 class Blob : public Sized {
  public:
-  Blob(const uint8_t *data, uint8_t byte_width)
-    : Sized(data, byte_width) {}
+  Blob(const uint8_t *data_buf, uint8_t byte_width)
+    : Sized(data_buf, byte_width) {}
 
   static Blob EmptyBlob() {
     static const uint8_t empty_blob[] = { 0/*len*/ };
     return Blob(empty_blob + 1, 1);
   }
   bool IsTheEmptyBlob() const { return data_ == EmptyBlob().data_; }
+  const uint8_t *data() const { return data_; }
 };
 
 class Vector : public Sized {
@@ -360,6 +361,7 @@ class Reference {
   bool IsKey() const { return type_ == TYPE_KEY; }
   bool IsVector() const { return type_ == TYPE_VECTOR || type_ == TYPE_MAP; }
   bool IsMap() const { return type_ == TYPE_MAP; }
+  bool IsBlob() const { return type_ == TYPE_BLOB; }
 
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
   // Truncates floats, strings are attempted to be parsed for a number,
