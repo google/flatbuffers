@@ -110,7 +110,8 @@
         "testarrayofsortedstruct" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Ability" } },
         "flex" : { "type" : "array", "items" : { "type" : "number" } },
         "test5" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
-        "vector_of_longs" : { "type" : "array", "items" : { "type" : "number" } }
+        "vector_of_longs" : { "type" : "array", "items" : { "type" : "number" } },
+        "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } }
       },
       "required" : [ "name"]
     }

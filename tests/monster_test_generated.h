@@ -549,6 +549,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<uint8_t> flex;
   std::vector<Test> test5;
   std::vector<int64_t> vector_of_longs;
+  std::vector<double> vector_of_doubles;
   MonsterT()
       : mana(150),
         hp(100),
@@ -603,7 +604,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TESTARRAYOFSORTEDSTRUCT = 62,
     VT_FLEX = 64,
     VT_TEST5 = 66,
-    VT_VECTOR_OF_LONGS = 68
+    VT_VECTOR_OF_LONGS = 68,
+    VT_VECTOR_OF_DOUBLES = 70
   };
   const Vec3 *pos() const {
     return GetStruct<const Vec3 *>(VT_POS);
@@ -823,6 +825,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<int64_t> *mutable_vector_of_longs() {
     return GetPointer<flatbuffers::Vector<int64_t> *>(VT_VECTOR_OF_LONGS);
   }
+  const flatbuffers::Vector<double> *vector_of_doubles() const {
+    return GetPointer<const flatbuffers::Vector<double> *>(VT_VECTOR_OF_DOUBLES);
+  }
+  flatbuffers::Vector<double> *mutable_vector_of_doubles() {
+    return GetPointer<flatbuffers::Vector<double> *>(VT_VECTOR_OF_DOUBLES);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -875,6 +883,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(test5()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_LONGS) &&
            verifier.Verify(vector_of_longs()) &&
+           VerifyOffset(verifier, VT_VECTOR_OF_DOUBLES) &&
+           verifier.Verify(vector_of_doubles()) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -993,13 +1003,16 @@ struct MonsterBuilder {
   void add_vector_of_longs(flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_LONGS, vector_of_longs);
   }
+  void add_vector_of_doubles(flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles) {
+    fbb_.AddOffset(Monster::VT_VECTOR_OF_DOUBLES, vector_of_doubles);
+  }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    const auto end = fbb_.EndTable(start_, 33);
+    const auto end = fbb_.EndTable(start_, 34);
     auto o = flatbuffers::Offset<Monster>(end);
     fbb_.Required(o, Monster::VT_NAME);
     return o;
@@ -1039,12 +1052,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<flatbuffers::Vector<const Ability *>> testarrayofsortedstruct = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex = 0,
     flatbuffers::Offset<flatbuffers::Vector<const Test *>> test5 = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_testhashu64_fnv1a(testhashu64_fnv1a);
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_vector_of_doubles(vector_of_doubles);
   builder_.add_vector_of_longs(vector_of_longs);
   builder_.add_test5(test5);
   builder_.add_flex(flex);
@@ -1109,7 +1124,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const std::vector<const Ability *> *testarrayofsortedstruct = nullptr,
     const std::vector<uint8_t> *flex = nullptr,
     const std::vector<const Test *> *test5 = nullptr,
-    const std::vector<int64_t> *vector_of_longs = nullptr) {
+    const std::vector<int64_t> *vector_of_longs = nullptr,
+    const std::vector<double> *vector_of_doubles = nullptr) {
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -1143,7 +1159,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       testarrayofsortedstruct ? _fbb.CreateVector<const Ability *>(*testarrayofsortedstruct) : 0,
       flex ? _fbb.CreateVector<uint8_t>(*flex) : 0,
       test5 ? _fbb.CreateVector<const Test *>(*test5) : 0,
-      vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0);
+      vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0,
+      vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1278,6 +1295,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = flex(); if (_e) { _o->flex.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->flex[_i] = _e->Get(_i); } } };
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } };
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } };
+  { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -1320,6 +1338,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _flex = _o->flex.size() ? _fbb.CreateVector(_o->flex) : 0;
   auto _test5 = _o->test5.size() ? _fbb.CreateVectorOfStructs(_o->test5) : 0;
   auto _vector_of_longs = _o->vector_of_longs.size() ? _fbb.CreateVector(_o->vector_of_longs) : 0;
+  auto _vector_of_doubles = _o->vector_of_doubles.size() ? _fbb.CreateVector(_o->vector_of_doubles) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -1353,7 +1372,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _testarrayofsortedstruct,
       _flex,
       _test5,
-      _vector_of_longs);
+      _vector_of_longs,
+      _vector_of_doubles);
 }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type) {

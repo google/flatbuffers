@@ -135,14 +135,30 @@ def CheckReadBuffer(buf, offset):
     for i in range(5):
         asserter(monster.VectorOfLongs(i) == 10 ** (i * 2))
 
+    asserter(([-1.7976931348623157e+308, 0, 1.7976931348623157e+308]
+              == [monster.VectorOfDoubles(i)
+                  for i in range(monster.VectorOfDoublesLength())]))
+
     try:
         imp.find_module('numpy')
         # if numpy exists, then we should be able to get the
         # vector as a numpy array
+        import numpy as np
+
         asserter(monster.InventoryAsNumpy().sum() == 10)
+        asserter(monster.InventoryAsNumpy().dtype == np.dtype('uint8'))
+
         VectorOfLongs = monster.VectorOfLongsAsNumpy()
+        asserter(VectorOfLongs.dtype == np.dtype('int64'))
         for i in range(5):
             asserter(VectorOfLongs[i] == 10 ** (i * 2))
+
+        VectorOfDoubles = monster.VectorOfDoublesAsNumpy()
+        asserter(VectorOfDoubles.dtype == np.dtype('float64'))
+        asserter(VectorOfDoubles[0] == np.finfo('float64').min)
+        asserter(VectorOfDoubles[1] == 0.0)
+        asserter(VectorOfDoubles[2] == np.finfo('float64').max)
+
     except ImportError:
         # If numpy does not exist, trying to get vector as numpy
         # array should raise NumpyRequiredForThisFeature. The way
@@ -822,6 +838,12 @@ def make_monster_from_generated_code():
     b.PrependInt64(1)
     VectorOfLongs = b.EndVector(5)
 
+    MyGame.Example.Monster.MonsterStartVectorOfDoublesVector(b, 3)
+    b.PrependFloat64(1.7976931348623157e+308)
+    b.PrependFloat64(0)
+    b.PrependFloat64(-1.7976931348623157e+308)
+    VectorOfDoubles = b.EndVector(3)
+
     MyGame.Example.Monster.MonsterStart(b)
 
     pos = MyGame.Example.Vec3.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
@@ -835,6 +857,7 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddTest4(b, test4)
     MyGame.Example.Monster.MonsterAddTestarrayofstring(b, testArrayOfString)
     MyGame.Example.Monster.MonsterAddVectorOfLongs(b, VectorOfLongs)
+    MyGame.Example.Monster.MonsterAddVectorOfDoubles(b, VectorOfDoubles)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     b.Finish(mon)
