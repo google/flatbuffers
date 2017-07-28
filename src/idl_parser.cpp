@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <list>
+#include <iostream>
 
 #ifdef _WIN32
 #if !defined(_USE_MATH_DEFINES)
@@ -723,6 +724,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // This will cause an error if the root type of the nested flatbuffer
     // wasn't defined elsewhere.
     LookupCreateStruct(nested->constant);
+
+    // Keep a pointer to StructDef in FieldDef to simplify re-use later
+    auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
+    field->nested_flatbuffer = structs_.Lookup(nested_qualified_name);
   }
 
   if (field->attributes.Lookup("flexbuffer")) {
@@ -941,6 +946,8 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           builder.Finish();
           auto off = parser->builder_.CreateVector(builder.GetBuffer());
           val.constant = NumToString(off.o);
+        } else if (field->nested_flatbuffer) {
+          ECHECK(parser->ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
         } else {
           ECHECK(parser->ParseAnyValue(val, field, fieldn, struct_def_inner));
         }
@@ -1117,6 +1124,38 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
 
   builder_.ClearOffsets();
   *ovalue = builder_.EndVector(count);
+  return NoError();
+}
+
+CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
+                                          size_t fieldn,
+                                          const StructDef *parent_struct_def) {
+  if (token_ == '[') {// backwards compat for 'legacy' ubyte buffers
+    ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def));
+  } else {
+    auto cursor_at_value_begin = cursor_;
+    ECHECK(SkipAnyJsonValue());
+    std::string substring(cursor_at_value_begin -1 , cursor_ -1);
+
+    // Create and initialize new parser
+    Parser nested_parser;
+    assert(field->nested_flatbuffer);
+    nested_parser.root_struct_def_ = field->nested_flatbuffer;
+    nested_parser.enums_ = enums_;
+    nested_parser.opts = opts;
+    nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
+
+    // Parse JSON substring into new flatbuffer builder using nested_parser
+    if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
+      ECHECK(Error(nested_parser.error_));
+    }
+    auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(), nested_parser.builder_.GetSize());
+    val.constant = NumToString(off.o);
+
+    // Clean nested_parser before destruction to avoid deleting the elements in the SymbolTables
+    nested_parser.enums_.dict.clear();
+    nested_parser.enums_.vec.clear();
+  }
   return NoError();
 }
 
