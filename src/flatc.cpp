@@ -85,6 +85,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
       "  --gen-onefile      Generate single output file for C#.\n"
       "  --gen-name-strings Generate type name functions for C++.\n"
+      "  --gen-numpy        Generate numpy array accessors for Python.\n"
       "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --gen-object-api   Generate an additional object-based API.\n"
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
@@ -211,6 +212,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         opts.include_dependence_headers = false;
       } else if (arg == "--gen-onefile") {
         opts.one_file = true;
+      } else if (arg == "--gen-numpy") {
+        opts.generate_numpy_accessors = true;
       } else if (arg == "--raw-binary") {
         raw_binary = true;
       } else if(arg == "--") {  // Separator between text and binary inputs.

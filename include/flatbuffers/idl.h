@@ -355,6 +355,7 @@ struct IDLOptions {
   bool include_dependence_headers;
   bool mutable_buffer;
   bool one_file;
+  bool generate_numpy_accessors;
   bool proto_mode;
   bool generate_all;
   bool skip_unexpected_fields_in_json;
