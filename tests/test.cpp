@@ -1658,8 +1658,8 @@ void FlexBuffersTest() {
   auto blob = vec[3].AsBlob();
   TEST_EQ(blob.size(), 1);
   TEST_EQ(blob.data()[0], 77);
-  TEST_EQ(vec[3].IsBool(), true);  // Check if type is a bool
-  TEST_EQ(vec[3].AsBool(), false);  // Check if value is false
+  TEST_EQ(vec[4].IsBool(), true);  // Check if type is a bool
+  TEST_EQ(vec[4].AsBool(), false);  // Check if value is false
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
