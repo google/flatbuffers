@@ -1065,28 +1065,24 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
       }
     }
   // generate object accessors if is nested_flatbuffer
-  auto nested = field.attributes.Lookup("nested_flatbuffer");
-  if (nested) {
-    auto nested_qualified_name =
-      parser_.namespaces_.back()->GetFullyQualifiedName(nested->constant);
-    auto nested_type = parser_.structs_.Lookup(nested_qualified_name);
-    auto nested_type_name = WrapInNameSpace(*nested_type);
-    auto nestedMethodName = MakeCamel(field.name, lang_.first_camel_upper)
+  if (field.nested_flatbuffer) {
+    auto nested_type_name = WrapInNameSpace(*field.nested_flatbuffer);
+    auto nested_method_name = MakeCamel(field.name, lang_.first_camel_upper)
       + "As" + nested_type_name;
-    auto getNestedMethodName = nestedMethodName;
+    auto get_nested_method_name = nested_method_name;
     if (lang_.language == IDLOptions::kCSharp) {
-      getNestedMethodName = "Get" + nestedMethodName;
+      get_nested_method_name = "Get" + nested_method_name;
       conditional_cast = "(" + nested_type_name + lang_.optional_suffix + ")";
     }
     if (lang_.language != IDLOptions::kCSharp) {
       code += "  public " + nested_type_name + lang_.optional_suffix + " ";
-      code += nestedMethodName + "() { return ";
-      code += getNestedMethodName + "(new " + nested_type_name + "()); }\n";
+      code += nested_method_name + "() { return ";
+      code += get_nested_method_name + "(new " + nested_type_name + "()); }\n";
     } else {
       obj = "(new " + nested_type_name + "())";
     }
     code += "  public " + nested_type_name + lang_.optional_suffix + " ";
-    code += getNestedMethodName + "(";
+    code += get_nested_method_name + "(";
     if (lang_.language != IDLOptions::kCSharp)
       code += nested_type_name + " obj";
     code += ") { int o = " + lang_.accessor_prefix + "__offset(";
