@@ -1,8 +1,3 @@
-SB Instructions:
-install CMake
-generate cmake
-
-
 ![logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers
 ===========
 
