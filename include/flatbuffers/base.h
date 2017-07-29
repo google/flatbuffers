@@ -29,6 +29,8 @@
   #include <functional>
 #endif
 
+#include "flatbuffers/stl_emulation.h"
+
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
@@ -173,5 +175,5 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }
 
-}
+}  // namespace flatbuffers
 #endif  // FLATBUFFERS_BASE_H_

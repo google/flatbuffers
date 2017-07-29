@@ -87,8 +87,10 @@ public struct Monster : IFlatbufferObject
   public int FlexLength { get { int o = __p.__offset(64); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetFlexBytes() { return __p.__vector_as_arraysegment(64); }
   public bool MutateFlex(int j, byte flex) { int o = __p.__offset(64); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, flex); return true; } else { return false; } }
+  public Test? Test5(int j) { int o = __p.__offset(66); return o != 0 ? (Test?)(new Test()).__assign(__p.__vector(o) + j * 4, __p.bb) : null; }
+  public int Test5Length { get { int o = __p.__offset(66); return o != 0 ? __p.__vector_len(o) : 0; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(31); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(32); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -135,6 +137,8 @@ public struct Monster : IFlatbufferObject
   public static void AddFlex(FlatBufferBuilder builder, VectorOffset flexOffset) { builder.AddOffset(30, flexOffset.Value, 0); }
   public static VectorOffset CreateFlexVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static void StartFlexVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
+  public static void AddTest5(FlatBufferBuilder builder, VectorOffset test5Offset) { builder.AddOffset(31, test5Offset.Value, 0); }
+  public static void StartTest5Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 2); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

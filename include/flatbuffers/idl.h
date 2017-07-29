@@ -20,12 +20,16 @@
 #include <map>
 #include <stack>
 #include <memory>
-#include <functional>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/flexbuffers.h"
+
+#if !defined(FLATBUFFERS_CPP98_STL)
+  #include <functional>
+#endif  // !defined(FLATBUFFERS_CPP98_STL)
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -164,7 +168,7 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
-    vec.emplace_back(e);
+    vector_emplace_back(&vec, e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;
@@ -228,7 +232,7 @@ struct Definition {
 
 struct FieldDef : public Definition {
   FieldDef() : deprecated(false), required(false), key(false),
-               flexbuffer(false), padding(0) {}
+               flexbuffer(false), nested_flatbuffer(NULL), padding(0) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
@@ -241,6 +245,7 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer; // This field contains FlexBuffer data.
+  StructDef *nested_flatbuffer; // This field contains nested FlatBuffer data.
   size_t padding;  // Bytes to always pad after this field.
 };
 
@@ -380,7 +385,7 @@ struct IDLOptions {
     kJson   = 1 << 7,
     kBinary = 1 << 8,
     kTs     = 1 << 9,
-	kJsonSchema = 1 << 10,
+    kJsonSchema = 1 << 10,
     kMAX
   };
 
@@ -571,16 +576,36 @@ private:
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def);
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseTableDelimitersBody)(
+        const std::string &name, size_t &fieldn, const StructDef *struct_def,
+        void *state);
+  #else
+    typedef std::function<CheckedError(const std::string&, size_t&,
+                                       const StructDef*, void*)>
+            ParseTableDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
   FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
                                                  const StructDef *struct_def,
-              const std::function<CheckedError(const std::string &name)> &body);
+                                                 ParseTableDelimitersBody body,
+                                                 void *state);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
-  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t &count,
-                                     const std::function<CheckedError()> &body);
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseVectorDelimitersBody)(size_t &count,
+                                                      void *state);
+  #else
+    typedef std::function<CheckedError(size_t&, void*)>
+            ParseVectorDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(
+      size_t &count, ParseVectorDelimitersBody body, void *state);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
+                                                  size_t parent_fieldn,
+                                                  const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
   FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
                                           BaseType req, bool *destmatch);
@@ -608,10 +633,13 @@ private:
   FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
                                            const char *source_filename);
-  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+  FLATBUFFERS_CHECKED_ERROR ParseRoot(const char *_source,
                                     const char **include_paths,
-                                    const char *source_filename,
-                                    const char *include_filename);
+                                    const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+                                           const char **include_paths,
+                                           const char *source_filename,
+                                           const char *include_filename);
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*> &fields,
                                        StructDef *struct_def,
                                        const char *suffix,
@@ -717,8 +745,8 @@ extern bool GeneratePython(const Parser &parser,
 // Generate Json schema file
 // See idl_gen_json_schema.cpp.
 extern bool GenerateJsonSchema(const Parser &parser,
-	const std::string &path,
-	const std::string &file_name);
+                           const std::string &path,
+                           const std::string &file_name);
 
 // Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.

@@ -722,6 +722,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  void Reset();";
       code_ += "";
       if (!enum_def.uses_type_aliases) {
+        code_ += "#ifndef FLATBUFFERS_CPP98_STL";
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
         code_ += "    Reset();";
@@ -730,6 +731,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "      value = new T(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
+        code_ += "#endif  // FLATBUFFERS_CPP98_STL";
         code_ += "";
       }
       code_ += "  " + UnionUnPackSignature(enum_def, true) + ";";
@@ -1802,11 +1804,13 @@ class CppGenerator : public BaseGenerator {
               code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
-              code += WrapInNameSpace(*vector_type.struct_def) + ">>";
-              code += "(" + value + ".size(), [&](size_t i) {";
-              code += " return Create" + vector_type.struct_def->name;
-              code += "(_fbb, " + value + "[i]" + GenPtrGet(field) + ", ";
-              code += "_rehasher); })";
+              code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
+              code += "(" + value + ".size(), ";
+              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "return Create" + vector_type.struct_def->name;
+              code += "(*__va->__fbb, __va->_" + value + "[i]" +
+                      GenPtrGet(field) + ", ";
+              code += "__va->__rehasher); }, &_va )";
             }
             break;
           }
@@ -1815,16 +1819,19 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION: {
-            code += "_fbb.CreateVector<flatbuffers::Offset<void>>(" + value +
-                    ".size(), [&](size_t i) { return " + value +
-                    "[i].Pack(_fbb, _rehasher); })";
+            code += "_fbb.CreateVector<flatbuffers::"
+                    "Offset<void>>(" + value +
+                    ".size(), [](size_t i, _VectorArgs *__va) { "
+                    "return __va->_" + value +
+                    "[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va)";
             break;
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
             code += "_fbb.CreateVector<uint8_t>(" + value +
-                    ".size(), [&](size_t i) { return static_cast<uint8_t>(" + value +
-                    "[i].type); })";
+                    ".size(), [](size_t i, _VectorArgs *__va) { "
+                    "return static_cast<uint8_t>(__va->_" + value +
+                    "[i].type); }, &_va)";
             break;
           }
           default: {
@@ -1934,6 +1941,15 @@ class CppGenerator : public BaseGenerator {
       code_ += "inline " + TableCreateSignature(struct_def, false) + " {";
       code_ += "  (void)_rehasher;";
       code_ += "  (void)_o;";
+
+      code_ +=
+          "  struct _VectorArgs "
+          "{ flatbuffers::FlatBufferBuilder *__fbb; "
+          "const " +
+          NativeName(struct_def.name, &struct_def) +
+          "* __o; "
+          "const flatbuffers::rehasher_function_t *__rehasher; } _va = { "
+          "&_fbb, _o, _rehasher}; (void)_va;";
 
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {

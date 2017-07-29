@@ -1288,10 +1288,28 @@ flexArray():Uint8Array|null {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Test=} obj
+ * @returns {MyGame.Example.Test}
+ */
+test5(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
+  var offset = this.bb.__offset(this.bb_pos, 66);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+test5Length():number {
+  var offset = this.bb.__offset(this.bb_pos, 66);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(31);
+  builder.startObject(32);
 };
 
 /**
@@ -1695,6 +1713,22 @@ static createFlexVector(builder:flatbuffers.Builder, data:number[] | Uint8Array)
  */
 static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} test5Offset
+ */
+static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(31, test5Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 2);
 };
 
 /**

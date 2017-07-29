@@ -72,3 +72,9 @@ Testing/Temporary
 .project
 net/**/obj
 node_modules/
+android/.externalNativeBuild/
+android/.gradle/
+android/build/
+samples/android/.externalNativeBuild/
+samples/android/.gradle/
+samples/android/build/
