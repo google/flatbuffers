@@ -1671,8 +1671,6 @@ void FlexBuffersTest() {
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
   // These should be equal by pointer equality, since key and value are shared.
-  TEST_EQ(mymap["sbool1"].AsBool(), true); // The string "true" is casted to bool true
-  TEST_EQ(mymap["sbool2"].AsBool(), false); // The string "false" is casted to bool false
   TEST_EQ(mymap["sbool3"].AsBool(), true); // A non zero integer string is casted to bool true
   TEST_EQ(mymap["sbool4"].AsBool(), false); // A zero integer string is casted to bool false
   TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[3].AsKey());

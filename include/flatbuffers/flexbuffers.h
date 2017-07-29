@@ -368,15 +368,6 @@ class Reference {
   bool AsBool() const {
     if (type_ == TYPE_BOOL) {
       return ReadUInt64(data_, parent_width_) != 0;
-    } else if (type_ == TYPE_STRING) {
-      const char * tmp = AsString().c_str();
-      if (strcmp(tmp, "true") == 0) {
-        return true;
-      }
-      if (strcmp(tmp, "false") == 0) {
-        return false;
-      }
-      return flatbuffers::StringToUInt(tmp) != 0;
     }
     return AsUInt64() != 0;
   }
