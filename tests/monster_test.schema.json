@@ -114,6 +114,23 @@
         "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } }
       },
       "required" : [ "name"]
+    },
+    "MyGame_Example_TypeAliases" : {
+      "type" : "object",
+      "properties" : {
+        "i8" : { "type" : "number" },
+        "u8" : { "type" : "number" },
+        "i16" : { "type" : "number" },
+        "u16" : { "type" : "number" },
+        "i32" : { "type" : "number" },
+        "u32" : { "type" : "number" },
+        "i64" : { "type" : "number" },
+        "u64" : { "type" : "number" },
+        "f32" : { "type" : "number" },
+        "f64" : { "type" : "number" },
+        "v8" : { "type" : "array", "items" : { "type" : "number" } },
+        "vf64" : { "type" : "array", "items" : { "type" : "number" } }
+      }
     }
   },
   "$ref" : "#/definitions/MyGame_Example_Monster"
