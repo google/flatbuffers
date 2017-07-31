@@ -265,15 +265,19 @@ namespace flatbuffers {
           }
           code_ += closeType;  // close type
         }
-        code_ += "  }";  // close definitions
 
-        if (parser_.root_struct_def_ && flatbuffers::StripPath(flatbuffers::StripExtension(parser_.root_struct_def_->file)) == file_name_)
-        {
-          code_ += ",";
-          // mark root type
-          code_ += "  \"$ref\" : \"#/definitions/" +
+		// mark root type
+		bool hasDef = (parser_.root_struct_def_ && flatbuffers::StripPath(flatbuffers::StripExtension(parser_.root_struct_def_->file)) == file_name_);
+
+		std::string closeDefs("  }");
+		if(hasDef)
+          closeDefs.append(",");
+
+		code_ += closeDefs;  // close definitions
+
+		if(hasDef)
+			code_ += "  \"$ref\" : \"#/definitions/" +
                    GenFullName(parser_.root_struct_def_) + "\"";
-        }
 
         code_ += "}";  // close schema root
         const std::string file_path = GeneratedFileName(path_, file_name_);
