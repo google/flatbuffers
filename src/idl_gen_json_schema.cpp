@@ -214,7 +214,7 @@ namespace flatbuffers {
                 typeLine += "        , \"minItems\" : " + len + ", \"maxItems\" : " + len;
               }
             }
-			      typeLine += " }";
+			typeLine += " }";
 
             if (property != properties.back()) {
               typeLine.append(",");
@@ -231,7 +231,7 @@ namespace flatbuffers {
             std::copy_if(
               properties.begin(), properties.end(),
               std::back_inserter(requiredProperties),
-              [](flatbuffers::FieldDef *prop)
+              [](flatbuffers::FieldDef *prop) -> bool
               {
                 if(prop->required)
                   return true; 
