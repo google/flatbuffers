@@ -19,6 +19,18 @@
     3,
     4
   ],
+  vector_of_longs: [
+      1,
+      100,
+      10000,
+      1000000,
+      100000000
+  ],
+  vector_of_doubles: [
+      -1.7976931348623157e+308,
+      0,
+      1.7976931348623157e+308
+  ],
   test_type: Monster,
   test: {
     name: "Fred",
