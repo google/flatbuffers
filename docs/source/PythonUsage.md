@@ -64,6 +64,33 @@ Now you can access values like this:
     pos = monster.Pos()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+## Support for Numpy arrays
+
+The Flatbuffers python library also has support for accessing scalar
+vectors as numpy arrays. This can be orders of magnitude faster than
+iterating over the vector one element at a time, and is particularly
+useful when unpacking large nested flatbuffers. The generated code for
+a scalar vector will have a method `<vector name>AsNumpy()`. In the
+case of the Monster example, you could access the inventory vector
+like this:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
+    inventory = monster.InventoryAsNumpy()
+    # inventory is a numpy array of type np.dtype('uint8')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+instead of
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
+    inventory = []
+    for i in range(monster.InventoryLength()):
+        inventory.append(int(monster.Inventory(i)))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Numpy is not a requirement. If numpy is not installed on your system,
+then attempting to access one of the `*asNumpy()` methods will result
+in a `NumpyRequiredForThisFeature` exception.
+
 ## Text Parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly

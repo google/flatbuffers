@@ -1315,10 +1315,52 @@ MyGame.Example.Monster.prototype.test5Length = function() {
 };
 
 /**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.vectorOfLongs = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfLongsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfDoubles = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfDoublesLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Float64Array}
+ */
+MyGame.Example.Monster.prototype.vectorOfDoublesArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(32);
+  builder.startObject(34);
 };
 
 /**
@@ -1738,6 +1780,64 @@ MyGame.Example.Monster.addTest5 = function(builder, test5Offset) {
  */
 MyGame.Example.Monster.startTest5Vector = function(builder, numElems) {
   builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ */
+MyGame.Example.Monster.addVectorOfLongs = function(builder, vectorOfLongsOffset) {
+  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfLongsVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfLongsVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfDoublesOffset
+ */
+MyGame.Example.Monster.addVectorOfDoubles = function(builder, vectorOfDoublesOffset) {
+  builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfDoublesVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addFloat64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfDoublesVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
 };
 
 /**
