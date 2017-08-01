@@ -1306,10 +1306,52 @@ test5Length():number {
 };
 
 /**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfLongs(index: number):flatbuffers.Long|null {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfLongsLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+vectorOfDoubles(index: number):number|null {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfDoublesLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Float64Array}
+ */
+vectorOfDoublesArray():Float64Array|null {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(32);
+  builder.startObject(34);
 };
 
 /**
@@ -1729,6 +1771,64 @@ static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset) {
  */
 static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ */
+static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfDoublesOffset
+ */
+static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addFloat64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
 };
 
 /**
