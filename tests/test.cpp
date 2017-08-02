@@ -1591,7 +1591,7 @@ void FlexBuffersTest() {
                            flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
 
   // Write the equivalent of:
-  // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ], foo: 100, bool: true, mymap: { foo: "Fred", sbool1 : "true", sbool2: "false", sbool3: "0", sbool3: "1" } }
+  // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ], foo: 100, bool: true, mymap: { foo: "Fred" } }
 #ifndef FLATBUFFERS_CPP98_STL
   // It's possible to do this without std::function support as well.
   slb.Map([&]() {
@@ -1610,10 +1610,6 @@ void FlexBuffersTest() {
     slb.Double("foo", 100);
     slb.Map("mymap", [&]() {
       slb.String("foo", "Fred");  // Testing key and string reuse.
-      slb.String("sbool1", "true");
-      slb.String("sbool2", "false");
-      slb.String("sbool3", "1");
-      slb.String("sbool4", "0");
     });
   });
   slb.Finish();
@@ -1671,8 +1667,6 @@ void FlexBuffersTest() {
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
   // These should be equal by pointer equality, since key and value are shared.
-  TEST_EQ(mymap["sbool3"].AsBool(), true); // A non zero integer string is casted to bool true
-  TEST_EQ(mymap["sbool4"].AsBool(), false); // A zero integer string is casted to bool false
   TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[3].AsKey());
   TEST_EQ(mymap.Values()[0].AsString().c_str(), vec[1].AsString().c_str());
   // We can mutate values in the buffer.
