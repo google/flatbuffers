@@ -580,7 +580,8 @@ static std::string GenMethod(const FieldDef &field) {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       #PTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
