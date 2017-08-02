@@ -1306,10 +1306,52 @@ test5Length():number {
 };
 
 /**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfLongs(index: number):flatbuffers.Long|null {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfLongsLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+vectorOfDoubles(index: number):number|null {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfDoublesLength():number {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Float64Array}
+ */
+vectorOfDoublesArray():Float64Array|null {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(32);
+  builder.startObject(34);
 };
 
 /**
@@ -1733,6 +1775,64 @@ static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ */
+static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfDoublesOffset
+ */
+static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addFloat64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -1747,6 +1847,476 @@ static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
  */
 static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MONS');
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class TypeAliases {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {TypeAliases}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {TypeAliases=} obj
+ * @returns {TypeAliases}
+ */
+static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAliases {
+  return (obj || new TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {number}
+ */
+i8():number {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_i8(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+u8():number {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_u8(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+i16():number {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.readInt16(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_i16(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+u16():number {
+  var offset = this.bb.__offset(this.bb_pos, 10);
+  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_u16(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 10);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+i32():number {
+  var offset = this.bb.__offset(this.bb_pos, 12);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_i32(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 12);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+u32():number {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+  return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_u32(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+i64():flatbuffers.Long {
+  var offset = this.bb.__offset(this.bb_pos, 16);
+  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_i64(value:flatbuffers.Long):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 16);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+u64():flatbuffers.Long {
+  var offset = this.bb.__offset(this.bb_pos, 18);
+  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_u64(value:flatbuffers.Long):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 18);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+f32():number {
+  var offset = this.bb.__offset(this.bb_pos, 20);
+  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_f32(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 20);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+f64():number {
+  var offset = this.bb.__offset(this.bb_pos, 22);
+  return offset ? this.bb.readFloat64(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_f64(value:number):boolean {
+  var offset = this.bb.__offset(this.bb_pos, 22);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+v8(index: number):number|null {
+  var offset = this.bb.__offset(this.bb_pos, 24);
+  return offset ? this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+v8Length():number {
+  var offset = this.bb.__offset(this.bb_pos, 24);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Int8Array}
+ */
+v8Array():Int8Array|null {
+  var offset = this.bb.__offset(this.bb_pos, 24);
+  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
+ * @param {number} index
+ * @returns {number}
+ */
+vf64(index: number):number|null {
+  var offset = this.bb.__offset(this.bb_pos, 26);
+  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+vf64Length():number {
+  var offset = this.bb.__offset(this.bb_pos, 26);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Float64Array}
+ */
+vf64Array():Float64Array|null {
+  var offset = this.bb.__offset(this.bb_pos, 26);
+  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+static startTypeAliases(builder:flatbuffers.Builder) {
+  builder.startObject(12);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} i8
+ */
+static addI8(builder:flatbuffers.Builder, i8:number) {
+  builder.addFieldInt8(0, i8, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} u8
+ */
+static addU8(builder:flatbuffers.Builder, u8:number) {
+  builder.addFieldInt8(1, u8, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} i16
+ */
+static addI16(builder:flatbuffers.Builder, i16:number) {
+  builder.addFieldInt16(2, i16, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} u16
+ */
+static addU16(builder:flatbuffers.Builder, u16:number) {
+  builder.addFieldInt16(3, u16, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} i32
+ */
+static addI32(builder:flatbuffers.Builder, i32:number) {
+  builder.addFieldInt32(4, i32, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} u32
+ */
+static addU32(builder:flatbuffers.Builder, u32:number) {
+  builder.addFieldInt32(5, u32, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} i64
+ */
+static addI64(builder:flatbuffers.Builder, i64:flatbuffers.Long) {
+  builder.addFieldInt64(6, i64, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} u64
+ */
+static addU64(builder:flatbuffers.Builder, u64:flatbuffers.Long) {
+  builder.addFieldInt64(7, u64, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} f32
+ */
+static addF32(builder:flatbuffers.Builder, f32:number) {
+  builder.addFieldFloat32(8, f32, 0.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} f64
+ */
+static addF64(builder:flatbuffers.Builder, f64:number) {
+  builder.addFieldFloat64(9, f64, 0.0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} v8Offset
+ */
+static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(10, v8Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createV8Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startV8Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vf64Offset
+ */
+static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(11, vf64Offset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVf64Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addFloat64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVf64Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+static endTypeAliases(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
 };
 
 }

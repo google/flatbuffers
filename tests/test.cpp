@@ -1691,6 +1691,39 @@ void FlexBuffersTest() {
   TEST_EQ_STR(jsontest, jsonback.c_str());
 }
 
+void TypeAliasesTest()
+{
+  flatbuffers::FlatBufferBuilder builder;
+
+  builder.Finish(CreateTypeAliases(builder,
+          INT8_MIN, UINT8_MAX, INT16_MIN, UINT16_MAX,
+          INT32_MIN, UINT32_MAX, INT64_MIN, UINT64_MAX, 2.3f, 2.3));
+
+  auto p = builder.GetBufferPointer();
+  auto ta = flatbuffers::GetRoot<TypeAliases>(p);
+
+  TEST_EQ(ta->i8(), INT8_MIN);
+  TEST_EQ(ta->u8(), UINT8_MAX);
+  TEST_EQ(ta->i16(), INT16_MIN);
+  TEST_EQ(ta->u16(), UINT16_MAX);
+  TEST_EQ(ta->i32(), INT32_MIN);
+  TEST_EQ(ta->u32(), UINT32_MAX);
+  TEST_EQ(ta->i64(), INT64_MIN);
+  TEST_EQ(ta->u64(), UINT64_MAX);
+  TEST_EQ(ta->f32(), 2.3f);
+  TEST_EQ(ta->f64(), 2.3);
+  TEST_EQ(sizeof(ta->i8()), 1);
+  TEST_EQ(sizeof(ta->i16()), 2);
+  TEST_EQ(sizeof(ta->i32()), 4);
+  TEST_EQ(sizeof(ta->i64()), 8);
+  TEST_EQ(sizeof(ta->u8()), 1);
+  TEST_EQ(sizeof(ta->u16()), 2);
+  TEST_EQ(sizeof(ta->u32()), 4);
+  TEST_EQ(sizeof(ta->u64()), 8);
+  TEST_EQ(sizeof(ta->f32()), 4);
+  TEST_EQ(sizeof(ta->f64()), 8);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   // Run our various test suites:
 
@@ -1740,6 +1773,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ParseUnionTest();
   ConformTest();
   ParseProtoBufAsciiTest();
+  TypeAliasesTest();
 
   FlexBuffersTest();
 
