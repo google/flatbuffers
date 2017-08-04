@@ -76,9 +76,10 @@ enum Type {
   TYPE_VECTOR_UINT4 = 23,
   TYPE_VECTOR_FLOAT4 = 24,
   TYPE_BLOB = 25,
+  TYPE_BOOL = 26,
 };
 
-inline bool IsInline(Type t) { return t <= TYPE_FLOAT; }
+inline bool IsInline(Type t) { return t <= TYPE_FLOAT || t == TYPE_BOOL; }
 
 inline bool IsTypedVectorElementType(Type t) {
   return t >= TYPE_INT && t <= TYPE_STRING;
@@ -349,6 +350,7 @@ class Reference {
   Type GetType() const { return type_; }
 
   bool IsNull() const { return type_ == TYPE_NULL; }
+  bool IsBool() const { return type_ == TYPE_BOOL; }
   bool IsInt() const { return type_ == TYPE_INT ||
                               type_ == TYPE_INDIRECT_INT; }
   bool IsUInt() const { return type_ == TYPE_UINT||
@@ -362,6 +364,10 @@ class Reference {
   bool IsVector() const { return type_ == TYPE_VECTOR || type_ == TYPE_MAP; }
   bool IsMap() const { return type_ == TYPE_MAP; }
   bool IsBlob() const { return type_ == TYPE_BLOB; }
+
+  bool AsBool() const {
+    return (type_ == TYPE_BOOL ? ReadUInt64(data_, parent_width_) : AsUInt64()) != 0;
+  }
 
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
   // Truncates floats, strings are attempted to be parsed for a number,
@@ -381,6 +387,7 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<int64_t>(AsVector().size());
+      case TYPE_BOOL: return ReadInt64(data_, parent_width_);
       default:
       // Convert other things to int.
       return 0;
@@ -408,6 +415,7 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToUInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<uint64_t>(AsVector().size());
+      case TYPE_BOOL: return ReadUInt64(data_, parent_width_);
       default:
       // Convert other things to uint.
       return 0;
@@ -435,6 +443,8 @@ class Reference {
       case TYPE_NULL: return 0.0;
       case TYPE_STRING: return strtod(AsString().c_str(), nullptr);
       case TYPE_VECTOR: return static_cast<double>(AsVector().size());
+      case TYPE_BOOL: return static_cast<double>(
+                               ReadUInt64(data_, parent_width_));
       default:
       // Convert strings and other things to float.
       return 0;
@@ -494,6 +504,8 @@ class Reference {
       s += flatbuffers::NumToString(AsDouble());
     } else if (IsNull()) {
       s += "null";
+    } else if (IsBool()) {
+      s += AsBool() ? "true" : "false";
     } else if (IsMap()) {
       s += "{ ";
       auto m = AsMap();
@@ -586,6 +598,10 @@ class Reference {
     } else {
       return false;
     }
+  }
+
+  bool MutateBool(bool b) {
+    return type_ == TYPE_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
   }
 
   bool MutateUInt(uint64_t u) {
@@ -816,7 +832,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   void Double(double f) { stack_.push_back(Value(f)); }
   void Double(const char *key, double d) { Key(key); Double(d); }
 
-  void Bool(bool b) { Int(static_cast<int64_t>(b)); }
+  void Bool(bool b) { stack_.push_back(Value(b)); }
   void Bool(const char *key, bool b) { Key(key); Bool(b); }
 
   void IndirectInt(int64_t i) {
@@ -1236,6 +1252,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
     Value() : i_(0), type_(TYPE_NULL), min_bit_width_(BIT_WIDTH_8) {}
 
+    Value(bool b) : u_(static_cast<uint64_t>(b)), type_(TYPE_BOOL), min_bit_width_(BIT_WIDTH_8) {}
+
     Value(int64_t i, Type t, BitWidth bw)
       : i_(i), type_(t), min_bit_width_(bw) {}
     Value(uint64_t u, Type t, BitWidth bw)
@@ -1294,6 +1312,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       case TYPE_INT:
         Write(val.i_, byte_width);
         break;
+      case TYPE_BOOL:
       case TYPE_UINT:
         Write(val.u_, byte_width);
         break;

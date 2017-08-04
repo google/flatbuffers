@@ -187,7 +187,8 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(Attribute, 270, "attribute") \
   TD(Null, 271, "null") \
   TD(Service, 272, "rpc_service") \
-  TD(NativeInclude, 273, "native_include")
+  TD(NativeInclude, 273, "native_include") \
+  TD(BooleanConstant, 274, "boolean constant")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -395,7 +396,7 @@ CheckedError Parser::Next() {
           // which simplifies our logic downstream.
           if (attribute_ == "true" || attribute_ == "false") {
             attribute_ = NumToString(attribute_ == "true");
-            token_ = kTokenIntegerConstant;
+            token_ = kTokenBooleanConstant;
             return NoError();
           }
           // Check for declaration keywords:
@@ -1343,6 +1344,11 @@ CheckedError Parser::ParseSingleValue(Value &e) {
                          e,
                          BASE_TYPE_INT,
                          &match));
+    ECHECK(TryTypedValue(kTokenBooleanConstant,
+                         IsBool(e.type.base_type),
+                         e,
+                         BASE_TYPE_BOOL,
+                         &match));
     ECHECK(TryTypedValue(kTokenFloatConstant,
                          IsFloat(e.type.base_type),
                          e,
@@ -2012,6 +2018,9 @@ CheckedError Parser::SkipAnyJsonValue() {
     case kTokenFloatConstant:
       EXPECT(kTokenFloatConstant);
       break;
+    case kTokenBooleanConstant:
+      EXPECT(kTokenBooleanConstant);
+      break;
     default:
       return TokenError();
   }
@@ -2068,6 +2077,10 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
     case kTokenIntegerConstant:
       builder->Int(StringToInt(attribute_.c_str()));
       EXPECT(kTokenIntegerConstant);
+      break;
+    case kTokenBooleanConstant:
+      builder->Bool(StringToInt(attribute_.c_str()) != 0);
+      EXPECT(kTokenBooleanConstant);
       break;
     case kTokenFloatConstant:
       builder->Double(strtod(attribute_.c_str(), nullptr));
