@@ -366,10 +366,7 @@ class Reference {
   bool IsBlob() const { return type_ == TYPE_BLOB; }
 
   bool AsBool() const {
-    if (type_ == TYPE_BOOL) {
-      return ReadUInt64(data_, parent_width_) != 0;
-    }
-    return AsUInt64() != 0;
+    return (type_ == TYPE_BOOL ? ReadUInt64(data_, parent_width_) : AsUInt64()) != 0;
   }
 
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
@@ -604,10 +601,7 @@ class Reference {
   }
 
   bool MutateBool(bool b) {
-    if (type_ == TYPE_BOOL) {
-        return Mutate(data_, b, parent_width_, BIT_WIDTH_8);
-    }
-    return false;
+    return type_ == TYPE_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
   }
 
   bool MutateUInt(uint64_t u) {
