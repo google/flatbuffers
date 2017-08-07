@@ -802,6 +802,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return buf_;
   }
 
+  // Size of the buffer. Does not include unfinished values.
+  size_t GetSize() const {
+    return buf_.size();
+  }
+
   // Reset all state so we can re-use the buffer.
   void Clear() {
     buf_.clear();
