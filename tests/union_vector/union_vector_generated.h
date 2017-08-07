@@ -28,6 +28,19 @@ enum Character {
   Character_MAX = Character_Unused
 };
 
+inline Character (&EnumValuesCharacter())[7] {
+  static Character values[] = {
+    Character_NONE,
+    Character_MuLan,
+    Character_Rapunzel,
+    Character_Belle,
+    Character_BookFan,
+    Character_Other,
+    Character_Unused
+  };
+  return values;
+}
+
 inline const char **EnumNamesCharacter() {
   static const char *names[] = {
     "NONE",
@@ -351,6 +364,7 @@ inline flatbuffers::Offset<Attacker> Attacker::Pack(flatbuffers::FlatBufferBuild
 inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const AttackerT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _sword_attack_damage = _o->sword_attack_damage;
   return CreateAttacker(
       _fbb,
@@ -379,10 +393,11 @@ inline flatbuffers::Offset<Movie> Movie::Pack(flatbuffers::FlatBufferBuilder &_f
 inline flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MovieT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _main_character_type = _o->main_character.type;
   auto _main_character = _o->main_character.Pack(_fbb);
-  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<uint8_t>(_o->characters.size(), [&](size_t i) { return static_cast<uint8_t>(_o->characters[i].type); }) : 0;
-  auto _characters = _o->characters.size() ? _fbb.CreateVector<flatbuffers::Offset<void>>(_o->characters.size(), [&](size_t i) { return _o->characters[i].Pack(_fbb, _rehasher); }) : 0;
+  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<uint8_t>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return static_cast<uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
+  auto _characters = _o->characters.size() ? _fbb.CreateVector<flatbuffers::Offset<void>>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->characters[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
   return CreateMovie(
       _fbb,
       _main_character_type,
@@ -589,10 +604,10 @@ inline void FinishMovieBuffer(
   fbb.Finish(root, MovieIdentifier());
 }
 
-inline std::unique_ptr<MovieT> UnPackMovie(
+inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
     const void *buf,
     const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
+  return flatbuffers::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_UNIONVECTOR_H_

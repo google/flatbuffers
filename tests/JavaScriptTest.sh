@@ -15,5 +15,5 @@
 # limitations under the License.
 
 pushd "$(dirname $0)" >/dev/null
-../flatc -b monster_test.fbs unicode_test.json
+../flatc -b -I include_test monster_test.fbs unicode_test.json
 node JavaScriptTest ./monster_test_generated

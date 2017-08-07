@@ -72,14 +72,15 @@ class CppGenerator : public BaseGenerator {
     }
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
-      auto basename = flatbuffers::StripExtension(it->first);
-      if (!parser_.opts.keep_include_path)
-        basename = flatbuffers::StripPath(basename);
-      if (basename != file_name_) {
-        code_ += "#include \"" + parser_.opts.include_prefix + basename +
-                 "_generated.h\"";
-        num_includes++;
-      }
+      if (it->second.empty())
+        continue;
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      code_ += "#include \"" + parser_.opts.include_prefix +
+               (parser_.opts.keep_include_path ? noext : basename) +
+               "_generated.h\"";
+      num_includes++;
     }
     if (num_includes) code_ += "";
   }
@@ -96,6 +97,9 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
+    if (parser_.uses_flexbuffers_) {
+      code_ += "#include \"flatbuffers/flexbuffers.h\"";
+    }
     code_ += "";
 
     if (parser_.opts.include_dependence_headers) {
@@ -298,7 +302,7 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -552,7 +556,9 @@ class CppGenerator : public BaseGenerator {
            (inclass ? " = nullptr" : "") + ") const";
   }
 
-  // Generate an enum declaration and an enum string lookup table.
+  // Generate an enum declaration,
+  // an enum string lookup table,
+  // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", enum_def.name);
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
@@ -609,6 +615,22 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
       code_ += "DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
+    code_ += "";
+
+    // Generate an array of all enumeration values
+    auto num_fields = NumToString(enum_def.vals.vec.size());
+    code_ += "inline {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" + num_fields + "] {";
+    code_ += "  static {{ENUM_NAME}} values[] = {";
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      const auto &ev = **it;
+      auto value = GetEnumValUse(enum_def, ev);
+      auto suffix = *it != enum_def.vals.vec.back() ? "," : "";
+      code_ +=  "    " + value + suffix;
+    }
+    code_ += "  };";
+    code_ += "  return values;";
+    code_ += "}";
     code_ += "";
 
     // Generate a generate string table for enum values.
@@ -700,6 +722,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  void Reset();";
       code_ += "";
       if (!enum_def.uses_type_aliases) {
+        code_ += "#ifndef FLATBUFFERS_CPP98_STL";
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
         code_ += "    Reset();";
@@ -708,6 +731,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "      value = new T(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
+        code_ += "#endif  // FLATBUFFERS_CPP98_STL";
         code_ += "";
       }
       code_ += "  " + UnionUnPackSignature(enum_def, true) + ";";
@@ -1316,8 +1340,16 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
 
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
-        code_ += "    const uint8_t* data = {{FIELD_NAME}}()->Data();";
+        code_ += "    auto data = {{FIELD_NAME}}()->Data();";
         code_ += "    return flatbuffers::GetRoot<{{CPP_NAME}}>(data);";
+        code_ += "  }";
+      }
+
+      if (field.flexbuffer) {
+        code_ += "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
+                                                                     " const {";
+        code_ += "    auto v = {{FIELD_NAME}}();";
+        code_ += "    return flexbuffers::GetRoot(v->Data(), v->size());";
         code_ += "  }";
       }
 
@@ -1772,11 +1804,13 @@ class CppGenerator : public BaseGenerator {
               code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
-              code += WrapInNameSpace(*vector_type.struct_def) + ">>";
-              code += "(" + value + ".size(), [&](size_t i) {";
-              code += " return Create" + vector_type.struct_def->name;
-              code += "(_fbb, " + value + "[i]" + GenPtrGet(field) + ", ";
-              code += "_rehasher); })";
+              code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
+              code += "(" + value + ".size(), ";
+              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "return Create" + vector_type.struct_def->name;
+              code += "(*__va->__fbb, __va->_" + value + "[i]" +
+                      GenPtrGet(field) + ", ";
+              code += "__va->__rehasher); }, &_va )";
             }
             break;
           }
@@ -1785,16 +1819,19 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION: {
-            code += "_fbb.CreateVector<flatbuffers::Offset<void>>(" + value +
-                    ".size(), [&](size_t i) { return " + value +
-                    "[i].Pack(_fbb, _rehasher); })";
+            code += "_fbb.CreateVector<flatbuffers::"
+                    "Offset<void>>(" + value +
+                    ".size(), [](size_t i, _VectorArgs *__va) { "
+                    "return __va->_" + value +
+                    "[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va)";
             break;
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
             code += "_fbb.CreateVector<uint8_t>(" + value +
-                    ".size(), [&](size_t i) { return static_cast<uint8_t>(" + value +
-                    "[i].type); })";
+                    ".size(), [](size_t i, _VectorArgs *__va) { "
+                    "return static_cast<uint8_t>(__va->_" + value +
+                    "[i].type); }, &_va)";
             break;
           }
           default: {
@@ -1904,6 +1941,15 @@ class CppGenerator : public BaseGenerator {
       code_ += "inline " + TableCreateSignature(struct_def, false) + " {";
       code_ += "  (void)_rehasher;";
       code_ += "  (void)_o;";
+
+      code_ +=
+          "  struct _VectorArgs "
+          "{ flatbuffers::FlatBufferBuilder *__fbb; "
+          "const " +
+          NativeName(struct_def.name, &struct_def) +
+          "* __o; "
+          "const flatbuffers::rehasher_function_t *__rehasher; } _va = { "
+          "&_fbb, _o, _rehasher}; (void)_va;";
 
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {

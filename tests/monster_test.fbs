@@ -59,6 +59,7 @@ table Monster {
   enemy:MyGame.Example.Monster (id:12);  // Test referring by full namespace.
   test:Any (id: 8);
   test4:[Test] (id: 9);
+  test5:[Test] (id: 31);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
   testempty:Stat (id:14);
   testbool:bool (id:15);
@@ -73,6 +74,24 @@ table Monster {
   testf:float = 3.14159 (id:25);
   testf2:float = 3 (id:26);
   testf3:float (id:27);
+  flex:[ubyte] (id:30, flexbuffer);
+  vector_of_longs:[long] (id:32);
+  vector_of_doubles:[double] (id:33);
+}
+
+table TypeAliases {
+    i8:int8;
+    u8:uint8;
+    i16:int16;
+    u16:uint16;
+    i32:int32;
+    u32:uint32;
+    i64:int64;
+    u64:uint64;
+    f32:float32;
+    f64:float64;
+    v8:[int8];
+    vf64:[float64];
 }
 
 rpc_service MonsterStorage {

@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/flexbuffers.h"
 
 namespace flatbuffers {
 
@@ -79,7 +80,7 @@ template<typename T> bool PrintVector(const Vector<T> &v, Type type,
   text += NewLine(opts);
   for (uoffset_t i = 0; i < v.size(); i++) {
     if (i) {
-      text += ",";
+      if (!opts.protobuf_ascii_alike) text += ",";
       text += NewLine(opts);
     }
     text.append(indent + Indent(opts), ' ');
@@ -98,71 +99,6 @@ template<typename T> bool PrintVector(const Vector<T> &v, Type type,
   text += NewLine(opts);
   text.append(indent, ' ');
   text += "]";
-  return true;
-}
-
-static bool EscapeString(const String &s, std::string *_text, const IDLOptions& opts) {
-  std::string &text = *_text;
-  text += "\"";
-  for (uoffset_t i = 0; i < s.size(); i++) {
-    char c = s[i];
-    switch (c) {
-      case '\n': text += "\\n"; break;
-      case '\t': text += "\\t"; break;
-      case '\r': text += "\\r"; break;
-      case '\b': text += "\\b"; break;
-      case '\f': text += "\\f"; break;
-      case '\"': text += "\\\""; break;
-      case '\\': text += "\\\\"; break;
-      default:
-        if (c >= ' ' && c <= '~') {
-          text += c;
-        } else {
-          // Not printable ASCII data. Let's see if it's valid UTF-8 first:
-          const char *utf8 = s.c_str() + i;
-          int ucc = FromUTF8(&utf8);
-          if (ucc < 0) {
-            if (opts.allow_non_utf8) {
-              text += "\\x";
-              text += IntToStringHex(static_cast<uint8_t>(c), 2);
-            } else {
-              // There are two cases here:
-              //
-              // 1) We reached here by parsing an IDL file. In that case,
-              // we previously checked for non-UTF-8, so we shouldn't reach
-              // here.
-              //
-              // 2) We reached here by someone calling GenerateText()
-              // on a previously-serialized flatbuffer. The data might have
-              // non-UTF-8 Strings, or might be corrupt.
-              //
-              // In both cases, we have to give up and inform the caller
-              // they have no JSON.
-              return false;
-            }
-          } else {
-            if (ucc <= 0xFFFF) {
-              // Parses as Unicode within JSON's \uXXXX range, so use that.
-              text += "\\u";
-              text += IntToStringHex(ucc, 4);
-            } else if (ucc <= 0x10FFFF) {
-              // Encode Unicode SMP values to a surrogate pair using two \u escapes.
-              uint32_t base = ucc - 0x10000;
-              auto high_surrogate = (base >> 10) + 0xD800;
-              auto low_surrogate = (base & 0x03FF) + 0xDC00;
-              text += "\\u";
-              text += IntToStringHex(high_surrogate, 4);
-              text += "\\u";
-              text += IntToStringHex(low_surrogate, 4);
-            }
-            // Skip past characters recognized.
-            i = static_cast<uoffset_t>(utf8 - s.c_str() - 1);
-          }
-        }
-        break;
-    }
-  }
-  text += "\"";
   return true;
 }
 
@@ -189,7 +125,8 @@ template<> bool Print<const void *>(const void *val,
       }
       break;
     case BASE_TYPE_STRING: {
-      if (!EscapeString(*reinterpret_cast<const String *>(val), _text, opts)) {
+      auto s = reinterpret_cast<const String *>(val);
+      if (!EscapeString(s->c_str(), s->Length(), _text, opts.allow_non_utf8)) {
         return false;
       }
       break;
@@ -198,8 +135,8 @@ template<> bool Print<const void *>(const void *val,
       type = type.VectorType();
       // Call PrintVector above specifically for each element type:
       switch (type.base_type) {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-          PTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
           case BASE_TYPE_ ## ENUM: \
             if (!PrintVector<CTYPE>( \
                   *reinterpret_cast<const Vector<CTYPE> *>(val), \
@@ -228,6 +165,10 @@ template<typename T> static bool GenField(const FieldDef &fd,
                                             opts, _text);
 }
 
+static bool GenStruct(const StructDef &struct_def, const Table *table,
+						  int indent, const IDLOptions &opts,
+						  std::string *_text);
+
 // Generate text for non-scalar field.
 static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
                            int indent, Type *union_type,
@@ -238,6 +179,15 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
     assert(IsStruct(fd.value.type));
     val = reinterpret_cast<const Struct *>(table)->
             GetStruct<const void *>(fd.value.offset);
+  } else if (fd.flexbuffer) {
+    auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
+    auto root = flexbuffers::GetRoot(vec->data(), vec->size());
+    root.ToString(true, opts.strict_json, *_text);
+    return true;
+  } else if (fd.nested_flatbuffer) {
+    auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
+    auto root = GetRoot<Table>(vec->data());
+    return GenStruct(*fd.nested_flatbuffer, root, indent, opts, _text);
   } else {
     val = IsStruct(fd.value.type)
       ? table->GetStruct<const void *>(fd.value.offset)
@@ -265,16 +215,19 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
                          !fd.deprecated;
     if (is_present || output_anyway) {
       if (fieldout++) {
-        text += ",";
+        if (!opts.protobuf_ascii_alike) text += ",";
       }
       text += NewLine(opts);
       text.append(indent + Indent(opts), ' ');
       OutputIdentifier(fd.name, opts, _text);
-      text += ": ";
+      if (!opts.protobuf_ascii_alike ||
+          (fd.value.type.base_type != BASE_TYPE_STRUCT &&
+           fd.value.type.base_type != BASE_TYPE_VECTOR)) text += ":";
+      text += " ";
       if (is_present) {
         switch (fd.value.type.base_type) {
-           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-             PTYPE) \
+           #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
              case BASE_TYPE_ ## ENUM: \
                 if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
                                      opts, indent + Indent(opts), _text)) { \
@@ -284,8 +237,8 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
           // Generate drop-thru case statements for all pointer types:
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-            PTYPE) \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             case BASE_TYPE_ ## ENUM:
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD

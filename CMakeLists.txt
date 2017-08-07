@@ -24,13 +24,16 @@ endif()
 
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/code_generators.h
+  include/flatbuffers/base.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
   include/flatbuffers/util.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
+  include/flatbuffers/stl_emulation.h
   include/flatbuffers/flexbuffers.h
+  include/flatbuffers/registry.h
   src/code_generators.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
@@ -48,6 +51,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_python.cpp
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
+  src/idl_gen_json_schema.cpp
   src/flatc.cpp
   src/flatc_main.cpp
   grpc/src/compiler/schema_interface.h
@@ -195,6 +199,8 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     OUTPUT ${GEN_HEADER}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
             --gen-object-api -o "${SRC_FBS_DIR}"
+            --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
@@ -225,7 +231,7 @@ endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
   if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-shadow")
   endif()
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   target_link_libraries(grpctest grpc++_unsecure pthread dl)

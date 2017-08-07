@@ -18,8 +18,9 @@
 #define FLATBUFFERS_FLEXBUFFERS_H_
 
 #include <map>
+// Used to select STL variant.
+#include "flatbuffers/base.h"
 // We use the basic binary writing functions from the regular FlatBuffers.
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/util.h"
 
 #ifdef _MSC_VER
@@ -75,9 +76,10 @@ enum Type {
   TYPE_VECTOR_UINT4 = 23,
   TYPE_VECTOR_FLOAT4 = 24,
   TYPE_BLOB = 25,
+  TYPE_BOOL = 26,
 };
 
-inline bool IsInline(Type t) { return t <= TYPE_FLOAT; }
+inline bool IsInline(Type t) { return t <= TYPE_FLOAT || t == TYPE_BOOL; }
 
 inline bool IsTypedVectorElementType(Type t) {
   return t >= TYPE_INT && t <= TYPE_STRING;
@@ -229,14 +231,15 @@ class String : public Sized {
 
 class Blob : public Sized {
  public:
-  Blob(const uint8_t *data, uint8_t byte_width)
-    : Sized(data, byte_width) {}
+  Blob(const uint8_t *data_buf, uint8_t byte_width)
+    : Sized(data_buf, byte_width) {}
 
   static Blob EmptyBlob() {
     static const uint8_t empty_blob[] = { 0/*len*/ };
     return Blob(empty_blob + 1, 1);
   }
   bool IsTheEmptyBlob() const { return data_ == EmptyBlob().data_; }
+  const uint8_t *data() const { return data_; }
 };
 
 class Vector : public Sized {
@@ -347,6 +350,7 @@ class Reference {
   Type GetType() const { return type_; }
 
   bool IsNull() const { return type_ == TYPE_NULL; }
+  bool IsBool() const { return type_ == TYPE_BOOL; }
   bool IsInt() const { return type_ == TYPE_INT ||
                               type_ == TYPE_INDIRECT_INT; }
   bool IsUInt() const { return type_ == TYPE_UINT||
@@ -359,6 +363,11 @@ class Reference {
   bool IsKey() const { return type_ == TYPE_KEY; }
   bool IsVector() const { return type_ == TYPE_VECTOR || type_ == TYPE_MAP; }
   bool IsMap() const { return type_ == TYPE_MAP; }
+  bool IsBlob() const { return type_ == TYPE_BLOB; }
+
+  bool AsBool() const {
+    return (type_ == TYPE_BOOL ? ReadUInt64(data_, parent_width_) : AsUInt64()) != 0;
+  }
 
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
   // Truncates floats, strings are attempted to be parsed for a number,
@@ -378,6 +387,7 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<int64_t>(AsVector().size());
+      case TYPE_BOOL: return ReadInt64(data_, parent_width_);
       default:
       // Convert other things to int.
       return 0;
@@ -405,6 +415,7 @@ class Reference {
       case TYPE_NULL: return 0;
       case TYPE_STRING: return flatbuffers::StringToUInt(AsString().c_str());
       case TYPE_VECTOR: return static_cast<uint64_t>(AsVector().size());
+      case TYPE_BOOL: return ReadUInt64(data_, parent_width_);
       default:
       // Convert other things to uint.
       return 0;
@@ -432,6 +443,8 @@ class Reference {
       case TYPE_NULL: return 0.0;
       case TYPE_STRING: return strtod(AsString().c_str(), nullptr);
       case TYPE_VECTOR: return static_cast<double>(AsVector().size());
+      case TYPE_BOOL: return static_cast<double>(
+                               ReadUInt64(data_, parent_width_));
       default:
       // Convert strings and other things to float.
       return 0;
@@ -458,25 +471,63 @@ class Reference {
   }
 
   // Unlike AsString(), this will convert any type to a std::string.
-  std::string ToString() const {
+  std::string ToString() {
+    std::string s;
+    ToString(false, false, s);
+    return s;
+  }
+
+  // Convert any type to a JSON-like string. strings_quoted determines if
+  // string values at the top level receive "" quotes (inside other values
+  // they always do). keys_quoted determines if keys are quoted, at any level.
+  // TODO(wvo): add further options to have indentation/newlines.
+  void ToString(bool strings_quoted, bool keys_quoted, std::string &s) const {
     if (type_ == TYPE_STRING) {
-      return String(Indirect(), byte_width_).c_str();
+      String str(Indirect(), byte_width_);
+      if (strings_quoted) {
+        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true);
+      } else {
+        s.append(str.c_str(), str.length());
+      }
     } else if (IsKey()) {
-      return AsKey();
+      auto str = AsKey();
+      if (keys_quoted) {
+        flatbuffers::EscapeString(str, strlen(str), &s, true);
+      } else {
+        s += str;
+      }
     } else if (IsInt()) {
-      return flatbuffers::NumToString(AsInt64());
+      s += flatbuffers::NumToString(AsInt64());
     } else if (IsUInt()) {
-      return flatbuffers::NumToString(AsUInt64());
+      s += flatbuffers::NumToString(AsUInt64());
     } else if (IsFloat()) {
-      return flatbuffers::NumToString(AsDouble());
+      s += flatbuffers::NumToString(AsDouble());
     } else if (IsNull()) {
-      return "null";
+      s += "null";
+    } else if (IsBool()) {
+      s += AsBool() ? "true" : "false";
     } else if (IsMap()) {
-      return "{..}";  // TODO: show elements.
+      s += "{ ";
+      auto m = AsMap();
+      auto keys = m.Keys();
+      auto vals = m.Values();
+      for (size_t i = 0; i < keys.size(); i++) {
+        keys[i].ToString(true, keys_quoted, s);
+        s += ": ";
+        vals[i].ToString(true, keys_quoted, s);
+        if (i < keys.size() - 1) s += ", ";
+      }
+      s += " }";
     } else if (IsVector()) {
-      return "[..]";  // TODO: show elements.
+      s += "[ ";
+      auto v = AsVector();
+      for (size_t i = 0; i < v.size(); i++) {
+        v[i].ToString(true, keys_quoted, s);
+        if (i < v.size() - 1) s += ", ";
+      }
+      s += " ]";
     } else {
-      return "(?)";
+      s += "(?)";
     }
   }
 
@@ -547,6 +598,10 @@ class Reference {
     } else {
       return false;
     }
+  }
+
+  bool MutateBool(bool b) {
+    return type_ == TYPE_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
   }
 
   bool MutateUInt(uint64_t u) {
@@ -708,7 +763,7 @@ inline Reference GetRoot(const uint8_t *buffer, size_t size) {
 }
 
 inline Reference GetRoot(const std::vector<uint8_t> &buffer) {
-  return GetRoot(buffer.data(), buffer.size());
+  return GetRoot(flatbuffers::vector_data(buffer), buffer.size());
 }
 
 // Flags that configure how the Builder behaves.
@@ -747,6 +802,17 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return buf_;
   }
 
+  // Reset all state so we can re-use the buffer.
+  void Clear() {
+    buf_.clear();
+    stack_.clear();
+    finished_ = false;
+    // flags_ remains as-is;
+    force_min_bit_width_ = BIT_WIDTH_8;
+    key_pool.clear();
+    string_pool.clear();
+  }
+
   // All value constructing functions below have two versions: one that
   // takes a key (for placement inside a map) and one that doesn't (for inside
   // vectors and elsewhere).
@@ -766,7 +832,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   void Double(double f) { stack_.push_back(Value(f)); }
   void Double(const char *key, double d) { Key(key); Double(d); }
 
-  void Bool(bool b) { Int(static_cast<int64_t>(b)); }
+  void Bool(bool b) { stack_.push_back(Value(b)); }
   void Bool(const char *key, bool b) { Key(key); Bool(b); }
 
   void IndirectInt(int64_t i) {
@@ -867,7 +933,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return CreateBlob(data, len, 0, TYPE_BLOB);
   }
   size_t Blob(const std::vector<uint8_t> &v) {
-    return CreateBlob(v.data(), v.size(), 0, TYPE_BLOB);
+    return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, TYPE_BLOB);
   }
 
   // TODO(wvo): support all the FlexBuffer types (like flexbuffers::String),
@@ -911,11 +977,15 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // step automatically when appliccable, and encourage people to write in
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
-    auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
+    auto dict =
+        reinterpret_cast<TwoValue *>(flatbuffers::vector_data(stack_) +
+                                     start);
     std::sort(dict, dict + len,
               [&](const TwoValue &a, const TwoValue &b) -> bool {
-      auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
-      auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
+      auto as = reinterpret_cast<const char *>(
+          flatbuffers::vector_data(buf_) + a.key.u_);
+      auto bs = reinterpret_cast<const char *>(
+          flatbuffers::vector_data(buf_) + b.key.u_);
       auto comp = strcmp(as, bs);
       // If this assertion hits, you've added two keys with the same value to
       // this map.
@@ -940,13 +1010,25 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndVector(start, false, false);
   }
+  template <typename F, typename T> size_t Vector(F f, T &state) {
+    auto start = StartVector();
+    f(state);
+    return EndVector(start, false, false);
+  }
   template<typename F> size_t Vector(const char *key, F f) {
     auto start = StartVector(key);
     f();
     return EndVector(start, false, false);
   }
+  template <typename F, typename T> size_t Vector(const char *key, F f,
+                                                  T &state) {
+    auto start = StartVector(key);
+    f(state);
+    return EndVector(start, false, false);
+  }
+
   template<typename T> void Vector(const T *elems, size_t len) {
-    if (std::is_scalar<T>::value) {
+    if (flatbuffers::is_scalar<T>::value) {
       // This path should be a lot quicker and use less space.
       ScalarVector(elems, len, false);
     } else {
@@ -961,7 +1043,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Vector(elems, len);
   }
   template<typename T> void Vector(const std::vector<T> &vec) {
-    Vector(vec.data(), vec.size());
+    Vector(flatbuffers::vector_data(vec), vec.size());
   }
 
   template<typename F> size_t TypedVector(F f) {
@@ -969,9 +1051,20 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndVector(start, true, false);
   }
+  template <typename F, typename T> size_t TypedVector(F f, T &state) {
+    auto start = StartVector();
+    f(state);
+    return EndVector(start, true, false);
+  }
   template<typename F> size_t TypedVector(const char *key, F f) {
     auto start = StartVector(key);
     f();
+    return EndVector(start, true, false);
+  }
+  template <typename F, typename T> size_t TypedVector(const char *key, F f,
+                                                       T &state) {
+    auto start = StartVector(key);
+    f(state);
     return EndVector(start, true, false);
   }
 
@@ -980,7 +1073,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // regular typed vector.
     assert(len >= 2 && len <= 4);
     // And only scalar values.
-    assert(std::is_scalar<T>::value);
+    assert(flatbuffers::is_scalar<T>::value);
     return ScalarVector(elems, len, true);
   }
 
@@ -995,9 +1088,20 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     f();
     return EndMap(start);
   }
+  template <typename F, typename T> size_t Map(F f, T &state) {
+    auto start = StartMap();
+    f(state);
+    return EndMap(start);
+  }
   template<typename F> size_t Map(const char *key, F f) {
     auto start = StartMap(key);
     f();
+    return EndMap(start);
+  }
+  template <typename F, typename T> size_t Map(const char *key, F f,
+                                               T &state) {
+    auto start = StartMap(key);
+    f(state);
     return EndMap(start);
   }
   template<typename T> void Map(const std::map<std::string, T> &map) {
@@ -1128,10 +1232,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> static Type GetScalarType() {
-    assert(std::is_scalar<T>::value);
-    return std::is_floating_point<T>::value
+    assert(flatbuffers::is_scalar<T>::value);
+    return flatbuffers::is_floating_point<T>::value
         ? TYPE_FLOAT
-        : (std::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
+        : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
   }
 
   struct Value {
@@ -1147,6 +1251,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     BitWidth min_bit_width_;
 
     Value() : i_(0), type_(TYPE_NULL), min_bit_width_(BIT_WIDTH_8) {}
+
+    Value(bool b) : u_(static_cast<uint64_t>(b)), type_(TYPE_BOOL), min_bit_width_(BIT_WIDTH_8) {}
 
     Value(int64_t i, Type t, BitWidth bw)
       : i_(i), type_(t), min_bit_width_(bw) {}
@@ -1206,6 +1312,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       case TYPE_INT:
         Write(val.i_, byte_width);
         break;
+      case TYPE_BOOL:
       case TYPE_UINT:
         Write(val.u_, byte_width);
         break;
@@ -1318,9 +1425,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   struct KeyOffsetCompare {
     KeyOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
-    bool operator() (size_t a, size_t b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b);
+    bool operator()(size_t a, size_t b) const {
+      auto stra =
+          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + a);
+      auto strb =
+          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + b);
       return strcmp(stra, strb) < 0;
     }
     const std::vector<uint8_t> *buf_;
@@ -1329,9 +1438,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   typedef std::pair<size_t, size_t> StringOffset;
   struct StringOffsetCompare {
     StringOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
-    bool operator() (const StringOffset &a, const StringOffset &b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a.first);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b.first);
+    bool operator()(const StringOffset &a, const StringOffset &b) const {
+      auto stra = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
+                                                 a.first);
+      auto strb = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
+                                                 b.first);
       return strncmp(stra, strb, std::min(a.second, b.second) + 1) < 0;
     }
     const std::vector<uint8_t> *buf_;

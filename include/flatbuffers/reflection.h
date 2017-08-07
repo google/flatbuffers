@@ -361,12 +361,13 @@ template<typename T, typename U> class pointer_inside_vector {
  public:
   pointer_inside_vector(T *ptr, std::vector<U> &vec)
     : offset_(reinterpret_cast<uint8_t *>(ptr) -
-              reinterpret_cast<uint8_t *>(vec.data())),
+              reinterpret_cast<uint8_t *>(flatbuffers::vector_data(vec))),
       vec_(vec) {}
 
   T *operator*() const {
     return reinterpret_cast<T *>(
-             reinterpret_cast<uint8_t *>(vec_.data()) + offset_);
+             reinterpret_cast<uint8_t *>(
+               flatbuffers::vector_data(vec_)) + offset_);
   }
   T *operator->() const {
     return operator*();
@@ -418,7 +419,6 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
                          uoffset_t elem_size, std::vector<uint8_t> *flatbuf,
                          const reflection::Object *root_table = nullptr);
 
-#ifndef FLATBUFFERS_CPP98_STL
 template <typename T>
 void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
                   const Vector<T> *vec, std::vector<uint8_t> *flatbuf,
@@ -432,7 +432,7 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
   // Set new elements to "val".
   for (int i = 0; i < delta_elem; i++) {
     auto loc = newelems + i * sizeof(T);
-    auto is_scalar = std::is_scalar<T>::value;
+    auto is_scalar = flatbuffers::is_scalar<T>::value;
     if (is_scalar) {
       WriteScalar(loc, val);
     } else {  // struct
@@ -440,7 +440,6 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
     }
   }
 }
-#endif
 
 // Adds any new data (in the form of a new FlatBuffer) to an existing
 // FlatBuffer. This can be used when any of the above methods are not
