@@ -292,6 +292,12 @@ flexibility in which of the children of root object to write first (though in
 this case there's only one string), and what order to write the fields in.
 Different orders may also cause different alignments to happen.
 
+### Additional reading.
+
+The author of the C language implementation has made a similar
+[document](https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#flatbuffers-binary-format)
+that may further help clarify the format.
+
 # FlexBuffers
 
 The [schema-less](@ref flexbuffers) version of FlatBuffers have their
