@@ -754,17 +754,37 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           auto index = "this.bb.__vector(this.bb_pos + offset) + index" +
                        MaybeScale(inline_size);
           std::string args = "@param {number} index\n";
-          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          std::string ret_type;
+          bool is_union = false;
+          switch (vectortype.base_type) {
+          case BASE_TYPE_STRUCT:
             args += "@param {" + vectortypename + "=} obj\n";
-          } else if (vectortype.base_type == BASE_TYPE_STRING) {
+            ret_type = vectortypename;
+            break;
+          case BASE_TYPE_STRING:
             args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
+            ret_type = vectortypename;
+            break;
+          case BASE_TYPE_UNION:
+            args += "@param {flatbuffers.Table=} obj\n";
+            ret_type = "?flatbuffers.Table";
+            is_union = true;
+            break;
+          default:
+            ret_type = vectortypename;
           }
           GenDocComment(field.doc_comment, code_ptr, args +
-            "@returns {" + vectortypename + "}");
+            "@returns {" + ret_type + "}");
           if (lang_.language == IDLOptions::kTs) {
             std::string prefix = MakeCamel(field.name, false);
+            if (is_union) {
+              prefix += "<T extends flatbuffers.Table>";
+            }
             prefix += "(index: number";
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            if (is_union) {
+              vectortypename = "T";
+              code += prefix + ", obj:T";
+            } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
               vectortypename = GenPrefixedTypeName(vectortypename,
                                                    vectortype.struct_def->file);
               code += prefix + ", obj?:" + vectortypename;
@@ -797,7 +817,9 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               : "this.bb.__indirect(" + index + ")";
             code += ", this.bb)";
           } else {
-            if (vectortype.base_type == BASE_TYPE_STRING) {
+            if (is_union) {
+              index = "obj, " + index;
+            } else if (vectortype.base_type == BASE_TYPE_STRING) {
               index += ", optionalEncoding";
             }
             code += offset_prefix + GenGetter(vectortype, "(" + index + ")");

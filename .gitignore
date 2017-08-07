@@ -78,3 +78,5 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
+tests/union_vector/union_vector_generated.js
+tests/union_vector/union_vector_generated.ts

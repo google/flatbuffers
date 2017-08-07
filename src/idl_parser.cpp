@@ -628,8 +628,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
                     type.enum_def->underlying_type, &typefield));
   } else if (type.base_type == BASE_TYPE_VECTOR &&
              type.element == BASE_TYPE_UNION) {
-    // Only cpp supports the union vector feature so far.
-    if (opts.lang_to_generate != IDLOptions::kCpp) {
+    // Only cpp, js and ts supports the union vector feature so far.
+    if (!SupportsVectorOfUnions()) {
       return Error("Vectors of unions are not yet supported in all "
                    "the specified programming languages.");
     }
@@ -1567,6 +1567,11 @@ CheckedError Parser::CheckClash(std::vector<FieldDef*> &fields,
   return NoError();
 }
 
+bool Parser::SupportsVectorOfUnions() const {
+    return (opts.lang_to_generate &
+        ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs)) == 0;
+}
+
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
   auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
   auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
@@ -2137,7 +2142,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
            val_it != enum_def.vals.vec.end();
            ++val_it) {
         auto &val = **val_it;
-        if (opts.lang_to_generate != IDLOptions::kCpp &&
+        if (!SupportsVectorOfUnions() &&
             val.union_type.struct_def && val.union_type.struct_def->fixed)
           return Error(
                 "only tables can be union elements in the generated language: "
