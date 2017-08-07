@@ -1568,7 +1568,7 @@ CheckedError Parser::CheckClash(std::vector<FieldDef*> &fields,
 }
 
 bool Parser::SupportsVectorOfUnions() const {
-    return (opts.lang_to_generate &
+    return opts.lang_to_generate != 0 && (opts.lang_to_generate &
         ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs)) == 0;
 }
 
