@@ -1499,7 +1499,7 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const StatT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _id = _o->id.size() ? _fbb.CreateString(_o->id) : 0;
+  auto _id = _o->id.empty() ? 0 : _fbb.CreateString(_o->id);
   auto _val = _o->val;
   auto _count = _o->count;
   return MyGame::Example::CreateStat(

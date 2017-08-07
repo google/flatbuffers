@@ -485,7 +485,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _pos = _o->pos ? _o->pos.get() : 0;
   auto _mana = _o->mana;
   auto _hp = _o->hp;
-  auto _name = _o->name.size() ? _fbb.CreateString(_o->name) : 0;
+  auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   auto _inventory = _o->inventory.size() ? _fbb.CreateVector(_o->inventory) : 0;
   auto _color = _o->color;
   auto _weapons = _o->weapons.size() ? _fbb.CreateVector<flatbuffers::Offset<Weapon>> (_o->weapons.size(), [](size_t i, _VectorArgs *__va) { return CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
@@ -525,7 +525,7 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const WeaponT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _name = _o->name.size() ? _fbb.CreateString(_o->name) : 0;
+  auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   auto _damage = _o->damage;
   return MyGame::Sample::CreateWeapon(
       _fbb,

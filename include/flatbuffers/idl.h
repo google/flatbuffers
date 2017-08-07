@@ -606,7 +606,7 @@ private:
       size_t &count, ParseVectorDelimitersBody body, void *state);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
-                                                  size_t parent_fieldn,
+                                                  size_t fieldn,
                                                   const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
   FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
