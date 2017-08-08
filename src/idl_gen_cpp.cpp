@@ -1772,7 +1772,7 @@ class CppGenerator : public BaseGenerator {
         // For optional fields, check to see if there actually is any data
         // in _o->field before attempting to access it.
         if (!field.required) {
-          code = value + ".size() ? " + code + " : 0";
+          code = value + ".empty() ? 0 : " + code;
         }
         break;
       }
