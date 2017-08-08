@@ -757,21 +757,21 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           std::string ret_type;
           bool is_union = false;
           switch (vectortype.base_type) {
-          case BASE_TYPE_STRUCT:
-            args += "@param {" + vectortypename + "=} obj\n";
-            ret_type = vectortypename;
-            break;
-          case BASE_TYPE_STRING:
-            args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
-            ret_type = vectortypename;
-            break;
-          case BASE_TYPE_UNION:
-            args += "@param {flatbuffers.Table=} obj\n";
-            ret_type = "?flatbuffers.Table";
-            is_union = true;
-            break;
-          default:
-            ret_type = vectortypename;
+            case BASE_TYPE_STRUCT:
+              args += "@param {" + vectortypename + "=} obj\n";
+              ret_type = vectortypename;
+              break;
+            case BASE_TYPE_STRING:
+              args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
+              ret_type = vectortypename;
+              break;
+            case BASE_TYPE_UNION:
+              args += "@param {flatbuffers.Table=} obj\n";
+              ret_type = "?flatbuffers.Table";
+              is_union = true;
+              break;
+            default:
+              ret_type = vectortypename;
           }
           GenDocComment(field.doc_comment, code_ptr, args +
             "@returns {" + ret_type + "}");
