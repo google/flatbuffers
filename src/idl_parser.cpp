@@ -620,6 +620,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type))
     return Error("structs_ may contain only scalar or struct fields");
 
+  bool is_union_vector = false;
+
   FieldDef *typefield = nullptr;
   if (type.base_type == BASE_TYPE_UNION) {
     // For union fields, add a second auto-generated field to hold the type,
@@ -633,6 +635,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error("Vectors of unions are not yet supported in all "
                    "the specified programming languages.");
     }
+    is_union_vector = true;
     // For vector of union fields, add a second auto-generated vector field to
     // hold the types, with a special suffix.
     Type union_vector(BASE_TYPE_VECTOR, nullptr, type.enum_def);
@@ -745,6 +748,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (typefield) {
+    if (is_union_vector) {
+      typefield->required = field->required;
+    }
     // If this field is a union, and it has a manually assigned id,
     // the automatically added type field should have an id as well (of N - 1).
     auto attr = field->attributes.Lookup("id");
