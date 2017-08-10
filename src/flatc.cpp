@@ -108,8 +108,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --keep-prefix      Keep original prefix of schema include statement.\n"
       "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
       "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
-      "FILEs may be schemas, or JSON files (conforming to preceding schema)\n"
-      "FILEs after the -- must be binary flatbuffer format files.\n"
+      "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
+      "schema). FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
       "and written to the current directory or the path given by -o.\n"
       "example: " << program_name << " -c -b schema1.fbs schema2.fbs data.json\n";
@@ -321,6 +321,12 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         parser.reset(new flatbuffers::Parser(opts));
       }
       ParseFile(*parser.get(), filename, contents, include_directories);
+      if (!is_schema && !parser->builder_.GetSize()) {
+        // If a file doesn't end in .fbs, it must be json/binary. Ensure we
+        // didn't just parse a schema with a different extension.
+        Error("input file is neither json nor a .fbs (schema) file: " +
+              filename, true);
+      }
       if (is_schema && !conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err);
