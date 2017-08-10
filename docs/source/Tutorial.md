@@ -710,6 +710,10 @@ adding fields to our monster.
 other `vector`s), collect their offsets into a temporary data structure, and
 then create an additional `vector` containing their offsets.*
 
+If instead of creating a vector from an existing array you serialize elements
+individually one by one, take care to note that this happens in reverse order,
+as buffers are built back to front.
+
 For example, take a look at the two `Weapon`s that we created earlier (`Sword`
 and `Axe`). These are both FlatBuffer `table`s, whose offsets we now store in
 memory. Therefore we can create a FlatBuffer `vector` to contain these
