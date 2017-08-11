@@ -3,7 +3,6 @@
 /**
  * @enum
  */
-export namespace {
 export enum Character{
   NONE= 0,
   MuLan= 1,
@@ -12,12 +11,11 @@ export enum Character{
   BookFan= 4,
   Other= 5,
   Unused= 6
-}};
+};
 
 /**
  * @constructor
  */
-export namespace {
 export class Attacker {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -96,11 +94,9 @@ static endAttacker(builder:flatbuffers.Builder):flatbuffers.Offset {
 };
 
 }
-}
 /**
  * @constructor
  */
-export namespace {
 export class Rapunzel {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -156,11 +152,9 @@ static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuff
 };
 
 }
-}
 /**
  * @constructor
  */
-export namespace {
 export class BookReader {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -216,11 +210,9 @@ static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuf
 };
 
 }
-}
 /**
  * @constructor
  */
-export namespace {
 export class Movie {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -432,5 +424,4 @@ static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset)
   builder.finish(offset, 'MOVI');
 };
 
-}
 }

@@ -318,7 +318,7 @@ Movie.prototype.charactersTypeArray = function() {
  * @param {flatbuffers.Table=} obj
  * @returns {?flatbuffers.Table}
  */
-Movie.prototype.characters = function(index) {
+Movie.prototype.characters = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__union(obj, this.bb.__vector(this.bb_pos + offset) + index * 4) : null;
 };
