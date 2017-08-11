@@ -1,20 +1,33 @@
 #ifndef FLATBUFFERS_BASE_H_
 #define FLATBUFFERS_BASE_H_
 
+#if defined(_MSC_VER) && defined(_DEBUG)
+  #define _CRTDBG_MAP_ALLOC
+#endif
+
 #include <assert.h>
 
 #ifndef ARDUINO
 #include <cstdint>
 #endif
+
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <string>
-#if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
-#include <utility.h>
-#else
-#include <utility>
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+  #include <crtdbg.h>
+  #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+  #define new DEBUG_NEW
 #endif
+
+#if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
+  #include <utility.h>
+#else
+  #include <utility>
+#endif
+
+#include <string>
 #include <type_traits>
 #include <vector>
 #include <set>
@@ -122,8 +135,8 @@
 #endif
 
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4127) // C4127: conditional expression is constant
+  #pragma warning(push)
+  #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif
 
 /// @endcond
