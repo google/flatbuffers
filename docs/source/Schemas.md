@@ -278,7 +278,10 @@ Current understood attributes:
     IDs allow the fields to be placed in any order in the schema.
     When a new field is added to the schema it must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
-    anymore, code should stop using this data.
+    anymore, code should stop using this data. Old data may still contain this
+    field, but it won't be accessible anymore by newer code. Note that if you
+    deprecate a field that was previous required, old code may fail to validate
+    new data (when using the optional verifier).
 -   `required` (on a non-scalar table field): this field must always be set.
     By default, all fields are optional, i.e. may be left out. This is
     desirable, as it helps with forwards/backwards compatibility, and
@@ -288,7 +291,10 @@ Current understood attributes:
     constructs FlatBuffers to ensure this field is initialized, so the reading
     code may access it directly, without checking for NULL. If the constructing
     code does not initialize this field, they will get an assert, and also
-    the verifier will fail on buffers that have missing required fields.
+    the verifier will fail on buffers that have missing required fields. Note
+    that if you add this attribute to an existing field, this will only be
+    valid if existing data always contains this field / existing code always
+    writes this field.
 -   `force_align: size` (on a struct): force the alignment of this struct
     to be something higher than what it is naturally aligned to. Causes
     these structs to be aligned to that amount inside a buffer, IF that
