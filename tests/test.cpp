@@ -1541,6 +1541,8 @@ void UnionVectorTest() {
   fbb.Clear();
   fbb.Finish(Movie::Pack(fbb, movie_object));
 
+  delete movie_object;
+
   auto repacked_movie = GetMovie(fbb.GetBufferPointer());
 
   TestMovie(repacked_movie);
@@ -1737,15 +1739,22 @@ void TypeAliasesTest()
 }
 
 int main(int /*argc*/, const char * /*argv*/[]) {
+  #if defined(_MSC_VER) && defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF
+      // For more thorough checking:
+      //| _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF
+    );
+  #endif
+
   // Run our various test suites:
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
-#if !defined(FLATBUFFERS_CPP98_STL)
-  auto flatbuf = std::move(flatbuf1);  // Test move assignment.
-#else
-  auto &flatbuf = flatbuf1;
-#endif // !defined(FLATBUFFERS_CPP98_STL)
+  #if !defined(FLATBUFFERS_CPP98_STL)
+    auto flatbuf = std::move(flatbuf1);  // Test move assignment.
+  #else
+    auto &flatbuf = flatbuf1;
+  #endif // !defined(FLATBUFFERS_CPP98_STL)
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
   AccessFlatBufferTest(flatbuf.data(), flatbuf.size());
@@ -1761,10 +1770,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
       test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
                        test_data_path;
     #endif
-  ParseAndGenerateTextTest();
-  ReflectionTest(flatbuf.data(), flatbuf.size());
-  ParseProtoTest();
-  UnionVectorTest();
+    ParseAndGenerateTextTest();
+    ReflectionTest(flatbuf.data(), flatbuf.size());
+    ParseProtoTest();
+    UnionVectorTest();
   #endif
 
   FuzzTest1();
