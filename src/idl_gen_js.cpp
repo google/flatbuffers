@@ -289,9 +289,12 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
   std::string &code = *code_ptr;
   std::string &exports = *exports_ptr;
   GenDocComment(enum_def.doc_comment, code_ptr, "@enum");
+  std::string ns = GetNameSpace(enum_def);
   if (lang_.language == IDLOptions::kTs) {
-    code += "export namespace " + GetNameSpace(enum_def) + "{\n" +
-            "export enum " + enum_def.name + "{\n";
+    if (!ns.empty()) {
+      code += "export namespace " + ns + "{\n";
+    }
+    code += "export enum " + enum_def.name + "{\n";
   } else {
     if (enum_def.defined_namespace->components.empty()) {
       code += "var ";
@@ -329,11 +332,10 @@ void GenEnum(EnumDef &enum_def, std::string *code_ptr,
     }
   }
 
-  if (lang_.language == IDLOptions::kTs) {
-    code += "}};\n\n";
-  } else {
-    code += "};\n\n";
+  if (lang_.language == IDLOptions::kTs && !ns.empty()) {
+    code += "}";
   }
+  code += "};\n\n";
 }
 
 static std::string GenType(const Type &type) {
@@ -554,13 +556,15 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
   std::string &exports = *exports_ptr;
 
   std::string object_name;
+  std::string object_namespace = GetNameSpace(struct_def);
 
   // Emit constructor
   if (lang_.language == IDLOptions::kTs) {
     object_name = struct_def.name;
-    std::string object_namespace = GetNameSpace(struct_def);
     GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
-    code += "export namespace " + object_namespace + "{\n";
+    if (!object_namespace.empty()) {
+      code += "export namespace " + object_namespace + "{\n";
+    }
     code += "export class " + struct_def.name;
     code += " {\n";
     code += "  /**\n";
@@ -754,17 +758,37 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           auto index = "this.bb.__vector(this.bb_pos + offset) + index" +
                        MaybeScale(inline_size);
           std::string args = "@param {number} index\n";
-          if (vectortype.base_type == BASE_TYPE_STRUCT) {
-            args += "@param {" + vectortypename + "=} obj\n";
-          } else if (vectortype.base_type == BASE_TYPE_STRING) {
-            args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
+          std::string ret_type;
+          bool is_union = false;
+          switch (vectortype.base_type) {
+            case BASE_TYPE_STRUCT:
+              args += "@param {" + vectortypename + "=} obj\n";
+              ret_type = vectortypename;
+              break;
+            case BASE_TYPE_STRING:
+              args += "@param {flatbuffers.Encoding=} optionalEncoding\n";
+              ret_type = vectortypename;
+              break;
+            case BASE_TYPE_UNION:
+              args += "@param {flatbuffers.Table=} obj\n";
+              ret_type = "?flatbuffers.Table";
+              is_union = true;
+              break;
+            default:
+              ret_type = vectortypename;
           }
           GenDocComment(field.doc_comment, code_ptr, args +
-            "@returns {" + vectortypename + "}");
+            "@returns {" + ret_type + "}");
           if (lang_.language == IDLOptions::kTs) {
             std::string prefix = MakeCamel(field.name, false);
+            if (is_union) {
+              prefix += "<T extends flatbuffers.Table>";
+            }
             prefix += "(index: number";
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            if (is_union) {
+              vectortypename = "T";
+              code += prefix + ", obj:T";
+            } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
               vectortypename = GenPrefixedTypeName(vectortypename,
                                                    vectortype.struct_def->file);
               code += prefix + ", obj?:" + vectortypename;
@@ -781,7 +805,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           } else {
             code += object_name + ".prototype." + MakeCamel(field.name, false);
             code += " = function(index";
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            if (vectortype.base_type == BASE_TYPE_STRUCT || is_union) {
               code += ", obj";
             } else if (vectortype.base_type == BASE_TYPE_STRING) {
               code += ", optionalEncoding";
@@ -797,7 +821,9 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
               : "this.bb.__indirect(" + index + ")";
             code += ", this.bb)";
           } else {
-            if (vectortype.base_type == BASE_TYPE_STRING) {
+            if (is_union) {
+              index = "obj, " + index;
+            } else if (vectortype.base_type == BASE_TYPE_STRING) {
               index += ", optionalEncoding";
             }
             code += offset_prefix + GenGetter(vectortype, "(" + index + ")");
@@ -1137,7 +1163,10 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
   }
 
   if (lang_.language == IDLOptions::kTs) {
-    code += "}\n}\n";
+    if (!object_namespace.empty()) {
+      code += "}\n";
+    }
+    code += "}\n";
   }
 }
 };
