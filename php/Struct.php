@@ -28,4 +28,14 @@ abstract class Struct
      * @var ByteBuffer $bb
      */
     protected $bb;
+
+    public function setByteBufferPos($pos)
+    {
+        $this->bb_pos = $pos;
+    }
+
+    public function setByteBuffer($bb)
+    {
+        $this->bb = $bb;
+    }
 }

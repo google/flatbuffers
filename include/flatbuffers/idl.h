@@ -647,6 +647,8 @@ private:
                                        const char *suffix,
                                        BaseType baseType);
 
+  bool SupportsVectorOfUnions() const;
+
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;

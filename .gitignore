@@ -49,6 +49,7 @@ tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
 tests/unicode_test.mon
 tests/ts/
+tests/php/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake

@@ -13,6 +13,7 @@ sh PythonTest.sh
 echo "************************ JavaScript:"
 
 sh JavaScriptTest.sh
+sh JavaScriptUnionVectorTest.sh
 
 echo "************************ TypeScript:"
 
@@ -33,6 +34,7 @@ cd ..
 echo "************************ PHP:"
 
 php phpTest.php
+sh phpUnionVectorTest.sh
 
 echo "************************ C:"
 

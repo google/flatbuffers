@@ -67,7 +67,10 @@ namespace php {
         std::string &code = *code_ptr;
         code += "<?php\n";
         code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
-        code += "namespace " + name_space_name + ";\n\n";
+
+        if (!name_space_name.empty()) {
+          code += "namespace " + name_space_name + ";\n\n";
+        }
 
         if (needs_imports) {
           code += "use \\Google\\FlatBuffers\\Struct;\n";
@@ -428,6 +431,31 @@ namespace php {
       code += Indent + "}\n\n";
     }
 
+    // Get the value of a vector's union member. Uses a named return
+    // argument to conveniently set the zero value for the result.
+    void GetMemberOfVectorOfUnion(const FieldDef &field,
+      std::string *code_ptr) {
+      std::string &code = *code_ptr;
+      auto vectortype = field.value.type.VectorType();
+
+      code += Indent + "/**\n";
+      code += Indent + " * @param int offset\n";
+      code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
+      code += Indent + " */\n";
+      code += Indent + "public function get";
+      code += MakeCamel(field.name);
+      code += "($j, $obj)\n";
+      code += Indent + "{\n";
+      code += Indent + Indent +
+        "$o = $this->__offset(" +
+        NumToString(field.value.offset) +
+        ");\n";
+      code += Indent + Indent + "return $o != 0 ? ";
+      code += "$this->__union($obj, $this->__vector($o) + $j * ";
+      code += NumToString(InlineSize(vectortype)) + " - $this->bb_pos) : null;\n";
+      code += Indent + "}\n\n";
+    }
+
     // Recursively generate arguments for a constructor, to deal with nested
     // structs.
     static void StructBuilderArgs(const StructDef &struct_def,
@@ -703,7 +731,9 @@ namespace php {
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
-          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          if (vectortype.base_type == BASE_TYPE_UNION) {
+            GetMemberOfVectorOfUnion(field, code_ptr);
+          } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           } else {
             GetMemberOfVectorOfNonStruct(field, code_ptr);
