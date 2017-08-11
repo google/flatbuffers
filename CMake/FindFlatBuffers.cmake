@@ -20,11 +20,26 @@
 # * FLATBUFFERS_FOUND
 #
 # Provides:
-# * FLATBUFFERS_GENERATE_C_HEADERS(Name <files>) creates the C++ headers
+# * FLATBUFFERS_GENERATE_C_HEADERS(Name FLATBUFFERS_DIR OUTPUT_DIR <files>) creates the C++ headers
 #   for the given flatbuffer schema files.
 #   Returns the header files in ${Name}_OUTPUTS
-
-set(FLATBUFFERS_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
+#   Name is the CMake variable name prefix that will be used.
+#        for example MY_FLATBUFFERS will set the variable 
+#        MY_FLATBUFFERS_OUTPUTS with the 
+#   FLATBUFFERS_DIR is the directory where the flatbuffers are stored.
+#   OUTPUT_DIR is where the output generated flatbuffer files are stored.
+#
+#
+# Usage Example:
+#
+# # list flatbuffer headers
+# set(RFB ArmControlState.fbs Geometry.fbs JointState.fbs KUKAiiwa.fbs LinkObject.fbs Euler.fbs Time.fbs VrepControlPoint.fbs VrepPath.fbs)
+# # directory to include flatbuffers
+# set(GRL_FLATBUFFERS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/include)
+# # Generate flatbuffer message C++ headers
+# flatbuffers_generate_c_headers(GRL_FLATBUFFERS include/grl/flatbuffer/  ${GRL_FLATBUFFERS_INCLUDE_DIR}/grl/flatbuffer ${RFB})
+# add_custom_target(grlflatbuffers DEPENDS ${GRL_FLATBUFFERS_OUTPUTS})
+# include_directories(${GRL_FLATBUFFERS_INCLUDE_DIR} )
 
 find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
 find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
@@ -33,20 +48,21 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(flatbuffers
   DEFAULT_MSG FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR)
 
-if(FLATBUFFERS_FOUND)
-  function(FLATBUFFERS_GENERATE_C_HEADERS Name)
+if(FLATBUFFERS_FOUND) 
+  function(FLATBUFFERS_GENERATE_C_HEADERS Name FLATBUFFERS_DIR OUTPUT_DIR)
     set(FLATC_OUTPUTS)
     foreach(FILE ${ARGN})
       get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
       set(FLATC_OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/${FLATC_OUTPUT}_generated.h")
+        "${OUTPUT_DIR}/${FLATC_OUTPUT}_generated.h")
       list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
 
       add_custom_command(OUTPUT ${FLATC_OUTPUT}
         COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
-        ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
+        ARGS -c -o "${OUTPUT_DIR}" ${FILE}
+		MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${FLATBUFFERS_DIR}/${FILE}
         COMMENT "Building C++ header for ${FILE}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${FLATBUFFERS_DIR})
     endforeach()
     set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
   endfunction()
