@@ -67,7 +67,10 @@ namespace php {
         std::string &code = *code_ptr;
         code += "<?php\n";
         code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
-        code += "namespace " + name_space_name + ";\n\n";
+
+        if (!name_space_name.empty()) {
+          code += "namespace " + name_space_name + ";\n\n";
+        }
 
         if (needs_imports) {
           code += "use \\Google\\FlatBuffers\\Struct;\n";

@@ -15,9 +15,19 @@
 # limitations under the License.
 
 pushd "$(dirname $0)" >/dev/null
+
+npm install @types/flatbuffers
+
 ../flatc --ts --no-fb-import --gen-mutable -o ts -I include_test monster_test.fbs
 ../flatc -b -I include_test monster_test.fbs unicode_test.json
-npm install @types/flatbuffers
 tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
-npm uninstall @types/flatbuffers
 node JavaScriptTest ./ts/monster_test_generated
+
+../flatc --ts --js --no-fb-import -o ts union_vector/union_vector.fbs
+
+# test JS version first, then transpile and rerun for TS
+node JavaScriptUnionVectorTest ./ts/union_vector_generated
+tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/union_vector_generated.ts
+node JavaScriptUnionVectorTest ./ts/union_vector_generated
+
+npm uninstall @types/flatbuffers
