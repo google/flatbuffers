@@ -374,6 +374,10 @@ The offset version is useful to encode costly 64bit (or even 32bit) quantities
 into vectors / maps of smaller sizes, and to share / repeat a value multiple
 times.
 
+### Booleans and Nulls
+
+Booleans (`TYPE_BOOL`) and nulls (`TYPE_NULL`) are encoded as inlined unsigned integers.
+
 ### Blobs, Strings and Keys.
 
 A blob (`TYPE_BLOB`) is encoded similar to a vector, with one difference: the
