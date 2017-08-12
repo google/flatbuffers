@@ -418,7 +418,7 @@ that lookups can be made using binary search.
 
 The reason the key vector is a seperate structure from the value vector is
 such that it can be shared between multiple value vectors, and also to
-allow it to be treated as its own indivual vector in code.
+allow it to be treated as its own individual vector in code.
 
 An example map { foo: 13, bar: 14 } would be encoded as:
 
