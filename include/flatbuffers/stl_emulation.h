@@ -97,7 +97,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
-    template <typename T, typename U> using is_same = std::tr1:is_same<T,U>;
+    template <typename T, typename U> using is_same = std::tr1::is_same<T,U>;
     template <typename T> using is_floating_point =
         std::tr1::is_floating_point<T>;
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
