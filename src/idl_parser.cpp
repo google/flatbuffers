@@ -2216,9 +2216,11 @@ CheckedError Parser::DoParse(const char *source,
                        name.c_str()));
         // We generally do not want to output code for any included files:
         if (!opts.generate_all) MarkGenerated();
-        // Reset root type just in case the included file had one, and the
+        // Reset these just in case the included file had them, and the
         // parent doesn't.
         root_struct_def_ = nullptr;
+        file_identifier_.clear();
+        file_extension_.clear();
         // This is the easiest way to continue this file after an include:
         // instead of saving and restoring all the state, we simply start the
         // file anew. This will cause it to encounter the same include
