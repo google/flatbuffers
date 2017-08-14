@@ -2262,8 +2262,6 @@ CheckedError Parser::DoParse(const char *source,
       ECHECK(ParseNamespacing(&root_type, nullptr));
       if (!SetRootType(root_type.c_str()))
         return Error("unknown root type: " + root_type);
-      if (root_struct_def_->fixed)
-        return Error("root type must be a table");
       EXPECT(';');
     } else if (token_ == kTokenFileIdentifier) {
       NEXT();
