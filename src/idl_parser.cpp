@@ -1970,22 +1970,29 @@ CheckedError Parser::ParseProtoOption() {
 
 // Parse a protobuf type, and map it to the corresponding FlatBuffer one.
 CheckedError Parser::ParseTypeFromProtoType(Type *type) {
-  struct type_lookup { const char *proto_type; BaseType fb_type; };
+  struct type_lookup { const char *proto_type; BaseType fb_type, element; };
   static type_lookup lookup[] = {
-    { "float", BASE_TYPE_FLOAT },  { "double", BASE_TYPE_DOUBLE },
-    { "int32", BASE_TYPE_INT },    { "int64", BASE_TYPE_LONG },
-    { "uint32", BASE_TYPE_UINT },  { "uint64", BASE_TYPE_ULONG },
-    { "sint32", BASE_TYPE_INT },   { "sint64", BASE_TYPE_LONG },
-    { "fixed32", BASE_TYPE_UINT }, { "fixed64", BASE_TYPE_ULONG },
-    { "sfixed32", BASE_TYPE_INT }, { "sfixed64", BASE_TYPE_LONG },
-    { "bool", BASE_TYPE_BOOL },
-    { "string", BASE_TYPE_STRING },
-    { "bytes", BASE_TYPE_STRING },
-    { nullptr, BASE_TYPE_NONE }
+    { "float", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
+    { "double", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
+    { "int32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "int64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "uint32", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "uint64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
+    { "sint32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "sint64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "fixed32", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "fixed64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
+    { "sfixed32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "sfixed64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "bool", BASE_TYPE_BOOL, BASE_TYPE_NONE },
+    { "string", BASE_TYPE_STRING, BASE_TYPE_NONE },
+    { "bytes", BASE_TYPE_VECTOR, BASE_TYPE_UCHAR },
+    { nullptr, BASE_TYPE_NONE, BASE_TYPE_NONE }
   };
   for (auto tl = lookup; tl->proto_type; tl++) {
     if (attribute_ == tl->proto_type) {
       type->base_type = tl->fb_type;
+      type->element = tl->element;
       NEXT();
       return NoError();
     }
