@@ -32,7 +32,6 @@
   #define NOMINMAX
 #endif
 #include <windows.h>
-#include <winbase.h>
 #include <direct.h>
 #else
 #include <limits.h>
