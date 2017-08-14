@@ -4,7 +4,7 @@ Grammar of the schema language    {#flatbuffers_grammar}
 schema = include*
          ( namespace\_decl | type\_decl | enum\_decl | root\_decl |
            file_extension_decl | file_identifier_decl |
-           attribute\_decl | object )*
+           attribute\_decl | rpc\_decl | object )*
 
 include = `include` string\_constant `;`
 
@@ -21,9 +21,15 @@ root\_decl = `root_type` ident `;`
 
 field\_decl = ident `:` type [ `=` scalar ] metadata `;`
 
+rpc\_decl = `rpc_service` ident `{` rpc\_method+ `}`
+
+rpc\_method = ident `(` ident `)` `:` ident metadata `;`
+
 type = `bool` | `byte` | `ubyte` | `short` | `ushort` | `int` | `uint` |
-`float` | `long` | `ulong` | `double`
- | `string` | `[` type `]` | ident
+`float` | `long` | `ulong` | `double` |
+`int8` | `uint8` | `int16` | `uint16` | `int32` | `uint32`| `int64` | `uint64` |
+`float32` | `float64` |
+`string` | `[` type `]` | ident
 
 enumval\_decl = ident [ `=` integer\_constant ]
 
