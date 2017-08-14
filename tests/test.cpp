@@ -1608,6 +1608,8 @@ void FlexBuffersTest() {
     int ints[] = { 1, 2, 3 };
     slb.Vector("bar", ints, 3);
     slb.FixedTypedVector("bar3", ints, 3);
+    bool bools[] = {true, false, true, false};
+    slb.Vector("bools", bools, 4);
     slb.Bool("bool", true);
     slb.Double("foo", 100);
     slb.Map("mymap", [&]() {
@@ -1624,10 +1626,12 @@ void FlexBuffersTest() {
       slb3.IndirectFloat(4.0f);
       uint8_t blob[] = { 77 };
       slb3.Blob(blob, 1);
+      slb3 += false;
     }, slb2);
     int ints[] = { 1, 2, 3 };
     slb2.Vector("bar", ints, 3);
     slb2.FixedTypedVector("bar3", ints, 3);
+    slb.Bool("bool", true);
     slb2.Double("foo", 100);
     slb2.Map("mymap", [](flexbuffers::Builder& slb3) {
       slb3.String("foo", "Fred");  // Testing key and string reuse.
@@ -1641,7 +1645,7 @@ void FlexBuffersTest() {
   printf("\n");
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
-  TEST_EQ(map.size(), 6);
+  TEST_EQ(map.size(), 7);
   auto vec = map["vec"].AsVector();
   TEST_EQ(vec.size(), 5);
   TEST_EQ(vec[0].AsInt64(), -100);
@@ -1665,11 +1669,13 @@ void FlexBuffersTest() {
   TEST_EQ(tvec3.size(), 3);
   TEST_EQ(tvec3[2].AsInt8(), 3);
   TEST_EQ(map["bool"].AsBool(), true);
+  auto tvecb = map["bools"].AsTypedVector();
+  TEST_EQ(tvecb.ElementType(), flexbuffers::TYPE_BOOL);
   TEST_EQ(map["foo"].AsUInt8(), 100);
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
   // These should be equal by pointer equality, since key and value are shared.
-  TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[3].AsKey());
+  TEST_EQ(mymap.Keys()[0].AsKey(), map.Keys()[4].AsKey());
   TEST_EQ(mymap.Values()[0].AsString().c_str(), vec[1].AsString().c_str());
   // We can mutate values in the buffer.
   TEST_EQ(vec[0].MutateInt(-99), true);

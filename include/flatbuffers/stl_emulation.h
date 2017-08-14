@@ -91,11 +91,13 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
 #if !(defined(_MSC_VER) && _MSC_VER <= 1700 /* MSVC2012 */)
   #ifndef FLATBUFFERS_CPP98_STL
     template <typename T> using is_scalar = std::is_scalar<T>;
+    template <typename T, typename U> using is_same = std::is_same<T,U>;
     template <typename T> using is_floating_point = std::is_floating_point<T>;
     template <typename T> using is_unsigned = std::is_unsigned<T>;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
+    template <typename T, typename U> using is_same = std::tr1::is_same<T,U>;
     template <typename T> using is_floating_point =
         std::tr1::is_floating_point<T>;
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
@@ -103,6 +105,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
 #else
   // MSVC 2010 doesn't support C++11 aliases.
   template <typename T> struct is_scalar : public std::is_scalar<T> {};
+  template <typename T, typename U> struct is_same : public std::is_same<T,U> {};
   template <typename T> struct is_floating_point :
         public std::is_floating_point<T> {};
   template <typename T> struct is_unsigned : public std::is_unsigned<T> {};
