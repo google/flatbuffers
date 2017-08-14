@@ -1,0 +1,8 @@
+namespace warchant;
+
+table Asset {
+  id: uint;
+  name: string;
+}
+
+root_type Asset;

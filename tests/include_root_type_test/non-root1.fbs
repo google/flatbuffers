@@ -1,0 +1,9 @@
+include "root1.fbs";
+include "root2.fbs";
+
+namespace warchant;
+
+table Transaction{
+  account: Account;
+  asset: Asset;
+}

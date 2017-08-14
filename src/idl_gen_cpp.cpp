@@ -181,68 +181,72 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
       code_.SetValue("CPP_NAME", cpp_name);
 
-      // The root datatype accessor:
-      code_ += "inline \\";
-      code_ += "const {{CPP_NAME}} *Get{{STRUCT_NAME}}(const void *buf) {";
-      code_ += "  return flatbuffers::GetRoot<{{CPP_NAME}}>(buf);";
-      code_ += "}";
-      code_ += "";
-
-      if (parser_.opts.mutable_buffer) {
+      // If the root accessor is not generated in one of includes:
+      if(!struct_def.generated){
+        // The root datatype accessor:
         code_ += "inline \\";
-        code_ += "{{STRUCT_NAME}} *GetMutable{{STRUCT_NAME}}(void *buf) {";
-        code_ += "  return flatbuffers::GetMutableRoot<{{STRUCT_NAME}}>(buf);";
-        code_ += "}";
-        code_ += "";
-      }
-
-      if (parser_.file_identifier_.length()) {
-        // Return the identifier
-        code_ += "inline const char *{{STRUCT_NAME}}Identifier() {";
-        code_ += "  return \"" + parser_.file_identifier_ + "\";";
+        code_ += "const {{CPP_NAME}} *Get{{STRUCT_NAME}}(const void *buf) {";
+        code_ += "  return flatbuffers::GetRoot<{{CPP_NAME}}>(buf);";
         code_ += "}";
         code_ += "";
 
-        // Check if a buffer has the identifier.
-        code_ += "inline \\";
-        code_ += "bool {{STRUCT_NAME}}BufferHasIdentifier(const void *buf) {";
-        code_ += "  return flatbuffers::BufferHasIdentifier(";
-        code_ += "      buf, {{STRUCT_NAME}}Identifier());";
+        if (parser_.opts.mutable_buffer) {
+          code_ += "inline \\";
+          code_ += "{{STRUCT_NAME}} *GetMutable{{STRUCT_NAME}}(void *buf) {";
+          code_ += "  return flatbuffers::GetMutableRoot<{{STRUCT_NAME}}>(buf);";
+          code_ += "}";
+          code_ += "";
+        }
+
+        if (parser_.file_identifier_.length()) {
+          // Return the identifier
+          code_ += "inline const char *{{STRUCT_NAME}}Identifier() {";
+          code_ += "  return \"" + parser_.file_identifier_ + "\";";
+          code_ += "}";
+          code_ += "";
+
+          // Check if a buffer has the identifier.
+          code_ += "inline \\";
+          code_ += "bool {{STRUCT_NAME}}BufferHasIdentifier(const void *buf) {";
+          code_ += "  return flatbuffers::BufferHasIdentifier(";
+          code_ += "      buf, {{STRUCT_NAME}}Identifier());";
+          code_ += "}";
+          code_ += "";
+        }
+
+        // The root verifier.
+        if (parser_.file_identifier_.length()) {
+          code_.SetValue("ID", name + "Identifier()");
+        } else {
+          code_.SetValue("ID", "nullptr");
+        }
+
+        code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
+        code_ += "    flatbuffers::Verifier &verifier) {";
+        code_ += "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}});";
+        code_ += "}";
+        code_ += "";
+
+        if (parser_.file_extension_.length()) {
+          // Return the extension
+          code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
+          code_ += "  return \"" + parser_.file_extension_ + "\";";
+          code_ += "}";
+          code_ += "";
+        }
+
+        // Finish a buffer with a given root object:
+        code_ += "inline void Finish{{STRUCT_NAME}}Buffer(";
+        code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
+        code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
+        if (parser_.file_identifier_.length())
+          code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
+        else
+          code_ += "  fbb.Finish(root);";
         code_ += "}";
         code_ += "";
       }
-
-      // The root verifier.
-      if (parser_.file_identifier_.length()) {
-        code_.SetValue("ID", name + "Identifier()");
-      } else {
-        code_.SetValue("ID", "nullptr");
-      }
-
-      code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::Verifier &verifier) {";
-      code_ += "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}});";
-      code_ += "}";
-      code_ += "";
-
-      if (parser_.file_extension_.length()) {
-        // Return the extension
-        code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
-        code_ += "  return \"" + parser_.file_extension_ + "\";";
-        code_ += "}";
-        code_ += "";
-      }
-
-      // Finish a buffer with a given root object:
-      code_ += "inline void Finish{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
-      code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
-      if (parser_.file_identifier_.length())
-        code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
-      else
-        code_ += "  fbb.Finish(root);";
-      code_ += "}";
-      code_ += "";
+      
 
       if (parser_.opts.generate_object_based_api) {
         // A convenient root unpack function.

@@ -1,0 +1,8 @@
+namespace warchant;
+
+table Account {
+  id: uint;
+  name: string;
+}
+
+root_type Account;
