@@ -234,7 +234,8 @@ struct Definition {
 
 struct FieldDef : public Definition {
   FieldDef() : deprecated(false), required(false), key(false),
-               flexbuffer(false), nested_flatbuffer(NULL), padding(0) {}
+               native_inline(false), flexbuffer(false), nested_flatbuffer(NULL),
+               padding(0) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
