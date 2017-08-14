@@ -374,6 +374,10 @@ The offset version is useful to encode costly 64bit (or even 32bit) quantities
 into vectors / maps of smaller sizes, and to share / repeat a value multiple
 times.
 
+### Booleans and Nulls
+
+Booleans (`TYPE_BOOL`) and nulls (`TYPE_NULL`) are encoded as inlined unsigned integers.
+
 ### Blobs, Strings and Keys.
 
 A blob (`TYPE_BLOB`) is encoded similar to a vector, with one difference: the
@@ -414,19 +418,19 @@ that lookups can be made using binary search.
 
 The reason the key vector is a seperate structure from the value vector is
 such that it can be shared between multiple value vectors, and also to
-allow it to be treated as its own indivual vector in code.
+allow it to be treated as its own individual vector in code.
 
 An example map { foo: 13, bar: 14 } would be encoded as:
 
-    0 : uint8_t 'f', 'o', 'o', 0
-    4 : uint8_t 'b', 'a', 'r', 0
+    0 : uint8_t 'b', 'a', 'r', 0
+    4 : uint8_t 'f', 'o', 'o', 0
     8 : uint8_t 2      // key vector of size 2
     // key vector offset points here
-    9 : uint8_t 9, 6   // offsets to foo_key and bar_key
-    11: uint8_t 3, 1   // offset to key vector, and its byte width
+    9 : uint8_t 9, 6   // offsets to bar_key and foo_key
+    11: uint8_t 2, 1   // offset to key vector, and its byte width
     13: uint8_t 2      // value vector of size
     // value vector offset points here
-    14: uint8_t 13, 14 // values
+    14: uint8_t 14, 13 // values
     16: uint8_t 4, 4   // types
 
 ### The root
