@@ -14,8 +14,8 @@ attribute\_decl = `attribute` string\_constant `;`
 
 type\_decl = ( `table` | `struct` ) ident metadata `{` field\_decl+ `}`
 
-enum\_decl = ( `enum` | `union` ) ident [ `:` type ] metadata `{` commasep(
-enumval\_decl ) `}`
+enum\_decl = ( `enum` ident [ `:` type ] | `union` ident )  metadata `{`
+commasep( enumval\_decl ) `}`
 
 root\_decl = `root_type` ident `;`
 
@@ -49,6 +49,11 @@ file_extension_decl = `file_extension` string\_constant `;`
 
 file_identifier_decl = `file_identifier` string\_constant `;`
 
-integer\_constant = -?[0-9]+ | `true` | `false`
+integer\_constant = `-?[0-9]+` | `true` | `false`
 
-float\_constant = -?[0-9]+.[0-9]+((e|E)(+|-)?[0-9]+)?
+float\_constant = `-?[0-9]+.[0-9]+((e|E)(+|-)?[0-9]+)?`
+
+string\_constant = `\".*?\"`
+
+ident = `[a-zA-Z_][a-zA-Z0-9_]*`
+
