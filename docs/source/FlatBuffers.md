@@ -94,6 +94,7 @@ Read more about the "why" of FlatBuffers in the
     explaining how it speeds up loading their posts.
 -   [Fun Propulsion Labs](https://developers.google.com/games/#Tools)
     at Google uses it extensively in all their libraries and games.
+-   [Streak](https://www.streak.com) uses it for client-server communication in their webapp. They client caches large amounts of data so they wanted a fast loading and low memory overhead format to keep data on the client.
 
 ## Usage in brief
 
