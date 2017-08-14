@@ -1384,6 +1384,8 @@ won't work**
 
   // `monster` is of type `Monster *`.
   // Note: root object pointers are NOT the same as `buffer_pointer`.
+  // `GetMonster` is a convenience function that calls `GetRoot<Monster>`,
+  // the latter is also available for non-root types.
 ~~~
 </div>
 <div class="language-java">
