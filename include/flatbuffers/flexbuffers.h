@@ -77,16 +77,17 @@ enum Type {
   TYPE_VECTOR_FLOAT4 = 24,
   TYPE_BLOB = 25,
   TYPE_BOOL = 26,
+  TYPE_VECTOR_BOOL = 36, // To Allow the same type of conversion of type to vector type
 };
 
 inline bool IsInline(Type t) { return t <= TYPE_FLOAT || t == TYPE_BOOL; }
 
 inline bool IsTypedVectorElementType(Type t) {
-  return t >= TYPE_INT && t <= TYPE_STRING;
+  return (t >= TYPE_INT && t <= TYPE_STRING) || t == TYPE_BOOL;
 }
 
 inline bool IsTypedVector(Type t) {
-  return t >= TYPE_VECTOR_INT && t <= TYPE_VECTOR_STRING;
+  return (t >= TYPE_VECTOR_INT && t <= TYPE_VECTOR_STRING) || t == TYPE_VECTOR_BOOL;
 }
 
 inline bool IsFixedTypedVector(Type t) {
@@ -1240,7 +1241,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     assert(flatbuffers::is_scalar<T>::value);
     return flatbuffers::is_floating_point<T>::value
         ? TYPE_FLOAT
-        : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
+        : flatbuffers::is_same<T, bool>::value ? TYPE_BOOL
+            : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
   }
 
   struct Value {
