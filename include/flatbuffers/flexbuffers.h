@@ -1306,7 +1306,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
     BitWidth StoredWidth(BitWidth parent_bit_width_ = BIT_WIDTH_8) const {
       if (IsInline(type_)) {
-          return std::max(min_bit_width_, parent_bit_width_);
+          return (std::max)(min_bit_width_, parent_bit_width_);
       } else {
           return min_bit_width_;
       }
@@ -1365,19 +1365,19 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   Value CreateVector(size_t start, size_t vec_len, size_t step, bool typed,
                      bool fixed, const Value *keys = nullptr) {
     // Figure out smallest bit width we can store this vector with.
-    auto bit_width = std::max(force_min_bit_width_, WidthU(vec_len));
+    auto bit_width = (std::max)(force_min_bit_width_, WidthU(vec_len));
     auto prefix_elems = 1;
     if (keys) {
       // If this vector is part of a map, we will pre-fix an offset to the keys
       // to this vector.
-      bit_width = std::max(bit_width, keys->ElemWidth(buf_.size(), 0));
+      bit_width = (std::max)(bit_width, keys->ElemWidth(buf_.size(), 0));
       prefix_elems += 2;
     }
     Type vector_type = TYPE_KEY;
     // Check bit widths and types for all elements.
     for (size_t i = start; i < stack_.size(); i += step) {
       auto elem_width = stack_[i].ElemWidth(buf_.size(), i + prefix_elems);
-      bit_width = std::max(bit_width, elem_width);
+      bit_width = (std::max)(bit_width, elem_width);
       if (typed) {
         if (i == start) {
           vector_type = stack_[i].type_;
@@ -1450,7 +1450,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                                                  a.first);
       auto strb = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
                                                  b.first);
-      return strncmp(stra, strb, std::min(a.second, b.second) + 1) < 0;
+      return strncmp(stra, strb, (std::min)(a.second, b.second) + 1) < 0;
     }
     const std::vector<uint8_t> *buf_;
   };
