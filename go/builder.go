@@ -110,6 +110,11 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 	objectOffset := b.Offset()
 	existingVtable := UOffsetT(0)
 
+	// Trim vtable of trailing zeroes.
+	i := len(b.vtable) - 1;
+	for ; i >= 0 && b.vtable[i] == 0; i-- {}
+	b.vtable = b.vtable[:i + 1];
+
 	// Search backwards through existing vtables, because similar vtables
 	// are likely to have been recently appended. See
 	// BenchmarkVtableDeduplication for a case in which this heuristic

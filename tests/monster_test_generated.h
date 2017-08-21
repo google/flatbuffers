@@ -345,7 +345,7 @@ struct MonsterBuilder {
   }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    const auto end = fbb_.EndTable(start_, 0);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
     return o;
   }
@@ -404,7 +404,7 @@ struct TestSimpleTableWithEnumBuilder {
   }
   TestSimpleTableWithEnumBuilder &operator=(const TestSimpleTableWithEnumBuilder &);
   flatbuffers::Offset<TestSimpleTableWithEnum> Finish() {
-    const auto end = fbb_.EndTable(start_, 1);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TestSimpleTableWithEnum>(end);
     return o;
   }
@@ -487,7 +487,7 @@ struct StatBuilder {
   }
   StatBuilder &operator=(const StatBuilder &);
   flatbuffers::Offset<Stat> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Stat>(end);
     return o;
   }
@@ -1015,7 +1015,7 @@ struct MonsterBuilder {
   }
   MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
-    const auto end = fbb_.EndTable(start_, 34);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
     fbb_.Required(o, Monster::VT_NAME);
     return o;
@@ -1352,7 +1352,7 @@ struct TypeAliasesBuilder {
   }
   TypeAliasesBuilder &operator=(const TypeAliasesBuilder &);
   flatbuffers::Offset<TypeAliases> Finish() {
-    const auto end = fbb_.EndTable(start_, 12);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TypeAliases>(end);
     return o;
   }

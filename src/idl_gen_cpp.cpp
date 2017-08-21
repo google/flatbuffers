@@ -1531,9 +1531,8 @@ class CppGenerator : public BaseGenerator {
              "(const {{STRUCT_NAME}}Builder &);";
 
     // Finish() function.
-    auto num_fields = NumToString(struct_def.fields.vec.size());
     code_ += "  flatbuffers::Offset<{{STRUCT_NAME}}> Finish() {";
-    code_ += "    const auto end = fbb_.EndTable(start_, " + num_fields + ");";
+    code_ += "    const auto end = fbb_.EndTable(start_);";
     code_ += "    auto o = flatbuffers::Offset<{{STRUCT_NAME}}>(end);";
 
     for (auto it = struct_def.fields.vec.begin();

@@ -704,8 +704,8 @@ class FlatBufferBuilder
   explicit FlatBufferBuilder(size_t initial_size = 1024,
                              Allocator *allocator = nullptr,
                              bool own_allocator = false)
-    : buf_(initial_size, allocator, own_allocator), nested(false),
-      finished(false), minalign_(1), force_defaults_(false),
+    : buf_(initial_size, allocator, own_allocator), max_voffset_(0),
+      nested(false), finished(false), minalign_(1), force_defaults_(false),
       dedup_vtables_(true), string_pool(nullptr) {
     offsetbuf_.reserve(16);  // Avoid first few reallocs.
     vtables_.reserve(16);
@@ -725,7 +725,7 @@ class FlatBufferBuilder
   /// to construct another buffer.
   void Clear() {
     buf_.clear();
-    offsetbuf_.clear();
+    ClearOffsets();
     nested = false;
     finished = false;
     vtables_.clear();
@@ -839,6 +839,7 @@ class FlatBufferBuilder
   void TrackField(voffset_t field, uoffset_t off) {
     FieldLoc fl = { off, field };
     offsetbuf_.push_back(fl);
+    max_voffset_ = (std::max)(max_voffset_, field);
   }
 
   // Like PushElement, but additionally tracks the field this represents.
@@ -899,7 +900,7 @@ class FlatBufferBuilder
   // This finishes one serialized object by generating the vtable if it's a
   // table, comparing it against existing vtables, and writing the
   // resulting vtable offset.
-  uoffset_t EndTable(uoffset_t start, voffset_t numfields) {
+  uoffset_t EndTable(uoffset_t start) {
     // If you get this assert, a corresponding StartTable wasn't called.
     assert(nested);
     // Write the vtable offset, which is the start of any Table.
@@ -908,11 +909,17 @@ class FlatBufferBuilder
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
     // by the offsets themselves. In reverse:
-    buf_.fill_big(numfields * sizeof(voffset_t));
+    // Include space for the last offset and ensure empty tables have a
+    // minimum size.
+    max_voffset_ = (std::max)(static_cast<voffset_t>(max_voffset_ +
+                                                     sizeof(voffset_t)),
+                              FieldIndexToOffset(0));
+    buf_.fill_big(max_voffset_);
     auto table_object_size = vtableoffsetloc - start;
     assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
-    PushElement<voffset_t>(static_cast<voffset_t>(table_object_size));
-    PushElement<voffset_t>(FieldIndexToOffset(numfields));
+    WriteScalar<voffset_t>(buf_.data() + sizeof(voffset_t),
+                           static_cast<voffset_t>(table_object_size));
+    WriteScalar<voffset_t>(buf_.data(), max_voffset_);
     // Write the offsets into the table
     for (auto field_location = offsetbuf_.begin();
               field_location != offsetbuf_.end();
@@ -922,7 +929,7 @@ class FlatBufferBuilder
       assert(!ReadScalar<voffset_t>(buf_.data() + field_location->id));
       WriteScalar<voffset_t>(buf_.data() + field_location->id, pos);
     }
-    offsetbuf_.clear();
+    ClearOffsets();
     auto vt1 = reinterpret_cast<voffset_t *>(buf_.data());
     auto vt1_size = ReadScalar<voffset_t>(vt1);
     auto vt_use = GetSize();
@@ -955,6 +962,11 @@ class FlatBufferBuilder
     return vtableoffsetloc;
   }
 
+  // DEPRECATED: call the version above instead.
+  uoffset_t EndTable(uoffset_t start, voffset_t /*numfields*/) {
+    return EndTable(start);
+  }
+
   // This checks a required field has been set in a given table that has
   // just been constructed.
   template<typename T> void Required(Offset<T> table, voffset_t field) {
@@ -973,7 +985,10 @@ class FlatBufferBuilder
 
   uoffset_t EndStruct() { return GetSize(); }
 
-  void ClearOffsets() { offsetbuf_.clear(); }
+  void ClearOffsets() {
+    offsetbuf_.clear();
+    max_voffset_ = 0;
+  }
 
   // Aligns such that when "len" bytes are written, an object can be written
   // after it with "alignment" without padding.
@@ -1510,6 +1525,9 @@ class FlatBufferBuilder
 
   // Accumulating offsets of table members while it is being built.
   std::vector<FieldLoc> offsetbuf_;
+  // Track how much of the vtable is in use, so we can output the most compact
+  // possible vtable.
+  voffset_t max_voffset_;
 
   // Ensure objects are not nested.
   bool nested;

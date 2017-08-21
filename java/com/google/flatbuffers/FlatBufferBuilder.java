@@ -478,7 +478,7 @@ public class FlatBufferBuilder {
         obj.sortTables(offsets, bb);
         return createVectorOfTables(offsets);
     }
-	
+
    /**
     * Encode the string `s` in the buffer using UTF-8.  If {@code s} is
     * already a {@link CharBuffer}, this method is allocation free.
@@ -744,7 +744,11 @@ public class FlatBufferBuilder {
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.
-        for (int i = vtable_in_use - 1; i >= 0 ; i--) {
+        int i = vtable_in_use - 1;
+        // Trim trailing zeroes.
+        for (; i >= 0 && vtable[i] == 0; i--) {}
+        int trimmed_size = i + 1;
+        for (; i >= 0 ; i--) {
             // Offset relative to the start of the table.
             short off = (short)(vtable[i] != 0 ? vtableloc - vtable[i] : 0);
             addShort(off);
@@ -752,12 +756,12 @@ public class FlatBufferBuilder {
 
         final int standard_fields = 2; // The fields below:
         addShort((short)(vtableloc - object_start));
-        addShort((short)((vtable_in_use + standard_fields) * SIZEOF_SHORT));
+        addShort((short)((trimmed_size + standard_fields) * SIZEOF_SHORT));
 
         // Search for an existing vtable that matches the current one.
         int existing_vtable = 0;
         outer_loop:
-        for (int i = 0; i < num_vtables; i++) {
+        for (i = 0; i < num_vtables; i++) {
             int vt1 = bb.capacity() - vtables[i];
             int vt2 = space;
             short len = bb.getShort(vt1);

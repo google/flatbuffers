@@ -193,6 +193,10 @@ class Builder(object):
         objectOffset = self.Offset()
         existingVtable = None
 
+        # Trim trailing 0 offsets.
+        while self.current_vtable and self.current_vtable[-1] == 0:
+            self.current_vtable.pop()
+
         # Search backwards through existing vtables, because similar vtables
         # are likely to have been recently appended. See
         # BenchmarkVtableDeduplication for a case in which this heuristic
