@@ -1,0 +1,25 @@
+[package]
+name = "flatbuffers"
+version = "0.3.0"
+authors = ["Joseph Dunne <jd@lambda.tech>"]
+description = "Memory Efficient Serialization Library. Flatbuffers runtime for Rust."
+keywords = ["flatbuffers", "serialization", "deserialization"]
+readme = "../readme.md"
+license = "Apache-2.0"
+homepage = "http://google.github.io/flatbuffers/index.html"
+repository = "https://github.com/josephDunne/flatbuffers"
+
+[lib]
+name = "flatbuffers"
+
+[[bin]]
+name = "test"
+
+[dependencies]
+byteorder = "0.5.*"
+
+[features]
+default = []
+# Test the idl_gen_rust cpp code. 
+test_idl_gen = []
+
