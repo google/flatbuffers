@@ -715,10 +715,10 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 	b.PrependBoolSlot(0, false, false)
 	b.EndObject()
 	check([]byte{
-		6, 0, // vtable bytes
+		4, 0, // vtable bytes
 		4, 0, // end of object from here
-		0, 0, // entry 1 is zero
-		6, 0, 0, 0, // offset for start of vtable (int32)
+		// entry 1 is zero and not stored.
+		4, 0, 0, 0, // offset for start of vtable (int32)
 	})
 
 	// test 10: vtable with one int16
@@ -1085,7 +1085,6 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 	b.PrependByteSlot(7, 1, 0)
 	b.PrependUOffsetTSlot(8, mon2, 0)
 	b.PrependUOffsetTSlot(9, test4, 0)
-	b.PrependUOffsetTSlot(9, test5, 0)
 	mon := b.EndObject()
 
 	b.Finish(mon)

@@ -490,10 +490,10 @@ class TestByteLayout(unittest.TestCase):
         b.PrependBoolSlot(0, False, False)
         b.EndObject()
         self.assertBuilderEquals(b, [
-            6, 0,  # vtable bytes
+            4, 0,  # vtable bytes
             4, 0,  # end of object from here
-            0, 0,  # entry 1 is zero
-            6, 0, 0, 0,  # offset for start of vtable (int32)
+            # entry 1 is zero and not stored
+            4, 0, 0, 0,  # offset for start of vtable (int32)
         ])
 
     def test_vtable_with_one_int16(self):

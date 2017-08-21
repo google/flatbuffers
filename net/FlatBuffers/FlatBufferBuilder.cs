@@ -500,7 +500,11 @@ namespace FlatBuffers
             AddInt((int)0);
             var vtableloc = Offset;
             // Write out the current vtable.
-            for (int i = _vtableSize - 1; i >= 0 ; i--) {
+            int i = _vtableSize - 1;
+            // Trim trailing zeroes.
+            for (; i >= 0 && _vtable[i] == 0; i--) {}
+            int trimmedSize = i + 1;
+            for (; i >= 0 ; i--) {
                 // Offset relative to the start of the table.
                 short off = (short)(_vtable[i] != 0
                                         ? vtableloc - _vtable[i]
@@ -513,12 +517,12 @@ namespace FlatBuffers
 
             const int standardFields = 2; // The fields below:
             AddShort((short)(vtableloc - _objectStart));
-            AddShort((short)((_vtableSize + standardFields) *
+            AddShort((short)((trimmedSize + standardFields) *
                              sizeof(short)));
 
             // Search for an existing vtable that matches the current one.
             int existingVtable = 0;
-            for (int i = 0; i < _numVtables; i++) {
+            for (i = 0; i < _numVtables; i++) {
                 int vt1 = _bb.Length - _vtables[i];
                 int vt2 = _space;
                 short len = _bb.GetShort(vt1);

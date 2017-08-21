@@ -42,6 +42,29 @@ enum BaseType {
   Union = 16
 };
 
+inline BaseType (&EnumValuesBaseType())[17] {
+  static BaseType values[] = {
+    None,
+    UType,
+    Bool,
+    Byte,
+    UByte,
+    Short,
+    UShort,
+    Int,
+    UInt,
+    Long,
+    ULong,
+    Float,
+    Double,
+    String,
+    Vector,
+    Obj,
+    Union
+  };
+  return values;
+}
+
 inline const char **EnumNamesBaseType() {
   static const char *names[] = {
     "None",
@@ -113,7 +136,7 @@ struct TypeBuilder {
   }
   TypeBuilder &operator=(const TypeBuilder &);
   flatbuffers::Offset<Type> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Type>(end);
     return o;
   }
@@ -173,7 +196,7 @@ struct KeyValueBuilder {
   }
   KeyValueBuilder &operator=(const KeyValueBuilder &);
   flatbuffers::Offset<KeyValue> Finish() {
-    const auto end = fbb_.EndTable(start_, 2);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<KeyValue>(end);
     fbb_.Required(o, KeyValue::VT_KEY);
     return o;
@@ -266,7 +289,7 @@ struct EnumValBuilder {
   }
   EnumValBuilder &operator=(const EnumValBuilder &);
   flatbuffers::Offset<EnumVal> Finish() {
-    const auto end = fbb_.EndTable(start_, 4);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<EnumVal>(end);
     fbb_.Required(o, EnumVal::VT_NAME);
     return o;
@@ -381,7 +404,7 @@ struct EnumBuilder {
   }
   EnumBuilder &operator=(const EnumBuilder &);
   flatbuffers::Offset<Enum> Finish() {
-    const auto end = fbb_.EndTable(start_, 6);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Enum>(end);
     fbb_.Required(o, Enum::VT_NAME);
     fbb_.Required(o, Enum::VT_VALUES);
@@ -544,7 +567,7 @@ struct FieldBuilder {
   }
   FieldBuilder &operator=(const FieldBuilder &);
   flatbuffers::Offset<Field> Finish() {
-    const auto end = fbb_.EndTable(start_, 11);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Field>(end);
     fbb_.Required(o, Field::VT_NAME);
     fbb_.Required(o, Field::VT_TYPE);
@@ -695,7 +718,7 @@ struct ObjectBuilder {
   }
   ObjectBuilder &operator=(const ObjectBuilder &);
   flatbuffers::Offset<Object> Finish() {
-    const auto end = fbb_.EndTable(start_, 7);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Object>(end);
     fbb_.Required(o, Object::VT_NAME);
     fbb_.Required(o, Object::VT_FIELDS);
@@ -808,7 +831,7 @@ struct SchemaBuilder {
   }
   SchemaBuilder &operator=(const SchemaBuilder &);
   flatbuffers::Offset<Schema> Finish() {
-    const auto end = fbb_.EndTable(start_, 5);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Schema>(end);
     fbb_.Required(o, Schema::VT_OBJECTS);
     fbb_.Required(o, Schema::VT_ENUMS);

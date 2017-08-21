@@ -30,6 +30,9 @@ mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
 
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
+# do not compile the gRPC generated files, which are not tested by go_test.go
+# below, but have their own test.
+rm ./go_gen/src/MyGame/Example/*_grpc.go
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 

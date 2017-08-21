@@ -604,23 +604,28 @@ flatbuffers.Builder.prototype.endObject = function() {
   this.addInt32(0);
   var vtableloc = this.offset();
 
+  // Trim trailing zeroes.
+  var i = this.vtable_in_use - 1;
+  for (; i >= 0 && this.vtable[i] == 0; i--) {}
+  var trimmed_size = i + 1;
+
   // Write out the current vtable.
-  for (var i = this.vtable_in_use - 1; i >= 0; i--) {
+  for (; i >= 0; i--) {
     // Offset relative to the start of the table.
     this.addInt16(this.vtable[i] != 0 ? vtableloc - this.vtable[i] : 0);
   }
 
   var standard_fields = 2; // The fields below:
   this.addInt16(vtableloc - this.object_start);
-  this.addInt16((this.vtable_in_use + standard_fields) * flatbuffers.SIZEOF_SHORT);
+  var len = (trimmed_size + standard_fields) * flatbuffers.SIZEOF_SHORT;
+  this.addInt16(len);
 
   // Search for an existing vtable that matches the current one.
   var existing_vtable = 0;
+  var vt1 = this.space;
 outer_loop:
-  for (var i = 0; i < this.vtables.length; i++) {
-    var vt1 = this.bb.capacity() - this.vtables[i];
-    var vt2 = this.space;
-    var len = this.bb.readInt16(vt1);
+  for (i = 0; i < this.vtables.length; i++) {
+    var vt2 = this.bb.capacity() - this.vtables[i];
     if (len == this.bb.readInt16(vt2)) {
       for (var j = flatbuffers.SIZEOF_SHORT; j < len; j += flatbuffers.SIZEOF_SHORT) {
         if (this.bb.readInt16(vt1 + j) != this.bb.readInt16(vt2 + j)) {

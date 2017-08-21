@@ -1071,8 +1071,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     builder_.PopBytes(struct_def.bytesize);
     assert(!ovalue);
   } else {
-    auto val = builder_.EndTable(start,
-                          static_cast<voffset_t>(struct_def.fields.vec.size()));
+    auto val = builder_.EndTable(start);
     if (ovalue) *ovalue = val;
     if (value) *value = NumToString(val);
   }

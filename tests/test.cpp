@@ -863,7 +863,7 @@ void FuzzTest1() {
         case 10: builder.AddElement<double  >(off, double_val, 0); break;
       }
     }
-    objects[i] = builder.EndTable(start, fields_per_object);
+    objects[i] = builder.EndTable(start);
   }
   builder.PreAlign<flatbuffers::largest_scalar_t>(0);  // Align whole buffer.
 
