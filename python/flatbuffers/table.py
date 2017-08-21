@@ -101,6 +101,18 @@ class Table(object):
             return d
         return self.Get(validator_flags, self.Pos + off)
 
+    def GetVectorAsNumpy(self, flags, off):
+        """
+        GetVectorAsNumpy returns the vector that starts at `Vector(off)`
+        as a numpy array with the type specified by `flags`. The array is
+        a `view` into Bytes, so modifying the returned array will
+        modify Bytes in place.
+        """
+        offset = self.Vector(off)
+        length = self.VectorLen(off) # TODO: length accounts for bytewidth, right?
+        numpy_dtype = N.to_numpy_type(flags)
+        return encode.GetVectorAsNumpy(numpy_dtype, self.Bytes, length, offset)
+
     def GetVOffsetTSlot(self, slot, d):
         """
         GetVOffsetTSlot retrieves the VOffsetT that the given vtable location

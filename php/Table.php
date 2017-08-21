@@ -32,6 +32,16 @@ abstract class Table
     {
     }
 
+    public function setByteBufferPos($pos)
+    {
+        $this->bb_pos = $pos;
+    }
+
+    public function setByteBuffer($bb)
+    {
+        $this->bb = $bb;
+    }
+
     /**
      * returns actual vtable offset
      *
@@ -107,8 +117,8 @@ abstract class Table
     protected function __union($table, $offset)
     {
         $offset += $this->bb_pos;
-        $table->bb_pos = $offset + $this->bb->getInt($offset);
-        $table->bb = $this->bb;
+        $table->setByteBufferPos($offset + $this->bb->getInt($offset));
+        $table->setByteBuffer($this->bb);
         return $table;
     }
 

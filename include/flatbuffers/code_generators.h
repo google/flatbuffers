@@ -17,34 +17,120 @@
 #ifndef FLATBUFFERS_CODE_GENERATORS_H_
 #define FLATBUFFERS_CODE_GENERATORS_H_
 
+#include <map>
+#include <sstream>
+#include "flatbuffers/idl.h"
+
 namespace flatbuffers {
+
+// Utility class to assist in generating code through use of text templates.
+//
+// Example code:
+//   CodeWriter code;
+//   code.SetValue("NAME", "Foo");
+//   code += "void {{NAME}}() { printf("%s", "{{NAME}}"); }";
+//   code.SetValue("NAME", "Bar");
+//   code += "void {{NAME}}() { printf("%s", "{{NAME}}"); }";
+//   std::cout << code.ToString() << std::endl;
+//
+// Output:
+//  void Foo() { printf("%s", "Foo"); }
+//  void Bar() { printf("%s", "Bar"); }
+class CodeWriter {
+ public:
+  CodeWriter() {}
+
+  // Clears the current "written" code.
+  void Clear() {
+    stream_.str("");
+    stream_.clear();
+  }
+
+  // Associates a key with a value.  All subsequent calls to operator+=, where
+  // the specified key is contained in {{ and }} delimiters will be replaced by
+  // the given value.
+  void SetValue(const std::string& key, const std::string& value) {
+    value_map_[key] = value;
+  }
+
+  // Appends the given text to the generated code as well as a newline
+  // character.  Any text within {{ and }} delimeters is replaced by values
+  // previously stored in the CodeWriter by calling SetValue above.  The newline
+  // will be suppressed if the text ends with the \\ character.
+  void operator+=(std::string text);
+
+  // Returns the current contents of the CodeWriter as a std::string.
+  std::string ToString() const { return stream_.str(); }
+
+ private:
+  std::map<std::string, std::string> value_map_;
+  std::stringstream stream_;
+};
 
 class BaseGenerator {
  public:
-  BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name)
-      : parser_(parser), path_(path), file_name_(file_name){};
   virtual bool generate() = 0;
 
- protected:
-  virtual ~BaseGenerator(){};
+  static std::string NamespaceDir(const Parser &parser,
+                                  const std::string &path,
+                                  const Namespace &ns);
 
-  bool IsEverythingGenerated() {
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      if (!(*it)->generated) return false;
-    }
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      if (!(*it)->generated) return false;
-    }
-    return true;
-  }
+ protected:
+  BaseGenerator(const Parser &parser, const std::string &path,
+                const std::string &file_name,
+                const std::string qualifying_start,
+                const std::string qualifying_separator)
+      : parser_(parser),
+        path_(path),
+        file_name_(file_name),
+        qualifying_start_(qualifying_start),
+        qualifying_separator_(qualifying_separator) {}
+  virtual ~BaseGenerator() {}
+
+  // No copy/assign.
+  BaseGenerator &operator=(const BaseGenerator &);
+  BaseGenerator(const BaseGenerator &);
+
+  std::string NamespaceDir(const Namespace &ns) const;
+
+  static const char *FlatBuffersGeneratedWarning();
+
+  static std::string FullNamespace(const char *separator, const Namespace &ns);
+
+  static std::string LastNamespacePart(const Namespace &ns);
+
+  // tracks the current namespace for early exit in WrapInNameSpace
+  // c++, java and csharp returns a different namespace from
+  // the following default (no early exit, always fully qualify),
+  // which works for js and php
+  virtual const Namespace *CurrentNameSpace() const { return nullptr; }
+
+  // Ensure that a type is prefixed with its namespace whenever it is used
+  // outside of its namespace.
+  std::string WrapInNameSpace(const Namespace *ns,
+                              const std::string &name) const;
+
+  std::string WrapInNameSpace(const Definition &def) const;
+
+  std::string GetNameSpace(const Definition &def) const;
 
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
+  const std::string qualifying_start_;
+  const std::string qualifying_separator_;
 };
+
+struct CommentConfig {
+  const char *first_line;
+  const char *content_line_prefix;
+  const char *last_line;
+};
+
+extern void GenComment(const std::vector<std::string> &dc,
+                       std::string *code_ptr,
+                       const CommentConfig *config,
+                       const char *prefix = "");
 
 }  // namespace flatbuffers
 

@@ -474,9 +474,9 @@ static void GenTableBuilders(const StructDef &struct_def,
 static void GenStruct(const StructDef &struct_def,
                       std::string *code_ptr) {
   if (struct_def.generated) return;
-  GenComment(struct_def.doc_comment, code_ptr, nullptr); 
+  GenComment(struct_def.doc_comment, code_ptr, nullptr);
   TableStructDefinition(struct_def, code_ptr);
- 
+
   if (struct_def.fixed) {
     // create a struct constructor function
     GenStructBuilder(struct_def, code_ptr);
@@ -516,7 +516,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   code += "} as ";
   code += GenTypeGet(enum_def.underlying_type);
   code += "}\n\n";
-  
+
 }
 
 // Returns the method name for use with add/put calls.
@@ -555,7 +555,7 @@ static std::string GenNameSpaceExports(const Parser &parser_,
     if (namespace_name.compare(qname) == 0) {
       code += "pub mod " + mod_name + ";\n";
       re_exports += "pub use self::" + mod_name + "::{";
-      re_exports += struct_def.name +", "+ struct_def.name +"Builder};\n"; 
+      re_exports += struct_def.name +", "+ struct_def.name +"Builder};\n";
     }
   }
   std::vector<std::string> components = parser_.namespaces_.back()->components;
@@ -614,7 +614,8 @@ static bool SaveType(const Parser &parser, const Definition &def,
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
       #RTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -669,7 +670,8 @@ class RustGenerator : public BaseGenerator {
  public:
   RustGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name){};
+      : BaseGenerator(parser, path, file_name, "" /* not used */,
+          "" /* not used */){};
   bool generate() {
     if (!generateEnums()) return false;
     if (!generateStructs()) return false;

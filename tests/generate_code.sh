@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable --no-includes monster_test.fbs monsterdata_test.json
-../flatc --cpp --java --csharp --go --binary --python --js --php --gen-mutable -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-../flatc --binary --schema monster_test.fbs
-
+../flatc --cpp --java --csharp --go --binary --python --js --ts --php --grpc --gen-mutable --gen-object-api --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
+../flatc --cpp --java --csharp --go --binary --python --js --ts --php --gen-mutable --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+../flatc --cpp --js --ts --php --gen-mutable --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
+../flatc -b --schema --bfbs-comments -I include_test monster_test.fbs
+../flatc --jsonschema --schema -I include_test monster_test.fbs
+cd ../samples
+../flatc --cpp --gen-mutable --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+cd ../reflection

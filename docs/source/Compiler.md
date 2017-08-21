@@ -29,9 +29,11 @@ For any schema input files, one or more generators can be specified:
 
 -   `--python`, `-p`: Generate Python code.
 
--   `--javascript`, `-s`: Generate JavaScript code.
+-   `--js`, `-s`: Generate JavaScript code.
 
 -   `--php`: Generate PHP code.
+
+-   `--grpc`: Generate RPC stub code for GRPC.
 
 For any data input files:
 
@@ -79,12 +81,23 @@ Additional options:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+    `--gen-object-api` : Generate an additional object-based API. This API is
+    more convenient for object construction and mutation than the base API,
+    at the cost of efficiency (object allocation). Recommended only to be used
+    if other options are insufficient.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
 -   `--gen-all`: Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
     this one file.
+
+-   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
+
+-   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
+    instead of Node.js style exporting.  Needed for compatibility with the
+    Google closure compiler (useful for JS).
 
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
@@ -100,6 +113,17 @@ Additional options:
     output a binary version of the specified schema that itself corresponds
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
+
+-   `--bfbs-comments`: Add doc comments to the binary schema files.
+
+-   `--conform FILE` : Specify a schema the following schemas should be
+    an evolution of. Gives errors if not. Useful to check if schema
+    modifications don't break schema evolution rules.
+
+-   `--include-prefix PATH` : Prefix this path to any generated include
+    statements.
+
+-   `--keep-prefix` : Keep original prefix of schema include statement.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

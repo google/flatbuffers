@@ -19,6 +19,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 
@@ -53,12 +54,14 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 
 // Generate a flatbuffer schema from the Parser's internal representation.
 std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
-  // Proto namespaces may clash with table names, so we have to prefix all:
-  for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
-       ++it) {
-    for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
-         ++comp) {
-      (*comp) = "_" + (*comp);
+ // Proto namespaces may clash with table names, so we have to prefix all:
+  if (!parser.opts.escape_proto_identifiers) {
+    for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
+         ++it) {
+      for (auto comp = (*it)->components.begin(); comp != (*it)->components.end();
+           ++comp) {
+        (*comp) = "_" + (*comp);
+      }
     }
   }
 
@@ -69,12 +72,12 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
          it != parser.included_files_.end(); ++it) {
+      if (it->second.empty())
+        continue;
       auto basename = flatbuffers::StripPath(
-                        flatbuffers::StripExtension(it->first));
-      if (basename != file_name) {
-        schema += "include \"" + basename + ".fbs\";\n";
-        num_includes++;
-      }
+                        flatbuffers::StripExtension(it->second));
+      schema += "include \"" + basename + ".fbs\";\n";
+      num_includes++;
     }
     if (num_includes) schema += "\n";
     #endif

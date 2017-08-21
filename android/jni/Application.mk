@@ -13,10 +13,8 @@
 # 2. Altered source versions must be plainly marked as such, and must not be
 # misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
-APP_PLATFORM := android-10
+APP_PLATFORM := android-9
 APP_PROJECT_PATH := $(call my-dir)/..
-APP_STL := gnustl_static
-
+APP_STL ?= stlport_static
 APP_ABI := armeabi-v7a
-NDK_TOOLCHAIN_VERSION := 4.8
 APP_CPPFLAGS += -std=c++11

@@ -1,8 +1,12 @@
-![logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers [![Build Status](https://travis-ci.org/google/flatbuffers.svg?branch=master)](https://travis-ci.org/google/flatbuffers) 
+![logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers
 ===========
-**FlatBuffers** is an efficient cross platform serialization library for games and 
-other memory constrained apps. It allows you to directly access serialized data without 
-unpacking/parsing it first, while still having great forwards/backwards compatibility. 
+
+[![Join the chat at https://gitter.im/google/flatbuffers](https://badges.gitter.im/google/flatbuffers.svg)](https://gitter.im/google/flatbuffers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/google/flatbuffers.svg?branch=master)](https://travis-ci.org/google/flatbuffers) [![Build status](https://ci.appveyor.com/api/projects/status/yg5idd2fnusv1n10?svg=true)](https://ci.appveyor.com/project/gwvo/flatbuffers)
+
+**FlatBuffers** is an efficient cross platform serialization library for games and
+other memory constrained apps. It allows you to directly access serialized data without
+unpacking/parsing it first, while still having great forwards/backwards compatibility.
 
 **Go to our [landing page][] to browse our documentation.**
 
@@ -11,7 +15,7 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 * Windows
 * MacOS X
 * Linux
- 
+
 ## Supported programming languages
 * C++
 * C#
@@ -24,7 +28,7 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 * Rust 
 *and many more in progress...*
 
-## Contribution 
+## Contribution
 * [FlatBuffers Google Group][] to discuss FlatBuffers with other developers and users.
 * [FlatBuffers Issues Tracker][] to submit an issue.
 * [stackoverflow.com][] with [`flatbuffers` tag][] for any questions regarding FlatBuffers.
@@ -46,10 +50,10 @@ you would leave it in.
 
 <br>
 
-   [CONTRIBUTING]: http://github.com/google/flatbuffers/blob/master/CONTRIBUTING
+   [CONTRIBUTING]: http://github.com/google/flatbuffers/blob/master/CONTRIBUTING.md
    [`flatbuffers` tag]: https://stackoverflow.com/questions/tagged/flatbuffers
    [FlatBuffers Google Group]: https://groups.google.com/forum/#!forum/flatbuffers
    [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
-   [stackoverflow.com]: http://www.stackoverflow.com
+   [stackoverflow.com]: http://stackoverflow.com/search?q=flatbuffers
    [landing page]: http://google.github.io/flatbuffers
    [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE.txt

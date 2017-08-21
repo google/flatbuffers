@@ -3,7 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 var flatbuffers = require('../js/flatbuffers').flatbuffers;
-var MyGame = require('./monster_test_generated').MyGame;
+var MyGame = require(process.argv[2]).MyGame;
 
 function main() {
 
@@ -64,7 +64,10 @@ function main() {
 
   fs.writeFileSync('monsterdata_javascript_wire.mon', new Buffer(fbb.asUint8Array()));
 
-  // Test it:
+  // Tests mutation first.  This will verify that we did not trample any other
+  // part of the byte buffer.
+  testMutation(fbb.dataBuffer());
+
   testBuffer(fbb.dataBuffer());
 
   test64bit();
@@ -72,6 +75,21 @@ function main() {
   fuzzTest1();
 
   console.log('FlatBuffers test: completed successfully');
+}
+
+function testMutation(bb) {
+  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+
+  monster.mutate_hp(120);
+  assert.strictEqual(monster.hp(), 120);
+
+  monster.mutate_hp(80);
+  assert.strictEqual(monster.hp(), 80);
+
+  var manaRes = monster.mutate_mana(10);
+  assert.strictEqual(manaRes, false);  // Field was NOT present, because default value.
+
+  // TODO: There is not the availability to mutate structs or vectors.
 }
 
 function testBuffer(bb) {
@@ -138,7 +156,8 @@ function test64bit() {
   var mon2 = MyGame.Example.Monster.endMonster(fbb);
 
   MyGame.Example.Stat.startStat(fbb);
-  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x12345678, 0x23456789));
+  // 2541551405100253985 = 0x87654321(low part) + 0x23456789 * 0x100000000(high part);
+  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x87654321, 0x23456789));    // the low part is Uint32
   var stat = MyGame.Example.Stat.endStat(fbb);
 
   MyGame.Example.Monster.startMonster(fbb);
@@ -159,8 +178,7 @@ function test64bit() {
   var stat = mon.testempty();
   assert.strictEqual(stat != null, true);
   assert.strictEqual(stat.val() != null, true);
-  assert.strictEqual(stat.val().low, 0x12345678);
-  assert.strictEqual(stat.val().high, 0x23456789);
+  assert.strictEqual(stat.val().toFloat64(), 2541551405100253985);
 
   var mon2 = mon.enemy();
   assert.strictEqual(mon2 != null, true);

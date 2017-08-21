@@ -15,6 +15,7 @@
 
 import os.path
 import sys
+import imp
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
@@ -25,6 +26,7 @@ import unittest
 
 from flatbuffers import compat
 from flatbuffers.compat import range_func as compat_range
+from flatbuffers.compat import NumpyRequiredForThisFeature
 
 import flatbuffers
 from flatbuffers import number_types as N
@@ -130,6 +132,40 @@ def CheckReadBuffer(buf, offset):
         invsum += int(v)
     asserter(invsum == 10)
 
+    for i in range(5):
+        asserter(monster.VectorOfLongs(i) == 10 ** (i * 2))
+
+    asserter(([-1.7976931348623157e+308, 0, 1.7976931348623157e+308]
+              == [monster.VectorOfDoubles(i)
+                  for i in range(monster.VectorOfDoublesLength())]))
+
+    try:
+        imp.find_module('numpy')
+        # if numpy exists, then we should be able to get the
+        # vector as a numpy array
+        import numpy as np
+
+        asserter(monster.InventoryAsNumpy().sum() == 10)
+        asserter(monster.InventoryAsNumpy().dtype == np.dtype('uint8'))
+
+        VectorOfLongs = monster.VectorOfLongsAsNumpy()
+        asserter(VectorOfLongs.dtype == np.dtype('int64'))
+        for i in range(5):
+            asserter(VectorOfLongs[i] == 10 ** (i * 2))
+
+        VectorOfDoubles = monster.VectorOfDoublesAsNumpy()
+        asserter(VectorOfDoubles.dtype == np.dtype('float64'))
+        asserter(VectorOfDoubles[0] == np.finfo('float64').min)
+        asserter(VectorOfDoubles[1] == 0.0)
+        asserter(VectorOfDoubles[2] == np.finfo('float64').max)
+
+    except ImportError:
+        # If numpy does not exist, trying to get vector as numpy
+        # array should raise NumpyRequiredForThisFeature. The way
+        # assertRaises has been implemented prevents us from
+        # asserting this error is raised outside of a test case.
+        pass
+
     asserter(monster.Test4Length() == 2)
 
     # create a 'Test' object and populate it:
@@ -162,9 +198,10 @@ class TestFuzz(unittest.TestCase):
     ''' Low level stress/fuzz test: serialize/deserialize a variety of
         different kinds of data in different combinations '''
 
-    ofInt32Bytes = compat.binary_type([0x83, 0x33, 0x33, 0x33])
-    ofInt64Bytes = compat.binary_type([0x84, 0x44, 0x44, 0x44,
-                                       0x44, 0x44, 0x44, 0x44])
+    binary_type = compat.binary_types[0] # this will always exist
+    ofInt32Bytes = binary_type([0x83, 0x33, 0x33, 0x33])
+    ofInt64Bytes = binary_type([0x84, 0x44, 0x44, 0x44,
+                                0x44, 0x44, 0x44, 0x44])
     overflowingInt32Val = flatbuffers.encode.Get(flatbuffers.packer.int32,
                                                  ofInt32Bytes, 0)
     overflowingInt64Val = flatbuffers.encode.Get(flatbuffers.packer.int64,
@@ -793,6 +830,20 @@ def make_monster_from_generated_code():
     b.PrependUOffsetTRelative(test1)
     testArrayOfString = b.EndVector(2)
 
+    MyGame.Example.Monster.MonsterStartVectorOfLongsVector(b, 5)
+    b.PrependInt64(100000000)
+    b.PrependInt64(1000000)
+    b.PrependInt64(10000)
+    b.PrependInt64(100)
+    b.PrependInt64(1)
+    VectorOfLongs = b.EndVector(5)
+
+    MyGame.Example.Monster.MonsterStartVectorOfDoublesVector(b, 3)
+    b.PrependFloat64(1.7976931348623157e+308)
+    b.PrependFloat64(0)
+    b.PrependFloat64(-1.7976931348623157e+308)
+    VectorOfDoubles = b.EndVector(3)
+
     MyGame.Example.Monster.MonsterStart(b)
 
     pos = MyGame.Example.Vec3.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
@@ -805,6 +856,8 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddTest(b, mon2)
     MyGame.Example.Monster.MonsterAddTest4(b, test4)
     MyGame.Example.Monster.MonsterAddTestarrayofstring(b, testArrayOfString)
+    MyGame.Example.Monster.MonsterAddVectorOfLongs(b, VectorOfLongs)
+    MyGame.Example.Monster.MonsterAddVectorOfDoubles(b, VectorOfDoubles)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     b.Finish(mon)
@@ -961,6 +1014,15 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(0, mon2.Testnestedflatbuffer(0))
         self.assertEqual(2, mon2.Testnestedflatbuffer(1))
         self.assertEqual(4, mon2.Testnestedflatbuffer(2))
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            self.assertEqual([0, 2, 4], mon2.TestnestedflatbufferAsNumpy().tolist())
+        except ImportError:
+            assertRaises(self,
+                         lambda: mon2.TestnestedflatbufferAsNumpy(),
+                         NumpyRequiredForThisFeature)
 
     def test_nondefault_monster_testempty(self):
         b = flatbuffers.Builder(0)
@@ -1032,6 +1094,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(6, mon2.Testhashu32Fnv1a())
         self.assertEqual(7, mon2.Testhashs64Fnv1a())
         self.assertEqual(8, mon2.Testhashu64Fnv1a())
+
+    def test_getrootas_for_nonroot_table(self):
+        b = flatbuffers.Builder(0)
+        string = b.CreateString("MyStat")
+
+        MyGame.Example.Stat.StatStart(b)
+        MyGame.Example.Stat.StatAddId(b, string)
+        MyGame.Example.Stat.StatAddVal(b, 12345678)
+        MyGame.Example.Stat.StatAddCount(b, 12345)
+        stat = MyGame.Example.Stat.StatEnd(b)
+        b.Finish(stat)
+
+        stat2 = MyGame.Example.Stat.Stat.GetRootAsStat(b.Bytes, b.Head())
+
+        self.assertEqual(b"MyStat", stat2.Id())
+        self.assertEqual(12345678, stat2.Val())
+        self.assertEqual(12345, stat2.Count())
 
 
 class TestVtableDeduplication(unittest.TestCase):

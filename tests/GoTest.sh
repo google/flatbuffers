@@ -20,7 +20,7 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
-../flatc -g monster_test.fbs
+../flatc -g -I include_test monster_test.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
@@ -29,15 +29,9 @@ mkdir -p ${go_src}/MyGame/Example
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
 
-sync_cmd='cp -u'
-unamestr=`uname`
-if [[ "$unamestr" == 'Darwin' ]]; then
-  sync_cmd='rsync -u'
-fi
-
-${sync_cmd} MyGame/Example/*.go ./go_gen/src/MyGame/Example/
-${sync_cmd} ../go/* ./go_gen/src/github.com/google/flatbuffers/go
-${sync_cmd} ./go_test.go ./go_gen/src/flatbuffers_test/
+cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
+cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
+cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag
@@ -56,6 +50,18 @@ GOPATH=${go_path} go test flatbuffers_test \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000
 
+GO_TEST_RESULT=$?
 rm -rf ${go_path}/{pkg,src}
+if [[ $GO_TEST_RESULT  == 0 ]]; then
+    echo "OK: Go tests passed."
+else
+    echo "KO: Go tests failed."
+    exit 1
+fi
 
-echo "OK: Go tests passed."
+NOT_FMT_FILES=$(gofmt -l MyGame)
+if [[ ${NOT_FMT_FILES} != "" ]]; then
+    echo "These files are not well gofmt'ed:\n\n${NOT_FMT_FILES}"
+    # enable this when enums are properly formated
+    # exit 1
+fi
