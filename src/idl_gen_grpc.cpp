@@ -181,7 +181,9 @@ class FlatBufPrinter : public grpc_generator::Printer {
 
 class FlatBufFile : public grpc_generator::File {
  public:
-  enum Language { kLanguageGo, kLanguageCpp, kLanguageJava };
+  enum Language {
+    kLanguageGo, kLanguageCpp, kLanguageJava, kLanguagePython
+  };
 
   FlatBufFile(const Parser &parser, const std::string &file_name,
               Language language)
@@ -226,7 +228,9 @@ class FlatBufFile : public grpc_generator::File {
       case kLanguageJava: {
         return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
       }
-    }
+      case kLanguagePython: {
+        return "";
+      }
     return "";
   }
 
@@ -362,7 +366,7 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
   return JavaGRPCGenerator(parser, path, file_name).generate();
 }
 
-bool GenerateGRPCPython(const Parser &parser, const std::string & /*path*/,
+bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
                         const std::string &file_name) {
 
   int nservices = 0;
@@ -377,7 +381,7 @@ bool GenerateGRPCPython(const Parser &parser, const std::string & /*path*/,
   config.beta_package_root = "grpc.beta";
   config.import_prefix = "";
 
-  FlatBufFile fbfile(parser, file_name);
+  FlatBufFile fbfile(parser, file_name, FlatBufFile::kLanguagePython);
 
   grpc_python_generator::PrivateGenerator generator(config, &fbfile);
 
