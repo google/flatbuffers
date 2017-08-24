@@ -516,8 +516,21 @@ func (rcv *Monster) VectorOfDoublesLength() int {
 	return 0
 }
 
+func (rcv *Monster) ParentNamespaceTest(obj *InParentNamespace) *InParentNamespace {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(InParentNamespace)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		return obj
+	}
+	return nil
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(34)
+	builder.StartObject(35)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -653,6 +666,9 @@ func MonsterAddVectorOfDoubles(builder *flatbuffers.Builder, vectorOfDoubles fla
 }
 func MonsterStartVectorOfDoublesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddParentNamespaceTest(builder *flatbuffers.Builder, parentNamespaceTest flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(34, flatbuffers.UOffsetT(parentNamespaceTest), 0)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

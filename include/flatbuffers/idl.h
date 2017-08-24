@@ -483,13 +483,17 @@ class CheckedError {
 class Parser : public ParserState {
  public:
   explicit Parser(const IDLOptions &options = IDLOptions())
-    : root_struct_def_(nullptr),
+    : current_namespace_(nullptr),
+      empty_namespace_(nullptr),
+      root_struct_def_(nullptr),
       opts(options),
       uses_flexbuffers_(false),
       source_(nullptr),
       anonymous_counter(0) {
-    // Just in case none are declared:
-    namespaces_.push_back(new Namespace());
+    // Start out with the empty namespace being current.
+    empty_namespace_ = new Namespace();
+    namespaces_.push_back(empty_namespace_);
+    current_namespace_ = empty_namespace_;
     known_attributes_["deprecated"] = true;
     known_attributes_["required"] = true;
     known_attributes_["key"] = true;
@@ -649,6 +653,7 @@ private:
                                        BaseType baseType);
 
   bool SupportsVectorOfUnions() const;
+  Namespace *UniqueNamespace(Namespace *ns);
 
  public:
   SymbolTable<Type> types_;
@@ -656,6 +661,8 @@ private:
   SymbolTable<EnumDef> enums_;
   SymbolTable<ServiceDef> services_;
   std::vector<Namespace *> namespaces_;
+  Namespace *current_namespace_;
+  Namespace *empty_namespace_;
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file

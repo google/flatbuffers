@@ -529,10 +529,10 @@ CheckedError Parser::ParseNamespacing(std::string *id, std::string *last) {
 
 EnumDef *Parser::LookupEnum(const std::string &id) {
   // Search thru parent namespaces.
-  for (int components = static_cast<int>(namespaces_.back()->components.size());
+  for (int components = static_cast<int>(current_namespace_->components.size());
        components >= 0; components--) {
     auto ed = enums_.Lookup(
-                namespaces_.back()->GetFullyQualifiedName(id, components));
+                current_namespace_->GetFullyQualifiedName(id, components));
     if (ed) return ed;
   }
   return nullptr;
@@ -731,7 +731,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     LookupCreateStruct(nested->constant);
 
     // Keep a pointer to StructDef in FieldDef to simplify re-use later
-    auto nested_qualified_name = namespaces_.back()->GetFullyQualifiedName(nested->constant);
+    auto nested_qualified_name =
+        current_namespace_->GetFullyQualifiedName(nested->constant);
     field->nested_flatbuffer = structs_.Lookup(nested_qualified_name);
   }
 
@@ -1369,14 +1370,14 @@ CheckedError Parser::ParseSingleValue(Value &e) {
 
 StructDef *Parser::LookupCreateStruct(const std::string &name,
                                       bool create_if_new, bool definition) {
-  std::string qualified_name = namespaces_.back()->GetFullyQualifiedName(name);
+  std::string qualified_name = current_namespace_->GetFullyQualifiedName(name);
   // See if it exists pre-declared by an unqualified use.
   auto struct_def = structs_.Lookup(name);
   if (struct_def && struct_def->predecl) {
     if (definition) {
       // Make sure it has the current namespace, and is registered under its
       // qualified name.
-      struct_def->defined_namespace = namespaces_.back();
+      struct_def->defined_namespace = current_namespace_;
       structs_.Move(name, qualified_name);
     }
     return struct_def;
@@ -1386,16 +1387,16 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
   if (struct_def && struct_def->predecl) {
     if (definition) {
       // Make sure it has the current namespace.
-      struct_def->defined_namespace = namespaces_.back();
+      struct_def->defined_namespace = current_namespace_;
     }
     return struct_def;
   }
   if (!definition) {
     // Search thru parent namespaces.
-    for (size_t components = namespaces_.back()->components.size();
+    for (size_t components = current_namespace_->components.size();
          components && !struct_def; components--) {
       struct_def = structs_.Lookup(
-          namespaces_.back()->GetFullyQualifiedName(name, components - 1));
+          current_namespace_->GetFullyQualifiedName(name, components - 1));
     }
   }
   if (!struct_def && create_if_new) {
@@ -1403,7 +1404,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
     if (definition) {
       structs_.Add(qualified_name, struct_def);
       struct_def->name = name;
-      struct_def->defined_namespace = namespaces_.back();
+      struct_def->defined_namespace = current_namespace_;
     } else {
       // Not a definition.
       // Rather than failing, we create a "pre declared" StructDef, due to
@@ -1413,8 +1414,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
       // TODO: maybe safer to use special namespace?
       structs_.Add(name, struct_def);
       struct_def->name = name;
-      struct_def->defined_namespace = new Namespace();
-      namespaces_.insert(namespaces_.begin(), struct_def->defined_namespace);
+      struct_def->defined_namespace = empty_namespace_;
     }
   }
   return struct_def;
@@ -1430,8 +1430,8 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = enum_comment;
   enum_def.is_union = is_union;
-  enum_def.defined_namespace = namespaces_.back();
-  if (enums_.Add(namespaces_.back()->GetFullyQualifiedName(enum_name),
+  enum_def.defined_namespace = current_namespace_;
+  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
                  &enum_def))
     return Error("enum already exists: " + enum_name);
   if (is_union) {
@@ -1531,7 +1531,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     }
   }
   if (dest) *dest = &enum_def;
-  types_.Add(namespaces_.back()->GetFullyQualifiedName(enum_def.name),
+  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def.name),
              new Type(BASE_TYPE_UNION, nullptr, &enum_def));
   return NoError();
 }
@@ -1573,6 +1573,17 @@ CheckedError Parser::CheckClash(std::vector<FieldDef*> &fields,
 bool Parser::SupportsVectorOfUnions() const {
   return opts.lang_to_generate != 0 && (opts.lang_to_generate &
     ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs | IDLOptions::kPhp)) == 0;
+}
+
+Namespace *Parser::UniqueNamespace(Namespace *ns) {
+  for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
+    if (ns->components == (*it)->components) {
+      delete ns;
+      return *it;
+    }
+  }
+  namespaces_.push_back(ns);
+  return ns;
 }
 
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
@@ -1643,7 +1654,7 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
-  types_.Add(namespaces_.back()->GetFullyQualifiedName(struct_def->name),
+  types_.Add(current_namespace_->GetFullyQualifiedName(struct_def->name),
              new Type(BASE_TYPE_STRUCT, struct_def, nullptr));
   return NoError();
 }
@@ -1657,8 +1668,8 @@ CheckedError Parser::ParseService() {
   service_def.name = service_name;
   service_def.file = file_being_parsed_;
   service_def.doc_comment = service_comment;
-  service_def.defined_namespace = namespaces_.back();
-  if (services_.Add(namespaces_.back()->GetFullyQualifiedName(service_name),
+  service_def.defined_namespace = current_namespace_;
+  if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
     return Error("service already exists: " + service_name);
   ECHECK(ParseMetaData(&service_def.attributes));
@@ -1692,7 +1703,7 @@ bool Parser::SetRootType(const char *name) {
   root_struct_def_ = structs_.Lookup(name);
   if (!root_struct_def_)
     root_struct_def_ = structs_.Lookup(
-                         namespaces_.back()->GetFullyQualifiedName(name));
+                         current_namespace_->GetFullyQualifiedName(name));
   return root_struct_def_ != nullptr;
 }
 
@@ -1719,7 +1730,7 @@ void Parser::MarkGenerated() {
 CheckedError Parser::ParseNamespace() {
   NEXT();
   auto ns = new Namespace();
-  namespaces_.push_back(ns);
+  namespaces_.push_back(ns);  // Store it here to not leak upon error.
   if (token_ != ';') {
     for (;;) {
       ns->components.push_back(attribute_);
@@ -1727,6 +1738,8 @@ CheckedError Parser::ParseNamespace() {
       if (Is('.')) NEXT() else break;
     }
   }
+  namespaces_.pop_back();
+  current_namespace_ = UniqueNamespace(ns);
   EXPECT(';');
   return NoError();
 }
@@ -1748,6 +1761,7 @@ CheckedError Parser::ParseProtoDecl() {
     std::vector<std::string> struct_comment = doc_comment_;
     NEXT();
     StructDef *struct_def = nullptr;
+    Namespace *parent_namespace = nullptr;
     if (isextend) {
       if (Is('.')) NEXT();  // qualified names may start with a . ?
       auto id = attribute_;
@@ -1763,19 +1777,16 @@ CheckedError Parser::ParseProtoDecl() {
       // Since message definitions can be nested, we create a new namespace.
       auto ns = new Namespace();
       // Copy of current namespace.
-      *ns = *namespaces_.back();
+      *ns = *current_namespace_;
       // But with current message name.
       ns->components.push_back(name);
-      namespaces_.push_back(ns);
+      parent_namespace = current_namespace_;
+      current_namespace_ = UniqueNamespace(ns);
     }
     struct_def->doc_comment = struct_comment;
     ECHECK(ParseProtoFields(struct_def, isextend, false));
     if (!isextend) {
-      // We have to remove the nested namespace, but we can't just throw it
-      // away, so put it at the beginning of the vector.
-      auto ns = namespaces_.back();
-      namespaces_.pop_back();
-      namespaces_.insert(namespaces_.begin(), ns);
+      current_namespace_ = parent_namespace;
     }
     if (Is(';')) NEXT();
   } else if (attribute_ == "enum") {
@@ -2139,7 +2150,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   // Check that all types were defined.
   for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
     if ((*it)->predecl) {
-      return Error("type referenced but not defined: " + (*it)->name);
+      return Error("type referenced but not defined (check namespace): " +
+                   (*it)->name);
     }
   }
 
@@ -2179,7 +2191,7 @@ CheckedError Parser::DoParse(const char *source,
   field_stack_.clear();
   builder_.Clear();
   // Start with a blank namespace just in case this file doesn't have one.
-  namespaces_.push_back(new Namespace());
+  current_namespace_ = empty_namespace_;
 
   ECHECK(StartParseFile(source, source_filename));
 

@@ -46,6 +46,57 @@ MyGame.Example.Any = {
 /**
  * @constructor
  */
+MyGame.InParentNamespace = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.InParentNamespace}
+ */
+MyGame.InParentNamespace.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.InParentNamespace=} obj
+ * @returns {MyGame.InParentNamespace}
+ */
+MyGame.InParentNamespace.getRootAsInParentNamespace = function(bb, obj) {
+  return (obj || new MyGame.InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.InParentNamespace.startInParentNamespace = function(builder) {
+  builder.startObject(0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.InParentNamespace.endInParentNamespace = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @constructor
+ */
 MyGame.Example2.Monster = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -1357,10 +1408,19 @@ MyGame.Example.Monster.prototype.vectorOfDoublesArray = function() {
 };
 
 /**
+ * @param {MyGame.InParentNamespace=} obj
+ * @returns {MyGame.InParentNamespace|null}
+ */
+MyGame.Example.Monster.prototype.parentNamespaceTest = function(obj) {
+  var offset = this.bb.__offset(this.bb_pos, 72);
+  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(34);
+  builder.startObject(35);
 };
 
 /**
@@ -1838,6 +1898,14 @@ MyGame.Example.Monster.createVectorOfDoublesVector = function(builder, data) {
  */
 MyGame.Example.Monster.startVectorOfDoublesVector = function(builder, numElems) {
   builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} parentNamespaceTestOffset
+ */
+MyGame.Example.Monster.addParentNamespaceTest = function(builder, parentNamespaceTestOffset) {
+  builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
 };
 
 /**

@@ -9,13 +9,9 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
-namespace _proto._test;
-
 table ImportedMessage {
   a:int;
 }
-
-namespace _proto._test;
 
 /// 2nd table doc comment with
 /// many lines.

@@ -8,6 +8,10 @@
 #include "flatbuffers/flexbuffers.h"
 
 namespace MyGame {
+
+struct InParentNamespace;
+struct InParentNamespaceT;
+
 namespace Example2 {
 
 struct Monster;
@@ -317,6 +321,46 @@ STRUCT_END(Ability, 8);
 
 }  // namespace Example
 
+struct InParentNamespaceT : public flatbuffers::NativeTable {
+  typedef InParentNamespace TableType;
+  InParentNamespaceT() {
+  }
+};
+
+struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef InParentNamespaceT NativeTableType;
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+  InParentNamespaceT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<InParentNamespace> Pack(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct InParentNamespaceBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  InParentNamespaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  InParentNamespaceBuilder &operator=(const InParentNamespaceBuilder &);
+  flatbuffers::Offset<InParentNamespace> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<InParentNamespace>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
+    flatbuffers::FlatBufferBuilder &_fbb) {
+  InParentNamespaceBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 namespace Example2 {
 
 struct MonsterT : public flatbuffers::NativeTable {
@@ -553,6 +597,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<Test> test5;
   std::vector<int64_t> vector_of_longs;
   std::vector<double> vector_of_doubles;
+  flatbuffers::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test;
   MonsterT()
       : mana(150),
         hp(100),
@@ -608,7 +653,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FLEX = 64,
     VT_TEST5 = 66,
     VT_VECTOR_OF_LONGS = 68,
-    VT_VECTOR_OF_DOUBLES = 70
+    VT_VECTOR_OF_DOUBLES = 70,
+    VT_PARENT_NAMESPACE_TEST = 72
   };
   const Vec3 *pos() const {
     return GetStruct<const Vec3 *>(VT_POS);
@@ -834,6 +880,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<double> *mutable_vector_of_doubles() {
     return GetPointer<flatbuffers::Vector<double> *>(VT_VECTOR_OF_DOUBLES);
   }
+  const MyGame::InParentNamespace *parent_namespace_test() const {
+    return GetPointer<const MyGame::InParentNamespace *>(VT_PARENT_NAMESPACE_TEST);
+  }
+  MyGame::InParentNamespace *mutable_parent_namespace_test() {
+    return GetPointer<MyGame::InParentNamespace *>(VT_PARENT_NAMESPACE_TEST);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -888,6 +940,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(vector_of_longs()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_DOUBLES) &&
            verifier.Verify(vector_of_doubles()) &&
+           VerifyOffset(verifier, VT_PARENT_NAMESPACE_TEST) &&
+           verifier.VerifyTable(parent_namespace_test()) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1009,6 +1063,9 @@ struct MonsterBuilder {
   void add_vector_of_doubles(flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_DOUBLES, vector_of_doubles);
   }
+  void add_parent_namespace_test(flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test) {
+    fbb_.AddOffset(Monster::VT_PARENT_NAMESPACE_TEST, parent_namespace_test);
+  }
   MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1056,12 +1113,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex = 0,
     flatbuffers::Offset<flatbuffers::Vector<const Test *>> test5 = 0,
     flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs = 0,
-    flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles = 0,
+    flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_testhashu64_fnv1a(testhashu64_fnv1a);
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_parent_namespace_test(parent_namespace_test);
   builder_.add_vector_of_doubles(vector_of_doubles);
   builder_.add_vector_of_longs(vector_of_longs);
   builder_.add_test5(test5);
@@ -1128,7 +1187,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const std::vector<uint8_t> *flex = nullptr,
     const std::vector<const Test *> *test5 = nullptr,
     const std::vector<int64_t> *vector_of_longs = nullptr,
-    const std::vector<double> *vector_of_doubles = nullptr) {
+    const std::vector<double> *vector_of_doubles = nullptr,
+    flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0) {
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -1163,7 +1223,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       flex ? _fbb.CreateVector<uint8_t>(*flex) : 0,
       test5 ? _fbb.CreateVector<const Test *>(*test5) : 0,
       vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0,
-      vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0);
+      vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0,
+      parent_namespace_test);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1422,6 +1483,29 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 
 }  // namespace Example
 
+inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new InParentNamespaceT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void InParentNamespace::UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+}
+
+inline flatbuffers::Offset<InParentNamespace> InParentNamespace::Pack(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateInParentNamespace(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const InParentNamespaceT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  return MyGame::CreateInParentNamespace(
+      _fbb);
+}
+
 namespace Example2 {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -1551,6 +1635,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } };
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } };
   { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } };
+  { auto _e = parent_namespace_test(); if (_e) _o->parent_namespace_test = flatbuffers::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -1594,6 +1679,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _test5 = _o->test5.size() ? _fbb.CreateVectorOfStructs(_o->test5) : 0;
   auto _vector_of_longs = _o->vector_of_longs.size() ? _fbb.CreateVector(_o->vector_of_longs) : 0;
   auto _vector_of_doubles = _o->vector_of_doubles.size() ? _fbb.CreateVector(_o->vector_of_doubles) : 0;
+  auto _parent_namespace_test = _o->parent_namespace_test ? CreateInParentNamespace(_fbb, _o->parent_namespace_test.get(), _rehasher) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -1628,7 +1714,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _flex,
       _test5,
       _vector_of_longs,
-      _vector_of_doubles);
+      _vector_of_doubles,
+      _parent_namespace_test);
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {

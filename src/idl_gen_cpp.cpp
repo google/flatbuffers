@@ -53,7 +53,7 @@ class CppGenerator : public BaseGenerator {
     guard = "FLATBUFFERS_GENERATED_" + guard;
     guard += "_";
     // For further uniqueness, also add the namespace.
-    auto name_space = parser_.namespaces_.back();
+    auto name_space = parser_.current_namespace_;
     for (auto it = name_space->components.begin();
          it != name_space->components.end(); ++it) {
       guard += *it + "_";
@@ -175,7 +175,7 @@ class CppGenerator : public BaseGenerator {
       SetNameSpace(struct_def.defined_namespace);
       const auto &name = struct_def.name;
       const auto qualified_name =
-          parser_.namespaces_.back()->GetFullyQualifiedName(name);
+          cur_name_space_->GetFullyQualifiedName(name);
       const auto cpp_name = TranslateNameSpace(qualified_name);
 
       code_.SetValue("STRUCT_NAME", name);
@@ -990,15 +990,14 @@ class CppGenerator : public BaseGenerator {
     return "VT_" + uname;
   }
 
-  void GenFullyQualifiedNameGetter(const std::string &name) {
+  void GenFullyQualifiedNameGetter(const StructDef &struct_def,
+                                   const std::string &name) {
     if (!parser_.opts.generate_name_strings) {
       return;
     }
-
-    auto fullname = parser_.namespaces_.back()->GetFullyQualifiedName(name);
+    auto fullname = struct_def.defined_namespace->GetFullyQualifiedName(name);
     code_.SetValue("NAME", fullname);
     code_.SetValue("CONSTEXPR", "FLATBUFFERS_CONSTEXPR");
-
     code_ += "  static {{CONSTEXPR}} const char *GetFullyQualifiedName() {";
     code_ += "    return \"{{NAME}}\";";
     code_ += "  }";
@@ -1115,7 +1114,7 @@ class CppGenerator : public BaseGenerator {
     // Generate a C++ object that can hold an unpacked version of this table.
     code_ += "struct {{NATIVE_NAME}} : public flatbuffers::NativeTable {";
     code_ += "  typedef {{STRUCT_NAME}} TableType;";
-    GenFullyQualifiedNameGetter(native_name);
+    GenFullyQualifiedNameGetter(struct_def, native_name);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       GenMember(**it);
@@ -1204,7 +1203,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
 
-    GenFullyQualifiedNameGetter(struct_def.name);
+    GenFullyQualifiedNameGetter(struct_def, struct_def.name);
 
     // Generate field id constants.
     if (struct_def.fields.vec.size() > 0) {
@@ -1332,7 +1331,7 @@ class CppGenerator : public BaseGenerator {
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
         std::string qualified_name =
-            parser_.namespaces_.back()->GetFullyQualifiedName(
+            parser_.current_namespace_->GetFullyQualifiedName(
                 nested->constant);
         auto nested_root = parser_.structs_.Lookup(qualified_name);
         assert(nested_root);  // Guaranteed to exist by parser.
@@ -2057,7 +2056,7 @@ class CppGenerator : public BaseGenerator {
     // Generate GetFullyQualifiedName
     code_ += "";
     code_ += " public:";
-    GenFullyQualifiedNameGetter(struct_def.name);
+    GenFullyQualifiedNameGetter(struct_def, struct_def.name);
 
     // Generate a default constructor.
     code_ += "  {{STRUCT_NAME}}() {";
