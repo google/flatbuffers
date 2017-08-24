@@ -24,6 +24,58 @@ export enum Any{
 /**
  * @constructor
  */
+export namespace MyGame{
+export class InParentNamespace {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {InParentNamespace}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {InParentNamespace=} obj
+ * @returns {InParentNamespace}
+ */
+static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
+  return (obj || new InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+static startInParentNamespace(builder:flatbuffers.Builder) {
+  builder.startObject(0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+static endInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
 export namespace MyGame.Example2{
 export class Monster {
   /**
@@ -1348,10 +1400,19 @@ vectorOfDoublesArray():Float64Array|null {
 };
 
 /**
+ * @param {MyGame.InParentNamespace=} obj
+ * @returns {MyGame.InParentNamespace|null}
+ */
+parentNamespaceTest(obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null {
+  var offset = this.bb.__offset(this.bb_pos, 72);
+  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(34);
+  builder.startObject(35);
 };
 
 /**
@@ -1829,6 +1890,14 @@ static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[] | 
  */
 static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} parentNamespaceTestOffset
+ */
+static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
 };
 
 /**

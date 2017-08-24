@@ -30,6 +30,11 @@
         "b" : { "$ref" : "#/definitions/MyGame_OtherNameSpace_TableB" }
       }
     },
+    "MyGame_InParentNamespace" : {
+      "type" : "object",
+      "properties" : {
+      }
+    },
     "MyGame_Example2_Monster" : {
       "type" : "object",
       "properties" : {
@@ -111,7 +116,8 @@
         "flex" : { "type" : "array", "items" : { "type" : "number" } },
         "test5" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
         "vector_of_longs" : { "type" : "array", "items" : { "type" : "number" } },
-        "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } }
+        "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } },
+        "parent_namespace_test" : { "$ref" : "#/definitions/MyGame_InParentNamespace" }
       },
       "required" : [ "name"]
     },

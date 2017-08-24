@@ -214,11 +214,11 @@ class FlatBufFile : public grpc_generator::File {
   std::string service_header_ext() const { return ".grpc.fb.h"; }
 
   std::string package() const {
-    return parser_.namespaces_.back()->GetFullyQualifiedName("");
+    return parser_.current_namespace_->GetFullyQualifiedName("");
   }
 
   std::vector<std::string> package_parts() const {
-    return parser_.namespaces_.back()->components;
+    return parser_.current_namespace_->components;
   }
 
   std::string additional_headers() const {

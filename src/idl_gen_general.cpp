@@ -161,7 +161,7 @@ class GeneralGenerator : public BaseGenerator {
   GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
-    cur_name_space_ = parser_.namespaces_.back();
+    cur_name_space_ = parser_.current_namespace_;
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -194,7 +194,7 @@ class GeneralGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.one_file) {
-      return SaveType(file_name_, *parser_.namespaces_.back(),
+      return SaveType(file_name_, *parser_.current_namespace_,
                       one_file_code, true);
     }
     return true;
