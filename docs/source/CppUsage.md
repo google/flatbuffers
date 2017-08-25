@@ -231,6 +231,30 @@ schema, as well as a lot of helper functions.
 And example of usage, for the time being, can be found in
 `test.cpp/ReflectionTest()`.
 
+## Mini Reflection
+
+A more limited form of reflection is available for direct inclusion in
+generated code, which doesn't any (binary) schema access at all. It was designed
+to keep the overhead of reflection as low as possible (on the order of 2-6
+bytes per field added to your executable), but doesn't contain all the
+information the (binary) schema contains.
+
+You add this information to your generated code by specifying `--reflect-types`
+(or instead `--reflect-names` if you also want field / enum names).
+
+You can now use this information, for example to print a FlatBuffer to text:
+
+    auto s = flatbuffers::FlatBufferToString(flatbuf, MonsterTypeTable());
+
+`MonsterTypeTable()` is declared in the generated code for each type. The
+string produced is very similar to the JSON produced by the `Parser` based
+text generator.
+
+You'll need `flatbuffers/minireflect.h` for this functionality. In there is also
+a convenient visitor/iterator so you can write your own output / functionality
+based on the mini reflection tables without having to know the FlatBuffers or
+reflection encoding.
+
 ## Storing maps / dictionaries in a FlatBuffer
 
 FlatBuffers doesn't support maps natively, but there is support to

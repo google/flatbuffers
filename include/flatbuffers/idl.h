@@ -396,6 +396,10 @@ struct IDLOptions {
 
   Language lang;
 
+  enum MiniReflect { kNone, kTypes, kTypesAndNames };
+
+  MiniReflect mini_reflect;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -426,6 +430,7 @@ struct IDLOptions {
       reexport_ts_modules(true),
       protobuf_ascii_alike(false),
       lang(IDLOptions::kJava),
+      mini_reflect(IDLOptions::kNone),
       lang_to_generate(0) {}
 };
 

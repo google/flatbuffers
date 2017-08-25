@@ -600,6 +600,107 @@ inline void CharacterUnion::Reset() {
   type = Character_NONE;
 }
 
+flatbuffers::TypeTable *AttackerTypeTable();
+
+flatbuffers::TypeTable *RapunzelTypeTable();
+
+flatbuffers::TypeTable *BookReaderTypeTable();
+
+flatbuffers::TypeTable *MovieTypeTable();
+
+flatbuffers::TypeTable *CharacterTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    AttackerTypeTable,
+    RapunzelTypeTable,
+    BookReaderTypeTable
+  };
+  static const char *names[] = {
+    "NONE",
+    "MuLan",
+    "Rapunzel",
+    "Belle",
+    "BookFan",
+    "Other",
+    "Unused"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *AttackerTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char *names[] = {
+    "sword_attack_damage"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *RapunzelTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4 };
+  static const char *names[] = {
+    "hair_length"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *BookReaderTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4 };
+  static const char *names[] = {
+    "books_read"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *MovieTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UTYPE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UTYPE, 1, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    CharacterTypeTable
+  };
+  static const char *names[] = {
+    "main_character_type",
+    "main_character",
+    "characters_type",
+    "characters"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const Movie *GetMovie(const void *buf) {
   return flatbuffers::GetRoot<Movie>(buf);
 }

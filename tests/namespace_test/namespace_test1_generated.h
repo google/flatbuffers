@@ -119,6 +119,59 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
   return builder_.Finish();
 }
 
+flatbuffers::TypeTable *TableInNestedNSTypeTable();
+
+flatbuffers::TypeTable *StructInNestedNSTypeTable();
+
+flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    EnumInNestedNSTypeTable
+  };
+  static const char *names[] = {
+    "A",
+    "B",
+    "C"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *TableInNestedNSTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char *names[] = {
+    "foo"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *StructInNestedNSTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4, 8 };
+  static const char *names[] = {
+    "a",
+    "b"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
 }  // namespace NamespaceB
 }  // namespace NamespaceA
 

@@ -18,6 +18,7 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "flatbuffers/registry.h"
+#include "flatbuffers/minireflect.h"
 
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
@@ -46,8 +47,9 @@ int testing_fails = 0;
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line) {
-  TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s (%s) != %s", file, line,
-                   exp, expval, val);
+  TEST_OUTPUT_LINE("VALUE: \"%s\"", expval);
+  TEST_OUTPUT_LINE("EXPECTED: \"%s\"", val);
+  TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s", file, line, exp);
   assert(0);
   testing_fails++;
 }
@@ -561,11 +563,7 @@ void ParseAndGenerateTextTest() {
   std::string jsongen;
   auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
-
-  if (jsongen != jsonfile) {
-    TEST_OUTPUT_LINE("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
-    TEST_NOTNULL(NULL);
-  }
+  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 
   // We can also do the above using the convenient Registry that knows about
   // a set of file_identifiers mapped to schemas.
@@ -772,6 +770,34 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
                               fbb.GetBufferPointer(), fbb.GetSize()), true);
 }
 
+void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
+  auto s = flatbuffers::FlatBufferToString(flatbuf, MonsterTypeTable());
+  TEST_EQ_STR(s.c_str(),
+    "{ "
+    "pos: { x: 1.0, y: 2.0, z: 3.0, test1: 0.0, test2: Red, test3: "
+      "{ a: 10, b: 20 } }, "
+    "hp: 80, "
+    "name: \"MyMonster\", "
+    "inventory: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ], "
+    "test_type: Monster, "
+    "test: { name: \"Fred\" }, "
+    "test4: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
+    "testarrayofstring: [ \"bob\", \"fred\", \"bob\", \"fred\" ], "
+    "testarrayoftables: [ { hp: 1000, name: \"Barney\" }, { name: \"Fred\" }, "
+      "{ name: \"Wilma\" } ], "
+    // TODO(wvo): should really print this nested buffer correctly.
+    "testnestedflatbuffer: [ 20, 0, 0, 0, 77, 79, 78, 83, 12, 0, 12, 0, 0, 0, "
+      "4, 0, 6, 0, 8, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 13, 0, 0, 0, 78, "
+      "101, 115, 116, 101, 100, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0 ], "
+    "testarrayofstring2: [ \"jane\", \"mary\" ], "
+    "testarrayofsortedstruct: [ { id: 1, distance: 10 }, "
+      "{ id: 2, distance: 20 }, { id: 3, distance: 30 }, "
+      "{ id: 4, distance: 40 } ], "
+    "flex: [ 210, 4, 5, 2 ], "
+    "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ] "
+    "}");
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest() {
   // load the .proto and the golden file from disk
@@ -800,11 +826,7 @@ void ParseProtoTest() {
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
-
-  if (fbs != goldenfile) {
-    TEST_OUTPUT_LINE("%s----------------\n%s", fbs.c_str(), goldenfile.c_str());
-    TEST_NOTNULL(NULL);
-  }
+  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
 }
 
 template<typename T> void CompareTableFieldValue(flatbuffers::Table *table,
@@ -1248,10 +1270,9 @@ void UnicodeTest() {
   parser.opts.indent_step = -1;
   auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
-  TEST_EQ(jsongen,
-          std::string(
+  TEST_EQ_STR(jsongen.c_str(),
             "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-            "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}"));
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}");
 }
 
 void UnicodeTestAllowNonUTF8() {
@@ -1265,10 +1286,9 @@ void UnicodeTestAllowNonUTF8() {
   parser.opts.indent_step = -1;
   auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
-  TEST_EQ(jsongen,
-          std::string(
+  TEST_EQ_STR(jsongen.c_str(),
             "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
-            "\\u5225\\u30B5\\u30A4\\u30C8\\u0001\\x80\\u0080\\uD83D\\uDE0E\"}"));
+            "\\u5225\\u30B5\\u30A4\\u30C8\\u0001\\x80\\u0080\\uD83D\\uDE0E\"}");
 }
 
 void UnicodeTestGenerateTextFailsOnNonUTF8() {
@@ -1300,7 +1320,7 @@ void UnicodeSurrogatesTest() {
     parser.builder_.GetBufferPointer());
   auto string = root->GetPointer<flatbuffers::String *>(
     flatbuffers::FieldIndexToOffset(0));
-  TEST_EQ(strcmp(string->c_str(), "\xF0\x9F\x92\xA9"), 0);
+  TEST_EQ_STR(string->c_str(), "\xF0\x9F\x92\xA9");
 }
 
 void UnicodeInvalidSurrogatesTest() {
@@ -1437,7 +1457,7 @@ void UnknownFieldsTest() {
   parser.opts.indent_step = -1;
   auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
-  TEST_EQ(jsongen == "{str: \"test\",i: 10}", true);
+  TEST_EQ_STR(jsongen.c_str(), "{str: \"test\",i: 10}");
 }
 
 void ParseUnionTest() {
@@ -1548,6 +1568,14 @@ void UnionVectorTest() {
   auto repacked_movie = GetMovie(fbb.GetBufferPointer());
 
   TestMovie(repacked_movie);
+
+  auto s = flatbuffers::FlatBufferToString(fbb.GetBufferPointer(),
+                                           MovieTypeTable());
+  TEST_EQ_STR(s.c_str(),
+    "{ main_character_type: Rapunzel, main_character: { hair_length: 6 }, "
+    "characters_type: [ Belle, MuLan, BookFan, Other, Unused ], "
+    "characters: [ { books_read: 7 }, { sword_attack_damage: 5 }, "
+    "{ books_read: 2 }, \"Other\", \"Unused\" ] }");
 }
 
 void ConformTest() {
@@ -1773,6 +1801,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   MutateFlatBuffersTest(flatbuf.data(), flatbuf.size());
 
   ObjectFlatBuffersTest(flatbuf.data());
+
+  MiniReflectFlatBuffersTest(flatbuf.data());
 
   SizePrefixedTest();
 
