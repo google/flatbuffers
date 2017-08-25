@@ -83,6 +83,9 @@
     <Compile Include="..\MyGame\Example\Ability.cs">
       <Link>MyGame\Example\Ability.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\InParentNamespace.cs">
+      <Link>MyGame\InParentNamespace.cs</Link>
+    </Compile>
     <Compile Include="..\namespace_test\NamespaceA\NamespaceB\EnumInNestedNS.cs">
       <Link>NamespaceA\NamespaceB\EnumInNestedNS.cs</Link>
     </Compile>
