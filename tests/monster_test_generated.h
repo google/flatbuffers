@@ -1899,6 +1899,318 @@ inline void AnyUnion::Reset() {
   type = Any_NONE;
 }
 
+}  // namespace Example
+
+flatbuffers::TypeTable *InParentNamespaceTypeTable();
+
+namespace Example2 {
+
+flatbuffers::TypeTable *MonsterTypeTable();
+
+}  // namespace Example2
+
+namespace Example {
+
+flatbuffers::TypeTable *TestTypeTable();
+
+flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
+
+flatbuffers::TypeTable *Vec3TypeTable();
+
+flatbuffers::TypeTable *AbilityTypeTable();
+
+flatbuffers::TypeTable *StatTypeTable();
+
+flatbuffers::TypeTable *MonsterTypeTable();
+
+flatbuffers::TypeTable *TypeAliasesTypeTable();
+
+flatbuffers::TypeTable *ColorTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    ColorTypeTable
+  };
+  static const int32_t values[] = { 1, 2, 8 };
+  static const char *names[] = {
+    "Red",
+    "Green",
+    "Blue"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *AnyTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    MonsterTypeTable,
+    TestSimpleTableWithEnumTypeTable,
+    MyGame::Example2::MonsterTypeTable
+  };
+  static const char *names[] = {
+    "NONE",
+    "Monster",
+    "TestSimpleTableWithEnum",
+    "MyGame_Example2_Monster"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+}  // namespace Example
+
+flatbuffers::TypeTable *InParentNamespaceTypeTable() {
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+  };
+  return &tt;
+}
+
+namespace Example2 {
+
+flatbuffers::TypeTable *MonsterTypeTable() {
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+  };
+  return &tt;
+}
+
+}  // namespace Example2
+
+namespace Example {
+
+flatbuffers::TypeTable *TestTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SHORT, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 2, 4 };
+  static const char *names[] = {
+    "a",
+    "b"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    ColorTypeTable
+  };
+  static const char *names[] = {
+    "color"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *Vec3TypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_DOUBLE, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    ColorTypeTable,
+    TestTypeTable
+  };
+  static const int32_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
+  static const char *names[] = {
+    "x",
+    "y",
+    "z",
+    "test1",
+    "test2",
+    "test3"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *AbilityTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4, 8 };
+  static const char *names[] = {
+    "id",
+    "distance"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *StatTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_LONG, 0, -1 },
+    { flatbuffers::ET_USHORT, 0, -1 }
+  };
+  static const char *names[] = {
+    "id",
+    "val",
+    "count"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *MonsterTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SHORT, 0, -1 },
+    { flatbuffers::ET_SHORT, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_UCHAR, 1, -1 },
+    { flatbuffers::ET_CHAR, 0, 1 },
+    { flatbuffers::ET_UTYPE, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 1, 3 },
+    { flatbuffers::ET_STRING, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 4 },
+    { flatbuffers::ET_SEQUENCE, 0, 4 },
+    { flatbuffers::ET_UCHAR, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 5 },
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_LONG, 0, -1 },
+    { flatbuffers::ET_ULONG, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_LONG, 0, -1 },
+    { flatbuffers::ET_ULONG, 0, -1 },
+    { flatbuffers::ET_BOOL, 1, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_STRING, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 6 },
+    { flatbuffers::ET_UCHAR, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 3 },
+    { flatbuffers::ET_LONG, 1, -1 },
+    { flatbuffers::ET_DOUBLE, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 7 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    Vec3TypeTable,
+    ColorTypeTable,
+    AnyTypeTable,
+    TestTypeTable,
+    MonsterTypeTable,
+    StatTypeTable,
+    AbilityTypeTable,
+    MyGame::InParentNamespaceTypeTable
+  };
+  static const char *names[] = {
+    "pos",
+    "mana",
+    "hp",
+    "name",
+    "friendly",
+    "inventory",
+    "color",
+    "test_type",
+    "test",
+    "test4",
+    "testarrayofstring",
+    "testarrayoftables",
+    "enemy",
+    "testnestedflatbuffer",
+    "testempty",
+    "testbool",
+    "testhashs32_fnv1",
+    "testhashu32_fnv1",
+    "testhashs64_fnv1",
+    "testhashu64_fnv1",
+    "testhashs32_fnv1a",
+    "testhashu32_fnv1a",
+    "testhashs64_fnv1a",
+    "testhashu64_fnv1a",
+    "testarrayofbools",
+    "testf",
+    "testf2",
+    "testf3",
+    "testarrayofstring2",
+    "testarrayofsortedstruct",
+    "flex",
+    "test5",
+    "vector_of_longs",
+    "vector_of_doubles",
+    "parent_namespace_test"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+flatbuffers::TypeTable *TypeAliasesTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, -1 },
+    { flatbuffers::ET_UCHAR, 0, -1 },
+    { flatbuffers::ET_SHORT, 0, -1 },
+    { flatbuffers::ET_USHORT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_LONG, 0, -1 },
+    { flatbuffers::ET_ULONG, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_DOUBLE, 0, -1 },
+    { flatbuffers::ET_CHAR, 1, -1 },
+    { flatbuffers::ET_DOUBLE, 1, -1 }
+  };
+  static const char *names[] = {
+    "i8",
+    "u8",
+    "i16",
+    "u16",
+    "i32",
+    "u32",
+    "i64",
+    "u64",
+    "f32",
+    "f64",
+    "v8",
+    "vf64"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
 inline const MyGame::Example::Monster *GetMonster(const void *buf) {
   return flatbuffers::GetRoot<MyGame::Example::Monster>(buf);
 }

@@ -2066,6 +2066,73 @@ inline int LookupEnum(const char **names, const char *name) {
   #error Unknown compiler, please define structure alignment macros
 #endif
 
+// Minimal reflection via code generation.
+// Besides full-fat reflection (see reflection.h) and parsing/printing by
+// loading schemas (see idl.h), we can also have code generation for mimimal
+// reflection data which allows pretty-printing and other uses without needing
+// a schema or a parser.
+// Generate code with --reflect-types (types only) or --reflect-names (names
+// also) to enable.
+// See minireflect.h for utilities using this functionality.
+
+// These types are organized slightly differently as the ones in idl.h.
+enum SequenceType { ST_TABLE, ST_STRUCT, ST_UNION, ST_ENUM };
+
+// Scalars have the same order as in idl.h
+#define FLATBUFFERS_GEN_ELEMENTARY_TYPES(ET) \
+  ET(ET_UTYPE) \
+  ET(ET_BOOL) \
+  ET(ET_CHAR) \
+  ET(ET_UCHAR) \
+  ET(ET_SHORT) \
+  ET(ET_USHORT) \
+  ET(ET_INT) \
+  ET(ET_UINT) \
+  ET(ET_LONG) \
+  ET(ET_ULONG) \
+  ET(ET_FLOAT) \
+  ET(ET_DOUBLE) \
+  ET(ET_STRING) \
+  ET(ET_SEQUENCE)  // See SequenceType.
+
+enum ElementaryType {
+  #define FLATBUFFERS_ET(E) E,
+    FLATBUFFERS_GEN_ELEMENTARY_TYPES(FLATBUFFERS_ET)
+  #undef FLATBUFFERS_ET
+};
+
+inline const char **ElementaryTypeNames() {
+  static const char *names[] = {
+    #define FLATBUFFERS_ET(E) #E,
+      FLATBUFFERS_GEN_ELEMENTARY_TYPES(FLATBUFFERS_ET)
+    #undef FLATBUFFERS_ET
+  };
+  return names;
+}
+
+// Basic type info cost just 16bits per field!
+struct TypeCode {
+  uint16_t base_type : 4;      // ElementaryType
+  uint16_t is_vector : 1;
+  int16_t sequence_ref : 11;   // Index into type_refs below, or -1 for none.
+};
+
+static_assert(sizeof(TypeCode) == 2, "TypeCode");
+
+struct TypeTable;
+
+// Signature of the static method present in each type.
+typedef TypeTable *(*TypeFunction)();
+
+struct TypeTable {
+  SequenceType st;
+  size_t num_elems;  // of each of the arrays below.
+  const TypeCode *type_codes;
+  const TypeFunction *type_refs;
+  const int32_t *values;  // Only set for non-consecutive enum/union or structs.
+  const char **names;  // Only set if compiled with --reflect-names.
+};
+
 // String which identifies the current version of FlatBuffers.
 // flatbuffer_version_string is used by Google developers to identify which
 // applications uploaded to Google Play are using this library.  This allows

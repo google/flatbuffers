@@ -212,6 +212,85 @@ namespace NamespaceC {
 
 namespace NamespaceA {
 
+flatbuffers::TypeTable *TableInFirstNSTypeTable();
+
+}  // namespace NamespaceA
+
+namespace NamespaceC {
+
+flatbuffers::TypeTable *TableInCTypeTable();
+
+}  // namespace NamespaceC
+
+namespace NamespaceA {
+
+flatbuffers::TypeTable *SecondTableInATypeTable();
+
+flatbuffers::TypeTable *TableInFirstNSTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    NamespaceA::NamespaceB::TableInNestedNSTypeTable,
+    NamespaceA::NamespaceB::EnumInNestedNSTypeTable,
+    NamespaceA::NamespaceB::StructInNestedNSTypeTable
+  };
+  static const char *names[] = {
+    "foo_table",
+    "foo_enum",
+    "foo_struct"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+}  // namespace NamespaceA
+
+namespace NamespaceC {
+
+flatbuffers::TypeTable *TableInCTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    NamespaceA::TableInFirstNSTypeTable,
+    NamespaceA::SecondTableInATypeTable
+  };
+  static const char *names[] = {
+    "refer_to_a1",
+    "refer_to_a2"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+}  // namespace NamespaceC
+
+namespace NamespaceA {
+
+flatbuffers::TypeTable *SecondTableInATypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    NamespaceC::TableInCTypeTable
+  };
+  static const char *names[] = {
+    "refer_to_c"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 }  // namespace NamespaceA
 
 #endif  // FLATBUFFERS_GENERATED_NAMESPACETEST2_NAMESPACEA_H_

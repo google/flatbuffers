@@ -169,6 +169,37 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
+    // Generate code for mini reflection.
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+      // To break cyclic dependencies, first pre-declare all tables/structs.
+      for (auto it = parser_.structs_.vec.begin();
+           it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          GenMiniReflectPre(&struct_def);
+        }
+      }
+      // Then the unions/enums that may refer to them.
+      for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+           ++it) {
+        const auto &enum_def = **it;
+        if (!enum_def.generated) {
+          SetNameSpace(enum_def.defined_namespace);
+          GenMiniReflect(nullptr, &enum_def);
+        }
+      }
+      // Then the full tables/structs.
+      for (auto it = parser_.structs_.vec.begin();
+           it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          GenMiniReflect(&struct_def, nullptr);
+        }
+      }
+    }
+
     // Generate convenient global helper functions:
     if (parser_.root_struct_def_) {
       auto &struct_def = *parser_.root_struct_def_;
@@ -557,6 +588,140 @@ class CppGenerator : public BaseGenerator {
            "UnPackTo(" + NativeName(struct_def.name, &struct_def, opts) + " *" +
            "_o, const flatbuffers::resolver_function_t *_resolver" +
            (inclass ? " = nullptr" : "") + ") const";
+  }
+
+  void GenMiniReflectPre(const StructDef *struct_def) {
+    code_.SetValue("NAME", struct_def->name);
+    code_ += "flatbuffers::TypeTable *{{NAME}}TypeTable();";
+    code_ += "";
+  }
+
+  void GenMiniReflect(const StructDef *struct_def,
+                      const EnumDef *enum_def) {
+    code_.SetValue("NAME", struct_def ? struct_def->name : enum_def->name);
+    code_.SetValue("SEQ_TYPE", struct_def
+                   ? (struct_def->fixed ? "ST_STRUCT" : "ST_TABLE")
+                   : (enum_def->is_union ? "ST_UNION" : "ST_ENUM"));
+    auto num_fields = struct_def
+                      ? struct_def->fields.vec.size()
+                      : enum_def->vals.vec.size();
+    code_.SetValue("NUM_FIELDS", NumToString(num_fields));
+    std::vector<std::string> names;
+    std::vector<Type> types;
+    bool consecutive_enum_from_zero = true;
+    if (struct_def) {
+      for (auto it = struct_def->fields.vec.begin();
+           it != struct_def->fields.vec.end(); ++it) {
+        const auto &field = **it;
+        names.push_back(field.name);
+        types.push_back(field.value.type);
+      }
+    } else {
+      for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
+           ++it) {
+        const auto &ev = **it;
+        names.push_back(ev.name);
+        types.push_back(enum_def->is_union ? ev.union_type
+                                           : Type(enum_def->underlying_type));
+        if (static_cast<int64_t>(it - enum_def->vals.vec.begin()) != ev.value) {
+          consecutive_enum_from_zero = false;
+        }
+      }
+    }
+    std::string ts;
+    std::vector<std::string> type_refs;
+    for (auto it = types.begin(); it != types.end(); ++it) {
+      auto &type = *it;
+      if (!ts.empty()) ts += ",\n    ";
+      auto is_vector = type.base_type == BASE_TYPE_VECTOR;
+      auto bt = is_vector ? type.element : type.base_type;
+      auto et = IsScalar(bt) || bt == BASE_TYPE_STRING
+                  ? bt - BASE_TYPE_UTYPE + ET_UTYPE
+                  : ET_SEQUENCE;
+      int ref_idx = -1;
+      std::string ref_name = type.struct_def
+                              ? WrapInNameSpace(*type.struct_def)
+                              : type.enum_def
+                                ? WrapInNameSpace(*type.enum_def)
+                                : "";
+      if (!ref_name.empty()) {
+        auto rit = type_refs.begin();
+        for (; rit != type_refs.end(); ++rit) {
+          if (*rit == ref_name) {
+            ref_idx = static_cast<int>(rit - type_refs.begin());
+            break;
+          }
+        }
+        if (rit == type_refs.end()) {
+          ref_idx = static_cast<int>(type_refs.size());
+          type_refs.push_back(ref_name);
+        }
+      }
+      ts += "{ flatbuffers::" + std::string(ElementaryTypeNames()[et]) + ", " +
+            NumToString(is_vector) + ", " + NumToString(ref_idx) + " }";
+    }
+    std::string rs;
+    for (auto it = type_refs.begin(); it != type_refs.end(); ++it) {
+      if (!rs.empty()) rs += ",\n    ";
+      rs += *it + "TypeTable";
+    }
+    std::string ns;
+    for (auto it = names.begin(); it != names.end(); ++it) {
+      if (!ns.empty()) ns += ",\n    ";
+      ns += "\"" + *it + "\"";
+    }
+    std::string vs;
+    if (enum_def && !consecutive_enum_from_zero) {
+      for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
+           ++it) {
+        const auto &ev = **it;
+        if (!vs.empty()) vs += ", ";
+        vs += NumToString(ev.value);
+      }
+    } else if (struct_def && struct_def->fixed) {
+      for (auto it = struct_def->fields.vec.begin();
+           it != struct_def->fields.vec.end(); ++it) {
+        const auto &field = **it;
+        vs += NumToString(field.value.offset);
+        vs += ", ";
+      }
+      vs += NumToString(struct_def->bytesize);
+    }
+    code_.SetValue("TYPES", ts);
+    code_.SetValue("REFS", rs);
+    code_.SetValue("NAMES", ns);
+    code_.SetValue("VALUES", vs);
+    code_ += "flatbuffers::TypeTable *{{NAME}}TypeTable() {";
+    if (num_fields) {
+      code_ += "  static flatbuffers::TypeCode type_codes[] = {";
+      code_ += "    {{TYPES}}";
+      code_ += "  };";
+    }
+    if (!type_refs.empty()) {
+      code_ += "  static flatbuffers::TypeFunction type_refs[] = {";
+      code_ += "    {{REFS}}";
+      code_ += "  };";
+    }
+    if (!vs.empty()) {
+      code_ += "  static const int32_t values[] = { {{VALUES}} };";
+    }
+    auto has_names = num_fields &&
+           parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+    if (has_names) {
+      code_ += "  static const char *names[] = {";
+      code_ += "    {{NAMES}}";
+      code_ += "  };";
+    }
+    code_ += "  static flatbuffers::TypeTable tt = {";
+    code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
+             (num_fields ? "type_codes, " : "nullptr, ") +
+             (!type_refs.empty() ? "type_refs, ": "nullptr, " ) +
+             (!vs.empty() ? "values, " : "nullptr, ") +
+             (has_names ? "names" : "nullptr");
+    code_ += "  };";
+    code_ += "  return &tt;";
+    code_ += "}";
+    code_ += "";
   }
 
   // Generate an enum declaration,
