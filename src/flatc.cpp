@@ -90,6 +90,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --cpp-str-type T   Set object API string type (default std::string)\n"
       "                     T::c_str() and T::length() must be supported\n"
+      "  --object-prefix    Customise class prefix for C++ object-based API.\n"
+      "  --object-suffix    Customise class suffix for C++ object-based API. Default value is \"T\"\n"
       "  --no-js-exports    Removes Node.js style export lines in JS.\n"
       "  --goog-js-export   Uses goog.exports* for closure compiler exporting in JS.\n"
       "  --go-namespace     Generate the overrided namespace in Golang.\n"
@@ -201,6 +203,12 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if (arg == "--cpp-str-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_string_type = argv[argi];
+      } else if (arg == "--object-prefix") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.object_prefix = argv[argi];
+      } else if (arg == "--object-suffix") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.object_suffix = argv[argi];
       } else if(arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
