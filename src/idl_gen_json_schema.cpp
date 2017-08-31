@@ -175,13 +175,14 @@ class JsonSchemaGenerator : public BaseGenerator {
         }          
         code_ += typeLine;
       }
+      code_ += "      },";  // close properties
+
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
                    [](FieldDef const *prop) { return prop->required; });
       if (requiredProperties.size() > 0) {
-        code_ += "      },";  // close properties
-        std::string required_string("      \"required\" : [ ");
+        std::string required_string("      \"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
              req_prop != requiredProperties.cend();
              ++req_prop) {
@@ -190,12 +191,10 @@ class JsonSchemaGenerator : public BaseGenerator {
             required_string.append(", ");
           }
         }
-        required_string.append("]");
+        required_string.append("],");
         code_ += required_string;
-      } else {
-        code_ += "      }";  // close properties
       }
-
+      code_ += "      \"additionalProperties\" : false";
       std::string closeType("    }");
       if (*s != parser_.structs_.vec.back()) {
         closeType.append(",");

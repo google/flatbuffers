@@ -16,42 +16,49 @@
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
       "properties" : {
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_OtherNameSpace_TableB" : {
       "type" : "object",
       "properties" : {
         "a" : { "$ref" : "#/definitions/TableA" }
-      }
+      },
+      "additionalProperties" : false
     },
     "TableA" : {
       "type" : "object",
       "properties" : {
         "b" : { "$ref" : "#/definitions/MyGame_OtherNameSpace_TableB" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_InParentNamespace" : {
       "type" : "object",
       "properties" : {
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example2_Monster" : {
       "type" : "object",
       "properties" : {
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_Test" : {
       "type" : "object",
       "properties" : {
         "a" : { "type" : "number" },
         "b" : { "type" : "number" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_TestSimpleTableWithEnum" : {
       "type" : "object",
       "properties" : {
         "color" : { "$ref" : "#/definitions/MyGame_Example_Color" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_Vec3" : {
       "type" : "object",
@@ -62,14 +69,16 @@
         "test1" : { "type" : "number" },
         "test2" : { "$ref" : "#/definitions/MyGame_Example_Color" },
         "test3" : { "$ref" : "#/definitions/MyGame_Example_Test" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_Ability" : {
       "type" : "object",
       "properties" : {
         "id" : { "type" : "number" },
         "distance" : { "type" : "number" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_Stat" : {
       "type" : "object",
@@ -77,7 +86,8 @@
         "id" : { "type" : "string" },
         "val" : { "type" : "number" },
         "count" : { "type" : "number" }
-      }
+      },
+      "additionalProperties" : false
     },
     "MyGame_Example_Monster" : {
       "type" : "object",
@@ -119,7 +129,8 @@
         "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } },
         "parent_namespace_test" : { "$ref" : "#/definitions/MyGame_InParentNamespace" }
       },
-      "required" : [ "name"]
+      "required" : ["name"],
+      "additionalProperties" : false
     },
     "MyGame_Example_TypeAliases" : {
       "type" : "object",
@@ -136,7 +147,8 @@
         "f64" : { "type" : "number" },
         "v8" : { "type" : "array", "items" : { "type" : "number" } },
         "vf64" : { "type" : "array", "items" : { "type" : "number" } }
-      }
+      },
+      "additionalProperties" : false
     }
   },
   "$ref" : "#/definitions/MyGame_Example_Monster"
