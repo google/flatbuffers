@@ -117,7 +117,7 @@ class CppGenerator : public BaseGenerator {
         SetNameSpace(struct_def.defined_namespace);
         code_ += "struct " + struct_def.name + ";";
         if (parser_.opts.generate_object_based_api && !struct_def.fixed) {
-          code_ += "struct " + NativeName(struct_def.name, &struct_def) + ";";
+          code_ += "struct " + NativeName(struct_def.name, &struct_def, parser_.opts) + ";";
         }
         code_ += "";
       }
@@ -247,7 +247,7 @@ class CppGenerator : public BaseGenerator {
       if (parser_.opts.generate_object_based_api) {
         // A convenient root unpack function.
         auto native_name =
-            NativeName(WrapInNameSpace(struct_def), &struct_def);
+            NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
         code_.SetValue("UNPACK_RETURN",
                        GenTypeNativePtr(native_name, nullptr, false));
         code_.SetValue("UNPACK_TYPE",
@@ -361,9 +361,8 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  // TODO(wvo): make this configurable.
-  static std::string NativeName(const std::string &name, const StructDef *sd) {
-    return sd && !sd->fixed ? name + "T" : name;
+  static std::string NativeName(const std::string &name, const StructDef *sd, const IDLOptions & opts) {
+    return sd && !sd->fixed ? opts.object_prefix + name + opts.object_suffix : name;
   }
 
   const std::string &PtrType(const FieldDef *field) {
@@ -420,7 +419,7 @@ class CppGenerator : public BaseGenerator {
             return GenTypeNativePtr(type_name, &field, false);
           }
         } else {
-          return GenTypeNativePtr(NativeName(type_name, type.struct_def),
+          return GenTypeNativePtr(NativeName(type_name, type.struct_def, parser_.opts),
                                   &field, false);
         }
       }
@@ -520,38 +519,42 @@ class CppGenerator : public BaseGenerator {
   }
 
   static std::string TableCreateSignature(const StructDef &struct_def,
-                                          bool predecl) {
+                                          bool predecl,
+                                          const IDLOptions & opts) {
     return "flatbuffers::Offset<" + struct_def.name + "> Create" +
            struct_def.name  +
            "(flatbuffers::FlatBufferBuilder &_fbb, const " +
-           NativeName(struct_def.name, &struct_def) +
+           NativeName(struct_def.name, &struct_def, opts) +
            " *_o, const flatbuffers::rehasher_function_t *_rehasher" +
            (predecl ? " = nullptr" : "") + ")";
   }
 
   static std::string TablePackSignature(const StructDef &struct_def,
-                                        bool inclass) {
+                                        bool inclass,
+                                        const IDLOptions & opts) {
     return std::string(inclass ? "static " : "") +
            "flatbuffers::Offset<" + struct_def.name + "> " +
            (inclass ? "" : struct_def.name + "::") +
            "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
-           "const " + NativeName(struct_def.name, &struct_def) + "* _o, " +
+           "const " + NativeName(struct_def.name, &struct_def, opts) + "* _o, " +
            "const flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ")";
   }
 
   static std::string TableUnPackSignature(const StructDef &struct_def,
-                                          bool inclass) {
-    return NativeName(struct_def.name, &struct_def) + " *" +
+                                          bool inclass,
+                                          const IDLOptions & opts) {
+    return NativeName(struct_def.name, &struct_def, opts) + " *" +
            (inclass ? "" : struct_def.name + "::") +
            "UnPack(const flatbuffers::resolver_function_t *_resolver" +
            (inclass ? " = nullptr" : "") + ") const";
   }
 
   static std::string TableUnPackToSignature(const StructDef &struct_def,
-                                            bool inclass) {
+                                            bool inclass,
+                                            const IDLOptions & opts) {
     return "void " + (inclass ? "" : struct_def.name + "::") +
-           "UnPackTo(" + NativeName(struct_def.name, &struct_def) + " *" +
+           "UnPackTo(" + NativeName(struct_def.name, &struct_def, opts) + " *" +
            "_o, const flatbuffers::resolver_function_t *_resolver" +
            (inclass ? " = nullptr" : "") + ") const";
   }
@@ -747,7 +750,7 @@ class CppGenerator : public BaseGenerator {
 
         const auto native_type =
             NativeName(GetUnionElement(ev, true, true, true),
-                       ev.union_type.struct_def);
+                       ev.union_type.struct_def, parser_.opts);
         code_.SetValue("NATIVE_TYPE", native_type);
         code_.SetValue("NATIVE_NAME", ev.name);
         code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
@@ -870,7 +873,7 @@ class CppGenerator : public BaseGenerator {
 
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
         code_.SetValue("TYPE", NativeName(GetUnionElement(ev, true, true, true),
-                                          ev.union_type.struct_def));
+                                          ev.union_type.struct_def, parser_.opts));
         code_.SetValue("NAME", GetUnionElement(ev, false, true));
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<const {{TYPE}} *>(value);";
@@ -906,7 +909,7 @@ class CppGenerator : public BaseGenerator {
         }
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
         code_.SetValue("TYPE", NativeName(GetUnionElement(ev, true, true, true),
-                                          ev.union_type.struct_def));
+                                          ev.union_type.struct_def, parser_.opts));
         code_ += "    case {{LABEL}}: {";
         bool copyable = true;
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
@@ -950,7 +953,7 @@ class CppGenerator : public BaseGenerator {
         }
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
         code_.SetValue("TYPE", NativeName(GetUnionElement(ev, true, true, true),
-                                          ev.union_type.struct_def));
+                                          ev.union_type.struct_def, parser_.opts));
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<{{TYPE}} *>(value);";
         code_ += "      delete ptr;";
@@ -1099,7 +1102,7 @@ class CppGenerator : public BaseGenerator {
       initializer_list = "\n      : " + initializer_list;
     }
 
-    code_.SetValue("NATIVE_NAME", NativeName(struct_def.name, &struct_def));
+    code_.SetValue("NATIVE_NAME", NativeName(struct_def.name, &struct_def, parser_.opts));
     code_.SetValue("INIT_LIST", initializer_list);
 
     code_ += "  {{NATIVE_NAME}}(){{INIT_LIST}} {";
@@ -1107,7 +1110,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenNativeTable(const StructDef &struct_def) {
-    const auto native_name = NativeName(struct_def.name, &struct_def);
+    const auto native_name = NativeName(struct_def.name, &struct_def, parser_.opts);
     code_.SetValue("STRUCT_NAME", struct_def.name);
     code_.SetValue("NATIVE_NAME", native_name);
 
@@ -1408,9 +1411,9 @@ class CppGenerator : public BaseGenerator {
 
     if (parser_.opts.generate_object_based_api) {
       // Generate the UnPack() pre declaration.
-      code_ += "  " + TableUnPackSignature(struct_def, true) + ";";
-      code_ += "  " + TableUnPackToSignature(struct_def, true) + ";";
-      code_ += "  " + TablePackSignature(struct_def, true) + ";";
+      code_ += "  " + TableUnPackSignature(struct_def, true, parser_.opts) + ";";
+      code_ += "  " + TableUnPackToSignature(struct_def, true, parser_.opts) + ";";
+      code_ += "  " + TablePackSignature(struct_def, true, parser_.opts) + ";";
     }
 
     code_ += "};";  // End of table.
@@ -1461,7 +1464,7 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Generate a pre-declaration for a CreateX method that works with an
       // unpacked C++ object.
-      code_ += TableCreateSignature(struct_def, true) + ";";
+      code_ += TableCreateSignature(struct_def, true, parser_.opts) + ";";
       code_ += "";
     }
   }
@@ -1650,7 +1653,7 @@ class CppGenerator : public BaseGenerator {
             return ptype + "(new " + name + "(*" + val + "))";
           }
         } else {
-          const auto ptype = GenTypeNativePtr(NativeName(name, type.struct_def),
+          const auto ptype = GenTypeNativePtr(NativeName(name, type.struct_def, parser_.opts),
                                               &afield, true);
           return ptype + "(" + val + "->UnPack(_resolver))";
         }
@@ -1890,18 +1893,18 @@ class CppGenerator : public BaseGenerator {
   // Generate code for tables that needs to come after the regular definition.
   void GenTablePost(const StructDef &struct_def) {
     code_.SetValue("STRUCT_NAME", struct_def.name);
-    code_.SetValue("NATIVE_NAME", NativeName(struct_def.name, &struct_def));
+    code_.SetValue("NATIVE_NAME", NativeName(struct_def.name, &struct_def, parser_.opts));
 
     if (parser_.opts.generate_object_based_api) {
       // Generate the X::UnPack() method.
-      code_ += "inline " + TableUnPackSignature(struct_def, false) + " {";
+      code_ += "inline " + TableUnPackSignature(struct_def, false, parser_.opts) + " {";
       code_ += "  auto _o = new {{NATIVE_NAME}}();";
       code_ += "  UnPackTo(_o, _resolver);";
       code_ += "  return _o;";
       code_ += "}";
       code_ += "";
 
-      code_ += "inline " + TableUnPackToSignature(struct_def, false) + " {";
+      code_ += "inline " + TableUnPackToSignature(struct_def, false, parser_.opts) + " {";
       code_ += "  (void)_o;";
       code_ += "  (void)_resolver;";
 
@@ -1930,13 +1933,13 @@ class CppGenerator : public BaseGenerator {
 
       // Generate the X::Pack member function that simply calls the global
       // CreateX function.
-      code_ += "inline " + TablePackSignature(struct_def, false) + " {";
+      code_ += "inline " + TablePackSignature(struct_def, false, parser_.opts) + " {";
       code_ += "  return Create{{STRUCT_NAME}}(_fbb, _o, _rehasher);";
       code_ += "}";
       code_ += "";
 
       // Generate a CreateX method that works with an unpacked C++ object.
-      code_ += "inline " + TableCreateSignature(struct_def, false) + " {";
+      code_ += "inline " + TableCreateSignature(struct_def, false, parser_.opts) + " {";
       code_ += "  (void)_rehasher;";
       code_ += "  (void)_o;";
 
@@ -1944,7 +1947,7 @@ class CppGenerator : public BaseGenerator {
           "  struct _VectorArgs "
           "{ flatbuffers::FlatBufferBuilder *__fbb; "
           "const " +
-          NativeName(struct_def.name, &struct_def) +
+          NativeName(struct_def.name, &struct_def, parser_.opts) +
           "* __o; "
           "const flatbuffers::rehasher_function_t *__rehasher; } _va = { "
           "&_fbb, _o, _rehasher}; (void)_va;";
