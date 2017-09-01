@@ -61,8 +61,6 @@ namespace grpc_python_generator {
 
 grpc::string generator_file_name;
 
-namespace {
-
 typedef map<grpc::string, grpc::string> StringMap;
 typedef vector<grpc::string> StringVector;
 typedef tuple<grpc::string, grpc::string> StringPair;
@@ -149,7 +147,7 @@ void PrivateGenerator::PrintBetaServicer(const grpc_generator::Service* service,
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
       grpc::string arg_name =
-          method->ClientOnlyStreaming() ? "request_iterator" : "request";
+          method->ClientStreaming() ? "request_iterator" : "request";
       StringMap method_dict;
       method_dict["Method"] = method->name();
       method_dict["ArgName"] = arg_name;
@@ -180,7 +178,7 @@ void PrivateGenerator::PrintBetaStub(const grpc_generator::Service* service,
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
       grpc::string arg_name =
-          method->ClientOnlyStreaming() ? "request_iterator" : "request";
+          method->ClientStreaming() ? "request_iterator" : "request";
       StringMap method_dict;
       method_dict["Method"] = method->name();
       method_dict["ArgName"] = arg_name;
@@ -191,7 +189,7 @@ void PrivateGenerator::PrintBetaStub(const grpc_generator::Service* service,
         IndentScope raii_method_indent(out);
         out->Print("raise NotImplementedError()\n");
       }
-      if (!method->ServerOnlyStreaming()) {
+      if (!method->ServerStreaming()) {
         out->Print(method_dict, "$Method$.future = None\n");
       }
     }
@@ -221,11 +219,11 @@ void PrivateGenerator::PrintBetaServerFactory(
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
       const grpc::string method_implementation_constructor =
-          grpc::string(method->ClientOnlyStreaming() ? "stream_" : "unary_") +
-          grpc::string(method->ServerOnlyStreaming() ? "stream_" : "unary_") +
+          grpc::string(method->ClientStreaming() ? "stream_" : "unary_") +
+          grpc::string(method->ServerStreaming() ? "stream_" : "unary_") +
           "inline";
-      grpc::string input_message_module_and_class = method->input_name();
-      grpc::string output_message_module_and_class = method->output_name();
+      grpc::string input_message_module_and_class = method->input_type_name();
+      grpc::string output_message_module_and_class = method->output_type_name();
       method_implementation_constructors.insert(
           make_pair(method->name(), method_implementation_constructor));
       input_message_modules_and_classes.insert(
@@ -317,11 +315,11 @@ void PrivateGenerator::PrintBetaStubFactory(
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
       const grpc::string method_cardinality =
-          grpc::string(method->ClientOnlyStreaming() ? "STREAM" : "UNARY") +
+          grpc::string(method->ClientStreaming() ? "STREAM" : "UNARY") +
           "_" +
-          grpc::string(method->ServerOnlyStreaming() ? "STREAM" : "UNARY");
-      grpc::string input_message_module_and_class = method->input_name();
-      grpc::string output_message_module_and_class = method->output_name();
+          grpc::string(method->ServerStreaming() ? "STREAM" : "UNARY");
+      grpc::string input_message_module_and_class = method->input_type_name();
+      grpc::string output_message_module_and_class = method->output_type_name();
       method_cardinalities.insert(
           make_pair(method->name(), method_cardinality));
       input_message_modules_and_classes.insert(
@@ -410,11 +408,11 @@ void PrivateGenerator::PrintStub(
       for (int i = 0; i < service->method_count(); ++i) {
         auto method = service->method(i);
         grpc::string multi_callable_constructor =
-            grpc::string(method->ClientOnlyStreaming() ? "stream" : "unary") +
+            grpc::string(method->ClientStreaming() ? "stream" : "unary") +
             "_" +
-            grpc::string(method->ServerOnlyStreaming() ? "stream" : "unary");
-        grpc::string request_module_and_class = method->input_name();
-        grpc::string response_module_and_class = method->output_name();
+            grpc::string(method->ServerStreaming() ? "stream" : "unary");
+        grpc::string request_module_and_class = method->input_type_name();
+        grpc::string response_module_and_class = method->output_type_name();
         StringMap method_dict;
         method_dict["Method"] = method->name();
         method_dict["MultiCallableConstructor"] = multi_callable_constructor;
@@ -452,7 +450,7 @@ void PrivateGenerator::PrintServicer(const grpc_generator::Service* service,
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
       grpc::string arg_name =
-          method->ClientOnlyStreaming() ? "request_iterator" : "request";
+          method->ClientStreaming() ? "request_iterator" : "request";
       StringMap method_dict;
       method_dict["Method"] = method->name();
       method_dict["ArgName"] = arg_name;
@@ -485,12 +483,12 @@ void PrivateGenerator::PrintAddServicerToServer(
       for (int i = 0; i < service->method_count(); ++i) {
         auto method = service->method(i);
         grpc::string method_handler_constructor =
-            grpc::string(method->ClientOnlyStreaming() ? "stream" : "unary") +
+            grpc::string(method->ClientStreaming() ? "stream" : "unary") +
             "_" +
-            grpc::string(method->ServerOnlyStreaming() ? "stream" : "unary") +
+            grpc::string(method->ServerStreaming() ? "stream" : "unary") +
             "_rpc_method_handler";
-        grpc::string request_module_and_class = method->input_name();
-        grpc::string response_module_and_class = method->output_name();
+        grpc::string request_module_and_class = method->input_type_name();
+        grpc::string response_module_and_class = method->output_type_name();
         StringMap method_dict;
         method_dict["Method"] = method->name();
         method_dict["MethodHandlerConstructor"] = method_handler_constructor;
@@ -550,7 +548,7 @@ void PrivateGenerator::PrintPreamble(grpc_generator::Printer* out) {
     for (int j = 0; j < service->method_count(); ++j) {
       auto method = service.get()->method(j);
 
-      grpc::string input_type_file_name = method->input_name();
+      grpc::string input_type_file_name = method->input_type_name();
       grpc::string input_module_name =
           ModuleName(input_type_file_name, config.import_prefix);
       grpc::string input_module_alias =
@@ -558,7 +556,7 @@ void PrivateGenerator::PrintPreamble(grpc_generator::Printer* out) {
       imports_set.insert(
           std::make_tuple(input_module_name, input_module_alias));
 
-      grpc::string output_type_file_name = method->output_name();
+      grpc::string output_type_file_name = method->output_type_name();
       grpc::string output_module_name =
           ModuleName(output_type_file_name, config.import_prefix);
       grpc::string output_module_alias =
@@ -635,7 +633,5 @@ grpc::string PrivateGenerator::GetGrpcServices() {
   }
   return output;
 }
-
-}  // namespace
 
 }  // namespace grpc_python_generator

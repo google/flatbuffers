@@ -42,8 +42,6 @@
 
 namespace grpc_python_generator {
 
-namespace {
-
 // Tucks all generator state in an anonymous namespace away from
 // PythonGrpcGenerator and the header file, mostly to encourage future changes
 // to not require updates to the grpcio-tools C++ code part. Assumes that it is
@@ -83,8 +81,6 @@ struct PrivateGenerator {
                             const grpc_generator::Service* service,
                             grpc_generator::Printer* out);
 };
-
-}  // namespace
 
 }  // namespace grpc_python_generator
 
