@@ -760,9 +760,9 @@ class CppGenerator : public BaseGenerator {
         code_ += "      reinterpret_cast<{{NATIVE_TYPE}} *>(value) : nullptr;";
         code_ += "  }";
 
-        code_ += "  const {{NATIVE_TYPE}} * const As{{NATIVE_NAME}}() const {";
+        code_ += "  const {{NATIVE_TYPE}} * As{{NATIVE_NAME}}() const {";
         code_ += "    return type == {{NATIVE_ID}} ?";
-        code_ += "      reinterpret_cast<const {{NATIVE_TYPE}} * const>(value) : nullptr;";
+        code_ += "      reinterpret_cast<const {{NATIVE_TYPE}} *>(value) : nullptr;";
         code_ += "  }";
       }
       code_ += "};";
