@@ -445,32 +445,26 @@ class DetachedBuffer {
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    other.allocator_ = nullptr;
-    other.own_allocator_ = false;
-    other.buf_ = nullptr;
-    other.reserved_ = 0;
-    other.cur_ = nullptr;
-    other.size_ = 0;
+    empty_assign(other);
   }
 
   DetachedBuffer &operator=(DetachedBuffer &&other) {
-    std::swap(allocator_, other.allocator_);
-    std::swap(own_allocator_, other.own_allocator_);
-    std::swap(buf_, other.buf_);
-    std::swap(reserved_, other.reserved_);
-    std::swap(cur_, other.cur_);
-    std::swap(size_, other.size_);
+    destroy();
+
+    allocator_ = other.allocator_;
+    own_allocator_ = other.own_allocator_;
+    buf_ = other.buf_;
+    reserved_ = other.reserved_;
+    cur_ = other.cur_;
+    size_ = other.size_;
+
+    empty_assign(other);
+
     return *this;
   }
 
   ~DetachedBuffer() {
-    if (buf_) {
-      assert(allocator_);
-      allocator_->deallocate(buf_, reserved_);
-    }
-    if (own_allocator_ && allocator_) {
-      delete allocator_;
-    }
+    destroy();
   }
 
   const uint8_t *data() const {
@@ -515,6 +509,25 @@ class DetachedBuffer {
   size_t reserved_;
   uint8_t *cur_;
   size_t size_;
+
+  inline void destroy() {
+    if (buf_) {
+      assert(allocator_);
+      allocator_->deallocate(buf_, reserved_);
+    }
+    if (own_allocator_ && allocator_) {
+      delete allocator_;
+    }
+  }
+
+  inline void empty_assign(DetachedBuffer& other) {
+    other.allocator_ = nullptr;
+    other.own_allocator_ = false;
+    other.buf_ = nullptr;
+    other.reserved_ = 0;
+    other.cur_ = nullptr;
+    other.size_ = 0;
+  }
 };
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
