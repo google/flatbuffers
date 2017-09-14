@@ -69,7 +69,7 @@ std::string GenType(const std::string &name) {
 }
 
 std::string GenType(const Type &type) {
-  if (type.base_type == BASE_TYPE_CHAR && type.enum_def != nullptr) {
+  if (type.enum_def != nullptr && !type.enum_def->is_union) {
     // it is a reference to an enum type
     return GenTypeRef(type.enum_def);
   }
