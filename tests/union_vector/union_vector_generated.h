@@ -84,7 +84,7 @@ struct CharacterUnion {
     return type == Character_MuLan ?
       reinterpret_cast<AttackerT *>(value) : nullptr;
   }
-  const AttackerT * AsMuLan() const {
+  const AttackerT *AsMuLan() const {
     return type == Character_MuLan ?
       reinterpret_cast<const AttackerT *>(value) : nullptr;
   }
@@ -92,7 +92,7 @@ struct CharacterUnion {
     return type == Character_Rapunzel ?
       reinterpret_cast<Rapunzel *>(value) : nullptr;
   }
-  const Rapunzel * AsRapunzel() const {
+  const Rapunzel *AsRapunzel() const {
     return type == Character_Rapunzel ?
       reinterpret_cast<const Rapunzel *>(value) : nullptr;
   }
@@ -100,7 +100,7 @@ struct CharacterUnion {
     return type == Character_Belle ?
       reinterpret_cast<BookReader *>(value) : nullptr;
   }
-  const BookReader * AsBelle() const {
+  const BookReader *AsBelle() const {
     return type == Character_Belle ?
       reinterpret_cast<const BookReader *>(value) : nullptr;
   }
@@ -108,7 +108,7 @@ struct CharacterUnion {
     return type == Character_BookFan ?
       reinterpret_cast<BookReader *>(value) : nullptr;
   }
-  const BookReader * AsBookFan() const {
+  const BookReader *AsBookFan() const {
     return type == Character_BookFan ?
       reinterpret_cast<const BookReader *>(value) : nullptr;
   }
@@ -116,7 +116,7 @@ struct CharacterUnion {
     return type == Character_Other ?
       reinterpret_cast<std::string *>(value) : nullptr;
   }
-  const std::string * AsOther() const {
+  const std::string *AsOther() const {
     return type == Character_Other ?
       reinterpret_cast<const std::string *>(value) : nullptr;
   }
@@ -124,7 +124,7 @@ struct CharacterUnion {
     return type == Character_Unused ?
       reinterpret_cast<std::string *>(value) : nullptr;
   }
-  const std::string * AsUnused() const {
+  const std::string *AsUnused() const {
     return type == Character_Unused ?
       reinterpret_cast<const std::string *>(value) : nullptr;
   }

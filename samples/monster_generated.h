@@ -121,7 +121,7 @@ struct EquipmentUnion {
     return type == Equipment_Weapon ?
       reinterpret_cast<WeaponT *>(value) : nullptr;
   }
-  const WeaponT * AsWeapon() const {
+  const WeaponT *AsWeapon() const {
     return type == Equipment_Weapon ?
       reinterpret_cast<const WeaponT *>(value) : nullptr;
   }

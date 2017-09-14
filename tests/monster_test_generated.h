@@ -162,7 +162,7 @@ struct AnyUnion {
     return type == Any_Monster ?
       reinterpret_cast<MonsterT *>(value) : nullptr;
   }
-  const MonsterT * AsMonster() const {
+  const MonsterT *AsMonster() const {
     return type == Any_Monster ?
       reinterpret_cast<const MonsterT *>(value) : nullptr;
   }
@@ -170,7 +170,7 @@ struct AnyUnion {
     return type == Any_TestSimpleTableWithEnum ?
       reinterpret_cast<TestSimpleTableWithEnumT *>(value) : nullptr;
   }
-  const TestSimpleTableWithEnumT * AsTestSimpleTableWithEnum() const {
+  const TestSimpleTableWithEnumT *AsTestSimpleTableWithEnum() const {
     return type == Any_TestSimpleTableWithEnum ?
       reinterpret_cast<const TestSimpleTableWithEnumT *>(value) : nullptr;
   }
@@ -178,7 +178,7 @@ struct AnyUnion {
     return type == Any_MyGame_Example2_Monster ?
       reinterpret_cast<MyGame::Example2::MonsterT *>(value) : nullptr;
   }
-  const MyGame::Example2::MonsterT * AsMyGame_Example2_Monster() const {
+  const MyGame::Example2::MonsterT *AsMyGame_Example2_Monster() const {
     return type == Any_MyGame_Example2_Monster ?
       reinterpret_cast<const MyGame::Example2::MonsterT *>(value) : nullptr;
   }
