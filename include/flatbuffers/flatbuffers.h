@@ -445,7 +445,7 @@ class DetachedBuffer {
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    empty_assign(other);
+    other.reset();  
   }
 
   DetachedBuffer &operator=(DetachedBuffer &&other) {
@@ -458,7 +458,7 @@ class DetachedBuffer {
     cur_ = other.cur_;
     size_ = other.size_;
 
-    empty_assign(other);
+    other.reset();
 
     return *this;
   }
@@ -518,15 +518,17 @@ class DetachedBuffer {
     if (own_allocator_ && allocator_) {
       delete allocator_;
     }
+
+    reset();
   }
 
-  inline void empty_assign(DetachedBuffer& other) {
-    other.allocator_ = nullptr;
-    other.own_allocator_ = false;
-    other.buf_ = nullptr;
-    other.reserved_ = 0;
-    other.cur_ = nullptr;
-    other.size_ = 0;
+  inline void reset() {
+    allocator_ = nullptr;
+    own_allocator_ = false;
+    buf_ = nullptr;
+    reserved_ = 0;
+    cur_ = nullptr;
+    size_ = 0;
   }
 };
 
