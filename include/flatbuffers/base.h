@@ -173,7 +173,7 @@ template<typename T> T EndianSwap(T t) {
     #define FLATBUFFERS_BYTESWAP32 _byteswap_ulong
     #define FLATBUFFERS_BYTESWAP64 _byteswap_uint64
   #else
-    #if defined(__GNUC__) && __GNUC__ * 100 + __GNUC_MINOR__ < 408
+    #if defined(__GNUC__) && __GNUC__ * 100 + __GNUC_MINOR__ < 408 && !defined(__clang__)
       // __builtin_bswap16 was missing prior to GCC 4.8.
       #define FLATBUFFERS_BYTESWAP16(x) \
         static_cast<uint16_t>(__builtin_bswap32(static_cast<uint32_t>(x) << 16))
