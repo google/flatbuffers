@@ -909,7 +909,7 @@ namespace php {
 
     static std::string GenTypeBasic(const Type &type) {
       static const char *ctypename[] = {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, \
     CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
     #NTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
