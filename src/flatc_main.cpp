@@ -101,6 +101,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::IDLOptions::kJsonSchema,
       "Generate Json schema",
       flatbuffers::GeneralMakeRule },
+   { flatbuffers::GenerateRust, "-r", "--rust", "Rust", true,
+      nullptr,
+      flatbuffers::IDLOptions::kRust,
+      "Generate Rust files for tables/structs",
+      flatbuffers::GeneralMakeRule },
   };
 
   flatbuffers::FlatCompiler::InitParams params;

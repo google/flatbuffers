@@ -33,7 +33,7 @@ namespace flatbuffers {
 
 const char *const kTypeNames[] = {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -42,7 +42,7 @@ const char *const kTypeNames[] = {
 
 const char kTypeSizes[] = {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
       sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -148,7 +148,8 @@ template<> inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
 }
 
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
-                                             size_t max_components) const {
+                                             size_t max_components,
+                                             const std::string &sep) const {
   // Early exit if we don't have a defined namespace.
   if (components.size() == 0 || !max_components) {
     return name;
@@ -157,7 +158,7 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   for (size_t i = 0; i < std::min(components.size(), max_components);
        i++) {
     if (i) {
-      stream << ".";
+      stream << sep;
     }
     stream << components[i];
   }
@@ -197,7 +198,7 @@ enum {
     FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
   #undef FLATBUFFERS_TOKEN
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
       kToken ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -209,7 +210,7 @@ static std::string TokenToString(int t) {
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -385,7 +386,7 @@ CheckedError Parser::Next() {
           attribute_.append(start, cursor_);
           // First, see if it is a type keyword from the table of types:
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             if (attribute_ == IDLTYPE || attribute_ == ALIASTYPE) { \
               token_ = kToken ## ENUM; \
               return NoError(); \
@@ -1024,7 +1025,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -1041,7 +1042,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -1117,7 +1118,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \

@@ -13,6 +13,7 @@
 *.suo
 *.keystore
 **/bin/**
+!rust/src/bin/**
 **/gen/**
 **/libs/**
 **/obj/**
@@ -44,6 +45,7 @@ grpctest
 grpctest.exe
 snapshot.sh
 tests/go_gen
+tests/rust_gen
 tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
@@ -79,3 +81,4 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
+.editorconfig

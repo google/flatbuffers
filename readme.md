@@ -25,7 +25,7 @@ unpacking/parsing it first, while still having great forwards/backwards compatib
 * JavaScript
 * PHP
 * Python
-
+* Rust 
 *and many more in progress...*
 
 ## Contribution

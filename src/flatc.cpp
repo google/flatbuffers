@@ -111,6 +111,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --keep-prefix      Keep original prefix of schema include statement.\n"
       "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
       "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
+      "  --strict-rust      Follow naming conventions for Rust.\n"
       "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
       "schema). FILEs after the -- must be binary flatbuffer format files.\n"
       "Output files are named using the base file name of the input,\n"
@@ -243,6 +244,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         opts.skip_flatbuffers_import = true;
       } else if(arg == "--no-ts-reexport") {
         opts.reexport_ts_modules = false;
+      } else if(arg == "--strict-rust") {
+        opts.strict_rust = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
