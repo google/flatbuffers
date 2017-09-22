@@ -40,29 +40,28 @@ namespace flatbuffers {
 // Additionally, Parser::ParseType assumes bool..string is a contiguous range
 // of type tokens.
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       "",        uint8_t,  byte,   byte,    byte,   uint8) \
-  TD(UTYPE,  "",       "",        uint8_t,  byte,   byte,    byte,   uint8) /* begin scalar/int */ \
-  TD(BOOL,   "bool",   "",        uint8_t,  boolean,byte,    bool,   bool) \
-  TD(CHAR,   "byte",   "int8",    int8_t,   byte,   int8,    sbyte,  int8) \
-  TD(UCHAR,  "ubyte",  "uint8",   uint8_t,  byte,   byte,    byte,   uint8) \
-  TD(SHORT,  "short",  "int16",   int16_t,  short,  int16,   short,  int16) \
-  TD(USHORT, "ushort", "uint16",  uint16_t, short,  uint16,  ushort, uint16) \
-  TD(INT,    "int",    "int32",   int32_t,  int,    int32,   int,    int32) \
-  TD(UINT,   "uint",   "uint32",  uint32_t, int,    uint32,  uint,   uint32) \
-  TD(LONG,   "long",   "int64",   int64_t,  long,   int64,   long,   int64) \
-  TD(ULONG,  "ulong",  "uint64",  uint64_t, long,   uint64,  ulong,  uint64) /* end int */ \
-  TD(FLOAT,  "float",  "float32", float,    float,  float32, float,  float32) /* begin float */ \
-  TD(DOUBLE, "double", "float64", double,   double, float64, double, float64) /* end float/scalar */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  boolean,byte,    bool,   bool) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64) /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float,  float32) /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double, float64) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", "", Offset<void>, int, int, StringOffset, int) \
-  TD(VECTOR, "",       "", Offset<void>, int, int, VectorOffset, int) \
-  TD(STRUCT, "",       "", Offset<void>, int, int, int, int) \
-  TD(UNION,  "",       "", Offset<void>, int, int, int, int)
+  TD(STRING, "string", Offset<void>, int, int, StringOffset, int) \
+  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int) \
+  TD(STRUCT, "",       Offset<void>, int, int, int, int) \
+  TD(UNION,  "",       Offset<void>, int, int, int, int)
 
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
-// - FlatBuffers schema alias type.
 // - C++ type.
 // - Java type.
 // - Go type.
@@ -73,7 +72,7 @@ namespace flatbuffers {
 
 /*
 switch (type) {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -90,13 +89,13 @@ switch (type) {
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -575,6 +574,7 @@ private:
   FLATBUFFERS_CHECKED_ERROR Next();
   FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
   bool Is(int t);
+  bool IsIdent(const char *id);
   FLATBUFFERS_CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t);
   EnumDef *LookupEnum(const std::string &id);

@@ -241,7 +241,7 @@ static bool IsEnum(const Type& type) {
 
 std::string GenTypeBasic(const Type &type, bool enableLangOverrides) {
   static const char *java_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -249,7 +249,7 @@ std::string GenTypeBasic(const Type &type, bool enableLangOverrides) {
   };
 
   static const char *csharp_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #NTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)

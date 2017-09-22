@@ -32,7 +32,7 @@
 namespace flatbuffers {
 
 const char *const kTypeNames[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
     CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -41,7 +41,7 @@ const char *const kTypeNames[] = {
 };
 
 const char kTypeSizes[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
       CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -165,8 +165,6 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   return stream.str();
 }
 
-
-
 // Declare tokens we'll use. Single character tokens are represented by their
 // ascii character code (e.g. '{'), others above 256.
 #define FLATBUFFERS_GEN_TOKENS(TD) \
@@ -174,21 +172,7 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   TD(StringConstant, 257, "string constant") \
   TD(IntegerConstant, 258, "integer constant") \
   TD(FloatConstant, 259, "float constant") \
-  TD(Identifier, 260, "identifier") \
-  TD(Table, 261, "table") \
-  TD(Struct, 262, "struct") \
-  TD(Enum, 263, "enum") \
-  TD(Union, 264, "union") \
-  TD(NameSpace, 265, "namespace") \
-  TD(RootType, 266, "root_type") \
-  TD(FileIdentifier, 267, "file_identifier") \
-  TD(FileExtension, 268, "file_extension") \
-  TD(Include, 269, "include") \
-  TD(Attribute, 270, "attribute") \
-  TD(Null, 271, "null") \
-  TD(Service, 272, "rpc_service") \
-  TD(NativeInclude, 273, "native_include") \
-  TD(BooleanConstant, 274, "boolean constant")
+  TD(Identifier, 260, "identifier")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -196,11 +180,6 @@ enum {
   #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
     FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
   #undef FLATBUFFERS_TOKEN
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
-      kToken ## ENUM,
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
 };
 
 static std::string TokenToString(int t) {
@@ -208,7 +187,7 @@ static std::string TokenToString(int t) {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
       CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -224,7 +203,7 @@ static std::string TokenToString(int t) {
 }
 
 std::string Parser::TokenToStringId(int t) {
-  return TokenToString(t) + (t == kTokenIdentifier ? ": " + attribute_ : "");
+  return t == kTokenIdentifier ? attribute_ : TokenToString(t);
 }
 
 // Parses exactly nibbles worth of hex digits into a number, or error.
@@ -240,11 +219,14 @@ CheckedError Parser::ParseHexNum(int nibbles, uint64_t *val) {
 }
 
 CheckedError Parser::SkipByteOrderMark() {
-  if (static_cast<unsigned char>(*cursor_) != 0xef) return NoError();
+  if (static_cast<unsigned char>(*cursor_) != 0xef)
+    return NoError();
   cursor_++;
-  if (static_cast<unsigned char>(*cursor_) != 0xbb) return Error("invalid utf-8 byte order mark");
+  if (static_cast<unsigned char>(*cursor_) != 0xbb)
+    return Error("invalid utf-8 byte order mark");
   cursor_++;
-  if (static_cast<unsigned char>(*cursor_) != 0xbf) return Error("invalid utf-8 byte order mark");
+  if (static_cast<unsigned char>(*cursor_) != 0xbf)
+    return Error("invalid utf-8 byte order mark");
   cursor_++;
   return NoError();
 }
@@ -383,76 +365,6 @@ CheckedError Parser::Next() {
                  *cursor_ == '_')
             cursor_++;
           attribute_.append(start, cursor_);
-          // First, see if it is a type keyword from the table of types:
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
-            if (attribute_ == IDLTYPE || attribute_ == ALIASTYPE) { \
-              token_ = kToken ## ENUM; \
-              return NoError(); \
-            }
-            FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-          #undef FLATBUFFERS_TD
-          // If it's a boolean constant keyword, turn those into integers,
-          // which simplifies our logic downstream.
-          if (attribute_ == "true" || attribute_ == "false") {
-            attribute_ = NumToString(attribute_ == "true");
-            token_ = kTokenBooleanConstant;
-            return NoError();
-          }
-          // Check for declaration keywords:
-          if (attribute_ == "table") {
-            token_ = kTokenTable;
-            return NoError();
-          }
-          if (attribute_ == "struct") {
-            token_ = kTokenStruct;
-            return NoError();
-          }
-          if (attribute_ == "enum") {
-            token_ = kTokenEnum;
-            return NoError();
-          }
-          if (attribute_ == "union") {
-            token_ = kTokenUnion;
-            return NoError();
-          }
-          if (attribute_ == "namespace") {
-            token_ = kTokenNameSpace;
-            return NoError();
-          }
-          if (attribute_ == "root_type") {
-            token_ = kTokenRootType;
-            return NoError();
-          }
-          if (attribute_ == "include") {
-            token_ = kTokenInclude;
-            return NoError();
-          }
-          if (attribute_ == "attribute") {
-            token_ = kTokenAttribute;
-            return NoError();
-          }
-          if (attribute_ == "file_identifier") {
-            token_ = kTokenFileIdentifier;
-            return NoError();
-          }
-          if (attribute_ == "file_extension") {
-            token_ = kTokenFileExtension;
-            return NoError();
-          }
-          if (attribute_ == "null") {
-            token_ = kTokenNull;
-            return NoError();
-          }
-          if (attribute_ == "rpc_service") {
-            token_ = kTokenService;
-            return NoError();
-          }
-          if (attribute_ == "native_include") {
-            token_ = kTokenNativeInclude;
-            return NoError();
-          }
-          // If not, it is a user-defined identifier:
           token_ = kTokenIdentifier;
           return NoError();
         } else if (isdigit(static_cast<unsigned char>(c)) || c == '-') {
@@ -506,6 +418,10 @@ bool Parser::Is(int t) {
   return t == token_;
 }
 
+bool Parser::IsIdent(const char *id) {
+  return token_ == kTokenIdentifier && attribute_ == id;
+}
+
 // Expect a given token to be next, consume it, or error if not present.
 CheckedError Parser::Expect(int t) {
   if (t != token_) {
@@ -555,28 +471,61 @@ CheckedError Parser::ParseTypeIdent(Type &type) {
 
 // Parse any IDL type.
 CheckedError Parser::ParseType(Type &type) {
-  if (token_ >= kTokenBOOL && token_ <= kTokenSTRING) {
-    type.base_type = static_cast<BaseType>(token_ - kTokenNONE);
-    NEXT();
-  } else {
-    if (token_ == kTokenIdentifier) {
-      ECHECK(ParseTypeIdent(type));
-    } else if (token_ == '[') {
+  if (token_ == kTokenIdentifier) {
+    if (IsIdent("bool")) {
+      type.base_type = BASE_TYPE_BOOL;
       NEXT();
-      Type subtype;
-      ECHECK(ParseType(subtype));
-      if (subtype.base_type == BASE_TYPE_VECTOR) {
-        // We could support this, but it will complicate things, and it's
-        // easier to work around with a struct around the inner vector.
-        return Error(
-              "nested vector types not supported (wrap in table first).");
-      }
-      type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
-      type.element = subtype.base_type;
-      EXPECT(']');
+    } else if (IsIdent("byte") || IsIdent("int8")) {
+      type.base_type = BASE_TYPE_CHAR;
+      NEXT();
+    } else if (IsIdent("ubyte") || IsIdent("uint8")) {
+      type.base_type = BASE_TYPE_UCHAR;
+      NEXT();
+    } else if (IsIdent("short") || IsIdent("int16")) {
+      type.base_type = BASE_TYPE_SHORT;
+      NEXT();
+    } else if (IsIdent("ushort") || IsIdent("uint16")) {
+      type.base_type = BASE_TYPE_USHORT;
+      NEXT();
+    } else if (IsIdent("int") || IsIdent("int32")) {
+      type.base_type = BASE_TYPE_INT;
+      NEXT();
+    } else if (IsIdent("uint") || IsIdent("uint32")) {
+      type.base_type = BASE_TYPE_UINT;
+      NEXT();
+    } else if (IsIdent("long") || IsIdent("int64")) {
+      type.base_type = BASE_TYPE_LONG;
+      NEXT();
+    } else if (IsIdent("ulong") || IsIdent("uint64")) {
+      type.base_type = BASE_TYPE_ULONG;
+      NEXT();
+    } else if (IsIdent("float") || IsIdent("float32")) {
+      type.base_type = BASE_TYPE_FLOAT;
+      NEXT();
+    } else if (IsIdent("double") || IsIdent("float64")) {
+      type.base_type = BASE_TYPE_DOUBLE;
+      NEXT();
+    } else if (IsIdent("string")) {
+      type.base_type = BASE_TYPE_STRING;
+      NEXT();
     } else {
-      return Error("illegal type syntax");
+      ECHECK(ParseTypeIdent(type));
     }
+  } else if (token_ == '[') {
+    NEXT();
+    Type subtype;
+    ECHECK(ParseType(subtype));
+    if (subtype.base_type == BASE_TYPE_VECTOR) {
+      // We could support this, but it will complicate things, and it's
+      // easier to work around with a struct around the inner vector.
+      return Error(
+            "nested vector types not supported (wrap in table first).");
+    }
+    type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
+    type.element = subtype.base_type;
+    EXPECT(']');
+  } else {
+    return Error("illegal type syntax");
   }
   return NoError();
 }
@@ -945,7 +894,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         ECHECK(parser->SkipAnyJsonValue());
       }
     } else {
-      if (parser->Is(kTokenNull)) {
+      if (parser->IsIdent("null")) {
         ECHECK(parser->Next());  // Ignore this field.
       } else {
         Value val = field->value;
@@ -1023,7 +972,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1040,7 +989,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               break;
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1116,7 +1065,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -1317,6 +1266,7 @@ CheckedError Parser::ParseSingleValue(Value &e) {
     #undef FLATBUFFERS_FN_DOUBLE
   // Then check if this could be a string/identifier enum value:
   } else if (e.type.base_type != BASE_TYPE_STRING &&
+      e.type.base_type != BASE_TYPE_BOOL &&
       e.type.base_type != BASE_TYPE_NONE &&
       (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
     if (IsIdentifierStart(attribute_[0])) {  // Enum value.
@@ -1348,11 +1298,6 @@ CheckedError Parser::ParseSingleValue(Value &e) {
                          e,
                          BASE_TYPE_INT,
                          &match));
-    ECHECK(TryTypedValue(kTokenBooleanConstant,
-                         IsBool(e.type.base_type),
-                         e,
-                         BASE_TYPE_BOOL,
-                         &match));
     ECHECK(TryTypedValue(kTokenFloatConstant,
                          IsFloat(e.type.base_type),
                          e,
@@ -1363,6 +1308,15 @@ CheckedError Parser::ParseSingleValue(Value &e) {
                          e,
                          BASE_TYPE_STRING,
                          &match));
+    auto istrue = IsIdent("true");
+    if (istrue || IsIdent("false")) {
+      attribute_ = NumToString(istrue);
+      ECHECK(TryTypedValue(kTokenIdentifier,
+                           IsBool(e.type.base_type),
+                           e,
+                           BASE_TYPE_BOOL,
+                           &match));
+    }
     if (!match) return TokenError();
   }
   return NoError();
@@ -1594,8 +1548,9 @@ static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
 
 CheckedError Parser::ParseDecl() {
   std::vector<std::string> dc = doc_comment_;
-  bool fixed = Is(kTokenStruct);
-  if (fixed) NEXT() else EXPECT(kTokenTable);
+  bool fixed = IsIdent("struct");
+  if (!fixed && !IsIdent("table")) return Error("declaration expected");
+  NEXT();
   std::string name = attribute_;
   EXPECT(kTokenIdentifier);
   StructDef *struct_def;
@@ -1753,11 +1708,11 @@ static bool compareEnumVals(const EnumVal *a, const EnumVal* b) {
 // We parse everything as identifiers instead of keywords, since we don't
 // want protobuf keywords to become invalid identifiers in FlatBuffers.
 CheckedError Parser::ParseProtoDecl() {
-  bool isextend = attribute_ == "extend";
-  if (attribute_ == "package") {
+  bool isextend = IsIdent("extend");
+  if (IsIdent("package")) {
     // These are identical in syntax to FlatBuffer's namespace decl.
     ECHECK(ParseNamespace());
-  } else if (attribute_ == "message" || isextend) {
+  } else if (IsIdent("message") || isextend) {
     std::vector<std::string> struct_comment = doc_comment_;
     NEXT();
     StructDef *struct_def = nullptr;
@@ -1789,7 +1744,7 @@ CheckedError Parser::ParseProtoDecl() {
       current_namespace_ = parent_namespace;
     }
     if (Is(';')) NEXT();
-  } else if (attribute_ == "enum") {
+  } else if (IsIdent("enum")) {
     // These are almost the same, just with different terminator:
     EnumDef *enum_def;
     ECHECK(ParseEnum(false, &enum_def));
@@ -1803,15 +1758,15 @@ CheckedError Parser::ParseProtoDecl() {
       if (it != v.begin() && it[0]->value == it[-1]->value) it = v.erase(it);
       else ++it;
     }
-  } else if (attribute_ == "syntax") {  // Skip these.
+  } else if (IsIdent("syntax")) {  // Skip these.
     NEXT();
     EXPECT('=');
     EXPECT(kTokenStringConstant);
     EXPECT(';');
-  } else if (attribute_ == "option") {  // Skip these.
+  } else if (IsIdent("option")) {  // Skip these.
     ECHECK(ParseProtoOption());
     EXPECT(';');
-  } else if (attribute_ == "service") {  // Skip these.
+  } else if (IsIdent("service")) {  // Skip these.
     NEXT();
     EXPECT(kTokenIdentifier);
     ECHECK(ParseProtoCurliesOrIdent());
@@ -1826,11 +1781,10 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
                                       bool inside_oneof) {
   EXPECT('{');
   while (token_ != '}') {
-    if (attribute_ == "message" || attribute_ == "extend" ||
-        attribute_ == "enum") {
+    if (IsIdent("message") || IsIdent("extend") || IsIdent("enum")) {
       // Nested declarations.
       ECHECK(ParseProtoDecl());
-    } else if (attribute_ == "extensions") {  // Skip these.
+    } else if (IsIdent("extensions")) {  // Skip these.
       NEXT();
       EXPECT(kTokenIntegerConstant);
       if (Is(kTokenIdentifier)) {
@@ -1838,10 +1792,10 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
         NEXT();  // num
       }
       EXPECT(';');
-    } else if (attribute_ == "option") {  // Skip these.
+    } else if (IsIdent("option")) {  // Skip these.
       ECHECK(ParseProtoOption());
       EXPECT(';');
-    } else if (attribute_ == "reserved") {  // Skip these.
+    } else if (IsIdent("reserved")) {  // Skip these.
       NEXT();
       EXPECT(kTokenIntegerConstant);
       while (Is(',')) { NEXT(); EXPECT(kTokenIntegerConstant); }
@@ -1853,26 +1807,26 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       bool repeated = false;
       bool oneof = false;
       if (!inside_oneof) {
-        if (attribute_ == "optional") {
+        if (IsIdent("optional")) {
           // This is the default.
-          EXPECT(kTokenIdentifier);
-        } else if (attribute_ == "required") {
+          NEXT();
+        } else if (IsIdent("required")) {
           required = true;
-          EXPECT(kTokenIdentifier);
-        } else if (attribute_ == "repeated") {
+          NEXT();
+        } else if (IsIdent("repeated")) {
           repeated = true;
-          EXPECT(kTokenIdentifier);
-        } else if (attribute_ == "oneof") {
+          NEXT();
+        } else if (IsIdent("oneof")) {
           oneof = true;
-          EXPECT(kTokenIdentifier);
+          NEXT();
         } else {
           // can't error, proto3 allows decls without any of the above.
         }
       }
       StructDef *anonymous_struct = nullptr;
       Type type;
-      if (attribute_ == "group" || oneof) {
-        if (!oneof) EXPECT(kTokenIdentifier);
+      if (IsIdent("group") || oneof) {
+        if (!oneof) NEXT();
         auto name = "Anonymous" + NumToString(anonymous_counter++);
         ECHECK(StartStruct(name, &anonymous_struct));
         type = Type(BASE_TYPE_STRUCT, anonymous_struct);
@@ -1885,14 +1839,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
         type.base_type = BASE_TYPE_VECTOR;
       }
       std::string name = attribute_;
-      // Protos may use our keywords "attribute" & "namespace" as an identifier.
-      if (Is(kTokenAttribute) || Is(kTokenNameSpace)) {
-        NEXT();
-        // TODO: simpler to just not make these keywords?
-        name += "_";  // Have to make it not a keyword.
-      } else {
-        EXPECT(kTokenIdentifier);
-      }
+      EXPECT(kTokenIdentifier);
       if (!oneof) {
         // Parse the field id. Since we're just translating schemas, not
         // any kind of binary compatibility, we can safely ignore these, and
@@ -2036,19 +1983,13 @@ CheckedError Parser::SkipAnyJsonValue() {
         this);
     }
     case kTokenStringConstant:
-      EXPECT(kTokenStringConstant);
-      break;
     case kTokenIntegerConstant:
-      EXPECT(kTokenIntegerConstant);
-      break;
     case kTokenFloatConstant:
-      EXPECT(kTokenFloatConstant);
-      break;
-    case kTokenBooleanConstant:
-      EXPECT(kTokenBooleanConstant);
+      NEXT();
       break;
     default:
-      return TokenError();
+      if (IsIdent("true") || IsIdent("false") || IsIdent("null")) { NEXT(); }
+      else return TokenError();
   }
   return NoError();
 }
@@ -2104,16 +2045,15 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       builder->Int(StringToInt(attribute_.c_str()));
       EXPECT(kTokenIntegerConstant);
       break;
-    case kTokenBooleanConstant:
-      builder->Bool(StringToInt(attribute_.c_str()) != 0);
-      EXPECT(kTokenBooleanConstant);
-      break;
     case kTokenFloatConstant:
       builder->Double(strtod(attribute_.c_str(), nullptr));
       EXPECT(kTokenFloatConstant);
       break;
     default:
-      return TokenError();
+      if (IsIdent("true")) { builder->Bool(true); NEXT(); }
+      else if (IsIdent("false")) { builder->Bool(false); NEXT(); }
+      else if (IsIdent("null")) { builder->Null(); NEXT(); }
+      else return TokenError();
   }
   return NoError();
 }
@@ -2202,14 +2142,11 @@ CheckedError Parser::DoParse(const char *source,
         (attribute_ == "option" || attribute_ == "syntax" ||
          attribute_ == "package")) {
         ECHECK(ParseProtoDecl());
-    } else if (Is(kTokenNativeInclude)) {
+    } else if (IsIdent("native_include")) {
       NEXT();
       vector_emplace_back(&native_included_files_, attribute_);
       EXPECT(kTokenStringConstant);
-    } else if (Is(kTokenInclude) ||
-               (opts.proto_mode &&
-                attribute_ == "import" &&
-                Is(kTokenIdentifier))) {
+    } else if (IsIdent("include") || (opts.proto_mode && IsIdent("import"))) {
       NEXT();
       if (opts.proto_mode && attribute_ == "public") NEXT();
       auto name = flatbuffers::PosixPath(attribute_.c_str());
@@ -2257,7 +2194,7 @@ CheckedError Parser::DoParse(const char *source,
   while (token_ != kTokenEof) {
     if (opts.proto_mode) {
       ECHECK(ParseProtoDecl());
-    } else if (token_ == kTokenNameSpace) {
+    } else if (IsIdent("namespace")) {
       ECHECK(ParseNamespace());
     } else if (token_ == '{') {
       if (!root_struct_def_)
@@ -2269,11 +2206,11 @@ CheckedError Parser::DoParse(const char *source,
       ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
       builder_.Finish(Offset<Table>(toff),
                 file_identifier_.length() ? file_identifier_.c_str() : nullptr);
-    } else if (token_ == kTokenEnum) {
+    } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
-    } else if (token_ == kTokenUnion) {
+    } else if (IsIdent("union")) {
       ECHECK(ParseEnum(true, nullptr));
-    } else if (token_ == kTokenRootType) {
+    } else if (IsIdent("root_type")) {
       NEXT();
       auto root_type = attribute_;
       EXPECT(kTokenIdentifier);
@@ -2283,7 +2220,7 @@ CheckedError Parser::DoParse(const char *source,
       if (root_struct_def_->fixed)
         return Error("root type must be a table");
       EXPECT(';');
-    } else if (token_ == kTokenFileIdentifier) {
+    } else if (IsIdent("file_identifier")) {
       NEXT();
       file_identifier_ = attribute_;
       EXPECT(kTokenStringConstant);
@@ -2293,20 +2230,20 @@ CheckedError Parser::DoParse(const char *source,
               NumToString(FlatBufferBuilder::kFileIdentifierLength) +
               " characters");
       EXPECT(';');
-    } else if (token_ == kTokenFileExtension) {
+    } else if (IsIdent("file_extension")) {
       NEXT();
       file_extension_ = attribute_;
       EXPECT(kTokenStringConstant);
       EXPECT(';');
-    } else if(token_ == kTokenInclude) {
+    } else if(IsIdent("include")) {
       return Error("includes must come before declarations");
-    } else if(token_ == kTokenAttribute) {
+    } else if(IsIdent("attribute")) {
       NEXT();
       auto name = attribute_;
       EXPECT(kTokenStringConstant);
       EXPECT(';');
       known_attributes_[name] = false;
-    } else if (token_ == kTokenService) {
+    } else if (IsIdent("rpc_service")) {
       ECHECK(ParseService());
     } else {
       ECHECK(ParseDecl());
