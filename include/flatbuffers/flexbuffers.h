@@ -585,29 +585,29 @@ class Reference {
 	  static_assert(false, "Flexbuffers does not support this type for deserialization.");
   }
 
-  template<> bool As() { return AsBool(); }
+  template<> bool As<bool>() { return AsBool(); }
 
-  template<> inline int8_t As() { return AsInt8(); }
-  template<> inline int16_t As() { return AsInt16(); }
-  template<> inline int32_t As() { return AsInt32(); }
-  template<> inline int64_t As() { return AsInt64(); }
+  template<> inline int8_t As<int8_t>() { return AsInt8(); }
+  template<> inline int16_t As<int16_t>() { return AsInt16(); }
+  template<> inline int32_t As<int32_t>() { return AsInt32(); }
+  template<> inline int64_t As<int64_t>() { return AsInt64(); }
 
-  template<> inline uint8_t As() { return AsUInt8(); }
-  template<> inline uint16_t As() { return AsUInt16(); }
-  template<> inline uint32_t As() { return AsUInt32(); }
-  template<> inline uint64_t As() { return AsUInt64(); }
+  template<> inline uint8_t As<uint8_t>() { return AsUInt8(); }
+  template<> inline uint16_t As<uint16_t>() { return AsUInt16(); }
+  template<> inline uint32_t As<uint32_t>() { return AsUInt32(); }
+  template<> inline uint64_t As<uint64_t>() { return AsUInt64(); }
 
-  template<> inline double As() { return AsDouble(); }
-  template<> inline float As() { return AsFloat(); }
+  template<> inline double As<double>() { return AsDouble(); }
+  template<> inline float As<float>() { return AsFloat(); }
 
-  template<> inline String As() { return AsString(); }
-  template<> inline std::string As() { return AsString().str(); }
+  template<> inline String As<String>() { return AsString(); }
+  template<> inline std::string As<std::string>() { return AsString().str(); }
 
-  template<> inline Blob As() { return AsBlob(); }
-  template<> inline Vector As() { return AsVector(); }
-  template<> inline TypedVector As() { return AsTypedVector(); }
-  template<> inline FixedTypedVector As() { return AsFixedTypedVector(); }
-  template<> inline Map As() { return AsMap(); }
+  template<> inline Blob As<Blob>() { return AsBlob(); }
+  template<> inline Vector As<Vector>() { return AsVector(); }
+  template<> inline TypedVector As<TypedVector>() { return AsTypedVector(); }
+  template<> inline FixedTypedVector As<FixedTypedVector>() { return AsFixedTypedVector(); }
+  template<> inline Map As<Map>() { return AsMap(); }
 
   // Experimental: Mutation functions.
   // These allow scalars in an already created buffer to be updated in-place.
