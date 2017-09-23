@@ -580,10 +580,7 @@ class Reference {
   }
 
   template<typename T>
-  T As()
-  {
-	  static_assert(false, "Flexbuffers does not support this type for deserialization.");
-  }
+  T As();
 
   // Experimental: Mutation functions.
   // These allow scalars in an already created buffer to be updated in-place.
