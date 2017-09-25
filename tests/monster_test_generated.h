@@ -1901,31 +1901,31 @@ inline void AnyUnion::Reset() {
 
 }  // namespace Example
 
-flatbuffers::TypeTable *InParentNamespaceTypeTable();
+inline flatbuffers::TypeTable *InParentNamespaceTypeTable();
 
 namespace Example2 {
 
-flatbuffers::TypeTable *MonsterTypeTable();
+inline flatbuffers::TypeTable *MonsterTypeTable();
 
 }  // namespace Example2
 
 namespace Example {
 
-flatbuffers::TypeTable *TestTypeTable();
+inline flatbuffers::TypeTable *TestTypeTable();
 
-flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
+inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
 
-flatbuffers::TypeTable *Vec3TypeTable();
+inline flatbuffers::TypeTable *Vec3TypeTable();
 
-flatbuffers::TypeTable *AbilityTypeTable();
+inline flatbuffers::TypeTable *AbilityTypeTable();
 
-flatbuffers::TypeTable *StatTypeTable();
+inline flatbuffers::TypeTable *StatTypeTable();
 
-flatbuffers::TypeTable *MonsterTypeTable();
+inline flatbuffers::TypeTable *MonsterTypeTable();
 
-flatbuffers::TypeTable *TypeAliasesTypeTable();
+inline flatbuffers::TypeTable *TypeAliasesTypeTable();
 
-flatbuffers::TypeTable *ColorTypeTable() {
+inline flatbuffers::TypeTable *ColorTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -1946,7 +1946,7 @@ flatbuffers::TypeTable *ColorTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *AnyTypeTable() {
+inline flatbuffers::TypeTable *AnyTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
@@ -1972,7 +1972,7 @@ flatbuffers::TypeTable *AnyTypeTable() {
 
 }  // namespace Example
 
-flatbuffers::TypeTable *InParentNamespaceTypeTable() {
+inline flatbuffers::TypeTable *InParentNamespaceTypeTable() {
   static flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
@@ -1981,7 +1981,7 @@ flatbuffers::TypeTable *InParentNamespaceTypeTable() {
 
 namespace Example2 {
 
-flatbuffers::TypeTable *MonsterTypeTable() {
+inline flatbuffers::TypeTable *MonsterTypeTable() {
   static flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
@@ -1992,7 +1992,7 @@ flatbuffers::TypeTable *MonsterTypeTable() {
 
 namespace Example {
 
-flatbuffers::TypeTable *TestTypeTable() {
+inline flatbuffers::TypeTable *TestTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_CHAR, 0, -1 }
@@ -2008,7 +2008,7 @@ flatbuffers::TypeTable *TestTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
+inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 }
   };
@@ -2024,7 +2024,7 @@ flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *Vec3TypeTable() {
+inline flatbuffers::TypeTable *Vec3TypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
@@ -2052,7 +2052,7 @@ flatbuffers::TypeTable *Vec3TypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *AbilityTypeTable() {
+inline flatbuffers::TypeTable *AbilityTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
@@ -2068,7 +2068,7 @@ flatbuffers::TypeTable *AbilityTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *StatTypeTable() {
+inline flatbuffers::TypeTable *StatTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_LONG, 0, -1 },
@@ -2085,7 +2085,7 @@ flatbuffers::TypeTable *StatTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *MonsterTypeTable() {
+inline flatbuffers::TypeTable *MonsterTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SHORT, 0, -1 },
@@ -2176,7 +2176,7 @@ flatbuffers::TypeTable *MonsterTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *TypeAliasesTypeTable() {
+inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, -1 },
     { flatbuffers::ET_UCHAR, 0, -1 },

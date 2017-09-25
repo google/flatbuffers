@@ -592,7 +592,7 @@ class CppGenerator : public BaseGenerator {
 
   void GenMiniReflectPre(const StructDef *struct_def) {
     code_.SetValue("NAME", struct_def->name);
-    code_ += "flatbuffers::TypeTable *{{NAME}}TypeTable();";
+    code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable();";
     code_ += "";
   }
 
@@ -691,7 +691,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
-    code_ += "flatbuffers::TypeTable *{{NAME}}TypeTable() {";
+    code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
       code_ += "  static flatbuffers::TypeCode type_codes[] = {";
       code_ += "    {{TYPES}}";

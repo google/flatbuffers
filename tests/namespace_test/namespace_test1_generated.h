@@ -119,11 +119,11 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
   return builder_.Finish();
 }
 
-flatbuffers::TypeTable *TableInNestedNSTypeTable();
+inline flatbuffers::TypeTable *TableInNestedNSTypeTable();
 
-flatbuffers::TypeTable *StructInNestedNSTypeTable();
+inline flatbuffers::TypeTable *StructInNestedNSTypeTable();
 
-flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
+inline flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -143,7 +143,7 @@ flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *TableInNestedNSTypeTable() {
+inline flatbuffers::TypeTable *TableInNestedNSTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
@@ -156,7 +156,7 @@ flatbuffers::TypeTable *TableInNestedNSTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *StructInNestedNSTypeTable() {
+inline flatbuffers::TypeTable *StructInNestedNSTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 }
