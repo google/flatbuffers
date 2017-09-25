@@ -605,13 +605,13 @@ inline void EquipmentUnion::Reset() {
   type = Equipment_NONE;
 }
 
-flatbuffers::TypeTable *Vec3TypeTable();
+inline flatbuffers::TypeTable *Vec3TypeTable();
 
-flatbuffers::TypeTable *MonsterTypeTable();
+inline flatbuffers::TypeTable *MonsterTypeTable();
 
-flatbuffers::TypeTable *WeaponTypeTable();
+inline flatbuffers::TypeTable *WeaponTypeTable();
 
-flatbuffers::TypeTable *ColorTypeTable() {
+inline flatbuffers::TypeTable *ColorTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -631,7 +631,7 @@ flatbuffers::TypeTable *ColorTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *EquipmentTypeTable() {
+inline flatbuffers::TypeTable *EquipmentTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 }
@@ -649,7 +649,7 @@ flatbuffers::TypeTable *EquipmentTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *Vec3TypeTable() {
+inline flatbuffers::TypeTable *Vec3TypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
@@ -667,7 +667,7 @@ flatbuffers::TypeTable *Vec3TypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *MonsterTypeTable() {
+inline flatbuffers::TypeTable *MonsterTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SHORT, 0, -1 },
@@ -704,7 +704,7 @@ flatbuffers::TypeTable *MonsterTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *WeaponTypeTable() {
+inline flatbuffers::TypeTable *WeaponTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_SHORT, 0, -1 }

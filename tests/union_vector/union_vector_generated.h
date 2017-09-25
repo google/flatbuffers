@@ -600,15 +600,15 @@ inline void CharacterUnion::Reset() {
   type = Character_NONE;
 }
 
-flatbuffers::TypeTable *AttackerTypeTable();
+inline flatbuffers::TypeTable *AttackerTypeTable();
 
-flatbuffers::TypeTable *RapunzelTypeTable();
+inline flatbuffers::TypeTable *RapunzelTypeTable();
 
-flatbuffers::TypeTable *BookReaderTypeTable();
+inline flatbuffers::TypeTable *BookReaderTypeTable();
 
-flatbuffers::TypeTable *MovieTypeTable();
+inline flatbuffers::TypeTable *MovieTypeTable();
 
-flatbuffers::TypeTable *CharacterTypeTable() {
+inline flatbuffers::TypeTable *CharacterTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
@@ -638,7 +638,7 @@ flatbuffers::TypeTable *CharacterTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *AttackerTypeTable() {
+inline flatbuffers::TypeTable *AttackerTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
@@ -651,7 +651,7 @@ flatbuffers::TypeTable *AttackerTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *RapunzelTypeTable() {
+inline flatbuffers::TypeTable *RapunzelTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
@@ -665,7 +665,7 @@ flatbuffers::TypeTable *RapunzelTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *BookReaderTypeTable() {
+inline flatbuffers::TypeTable *BookReaderTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
@@ -679,7 +679,7 @@ flatbuffers::TypeTable *BookReaderTypeTable() {
   return &tt;
 }
 
-flatbuffers::TypeTable *MovieTypeTable() {
+inline flatbuffers::TypeTable *MovieTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_UTYPE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },

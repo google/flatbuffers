@@ -212,21 +212,21 @@ namespace NamespaceC {
 
 namespace NamespaceA {
 
-flatbuffers::TypeTable *TableInFirstNSTypeTable();
+inline flatbuffers::TypeTable *TableInFirstNSTypeTable();
 
 }  // namespace NamespaceA
 
 namespace NamespaceC {
 
-flatbuffers::TypeTable *TableInCTypeTable();
+inline flatbuffers::TypeTable *TableInCTypeTable();
 
 }  // namespace NamespaceC
 
 namespace NamespaceA {
 
-flatbuffers::TypeTable *SecondTableInATypeTable();
+inline flatbuffers::TypeTable *SecondTableInATypeTable();
 
-flatbuffers::TypeTable *TableInFirstNSTypeTable() {
+inline flatbuffers::TypeTable *TableInFirstNSTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 1 },
@@ -252,7 +252,7 @@ flatbuffers::TypeTable *TableInFirstNSTypeTable() {
 
 namespace NamespaceC {
 
-flatbuffers::TypeTable *TableInCTypeTable() {
+inline flatbuffers::TypeTable *TableInCTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
@@ -275,7 +275,7 @@ flatbuffers::TypeTable *TableInCTypeTable() {
 
 namespace NamespaceA {
 
-flatbuffers::TypeTable *SecondTableInATypeTable() {
+inline flatbuffers::TypeTable *SecondTableInATypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 }
   };
