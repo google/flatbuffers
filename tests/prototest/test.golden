@@ -1,6 +1,6 @@
 // Generated from test.proto
 
-namespace _proto._test;
+namespace proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum : int {
@@ -33,12 +33,12 @@ table ProtoMessage {
   /// lines
   l:string (required);
   m:[ubyte];
-  n:_proto._test._ProtoMessage.OtherMessage;
+  n:proto.test.ProtoMessage_.OtherMessage;
   o:[string];
-  z:_proto._test.ImportedMessage;
+  z:proto.test.ImportedMessage;
 }
 
-namespace _proto._test._ProtoMessage;
+namespace proto.test.ProtoMessage_;
 
 table OtherMessage {
   a:double;
