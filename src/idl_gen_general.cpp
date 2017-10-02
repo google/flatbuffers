@@ -828,6 +828,30 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += ") + _bb.";
     code += lang_.get_bb_position;
     code += ", _bb)); }\n";
+
+    // recreate both methods for the prefixed size version
+    std::string ps_method_name = FunctionStart('G') + "etSizePrefixedRootAs" +
+                                 struct_def.name;
+    std::string ps_method_signature = "  public static " + struct_def.name + " " +
+                                      ps_method_name;
+
+    // create convenience method that doesn't require an existing object
+    code += ps_method_signature + "(ByteBuffer _psbb) ";
+    code += "{ return " + ps_method_name + "(_psbb, new " + struct_def.name+ "()); }\n";
+
+    // TODO this part needs a C# equivalent
+    // use a slice that skips the size, then proceed as normal
+    code += ps_method_signature + "(ByteBuffer _psbb, " + struct_def.name + " obj) { ";
+    code += "ByteBuffer _bb = _psbb.slice(); ";
+    code += "_bb.position(4); ";
+    code += "return " + method_name + "(_bb, obj); }\n";
+
+    // method that returns the size for a size prefixed buffer
+    code += "  public static int " + FunctionStart('G') + "etSizePrefix(ByteBuffer _bb) { ";
+    code += lang_.set_bb_byteorder;
+    code += "return _bb." + FunctionStart('G') + "etInt(_bb.";
+    code += lang_.get_bb_position + "); }\n";
+
     if (parser_.root_struct_def_ == &struct_def) {
       if (parser_.file_identifier_.length()) {
         // Check if a buffer has the identifier.
@@ -1305,18 +1329,22 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     }
     code += "    return " + GenOffsetConstruct(struct_def, "o") + ";\n  }\n";
     if (parser_.root_struct_def_ == &struct_def) {
-      code += "  public static void ";
-      code += FunctionStart('F') + "inish" + struct_def.name;
-      code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType(struct_def);
-      code += " offset) {";
-      code += " builder." + FunctionStart('F') + "inish(offset";
-      if (lang_.language == IDLOptions::kCSharp) {
-        code += ".Value";
-      }
+      std::string size_prefix[] = { "", "SizePrefixed" };
+      for (int i = 0; i < 2; ++i) {
+        code += "  public static void ";
+        code += FunctionStart('F') + "inish" + size_prefix[i] + struct_def.name;
+        code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType(struct_def);
+        code += " offset) {";
+        code += " builder." + FunctionStart('F') + "inish" + size_prefix[i] +
+                "(offset";
+        if (lang_.language == IDLOptions::kCSharp) {
+          code += ".Value";
+        }
 
-      if (parser_.file_identifier_.length())
-        code += ", \"" + parser_.file_identifier_ + "\"";
-      code += "); }\n";
+        if (parser_.file_identifier_.length())
+          code += ", \"" + parser_.file_identifier_ + "\"";
+        code += "); }\n";
+      }
     }
   }
   // Only generate key compare function for table,
