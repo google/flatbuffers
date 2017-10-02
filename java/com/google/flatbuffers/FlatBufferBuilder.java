@@ -838,7 +838,7 @@ public class FlatBufferBuilder {
     }
 
     /**
-     * Finalize a buffer, pointing to the given `root_table`.+, with the size prefixed.
+     * Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
      *
      * @param root_table An offset to be added to the buffer.
      */
