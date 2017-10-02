@@ -839,11 +839,14 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += ps_method_signature + "(ByteBuffer _psbb) ";
     code += "{ return " + ps_method_name + "(_psbb, new " + struct_def.name+ "()); }\n";
 
-    // TODO this part needs a C# equivalent
     // use a slice that skips the size, then proceed as normal
     code += ps_method_signature + "(ByteBuffer _psbb, " + struct_def.name + " obj) { ";
-    code += "ByteBuffer _bb = _psbb.slice(); ";
-    code += "_bb.position(4); ";
+    code += "ByteBuffer _bb = _psbb." + FunctionStart('S') + "lice(); ";
+    if (lang_.language == IDLOptions::kCSharp) {
+      code += "_bb.Position = 4; ";
+    } else {
+      code += "_bb.position(4); ";
+    }
     code += "return " + method_name + "(_bb, obj); }\n";
 
     // method that returns the size for a size prefixed buffer
