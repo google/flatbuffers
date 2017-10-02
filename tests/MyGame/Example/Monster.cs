@@ -15,6 +15,9 @@ public struct Monster : IFlatbufferObject
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static Monster GetSizePrefixedRootAsMonster(ByteBuffer _psbb) { return GetSizePrefixedRootAsMonster(_psbb, new Monster()); }
+  public static Monster GetSizePrefixedRootAsMonster(ByteBuffer _psbb, Monster obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = 4; return GetRootAsMonster(_bb, obj); }
+  public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONS"); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public Monster __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
@@ -161,6 +164,7 @@ public struct Monster : IFlatbufferObject
     return new Offset<Monster>(o);
   }
   public static void FinishMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.Finish(offset.Value, "MONS"); }
+  public static void FinishSizePrefixedMonsterBuffer(FlatBufferBuilder builder, Offset<Monster> offset) { builder.FinishSizePrefixed(offset.Value, "MONS"); }
 
   public static VectorOffset CreateSortedVectorOfMonster(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
     Array.Sort(offsets, (Offset<Monster> o1, Offset<Monster> o2) => Table.CompareStrings(Table.__offset(10, o1.Value, builder.DataBuffer), Table.__offset(10, o2.Value, builder.DataBuffer), builder.DataBuffer));

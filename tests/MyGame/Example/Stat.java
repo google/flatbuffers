@@ -11,6 +11,9 @@ import com.google.flatbuffers.*;
 public final class Stat extends Table {
   public static Stat getRootAsStat(ByteBuffer _bb) { return getRootAsStat(_bb, new Stat()); }
   public static Stat getRootAsStat(ByteBuffer _bb, Stat obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public static Stat getSizePrefixedRootAsStat(ByteBuffer _psbb) { return getSizePrefixedRootAsStat(_psbb, new Stat()); }
+  public static Stat getSizePrefixedRootAsStat(ByteBuffer _psbb, Stat obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(4); return getRootAsStat(_bb, obj); }
+  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Stat __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

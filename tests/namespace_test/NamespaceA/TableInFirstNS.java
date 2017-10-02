@@ -11,6 +11,9 @@ import com.google.flatbuffers.*;
 public final class TableInFirstNS extends Table {
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb) { return getRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public static TableInFirstNS getSizePrefixedRootAsTableInFirstNS(ByteBuffer _psbb) { return getSizePrefixedRootAsTableInFirstNS(_psbb, new TableInFirstNS()); }
+  public static TableInFirstNS getSizePrefixedRootAsTableInFirstNS(ByteBuffer _psbb, TableInFirstNS obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(4); return getRootAsTableInFirstNS(_bb, obj); }
+  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

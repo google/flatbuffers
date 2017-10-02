@@ -11,6 +11,9 @@ import com.google.flatbuffers.*;
 public final class TableInC extends Table {
   public static TableInC getRootAsTableInC(ByteBuffer _bb) { return getRootAsTableInC(_bb, new TableInC()); }
   public static TableInC getRootAsTableInC(ByteBuffer _bb, TableInC obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public static TableInC getSizePrefixedRootAsTableInC(ByteBuffer _psbb) { return getSizePrefixedRootAsTableInC(_psbb, new TableInC()); }
+  public static TableInC getSizePrefixedRootAsTableInC(ByteBuffer _psbb, TableInC obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(4); return getRootAsTableInC(_bb, obj); }
+  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public TableInC __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
