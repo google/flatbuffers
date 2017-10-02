@@ -63,6 +63,11 @@ namespace FlatBuffers
             _pos = 0;
         }
 
+        public ByteBuffer Slice()
+        {
+            return new ByteBuffer(_buffer, 0);
+        }
+
         // Pre-allocated helper arrays for convertion.
         private float[] floathelper = new[] { 0.0f };
         private int[] inthelper = new[] { 0 };
