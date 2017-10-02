@@ -579,6 +579,8 @@ class Reference {
     }
   }
 
+  template<typename T> T As();
+
   // Experimental: Mutation functions.
   // These allow scalars in an already created buffer to be updated in-place.
   // Since by default scalars are stored in the smallest possible space,
@@ -687,6 +689,31 @@ class Reference {
   uint8_t byte_width_;
   Type type_;
 };
+
+// Template specialization for As().
+template<> inline bool Reference::As<bool>() { return AsBool(); }
+
+template<> inline int8_t Reference::As<int8_t>() { return AsInt8(); }
+template<> inline int16_t Reference::As<int16_t>() { return AsInt16(); }
+template<> inline int32_t Reference::As<int32_t>() { return AsInt32(); }
+template<> inline int64_t Reference::As<int64_t>() { return AsInt64(); }
+
+template<> inline uint8_t Reference::As<uint8_t>() { return AsUInt8(); }
+template<> inline uint16_t Reference::As<uint16_t>() { return AsUInt16(); }
+template<> inline uint32_t Reference::As<uint32_t>() { return AsUInt32(); }
+template<> inline uint64_t Reference::As<uint64_t>() { return AsUInt64(); }
+
+template<> inline double Reference::As<double>() { return AsDouble(); }
+template<> inline float Reference::As<float>() { return AsFloat(); }
+
+template<> inline String Reference::As<String>() { return AsString(); }
+template<> inline std::string Reference::As<std::string>() { return AsString().str(); }
+
+template<> inline Blob Reference::As<Blob>() { return AsBlob(); }
+template<> inline Vector Reference::As<Vector>() { return AsVector(); }
+template<> inline TypedVector Reference::As<TypedVector>() { return AsTypedVector(); }
+template<> inline FixedTypedVector Reference::As<FixedTypedVector>() { return AsFixedTypedVector(); }
+template<> inline Map Reference::As<Map>() { return AsMap(); }
 
 inline uint8_t PackedType(BitWidth bit_width, Type type) {
   return static_cast<uint8_t>(bit_width | (type << 2));
