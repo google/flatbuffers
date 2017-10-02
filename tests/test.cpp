@@ -1687,6 +1687,13 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");  // This still works though.
   TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
+
+  // Few tests for templated version of As.
+  TEST_EQ(vec[0].As<int64_t>(), -100);
+  TEST_EQ_STR(vec[1].As<std::string>().c_str(), "Fred");
+  TEST_EQ(vec[1].As<int64_t>(), 0);  // Number parsing failed.
+  TEST_EQ(vec[2].As<double>(), 4.0);
+
   // Test that the blob can be accessed.
   TEST_EQ(vec[3].IsBlob(), true);
   auto blob = vec[3].AsBlob();

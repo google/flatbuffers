@@ -579,8 +579,7 @@ class Reference {
     }
   }
 
-  template<typename T>
-  T As();
+  template<typename T> T As();
 
   // Experimental: Mutation functions.
   // These allow scalars in an already created buffer to be updated in-place.
