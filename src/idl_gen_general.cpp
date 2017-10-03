@@ -810,18 +810,25 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += lang_.open_curly;
   }
   if (!struct_def.fixed) {
-    // Generate a special accessor for the table that when used as the root
-    // of a FlatBuffer
-    std::string method_name = FunctionStart('G') + "etRootAs" + struct_def.name;
-    std::string method_signature = "  public static " + struct_def.name + " " +
-                                   method_name;
+    // Both for the regular and size-prefixed buffers, create names, signatures and accesors
+    std::string size_prefix[] = { "", "SizePrefixed" };
+    std::string method_names[2];
+    std::string method_signatures[2];
+    for (int i = 0; i < 2; ++i) {
+      // Generate a special accessor for the table that when used as the root
+      // of a FlatBuffer
+      method_names[i] = FunctionStart('G') + "et" + size_prefix[i] + "RootAs" +
+                        struct_def.name;
+      method_signatures[i] = "  public static " + struct_def.name + " " +
+                             method_names[i];
 
-    // create convenience method that doesn't require an existing object
-    code += method_signature + "(ByteBuffer _bb) ";
-    code += "{ return " + method_name + "(_bb, new " + struct_def.name+ "()); }\n";
+      // create convenience method that doesn't require an existing object
+      code += method_signatures[i] + "(ByteBuffer _bb) ";
+      code += "{ return " + method_names[i] + "(_bb, new " + struct_def.name+ "()); }\n";
+    }
 
-    // create method that allows object reuse
-    code += method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
+    // regular buffer: create method that allows object reuse
+    code += method_signatures[0] + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
     code += lang_.set_bb_byteorder;
     code += "return (obj.__assign(_bb." + FunctionStart('G') + "etInt(_bb.";
     code += lang_.get_bb_position;
@@ -829,25 +836,15 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     code += lang_.get_bb_position;
     code += ", _bb)); }\n";
 
-    // recreate both methods for the prefixed size version
-    std::string ps_method_name = FunctionStart('G') + "etSizePrefixedRootAs" +
-                                 struct_def.name;
-    std::string ps_method_signature = "  public static " + struct_def.name + " " +
-                                      ps_method_name;
-
-    // create convenience method that doesn't require an existing object
-    code += ps_method_signature + "(ByteBuffer _psbb) ";
-    code += "{ return " + ps_method_name + "(_psbb, new " + struct_def.name+ "()); }\n";
-
-    // use a slice that skips the size, then proceed as normal
-    code += ps_method_signature + "(ByteBuffer _psbb, " + struct_def.name + " obj) { ";
-    code += "ByteBuffer _bb = _psbb." + FunctionStart('S') + "lice(); ";
+    // size-prefixed buffer: use a slice that skips the size, then proceed as normal
+    code += method_signatures[1] + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
+    code += "ByteBuffer __bb = _bb." + FunctionStart('S') + "lice(); ";
     if (lang_.language == IDLOptions::kCSharp) {
-      code += "_bb.Position = FlatBufferConstants.SizePrefixLength; ";
+      code += "__bb.Position = FlatBufferConstants.SizePrefixLength; ";
     } else {
-      code += "_bb.position(Constants.SIZE_PREFIX_LENGTH); ";
+      code += "__bb.position(Constants.SIZE_PREFIX_LENGTH); ";
     }
-    code += "return " + method_name + "(_bb, obj); }\n";
+    code += "return " + method_names[0] + "(__bb, obj); }\n";
 
     // method that returns the size for a size prefixed buffer
     code += "  public static int " + FunctionStart('G') + "etSizePrefix(ByteBuffer _bb) { ";

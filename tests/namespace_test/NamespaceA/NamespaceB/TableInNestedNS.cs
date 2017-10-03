@@ -13,9 +13,9 @@ public struct TableInNestedNS : IFlatbufferObject
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb) { return GetRootAsTableInNestedNS(_bb, new TableInNestedNS()); }
+  public static TableInNestedNS GetSizePrefixedRootAsTableInNestedNS(ByteBuffer _bb) { return GetSizePrefixedRootAsTableInNestedNS(_bb, new TableInNestedNS()); }
   public static TableInNestedNS GetRootAsTableInNestedNS(ByteBuffer _bb, TableInNestedNS obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public static TableInNestedNS GetSizePrefixedRootAsTableInNestedNS(ByteBuffer _psbb) { return GetSizePrefixedRootAsTableInNestedNS(_psbb, new TableInNestedNS()); }
-  public static TableInNestedNS GetSizePrefixedRootAsTableInNestedNS(ByteBuffer _psbb, TableInNestedNS obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsTableInNestedNS(_bb, obj); }
+  public static TableInNestedNS GetSizePrefixedRootAsTableInNestedNS(ByteBuffer _bb, TableInNestedNS obj) { ByteBuffer __bb = _bb.Slice(); __bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsTableInNestedNS(__bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public TableInNestedNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }

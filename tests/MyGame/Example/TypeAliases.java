@@ -10,9 +10,9 @@ import com.google.flatbuffers.*;
 @SuppressWarnings("unused")
 public final class TypeAliases extends Table {
   public static TypeAliases getRootAsTypeAliases(ByteBuffer _bb) { return getRootAsTypeAliases(_bb, new TypeAliases()); }
+  public static TypeAliases getSizePrefixedRootAsTypeAliases(ByteBuffer _bb) { return getSizePrefixedRootAsTypeAliases(_bb, new TypeAliases()); }
   public static TypeAliases getRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public static TypeAliases getSizePrefixedRootAsTypeAliases(ByteBuffer _psbb) { return getSizePrefixedRootAsTypeAliases(_psbb, new TypeAliases()); }
-  public static TypeAliases getSizePrefixedRootAsTypeAliases(ByteBuffer _psbb, TypeAliases obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsTypeAliases(_bb, obj); }
+  public static TypeAliases getSizePrefixedRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { ByteBuffer __bb = _bb.slice(); __bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsTypeAliases(__bb, obj); }
   public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public TypeAliases __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }

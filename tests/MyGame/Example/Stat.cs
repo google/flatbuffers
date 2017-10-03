@@ -13,9 +13,9 @@ public struct Stat : IFlatbufferObject
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
+  public static Stat GetSizePrefixedRootAsStat(ByteBuffer _bb) { return GetSizePrefixedRootAsStat(_bb, new Stat()); }
   public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public static Stat GetSizePrefixedRootAsStat(ByteBuffer _psbb) { return GetSizePrefixedRootAsStat(_psbb, new Stat()); }
-  public static Stat GetSizePrefixedRootAsStat(ByteBuffer _psbb, Stat obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsStat(_bb, obj); }
+  public static Stat GetSizePrefixedRootAsStat(ByteBuffer _bb, Stat obj) { ByteBuffer __bb = _bb.Slice(); __bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsStat(__bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public Stat __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
