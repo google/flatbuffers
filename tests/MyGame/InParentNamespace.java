@@ -12,7 +12,7 @@ public final class InParentNamespace extends Table {
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb) { return getRootAsInParentNamespace(_bb, new InParentNamespace()); }
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb, InParentNamespace obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static InParentNamespace getSizePrefixedRootAsInParentNamespace(ByteBuffer _psbb) { return getSizePrefixedRootAsInParentNamespace(_psbb, new InParentNamespace()); }
-  public static InParentNamespace getSizePrefixedRootAsInParentNamespace(ByteBuffer _psbb, InParentNamespace obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(4); return getRootAsInParentNamespace(_bb, obj); }
+  public static InParentNamespace getSizePrefixedRootAsInParentNamespace(ByteBuffer _psbb, InParentNamespace obj) { ByteBuffer _bb = _psbb.slice(); _bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsInParentNamespace(_bb, obj); }
   public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public InParentNamespace __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }

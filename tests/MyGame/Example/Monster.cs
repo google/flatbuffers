@@ -16,7 +16,7 @@ public struct Monster : IFlatbufferObject
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static Monster GetSizePrefixedRootAsMonster(ByteBuffer _psbb) { return GetSizePrefixedRootAsMonster(_psbb, new Monster()); }
-  public static Monster GetSizePrefixedRootAsMonster(ByteBuffer _psbb, Monster obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = 4; return GetRootAsMonster(_bb, obj); }
+  public static Monster GetSizePrefixedRootAsMonster(ByteBuffer _psbb, Monster obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsMonster(_bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONS"); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }

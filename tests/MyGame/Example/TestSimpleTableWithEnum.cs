@@ -15,7 +15,7 @@ public partial struct TestSimpleTableWithEnum : IFlatbufferObject
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return GetRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static TestSimpleTableWithEnum GetSizePrefixedRootAsTestSimpleTableWithEnum(ByteBuffer _psbb) { return GetSizePrefixedRootAsTestSimpleTableWithEnum(_psbb, new TestSimpleTableWithEnum()); }
-  public static TestSimpleTableWithEnum GetSizePrefixedRootAsTestSimpleTableWithEnum(ByteBuffer _psbb, TestSimpleTableWithEnum obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = 4; return GetRootAsTestSimpleTableWithEnum(_bb, obj); }
+  public static TestSimpleTableWithEnum GetSizePrefixedRootAsTestSimpleTableWithEnum(ByteBuffer _psbb, TestSimpleTableWithEnum obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsTestSimpleTableWithEnum(_bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public TestSimpleTableWithEnum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }

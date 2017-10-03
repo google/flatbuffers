@@ -15,7 +15,7 @@ public struct TypeAliases : IFlatbufferObject
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb) { return GetRootAsTypeAliases(_bb, new TypeAliases()); }
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static TypeAliases GetSizePrefixedRootAsTypeAliases(ByteBuffer _psbb) { return GetSizePrefixedRootAsTypeAliases(_psbb, new TypeAliases()); }
-  public static TypeAliases GetSizePrefixedRootAsTypeAliases(ByteBuffer _psbb, TypeAliases obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = 4; return GetRootAsTypeAliases(_bb, obj); }
+  public static TypeAliases GetSizePrefixedRootAsTypeAliases(ByteBuffer _psbb, TypeAliases obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsTypeAliases(_bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public TypeAliases __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }

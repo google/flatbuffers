@@ -15,7 +15,7 @@ public struct SecondTableInA : IFlatbufferObject
   public static SecondTableInA GetRootAsSecondTableInA(ByteBuffer _bb) { return GetRootAsSecondTableInA(_bb, new SecondTableInA()); }
   public static SecondTableInA GetRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static SecondTableInA GetSizePrefixedRootAsSecondTableInA(ByteBuffer _psbb) { return GetSizePrefixedRootAsSecondTableInA(_psbb, new SecondTableInA()); }
-  public static SecondTableInA GetSizePrefixedRootAsSecondTableInA(ByteBuffer _psbb, SecondTableInA obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = 4; return GetRootAsSecondTableInA(_bb, obj); }
+  public static SecondTableInA GetSizePrefixedRootAsSecondTableInA(ByteBuffer _psbb, SecondTableInA obj) { ByteBuffer _bb = _psbb.Slice(); _bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsSecondTableInA(_bb, obj); }
   public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public SecondTableInA __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
