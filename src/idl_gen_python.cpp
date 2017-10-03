@@ -112,8 +112,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
 }
 
 // Obtain the prefix size from a buffer
-static void SizePrefixFromBuffer(const StructDef &struct_def,
-                                 std::string *code_ptr) {
+static void SizePrefixFromBuffer(std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += Indent + "@classmethod\n";
@@ -550,7 +549,7 @@ static void GenStruct(const StructDef &struct_def,
     NewRootTypeFromBuffer(struct_def, code_ptr);
 
     // Generate getter for the size prefix.
-    SizePrefixFromBuffer(struct_def, code_ptr);
+    SizePrefixFromBuffer(code_ptr);
   }
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.
