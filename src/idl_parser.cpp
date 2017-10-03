@@ -2204,12 +2204,12 @@ CheckedError Parser::DoParse(const char *source,
       }
       uoffset_t toff;
       ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
+      const char *file_identifier =
+          file_identifier_.length() ? file_identifier_.c_str() : nullptr;
       if (opts.prefix_size) {
-        builder_.FinishSizePrefixed(Offset<Table>(toff),
-                  file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+        builder_.FinishSizePrefixed(Offset<Table>(toff), file_identifier);
       } else {
-        builder_.Finish(Offset<Table>(toff),
-                  file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+        builder_.Finish(Offset<Table>(toff), file_identifier);
       }
     } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
