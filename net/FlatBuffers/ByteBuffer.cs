@@ -40,6 +40,7 @@ namespace FlatBuffers
     {
         private readonly byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
+        private int _off; // parent's position if sliced
 
         public int Length { get { return _buffer.Length; } }
 
@@ -47,14 +48,17 @@ namespace FlatBuffers
 
         public ByteBuffer(byte[] buffer) : this(buffer, 0) { }
 
-        public ByteBuffer(byte[] buffer, int pos)
+        public ByteBuffer(byte[] buffer, int pos) : this(buffer, pos, 0) { }
+
+        private ByteBuffer(byte[] buffer, int pos, int off)
         {
             _buffer = buffer;
             _pos = pos;
+            _off = off;
         }
 
         public int Position {
-            get { return _pos; }
+            get { return _pos + _off; }
             set { _pos = value; }
         }
 
@@ -63,9 +67,12 @@ namespace FlatBuffers
             _pos = 0;
         }
 
+        // Create a new ByteBuffer on the same underlying data.
+        // The new ByteBuffer's position will be 0, but starting
+        // from this ByteBuffer's current position.
         public ByteBuffer Slice()
         {
-            return new ByteBuffer(_buffer, 0);
+            return new ByteBuffer(_buffer, 0, Position);
         }
 
         // Pre-allocated helper arrays for convertion.
