@@ -96,6 +96,10 @@ class CppGenerator : public BaseGenerator {
     code_ += "#define " + include_guard;
     code_ += "";
 
+    if (parser_.opts.clang_nullable) {
+      code_ += "#pragma clang system_header\n\n";
+    }
+
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";
@@ -211,10 +215,11 @@ class CppGenerator : public BaseGenerator {
 
       code_.SetValue("STRUCT_NAME", name);
       code_.SetValue("CPP_NAME", cpp_name);
+      code_.SetValue("NULLABLE_EXT", NullableExtension());
 
       // The root datatype accessor:
       code_ += "inline \\";
-      code_ += "const {{CPP_NAME}} *Get{{STRUCT_NAME}}(const void *buf) {";
+      code_ += "const {{CPP_NAME}} *{{NULLABLE_EXT}}Get{{STRUCT_NAME}}(const void *buf) {";
       code_ += "  return flatbuffers::GetRoot<{{CPP_NAME}}>(buf);";
       code_ += "}";
       code_ += "";
@@ -390,6 +395,10 @@ class CppGenerator : public BaseGenerator {
     } else {
       return "flatbuffers::uoffset_t";
     }
+  }
+
+  std::string NullableExtension() {
+    return parser_.opts.clang_nullable ? " _Nullable " : "";
   }
 
   static std::string NativeName(const std::string &name, const StructDef *sd, const IDLOptions & opts) {
@@ -1434,10 +1443,12 @@ class CppGenerator : public BaseGenerator {
       }
       call += ")";
 
+      std::string afterptr = " *" + NullableExtension();
       GenComment(field.doc_comment, "  ");
       code_.SetValue("FIELD_TYPE",
-          GenTypeGet(field.value.type, " ", "const ", " *", true));
+          GenTypeGet(field.value.type, " ", "const ", afterptr.c_str(), true));
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
+      code_.SetValue("NULLABLE_EXT", NullableExtension());
 
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
       code_ += "    return {{FIELD_VALUE}};";
@@ -1447,7 +1458,7 @@ class CppGenerator : public BaseGenerator {
         auto u = field.value.type.enum_def;
 
         code_ += "  template<typename T> "
-                "const T *{{FIELD_NAME}}_as() const;";
+                "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
 
         for (auto u_it = u->vals.vec.begin();
              u_it != u->vals.vec.end(); ++u_it) {
@@ -1464,9 +1475,10 @@ class CppGenerator : public BaseGenerator {
           code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
           code_.SetValue("U_FIELD_NAME",
                          field.name + "_as_" + ev.name);
+          code_.SetValue("U_NULLABLE", NullableExtension());
 
           // `const Type *union_name_asType() const` accessor.
-          code_ += "  {{U_FIELD_TYPE}}{{U_FIELD_NAME}}() const {";
+          code_ += "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{U_FIELD_NAME}}() const {";
           code_ += "    return {{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}} ? "
                   "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
                   ": nullptr;";
@@ -1489,7 +1501,8 @@ class CppGenerator : public BaseGenerator {
           code_ += "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, {{DEFAULT_VALUE}});";
           code_ += "  }";
         } else {
-          auto type = GenTypeGet(field.value.type, " ", "", " *", true);
+          auto postptr = " *" + NullableExtension();
+          auto type = GenTypeGet(field.value.type, " ", "", postptr.c_str(), true);
           auto underlying = accessor + type + ">(" + offset_str + ")";
           code_.SetValue("FIELD_TYPE", type);
           code_.SetValue("FIELD_VALUE",
