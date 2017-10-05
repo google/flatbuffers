@@ -895,7 +895,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(100, self.mon.Hp())
 
     def test_default_monster_name(self):
-        self.assertEqual('', self.mon.Name())
+        self.assertEqual(b'', self.mon.Name())
 
     def test_default_monster_inventory_item(self):
         self.assertEqual(0, self.mon.Inventory(0))
