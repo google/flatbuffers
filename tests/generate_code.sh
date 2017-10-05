@@ -20,5 +20,5 @@
 ../flatc -b --schema --bfbs-comments -I include_test monster_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 cd ../samples
-../flatc --cpp --gen-mutable --reflect-names --gen-object-api --clang-nullable --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+../flatc --cpp --gen-mutable --reflect-names --gen-object-api  --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 cd ../reflection
