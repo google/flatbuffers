@@ -90,7 +90,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --cpp-str-type T   Set object API string type (default std::string)\n"
       "                     T::c_str() and T::length() must be supported\n"
-      "  --clang-nullable   Add Clang _Nullable for C++ pointer.\n"
+      "  --clang-nullable   Add Clang _Nullable for C++ pointers.\n"
       "  --object-prefix    Customise class prefix for C++ object-based API.\n"
       "  --object-suffix    Customise class suffix for C++ object-based API.\n"
       "                     Default value is \"T\"\n"
