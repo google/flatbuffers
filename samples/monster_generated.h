@@ -4,6 +4,9 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTER_MYGAME_SAMPLE_H_
 #define FLATBUFFERS_GENERATED_MONSTER_MYGAME_SAMPLE_H_
 
+#pragma clang system_header
+
+
 #include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
@@ -199,11 +202,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_EQUIPPED_TYPE = 20,
     VT_EQUIPPED = 22
   };
-  const Vec3 *pos() const {
+  const Vec3 * _Nullable pos() const {
     return GetStruct<const Vec3 *>(VT_POS);
   }
-  Vec3 *mutable_pos() {
-    return GetStruct<Vec3 *>(VT_POS);
+  Vec3 * _Nullable mutable_pos() {
+    return GetStruct<Vec3 * _Nullable >(VT_POS);
   }
   int16_t mana() const {
     return GetField<int16_t>(VT_MANA, 150);
@@ -217,17 +220,17 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_hp(int16_t _hp) {
     return SetField<int16_t>(VT_HP, _hp, 100);
   }
-  const flatbuffers::String *name() const {
+  const flatbuffers::String * _Nullable name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  flatbuffers::String *mutable_name() {
-    return GetPointer<flatbuffers::String *>(VT_NAME);
+  flatbuffers::String * _Nullable mutable_name() {
+    return GetPointer<flatbuffers::String * _Nullable >(VT_NAME);
   }
-  const flatbuffers::Vector<uint8_t> *inventory() const {
+  const flatbuffers::Vector<uint8_t> * _Nullable inventory() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
-  flatbuffers::Vector<uint8_t> *mutable_inventory() {
-    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
+  flatbuffers::Vector<uint8_t> * _Nullable mutable_inventory() {
+    return GetPointer<flatbuffers::Vector<uint8_t> * _Nullable >(VT_INVENTORY);
   }
   Color color() const {
     return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2));
@@ -235,11 +238,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_color(Color _color) {
     return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *weapons() const {
+  const flatbuffers::Vector<flatbuffers::Offset<Weapon>> * _Nullable weapons() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS);
   }
-  flatbuffers::Vector<flatbuffers::Offset<Weapon>> *mutable_weapons() {
-    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Weapon>> *>(VT_WEAPONS);
+  flatbuffers::Vector<flatbuffers::Offset<Weapon>> * _Nullable mutable_weapons() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Weapon>> * _Nullable >(VT_WEAPONS);
   }
   Equipment equipped_type() const {
     return static_cast<Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0));
@@ -247,15 +250,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_equipped_type(Equipment _equipped_type) {
     return SetField<uint8_t>(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type), 0);
   }
-  const void *equipped() const {
+  const void * _Nullable equipped() const {
     return GetPointer<const void *>(VT_EQUIPPED);
   }
-  template<typename T> const T *equipped_as() const;
-  const Weapon *equipped_as_Weapon() const {
+  template<typename T> const T * _Nullable equipped_as() const;
+  const Weapon * _Nullable equipped_as_Weapon() const {
     return equipped_type() == Equipment_Weapon ? static_cast<const Weapon *>(equipped()) : nullptr;
   }
-  void *mutable_equipped() {
-    return GetPointer<void *>(VT_EQUIPPED);
+  void * _Nullable mutable_equipped() {
+    return GetPointer<void * _Nullable >(VT_EQUIPPED);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -391,11 +394,11 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_DAMAGE = 6
   };
-  const flatbuffers::String *name() const {
+  const flatbuffers::String * _Nullable name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  flatbuffers::String *mutable_name() {
-    return GetPointer<flatbuffers::String *>(VT_NAME);
+  flatbuffers::String * _Nullable mutable_name() {
+    return GetPointer<flatbuffers::String * _Nullable >(VT_NAME);
   }
   int16_t damage() const {
     return GetField<int16_t>(VT_DAMAGE, 0);
@@ -719,7 +722,7 @@ inline flatbuffers::TypeTable *WeaponTypeTable() {
   return &tt;
 }
 
-inline const MyGame::Sample::Monster *GetMonster(const void *buf) {
+inline const MyGame::Sample::Monster * _Nullable GetMonster(const void *buf) {
   return flatbuffers::GetRoot<MyGame::Sample::Monster>(buf);
 }
 
