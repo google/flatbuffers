@@ -459,6 +459,17 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
 
+    def test_create_byte_vector(self):
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"")
+        # 0-byte pad:
+        self.assertBuilderEquals(b, [0, 0, 0, 0])
+
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"\x01\x02\x03")
+        # 1-byte pad:
+        self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
+
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
@@ -1224,6 +1235,13 @@ class TestExceptions(unittest.TestCase):
         b.StartObject(0)
         s = 'test1'
         assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.IsNestedError)
+
+    def test_create_byte_vector_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = b'test1'
+        assertRaises(self, lambda: b.CreateByteVector(s),
                      flatbuffers.builder.IsNestedError)
 
     def test_finished_bytes_error(self):
