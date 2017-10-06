@@ -314,7 +314,7 @@ struct MonsterBuilder {
   void add_equipped(flatbuffers::Offset<void> equipped) {
     fbb_.AddOffset(Monster::VT_EQUIPPED, equipped);
   }
-  MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -424,7 +424,7 @@ struct WeaponBuilder {
   void add_damage(int16_t damage) {
     fbb_.AddElement<int16_t>(Weapon::VT_DAMAGE, damage, 0);
   }
-  WeaponBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit WeaponBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }

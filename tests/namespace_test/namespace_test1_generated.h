@@ -99,7 +99,7 @@ struct TableInNestedNSBuilder {
   void add_foo(int32_t foo) {
     fbb_.AddElement<int32_t>(TableInNestedNS::VT_FOO, foo, 0);
   }
-  TableInNestedNSBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TableInNestedNSBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }

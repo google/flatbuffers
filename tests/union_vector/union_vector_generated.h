@@ -214,7 +214,7 @@ struct AttackerBuilder {
   void add_sword_attack_damage(int32_t sword_attack_damage) {
     fbb_.AddElement<int32_t>(Attacker::VT_SWORD_ATTACK_DAMAGE, sword_attack_damage, 0);
   }
-  AttackerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit AttackerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -327,7 +327,7 @@ struct MovieBuilder {
   void add_characters(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> characters) {
     fbb_.AddOffset(Movie::VT_CHARACTERS, characters);
   }
-  MovieBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MovieBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }

@@ -353,7 +353,7 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct InParentNamespaceBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  InParentNamespaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit InParentNamespaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -395,7 +395,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct MonsterBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -454,7 +454,7 @@ struct TestSimpleTableWithEnumBuilder {
   void add_color(Color color) {
     fbb_.AddElement<int8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<int8_t>(color), 2);
   }
-  TestSimpleTableWithEnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TestSimpleTableWithEnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -537,7 +537,7 @@ struct StatBuilder {
   void add_count(uint16_t count) {
     fbb_.AddElement<uint16_t>(Stat::VT_COUNT, count, 0);
   }
-  StatBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit StatBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -1078,7 +1078,7 @@ struct MonsterBuilder {
   void add_parent_namespace_test(flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test) {
     fbb_.AddOffset(Monster::VT_PARENT_NAMESPACE_TEST, parent_namespace_test);
   }
-  MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -1419,7 +1419,7 @@ struct TypeAliasesBuilder {
   void add_vf64(flatbuffers::Offset<flatbuffers::Vector<double>> vf64) {
     fbb_.AddOffset(TypeAliases::VT_VF64, vf64);
   }
-  TypeAliasesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TypeAliasesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }

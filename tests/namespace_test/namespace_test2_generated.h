@@ -70,7 +70,7 @@ struct TableInFirstNSBuilder {
   void add_foo_struct(const NamespaceA::NamespaceB::StructInNestedNS *foo_struct) {
     fbb_.AddStruct(TableInFirstNS::VT_FOO_STRUCT, foo_struct);
   }
-  TableInFirstNSBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TableInFirstNSBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -134,7 +134,7 @@ struct TableInCBuilder {
   void add_refer_to_a2(flatbuffers::Offset<NamespaceA::SecondTableInA> refer_to_a2) {
     fbb_.AddOffset(TableInC::VT_REFER_TO_A2, refer_to_a2);
   }
-  TableInCBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TableInCBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -184,7 +184,7 @@ struct SecondTableInABuilder {
   void add_refer_to_c(flatbuffers::Offset<NamespaceC::TableInC> refer_to_c) {
     fbb_.AddOffset(SecondTableInA::VT_REFER_TO_C, refer_to_c);
   }
-  SecondTableInABuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SecondTableInABuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }

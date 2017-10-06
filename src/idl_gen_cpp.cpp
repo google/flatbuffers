@@ -1693,7 +1693,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Builder constructor
-    code_ += "  {{STRUCT_NAME}}Builder(flatbuffers::FlatBufferBuilder &_fbb)";
+    code_ += "  explicit {{STRUCT_NAME}}Builder(flatbuffers::FlatBufferBuilder &_fbb)";
     code_ += "        : fbb_(_fbb) {";
     code_ += "    start_ = fbb_.StartTable();";
     code_ += "  }";
