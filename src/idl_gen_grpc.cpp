@@ -214,7 +214,7 @@ class FlatBufFile : public grpc_generator::File {
         return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
       }
       case kLanguagePython: {
-        return "";
+        return "import flatbuffers";
       }
     return "";
   }
