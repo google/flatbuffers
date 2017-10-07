@@ -63,16 +63,12 @@ class MonsterStorage(monster_grpc_fb.MonsterStorageServicer):
   def Store(self, request, context):
     return monster_grpc_fb.Weapon(name='Hello, %s!' % request.name)
 
-def serve():
+def serve(name):
   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
   monster_grpc_fb.add_MonsterStorageServicer_to_server(MonsterStorage(), server)
   server.add_insecure_port('[::]:50051')
   server.start()
-  try:
-    while True:
-      time.sleep(_ONE_DAY_IN_SECONDS)
-  except KeyboardInterrupt:
-    server.stop(0)
+  run(name)
 
 def run(name):
   channel = grpc.insecure_channel('localhost:50051')
@@ -85,5 +81,4 @@ if __name__ == '__main__':
   builder = build()
   buf = builder.Output()
   monster = MyGame.Sample.Monster.Monster.GetRootAsMonster(buf, 0)
-  serve()
-  run(monster.Name())
+  serve(monster.Name())
