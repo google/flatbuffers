@@ -56,9 +56,11 @@ def assertRaises(test_case, fn, exception_class):
 class TestWireFormat(unittest.TestCase):
     def test_wire_format(self):
         # Verify that using the generated Python code builds a buffer without
-        # returning errors, and is interpreted correctly:
-        gen_buf, gen_off = make_monster_from_generated_code()
-        CheckReadBuffer(gen_buf, gen_off)
+        # returning errors, and is interpreted correctly, for size prefixed
+        # representation and regular:
+        for sizePrefix in [True, False]:
+            gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix)
+            CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -74,7 +76,7 @@ class TestWireFormat(unittest.TestCase):
         f.close()
 
 
-def CheckReadBuffer(buf, offset):
+def CheckReadBuffer(buf, offset, sizePrefix = False):
     ''' CheckReadBuffer checks that the given buffer is evaluated correctly
         as the example Monster. '''
 
@@ -83,7 +85,13 @@ def CheckReadBuffer(buf, offset):
         if not stmt:
             raise AssertionError('CheckReadBuffer case failed')
 
-    monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
+    if sizePrefix:
+        size = MyGame.Example.Monster.Monster.GetSizePrefix(buf, offset)
+        # taken from the size of monsterdata_python_wire.mon, minus 4
+        asserter(size == 348)
+        monster = MyGame.Example.Monster.Monster.GetSizePrefixedRootAsMonster(buf, offset)
+    else:
+        monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
     asserter(monster.Mana() == 150)
@@ -810,7 +818,7 @@ class TestByteLayout(unittest.TestCase):
         ])
 
 
-def make_monster_from_generated_code():
+def make_monster_from_generated_code(sizePrefix = False):
     ''' Use generated code to build the example Monster. '''
 
     b = flatbuffers.Builder(0)
@@ -871,7 +879,10 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddVectorOfDoubles(b, VectorOfDoubles)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
-    b.Finish(mon)
+    if sizePrefix:
+        b.FinishSizePrefixed(mon)
+    else:
+        b.Finish(mon)
 
     return b.Bytes, b.Head()
 
