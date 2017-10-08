@@ -6,4 +6,5 @@ mcs -out:fbnettest.exe ../../net/FlatBuffers/*.cs ../MyGame/Example/*.cs FlatBuf
 ./fbnettest.exe
 rm fbnettest.exe
 rm Resources/monsterdata_cstest.mon
+rm Resources/monsterdata_cstest_sp.mon
 

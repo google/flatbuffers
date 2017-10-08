@@ -13,10 +13,7 @@ public struct TableInFirstNS : IFlatbufferObject
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static TableInFirstNS GetRootAsTableInFirstNS(ByteBuffer _bb) { return GetRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
-  public static TableInFirstNS GetSizePrefixedRootAsTableInFirstNS(ByteBuffer _bb) { return GetSizePrefixedRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS GetRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public static TableInFirstNS GetSizePrefixedRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { ByteBuffer __bb = _bb.Slice(); __bb.Position = FlatBufferConstants.SizePrefixLength; return GetRootAsTableInFirstNS(__bb, obj); }
-  public static int GetSizePrefix(ByteBuffer _bb) { return _bb.GetInt(_bb.Position); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

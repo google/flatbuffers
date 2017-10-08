@@ -10,10 +10,7 @@ import com.google.flatbuffers.*;
 @SuppressWarnings("unused")
 public final class Monster extends Table {
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
-  public static Monster getSizePrefixedRootAsMonster(ByteBuffer _bb) { return getSizePrefixedRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public static Monster getSizePrefixedRootAsMonster(ByteBuffer _bb, Monster obj) { ByteBuffer __bb = _bb.slice(); __bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsMonster(__bb, obj); }
-  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Monster __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

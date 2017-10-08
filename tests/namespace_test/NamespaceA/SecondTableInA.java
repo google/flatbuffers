@@ -10,10 +10,7 @@ import com.google.flatbuffers.*;
 @SuppressWarnings("unused")
 public final class SecondTableInA extends Table {
   public static SecondTableInA getRootAsSecondTableInA(ByteBuffer _bb) { return getRootAsSecondTableInA(_bb, new SecondTableInA()); }
-  public static SecondTableInA getSizePrefixedRootAsSecondTableInA(ByteBuffer _bb) { return getSizePrefixedRootAsSecondTableInA(_bb, new SecondTableInA()); }
   public static SecondTableInA getRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public static SecondTableInA getSizePrefixedRootAsSecondTableInA(ByteBuffer _bb, SecondTableInA obj) { ByteBuffer __bb = _bb.slice(); __bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsSecondTableInA(__bb, obj); }
-  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public SecondTableInA __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

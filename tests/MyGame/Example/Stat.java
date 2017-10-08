@@ -10,10 +10,7 @@ import com.google.flatbuffers.*;
 @SuppressWarnings("unused")
 public final class Stat extends Table {
   public static Stat getRootAsStat(ByteBuffer _bb) { return getRootAsStat(_bb, new Stat()); }
-  public static Stat getSizePrefixedRootAsStat(ByteBuffer _bb) { return getSizePrefixedRootAsStat(_bb, new Stat()); }
   public static Stat getRootAsStat(ByteBuffer _bb, Stat obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public static Stat getSizePrefixedRootAsStat(ByteBuffer _bb, Stat obj) { ByteBuffer __bb = _bb.slice(); __bb.position(Constants.SIZE_PREFIX_LENGTH); return getRootAsStat(__bb, obj); }
-  public static int getSizePrefix(ByteBuffer _bb) { _bb.order(ByteOrder.LITTLE_ENDIAN); return _bb.getInt(_bb.position()); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Stat __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

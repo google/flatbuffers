@@ -115,23 +115,26 @@ namespace FlatBuffers.Test
             using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                File.WriteAllBytes(@"Resources/monsterdata_cstest.mon",data);
+                string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                File.WriteAllBytes(filename, data);
+            }
+
+            // Remove the size prefix if necessary for further testing
+            ByteBuffer dataBuffer = fbb.DataBuffer;
+            if (sizePrefix)
+            {
+                Assert.AreEqual(ByteBufferUtil.GetSizePrefix(dataBuffer) + FlatBufferConstants.SizePrefixLength,
+                                dataBuffer.Length - dataBuffer.Position);
+                dataBuffer = ByteBufferUtil.RemoveSizePrefix(dataBuffer);
             }
 
             // Now assert the buffer
-            TestBuffer(fbb.DataBuffer, sizePrefix);
+            TestBuffer(dataBuffer);
 
             //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
             // revert to original values after testing
-            Monster monster;
-            if (sizePrefix)
-            {
-                monster = Monster.GetSizePrefixedRootAsMonster(fbb.DataBuffer);
-            }
-            else
-            {
-                monster = Monster.GetRootAsMonster(fbb.DataBuffer);
-            }
+            Monster monster = Monster.GetRootAsMonster(dataBuffer);
+            
 
             // mana is optional and does not exist in the buffer so the mutation should fail
             // the mana field should retain its default value
@@ -182,21 +185,12 @@ namespace FlatBuffers.Test
             pos.MutateX(1.0f);
             Assert.AreEqual(pos.X, 1.0f);
 
-            TestBuffer(fbb.DataBuffer, sizePrefix);
+            TestBuffer(dataBuffer);
         }
 
-        private void TestBuffer(ByteBuffer bb, bool sizePrefix)
+        private void TestBuffer(ByteBuffer bb)
         {
-            Monster monster;
-            if (sizePrefix)
-            {
-                Assert.AreEqual(300, Monster.GetSizePrefix(bb));
-                monster = Monster.GetSizePrefixedRootAsMonster(bb);
-            }
-            else
-            {
-                monster = Monster.GetRootAsMonster(bb);
-            }
+            Monster monster = Monster.GetRootAsMonster(bb);
 
             Assert.AreEqual(80, monster.Hp);
             Assert.AreEqual(150, monster.Mana);
@@ -257,7 +251,7 @@ namespace FlatBuffers.Test
         {
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
             var bb = new ByteBuffer(data);
-            TestBuffer(bb, false);
+            TestBuffer(bb);
         }
 
         [FlatBuffersTestMethod]

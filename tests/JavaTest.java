@@ -21,6 +21,8 @@ import java.nio.channels.FileChannel;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
+import com.google.flatbuffers.ByteBufferUtil;
+import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
 
 class JavaTest {
@@ -45,18 +47,18 @@ class JavaTest {
         // Now test it:
 
         ByteBuffer bb = ByteBuffer.wrap(data);
-        TestBuffer(bb, false);
+        TestBuffer(bb);
 
         // Second, let's create a FlatBuffer from scratch in Java, and test it also.
         // We use an initial size of 1 to exercise the reallocation algorithm,
         // normally a size larger than the typical FlatBuffer you generate would be
         // better for performance.
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+
         TestBuilderBasics(fbb, true);
-        fbb = new FlatBufferBuilder(1);
         TestBuilderBasics(fbb, false);
 
-        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer(), false);
+        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer());
 
         TestNamespaceNesting();
 
@@ -80,19 +82,10 @@ class JavaTest {
       TestEq(Any.name(Any.Monster), "Monster");
     }
 
-    static void TestBuffer(ByteBuffer bb, boolean sizePrefix) {
-        ByteBuffer _bb = bb.slice();
-        if (sizePrefix) {
-            _bb.position(4);
-        }
-        TestEq(Monster.MonsterBufferHasIdentifier(_bb), true);
+    static void TestBuffer(ByteBuffer bb) {
+        TestEq(Monster.MonsterBufferHasIdentifier(bb), true);
 
-        Monster monster;
-        if (sizePrefix) {
-            monster = Monster.getSizePrefixedRootAsMonster(bb);
-        } else {
-            monster = Monster.getRootAsMonster(bb);
-        }
+        Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.hp(), (short)80);
         TestEq(monster.mana(), (short)150);  // default
@@ -142,15 +135,10 @@ class JavaTest {
 
     // this method checks additional fields not present in the binary buffer read from file
     // these new tests are performed on top of the regular tests
-    static void TestExtendedBuffer(ByteBuffer bb, boolean sizePrefix) {
-        TestBuffer(bb, sizePrefix);
+    static void TestExtendedBuffer(ByteBuffer bb) {
+        TestBuffer(bb);
 
-        Monster monster;
-        if (sizePrefix) {
-            monster = Monster.getSizePrefixedRootAsMonster(bb);
-        } else {
-            monster = Monster.getRootAsMonster(bb);
-        }
+        Monster monster = Monster.getRootAsMonster(bb);
 
         TestEq(monster.testhashu32Fnv1(), Integer.MAX_VALUE + 1L);
     }
@@ -348,7 +336,8 @@ class JavaTest {
         // Java code. They are functionally equivalent though.
 
         try {
-            FileChannel fc = new FileOutputStream("monsterdata_java_wire.mon").getChannel();
+            String filename = "monsterdata_java_wire" + (sizePrefix ? "_sp" : "") + ".mon";
+            FileChannel fc = new FileOutputStream(filename).getChannel();
             fc.write(fbb.dataBuffer().duplicate());
             fc.close();
         } catch(java.io.IOException e) {
@@ -357,23 +346,24 @@ class JavaTest {
         }
 
         // Test it:
-        TestExtendedBuffer(fbb.dataBuffer(), sizePrefix);
+        ByteBuffer dataBuffer = fbb.dataBuffer();
+        if (sizePrefix) {
+            TestEq(ByteBufferUtil.getSizePrefix(dataBuffer) + SIZE_PREFIX_LENGTH,
+                   dataBuffer.remaining());
+            dataBuffer = ByteBufferUtil.removeSizePrefix(dataBuffer);
+        }
+        TestExtendedBuffer(dataBuffer);
 
         // Make sure it also works with read only ByteBuffers. This is slower,
         // since creating strings incurs an additional copy
         // (see Table.__string).
-        TestExtendedBuffer(fbb.dataBuffer().asReadOnlyBuffer(), sizePrefix);
+        TestExtendedBuffer(dataBuffer.asReadOnlyBuffer());
 
         TestEnums();
 
         //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
         // revert to original values after testing
-        Monster monster;
-        if (sizePrefix) {
-            monster = Monster.getSizePrefixedRootAsMonster(fbb.dataBuffer());
-        } else {
-            monster = Monster.getRootAsMonster(fbb.dataBuffer());
-        }
+        Monster monster = Monster.getRootAsMonster(dataBuffer);
 
         // mana is optional and does not exist in the buffer so the mutation should fail
         // the mana field should retain its default value
