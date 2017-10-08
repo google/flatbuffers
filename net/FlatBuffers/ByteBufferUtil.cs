@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
- using System;
+using System;
 
- namespace FlatBuffers
- {
- 	/// <summary>
- 	/// Class that collects utility functions around `ByteBuffer`.
- 	/// </summary>
- 	public class ByteBufferUtil
- 	{
- 		// Extract the size prefix from a `ByteBuffer`.
-	    public static int GetSizePrefix(ByteBuffer bb) {
-	        return bb.GetInt(bb.Position);
-	    }
+namespace FlatBuffers
+{
+	/// <summary>
+	/// Class that collects utility functions around `ByteBuffer`.
+	/// </summary>
+	public class ByteBufferUtil
+	{
+		// Extract the size prefix from a `ByteBuffer`.
+		public static int GetSizePrefix(ByteBuffer bb) {
+			return bb.GetInt(bb.Position);
+		}
 
 		// Create a slice of a size-prefixed `ByteBuffer` that has its position
-	    // advanced just past the size prefix.
-	    public static ByteBuffer RemoveSizePrefix(ByteBuffer bb) {
-	        ByteBuffer s = bb.Slice();
-	        s.Position = FlatBufferConstants.SizePrefixLength;
-	        return s;
-	    }
- 	}
- }
+		// advanced just past the size prefix.
+		public static ByteBuffer RemoveSizePrefix(ByteBuffer bb) {
+			ByteBuffer s = bb.Slice();
+			s.Position = FlatBufferConstants.SizePrefixLength;
+			return s;
+		}
+	}
+}
