@@ -83,7 +83,6 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
                                   std::string *code_ptr) {
   std::string &code = *code_ptr;
 
-  // without size prefixed
   code += Indent + "@classmethod\n";
   code += Indent + "def GetRootAs";
   code += struct_def.name;
