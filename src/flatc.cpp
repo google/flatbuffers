@@ -85,7 +85,6 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
       "  --gen-onefile      Generate single output file for C#.\n"
       "  --gen-name-strings Generate type name functions for C++.\n"
-      "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --gen-object-api   Generate an additional object-based API.\n"
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --cpp-str-type T   Set object API string type (default std::string)\n"
@@ -229,8 +228,6 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-      } else if(arg == "--escape-proto-ids") {
-        opts.escape_proto_identifiers = true;
       } else if(arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {

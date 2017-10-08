@@ -225,7 +225,7 @@ static void GetStringField(const StructDef &struct_def,
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
   code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return \"\"\n\n";
+  code += Indent + Indent + "return bytes()\n\n";
 }
 
 // Get the value of a union from an object.

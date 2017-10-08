@@ -75,7 +75,7 @@ static bool ValidateUTF8(const std::string &str) {
   return true;
 }
 
-CheckedError Parser::Error(const std::string &msg) {
+void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   #ifdef _WIN32
     error_ += "(" + NumToString(line_) + ")";  // MSVC alike
@@ -83,7 +83,15 @@ CheckedError Parser::Error(const std::string &msg) {
     if (file_being_parsed_.length()) error_ += ":";
     error_ += NumToString(line_) + ":0";  // gcc alike
   #endif
-  error_ += ": error: " + msg;
+  error_ += ": " + msg;
+}
+
+void Parser::Warning(const std::string &msg) {
+  Message("warning: " + msg);
+}
+
+CheckedError Parser::Error(const std::string &msg) {
+  Message("error: " + msg);
   return CheckedError(true);
 }
 
@@ -454,6 +462,12 @@ EnumDef *Parser::LookupEnum(const std::string &id) {
   return nullptr;
 }
 
+StructDef *Parser::LookupStruct(const std::string &id) const {
+  auto sd = structs_.Lookup(id);
+  if (sd) sd->refcount++;
+  return sd;
+}
+
 CheckedError Parser::ParseTypeIdent(Type &type) {
   std::string id = attribute_;
   EXPECT(kTokenIdentifier);
@@ -557,7 +571,7 @@ CheckedError Parser::AddField(StructDef &struct_def, const std::string &name,
 CheckedError Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
 
-  if (structs_.Lookup(name))
+  if (LookupStruct(name))
     return Error("field name can not be the same as table/struct name");
 
   std::vector<std::string> dc = doc_comment_;
@@ -610,7 +624,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       !type.enum_def->attributes.Lookup("bit_flags") &&
       !type.enum_def->ReverseLookup(static_cast<int>(
                          StringToInt(field->value.constant.c_str()))))
-    return Error("enum " + type.enum_def->name +
+    Warning("enum " + type.enum_def->name +
           " does not have a declaration for this field\'s default of " +
           field->value.constant);
 
@@ -682,7 +696,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Keep a pointer to StructDef in FieldDef to simplify re-use later
     auto nested_qualified_name =
         current_namespace_->GetFullyQualifiedName(nested->constant);
-    field->nested_flatbuffer = structs_.Lookup(nested_qualified_name);
+    field->nested_flatbuffer = LookupStruct(nested_qualified_name);
   }
 
   if (field->attributes.Lookup("flexbuffer")) {
@@ -1326,7 +1340,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
                                       bool create_if_new, bool definition) {
   std::string qualified_name = current_namespace_->GetFullyQualifiedName(name);
   // See if it exists pre-declared by an unqualified use.
-  auto struct_def = structs_.Lookup(name);
+  auto struct_def = LookupStruct(name);
   if (struct_def && struct_def->predecl) {
     if (definition) {
       // Make sure it has the current namespace, and is registered under its
@@ -1337,7 +1351,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
     return struct_def;
   }
   // See if it exists pre-declared by an qualified use.
-  struct_def = structs_.Lookup(qualified_name);
+  struct_def = LookupStruct(qualified_name);
   if (struct_def && struct_def->predecl) {
     if (definition) {
       // Make sure it has the current namespace.
@@ -1349,7 +1363,7 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
     // Search thru parent namespaces.
     for (size_t components = current_namespace_->components.size();
          components && !struct_def; components--) {
-      struct_def = structs_.Lookup(
+      struct_def = LookupStruct(
           current_namespace_->GetFullyQualifiedName(name, components - 1));
     }
   }
@@ -1363,12 +1377,13 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
       // Not a definition.
       // Rather than failing, we create a "pre declared" StructDef, due to
       // circular references, and check for errors at the end of parsing.
-      // It is defined in the root namespace, since we don't know what the
+      // It is defined in the current namespace, as the best guess what the
       // final namespace will be.
-      // TODO: maybe safer to use special namespace?
       structs_.Add(name, struct_def);
       struct_def->name = name;
-      struct_def->defined_namespace = empty_namespace_;
+      struct_def->defined_namespace = current_namespace_;
+      struct_def->original_location.reset(new std::string(file_being_parsed_ +
+                                                     ":" + NumToString(line_)));
     }
   }
   return struct_def;
@@ -1655,9 +1670,9 @@ CheckedError Parser::ParseService() {
 }
 
 bool Parser::SetRootType(const char *name) {
-  root_struct_def_ = structs_.Lookup(name);
+  root_struct_def_ = LookupStruct(name);
   if (!root_struct_def_)
-    root_struct_def_ = structs_.Lookup(
+    root_struct_def_ = LookupStruct(
                          current_namespace_->GetFullyQualifiedName(name));
   return root_struct_def_ != nullptr;
 }
@@ -1735,6 +1750,7 @@ CheckedError Parser::ParseProtoDecl() {
       *ns = *current_namespace_;
       // But with current message name.
       ns->components.push_back(name);
+      ns->from_table++;
       parent_namespace = current_namespace_;
       current_namespace_ = UniqueNamespace(ns);
     }
@@ -1797,9 +1813,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
       NEXT();
-      EXPECT(kTokenIntegerConstant);
-      while (Is(',')) { NEXT(); EXPECT(kTokenIntegerConstant); }
-      EXPECT(';');
+      while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
+      NEXT();
     } else {
       std::vector<std::string> field_comment = doc_comment_;
       // Parse the qualifier.
@@ -1837,6 +1852,13 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       if (repeated) {
         type.element = type.base_type;
         type.base_type = BASE_TYPE_VECTOR;
+        if (type.element == BASE_TYPE_VECTOR) {
+          // We have a vector or vectors, which FlatBuffers doesn't support.
+          // For now make it a vector of string (since the source is likely
+          // "repeated bytes").
+          // TODO(wvo): A better solution would be to wrap this in a table.
+          type.element = BASE_TYPE_STRING;
+        }
       }
       std::string name = attribute_;
       EXPECT(kTokenIdentifier);
@@ -2088,11 +2110,63 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   ECHECK(DoParse(source, include_paths, source_filename, nullptr));
 
   // Check that all types were defined.
-  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
-    if ((*it)->predecl) {
-      return Error("type referenced but not defined (check namespace): " +
-                   (*it)->name);
+  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ) {
+    auto &struct_def = **it;
+    if (struct_def.predecl) {
+      if (opts.proto_mode) {
+        // Protos allow enums to be used before declaration, so check if that
+        // is the case here.
+        EnumDef *enum_def = nullptr;
+        for (size_t components = struct_def.defined_namespace->
+                                   components.size() + 1;
+             components && !enum_def; components--) {
+          auto qualified_name = struct_def.defined_namespace->
+                                  GetFullyQualifiedName(struct_def.name,
+                                                        components - 1);
+          enum_def = LookupEnum(qualified_name);
+        }
+        if (enum_def) {
+          // This is pretty slow, but a simple solution for now.
+          auto initial_count = struct_def.refcount;
+          for (auto struct_it = structs_.vec.begin();
+                    struct_it != structs_.vec.end();
+                    ++struct_it) {
+            auto &sd = **struct_it;
+            for (auto field_it = sd.fields.vec.begin();
+                      field_it != sd.fields.vec.end();
+                      ++field_it) {
+              auto &field = **field_it;
+              if (field.value.type.struct_def == &struct_def) {
+                field.value.type.struct_def = nullptr;
+                field.value.type.enum_def = enum_def;
+                auto &bt = field.value.type.base_type == BASE_TYPE_VECTOR
+                           ? field.value.type.element
+                           : field.value.type.base_type;
+                assert(bt == BASE_TYPE_STRUCT);
+                bt = enum_def->underlying_type.base_type;
+                struct_def.refcount--;
+                enum_def->refcount++;
+              }
+            }
+          }
+          if (struct_def.refcount)
+            return Error("internal: " + NumToString(struct_def.refcount) + "/" +
+                         NumToString(initial_count) +
+                         " use(s) of pre-declaration enum not accounted for: "
+                         + enum_def->name);
+          structs_.dict.erase(structs_.dict.find(struct_def.name));
+          it = structs_.vec.erase(it);
+          delete &struct_def;
+          continue;  // Skip error.
+        }
+      }
+      auto err = "type referenced but not defined (check namespace): " +
+                 struct_def.name;
+      if (struct_def.original_location)
+        err += ", originally at: " + *struct_def.original_location;
+      return Error(err);
     }
+    ++it;
   }
 
   // This check has to happen here and not earlier, because only now do we
@@ -2442,7 +2516,7 @@ std::string Parser::ConformTo(const Parser &base) {
     auto &struct_def = **sit;
     auto qualified_name =
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
-    auto struct_def_base = base.structs_.Lookup(qualified_name);
+    auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
     for (auto fit = struct_def.fields.vec.begin();
              fit != struct_def.fields.vec.end(); ++fit) {
