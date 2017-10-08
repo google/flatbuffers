@@ -25,6 +25,7 @@ import unittest
 
 
 from flatbuffers import compat
+from flatbuffers import util
 from flatbuffers.compat import range_func as compat_range
 from flatbuffers.compat import NumpyRequiredForThisFeature
 
@@ -86,12 +87,11 @@ def CheckReadBuffer(buf, offset, sizePrefix = False):
             raise AssertionError('CheckReadBuffer case failed')
 
     if sizePrefix:
-        size = MyGame.Example.Monster.Monster.GetSizePrefix(buf, offset)
+        size = util.GetSizePrefix(buf, offset)
         # taken from the size of monsterdata_python_wire.mon, minus 4
         asserter(size == 348)
-        monster = MyGame.Example.Monster.Monster.GetSizePrefixedRootAsMonster(buf, offset)
-    else:
-        monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
+        buf, offset = util.RemoveSizePrefix(buf, offset)
+    monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
     asserter(monster.Mana() == 150)

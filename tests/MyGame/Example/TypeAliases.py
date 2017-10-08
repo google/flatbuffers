@@ -14,14 +14,6 @@ class TypeAliases(object):
         x.Init(buf, n + offset)
         return x
 
-    @classmethod
-    def GetSizePrefixedRootAsTypeAliases(cls, buf, offset):
-        return cls.GetRootAsTypeAliases(buf, offset + flatbuffers.number_types.Int32Flags.bytewidth)
-
-    @classmethod
-    def GetSizePrefix(cls, buf, offset):
-        return flatbuffers.encode.Get(flatbuffers.packer.int32, buf, offset)
-
     # TypeAliases
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

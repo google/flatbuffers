@@ -96,32 +96,6 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
   code += Indent + Indent + "x.Init(buf, n + offset)\n";
   code += Indent + Indent + "return x\n";
   code += "\n";
-
-  // with size prefixed
-  code += Indent + "@classmethod\n";
-  code += Indent + "def GetSizePrefixedRootAs";
-  code += struct_def.name;
-  code += "(cls, buf, offset):";
-  code += "\n";
-  code += Indent + Indent;
-  code += "return cls.GetRootAs";
-  code += struct_def.name;
-  code += "(buf, offset + ";
-  code += "flatbuffers.number_types.Int32Flags.bytewidth)\n";
-  code += "\n" ;
-}
-
-// Obtain the prefix size from a buffer
-static void SizePrefixFromBuffer(std::string *code_ptr) {
-  std::string &code = *code_ptr;
-
-  code += Indent + "@classmethod\n";
-  code += Indent + "def GetSizePrefix(cls, buf, offset):";
-  code += "\n";
-  code += Indent + Indent;
-  code += "return flatbuffers.encode.Get";
-  code += "(flatbuffers.packer.int32, buf, offset)\n";
-  code += "\n";
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
@@ -547,9 +521,6 @@ static void GenStruct(const StructDef &struct_def,
     // Generate a special accessor for the table that has been declared as
     // the root type.
     NewRootTypeFromBuffer(struct_def, code_ptr);
-
-    // Generate getter for the size prefix.
-    SizePrefixFromBuffer(code_ptr);
   }
   // Generate the Init method that sets the field in a pre-existing
   // accessor object. This is to allow object reuse.

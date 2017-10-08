@@ -14,14 +14,6 @@ class TableInNestedNS(object):
         x.Init(buf, n + offset)
         return x
 
-    @classmethod
-    def GetSizePrefixedRootAsTableInNestedNS(cls, buf, offset):
-        return cls.GetRootAsTableInNestedNS(buf, offset + flatbuffers.number_types.Int32Flags.bytewidth)
-
-    @classmethod
-    def GetSizePrefix(cls, buf, offset):
-        return flatbuffers.encode.Get(flatbuffers.packer.int32, buf, offset)
-
     # TableInNestedNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

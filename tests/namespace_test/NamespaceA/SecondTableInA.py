@@ -14,14 +14,6 @@ class SecondTableInA(object):
         x.Init(buf, n + offset)
         return x
 
-    @classmethod
-    def GetSizePrefixedRootAsSecondTableInA(cls, buf, offset):
-        return cls.GetRootAsSecondTableInA(buf, offset + flatbuffers.number_types.Int32Flags.bytewidth)
-
-    @classmethod
-    def GetSizePrefix(cls, buf, offset):
-        return flatbuffers.encode.Get(flatbuffers.packer.int32, buf, offset)
-
     # SecondTableInA
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
