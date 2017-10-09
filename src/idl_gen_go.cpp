@@ -34,6 +34,12 @@
 #endif
 
 namespace flatbuffers {
+
+static std::string GeneratedFileName(const std::string &path,
+                                     const std::string &file_name) {
+  return path + file_name + "_generated.go";
+}
+
 namespace go {
 
 // see https://golang.org/ref/spec#Keywords
@@ -752,18 +758,35 @@ class GoGenerator : public BaseGenerator {
   }
 
   bool generate() {
+    std::string one_file_code;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
       go::GenEnum(**it, &enumcode);
-      if (!SaveType(**it, enumcode, false)) return false;
+      if (parser_.opts.one_file) {
+        one_file_code += enumcode;
+      } else {
+        if (!SaveType(**it, enumcode, false)) return false;
+      }
     }
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
       go::GenStruct(**it, &declcode);
-      if (!SaveType(**it, declcode, true)) return false;
+      if (parser_.opts.one_file) {
+        one_file_code += declcode;
+      } else {
+        if (!SaveType(**it, declcode, true)) return false;
+      }
+    }
+
+    if (parser_.opts.one_file) {
+      std::string code = "";
+      BeginFile(LastNamespacePart(go_namespace_), true, &code);
+      code += one_file_code;
+      const std::string filename = GeneratedFileName(path_, file_name_);
+      return SaveFile(filename.c_str(), code, false);
     }
 
     return true;
@@ -778,7 +801,11 @@ class GoGenerator : public BaseGenerator {
     code += "package " + name_space_name + "\n\n";
     if (needs_imports) {
       code += "import (\n";
-      code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
+      if (!parser_.opts.go_import.empty()) {
+        code += "\tflatbuffers \"" + parser_.opts.go_import +"\"\n";
+      } else{
+        code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
+      }
       code += ")\n\n";
     }
   }
