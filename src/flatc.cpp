@@ -89,6 +89,7 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --cpp-str-type T   Set object API string type (default std::string)\n"
       "                     T::c_str() and T::length() must be supported\n"
+      "  --clang-nullable   Add Clang _Nullable for C++ pointers.\n"
       "  --object-prefix    Customise class prefix for C++ object-based API.\n"
       "  --object-suffix    Customise class suffix for C++ object-based API.\n"
       "                     Default value is \"T\"\n"
@@ -205,6 +206,8 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if (arg == "--cpp-str-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_string_type = argv[argi];
+      } else if (arg == "--clang-nullable") {
+        opts.clang_nullable = true;
       } else if (arg == "--object-prefix") {
         if (++argi >= argc) Error("missing prefix following" + arg, true);
         opts.object_prefix = argv[argi];
