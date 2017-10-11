@@ -199,7 +199,8 @@ template<typename T> class SymbolTable {
 
 // A name space, as set in the schema.
 struct Namespace {
-  std::vector<std::string> components;
+  Namespace() : from_table(0) {}
+
 
   // Given a (potentally unqualified) name, return the "fully qualified" name
   // which has a full namespaced descriptor.
@@ -207,12 +208,15 @@ struct Namespace {
   // the current namespace has.
   std::string GetFullyQualifiedName(const std::string &name,
                                     size_t max_components = 1000) const;
+
+  std::vector<std::string> components;
+  size_t from_table;  // Part of the namespace corresponds to a message/table.
 };
 
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
   Definition() : generated(false), defined_namespace(nullptr),
-                 serialized_location(0), index(-1) {}
+                 serialized_location(0), index(-1), refcount(1) {}
 
   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
     reflection::KeyValue>>>
@@ -229,6 +233,7 @@ struct Definition {
   // For use with Serialize()
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
+  int refcount;
 };
 
 struct FieldDef : public Definition {
@@ -271,12 +276,15 @@ struct StructDef : public Definition {
                                        const Parser &parser) const;
 
   SymbolTable<FieldDef> fields;
+
   bool fixed;       // If it's struct, not a table.
   bool predecl;     // If it's used before it was defined.
   bool sortbysize;  // Whether fields come in the declaration or size order.
   bool has_key;     // It has a key field.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+
+  std::unique_ptr<std::string> original_location;
 };
 
 inline bool IsStruct(const Type &type) {
@@ -361,7 +369,6 @@ struct IDLOptions {
   bool generate_all;
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
-  bool escape_proto_identifiers;
   bool generate_object_based_api;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
@@ -374,6 +381,7 @@ struct IDLOptions {
   bool keep_include_path;
   bool binary_schema_comments;
   bool skip_flatbuffers_import;
+  std::string go_import;
   std::string go_namespace;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
@@ -418,7 +426,6 @@ struct IDLOptions {
       generate_all(false),
       skip_unexpected_fields_in_json(false),
       generate_name_strings(false),
-      escape_proto_identifiers(false),
       generate_object_based_api(false),
       cpp_object_api_pointer_type("std::unique_ptr"),
       clang_nullable(false),
@@ -570,7 +577,11 @@ class Parser : public ParserState {
 
   FLATBUFFERS_CHECKED_ERROR CheckInRange(int64_t val, int64_t min, int64_t max);
 
+  StructDef *LookupStruct(const std::string &id) const;
+
 private:
+  void Message(const std::string &msg);
+  void Warning(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
   FLATBUFFERS_CHECKED_ERROR Next();
