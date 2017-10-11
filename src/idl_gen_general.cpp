@@ -99,7 +99,7 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "",
       "",
       "",
-      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n"
+      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\nimport javax.annotation.*;\n"
         "import com.google.flatbuffers.*;\n\n@SuppressWarnings(\"unused\")\n",
       {
         "/**",
@@ -233,6 +233,12 @@ class GeneralGenerator : public BaseGenerator {
     return std::string() + (lang_.language == IDLOptions::kJava
                                 ? static_cast<char>(tolower(upper))
                                 : upper);
+}
+
+std::string GenNullableAnnotation(const Type& t) {
+  return lang_.language == IDLOptions::kJava 
+    && parser_.opts.gen_nullable 
+    && !IsScalar(DestinationType(t, true).base_type) ? " @Nullable ": "";
 }
 
 static bool IsEnum(const Type& type) {
@@ -869,7 +875,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     std::string dest_mask = DestinationMask(field.value.type, true);
     std::string dest_cast = DestinationCast(field.value.type);
     std::string src_cast = SourceCast(field.value.type);
-    std::string method_start = "  public " + type_name_dest + optional + " " +
+    std::string method_start = "  public " + GenNullableAnnotation(field.value.type) +
+                               type_name_dest + optional + " " +
                                MakeCamel(field.name, lang_.first_camel_upper);
     std::string obj = lang_.language == IDLOptions::kCSharp
       ? "(new " + type_name + "())"
