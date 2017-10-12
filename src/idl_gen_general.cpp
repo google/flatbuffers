@@ -70,6 +70,7 @@ struct LanguageParameters {
   std::string accessor_prefix_static;
   std::string optional_suffix;
   std::string includes;
+  std::string class_annotation;
   CommentConfig comment_config;
 };
 
@@ -99,8 +100,8 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "",
       "",
       "",
-      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\nimport javax.annotation.*;\n"
-        "import com.google.flatbuffers.*;\n\n@SuppressWarnings(\"unused\")\n",
+      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\nimport com.google.flatbuffers.*;\n",
+      "\n@SuppressWarnings(\"unused\")\n",
       {
         "/**",
         " *",
@@ -132,6 +133,7 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "Table.",
       "?",
       "using global::System;\nusing global::FlatBuffers;\n\n",
+      "",
       {
         nullptr,
         "///",
@@ -220,7 +222,13 @@ class GeneralGenerator : public BaseGenerator {
       code += lang_.namespace_ident + namespace_name + lang_.namespace_begin;
       code += "\n\n";
     }
-    if (needs_includes) code += lang_.includes;
+    if (needs_includes) {
+      code += lang_.includes;
+      if (parser_.opts.gen_nullable) {
+        code += "\nimport javax.annotation.Nullable;\n";
+      }
+      code += lang_.class_annotation;
+    }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
