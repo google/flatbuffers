@@ -83,9 +83,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --no-includes      Don\'t generate include statements for included\n"
       "                     schemas the generated file depends on (C++).\n"
       "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
-      "  --gen-onefile      Generate single output file for C#.\n"
+      "  --gen-onefile      Generate single output file for C# and Go.\n"
       "  --gen-name-strings Generate type name functions for C++.\n"
-      "  --escape-proto-ids Disable appending '_' in namespaces names.\n"
       "  --gen-object-api   Generate an additional object-based API.\n"
       "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
       "  --cpp-str-type T   Set object API string type (default std::string)\n"
@@ -97,6 +96,8 @@ std::string FlatCompiler::GetUsageString(const char* program_name) const {
       "  --no-js-exports    Removes Node.js style export lines in JS.\n"
       "  --goog-js-export   Uses goog.exports* for closure compiler exporting in JS.\n"
       "  --go-namespace     Generate the overrided namespace in Golang.\n"
+      "  --go-import        Generate the overrided import for flatbuffers in Golang.\n"
+      "                     (default is \"github.com/google/flatbuffers/go\")\n"
       "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
       "                     This may crash flatc given a mismatched schema.\n"
       "  --proto            Input is a .proto, translate to .fbs.\n"
@@ -184,6 +185,9 @@ int FlatCompiler::Compile(int argc, const char** argv) {
       } else if(arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
+      } else if(arg == "--go-import") {
+        if (++argi >= argc) Error("missing golang import" + arg, true);
+        opts.go_import = argv[argi];
       } else if(arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {
@@ -231,8 +235,6 @@ int FlatCompiler::Compile(int argc, const char** argv) {
         binary_files_from = filenames.size();
       } else if(arg == "--proto") {
         opts.proto_mode = true;
-      } else if(arg == "--escape-proto-ids") {
-        opts.escape_proto_identifiers = true;
       } else if(arg == "--schema") {
         schema_binary = true;
       } else if(arg == "-M") {
