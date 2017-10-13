@@ -170,7 +170,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
       return *this;
     }
 
-    const T& operator*() const { return ptr_; }
+    const T& operator*() const { return *ptr_; }
     T* operator->() const { return ptr_; }
     T* get() const noexcept { return ptr_; }
     explicit operator bool() const { return ptr_ != nullptr; }
