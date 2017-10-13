@@ -55,4 +55,4 @@ matrix:
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
       script:
-        - for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ); done
+        - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
