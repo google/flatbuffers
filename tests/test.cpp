@@ -1661,7 +1661,7 @@ void FlexBuffersTest() {
       int ints[] = { 1, 2, 3 };
       slb2.Vector("bar", ints, 3);
       slb2.FixedTypedVector("bar3", ints, 3);
-      slb.Bool("bool", true);
+      slb2.Bool("bool", true);
       slb2.Double("foo", 100);
       slb2.Map("mymap", [](flexbuffers::Builder& slb3) {
         slb3.String("foo", "Fred");  // Testing key and string reuse.

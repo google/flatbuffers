@@ -284,7 +284,7 @@ struct StructDef : public Definition {
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
 
-  std::unique_ptr<std::string> original_location;
+  flatbuffers::unique_ptr<std::string> original_location;
 };
 
 inline bool IsStruct(const Type &type) {
