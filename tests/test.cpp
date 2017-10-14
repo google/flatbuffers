@@ -1754,21 +1754,29 @@ void TypeAliasesTest()
 {
   flatbuffers::FlatBufferBuilder builder;
 
-  builder.Finish(CreateTypeAliases(builder,
-          INT8_MIN, UINT8_MAX, INT16_MIN, UINT16_MAX,
-          INT32_MIN, UINT32_MAX, INT64_MIN, UINT64_MAX, 2.3f, 2.3));
+  builder.Finish(CreateTypeAliases(
+      builder,
+      flatbuffers::numeric_limits<int8_t>::min(),
+      flatbuffers::numeric_limits<uint8_t>::max(),
+      flatbuffers::numeric_limits<int16_t>::min(),
+      flatbuffers::numeric_limits<uint16_t>::max(),
+      flatbuffers::numeric_limits<int32_t>::min(),
+      flatbuffers::numeric_limits<uint32_t>::max(),
+      flatbuffers::numeric_limits<int64_t>::min(),
+      flatbuffers::numeric_limits<uint64_t>::max(),
+      2.3f, 2.3));
 
   auto p = builder.GetBufferPointer();
   auto ta = flatbuffers::GetRoot<TypeAliases>(p);
 
-  TEST_EQ(ta->i8(), INT8_MIN);
-  TEST_EQ(ta->u8(), UINT8_MAX);
-  TEST_EQ(ta->i16(), INT16_MIN);
-  TEST_EQ(ta->u16(), UINT16_MAX);
-  TEST_EQ(ta->i32(), INT32_MIN);
-  TEST_EQ(ta->u32(), UINT32_MAX);
-  TEST_EQ(ta->i64(), INT64_MIN);
-  TEST_EQ(ta->u64(), UINT64_MAX);
+  TEST_EQ(ta->i8(), flatbuffers::numeric_limits<int8_t>::min());
+  TEST_EQ(ta->u8(), flatbuffers::numeric_limits<uint8_t>::max());
+  TEST_EQ(ta->i16(), flatbuffers::numeric_limits<int16_t>::min());
+  TEST_EQ(ta->u16(), flatbuffers::numeric_limits<uint16_t>::max());
+  TEST_EQ(ta->i32(), flatbuffers::numeric_limits<int32_t>::min());
+  TEST_EQ(ta->u32(), flatbuffers::numeric_limits<uint32_t>::max());
+  TEST_EQ(ta->i64(), flatbuffers::numeric_limits<int64_t>::min());
+  TEST_EQ(ta->u64(), flatbuffers::numeric_limits<uint64_t>::max());
   TEST_EQ(ta->f32(), 2.3f);
   TEST_EQ(ta->f64(), 2.3);
   TEST_EQ(sizeof(ta->i8()), 1);
