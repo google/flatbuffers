@@ -811,23 +811,23 @@ for the `path` field above:
 <div class="language-cpp">
 ~~~{.cpp}
   Vec3 points[] = { Vec3(1.0f, 2.0f, 3.0f), Vec3(4.0f, 5.0f, 6.0f) };
-  auto path = fbb.CreateVectorOfStructs(points, 2);
+  auto path = builder.CreateVectorOfStructs(points, 2);
 ~~~
 </div>
 <div class="language-java">
 ~~~{.java}
-  Monster.startPathVector(fbb, 2);
+  Monster.startPathVector(builder, 2);
   Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f);
   Vec3.createVec3(builder, 4.0f, 5.0f, 6.0f);
-  int path = fbb.endVector();
+  int path = builder.endVector();
 ~~~
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  Monster.StartPathVector(fbb, 2);
+  Monster.StartPathVector(builder, 2);
   Vec3.CreateVec3(builder, 1.0f, 2.0f, 3.0f);
   Vec3.CreateVec3(builder, 4.0f, 5.0f, 6.0f);
-  var path = fbb.EndVector();
+  var path = builder.EndVector();
 ~~~
 </div>
 <div class="language-go">
