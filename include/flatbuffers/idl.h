@@ -372,7 +372,7 @@ struct IDLOptions {
   bool generate_object_based_api;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
-  bool clang_nullable;
+  bool gen_nullable;
   std::string object_prefix;
   std::string object_suffix;
   bool union_value_namespacing;
@@ -428,7 +428,7 @@ struct IDLOptions {
       generate_name_strings(false),
       generate_object_based_api(false),
       cpp_object_api_pointer_type("std::unique_ptr"),
-      clang_nullable(false),
+      gen_nullable(false),
       object_suffix("T"),
       union_value_namespacing(true),
       allow_non_utf8(false),

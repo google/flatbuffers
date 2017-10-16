@@ -127,7 +127,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "#define " + include_guard;
     code_ += "";
 
-    if (parser_.opts.clang_nullable) {
+    if (parser_.opts.gen_nullable) {
       code_ += "#pragma clang system_header\n\n";
     }
 
@@ -433,7 +433,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string NullableExtension() {
-    return parser_.opts.clang_nullable ? " _Nullable " : "";
+    return parser_.opts.gen_nullable ? " _Nullable " : "";
   }
 
   static std::string NativeName(const std::string &name, const StructDef *sd, const IDLOptions & opts) {
