@@ -41,12 +41,14 @@ inline char string_back(const std::string &value) {
 // Helper method that retrieves ::data() from a vector in a way that is
 // compatible with pre C++11 STLs (e.g stlport).
 template <typename T> inline T *vector_data(std::vector<T> &vector) {
-  return &(vector[0]);
+  // In some debug environments, operator[] does bounds checking, so &vector[0]
+  // can't be used.
+  return &(*vector.begin());
 }
 
 template <typename T> inline const T *vector_data(
     const std::vector<T> &vector) {
-  return &(vector[0]);
+  return &(*vector.begin());
 }
 
 template <typename T, typename V>
