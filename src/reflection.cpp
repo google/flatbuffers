@@ -700,6 +700,9 @@ bool VerifyObject(flatbuffers::Verifier &v,
     }
   }
 
+  if (!v.EndTable())
+    return false;
+  
   return true;
 }
 
