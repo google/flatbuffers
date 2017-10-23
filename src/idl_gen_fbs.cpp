@@ -19,51 +19,79 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 
 namespace flatbuffers {
 
-static std::string GenType(const Type &type) {
+static std::string GenType(const Type &type, bool underlying = false) {
   switch (type.base_type) {
-    case BASE_TYPE_STRUCT: return type.struct_def->name;
-    case BASE_TYPE_UNION:  return type.enum_def->name;
-    case BASE_TYPE_VECTOR: return "[" + GenType(type.VectorType()) + "]";
-    default: return kTypeNames[type.base_type];
+    case BASE_TYPE_STRUCT:
+      return type.struct_def->defined_namespace->GetFullyQualifiedName(
+               type.struct_def->name);
+    case BASE_TYPE_VECTOR:
+        return "[" + GenType(type.VectorType()) + "]";
+    default:
+        if (type.enum_def && !underlying) {
+          return type.enum_def->defined_namespace->GetFullyQualifiedName(
+                   type.enum_def->name);
+        } else {
+          return kTypeNames[type.base_type];
+        }
   }
 }
 
-// Generate a flatbuffer schema from the Parser's internal representation.
-std::string GenerateFBS(const Parser &parser, const std::string &file_name,
-                        const GeneratorOptions &opts) {
-  std::string schema;
-  schema += "// Generated from " + file_name + ".proto\n\n";
-  if (opts.include_dependence_headers) {
-    int num_includes = 0;
-    for (auto it = parser.included_files_.begin();
-         it != parser.included_files_.end(); ++it) {
-      auto basename = flatbuffers::StripPath(
-                        flatbuffers::StripExtension(it->first));
-      if (basename != file_name) {
-        schema += "include \"" + basename + ".fbs\";\n";
-        num_includes++;
-      }
-    }
-    if (num_includes) schema += "\n";
-  }
+static void GenNameSpace(const Namespace &name_space, std::string *_schema,
+                         const Namespace **last_namespace) {
+  if (*last_namespace == &name_space) return;
+  *last_namespace = &name_space;
+  auto &schema = *_schema;
   schema += "namespace ";
-  auto name_space = parser.namespaces_.back();
-  for (auto it = name_space->components.begin();
-           it != name_space->components.end(); ++it) {
-    if (it != name_space->components.begin()) schema += ".";
+  for (auto it = name_space.components.begin();
+           it != name_space.components.end(); ++it) {
+    if (it != name_space.components.begin()) schema += ".";
     schema += *it;
   }
   schema += ";\n\n";
+}
+
+// Generate a flatbuffer schema from the Parser's internal representation.
+std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
+  // Proto namespaces may clash with table names, escape the ones that were
+  // generated from a table:
+  for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
+       ++it) {
+    auto &ns = **it;
+    for (size_t i = 0; i < ns.from_table; i++) {
+      ns.components[ns.components.size() - 1 - i] += "_";
+    }
+  }
+
+  std::string schema;
+  schema += "// Generated from " + file_name + ".proto\n\n";
+  if (parser.opts.include_dependence_headers) {
+    #ifdef FBS_GEN_INCLUDES  // TODO: currently all in one file.
+    int num_includes = 0;
+    for (auto it = parser.included_files_.begin();
+         it != parser.included_files_.end(); ++it) {
+      if (it->second.empty())
+        continue;
+      auto basename = flatbuffers::StripPath(
+                        flatbuffers::StripExtension(it->second));
+      schema += "include \"" + basename + ".fbs\";\n";
+      num_includes++;
+    }
+    if (num_includes) schema += "\n";
+    #endif
+  }
   // Generate code for all the enum declarations.
+  const Namespace *last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
            enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
+    GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
     schema += "enum " + enum_def.name + " : ";
-    schema += GenType(enum_def.underlying_type) + " {\n";
+    schema += GenType(enum_def.underlying_type, true) + " {\n";
     for (auto it = enum_def.vals.vec.begin();
          it != enum_def.vals.vec.end(); ++it) {
       auto &ev = **it;
@@ -76,16 +104,19 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
   for (auto it = parser.structs_.vec.begin();
            it != parser.structs_.vec.end(); ++it) {
     StructDef &struct_def = **it;
+    GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
     for (auto field_it = struct_def.fields.vec.begin();
              field_it != struct_def.fields.vec.end(); ++field_it) {
       auto &field = **field_it;
-      GenComment(field.doc_comment, &schema, nullptr, "  ");
-      schema += "  " + field.name + ":" + GenType(field.value.type);
-      if (field.value.constant != "0") schema += " = " + field.value.constant;
-      if (field.required) schema += " (required)";
-      schema += ";\n";
+      if (field.value.type.base_type != BASE_TYPE_UTYPE) {
+        GenComment(field.doc_comment, &schema, nullptr, "  ");
+        schema += "  " + field.name + ":" + GenType(field.value.type);
+        if (field.value.constant != "0") schema += " = " + field.value.constant;
+        if (field.required) schema += " (required)";
+        schema += ";\n";
+      }
     }
     schema += "}\n\n";
   }
@@ -94,10 +125,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
 
 bool GenerateFBS(const Parser &parser,
                  const std::string &path,
-                 const std::string &file_name,
-                 const GeneratorOptions &opts) {
+                 const std::string &file_name) {
   return SaveFile((path + file_name + ".fbs").c_str(),
-                  GenerateFBS(parser, file_name, opts), false);
+                  GenerateFBS(parser, file_name), false);
 }
 
 }  // namespace flatbuffers

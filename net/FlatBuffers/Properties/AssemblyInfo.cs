@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("FlatBuffers")]
-[assembly: AssemblyCopyright("Copyright ©  2015 Google Inc")]
+[assembly: AssemblyCopyright("Copyright (c) 2015 Google Inc")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

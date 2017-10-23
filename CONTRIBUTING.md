@@ -25,7 +25,7 @@ use Github pull requests for this purpose.
 
 Some tips for good pull requests:
 * Use our code
-  [style guide](http://google-styleguide.googlecode.com/svn/trunk/cppguide.html).
+  [style guide](https://google.github.io/styleguide/cppguide.html).
   When in doubt, try to stay true to the existing code of the project.
 * Write a descriptive commit message. What problem are you solving and what
   are the consequences? Where and what did you test? Some good tips:

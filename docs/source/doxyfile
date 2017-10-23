@@ -88,7 +88,7 @@ OUTPUT_LANGUAGE        = English
 # documentation (similar to Javadoc). Set to NO to disable this.
 # The default value is: YES.
 
-BRIEF_MEMBER_DESC      = NO
+BRIEF_MEMBER_DESC      = YES
 
 # If the REPEAT_BRIEF tag is set to YES doxygen will prepend the brief
 # description of a member or function before the detailed description
@@ -97,7 +97,7 @@ BRIEF_MEMBER_DESC      = NO
 # brief descriptions will be completely suppressed.
 # The default value is: YES.
 
-REPEAT_BRIEF           = NO
+REPEAT_BRIEF           = YES
 
 # This tag implements a quasi-intelligent brief description abbreviator that is
 # used to form the text in various listings. Each string in this list, if found
@@ -177,7 +177,7 @@ SHORT_NAMES            = NO
 # description.)
 # The default value is: NO.
 
-JAVADOC_AUTOBRIEF      = NO
+JAVADOC_AUTOBRIEF      = YES
 
 # If the QT_AUTOBRIEF tag is set to YES then doxygen will interpret the first
 # line (until the first dot) of a Qt-style comment as the brief description. If
@@ -203,7 +203,7 @@ MULTILINE_CPP_IS_BRIEF = NO
 # documentation from any documented member that it re-implements.
 # The default value is: YES.
 
-INHERIT_DOCS           = NO
+INHERIT_DOCS           = YES
 
 # If the SEPARATE_MEMBER_PAGES tag is set to YES, then doxygen will produce a
 # new page for each member. If set to NO, the documentation of a member will be
@@ -216,7 +216,7 @@ SEPARATE_MEMBER_PAGES  = NO
 # uses this value to replace tabs by spaces in code fragments.
 # Minimum value: 1, maximum value: 16, default value: 4.
 
-TAB_SIZE               = 1
+TAB_SIZE               = 2
 
 # This tag can be used to specify a number of aliases that act as commands in
 # the documentation. An alias has the form:
@@ -296,7 +296,9 @@ MARKDOWN_SUPPORT       = YES
 # or globally by setting AUTOLINK_SUPPORT to NO.
 # The default value is: YES.
 
-AUTOLINK_SUPPORT       = YES
+AUTOLINK_SUPPORT       = NO  # Due to the multiple languages included in the API
+                             # reference for FlatBuffers, the Auto-links were
+                             # wrong more often than not.
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should set this
@@ -347,7 +349,7 @@ DISTRIBUTE_GROUP_DOC   = NO
 # \nosubgrouping command.
 # The default value is: YES.
 
-SUBGROUPING            = NO
+SUBGROUPING            = YES
 
 # When the INLINE_GROUPED_CLASSES tag is set to YES, classes, structs and unions
 # are shown inside the group in which they are included (e.g. using \ingroup)
@@ -424,7 +426,7 @@ EXTRACT_PACKAGE        = NO
 # included in the documentation.
 # The default value is: NO.
 
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES classes (and structs) defined
 # locally in source files will be included in the documentation. If set to NO
@@ -508,7 +510,7 @@ HIDE_SCOPE_NAMES       = NO
 # the files that are included by a file in the documentation of that file.
 # The default value is: YES.
 
-SHOW_INCLUDE_FILES     = NO
+SHOW_INCLUDE_FILES     = YES
 
 # If the FORCE_LOCAL_INCLUDES tag is set to YES then doxygen will list include
 # files with double quotes in the documentation rather than with sharp brackets.
@@ -520,21 +522,21 @@ FORCE_LOCAL_INCLUDES   = NO
 # documentation for inline members.
 # The default value is: YES.
 
-INLINE_INFO            = NO
+INLINE_INFO            = YES
 
 # If the SORT_MEMBER_DOCS tag is set to YES then doxygen will sort the
 # (detailed) documentation of file and class members alphabetically by member
 # name. If set to NO the members will appear in declaration order.
 # The default value is: YES.
 
-SORT_MEMBER_DOCS       = NO
+SORT_MEMBER_DOCS       = YES
 
 # If the SORT_BRIEF_DOCS tag is set to YES then doxygen will sort the brief
 # descriptions of file, namespace and class members alphabetically by member
 # name. If set to NO the members will appear in declaration order.
 # The default value is: NO.
 
-SORT_BRIEF_DOCS        = NO
+SORT_BRIEF_DOCS        = YES
 
 # If the SORT_MEMBERS_CTORS_1ST tag is set to YES then doxygen will sort the
 # (brief and detailed) documentation of class members so that constructors and
@@ -600,7 +602,7 @@ GENERATE_BUGLIST       = NO
 # the documentation.
 # The default value is: YES.
 
-GENERATE_DEPRECATEDLIST= NO
+GENERATE_DEPRECATEDLIST= YES
 
 # The ENABLED_SECTIONS tag can be used to enable conditional documentation
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
@@ -624,21 +626,21 @@ MAX_INITIALIZER_LINES  = 30
 # will mention the files that were used to generate the documentation.
 # The default value is: YES.
 
-SHOW_USED_FILES        = NO
+SHOW_USED_FILES        = YES
 
 # Set the SHOW_FILES tag to NO to disable the generation of the Files page. This
 # will remove the Files entry from the Quick Index and from the Folder Tree View
 # (if specified).
 # The default value is: YES.
 
-SHOW_FILES             = NO
+SHOW_FILES             = YES
 
 # Set the SHOW_NAMESPACES tag to NO to disable the generation of the Namespaces
 # page. This will remove the Namespaces entry from the Quick Index and from the
 # Folder Tree View (if specified).
 # The default value is: YES.
 
-SHOW_NAMESPACES        = NO
+SHOW_NAMESPACES        = YES
 
 # The FILE_VERSION_FILTER tag can be used to specify a program or script that
 # doxygen should invoke to get the current version for each file (typically from
@@ -661,7 +663,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            =
+LAYOUT_FILE            = doxygen_layout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib
@@ -692,14 +694,14 @@ QUIET                  = NO
 # Tip: Turn warnings on while writing the documentation.
 # The default value is: YES.
 
-WARNINGS               = NO
+WARNINGS               = YES
 
 # If the WARN_IF_UNDOCUMENTED tag is set to YES, then doxygen will generate
 # warnings for undocumented members. If EXTRACT_ALL is set to YES then this flag
 # will automatically be disabled.
 # The default value is: YES.
 
-WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_UNDOCUMENTED   = YES
 
 # If the WARN_IF_DOC_ERROR tag is set to YES, doxygen will generate warnings for
 # potential errors in the documentation, such as not documenting some parameters
@@ -748,14 +750,30 @@ INPUT = "FlatBuffers.md" \
         "Compiler.md" \
         "Schemas.md" \
         "CppUsage.md" \
+        "CUsage.md" \
         "GoUsage.md" \
-        "JavaUsage.md" \
+        "JavaCsharpUsage.md" \
+        "JavaScriptUsage.md" \
+        "PHPUsage.md" \
         "PythonUsage.md" \
         "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
+        "FlexBuffers.md" \
         "Internals.md" \
-        "Grammar.md"
+        "Grammar.md" \
+        "../../CONTRIBUTING.md" \
+        "Tutorial.md" \
+        "GoApi.md" \
+        "gRPC/CppUsage.md" \
+        "groups" \
+        "../../java/com/google/flatbuffers" \
+        "../../python/flatbuffers/builder.py" \
+        "../../js/flatbuffers.js" \
+        "../../php/FlatbufferBuilder.php" \
+        "../../net/FlatBuffers/FlatBufferBuilder.cs" \
+        "../../include/flatbuffers/flatbuffers.h" \
+        "../../go/builder.go"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -816,13 +834,14 @@ FILE_PATTERNS          = *.c \
                          *.ucf \
                          *.qsf \
                          *.as \
-                         *.js
+                         *.js \
+                         *.go
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should
 # be searched for input files as well.
 # The default value is: NO.
 
-RECURSIVE              = NO
+RECURSIVE              = YES
 
 # The EXCLUDE tag can be used to specify files and/or directories that should be
 # excluded from the INPUT source files. This way you can easily exclude a
@@ -847,7 +866,8 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = *_test.py |
+                         __init__.py
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -864,21 +884,21 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           =
+EXAMPLE_PATH           = "GoApi_generated.txt" "../../grpc/samples"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       = *
+EXAMPLE_PATTERNS       = *.cpp *.h *.txt *.fbs
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands
 # irrespective of the value of the RECURSIVE tag.
 # The default value is: NO.
 
-EXAMPLE_RECURSIVE      = NO
+EXAMPLE_RECURSIVE      = YES
 
 # The IMAGE_PATH tag can be used to specify one or more files or directories
 # that contain images that are to be included in the documentation (see the
@@ -910,7 +930,7 @@ INPUT_FILTER           =
 # filters are used. If the FILTER_PATTERNS tag is empty or if none of the
 # patterns match the file name, INPUT_FILTER is applied.
 
-FILTER_PATTERNS        =
+FILTER_PATTERNS        = *.py=py_filter
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using
 # INPUT_FILTER ) will also be used to filter the input files that are used for
@@ -978,7 +998,7 @@ REFERENCES_RELATION    = NO
 # link to the documentation.
 # The default value is: YES.
 
-REFERENCES_LINK_SOURCE = NO
+REFERENCES_LINK_SOURCE = YES
 
 # If SOURCE_TOOLTIPS is enabled (the default) then hovering a hyperlink in the
 # source code will show a tooltip with additional information such as prototype,
@@ -1018,26 +1038,7 @@ USE_HTAGS              = NO
 # See also: Section \class.
 # The default value is: YES.
 
-VERBATIM_HEADERS       = NO
-
-# If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
-# clang parser (see: http://clang.llvm.org/) for more acurate parsing at the
-# cost of reduced performance. This can be particularly helpful with template
-# rich C++ code for which doxygen's built-in parser lacks the necessary type
-# information.
-# Note: The availability of this option depends on whether or not doxygen was
-# compiled with the --with-libclang option.
-# The default value is: NO.
-
-CLANG_ASSISTED_PARSING = NO
-
-# If clang assisted parsing is enabled you can provide the compiler with command
-# line options that you would normally use when invoking the compiler. Note that
-# the include paths will already be set by doxygen for the files and directories
-# specified with INPUT and INCLUDE_PATH.
-# This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.
-
-CLANG_OPTIONS          =
+VERBATIM_HEADERS       = YES
 
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index
@@ -1048,7 +1049,7 @@ CLANG_OPTIONS          =
 # classes, structs, unions or interfaces.
 # The default value is: YES.
 
-ALPHABETICAL_INDEX     = NO
+ALPHABETICAL_INDEX     = YES
 
 # The COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns in
 # which the alphabetical index list will be split.
@@ -1129,7 +1130,7 @@ HTML_FOOTER            = ../footer.html
 # obsolete.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_STYLESHEET        = style.css
+HTML_STYLESHEET        =
 
 # The HTML_EXTRA_STYLESHEET tag can be used to specify an additional user-
 # defined cascading style sheet that is included after the standard style sheets
@@ -1140,7 +1141,7 @@ HTML_STYLESHEET        = style.css
 # see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_STYLESHEET  = style.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1150,7 +1151,9 @@ HTML_EXTRA_STYLESHEET  =
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = ../images/fpl_logo_small.png ../images/ftv2mnode.png ../images/ftv2pnode.png
+HTML_EXTRA_FILES       = "../images/fpl_logo_small.png" \
+                         "../images/ftv2mnode.png" \
+                         "../images/ftv2pnode.png"
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the stylesheet and background images according to
@@ -1407,7 +1410,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-DISABLE_INDEX          = YES
+DISABLE_INDEX          = NO
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index
 # structure should be generated to display hierarchical information. If the tag
@@ -1538,7 +1541,7 @@ MATHJAX_CODEFILE       =
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-SEARCHENGINE           = NO
+SEARCHENGINE           = YES
 
 # When the SERVER_BASED_SEARCH tag is enabled the search engine will be
 # implemented using a web server instead of a web client using Javascript. There
@@ -2071,7 +2074,7 @@ EXTERNAL_GROUPS        = NO
 # be listed.
 # The default value is: YES.
 
-EXTERNAL_PAGES         = NO
+EXTERNAL_PAGES         = YES
 
 # The PERL_PATH should be the absolute path and name of the perl script
 # interpreter (i.e. the result of 'which perl').

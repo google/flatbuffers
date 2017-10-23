@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,25 @@ namespace FlatBuffers.Test
         }
     }
 
+    public class AssertArrayFailedException : Exception
+    {
+        private readonly int _index;
+        private readonly object _expected;
+        private readonly object _actual;
+
+        public AssertArrayFailedException(int index, object expected, object actual)
+        {
+            _index = index;
+            _expected = expected;
+            _actual = actual;
+        }
+
+        public override string Message
+        {
+            get { return string.Format("Expected {0} at index {1} but saw {2}", _expected, _index, _actual); }
+        }
+    }
+
     public class AssertUnexpectedThrowException : Exception
     {
         private readonly object _expected;
@@ -64,11 +83,35 @@ namespace FlatBuffers.Test
             }
         }
 
+        public static void ArrayEqual<T>(T[] expected, T[] actual)
+        {
+            if (expected.Length != actual.Length)
+            {
+                throw new AssertFailedException(expected, actual);
+            }
+
+            for(var i = 0; i < expected.Length; ++i)
+            {
+                if (!expected[i].Equals(actual[i]))
+                {
+                    throw new AssertArrayFailedException(i, expected, actual);
+                }
+            }
+        }
+
         public static void IsTrue(bool value)
         {
             if (!value)
             {
                 throw new AssertFailedException(true, value);
+            }
+        }
+
+        public static void IsFalse(bool value)
+        {
+            if (value)
+            {
+                throw new AssertFailedException(false, value);
             }
         }
 

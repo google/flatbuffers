@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include "monster_generated.h"
+#include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
 
@@ -47,10 +46,14 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  GenerateText(parser, parser.builder_.GetBufferPointer(),
-               flatbuffers::GeneratorOptions(), &jsongen);
+  if (!GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen)) {
+    printf("Couldn't serialize parsed data to JSON!\n");
+    return 1;
+  }
 
   if (jsongen != jsonfile) {
     printf("%s----------------\n%s", jsongen.c_str(), jsonfile.c_str());
   }
+
+  printf("The FlatBuffer has been parsed from JSON successfully.\n");
 }

@@ -18,14 +18,18 @@
 #define FLATBUFFERS_IDL_H_
 
 #include <map>
-#include <set>
 #include <stack>
 #include <memory>
-#include <functional>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
+#include "flatbuffers/flexbuffers.h"
+
+#if !defined(FLATBUFFERS_CPP98_STL)
+  #include <functional>
+#endif  // !defined(FLATBUFFERS_CPP98_STL)
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -103,6 +107,9 @@ inline bool IsInteger(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_ULONG; }
 inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||
                                            t == BASE_TYPE_DOUBLE; }
+inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
+                                           t == BASE_TYPE_ULONG; }
+inline bool IsBool   (BaseType t) { return t == BASE_TYPE_BOOL; }
 
 extern const char *const kTypeNames[];
 extern const char kTypeSizes[];
@@ -113,6 +120,7 @@ inline size_t SizeOf(BaseType t) {
 
 struct StructDef;
 struct EnumDef;
+class Parser;
 
 // Represents any type in the IDL, which is a combination of the BaseType
 // and additional information for vectors/structs_.
@@ -124,6 +132,11 @@ struct Type {
       struct_def(_sd),
       enum_def(_ed)
   {}
+
+  bool operator==(const Type &o) {
+    return base_type == o.base_type && element == o.element &&
+           struct_def == o.struct_def && enum_def == o.enum_def;
+  }
 
   Type VectorType() const { return Type(element, struct_def, enum_def); }
 
@@ -156,11 +169,22 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
-    vec.emplace_back(e);
+    vector_emplace_back(&vec, e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;
     return false;
+  }
+
+  void Move(const std::string &oldname, const std::string &newname) {
+    auto it = dict.find(oldname);
+    if (it != dict.end()) {
+      auto obj = it->second;
+      dict.erase(it);
+      dict[newname] = obj;
+    } else {
+      assert(false);
+    }
   }
 
   T *Lookup(const std::string &name) const {
@@ -168,22 +192,36 @@ template<typename T> class SymbolTable {
     return it == dict.end() ? nullptr : it->second;
   }
 
- private:
-  std::map<std::string, T *> dict;      // quick lookup
-
  public:
+  std::map<std::string, T *> dict;      // quick lookup
   std::vector<T *> vec;  // Used to iterate in order of insertion
 };
 
 // A name space, as set in the schema.
 struct Namespace {
+  Namespace() : from_table(0) {}
+
+
+  // Given a (potentally unqualified) name, return the "fully qualified" name
+  // which has a full namespaced descriptor.
+  // With max_components you can request less than the number of components
+  // the current namespace has.
+  std::string GetFullyQualifiedName(const std::string &name,
+                                    size_t max_components = 1000) const;
+
   std::vector<std::string> components;
+  size_t from_table;  // Part of the namespace corresponds to a message/table.
 };
 
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
   Definition() : generated(false), defined_namespace(nullptr),
-                 serialized_location(0), index(-1) {}
+                 serialized_location(0), index(-1), refcount(1) {}
+
+  flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<
+    reflection::KeyValue>>>
+      SerializeAttributes(FlatBufferBuilder *builder,
+                          const Parser &parser) const;
 
   std::string name;
   std::string file;
@@ -195,22 +233,27 @@ struct Definition {
   // For use with Serialize()
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
+  int refcount;
 };
 
 struct FieldDef : public Definition {
-  FieldDef() : deprecated(false), required(false), key(false), padding(0),
-               used(false) {}
+  FieldDef() : deprecated(false), required(false), key(false),
+               native_inline(false), flexbuffer(false), nested_flatbuffer(NULL),
+               padding(0) {}
 
-  Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id)
-                                                                          const;
+  Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
+                                      const Parser &parser) const;
 
   Value value;
-  bool deprecated; // Field is allowed to be present in old data, but can't be
+  bool deprecated; // Field is allowed to be present in old data, but can't be.
                    // written in new data nor accessed in new code.
   bool required;   // Field must always be present.
   bool key;        // Field functions as a key for creating sorted vectors.
+  bool native_inline;  // Field will be defined inline (instead of as a pointer)
+                       // for native tables if field is a struct.
+  bool flexbuffer; // This field contains FlexBuffer data.
+  StructDef *nested_flatbuffer; // This field contains nested FlatBuffer data.
   size_t padding;  // Bytes to always pad after this field.
-  bool used;       // Used during JSON parsing to check for repeated fields.
 };
 
 struct StructDef : public Definition {
@@ -229,15 +272,19 @@ struct StructDef : public Definition {
     if (fields.vec.size()) fields.vec.back()->padding = padding;
   }
 
-  Offset<reflection::Object> Serialize(FlatBufferBuilder *builder) const;
+  Offset<reflection::Object> Serialize(FlatBufferBuilder *builder,
+                                       const Parser &parser) const;
 
   SymbolTable<FieldDef> fields;
+
   bool fixed;       // If it's struct, not a table.
   bool predecl;     // If it's used before it was defined.
   bool sortbysize;  // Whether fields come in the declaration or size order.
   bool has_key;     // It has a key field.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+
+  flatbuffers::unique_ptr<std::string> original_location;
 };
 
 inline bool IsStruct(const Type &type) {
@@ -254,18 +301,18 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val)
-    : name(_name), value(_val), struct_def(nullptr) {}
+    : name(_name), value(_val) {}
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder) const;
 
   std::string name;
   std::vector<std::string> doc_comment;
   int64_t value;
-  StructDef *struct_def;  // only set if this is a union
+  Type union_type;
 };
 
 struct EnumDef : public Definition {
-  EnumDef() : is_union(false) {}
+  EnumDef() : is_union(false), uses_type_aliases(false) {}
 
   EnumVal *ReverseLookup(int enum_idx, bool skip_union_default = true) {
     for (auto it = vals.vec.begin() + static_cast<int>(is_union &&
@@ -278,33 +325,210 @@ struct EnumDef : public Definition {
     return nullptr;
   }
 
-  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder) const;
+  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder,
+                                     const Parser &parser) const;
 
   SymbolTable<EnumVal> vals;
   bool is_union;
+  bool uses_type_aliases;
   Type underlying_type;
 };
 
-class Parser {
+inline bool EqualByName(const Type &a, const Type &b) {
+  return a.base_type == b.base_type && a.element == b.element &&
+         (a.struct_def == b.struct_def ||
+          a.struct_def->name == b.struct_def->name) &&
+         (a.enum_def == b.enum_def ||
+          a.enum_def->name == b.enum_def->name);
+}
+
+struct RPCCall {
+  std::string name;
+  SymbolTable<Value> attributes;
+  StructDef *request, *response;
+};
+
+struct ServiceDef : public Definition {
+  SymbolTable<RPCCall> calls;
+};
+
+// Container of options that may apply to any of the source/text generators.
+struct IDLOptions {
+  bool strict_json;
+  bool skip_js_exports;
+  bool use_goog_js_export_format;
+  bool output_default_scalars_in_json;
+  int indent_step;
+  bool output_enum_identifiers;
+  bool prefixed_enums;
+  bool scoped_enums;
+  bool include_dependence_headers;
+  bool mutable_buffer;
+  bool one_file;
+  bool proto_mode;
+  bool generate_all;
+  bool skip_unexpected_fields_in_json;
+  bool generate_name_strings;
+  bool generate_object_based_api;
+  std::string cpp_object_api_pointer_type;
+  std::string cpp_object_api_string_type;
+  bool gen_nullable;
+  std::string object_prefix;
+  std::string object_suffix;
+  bool union_value_namespacing;
+  bool allow_non_utf8;
+  std::string include_prefix;
+  bool keep_include_path;
+  bool binary_schema_comments;
+  bool skip_flatbuffers_import;
+  std::string go_import;
+  std::string go_namespace;
+  bool reexport_ts_modules;
+  bool protobuf_ascii_alike;
+
+  // Possible options for the more general generator below.
+  enum Language {
+    kJava   = 1 << 0,
+    kCSharp = 1 << 1,
+    kGo     = 1 << 2,
+    kCpp    = 1 << 3,
+    kJs     = 1 << 4,
+    kPython = 1 << 5,
+    kPhp    = 1 << 6,
+    kJson   = 1 << 7,
+    kBinary = 1 << 8,
+    kTs     = 1 << 9,
+    kJsonSchema = 1 << 10,
+    kMAX
+  };
+
+  Language lang;
+
+  enum MiniReflect { kNone, kTypes, kTypesAndNames };
+
+  MiniReflect mini_reflect;
+
+  // The corresponding language bit will be set if a language is included
+  // for code generation.
+  unsigned long lang_to_generate;
+
+  IDLOptions()
+    : strict_json(false),
+      skip_js_exports(false),
+      use_goog_js_export_format(false),
+      output_default_scalars_in_json(false),
+      indent_step(2),
+      output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
+      include_dependence_headers(true),
+      mutable_buffer(false),
+      one_file(false),
+      proto_mode(false),
+      generate_all(false),
+      skip_unexpected_fields_in_json(false),
+      generate_name_strings(false),
+      generate_object_based_api(false),
+      cpp_object_api_pointer_type("std::unique_ptr"),
+      gen_nullable(false),
+      object_suffix("T"),
+      union_value_namespacing(true),
+      allow_non_utf8(false),
+      keep_include_path(false),
+      binary_schema_comments(false),
+      skip_flatbuffers_import(false),
+      reexport_ts_modules(true),
+      protobuf_ascii_alike(false),
+      lang(IDLOptions::kJava),
+      mini_reflect(IDLOptions::kNone),
+      lang_to_generate(0) {}
+};
+
+// This encapsulates where the parser is in the current source file.
+struct ParserState {
+  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+
+ protected:
+  const char *cursor_;
+  int line_;  // the current line being parsed
+  int token_;
+
+  std::string attribute_;
+  std::vector<std::string> doc_comment_;
+};
+
+// A way to make error propagation less error prone by requiring values to be
+// checked.
+// Once you create a value of this type you must either:
+// - Call Check() on it.
+// - Copy or assign it to another value.
+// Failure to do so leads to an assert.
+// This guarantees that this as return value cannot be ignored.
+class CheckedError {
  public:
-  Parser(bool strict_json = false, bool proto_mode = false)
-    : root_struct_def_(nullptr),
+  explicit CheckedError(bool error)
+    : is_error_(error), has_been_checked_(false) {}
+
+  CheckedError &operator=(const CheckedError &other) {
+    is_error_ = other.is_error_;
+    has_been_checked_ = false;
+    other.has_been_checked_ = true;
+    return *this;
+  }
+
+  CheckedError(const CheckedError &other) {
+    *this = other;  // Use assignment operator.
+  }
+
+  ~CheckedError() { assert(has_been_checked_); }
+
+  bool Check() { has_been_checked_ = true; return is_error_; }
+
+ private:
+  bool is_error_;
+  mutable bool has_been_checked_;
+};
+
+// Additionally, in GCC we can get these errors statically, for additional
+// assurance:
+#ifdef __GNUC__
+#define FLATBUFFERS_CHECKED_ERROR CheckedError \
+          __attribute__((warn_unused_result))
+#else
+#define FLATBUFFERS_CHECKED_ERROR CheckedError
+#endif
+
+class Parser : public ParserState {
+ public:
+  explicit Parser(const IDLOptions &options = IDLOptions())
+    : current_namespace_(nullptr),
+      empty_namespace_(nullptr),
+      root_struct_def_(nullptr),
+      opts(options),
+      uses_flexbuffers_(false),
       source_(nullptr),
-      cursor_(nullptr),
-      line_(1),
-      proto_mode_(proto_mode),
-      strict_json_(strict_json) {
-    // Just in case none are declared:
-    namespaces_.push_back(new Namespace());
-    known_attributes_.insert("deprecated");
-    known_attributes_.insert("required");
-    known_attributes_.insert("key");
-    known_attributes_.insert("hash");
-    known_attributes_.insert("id");
-    known_attributes_.insert("force_align");
-    known_attributes_.insert("bit_flags");
-    known_attributes_.insert("original_order");
-    known_attributes_.insert("nested_flatbuffer");
+      anonymous_counter(0) {
+    // Start out with the empty namespace being current.
+    empty_namespace_ = new Namespace();
+    namespaces_.push_back(empty_namespace_);
+    current_namespace_ = empty_namespace_;
+    known_attributes_["deprecated"] = true;
+    known_attributes_["required"] = true;
+    known_attributes_["key"] = true;
+    known_attributes_["hash"] = true;
+    known_attributes_["id"] = true;
+    known_attributes_["force_align"] = true;
+    known_attributes_["bit_flags"] = true;
+    known_attributes_["original_order"] = true;
+    known_attributes_["nested_flatbuffer"] = true;
+    known_attributes_["csharp_partial"] = true;
+    known_attributes_["streaming"] = true;
+    known_attributes_["idempotent"] = true;
+    known_attributes_["cpp_type"] = true;
+    known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["cpp_str_type"] = true;
+    known_attributes_["native_inline"] = true;
+    known_attributes_["native_type"] = true;
+    known_attributes_["native_default"] = true;
+    known_attributes_["flexbuffer"] = true;
   }
 
   ~Parser() {
@@ -322,6 +546,8 @@ class Parser {
   // directory.
   // If the source was loaded from a file and isn't an include file,
   // supply its name in source_filename.
+  // All paths specified in this call must be in posix format, if you accept
+  // paths from user input, please call PosixPath on them first.
   bool Parse(const char *_source, const char **include_paths = nullptr,
              const char *source_filename = nullptr);
 
@@ -330,12 +556,6 @@ class Parser {
 
   // Mark all definitions as already having code generated.
   void MarkGenerated();
-
-  // Given a (potentally unqualified) name, return the "fully qualified" name
-  // which has a full namespaced descriptor. If the parser has no current
-  // namespace context, or if the name passed is partially qualified the input
-  // is simply returned.
-  std::string GetFullyQualifiedName(const std::string &name) const;
 
   // Get the files recursively included by the given file. The returned
   // container will have at least the given file.
@@ -346,41 +566,124 @@ class Parser {
   // See reflection/reflection.fbs
   void Serialize();
 
- private:
-  int64_t ParseHexNum(int nibbles);
-  void Next();
-  bool IsNext(int t);
-  void Expect(int t);
+  // Checks that the schema represented by this parser is a safe evolution
+  // of the schema provided. Returns non-empty error on any problems.
+  std::string ConformTo(const Parser &base);
+
+  // Similar to Parse(), but now only accepts JSON to be parsed into a
+  // FlexBuffer.
+  bool ParseFlexBuffer(const char *source, const char *source_filename,
+                       flexbuffers::Builder *builder);
+
+  FLATBUFFERS_CHECKED_ERROR CheckInRange(int64_t val, int64_t min, int64_t max);
+
+  StructDef *LookupStruct(const std::string &id) const;
+
+private:
+  void Message(const std::string &msg);
+  void Warning(const std::string &msg);
+  FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
+  FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
+  FLATBUFFERS_CHECKED_ERROR Next();
+  FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
+  bool Is(int t);
+  bool IsIdent(const char *id);
+  FLATBUFFERS_CHECKED_ERROR Expect(int t);
+  std::string TokenToStringId(int t);
   EnumDef *LookupEnum(const std::string &id);
-  void ParseNamespacing(std::string *id, std::string *last);
-  void ParseTypeIdent(Type &type);
-  void ParseType(Type &type);
-  FieldDef &AddField(StructDef &struct_def,
-                     const std::string &name,
-                     const Type &type);
-  void ParseField(StructDef &struct_def);
-  void ParseAnyValue(Value &val, FieldDef *field);
-  uoffset_t ParseTable(const StructDef &struct_def);
+  FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string *id,
+                                             std::string *last);
+  FLATBUFFERS_CHECKED_ERROR ParseTypeIdent(Type &type);
+  FLATBUFFERS_CHECKED_ERROR ParseType(Type &type);
+  FLATBUFFERS_CHECKED_ERROR AddField(StructDef &struct_def,
+                                     const std::string &name, const Type &type,
+                                     FieldDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
+  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
+  FLATBUFFERS_CHECKED_ERROR ParseComma();
+  FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
+                                          size_t parent_fieldn,
+                                          const StructDef *parent_struct_def);
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseTableDelimitersBody)(
+        const std::string &name, size_t &fieldn, const StructDef *struct_def,
+        void *state);
+  #else
+    typedef std::function<CheckedError(const std::string&, size_t&,
+                                       const StructDef*, void*)>
+            ParseTableDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
+                                                 const StructDef *struct_def,
+                                                 ParseTableDelimitersBody body,
+                                                 void *state);
+  FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
+                                       std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void AddVector(bool sortbysize, int count);
-  uoffset_t ParseVector(const Type &type);
-  void ParseMetaData(Definition &def);
-  bool TryTypedValue(int dtoken, bool check, Value &e, BaseType req);
-  void ParseHash(Value &e, FieldDef* field);
-  void ParseSingleValue(Value &e);
-  int64_t ParseIntegerFromString(Type &type);
-  StructDef *LookupCreateStruct(const std::string &name);
-  void ParseEnum(bool is_union);
-  void ParseNamespace();
-  StructDef &StartStruct();
-  void ParseDecl();
-  void ParseProtoDecl();
-  Type ParseTypeFromProtoType();
+  #if defined(FLATBUFFERS_CPP98_STL)
+    typedef CheckedError (*ParseVectorDelimitersBody)(size_t &count,
+                                                      void *state);
+  #else
+    typedef std::function<CheckedError(size_t&, void*)>
+            ParseVectorDelimitersBody;
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(
+      size_t &count, ParseVectorDelimitersBody body, void *state);
+  FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
+                                                  size_t fieldn,
+                                                  const StructDef *parent_struct_def);
+  FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
+  FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
+                                          BaseType req, bool *destmatch);
+  FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
+  FLATBUFFERS_CHECKED_ERROR TokenError();
+  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(Value &e);
+  FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
+  StructDef *LookupCreateStruct(const std::string &name,
+                                bool create_if_new = true,
+                                bool definition = false);
+  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseNamespace();
+  FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
+                                        StructDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseDecl();
+  FLATBUFFERS_CHECKED_ERROR ParseService();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
+                                             bool isextend, bool inside_oneof);
+  FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoKey();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoDecl();
+  FLATBUFFERS_CHECKED_ERROR ParseProtoCurliesOrIdent();
+  FLATBUFFERS_CHECKED_ERROR ParseTypeFromProtoType(Type *type);
+  FLATBUFFERS_CHECKED_ERROR SkipAnyJsonValue();
+  FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
+  FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
+                                           const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR ParseRoot(const char *_source,
+                                    const char **include_paths,
+                                    const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
+                                           const char **include_paths,
+                                           const char *source_filename,
+                                           const char *include_filename);
+  FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*> &fields,
+                                       StructDef *struct_def,
+                                       const char *suffix,
+                                       BaseType baseType);
+
+  bool SupportsVectorOfUnions() const;
+  Namespace *UniqueNamespace(Namespace *ns);
 
  public:
+  SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
+  SymbolTable<ServiceDef> services_;
   std::vector<Namespace *> namespaces_;
+  Namespace *current_namespace_;
+  Namespace *empty_namespace_;
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file
@@ -388,62 +691,28 @@ class Parser {
   std::string file_identifier_;
   std::string file_extension_;
 
-  std::map<std::string, bool> included_files_;
+  std::map<std::string, std::string> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
+  std::vector<std::string> native_included_files_;
+
+  std::map<std::string, bool> known_attributes_;
+
+  IDLOptions opts;
+  bool uses_flexbuffers_;
 
  private:
-  const char *source_, *cursor_;
-  int line_;  // the current line being parsed
-  int token_;
-  std::stack<std::string> files_being_parsed_;
-  bool proto_mode_;
-  bool strict_json_;
-  std::string attribute_;
-  std::vector<std::string> doc_comment_;
+  const char *source_;
+
+  std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
-  std::vector<uint8_t> struct_stack_;
 
-  std::set<std::string> known_attributes_;
+  int anonymous_counter;
 };
 
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
-
-struct CommentConfig;
-
-extern void GenComment(const std::vector<std::string> &dc,
-                       std::string *code_ptr,
-                       const CommentConfig *config,
-                       const char *prefix = "");
-
-// Container of options that may apply to any of the source/text generators.
-struct GeneratorOptions {
-  bool strict_json;
-  bool output_default_scalars_in_json;
-  int indent_step;
-  bool output_enum_identifiers;
-  bool prefixed_enums;
-  bool scoped_enums;
-  bool include_dependence_headers;
-  bool mutable_buffer;
-  bool one_file;
-
-  // Possible options for the more general generator below.
-  enum Language { kJava, kCSharp, kGo, kMAX };
-
-  Language lang;
-
-  GeneratorOptions() : strict_json(false),
-                       output_default_scalars_in_json(false),
-                       indent_step(2),
-                       output_enum_identifiers(true), prefixed_enums(true), scoped_enums(false),
-                       include_dependence_headers(true),
-                       mutable_buffer(false),
-                       one_file(false),
-                       lang(GeneratorOptions::kJava) {}
-};
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
@@ -451,107 +720,129 @@ struct GeneratorOptions {
 // if it is less than 0, no linefeeds will be generated either.
 // See idl_gen_text.cpp.
 // strict_json adds "quotes" around field names if true.
-extern void GenerateText(const Parser &parser,
+// If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
+// byte arrays in String values), returns false.
+extern bool GenerateText(const Parser &parser,
                          const void *flatbuffer,
-                         const GeneratorOptions &opts,
                          std::string *text);
 extern bool GenerateTextFile(const Parser &parser,
                              const std::string &path,
-                             const std::string &file_name,
-                             const GeneratorOptions &opts);
+                             const std::string &file_name);
 
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // See idl_gen_general.cpp.
 extern bool GenerateBinary(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
 extern std::string GenerateCPP(const Parser &parser,
-                               const std::string &include_guard_ident,
-                               const GeneratorOptions &opts);
+                               const std::string &include_guard_ident);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
-                        const std::string &file_name,
-                        const GeneratorOptions &opts);
+                        const std::string &file_name);
+
+// Generate JavaScript or TypeScript code from the definitions in the Parser object.
+// See idl_gen_js.
+extern std::string GenerateJS(const Parser &parser);
+extern bool GenerateJS(const Parser &parser,
+                       const std::string &path,
+                       const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser,
                        const std::string &path,
-                       const std::string &file_name,
-                       const GeneratorOptions &opts);
+                       const std::string &file_name);
 
 // Generate Java files from the definitions in the Parser object.
 // See idl_gen_java.cpp.
 extern bool GenerateJava(const Parser &parser,
                          const std::string &path,
-                         const std::string &file_name,
-                         const GeneratorOptions &opts);
+                         const std::string &file_name);
+
+// Generate Php code from the definitions in the Parser object.
+// See idl_gen_php.
+extern bool GeneratePhp(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
 extern bool GeneratePython(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
+
+// Generate Json schema file
+// See idl_gen_json_schema.cpp.
+extern bool GenerateJsonSchema(const Parser &parser,
+                           const std::string &path,
+                           const std::string &file_name);
 
 // Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.
 extern bool GenerateCSharp(const Parser &parser,
                            const std::string &path,
-                           const std::string &file_name,
-                           const GeneratorOptions &opts);
+                           const std::string &file_name);
 
 // Generate Java/C#/.. files from the definitions in the Parser object.
 // See idl_gen_general.cpp.
 extern bool GenerateGeneral(const Parser &parser,
                             const std::string &path,
-                            const std::string &file_name,
-                            const GeneratorOptions &opts);
+                            const std::string &file_name);
 
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name,
-                               const GeneratorOptions &opts);
+                               const std::string &file_name);
 extern bool GenerateFBS(const Parser &parser,
                         const std::string &path,
-                        const std::string &file_name,
-                        const GeneratorOptions &opts);
+                        const std::string &file_name);
+
+// Generate a make rule for the generated JavaScript or TypeScript code.
+// See idl_gen_js.cpp.
+extern std::string JSMakeRule(const Parser &parser,
+                              const std::string &path,
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
 extern std::string CPPMakeRule(const Parser &parser,
                                const std::string &path,
-                               const std::string &file_name,
-                               const GeneratorOptions &opts);
+                               const std::string &file_name);
 
 // Generate a make rule for the generated Java/C#/... files.
 // See idl_gen_general.cpp.
 extern std::string GeneralMakeRule(const Parser &parser,
                                    const std::string &path,
-                                   const std::string &file_name,
-                                   const GeneratorOptions &opts);
+                                   const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.
 extern std::string TextMakeRule(const Parser &parser,
                                 const std::string &path,
-                                const std::string &file_name,
-                                const GeneratorOptions &opts);
+                                const std::string &file_names);
 
 // Generate a make rule for the generated binary files.
 // See idl_gen_general.cpp.
 extern std::string BinaryMakeRule(const Parser &parser,
                                   const std::string &path,
-                                  const std::string &file_name,
-                                  const GeneratorOptions &opts);
+                                  const std::string &file_name);
+
+// Generate GRPC Cpp interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateCppGRPC(const Parser &parser,
+                     const std::string &path,
+                     const std::string &file_name);
+
+// Generate GRPC Go interfaces.
+// See idl_gen_grpc.cpp.
+bool GenerateGoGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
-

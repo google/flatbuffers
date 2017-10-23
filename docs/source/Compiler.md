@@ -1,35 +1,50 @@
-# Using the schema compiler
+Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
+=========================
 
 Usage:
 
-    flatc [ -c ] [ -j ] [ -b ] [ -t ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
+    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
-or data (see below). Later files can make use of definitions in earlier
-files.
+or data (see below). Data files are processed according to the definitions of
+the most recent schema specified.
 
 `--` indicates that the following files are binary files in
-FlatBuffer format conforming to the schema(s) indicated before it.
-Incompatible binary files currently will give unpredictable results (!)
+FlatBuffer format conforming to the schema indicated before it.
 
 Depending on the flags passed, additional files may
 be generated for each file processed:
 
--   `-c` : Generate a C++ header for all definitions in this file (as
-    `filename_generated.h`). Skipped for data.
+For any schema input files, one or more generators can be specified:
 
--   `-j` : Generate Java classes. Skipped for data.
+-   `--cpp`, `-c` : Generate a C++ header for all definitions in this file (as
+    `filename_generated.h`).
 
--   `-n` : Generate C# classes. Skipped for data.
+-   `--java`, `-j` : Generate Java code.
 
--   `-g` : Generate Go classes. Skipped for data.
+-   `--csharp`, `-n` : Generate C# code.
 
--   `-b` : If data is contained in this file, generate a
-    `filename.bin` containing the binary flatbuffer.
+-   `--go`, `-g` : Generate Go code.
 
--   `-t` : If data is contained in this file, generate a
+-   `--python`, `-p`: Generate Python code.
+
+-   `--js`, `-s`: Generate JavaScript code.
+
+-   `--php`: Generate PHP code.
+
+-   `--grpc`: Generate RPC stub code for GRPC.
+
+For any data input files:
+
+-   `--binary`, `-b` : If data is contained in this file, generate a
+    `filename.bin` containing the binary flatbuffer (or a different extension
+    if one is specified in the schema).
+
+-   `--json`, `-t` : If data is contained in this file, generate a
     `filename.json` representing the data in the flatbuffer.
+
+Additional options:
 
 -   `-o PATH` : Output all generated files to PATH (either absolute, or
     relative to the current directory). If omitted, PATH will be the
@@ -40,6 +55,8 @@ be generated for each file processed:
     files from this path. Paths will be tried in the order given, and if all
     fail (or none are specified) it will try to load relative to the path of
     the schema file being parsed.
+
+-   `-M` : Print make rules for generated files.
 
 -   `--strict-json` : Require & generate strict JSON (field names are enclosed
     in quotes, no trailing commas in tables/vectors). By default, no quotes are
@@ -64,19 +81,52 @@ be generated for each file processed:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
+    `--gen-object-api` : Generate an additional object-based API. This API is
+    more convenient for object construction and mutation than the base API,
+    at the cost of efficiency (object allocation). Recommended only to be used
+    if other options are insufficient.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
+
+-   `--gen-all`: Generate not just code for the current schema files, but
+    for all files it includes as well. If the language uses a single file for
+    output (by default the case for C++ and JS), all code will end up in
+    this one file.
+
+-   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
+
+-   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
+    instead of Node.js style exporting.  Needed for compatibility with the
+    Google closure compiler (useful for JS).
 
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 
 -   `--proto`: Expect input files to be .proto files (protocol buffers).
     Output the corresponding .fbs file.
-    Currently supports: `package`, `message`, `enum`.
-    Does not support, but will skip without error: `import`, `option`.
-    Does not support, will generate error: `service`, `extend`, `extensions`,
-    `oneof`, `group`, custom options, nested declarations.
+    Currently supports: `package`, `message`, `enum`, nested declarations,
+    `import` (use `-I` for paths), `extend`, `oneof`, `group`.
+    Does not support, but will skip without error: `option`, `service`,
+    `extensions`, and most everything else.
 
 -   `--schema`: Serialize schemas instead of JSON (use with -b). This will
     output a binary version of the specified schema that itself corresponds
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
+
+-   `--bfbs-comments`: Add doc comments to the binary schema files.
+
+-   `--conform FILE` : Specify a schema the following schemas should be
+    an evolution of. Gives errors if not. Useful to check if schema
+    modifications don't break schema evolution rules.
+
+-   `--include-prefix PATH` : Prefix this path to any generated include
+    statements.
+
+-   `--keep-prefix` : Keep original prefix of schema include statement.
+
+-   `--reflect-types` : Add minimal type reflection to code generation.
+-   `--reflect-names` : Add minimal type/name reflection.
+
+NOTE: short-form options for generators are deprecated, use the long form
+whenever possible.

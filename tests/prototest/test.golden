@@ -3,16 +3,14 @@
 namespace proto.test;
 
 /// Enum doc comment.
-enum ProtoEnum : short {
+enum ProtoEnum : int {
   FOO = 1,
   /// Enum 2nd value doc comment misaligned.
   BAR = 5,
 }
 
-table OtherMessage {
-  a:double;
-  /// doc comment for b.
-  b:float = 3.14149;
+table ImportedMessage {
+  a:int;
 }
 
 /// 2nd table doc comment with
@@ -34,8 +32,17 @@ table ProtoMessage {
   /// doc comment for l on 2
   /// lines
   l:string (required);
-  m:string;
-  n:OtherMessage;
+  m:[ubyte];
+  n:proto.test.ProtoMessage_.OtherMessage;
   o:[string];
+  z:proto.test.ImportedMessage;
+}
+
+namespace proto.test.ProtoMessage_;
+
+table OtherMessage {
+  a:double;
+  /// doc comment for b.
+  b:float = 3.14149;
 }
 
