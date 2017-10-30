@@ -17,6 +17,7 @@ from .number_types import (UOffsetTFlags, SOffsetTFlags, VOffsetTFlags)
 
 from . import encode
 from . import packer
+import pickle
 
 from . import compat
 from .compat import range_func
@@ -394,6 +395,14 @@ class Builder(object):
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(vectorNumElems)
         return self.Offset()
+
+    def SerializeToString(self, s):
+        serialized = pickle.dumps(s)
+        return serialized
+
+    def FromString(self, s):
+        deserialized = pickle.loads(s)
+        return deserialized
 
     def CreateString(self, s, encoding='utf-8', errors='strict'):
         """CreateString writes a null-terminated byte string as a vector."""
