@@ -79,6 +79,9 @@ struct Method : public CommentHolder {
 
   virtual grpc::string get_input_type_name() const = 0;
   virtual grpc::string get_output_type_name() const = 0;
+
+  virtual grpc::string get_fb_builder() const = 0;
+
   virtual bool NoStreaming() const = 0;
   virtual bool ClientStreaming() const = 0;
   virtual bool ServerStreaming() const = 0;

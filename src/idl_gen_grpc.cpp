@@ -77,6 +77,18 @@ class FlatBufMethod : public grpc_generator::Method {
     return true;
   }
 
+  std::string get_input_type_name() const {
+    return (*method_->request).name;
+  }
+
+  std::string get_output_type_name() const {
+    return (*method_->response).name;
+  }
+
+  std::string get_fb_builder() const {
+    return "builder";
+  }
+
   std::string input_type_name() const { return GRPCType(*method_->request); }
 
   std::string output_type_name() const { return GRPCType(*method_->response); }
