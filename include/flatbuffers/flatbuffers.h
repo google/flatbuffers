@@ -377,22 +377,34 @@ class Allocator {
   }
 };
 
-// DefaultAllocator uses new/delete to allocate memory regions
-class DefaultAllocator : public Allocator {
- public:
-  virtual uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
+inline uint8_t *Allocate(Allocator *allocator, size_t size) {
+  if (allocator) {
+    return allocator->allocate(size);
+  } else {
     return new uint8_t[size];
   }
+}
 
-  virtual void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
+inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
+  if (allocator) {
+    return allocator->deallocate(p, size);
+  } else {
     delete[] p;
   }
+}
 
-  static DefaultAllocator &instance() {
-    static DefaultAllocator inst;
-    return inst;
+inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
+                                   size_t old_size, size_t new_size) {
+  if (allocator) {
+    return allocator->reallocate_downward(old_p, old_size, new_size);
+  } else {
+    assert(new_size > old_size);  // vector_downward only grows
+    uint8_t *new_p = new uint8_t[new_size];
+    memmove(new_p + (new_size - old_size), old_p, old_size);
+    delete[] old_p;
+    return new_p;
   }
-};
+}
 
 // DetachedBuffer is a finished flatbuffer memory region, detached from its
 // builder. The original memory region and allocator are also stored so that
@@ -406,14 +418,13 @@ class DetachedBuffer {
                  size_t reserved, uint8_t *cur, size_t sz)
     : allocator_(allocator), own_allocator_(own_allocator), buf_(buf),
       reserved_(reserved), cur_(cur), size_(sz) {
-    assert(allocator_);
   }
 
   DetachedBuffer(DetachedBuffer &&other)
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    other.reset();  
+    other.reset();
   }
 
   DetachedBuffer &operator=(DetachedBuffer &&other) {
@@ -480,8 +491,7 @@ class DetachedBuffer {
 
   inline void destroy() {
     if (buf_) {
-      assert(allocator_);
-      allocator_->deallocate(buf_, reserved_);
+      Deallocate(allocator_, buf_, reserved_);
     }
     if (own_allocator_ && allocator_) {
       delete allocator_;
@@ -508,16 +518,13 @@ class vector_downward {
   explicit vector_downward(size_t initial_size = 1024,
                            Allocator *allocator = nullptr,
                            bool own_allocator = false)
-    : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
-      own_allocator_(own_allocator), initial_size_(initial_size), reserved_(0),
-      buf_(nullptr), cur_(nullptr) {
-    assert(allocator_);
+    : allocator_(allocator), own_allocator_(own_allocator),
+      initial_size_(initial_size), reserved_(0), buf_(nullptr), cur_(nullptr) {
   }
 
   ~vector_downward() {
     if (buf_) {
-      assert(allocator_);
-      allocator_->deallocate(buf_, reserved_);
+      Deallocate(allocator_, buf_, reserved_);
     }
     if (own_allocator_ && allocator_) {
       delete allocator_;
@@ -526,8 +533,7 @@ class vector_downward {
 
   void reset() {
     if (buf_) {
-      assert(allocator_);
-      allocator_->deallocate(buf_, reserved_);
+      Deallocate(allocator_, buf_, reserved_);
     }
     reserved_ = 0;
     buf_ = nullptr;
@@ -573,7 +579,7 @@ class vector_downward {
     return cur_;
   }
 
-  Allocator &get_allocator() { return *allocator_; }
+  Allocator *get_allocator() { return allocator_; }
 
   uoffset_t size() const {
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
@@ -634,16 +640,15 @@ class vector_downward {
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
 
   void reallocate(size_t len) {
-    assert(allocator_);
     auto old_reserved = reserved_;
     auto old_size = size();
     reserved_ += (std::max)(len, growth_policy(old_reserved));
     FLATBUFFERS_CONSTEXPR size_t alignment = AlignOf<largest_scalar_t>();
     reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
     if (buf_) {
-      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
+      buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_);
     } else {
-      buf_ = allocator_->allocate(reserved_);
+      buf_ = Allocate(allocator_, reserved_);
     }
     cur_ = buf_ + reserved_ - old_size;
   }
@@ -680,8 +685,7 @@ class FlatBufferBuilder
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to `1024`.
-  /// @param[in] allocator An `Allocator` to use. Defaults to a new instance of
-  /// a `DefaultAllocator`.
+  /// @param[in] allocator An `Allocator` to use. May be nullptr.
   /// @param[in] own_allocator Whether the builder/vector should own the
   /// allocator. Defaults to / `false`.
   explicit FlatBufferBuilder(size_t initial_size = 1024,
