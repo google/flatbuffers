@@ -388,14 +388,23 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
 
   grpc_python_generator::PrivateGenerator generator(config, &fbfile);
 
-  std::string code = generator.GetGrpcServices();
-
   std::string namespace_dir;
   auto &namespaces = parser.namespaces_.back()->components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (it != namespaces.begin()) namespace_dir += kPathSeparator;
     namespace_dir += *it;
   }
+
+  std::string type_dir;
+  for(auto ch: namespace_dir) {
+    if(ch == kPathSeparator) {
+      ch = '.';
+    }
+    type_dir += ch;
+  }
+  type_dir += '.';
+
+  std::string code = generator.GetGrpcServices(type_dir);
 
   std::string grpc_py_filename =
       namespace_dir + kPathSeparator + file_name + "_grpc_fb.py";

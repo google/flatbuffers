@@ -53,11 +53,13 @@ struct PrivateGenerator {
   PrivateGenerator(const GeneratorConfiguration& config,
                    const grpc_generator::File* file);
 
-  grpc::string GetGrpcServices();
+  grpc::string GetGrpcServices(grpc::string namespace_dir);
 
  private:
   void PrintPreamble(grpc_generator::Printer* out);
   void PrintBetaPreamble(grpc_generator::Printer* out);
+  void PrintNamespaceModules(grpc_generator::Printer* out,
+                             grpc::string namespace_dir);
   void PrintGAServices(grpc_generator::Printer* out);
   void PrintBetaServices(grpc_generator::Printer* out);
 

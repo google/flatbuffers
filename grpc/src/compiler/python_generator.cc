@@ -581,7 +581,7 @@ void PrivateGenerator::PrintGAServices(grpc_generator::Printer* out) {
   }
   for (int i = 0; i < file->service_count(); ++i) {
     auto service = file->service(i);
-    out->Print(file->additional_headers().c_str());
+
     grpc::string package_qualified_service_name = package + service->name();
     PrintStub(package_qualified_service_name, service.get(), out);
     PrintServicer(service.get(), out);
@@ -597,7 +597,7 @@ void PrivateGenerator::PrintBetaServices(grpc_generator::Printer* out) {
   }
   for (int i = 0; i < file->service_count(); ++i) {
     auto service = file->service(i);
-    out->Print(file->additional_headers().c_str());
+
     grpc::string package_qualified_service_name = package + service->name();
     PrintBetaServicer(service.get(), out);
     PrintBetaStub(service.get(), out);
@@ -606,7 +606,30 @@ void PrivateGenerator::PrintBetaServices(grpc_generator::Printer* out) {
   }
 }
 
-grpc::string PrivateGenerator::GetGrpcServices() {
+void PrivateGenerator::PrintNamespaceModules(grpc_generator::Printer* out,
+                                             grpc::string namespace_dir) {
+  StringMap var;
+  set<grpc::string> modules;
+
+  var["Namespace"] = namespace_dir;
+  for(int i = 0; i < file->service_count(); ++i) {
+    auto service = file->service(i);
+    for(int j = 0; j < service.get()->method_count(); ++j) {
+      auto method = service->method(j);
+
+      modules.insert(method->get_input_type_name());
+      modules.insert(method->get_output_type_name());
+    }
+  }
+
+  for(auto it: modules) {
+    var["Module"] = it;
+    out->Print(var, "import $Namespace$$Module$ as $Module$\n");
+  }
+  out->Print(file->additional_headers().c_str());
+}
+
+grpc::string PrivateGenerator::GetGrpcServices(grpc::string namespace_dir) {
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -617,6 +640,7 @@ grpc::string PrivateGenerator::GetGrpcServices() {
     StringMap var;
     var["Package"] = config.grpc_package_root;
     out->Print(var, "import $Package$\n");
+    PrintNamespaceModules(out.get(), namespace_dir);
     PrintGAServices(out.get());
     out->Print("try:\n");
     {
@@ -626,6 +650,7 @@ grpc::string PrivateGenerator::GetGrpcServices() {
           "# Please use the generated *_pb2_grpc.py files instead.\n");
       out->Print(var, "import $Package$\n");
       PrintBetaPreamble(out.get());
+      PrintNamespaceModules(out.get(), namespace_dir);
       PrintGAServices(out.get());
       PrintBetaServices(out.get());
     }
