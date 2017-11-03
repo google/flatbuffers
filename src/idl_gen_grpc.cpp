@@ -396,14 +396,14 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
   }
 
   std::string type_dir;
-  for(auto ch: namespace_dir) {
-    if(ch == kPathSeparator) {
-      ch = '.';
+  for(unsigned int i = 0; i < namespace_dir.size(); ++i) {
+    if(namespace_dir[i] == kPathSeparator) {
+      type_dir += '.';
+      continue;
     }
-    type_dir += ch;
+    type_dir += namespace_dir[i];
   }
   type_dir += '.';
-
   std::string code = generator.GetGrpcServices(type_dir);
 
   std::string grpc_py_filename =
