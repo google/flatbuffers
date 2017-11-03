@@ -64,7 +64,7 @@ class MonsterStorage(monster_grpc_fb.MonsterStorageServicer):
     monster = request.GetRootAsMonster(buf, 0)
     monster_name = monster.Name().decode('utf-8')
     print("Monster's name: " + monster_name)
-    return (monster_grpc_fb.Weapon.Weapon(), monster)
+    return (Weapon.Weapon(), monster)
 
 def serve():
   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -77,7 +77,7 @@ def serve():
 def run():
   channel = grpc.insecure_channel('localhost:50051')
   stub = monster_grpc_fb.MonsterStorageStub(channel)
-  response = stub.Store(monster_grpc_fb.Monster.Monster())
+  response = stub.Store(Monster.Monster())
   weapon = response[0]
   monster = response[1]
   name = weapon.Init(monster.Equipped().Bytes, monster.Equipped().Pos)
