@@ -189,7 +189,16 @@ endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
-  set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers)
+
+  # Shared object version: "major.minor.micro"
+  # - micro updated every release when there is no API/ABI changes
+  # - minor updated when there are additions in API/ABI
+  # - major (ABI number) updated when there are changes in ABI (or removals)
+  set(FlatBuffers_Library_SONAME_MAJOR "1")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
+  set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
+                        SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
+                        VERSION "${FlatBuffers_Library_SONAME_FULL}")
 endif()
 
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
