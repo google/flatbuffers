@@ -1182,7 +1182,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         num_fields++;
       }
     }
-    if (has_no_struct_fields && num_fields) {
+    // JVM specifications restrict default constructor params to be < 255.
+    // Longs and doubles take up 2 units, so we set the limit to be < 127.
+    if (has_no_struct_fields && num_fields && num_fields < 127) {
       // Generate a table constructor of the form:
       // public static int createName(FlatBufferBuilder builder, args...)
       code += "  public static " + GenOffsetType(struct_def) + " ";
