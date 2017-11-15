@@ -526,7 +526,7 @@ void SizePrefixedTest() {
   TEST_EQ_STR(m->name()->c_str(), "bob");
 }
 
-#ifndef FLATBUFFERS_CPP98_STL
+#if __cplusplus >= 201103L
 void TriviallyCopyableTest() {
     TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);
 }
@@ -1815,7 +1815,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   #else
     auto &flatbuf = flatbuf1;
   #endif // !defined(FLATBUFFERS_CPP98_STL)
-#ifndef FLATBUFFERS_CPP98_STL
+#if __cplusplus >= 201103L
   TriviallyCopyableTest();
 #endif
 
