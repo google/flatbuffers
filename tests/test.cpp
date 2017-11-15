@@ -526,11 +526,17 @@ void SizePrefixedTest() {
   TEST_EQ_STR(m->name()->c_str(), "bob");
 }
 
-#if __cplusplus >= 201103L
+
 void TriviallyCopyableTest() {
-    TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);
+  #if __GNUG__ && __GNUC__ < 5
+    TEST_EQ(__has_trivial_copy(Vec3), true);
+  #else
+    #if __cplusplus >= 201103L
+      TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);
+    #endif
+  #endif
 }
-#endif
+
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
@@ -1815,9 +1821,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   #else
     auto &flatbuf = flatbuf1;
   #endif // !defined(FLATBUFFERS_CPP98_STL)
-#if __cplusplus >= 201103L
+
   TriviallyCopyableTest();
-#endif
 
   AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
                        rawbuf.length());
