@@ -2284,11 +2284,6 @@ class CppGenerator : public BaseGenerator {
     code_ += "    memset(this, 0, sizeof({{STRUCT_NAME}}));";
     code_ += "  }";
 
-    // Generate a copy constructor.
-    code_ += "  {{STRUCT_NAME}}(const {{STRUCT_NAME}} &_o) {";
-    code_ += "    memcpy(this, &_o, sizeof({{STRUCT_NAME}}));";
-    code_ += "  }";
-
     // Generate a constructor that takes all fields as arguments.
     std::string arg_list;
     std::string init_list;
