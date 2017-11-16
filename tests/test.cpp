@@ -1803,6 +1803,16 @@ void TypeAliasesTest()
   TEST_EQ(sizeof(ta->f64()), 8);
 }
 
+void EndianSwapTest() {
+  TEST_EQ(flatbuffers::EndianSwap(static_cast<int16_t>(0x1234)),
+          0x3412);
+  TEST_EQ(flatbuffers::EndianSwap(static_cast<int32_t>(0x12345678)),
+          0x78563412);
+  TEST_EQ(flatbuffers::EndianSwap(static_cast<int64_t>(0x1234567890ABCDEF)),
+          0xEFCDAB9078563412);
+  TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
+}
+
 int main(int /*argc*/, const char * /*argv*/[]) {
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
       defined(_MSC_VER) && defined(_DEBUG)
@@ -1866,6 +1876,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ConformTest();
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
+  EndianSwapTest();
 
   FlexBuffersTest();
 
