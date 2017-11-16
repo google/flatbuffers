@@ -840,7 +840,7 @@ for the `path` field above:
 </div>
 <div class="language-python">
 ~~~{.py}
-  MyGame.Example.Monster.MonsterStartPathVector(builder, 2)
+  MyGame.Sample.Monster.MonsterStartPathVector(builder, 2)
   MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
   MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
   path = builder.EndVector(2)
@@ -848,7 +848,7 @@ for the `path` field above:
 </div>
 <div class="language-javascript">
 ~~~{.js}
-  MyGame.Example.Monster.startPathVector(builder, 2);
+  MyGame.Sample.Monster.startPathVector(builder, 2);
   MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
   MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
   var path = builder.endVector();
@@ -1166,7 +1166,7 @@ appropriate `finish` method.
 <div class="language-javascript">
 ~~~{.js}
   // Call `finish()` to instruct the builder that this monster is complete.
-  builder.finish(orc); // You could also call `MyGame.Example.Monster.finishMonsterBuffer(builder,
+  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder,
                        //                                                                 orc);`.
 ~~~
 </div>
