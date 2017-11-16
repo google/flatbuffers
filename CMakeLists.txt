@@ -249,15 +249,59 @@ endif()
 
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
+
   install(DIRECTORY include/flatbuffers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+  set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
+
+  install(
+      FILES "CMake/FlatbuffersConfig.cmake"
+      DESTINATION ${FB_CMAKE_DIR}
+  )
+
   if(FLATBUFFERS_BUILD_FLATLIB)
-    install(TARGETS flatbuffers DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS flatbuffers EXPORT FlatbuffersTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+
+    install(EXPORT FlatbuffersTargets
+      FILE FlatbuffersTargets.cmake
+      NAMESPACE flatbuffers::
+      DESTINATION ${FB_CMAKE_DIR}
+    )
   endif()
+
   if(FLATBUFFERS_BUILD_FLATC)
-    install(TARGETS flatc DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(
+      TARGETS flatc EXPORT FlatcTargets
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      CONFIGURATIONS Release
+    )
+
+    install(
+      EXPORT FlatcTargets
+      FILE FlatcTargets.cmake
+      NAMESPACE flatbuffers::
+      DESTINATION ${FB_CMAKE_DIR}
+      CONFIGURATIONS Release
+    )
   endif()
+
   if(FLATBUFFERS_BUILD_SHAREDLIB)
-    install(TARGETS flatbuffers_shared DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+
+  install(
+      EXPORT FlatbuffersSharedTargets
+      FILE FlatbuffersSharedTargets.cmake
+      NAMESPACE flatbuffers::
+      DESTINATION ${FB_CMAKE_DIR}
+    )
   endif()
 endif()
 
