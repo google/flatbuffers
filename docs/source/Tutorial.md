@@ -604,7 +604,7 @@ traversal. This is generally easy to do on any tree structures.
 
   // Create a `vector` representing the inventory of the Orc. Each number
   // could correspond to an item that can be claimed after he is slain.
-  unsigned char treasure = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  unsigned char treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto inventory = builder.CreateVector(treasure, 10);
 ~~~
 </div>
@@ -1028,13 +1028,14 @@ a bit more flexibility.
   // manually.
   MonsterBuilder monster_builder(builder);
   monster_builder.add_pos(&pos);
+  auto pos = Vec3(1.0f, 2.0f, 3.0f);
   monster_builder.add_hp(hp);
   monster_builder.add_name(name);
   monster_builder.add_inventory(inventory);
   monster_builder.add_color(Color_Red);
   monster_builder.add_weapons(weapons);
   monster_builder.add_equipped_type(Equipment_Weapon);
-  monster_builder.add_equpped(axe);
+  monster_builder.add_equpped(axe.Union());
   auto orc = monster_builder.Finish();
 ~~~
 </div>
