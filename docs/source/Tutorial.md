@@ -210,7 +210,7 @@ The `Weapon` table is a sub-table used within our FlatBuffer. It is
 used twice: once within the `Monster` table and once within the `Equipment`
 enum. For our `Monster`, it is used to populate a `vector of tables` via the
 `weapons` field within our `Monster`. It is also the only table referenced by
-the `Equipment` enum.
+the `Equipment` union.
 
 The last part of the `schema` is the `root_type`. The root type declares what
 will be the root table for the serialized data. In our case, the root type is
