@@ -84,15 +84,19 @@ parent object, and use no virtual table).
 
 ### Types
 
-Built-in scalar types are:
+Built-in scalar types are 
 
--   8 bit: `byte`, `ubyte`, `bool`
+-   8 bit: `byte` (`int8`), `ubyte` (`uint8`), `bool`
 
--   16 bit: `short`, `ushort`
+-   16 bit: `short` (`int16`), `ushort` (`uint16`)
 
--   32 bit: `int`, `uint`, `float`
+-   32 bit: `int` (`int32`), `uint` (`uint32`), `float` (`float32`)
 
--   64 bit: `long`, `ulong`, `double`
+-   64 bit: `long` (`int64`), `ulong` (`uint64`), `double` (`float64`)
+
+The type names in parentheses are alias names such that for example
+`uint8` can be used in place of `ubyte`, and `int32` can be used in
+place of `int` without affecting code generation.
 
 Built-in non-scalar types:
 
