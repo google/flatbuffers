@@ -216,6 +216,15 @@ The last part of the `schema` is the `root_type`. The root type declares what
 will be the root table for the serialized data. In our case, the root type is
 our `Monster` table.
 
+The scalar types can also use alias type names such as `int16` instead
+of `short` and `float32` instead of `float`. Thus we could also write
+the `Weapon` table as:
+
+  table Weapon {
+    name:string;
+    damage:int16;
+  }
+
 #### More Information About Schemas
 
 You can find a complete guide to writing `schema` files in the
