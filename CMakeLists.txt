@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(FlatBuffers)
 
+include(GNUInstallDirs)
+
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
@@ -169,7 +171,12 @@ include_directories(include)
 include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  if(NOT CMAKE_VERSION VERSION_LESS 3.0)
+    target_include_directories(flatbuffers PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
@@ -189,6 +196,11 @@ endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
+  if(NOT CMAKE_VERSION VERSION_LESS 3.0)
+    target_include_directories(flatbuffers_shared PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  endif()
 
   # Shared object version: "major.minor.micro"
   # - micro updated every release when there is no API/ABI changes
@@ -248,8 +260,6 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
 endif()
 
 if(FLATBUFFERS_INSTALL)
-  include(GNUInstallDirs)
-
   install(DIRECTORY include/flatbuffers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
