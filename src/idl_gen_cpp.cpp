@@ -1334,6 +1334,12 @@ class CppGenerator : public BaseGenerator {
       }
     } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
       return field.value.constant == "0" ? "false" : "true";
+    } else if (field.attributes.Lookup("cpp_type")) {
+      if (PtrType(&field) == "naked") {
+        return "0";
+      } else {
+        return "";
+      }
     } else {
       return GenDefaultConstant(field);
     }
@@ -1370,9 +1376,11 @@ class CppGenerator : public BaseGenerator {
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
-      auto full_type = (cpp_type ?
-        (field.value.type.base_type == BASE_TYPE_VECTOR ? "std::vector<" + cpp_type->constant + "*> " : cpp_type->constant + " *")
-        : type + " ");
+      auto full_type =
+          (cpp_type ? (field.value.type.base_type == BASE_TYPE_VECTOR
+                      ? "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + "> "
+                      : GenTypeNativePtr(cpp_type->constant, &field, false))
+                    : type + " ");
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
@@ -1389,14 +1397,14 @@ class CppGenerator : public BaseGenerator {
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE) {
         auto cpp_type = field.attributes.Lookup("cpp_type");
+        auto native_default = field.attributes.Lookup("native_default");
         // Scalar types get parsed defaults, raw pointers get nullptrs.
         if (IsScalar(field.value.type.base_type)) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field);
-          initializer_list += "(" + GetDefaultScalarValue(field) + ")";
+          initializer_list += "(" + (native_default ? std::string(native_default->constant) : GetDefaultScalarValue(field)) + ")";
         } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
           if (IsStruct(field.value.type)) {
-            auto native_default = field.attributes.Lookup("native_default");
             if (native_default) {
               if (!initializer_list.empty()) {
                 initializer_list += ",\n        ";
@@ -2051,12 +2059,19 @@ class CppGenerator : public BaseGenerator {
           //    (*resolver)(&_o->field, (hash_value_t)(_e));
           //  else
           //    _o->field = nullptr;
+          code += "//vector resolver, " + PtrType(&field) + "\n";
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access + "), ";
           code += "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
-          code += " else ";
-          code += "_o->" + name + "[_i]" + access + " = nullptr";
+          if (PtrType(&field) == "naked") {
+            code += " else ";
+            code += "_o->" + name + "[_i]" + access + " = nullptr";
+          } else {
+            //code += " else ";
+            //code += "_o->" + name + "[_i]" + access + " = " + GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
+            code += "/* else do nothing */";
+          }
         } else {
           code += "_o->" + name + "[_i]" + access + " = ";
           code +=
@@ -2088,12 +2103,19 @@ class CppGenerator : public BaseGenerator {
           //    (*resolver)(&_o->field, (hash_value_t)(_e));
           //  else
           //    _o->field = nullptr;
+          code += "//scalar resolver, " + PtrType(&field) + " \n";
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + Name(field) + "), ";
           code += "static_cast<flatbuffers::hash_value_t>(_e));";
-          code += " else ";
-          code += "_o->" + Name(field) + " = nullptr;";
+          if (PtrType(&field) == "naked") {
+            code += " else ";
+            code += "_o->" + Name(field) + " = nullptr;";
+          } else {
+            //code += " else ";
+            //code += "_o->" + Name(field) + " = " + GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
+            code += "/* else do nothing */;";
+          }
         } else {
           // Generate code for assigning the value, of the form:
           //  _o->field = value;
@@ -2119,8 +2141,9 @@ class CppGenerator : public BaseGenerator {
       value =
           "_rehasher ? "
           "static_cast<" +
-          type + ">((*_rehasher)(" + value + ")) : 0";
+          type + ">((*_rehasher)(" + value + GenPtrGet(field) + ")) : 0";
     }
+
 
     std::string code;
     switch (field.value.type.base_type) {
@@ -2208,7 +2231,7 @@ class CppGenerator : public BaseGenerator {
               code += "[](size_t i, _VectorArgs *__va) { ";
               code += "return __va->__rehasher ? ";
               code += "static_cast<" + type + ">((*__va->__rehasher)";
-              code += "(__va->_" + value + "[i]" + ")) : 0";
+              code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";
               code += "; }, &_va )";
             } else {
               code += "_fbb.CreateVector(" + value + ")";
