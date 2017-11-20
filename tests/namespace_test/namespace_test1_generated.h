@@ -54,9 +54,6 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
   StructInNestedNS() {
     memset(this, 0, sizeof(StructInNestedNS));
   }
-  StructInNestedNS(const StructInNestedNS &_o) {
-    memcpy(this, &_o, sizeof(StructInNestedNS));
-  }
   StructInNestedNS(int32_t _a, int32_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
         b_(flatbuffers::EndianScalar(_b)) {
