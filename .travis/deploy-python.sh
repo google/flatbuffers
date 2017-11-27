@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROD_REPOSITORY="https://upload.pypi.org/legacy"
+PROD_REPOSITORY="https://upload.pypi.org/legacy/"
 TEST_REPOSITORY="https://test.pypi.org/legacy/"
 
 twine upload \
