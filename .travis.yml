@@ -19,6 +19,9 @@ matrix:
         skip_cleanup: true
         on:
           tags: true
+          # all_branches must be set with tags: true. See below post:
+          # https://stackoverflow.com/a/27775257/1076585
+          all_branches: true
       deploy:
         # Produce a new build for the cutting edge when master changes.
         provider: script
