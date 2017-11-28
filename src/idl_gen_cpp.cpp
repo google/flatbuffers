@@ -940,7 +940,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    Reset();";
         code_ += "    type = {{NAME}}Traits<typename std::decay<T>::type::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
-        code_ += "      value = new std::decay<T>::type(std::forward<T>(val));";
+        code_ += "      value = new typename std::decay<T>::type(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
         code_ += "#endif  // FLATBUFFERS_CPP98_STL";
