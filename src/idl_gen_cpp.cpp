@@ -938,9 +938,9 @@ class CppGenerator : public BaseGenerator {
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
         code_ += "    Reset();";
-        code_ += "    type = {{NAME}}Traits<typename T::TableType>::enum_value;";
+        code_ += "    type = {{NAME}}Traits<typename std::decay_t<T>::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
-        code_ += "      value = new T(std::forward<T>(val));";
+        code_ += "      value = new std::decay_t<T>(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
         code_ += "#endif  // FLATBUFFERS_CPP98_STL";
