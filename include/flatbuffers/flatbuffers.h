@@ -656,10 +656,10 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   return static_cast<voffset_t>((field_id + fixed_fields) * sizeof(voffset_t));
 }
 
-template <typename T> const T* data(const std::vector<T> &v) {
+template <typename T, typename Alloc> const T* data(const std::vector<T, Alloc> &v) {
   return v.empty() ? nullptr : &v.front();
 }
-template <typename T> T* data(std::vector<T> &v) {
+template <typename T, typename Alloc> T* data(std::vector<T, Alloc> &v) {
   return v.empty() ? nullptr : &v.front();
 }
 
@@ -1283,8 +1283,8 @@ class FlatBufferBuilder
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
-      const std::vector<T> &v) {
+  template<typename T, typename Alloc> Offset<Vector<const T *>> CreateVectorOfStructs(
+      const std::vector<T, Alloc> &v) {
     return CreateVectorOfStructs(data(v), v.size());
   }
 

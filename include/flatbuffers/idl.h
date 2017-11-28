@@ -526,6 +526,7 @@ class Parser : public ParserState {
     known_attributes_["cpp_ptr_type"] = true;
     known_attributes_["cpp_str_type"] = true;
     known_attributes_["native_inline"] = true;
+    known_attributes_["native_custom_alloc"] = true;
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
