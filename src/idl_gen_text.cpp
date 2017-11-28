@@ -257,7 +257,19 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
       }
       else
       {
-        text += fd.value.constant;
+        if (fd.value.type.enum_def && IsScalar(fd.value.type.base_type)) {
+          auto ev = fd.value.type.enum_def->ReverseLookup(
+              static_cast<int>(StringToInt(fd.value.constant.c_str())), false);
+          if (ev) {
+            OutputIdentifier(ev->name, opts, _text);
+          } else {
+            text += fd.value.constant;
+          }
+        } else if (fd.value.type.base_type == BASE_TYPE_BOOL) {
+          text += fd.value.constant == "0" ? "false" : "true";
+        } else {
+          text += fd.value.constant;
+        }
       }
     }
   }
