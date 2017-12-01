@@ -81,3 +81,4 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
+js/flatbuffers.mjs
