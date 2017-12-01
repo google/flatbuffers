@@ -676,6 +676,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
 
+  auto field_native_custom_alloc = field->attributes.Lookup("native_custom_alloc");
+  if (field_native_custom_alloc)
+    return Error("native_custom_alloc can only be used with a table or struct definition");
+
   field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
   if (field->native_inline && !IsStruct(field->value.type))
     return Error("native_inline can only be defined on structs'");
