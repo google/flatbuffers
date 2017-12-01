@@ -479,7 +479,11 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
-        return "std::vector<" + type_name + ">";
+        if (type.struct_def && type.struct_def->attributes.Lookup("native_custom_alloc")) {
+          auto native_custom_alloc = type.struct_def->attributes.Lookup("native_custom_alloc");
+          return "std::vector<" + type_name + "," + native_custom_alloc->constant + "<" + type_name + ">>";
+        } else 
+          return "std::vector<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
@@ -1323,6 +1327,17 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
+  void GenOperatorNewDelete(const StructDef & struct_def) {
+    if (auto native_custom_alloc = struct_def.attributes.Lookup("native_custom_alloc")) {
+      code_ += "  inline void *operator new (std::size_t count) {";
+      code_ += "    return " + native_custom_alloc->constant + "<{{NATIVE_NAME}}>().allocate(count / sizeof({{NATIVE_NAME}}));";
+      code_ += "  }";
+      code_ += "  inline void operator delete (void *ptr) {";
+      code_ += "    return " + native_custom_alloc->constant + "<{{NATIVE_NAME}}>().deallocate(static_cast<{{NATIVE_NAME}}*>(ptr),1);";
+      code_ += "  }";
+    }
+  }
+
   void GenNativeTable(const StructDef &struct_def) {
     const auto native_name = NativeName(Name(struct_def), &struct_def, parser_.opts);
     code_.SetValue("STRUCT_NAME", Name(struct_def));
@@ -1336,6 +1351,7 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       GenMember(**it);
     }
+    GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
     code_ += "};";
     code_ += "";
@@ -2388,6 +2404,8 @@ class CppGenerator : public BaseGenerator {
         code_ += "  }";
       }
     }
+    code_.SetValue("NATIVE_NAME", Name(struct_def));
+    GenOperatorNewDelete(struct_def);
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
