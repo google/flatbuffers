@@ -622,18 +622,18 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
   vector_downward(vector_downward&& other) :
-	  allocator_(other.allocator_),
-	  own_allocator_(other.own_allocator_),
-	  initial_size_(other.initial_size_),
-	  reserved_(other.reserved_),
-	  buf_(other.buf_),
-	  cur_(other.cur_) {
+      allocator_(other.allocator_),
+      own_allocator_(other.own_allocator_),
+      initial_size_(other.initial_size_),
+      reserved_(other.reserved_),
+      buf_(other.buf_),
+      cur_(other.cur_) {
     other.initial_size_ = 0;
-	other.reserved_ = 0;
-	other.buf_ = 0;
-	other.cur_ = 0;
-	other.allocator_ = 0;
-	other.own_allocator_ = false;
+    other.reserved_ = 0;
+    other.buf_ = 0;
+    other.cur_ = 0;
+    other.allocator_ = 0;
+    other.own_allocator_ = false;
   }
 
  private:
@@ -711,16 +711,16 @@ class FlatBufferBuilder
   }
 
   FlatBufferBuilder(FlatBufferBuilder&& other) :
-	  buf_(std::move(other.buf_)),
-	  offsetbuf_(std::move(other.offsetbuf_)),
-	  max_voffset_(other.max_voffset_),
-	  nested(other.nested),
-	  finished(other.finished),
-	  vtables_(std::move(other.vtables_)),
-	  minalign_(other.minalign_),
-	  force_defaults_(other.force_defaults_),
-	  dedup_vtables_(other.dedup_vtables_),
-	  string_pool(other.string_pool) {
+      buf_(std::move(other.buf_)),
+      offsetbuf_(std::move(other.offsetbuf_)),
+      max_voffset_(other.max_voffset_),
+      nested(other.nested),
+      finished(other.finished),
+      vtables_(std::move(other.vtables_)),
+      minalign_(other.minalign_),
+      force_defaults_(other.force_defaults_),
+      dedup_vtables_(other.dedup_vtables_),
+      string_pool(other.string_pool) {
     other.max_voffset_ = 0;	  
     other.nested = false;
     other.finished = false;
