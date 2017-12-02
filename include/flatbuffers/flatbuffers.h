@@ -514,6 +514,21 @@ class vector_downward {
     assert(allocator_);
   }
 
+  vector_downward(vector_downward&& other) :
+      allocator_(other.allocator_),
+      own_allocator_(other.own_allocator_),
+      initial_size_(other.initial_size_),
+      reserved_(other.reserved_),
+      buf_(other.buf_),
+      cur_(other.cur_) {
+    other.initial_size_ = 0;
+	other.reserved_ = 0;
+	other.buf_ = nullptr;
+	other.cur_ = nullptr;
+	other.allocator_ = nullptr;
+	other.own_allocator_ = false;
+  }
+
   ~vector_downward() {
     if (buf_) {
       assert(allocator_);
@@ -621,21 +636,6 @@ class vector_downward {
 
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
 
-  vector_downward(vector_downward&& other) :
-      allocator_(other.allocator_),
-      own_allocator_(other.own_allocator_),
-      initial_size_(other.initial_size_),
-      reserved_(other.reserved_),
-      buf_(other.buf_),
-      cur_(other.cur_) {
-    other.initial_size_ = 0;
-    other.reserved_ = 0;
-    other.buf_ = 0;
-    other.cur_ = 0;
-    other.allocator_ = 0;
-    other.own_allocator_ = false;
-  }
-
  private:
   // You shouldn't really be copying instances of this class.
   FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
@@ -727,7 +727,7 @@ class FlatBufferBuilder
     other.minalign_ = 0;
     force_defaults_ = false;
     dedup_vtables_ = false;
-    string_pool = 0; 
+    string_pool = nullptr;
   }
 
   ~FlatBufferBuilder() {
