@@ -413,7 +413,7 @@ class DetachedBuffer {
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    other.reset();  
+    other.reset();
   }
 
   DetachedBuffer &operator=(DetachedBuffer &&other) {
@@ -596,6 +596,10 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
+    if (!num) {
+      // when `num` is 0 `bytes` may be `nullptr` and invoking `memcpy` with `nullptr` as src is
+      // undefined behaviour
+    }
     auto dest = make_space(num);
     memcpy(dest, bytes, num);
   }
