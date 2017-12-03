@@ -599,6 +599,7 @@ class vector_downward {
     if (!num) {
       // when `num` is 0 `bytes` may be `nullptr` and invoking `memcpy` with `nullptr` as src is
       // undefined behaviour
+      return;
     }
     auto dest = make_space(num);
     memcpy(dest, bytes, num);
