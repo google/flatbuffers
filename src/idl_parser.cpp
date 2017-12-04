@@ -18,18 +18,14 @@
 #include <list>
 #include <iostream>
 
-#ifdef _WIN32
-#if !defined(_USE_MATH_DEFINES)
-#define _USE_MATH_DEFINES  // For M_PI.
-#endif                     // !defined(_USE_MATH_DEFINES)
-#endif                     // _WIN32
-
 #include <math.h>
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
+
+const double kPi = 3.14159265358979323846;
 
 const char *const kTypeNames[] = {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
@@ -1272,8 +1268,8 @@ CheckedError Parser::ParseSingleValue(Value &e) {
         auto x = strtod(e.constant.c_str(), nullptr); \
         e.constant = NumToString(op); \
       }
-    FLATBUFFERS_FN_DOUBLE("deg", x / M_PI * 180);
-    FLATBUFFERS_FN_DOUBLE("rad", x * M_PI / 180);
+    FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
+    FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
     FLATBUFFERS_FN_DOUBLE("sin", sin(x));
     FLATBUFFERS_FN_DOUBLE("cos", cos(x));
     FLATBUFFERS_FN_DOUBLE("tan", tan(x));
