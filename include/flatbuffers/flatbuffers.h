@@ -413,7 +413,7 @@ class DetachedBuffer {
     : allocator_(other.allocator_), own_allocator_(other.own_allocator_),
       buf_(other.buf_), reserved_(other.reserved_), cur_(other.cur_),
       size_(other.size_) {
-    other.reset();  
+    other.reset();
   }
 
   DetachedBuffer &operator=(DetachedBuffer &&other) {
@@ -1446,6 +1446,7 @@ class FlatBufferBuilder
 
   /// @brief Write a struct by itself, typically to be part of a union.
   template<typename T> Offset<const T *> CreateStruct(const T &structobj) {
+    NotNested();
     Align(AlignOf<T>());
     buf_.push_small(structobj);
     return Offset<const T *>(GetSize());
