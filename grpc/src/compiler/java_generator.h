@@ -9,16 +9,16 @@
 #include "src/compiler/schema_interface.h"
 
 class LogHelper {
-  std::ostream* os;
+  std::ostream* os_;
 
  public:
-  LogHelper(std::ostream* os) : os(os) {}
+  LogHelper(std::ostream* os) : os_(os) {}
   ~LogHelper() {
-    *os << std::endl;
+    *os_ << std::endl;
     ::abort();
   }
   std::ostream& get_os() {
-    return *os;
+    return *os_;
   }
 };
 
