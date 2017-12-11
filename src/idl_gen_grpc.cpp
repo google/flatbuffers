@@ -233,7 +233,7 @@ namespace flatbuffers {
                     return "import \"github.com/google/flatbuffers/go\"";
                 }
                 case kLanguageJava: {
-                    return "import com.google.flatbuffers.FlatbuffersUtils;";
+                    return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
                 }
             }
             return "";
