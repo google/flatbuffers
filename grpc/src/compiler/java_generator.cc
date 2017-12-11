@@ -51,7 +51,7 @@ namespace grpc_java_generator {
     //   - remove embedded underscores & capitalize the following letter
     static string MixedLower(const string& word) {
         string w;
-        w += tolower(word[0]);
+        w += (string::value_type)tolower(word[0]);
         bool after_underscore = false;
         for (size_t i = 1; i < word.length(); ++i) {
             if (word[i] == '_') {
