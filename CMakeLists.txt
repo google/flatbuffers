@@ -60,6 +60,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/cpp_generator.cc
   grpc/src/compiler/go_generator.h
   grpc/src/compiler/go_generator.cc
+  grpc/src/compiler/java_generator.h
+  grpc/src/compiler/java_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -151,7 +153,7 @@ elseif(MSVC)
   # Visual Studio pedantic build settings
   # warning C4512: assignment operator could not be generated
   # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++11 /W4 /WX /wd4512 /wd4316")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
