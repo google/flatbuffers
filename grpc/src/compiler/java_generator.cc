@@ -941,6 +941,8 @@ namespace grpc_java_generator {
         if (!disable_version) {
             vars["grpc_version"] = " (version " XSTR(GRPC_VERSION) ")";
         }
+#else
+        (void)disable_version;
 #endif
         // TODO(nmittler): Replace with WriteServiceDocComment once included by protobuf distro.
         GrpcWriteServiceDocComment(p, vars, service);

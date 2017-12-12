@@ -8,6 +8,15 @@
 
 #include "src/compiler/schema_interface.h"
 
+
+class LogMessageVoidify {
+public:
+    LogMessageVoidify() { }
+    // This has to be an operator with a precedence lower than << but
+    // higher than ?:
+    void operator&(std::ostream&) { }
+};
+
 class LogHelper {
   std::ostream* os_;
 
@@ -17,14 +26,14 @@ class LogHelper {
     *os_ << std::endl;
     ::abort();
   }
-  std::ostream& get_os() {
+  std::ostream& get_os() const {
     return *os_;
   }
 };
 
 // Abort the program after logging the mesage if the given condition is not
 // true. Otherwise, do nothing.
-#define GRPC_CODEGEN_CHECK(x) !(x) && LogHelper(&std::cerr).get_os() \
+#define GRPC_CODEGEN_CHECK(x) (x) ? (void)0 : LogMessageVoidify() & LogHelper(&std::cerr).get_os() \
                              << "CHECK FAILED: " << __FILE__ << ":" \
                              << __LINE__ << ": "
 
@@ -32,8 +41,6 @@ class LogHelper {
 #define GRPC_CODEGEN_FAIL GRPC_CODEGEN_CHECK(false)
 
 using namespace std;
-template<typename T> struct TD;
-#define typeof(x)  TD<decltype(x)> td;
 
 namespace grpc_java_generator {
     struct Parameters {
