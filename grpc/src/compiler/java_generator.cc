@@ -57,7 +57,7 @@ namespace grpc_java_generator {
             if (word[i] == '_') {
                 after_underscore = true;
             } else {
-                w += after_underscore ? toupper(word[i]) : word[i];
+                w += after_underscore ? (string::value_type)toupper(word[i]) : word[i];
                 after_underscore = false;
             }
         }
@@ -71,7 +71,7 @@ namespace grpc_java_generator {
     static string ToAllUpperCase(const string& word) {
         string w;
         for (size_t i = 0; i < word.length(); ++i) {
-            w += toupper(word[i]);
+            w += (string::value_type)toupper(word[i]);
             if ((i < word.length() - 1) && islower(word[i]) && isupper(word[i + 1])) {
                 w += '_';
             }
