@@ -70,6 +70,7 @@ struct LanguageParameters {
   std::string accessor_prefix_static;
   std::string optional_suffix;
   std::string includes;
+  std::string class_annotation;
   CommentConfig comment_config;
 };
 
@@ -99,8 +100,8 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "",
       "",
       "",
-      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\n"
-        "import com.google.flatbuffers.*;\n\n@SuppressWarnings(\"unused\")\n",
+      "import java.nio.*;\nimport java.lang.*;\nimport java.util.*;\nimport com.google.flatbuffers.*;\n",
+      "\n@SuppressWarnings(\"unused\")\n",
       {
         "/**",
         " *",
@@ -132,6 +133,7 @@ const LanguageParameters& GetLangParams(IDLOptions::Language lang) {
       "Table.",
       "?",
       "using global::System;\nusing global::FlatBuffers;\n\n",
+      "",
       {
         nullptr,
         "///",
@@ -161,7 +163,7 @@ class GeneralGenerator : public BaseGenerator {
   GeneralGenerator &operator=(const GeneralGenerator &);
   bool generate() {
     std::string one_file_code;
-    cur_name_space_ = parser_.namespaces_.back();
+    cur_name_space_ = parser_.current_namespace_;
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -194,7 +196,7 @@ class GeneralGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.one_file) {
-      return SaveType(file_name_, *parser_.namespaces_.back(),
+      return SaveType(file_name_, *parser_.current_namespace_,
                       one_file_code, true);
     }
     return true;
@@ -220,7 +222,13 @@ class GeneralGenerator : public BaseGenerator {
       code += lang_.namespace_ident + namespace_name + lang_.namespace_begin;
       code += "\n\n";
     }
-    if (needs_includes) code += lang_.includes;
+    if (needs_includes) {
+      code += lang_.includes;
+      if (parser_.opts.gen_nullable) {
+        code += "\nimport javax.annotation.Nullable;\n";
+      }
+      code += lang_.class_annotation;
+    }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
@@ -235,13 +243,19 @@ class GeneralGenerator : public BaseGenerator {
                                 : upper);
 }
 
+std::string GenNullableAnnotation(const Type& t) {
+  return lang_.language == IDLOptions::kJava 
+    && parser_.opts.gen_nullable 
+    && !IsScalar(DestinationType(t, true).base_type) ? " @Nullable ": "";
+}
+
 static bool IsEnum(const Type& type) {
   return type.enum_def != nullptr && IsInteger(type.base_type);
 }
 
 std::string GenTypeBasic(const Type &type, bool enableLangOverrides) {
   static const char *java_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -249,7 +263,7 @@ std::string GenTypeBasic(const Type &type, bool enableLangOverrides) {
   };
 
   static const char *csharp_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #NTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -869,7 +883,8 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
     std::string dest_mask = DestinationMask(field.value.type, true);
     std::string dest_cast = DestinationCast(field.value.type);
     std::string src_cast = SourceCast(field.value.type);
-    std::string method_start = "  public " + type_name_dest + optional + " " +
+    std::string method_start = "  public " + GenNullableAnnotation(field.value.type) +
+                               type_name_dest + optional + " " +
                                MakeCamel(field.name, lang_.first_camel_upper);
     std::string obj = lang_.language == IDLOptions::kCSharp
       ? "(new " + type_name + "())"
@@ -1167,7 +1182,9 @@ void GenStruct(StructDef &struct_def, std::string *code_ptr) {
         num_fields++;
       }
     }
-    if (has_no_struct_fields && num_fields) {
+    // JVM specifications restrict default constructor params to be < 255.
+    // Longs and doubles take up 2 units, so we set the limit to be < 127.
+    if (has_no_struct_fields && num_fields && num_fields < 127) {
       // Generate a table constructor of the form:
       // public static int createName(FlatBufferBuilder builder, args...)
       code += "  public static " + GenOffsetType(struct_def) + " ";

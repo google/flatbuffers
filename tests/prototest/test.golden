@@ -1,6 +1,6 @@
 // Generated from test.proto
 
-namespace _proto._test;
+namespace proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum : int {
@@ -9,13 +9,9 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
-namespace _proto._test;
-
 table ImportedMessage {
   a:int;
 }
-
-namespace _proto._test;
 
 /// 2nd table doc comment with
 /// many lines.
@@ -36,13 +32,13 @@ table ProtoMessage {
   /// doc comment for l on 2
   /// lines
   l:string (required);
-  m:string;
-  n:_proto._test._ProtoMessage.OtherMessage;
+  m:[ubyte];
+  n:proto.test.ProtoMessage_.OtherMessage;
   o:[string];
-  z:_proto._test.ImportedMessage;
+  z:proto.test.ImportedMessage;
 }
 
-namespace _proto._test._ProtoMessage;
+namespace proto.test.ProtoMessage_;
 
 table OtherMessage {
   a:double;

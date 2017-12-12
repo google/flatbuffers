@@ -459,6 +459,17 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
 
+    def test_create_byte_vector(self):
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"")
+        # 0-byte pad:
+        self.assertBuilderEquals(b, [0, 0, 0, 0])
+
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"\x01\x02\x03")
+        # 1-byte pad:
+        self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
+
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
@@ -490,10 +501,10 @@ class TestByteLayout(unittest.TestCase):
         b.PrependBoolSlot(0, False, False)
         b.EndObject()
         self.assertBuilderEquals(b, [
-            6, 0,  # vtable bytes
+            4, 0,  # vtable bytes
             4, 0,  # end of object from here
-            0, 0,  # entry 1 is zero
-            6, 0, 0, 0,  # offset for start of vtable (int32)
+            # entry 1 is zero and not stored
+            4, 0, 0, 0,  # offset for start of vtable (int32)
         ])
 
     def test_vtable_with_one_int16(self):
@@ -895,7 +906,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(100, self.mon.Hp())
 
     def test_default_monster_name(self):
-        self.assertEqual('', self.mon.Name())
+        self.assertEqual(b'', self.mon.Name())
 
     def test_default_monster_inventory_item(self):
         self.assertEqual(0, self.mon.Inventory(0))
@@ -1224,6 +1235,13 @@ class TestExceptions(unittest.TestCase):
         b.StartObject(0)
         s = 'test1'
         assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.IsNestedError)
+
+    def test_create_byte_vector_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = b'test1'
+        assertRaises(self, lambda: b.CreateByteVector(s),
                      flatbuffers.builder.IsNestedError)
 
     def test_finished_bytes_error(self):

@@ -139,7 +139,7 @@ can have fast lookups directly from a FlatBuffer without having to unpack
 your data into a `Dictionary` or similar.
 
 To use it:
--   Designate one of the fields in a table as they "key" field. You do this
+-   Designate one of the fields in a table as the "key" field. You do this
     by setting the `key` attribute on this field, e.g.
     `name:string (key)`.
     You may only have one key field, and it must be of string or scalar type.

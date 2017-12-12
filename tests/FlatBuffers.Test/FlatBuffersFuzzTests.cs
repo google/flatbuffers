@@ -205,11 +205,11 @@ namespace FlatBuffers.Test
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 0, 0, // padding to 16 bytes
-                6, 0, // vtable bytes
+                // No padding.
+                4, 0, // vtable bytes
                 4, 0, // end of object from here
-                0, 0, // entry 0 is empty (default value)
-                6, 0, 0, 0, // int32 offset for start of vtable
+                // entry 0 is not stored (trimmed end of vtable)
+                4, 0, 0, 0, // int32 offset for start of vtable
             },
                 builder.DataBuffer.Data);
         }

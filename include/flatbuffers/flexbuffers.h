@@ -77,16 +77,17 @@ enum Type {
   TYPE_VECTOR_FLOAT4 = 24,
   TYPE_BLOB = 25,
   TYPE_BOOL = 26,
+  TYPE_VECTOR_BOOL = 36, // To Allow the same type of conversion of type to vector type
 };
 
 inline bool IsInline(Type t) { return t <= TYPE_FLOAT || t == TYPE_BOOL; }
 
 inline bool IsTypedVectorElementType(Type t) {
-  return t >= TYPE_INT && t <= TYPE_STRING;
+  return (t >= TYPE_INT && t <= TYPE_STRING) || t == TYPE_BOOL;
 }
 
 inline bool IsTypedVector(Type t) {
-  return t >= TYPE_VECTOR_INT && t <= TYPE_VECTOR_STRING;
+  return (t >= TYPE_VECTOR_INT && t <= TYPE_VECTOR_STRING) || t == TYPE_VECTOR_BOOL;
 }
 
 inline bool IsFixedTypedVector(Type t) {
@@ -578,6 +579,8 @@ class Reference {
     }
   }
 
+  template<typename T> T As();
+
   // Experimental: Mutation functions.
   // These allow scalars in an already created buffer to be updated in-place.
   // Since by default scalars are stored in the smallest possible space,
@@ -686,6 +689,31 @@ class Reference {
   uint8_t byte_width_;
   Type type_;
 };
+
+// Template specialization for As().
+template<> inline bool Reference::As<bool>() { return AsBool(); }
+
+template<> inline int8_t Reference::As<int8_t>() { return AsInt8(); }
+template<> inline int16_t Reference::As<int16_t>() { return AsInt16(); }
+template<> inline int32_t Reference::As<int32_t>() { return AsInt32(); }
+template<> inline int64_t Reference::As<int64_t>() { return AsInt64(); }
+
+template<> inline uint8_t Reference::As<uint8_t>() { return AsUInt8(); }
+template<> inline uint16_t Reference::As<uint16_t>() { return AsUInt16(); }
+template<> inline uint32_t Reference::As<uint32_t>() { return AsUInt32(); }
+template<> inline uint64_t Reference::As<uint64_t>() { return AsUInt64(); }
+
+template<> inline double Reference::As<double>() { return AsDouble(); }
+template<> inline float Reference::As<float>() { return AsFloat(); }
+
+template<> inline String Reference::As<String>() { return AsString(); }
+template<> inline std::string Reference::As<std::string>() { return AsString().str(); }
+
+template<> inline Blob Reference::As<Blob>() { return AsBlob(); }
+template<> inline Vector Reference::As<Vector>() { return AsVector(); }
+template<> inline TypedVector Reference::As<TypedVector>() { return AsTypedVector(); }
+template<> inline FixedTypedVector Reference::As<FixedTypedVector>() { return AsFixedTypedVector(); }
+template<> inline Map Reference::As<Map>() { return AsMap(); }
 
 inline uint8_t PackedType(BitWidth bit_width, Type type) {
   return static_cast<uint8_t>(bit_width | (type << 2));
@@ -1240,7 +1268,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     assert(flatbuffers::is_scalar<T>::value);
     return flatbuffers::is_floating_point<T>::value
         ? TYPE_FLOAT
-        : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
+        : flatbuffers::is_same<T, bool>::value ? TYPE_BOOL
+            : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT : TYPE_INT);
   }
 
   struct Value {
@@ -1304,7 +1333,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
     BitWidth StoredWidth(BitWidth parent_bit_width_ = BIT_WIDTH_8) const {
       if (IsInline(type_)) {
-          return std::max(min_bit_width_, parent_bit_width_);
+          return (std::max)(min_bit_width_, parent_bit_width_);
       } else {
           return min_bit_width_;
       }
@@ -1363,19 +1392,19 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   Value CreateVector(size_t start, size_t vec_len, size_t step, bool typed,
                      bool fixed, const Value *keys = nullptr) {
     // Figure out smallest bit width we can store this vector with.
-    auto bit_width = std::max(force_min_bit_width_, WidthU(vec_len));
+    auto bit_width = (std::max)(force_min_bit_width_, WidthU(vec_len));
     auto prefix_elems = 1;
     if (keys) {
       // If this vector is part of a map, we will pre-fix an offset to the keys
       // to this vector.
-      bit_width = std::max(bit_width, keys->ElemWidth(buf_.size(), 0));
+      bit_width = (std::max)(bit_width, keys->ElemWidth(buf_.size(), 0));
       prefix_elems += 2;
     }
     Type vector_type = TYPE_KEY;
     // Check bit widths and types for all elements.
     for (size_t i = start; i < stack_.size(); i += step) {
       auto elem_width = stack_[i].ElemWidth(buf_.size(), i + prefix_elems);
-      bit_width = std::max(bit_width, elem_width);
+      bit_width = (std::max)(bit_width, elem_width);
       if (typed) {
         if (i == start) {
           vector_type = stack_[i].type_;
@@ -1448,7 +1477,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                                                  a.first);
       auto strb = reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) +
                                                  b.first);
-      return strncmp(stra, strb, std::min(a.second, b.second) + 1) < 0;
+      return strncmp(stra, strb, (std::min)(a.second, b.second) + 1) < 0;
     }
     const std::vector<uint8_t> *buf_;
   };

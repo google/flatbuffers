@@ -62,9 +62,11 @@ test_script:
   - pip install ../python
   - rem "testing without installing Numpy"
   - python py_test.py 0 0 0
-  - rem "testing after installing Numpy"
-  - conda install --yes numpy
-  - python py_test.py 0 0 0
+  - rem "testing after installing Numpy - disabled"
+  # FIXME: This has a LOT of unnecessary dependencies and makes the tests fail
+  # with timeouts.
+  # - conda install --yes numpy
+  # - python py_test.py 0 0 0
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only
   # supports building one project??

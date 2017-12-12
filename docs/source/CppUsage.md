@@ -126,6 +126,45 @@ The following attributes are specific to the object-based API code generation:
     "native_inline", the value specified with this attribute will be included
     verbatim in the class constructor initializer list for this member.
 
+-   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
+    object-based API all generated NativeTables that  are allocated when unpacking 
+    your  flatbuffer will use "custom allocator". The allocator is also used by 
+    any std::vector that appears in a table defined with `native_custom_alloc`. 
+    This can be  used to provide allocation from a pool for example, for faster 
+    unpacking when using the object-based API.
+
+    Minimal Example:
+
+    schema:
+
+    table mytable(native_custom_alloc:"custom_allocator") {
+      ...
+    }
+
+    with custom_allocator defined before flatbuffers.h is included, as:
+
+    template <typename T> struct custom_allocator : public std::allocator<T> {
+
+      typedef T *pointer;
+
+      template <class U>
+      struct rebind { 
+        typedef custom_allocator<U> other; 
+      };
+
+      pointer allocate(const std::size_t n) {
+        return std::allocator<T>::allocate(n);
+      }
+
+      void deallocate(T* ptr, std::size_t n) {
+        return std::allocator<T>::deallocate(ptr,n);
+      }
+
+      custom_allocator() throw() {}
+      template <class U> 
+      custom_allocator(const custom_allocator<U>&) throw() {}
+    };
+
 -   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
     type exists for a given struct.  For example, the following schema:
 
@@ -230,6 +269,30 @@ schema, as well as a lot of helper functions.
 
 And example of usage, for the time being, can be found in
 `test.cpp/ReflectionTest()`.
+
+## Mini Reflection
+
+A more limited form of reflection is available for direct inclusion in
+generated code, which doesn't any (binary) schema access at all. It was designed
+to keep the overhead of reflection as low as possible (on the order of 2-6
+bytes per field added to your executable), but doesn't contain all the
+information the (binary) schema contains.
+
+You add this information to your generated code by specifying `--reflect-types`
+(or instead `--reflect-names` if you also want field / enum names).
+
+You can now use this information, for example to print a FlatBuffer to text:
+
+    auto s = flatbuffers::FlatBufferToString(flatbuf, MonsterTypeTable());
+
+`MonsterTypeTable()` is declared in the generated code for each type. The
+string produced is very similar to the JSON produced by the `Parser` based
+text generator.
+
+You'll need `flatbuffers/minireflect.h` for this functionality. In there is also
+a convenient visitor/iterator so you can write your own output / functionality
+based on the mini reflection tables without having to know the FlatBuffers or
+reflection encoding.
 
 ## Storing maps / dictionaries in a FlatBuffer
 

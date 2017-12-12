@@ -596,7 +596,7 @@ class FlatbufferBuilder
         if (function_exists('mb_detect_encoding')) {
             return (bool) mb_detect_encoding($bytes, 'UTF-8', true);
         }
-    
+
         $len = strlen($bytes);
         if ($len < 1) {
             /* NOTE: always return 1 when passed string is null */
@@ -812,14 +812,18 @@ class FlatbufferBuilder
         $this->addInt(0);
         $vtableloc = $this->offset();
 
-        for ($i = $this->vtable_in_use -1; $i >= 0; $i--) {
+        $i = $this->vtable_in_use -1;
+        // Trim trailing zeroes.
+        for (; $i >= 0 && $this->vtable[$i] == 0; $i--) {}
+        $trimmed_size = $i + 1;
+        for (; $i >= 0; $i--) {
             $off = ($this->vtable[$i] != 0) ? $vtableloc - $this->vtable[$i] : 0;
             $this->addShort($off);
         }
 
         $standard_fields = 2; // the fields below
         $this->addShort($vtableloc - $this->object_start);
-        $this->addShort(($this->vtable_in_use + $standard_fields) * Constants::SIZEOF_SHORT);
+        $this->addShort(($trimmed_size + $standard_fields) * Constants::SIZEOF_SHORT);
 
         // search for an existing vtable that matches the current one.
         $existing_vtable = 0;

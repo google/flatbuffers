@@ -482,22 +482,29 @@ class Monster extends Table
         return $o != 0 ? $this->__vector_len($o) : 0;
     }
 
+    public function getParentNamespaceTest()
+    {
+        $obj = new InParentNamespace();
+        $o = $this->__offset(72);
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
+    }
+
     /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(34);
+        $builder->StartObject(35);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test)
     {
-        $builder->startObject(34);
+        $builder->startObject(35);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -531,6 +538,7 @@ class Monster extends Table
         self::addTest5($builder, $test5);
         self::addVectorOfLongs($builder, $vector_of_longs);
         self::addVectorOfDoubles($builder, $vector_of_doubles);
+        self::addParentNamespaceTest($builder, $parent_namespace_test);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1147,6 +1155,16 @@ class Monster extends Table
     public static function startVectorOfDoublesVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int
+     * @return void
+     */
+    public static function addParentNamespaceTest(FlatBufferBuilder $builder, $parentNamespaceTest)
+    {
+        $builder->addOffsetX(34, $parentNamespaceTest, 0);
     }
 
     /**

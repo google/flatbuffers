@@ -125,5 +125,8 @@ Additional options:
 
 -   `--keep-prefix` : Keep original prefix of schema include statement.
 
+-   `--reflect-types` : Add minimal type reflection to code generation.
+-   `--reflect-names` : Add minimal type/name reflection.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

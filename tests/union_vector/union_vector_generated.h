@@ -84,25 +84,49 @@ struct CharacterUnion {
     return type == Character_MuLan ?
       reinterpret_cast<AttackerT *>(value) : nullptr;
   }
+  const AttackerT *AsMuLan() const {
+    return type == Character_MuLan ?
+      reinterpret_cast<const AttackerT *>(value) : nullptr;
+  }
   Rapunzel *AsRapunzel() {
     return type == Character_Rapunzel ?
       reinterpret_cast<Rapunzel *>(value) : nullptr;
+  }
+  const Rapunzel *AsRapunzel() const {
+    return type == Character_Rapunzel ?
+      reinterpret_cast<const Rapunzel *>(value) : nullptr;
   }
   BookReader *AsBelle() {
     return type == Character_Belle ?
       reinterpret_cast<BookReader *>(value) : nullptr;
   }
+  const BookReader *AsBelle() const {
+    return type == Character_Belle ?
+      reinterpret_cast<const BookReader *>(value) : nullptr;
+  }
   BookReader *AsBookFan() {
     return type == Character_BookFan ?
       reinterpret_cast<BookReader *>(value) : nullptr;
+  }
+  const BookReader *AsBookFan() const {
+    return type == Character_BookFan ?
+      reinterpret_cast<const BookReader *>(value) : nullptr;
   }
   std::string *AsOther() {
     return type == Character_Other ?
       reinterpret_cast<std::string *>(value) : nullptr;
   }
+  const std::string *AsOther() const {
+    return type == Character_Other ?
+      reinterpret_cast<const std::string *>(value) : nullptr;
+  }
   std::string *AsUnused() {
     return type == Character_Unused ?
       reinterpret_cast<std::string *>(value) : nullptr;
+  }
+  const std::string *AsUnused() const {
+    return type == Character_Unused ?
+      reinterpret_cast<const std::string *>(value) : nullptr;
   }
 };
 
@@ -116,9 +140,6 @@ MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
  public:
   Rapunzel() {
     memset(this, 0, sizeof(Rapunzel));
-  }
-  Rapunzel(const Rapunzel &_o) {
-    memcpy(this, &_o, sizeof(Rapunzel));
   }
   Rapunzel(int32_t _hair_length)
       : hair_length_(flatbuffers::EndianScalar(_hair_length)) {
@@ -139,9 +160,6 @@ MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  public:
   BookReader() {
     memset(this, 0, sizeof(BookReader));
-  }
-  BookReader(const BookReader &_o) {
-    memcpy(this, &_o, sizeof(BookReader));
   }
   BookReader(int32_t _books_read)
       : books_read_(flatbuffers::EndianScalar(_books_read)) {
@@ -190,13 +208,13 @@ struct AttackerBuilder {
   void add_sword_attack_damage(int32_t sword_attack_damage) {
     fbb_.AddElement<int32_t>(Attacker::VT_SWORD_ATTACK_DAMAGE, sword_attack_damage, 0);
   }
-  AttackerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit AttackerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   AttackerBuilder &operator=(const AttackerBuilder &);
   flatbuffers::Offset<Attacker> Finish() {
-    const auto end = fbb_.EndTable(start_, 1);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Attacker>(end);
     return o;
   }
@@ -303,13 +321,13 @@ struct MovieBuilder {
   void add_characters(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> characters) {
     fbb_.AddOffset(Movie::VT_CHARACTERS, characters);
   }
-  MovieBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MovieBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   MovieBuilder &operator=(const MovieBuilder &);
   flatbuffers::Offset<Movie> Finish() {
-    const auto end = fbb_.EndTable(start_, 4);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Movie>(end);
     return o;
   }
@@ -574,6 +592,107 @@ inline void CharacterUnion::Reset() {
   }
   value = nullptr;
   type = Character_NONE;
+}
+
+inline flatbuffers::TypeTable *AttackerTypeTable();
+
+inline flatbuffers::TypeTable *RapunzelTypeTable();
+
+inline flatbuffers::TypeTable *BookReaderTypeTable();
+
+inline flatbuffers::TypeTable *MovieTypeTable();
+
+inline flatbuffers::TypeTable *CharacterTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    AttackerTypeTable,
+    RapunzelTypeTable,
+    BookReaderTypeTable
+  };
+  static const char *names[] = {
+    "NONE",
+    "MuLan",
+    "Rapunzel",
+    "Belle",
+    "BookFan",
+    "Other",
+    "Unused"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline flatbuffers::TypeTable *AttackerTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char *names[] = {
+    "sword_attack_damage"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline flatbuffers::TypeTable *RapunzelTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4 };
+  static const char *names[] = {
+    "hair_length"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline flatbuffers::TypeTable *BookReaderTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const int32_t values[] = { 0, 4 };
+  static const char *names[] = {
+    "books_read"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline flatbuffers::TypeTable *MovieTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UTYPE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UTYPE, 1, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    CharacterTypeTable
+  };
+  static const char *names[] = {
+    "main_character_type",
+    "main_character",
+    "characters_type",
+    "characters"
+  };
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
 }
 
 inline const Movie *GetMovie(const void *buf) {

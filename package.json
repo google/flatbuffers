@@ -1,15 +1,18 @@
 {
   "name": "flatbuffers",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Memory Efficient Serialization Library",
-  "files": ["js/flatbuffers.js"],
-  "main": "js/flatbuffers.js",
+  "files": ["js/flatbuffers.js", "js/flatbuffers.mjs"],
+  "main": "js/flatbuffers",
+  "module": "js/flatbuffers.mjs",
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
   "scripts": {
-    "test": "tests/JavaScriptTest.sh"
+    "test": "tests/JavaScriptTest.sh",
+    "append-esm-export": "sed \"s/this.flatbuffers = flatbuffers;/export { flatbuffers };/\" js/flatbuffers.js >> js/flatbuffers.mjs",
+    "prepublishOnly": "npm run append-esm-export"
   },
   "repository": {
     "type": "git",

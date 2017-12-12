@@ -49,7 +49,7 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
-        return ""
+        return bytes()
 
     # Monster
     def Inventory(self, j):
@@ -422,7 +422,18 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterStart(builder): builder.StartObject(34)
+    # Monster
+    def ParentNamespaceTest(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(72))
+        if o != 0:
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from .InParentNamespace import InParentNamespace
+            obj = InParentNamespace()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+def MonsterStart(builder): builder.StartObject(35)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -468,4 +479,5 @@ def MonsterAddVectorOfLongs(builder, vectorOfLongs): builder.PrependUOffsetTRela
 def MonsterStartVectorOfLongsVector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def MonsterAddVectorOfDoubles(builder, vectorOfDoubles): builder.PrependUOffsetTRelativeSlot(33, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfDoubles), 0)
 def MonsterStartVectorOfDoublesVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterAddParentNamespaceTest(builder, parentNamespaceTest): builder.PrependUOffsetTRelativeSlot(34, flatbuffers.number_types.UOffsetTFlags.py_type(parentNamespaceTest), 0)
 def MonsterEnd(builder): return builder.EndObject()

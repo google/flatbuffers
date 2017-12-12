@@ -198,7 +198,7 @@ static void GetStringField(const StructDef &struct_def,
   code += OffsetPrefix(field);
   code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
   code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return \"\"\n\n";
+  code += Indent + Indent + "return bytes()\n\n";
 }
 
 // Get the value of a union from an object.
@@ -580,7 +580,7 @@ static std::string GenMethod(const FieldDef &field) {
 
 static std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ALIASTYPE, \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
       CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
       #PTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -677,7 +677,7 @@ class PythonGenerator : public BaseGenerator {
     if (!classcode.length()) return true;
 
     std::string namespace_dir = path_;
-    auto &namespaces = parser_.namespaces_.back()->components;
+    auto &namespaces = def.defined_namespace->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (it != namespaces.begin()) namespace_dir += kPathSeparator;
       namespace_dir += *it;

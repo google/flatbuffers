@@ -193,6 +193,10 @@ class Builder(object):
         objectOffset = self.Offset()
         existingVtable = None
 
+        # Trim trailing 0 offsets.
+        while self.current_vtable and self.current_vtable[-1] == 0:
+            self.current_vtable.pop()
+
         # Search backwards through existing vtables, because similar vtables
         # are likely to have been recently appended. See
         # BenchmarkVtableDeduplication for a case in which this heuristic
@@ -410,6 +414,27 @@ class Builder(object):
         self.Place(0, N.Uint8Flags)
 
         l = UOffsetTFlags.py_type(len(s))
+        ## @cond FLATBUFFERS_INTERNAL
+        self.head = UOffsetTFlags.py_type(self.Head() - l)
+        ## @endcond
+        self.Bytes[self.Head():self.Head()+l] = x
+
+        return self.EndVector(len(x))
+
+    def CreateByteVector(self, x):
+        """CreateString writes a byte vector."""
+
+        self.assertNotNested()
+        ## @cond FLATBUFFERS_INTERNAL
+        self.nested = True
+        ## @endcond
+
+        if not isinstance(x, compat.binary_types):
+            raise TypeError("non-byte vector passed to CreateByteVector")
+
+        self.Prep(N.UOffsetTFlags.bytewidth, len(x)*N.Uint8Flags.bytewidth)
+
+        l = UOffsetTFlags.py_type(len(x))
         ## @cond FLATBUFFERS_INTERNAL
         self.head = UOffsetTFlags.py_type(self.Head() - l)
         ## @endcond

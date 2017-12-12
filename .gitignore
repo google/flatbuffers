@@ -5,6 +5,7 @@
 *.o.d
 *.class
 *.a
+*.swp
 *~
 *.vcxproj
 *.vcxproj.filters
@@ -43,6 +44,7 @@ flatsampletext.exe
 grpctest
 grpctest.exe
 snapshot.sh
+tags
 tests/go_gen
 tests/monsterdata_java_wire.mon
 tests/monsterdata_go_wire.mon
@@ -79,3 +81,4 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
+js/flatbuffers.mjs

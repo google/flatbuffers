@@ -481,7 +481,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
     fbb.ClearOffsets();
     return fbb.EndStruct();
   } else {
-    return fbb.EndTable(start, static_cast<voffset_t>(fielddefs->size()));
+    return fbb.EndTable(start);
   }
 }
 
@@ -700,6 +700,9 @@ bool VerifyObject(flatbuffers::Verifier &v,
     }
   }
 
+  if (!v.EndTable())
+    return false;
+  
   return true;
 }
 
