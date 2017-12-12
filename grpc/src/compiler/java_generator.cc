@@ -420,7 +420,7 @@ namespace grpc_java_generator {
         vars["abstract_name"] = service_name + "ImplBase";
         string stub_name = service_name;
         string client_name = service_name;
-        CallType call_type;
+        CallType call_type = ASYNC_CALL;
         bool impl_base = false;
         bool interface = false;
         switch (type) {
