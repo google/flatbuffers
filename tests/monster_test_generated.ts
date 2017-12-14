@@ -29,7 +29,7 @@ export class InParentNamespace {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -81,7 +81,7 @@ export class Monster {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -133,7 +133,7 @@ export class Test {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -154,7 +154,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Test {
  * @returns {number}
  */
 a():number {
-  return this.bb.readInt16(this.bb_pos);
+  return this.bb!.readInt16(this.bb_pos);
 };
 
 /**
@@ -162,13 +162,13 @@ a():number {
  * @returns {boolean}
  */
 mutate_a(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -176,7 +176,7 @@ mutate_a(value:number):boolean {
  * @returns {number}
  */
 b():number {
-  return this.bb.readInt8(this.bb_pos + 2);
+  return this.bb!.readInt8(this.bb_pos + 2);
 };
 
 /**
@@ -184,13 +184,13 @@ b():number {
  * @returns {boolean}
  */
 mutate_b(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 2);
+  var offset = this.bb!.__offset(this.bb_pos, 2);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -218,7 +218,7 @@ export class TestSimpleTableWithEnum {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -248,8 +248,8 @@ static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimp
  * @returns {MyGame.Example.Color}
  */
 color():MyGame.Example.Color {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb!.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
 };
 
 /**
@@ -257,13 +257,13 @@ color():MyGame.Example.Color {
  * @returns {boolean}
  */
 mutate_color(value:MyGame.Example.Color):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -301,7 +301,7 @@ export class Vec3 {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -322,7 +322,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
  * @returns {number}
  */
 x():number {
-  return this.bb.readFloat32(this.bb_pos);
+  return this.bb!.readFloat32(this.bb_pos);
 };
 
 /**
@@ -330,13 +330,13 @@ x():number {
  * @returns {boolean}
  */
 mutate_x(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -344,7 +344,7 @@ mutate_x(value:number):boolean {
  * @returns {number}
  */
 y():number {
-  return this.bb.readFloat32(this.bb_pos + 4);
+  return this.bb!.readFloat32(this.bb_pos + 4);
 };
 
 /**
@@ -352,13 +352,13 @@ y():number {
  * @returns {boolean}
  */
 mutate_y(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -366,7 +366,7 @@ mutate_y(value:number):boolean {
  * @returns {number}
  */
 z():number {
-  return this.bb.readFloat32(this.bb_pos + 8);
+  return this.bb!.readFloat32(this.bb_pos + 8);
 };
 
 /**
@@ -374,13 +374,13 @@ z():number {
  * @returns {boolean}
  */
 mutate_z(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -388,7 +388,7 @@ mutate_z(value:number):boolean {
  * @returns {number}
  */
 test1():number {
-  return this.bb.readFloat64(this.bb_pos + 16);
+  return this.bb!.readFloat64(this.bb_pos + 16);
 };
 
 /**
@@ -396,13 +396,13 @@ test1():number {
  * @returns {boolean}
  */
 mutate_test1(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 16);
+  var offset = this.bb!.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat64(this.bb_pos + offset, value);
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -410,7 +410,7 @@ mutate_test1(value:number):boolean {
  * @returns {MyGame.Example.Color}
  */
 test2():MyGame.Example.Color {
-  return /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + 24));
+  return /** @type {MyGame.Example.Color} */ (this.bb!.readInt8(this.bb_pos + 24));
 };
 
 /**
@@ -418,13 +418,13 @@ test2():MyGame.Example.Color {
  * @returns {boolean}
  */
 mutate_test2(value:MyGame.Example.Color):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 24);
+  var offset = this.bb!.__offset(this.bb_pos, 24);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -433,7 +433,7 @@ mutate_test2(value:MyGame.Example.Color):boolean {
  * @returns {MyGame.Example.Test|null}
  */
 test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
-  return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb);
+  return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb!);
 };
 
 /**
@@ -474,7 +474,7 @@ export class Ability {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -495,7 +495,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Ability {
  * @returns {number}
  */
 id():number {
-  return this.bb.readUint32(this.bb_pos);
+  return this.bb!.readUint32(this.bb_pos);
 };
 
 /**
@@ -503,13 +503,13 @@ id():number {
  * @returns {boolean}
  */
 mutate_id(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -517,7 +517,7 @@ mutate_id(value:number):boolean {
  * @returns {number}
  */
 distance():number {
-  return this.bb.readUint32(this.bb_pos + 4);
+  return this.bb!.readUint32(this.bb_pos + 4);
 };
 
 /**
@@ -525,13 +525,13 @@ distance():number {
  * @returns {boolean}
  */
 mutate_distance(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -558,7 +558,7 @@ export class Stat {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -591,16 +591,16 @@ static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
 id():string|null
 id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 id(optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
  * @returns {flatbuffers.Long}
  */
 val():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -608,13 +608,13 @@ val():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_val(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb!.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt64(this.bb_pos + offset, value);
+  this.bb!.writeInt64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -622,8 +622,8 @@ mutate_val(value:flatbuffers.Long):boolean {
  * @returns {number}
  */
 count():number {
-  var offset = this.bb.__offset(this.bb_pos, 8);
-  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -631,13 +631,13 @@ count():number {
  * @returns {boolean}
  */
 mutate_count(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint16(this.bb_pos + offset, value);
+  this.bb!.writeUint16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -693,7 +693,7 @@ export class Monster {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -732,16 +732,16 @@ static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
  * @returns {MyGame.Example.Vec3|null}
  */
 pos(obj?:MyGame.Example.Vec3):MyGame.Example.Vec3|null {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? (obj || new MyGame.Example.Vec3).__init(this.bb_pos + offset, this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new MyGame.Example.Vec3).__init(this.bb_pos + offset, this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
 mana():number {
-  var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readInt16(this.bb_pos + offset) : 150;
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 150;
 };
 
 /**
@@ -749,13 +749,13 @@ mana():number {
  * @returns {boolean}
  */
 mutate_mana(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb!.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -763,8 +763,8 @@ mutate_mana(value:number):boolean {
  * @returns {number}
  */
 hp():number {
-  var offset = this.bb.__offset(this.bb_pos, 8);
-  return offset ? this.bb.readInt16(this.bb_pos + offset) : 100;
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 100;
 };
 
 /**
@@ -772,13 +772,13 @@ hp():number {
  * @returns {boolean}
  */
 mutate_hp(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -789,8 +789,8 @@ mutate_hp(value:number):boolean {
 name():string|null
 name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 name(optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 10);
-  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
@@ -798,32 +798,32 @@ name(optionalEncoding?:any):string|Uint8Array|null {
  * @returns {number}
  */
 inventory(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 14);
-  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 };
 
 /**
  * @returns {number}
  */
 inventoryLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 14);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Uint8Array}
  */
 inventoryArray():Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 14);
-  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
  * @returns {MyGame.Example.Color}
  */
 color():MyGame.Example.Color {
-  var offset = this.bb.__offset(this.bb_pos, 16);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb!.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
 };
 
 /**
@@ -831,13 +831,13 @@ color():MyGame.Example.Color {
  * @returns {boolean}
  */
 mutate_color(value:MyGame.Example.Color):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 16);
+  var offset = this.bb!.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -845,8 +845,8 @@ mutate_color(value:MyGame.Example.Color):boolean {
  * @returns {MyGame.Example.Any}
  */
 testType():MyGame.Example.Any {
-  var offset = this.bb.__offset(this.bb_pos, 18);
-  return offset ? /** @type {MyGame.Example.Any} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.Any.NONE;
+  var offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? /** @type {MyGame.Example.Any} */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.Any.NONE;
 };
 
 /**
@@ -854,13 +854,13 @@ testType():MyGame.Example.Any {
  * @returns {boolean}
  */
 mutate_test_type(value:MyGame.Example.Any):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 18);
+  var offset = this.bb!.__offset(this.bb_pos, 18);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -869,8 +869,8 @@ mutate_test_type(value:MyGame.Example.Any):boolean {
  * @returns {?flatbuffers.Table}
  */
 test<T extends flatbuffers.Table>(obj:T):T|null {
-  var offset = this.bb.__offset(this.bb_pos, 20);
-  return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 20);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
 
 /**
@@ -879,16 +879,16 @@ test<T extends flatbuffers.Table>(obj:T):T|null {
  * @returns {MyGame.Example.Test}
  */
 test4(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
-  var offset = this.bb.__offset(this.bb_pos, 22);
-  return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
 test4Length():number {
-  var offset = this.bb.__offset(this.bb_pos, 22);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -899,16 +899,16 @@ test4Length():number {
 testarrayofstring(index: number):string
 testarrayofstring(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
 testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 };
 
 /**
  * @returns {number}
  */
 testarrayofstringLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -920,16 +920,16 @@ testarrayofstringLength():number {
  * @returns {MyGame.Example.Monster}
  */
 testarrayoftables(index: number, obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
-  var offset = this.bb.__offset(this.bb_pos, 26);
-  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
 testarrayoftablesLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 26);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -937,8 +937,8 @@ testarrayoftablesLength():number {
  * @returns {MyGame.Example.Monster|null}
  */
 enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
-  var offset = this.bb.__offset(this.bb_pos, 28);
-  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 28);
+  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -946,24 +946,24 @@ enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
  * @returns {number}
  */
 testnestedflatbuffer(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 30);
-  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 30);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 };
 
 /**
  * @returns {number}
  */
 testnestedflatbufferLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 30);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 30);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Uint8Array}
  */
 testnestedflatbufferArray():Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 30);
-  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 30);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -971,16 +971,16 @@ testnestedflatbufferArray():Uint8Array|null {
  * @returns {MyGame.Example.Stat|null}
  */
 testempty(obj?:MyGame.Example.Stat):MyGame.Example.Stat|null {
-  var offset = this.bb.__offset(this.bb_pos, 32);
-  return offset ? (obj || new MyGame.Example.Stat).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 32);
+  return offset ? (obj || new MyGame.Example.Stat).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
  * @returns {boolean}
  */
 testbool():boolean {
-  var offset = this.bb.__offset(this.bb_pos, 34);
-  return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+  var offset = this.bb!.__offset(this.bb_pos, 34);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 };
 
 /**
@@ -988,13 +988,13 @@ testbool():boolean {
  * @returns {boolean}
  */
 mutate_testbool(value:boolean):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 34);
+  var offset = this.bb!.__offset(this.bb_pos, 34);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, +value);
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
   return true;
 };
 
@@ -1002,8 +1002,8 @@ mutate_testbool(value:boolean):boolean {
  * @returns {number}
  */
 testhashs32Fnv1():number {
-  var offset = this.bb.__offset(this.bb_pos, 36);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 36);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1011,13 +1011,13 @@ testhashs32Fnv1():number {
  * @returns {boolean}
  */
 mutate_testhashs32_fnv1(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 36);
+  var offset = this.bb!.__offset(this.bb_pos, 36);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1025,8 +1025,8 @@ mutate_testhashs32_fnv1(value:number):boolean {
  * @returns {number}
  */
 testhashu32Fnv1():number {
-  var offset = this.bb.__offset(this.bb_pos, 38);
-  return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 38);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1034,13 +1034,13 @@ testhashu32Fnv1():number {
  * @returns {boolean}
  */
 mutate_testhashu32_fnv1(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 38);
+  var offset = this.bb!.__offset(this.bb_pos, 38);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1048,8 +1048,8 @@ mutate_testhashu32_fnv1(value:number):boolean {
  * @returns {flatbuffers.Long}
  */
 testhashs64Fnv1():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 40);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 40);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -1057,13 +1057,13 @@ testhashs64Fnv1():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 40);
+  var offset = this.bb!.__offset(this.bb_pos, 40);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt64(this.bb_pos + offset, value);
+  this.bb!.writeInt64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1071,8 +1071,8 @@ mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
  * @returns {flatbuffers.Long}
  */
 testhashu64Fnv1():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 42);
-  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 42);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -1080,13 +1080,13 @@ testhashu64Fnv1():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_testhashu64_fnv1(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 42);
+  var offset = this.bb!.__offset(this.bb_pos, 42);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint64(this.bb_pos + offset, value);
+  this.bb!.writeUint64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1094,8 +1094,8 @@ mutate_testhashu64_fnv1(value:flatbuffers.Long):boolean {
  * @returns {number}
  */
 testhashs32Fnv1a():number {
-  var offset = this.bb.__offset(this.bb_pos, 44);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 44);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1103,13 +1103,13 @@ testhashs32Fnv1a():number {
  * @returns {boolean}
  */
 mutate_testhashs32_fnv1a(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 44);
+  var offset = this.bb!.__offset(this.bb_pos, 44);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1117,8 +1117,8 @@ mutate_testhashs32_fnv1a(value:number):boolean {
  * @returns {number}
  */
 testhashu32Fnv1a():number {
-  var offset = this.bb.__offset(this.bb_pos, 46);
-  return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 46);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1126,13 +1126,13 @@ testhashu32Fnv1a():number {
  * @returns {boolean}
  */
 mutate_testhashu32_fnv1a(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 46);
+  var offset = this.bb!.__offset(this.bb_pos, 46);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1140,8 +1140,8 @@ mutate_testhashu32_fnv1a(value:number):boolean {
  * @returns {flatbuffers.Long}
  */
 testhashs64Fnv1a():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 48);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 48);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -1149,13 +1149,13 @@ testhashs64Fnv1a():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 48);
+  var offset = this.bb!.__offset(this.bb_pos, 48);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt64(this.bb_pos + offset, value);
+  this.bb!.writeInt64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1163,8 +1163,8 @@ mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
  * @returns {flatbuffers.Long}
  */
 testhashu64Fnv1a():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 50);
-  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 50);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -1172,13 +1172,13 @@ testhashu64Fnv1a():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 50);
+  var offset = this.bb!.__offset(this.bb_pos, 50);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint64(this.bb_pos + offset, value);
+  this.bb!.writeUint64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1187,32 +1187,32 @@ mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
  * @returns {boolean}
  */
 testarrayofbools(index: number):boolean|null {
-  var offset = this.bb.__offset(this.bb_pos, 52);
-  return offset ? !!this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : false;
+  var offset = this.bb!.__offset(this.bb_pos, 52);
+  return offset ? !!this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : false;
 };
 
 /**
  * @returns {number}
  */
 testarrayofboolsLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 52);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 52);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Int8Array}
  */
 testarrayofboolsArray():Int8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 52);
-  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 52);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
  * @returns {number}
  */
 testf():number {
-  var offset = this.bb.__offset(this.bb_pos, 54);
-  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 3.14159;
+  var offset = this.bb!.__offset(this.bb_pos, 54);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.14159;
 };
 
 /**
@@ -1220,13 +1220,13 @@ testf():number {
  * @returns {boolean}
  */
 mutate_testf(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 54);
+  var offset = this.bb!.__offset(this.bb_pos, 54);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1234,8 +1234,8 @@ mutate_testf(value:number):boolean {
  * @returns {number}
  */
 testf2():number {
-  var offset = this.bb.__offset(this.bb_pos, 56);
-  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 3.0;
+  var offset = this.bb!.__offset(this.bb_pos, 56);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.0;
 };
 
 /**
@@ -1243,13 +1243,13 @@ testf2():number {
  * @returns {boolean}
  */
 mutate_testf2(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 56);
+  var offset = this.bb!.__offset(this.bb_pos, 56);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1257,8 +1257,8 @@ mutate_testf2(value:number):boolean {
  * @returns {number}
  */
 testf3():number {
-  var offset = this.bb.__offset(this.bb_pos, 58);
-  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 0.0;
+  var offset = this.bb!.__offset(this.bb_pos, 58);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
 };
 
 /**
@@ -1266,13 +1266,13 @@ testf3():number {
  * @returns {boolean}
  */
 mutate_testf3(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 58);
+  var offset = this.bb!.__offset(this.bb_pos, 58);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1284,16 +1284,16 @@ mutate_testf3(value:number):boolean {
 testarrayofstring2(index: number):string
 testarrayofstring2(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
 testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 60);
-  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 60);
+  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 };
 
 /**
  * @returns {number}
  */
 testarrayofstring2Length():number {
-  var offset = this.bb.__offset(this.bb_pos, 60);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 60);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1302,16 +1302,16 @@ testarrayofstring2Length():number {
  * @returns {MyGame.Example.Ability}
  */
 testarrayofsortedstruct(index: number, obj?:MyGame.Example.Ability):MyGame.Example.Ability|null {
-  var offset = this.bb.__offset(this.bb_pos, 62);
-  return offset ? (obj || new MyGame.Example.Ability).__init(this.bb.__vector(this.bb_pos + offset) + index * 8, this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 62);
+  return offset ? (obj || new MyGame.Example.Ability).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
 testarrayofsortedstructLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 62);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 62);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1319,24 +1319,24 @@ testarrayofsortedstructLength():number {
  * @returns {number}
  */
 flex(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 64);
-  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 64);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 };
 
 /**
  * @returns {number}
  */
 flexLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 64);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 64);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Uint8Array}
  */
 flexArray():Uint8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 64);
-  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 64);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1345,16 +1345,16 @@ flexArray():Uint8Array|null {
  * @returns {MyGame.Example.Test}
  */
 test5(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
-  var offset = this.bb.__offset(this.bb_pos, 66);
-  return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 66);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
 test5Length():number {
-  var offset = this.bb.__offset(this.bb_pos, 66);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 66);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1362,16 +1362,16 @@ test5Length():number {
  * @returns {flatbuffers.Long}
  */
 vectorOfLongs(index: number):flatbuffers.Long|null {
-  var offset = this.bb.__offset(this.bb_pos, 68);
-  return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 68);
+  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
 };
 
 /**
  * @returns {number}
  */
 vectorOfLongsLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 68);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 68);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1379,24 +1379,24 @@ vectorOfLongsLength():number {
  * @returns {number}
  */
 vectorOfDoubles(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 70);
-  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 70);
+  return offset ? this.bb!.readFloat64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : 0;
 };
 
 /**
  * @returns {number}
  */
 vectorOfDoublesLength():number {
-  var offset = this.bb.__offset(this.bb_pos, 70);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 70);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Float64Array}
  */
 vectorOfDoublesArray():Float64Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 70);
-  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 70);
+  return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1404,8 +1404,8 @@ vectorOfDoublesArray():Float64Array|null {
  * @returns {MyGame.InParentNamespace|null}
  */
 parentNamespaceTest(obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null {
-  var offset = this.bb.__offset(this.bb_pos, 72);
-  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 72);
+  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -1928,7 +1928,7 @@ export class TypeAliases {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -1958,8 +1958,8 @@ static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAli
  * @returns {number}
  */
 i8():number {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.readInt8(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1967,13 +1967,13 @@ i8():number {
  * @returns {boolean}
  */
 mutate_i8(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1981,8 +1981,8 @@ mutate_i8(value:number):boolean {
  * @returns {number}
  */
 u8():number {
-  var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -1990,13 +1990,13 @@ u8():number {
  * @returns {boolean}
  */
 mutate_u8(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb!.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2004,8 +2004,8 @@ mutate_u8(value:number):boolean {
  * @returns {number}
  */
 i16():number {
-  var offset = this.bb.__offset(this.bb_pos, 8);
-  return offset ? this.bb.readInt16(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -2013,13 +2013,13 @@ i16():number {
  * @returns {boolean}
  */
 mutate_i16(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2027,8 +2027,8 @@ mutate_i16(value:number):boolean {
  * @returns {number}
  */
 u16():number {
-  var offset = this.bb.__offset(this.bb_pos, 10);
-  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -2036,13 +2036,13 @@ u16():number {
  * @returns {boolean}
  */
 mutate_u16(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 10);
+  var offset = this.bb!.__offset(this.bb_pos, 10);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint16(this.bb_pos + offset, value);
+  this.bb!.writeUint16(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2050,8 +2050,8 @@ mutate_u16(value:number):boolean {
  * @returns {number}
  */
 i32():number {
-  var offset = this.bb.__offset(this.bb_pos, 12);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -2059,13 +2059,13 @@ i32():number {
  * @returns {boolean}
  */
 mutate_i32(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 12);
+  var offset = this.bb!.__offset(this.bb_pos, 12);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2073,8 +2073,8 @@ mutate_i32(value:number):boolean {
  * @returns {number}
  */
 u32():number {
-  var offset = this.bb.__offset(this.bb_pos, 14);
-  return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -2082,13 +2082,13 @@ u32():number {
  * @returns {boolean}
  */
 mutate_u32(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 14);
+  var offset = this.bb!.__offset(this.bb_pos, 14);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2096,8 +2096,8 @@ mutate_u32(value:number):boolean {
  * @returns {flatbuffers.Long}
  */
 i64():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 16);
-  return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -2105,13 +2105,13 @@ i64():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_i64(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 16);
+  var offset = this.bb!.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt64(this.bb_pos + offset, value);
+  this.bb!.writeInt64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2119,8 +2119,8 @@ mutate_i64(value:flatbuffers.Long):boolean {
  * @returns {flatbuffers.Long}
  */
 u64():flatbuffers.Long {
-  var offset = this.bb.__offset(this.bb_pos, 18);
-  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 };
 
 /**
@@ -2128,13 +2128,13 @@ u64():flatbuffers.Long {
  * @returns {boolean}
  */
 mutate_u64(value:flatbuffers.Long):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 18);
+  var offset = this.bb!.__offset(this.bb_pos, 18);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeUint64(this.bb_pos + offset, value);
+  this.bb!.writeUint64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2142,8 +2142,8 @@ mutate_u64(value:flatbuffers.Long):boolean {
  * @returns {number}
  */
 f32():number {
-  var offset = this.bb.__offset(this.bb_pos, 20);
-  return offset ? this.bb.readFloat32(this.bb_pos + offset) : 0.0;
+  var offset = this.bb!.__offset(this.bb_pos, 20);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
 };
 
 /**
@@ -2151,13 +2151,13 @@ f32():number {
  * @returns {boolean}
  */
 mutate_f32(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 20);
+  var offset = this.bb!.__offset(this.bb_pos, 20);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2165,8 +2165,8 @@ mutate_f32(value:number):boolean {
  * @returns {number}
  */
 f64():number {
-  var offset = this.bb.__offset(this.bb_pos, 22);
-  return offset ? this.bb.readFloat64(this.bb_pos + offset) : 0.0;
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 0.0;
 };
 
 /**
@@ -2174,13 +2174,13 @@ f64():number {
  * @returns {boolean}
  */
 mutate_f64(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 22);
+  var offset = this.bb!.__offset(this.bb_pos, 22);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeFloat64(this.bb_pos + offset, value);
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
   return true;
 };
 
@@ -2189,24 +2189,24 @@ mutate_f64(value:number):boolean {
  * @returns {number}
  */
 v8(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 };
 
 /**
  * @returns {number}
  */
 v8Length():number {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Int8Array}
  */
 v8Array():Int8Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -2214,24 +2214,24 @@ v8Array():Int8Array|null {
  * @returns {number}
  */
 vf64(index: number):number|null {
-  var offset = this.bb.__offset(this.bb_pos, 26);
-  return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? this.bb!.readFloat64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : 0;
 };
 
 /**
  * @returns {number}
  */
 vf64Length():number {
-  var offset = this.bb.__offset(this.bb_pos, 26);
-  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Float64Array}
  */
 vf64Array():Float64Array|null {
-  var offset = this.bb.__offset(this.bb_pos, 26);
-  return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
