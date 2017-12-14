@@ -4,6 +4,30 @@ env:
     - GCC_VERSION="4.9"
 matrix:
   include:
+    - language: python
+      python: "2.7"
+      install:
+        - "pip install wheel twine"
+      script:
+        - "cd python/"
+        - 'VERSION="$TRAVIS_TAG" python setup.py sdist bdist_wheel'
+        - "cd ../"
+      deploy:
+        # Checkpointed release builds.
+        - provider: script
+          script: .travis/deploy-python.sh
+          skip_cleanup: true
+          on:
+            tags: true
+            # all_branches must be set with tags: true. See below post:
+            # https://stackoverflow.com/a/27775257/1076585
+            all_branches: true
+        # Produce a new build for the cutting edge when master changes.
+        - provider: script
+          script: .travis/deploy-python.sh
+          skip_cleanup: true
+          on:
+            branch: master
     - language: cpp
       os:
       - linux
