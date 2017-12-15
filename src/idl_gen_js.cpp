@@ -361,12 +361,12 @@ static std::string GenType(const Type &type) {
 
 std::string GenGetter(const Type &type, const std::string &arguments) {
   switch (type.base_type) {
-    case BASE_TYPE_STRING: return "this.bb.__string" + arguments;
-    case BASE_TYPE_STRUCT: return "this.bb.__struct" + arguments;
-    case BASE_TYPE_UNION:  return "this.bb.__union" + arguments;
+    case BASE_TYPE_STRING: return GenBBAccess() + ".__string" + arguments;
+    case BASE_TYPE_STRUCT: return GenBBAccess() + ".__struct" + arguments;
+    case BASE_TYPE_UNION:  return GenBBAccess() + ".__union" + arguments;
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), arguments);
     default: {
-      auto getter = "this.bb.read" + MakeCamel(GenType(type)) + arguments;
+      auto getter = GenBBAccess() + ".read" + MakeCamel(GenType(type)) + arguments;
       if (type.base_type == BASE_TYPE_BOOL) {
         getter = "!!" + getter;
       }
@@ -377,6 +377,10 @@ std::string GenGetter(const Type &type, const std::string &arguments) {
       return getter;
     }
   }
+}
+
+std::string GenBBAccess() {
+  return lang_.language == IDLOptions::kTs ? "this.bb!" : "this.bb";
 }
 
 std::string GenDefaultValue(const Value &value, const std::string &context) {
@@ -570,7 +574,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
     code += "  /**\n";
     code += "   * @type {flatbuffers.ByteBuffer}\n";
     code += "   */\n";
-    code += "  bb: flatbuffers.ByteBuffer;\n";
+    code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "\n";
     code += "  /**\n";
     code += "   * @type {number}\n";
@@ -666,8 +670,9 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
        it != struct_def.fields.vec.end(); ++it) {
     auto &field = **it;
     if (field.deprecated) continue;
-    auto offset_prefix = "  var offset = this.bb.__offset(this.bb_pos, " +
-      NumToString(field.value.offset) + ");\n  return offset ? ";
+    auto offset_prefix = "  var offset = " + GenBBAccess() +
+      ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
+      ");\n  return offset ? ";
 
     // Emit a scalar field
     if (IsScalar(field.value.type.base_type) ||
@@ -711,7 +716,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           index += ", optionalEncoding";
         }
         code += offset_prefix + GenGetter(field.value.type,
-          "(" + index + ")") + " : " + GenDefaultValue(field.value, "this.bb");
+          "(" + index + ")") + " : " + GenDefaultValue(field.value, GenBBAccess());
         code += ";\n";
       }
     }
@@ -735,13 +740,13 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           if (struct_def.fixed) {
             code += "  return (obj || new " + type;
             code += ").__init(this.bb_pos";
-            code += MaybeAdd(field.value.offset) + ", this.bb);\n";
+            code += MaybeAdd(field.value.offset) + ", " + GenBBAccess() + ");\n";
           } else {
             code += offset_prefix + "(obj || new " + type + ").__init(";
             code += field.value.type.struct_def->fixed
               ? "this.bb_pos + offset"
-              : "this.bb.__indirect(this.bb_pos + offset)";
-            code += ", this.bb) : null;\n";
+              : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
+            code += ", " + GenBBAccess() + ") : null;\n";
           }
 
           if (lang_.language == IDLOptions::kTs) {
@@ -755,7 +760,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           auto vectortype = field.value.type.VectorType();
           auto vectortypename = GenTypeName(vectortype, false);
           auto inline_size = InlineSize(vectortype);
-          auto index = "this.bb.__vector(this.bb_pos + offset) + index" +
+          auto index = GenBBAccess() + ".__vector(this.bb_pos + offset) + index" +
                        MaybeScale(inline_size);
           std::string args = "@param {number} index\n";
           std::string ret_type;
@@ -818,8 +823,8 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
             code += ").__init(";
             code += vectortype.struct_def->fixed
               ? index
-              : "this.bb.__indirect(" + index + ")";
-            code += ", this.bb)";
+              : GenBBAccess() + ".__indirect(" + index + ")";
+            code += ", " + GenBBAccess() + ")";
           } else {
             if (is_union) {
               index = "obj, " + index;
@@ -833,7 +838,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
             code += "false";
           } else if (field.value.type.element == BASE_TYPE_LONG ||
               field.value.type.element == BASE_TYPE_ULONG) {
-            code += "this.bb.createLong(0, 0)";
+            code += GenBBAccess() + ".createLong(0, 0)";
           } else if (IsScalar(field.value.type.element)) {
             if (field.value.type.enum_def) {
               code += "/** @type {" +
@@ -899,15 +904,15 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
                 " = function(value) {\n";
       }
 
-      code += "  var offset = this.bb.__offset(this.bb_pos, " +
+      code += "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
               NumToString(field.value.offset) + ");\n\n";
       code += "  if (offset === 0) {\n";
       code += "    return false;\n";
       code += "  }\n\n";
 
       // special case for bools, which are treated as uint8
-      code += "  this.bb.write" + MakeCamel(GenType(field.value.type)) +
-              "(this.bb_pos + offset, ";
+      code += "  " + GenBBAccess() + ".write" +
+        MakeCamel(GenType(field.value.type)) + "(this.bb_pos + offset, ";
       if (field.value.type.base_type == BASE_TYPE_BOOL &&
           lang_.language == IDLOptions::kTs) {
           code += "+";
@@ -936,7 +941,7 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
         code += "Length = function() {\n" + offset_prefix;
       }
 
-      code += "this.bb.__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
+      code += GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
 
       if(parser_.opts.use_goog_js_export_format) {
         exports += "goog.exportProperty(" + object_name + ".prototype, '" +
@@ -958,9 +963,10 @@ void GenStruct(const Parser &parser, StructDef &struct_def,
           code += "Array = function() {\n" + offset_prefix;
         }
 
-        code += "new " + GenType(vectorType) + "Array(this.bb.bytes().buffer, "
-          "this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), "
-          "this.bb.__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+        code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
+          ".bytes().buffer, " + GenBBAccess() + ".bytes().byteOffset + " +
+          GenBBAccess() + ".__vector(this.bb_pos + offset), " +
+          GenBBAccess() + ".__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
 
         if(parser_.opts.use_goog_js_export_format) {
           exports += "goog.exportProperty(" + object_name + ".prototype, '" +
