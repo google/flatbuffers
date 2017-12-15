@@ -181,7 +181,8 @@ void PrintHeaderClientMethodInterfaces(
           *vars,
           "virtual ::grpc::Status $Method$(::grpc::ClientContext* context, "
           "const $Request$& request, $Response$* response) = 0;\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         printer->Print(
             *vars,
@@ -212,7 +213,8 @@ void PrintHeaderClientMethodInterfaces(
           "($Method$Raw(context, response));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -245,7 +247,8 @@ void PrintHeaderClientMethodInterfaces(
           "($Method$Raw(context, request));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -277,7 +280,8 @@ void PrintHeaderClientMethodInterfaces(
           "$Method$Raw(context));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -299,7 +303,8 @@ void PrintHeaderClientMethodInterfaces(
     }
   } else {
     if (method->NoStreaming()) {
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         printer->Print(
             *vars,
@@ -314,7 +319,8 @@ void PrintHeaderClientMethodInterfaces(
           "virtual ::grpc::ClientWriterInterface< $Request$>*"
           " $Method$Raw("
           "::grpc::ClientContext* context, $Response$* response) = 0;\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         printer->Print(
@@ -329,7 +335,8 @@ void PrintHeaderClientMethodInterfaces(
           *vars,
           "virtual ::grpc::ClientReaderInterface< $Response$>* $Method$Raw("
           "::grpc::ClientContext* context, const $Request$& request) = 0;\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         printer->Print(
@@ -344,7 +351,8 @@ void PrintHeaderClientMethodInterfaces(
                      "virtual ::grpc::ClientReaderWriterInterface< $Request$, "
                      "$Response$>* "
                      "$Method$Raw(::grpc::ClientContext* context) = 0;\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         printer->Print(
@@ -378,7 +386,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
           *vars,
           "::grpc::Status $Method$(::grpc::ClientContext* context, "
           "const $Request$& request, $Response$* response) override;\n");
-      for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         printer->Print(
             *vars,
@@ -406,7 +415,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                      "($Method$Raw(context, response));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -437,7 +447,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
           "($Method$Raw(context, request));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -467,7 +478,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                      "$Method$Raw(context));\n");
       printer->Outdent();
       printer->Print("}\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -488,7 +500,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
     }
   } else {
     if (method->NoStreaming()) {
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         printer->Print(
             *vars,
@@ -502,7 +515,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                      "::grpc::ClientWriter< $Request$>* $Method$Raw("
                      "::grpc::ClientContext* context, $Response$* response) "
                      "override;\n");
-      for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -517,7 +531,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                      "::grpc::ClientReader< $Response$>* $Method$Raw("
                      "::grpc::ClientContext* context, const $Request$& request)"
                      " override;\n");
-      for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -531,7 +546,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
       printer->Print(*vars,
                      "::grpc::ClientReaderWriter< $Request$, $Response$>* "
                      "$Method$Raw(::grpc::ClientContext* context) override;\n");
-      for (auto async_prefix : async_prefixes) {
+      for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+        auto& async_prefix = async_prefixes[i];
         (*vars)["AsyncPrefix"] = async_prefix.prefix;
         (*vars)["AsyncMethodParams"] = async_prefix.method_params;
         (*vars)["AsyncRawArgs"] = async_prefix.raw_args;
@@ -1192,7 +1208,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                    "rpcmethod_$Method$_, "
                    "context, request, response);\n"
                    "}\n\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncStart"] = async_prefix.start;
       printer->Print(*vars,
@@ -1220,7 +1237,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                    "rpcmethod_$Method$_, "
                    "context, response);\n"
                    "}\n\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncStart"] = async_prefix.start;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
@@ -1249,7 +1267,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                    "rpcmethod_$Method$_, "
                    "context, request);\n"
                    "}\n\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncStart"] = async_prefix.start;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
@@ -1279,7 +1298,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                    "rpcmethod_$Method$_, "
                    "context);\n"
                    "}\n\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncStart"] = async_prefix.start;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
@@ -1599,7 +1619,8 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
         *vars,
         "MOCK_METHOD3($Method$, ::grpc::Status(::grpc::ClientContext* context, "
         "const $Request$& request, $Response$* response));\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       printer->Print(
           *vars,
@@ -1614,7 +1635,8 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
         "MOCK_METHOD2($Method$Raw, "
         "::grpc::ClientWriterInterface< $Request$>*"
         "(::grpc::ClientContext* context, $Response$* response));\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =
@@ -1631,7 +1653,8 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
         "MOCK_METHOD2($Method$Raw, "
         "::grpc::ClientReaderInterface< $Response$>*"
         "(::grpc::ClientContext* context, const $Request$& request));\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =
@@ -1649,7 +1672,8 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
         "MOCK_METHOD1($Method$Raw, "
         "::grpc::ClientReaderWriterInterface< $Request$, $Response$>*"
         "(::grpc::ClientContext* context));\n");
-    for (auto async_prefix : async_prefixes) {
+    for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
+      auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =

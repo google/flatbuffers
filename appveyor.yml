@@ -12,7 +12,7 @@ environment:
     CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
 
   matrix:
-    #- CMAKE_VS_VERSION: "10 2010"
+    - CMAKE_VS_VERSION: "10 2010"
     - CMAKE_VS_VERSION: "14 2015"
 
 platform:
