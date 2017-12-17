@@ -7,7 +7,10 @@
   </formats>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/bin/windows</directory>
+      <directory>${basedir}/../..</directory>
+      <includes>
+        <include>flatc.exe</include>
+      </includes>
       <outputDirectory>/bin</outputDirectory>
     </fileSet>
   </fileSets>
