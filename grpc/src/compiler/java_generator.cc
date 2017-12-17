@@ -299,8 +299,8 @@ static void PrintMethodFields(Printer* p, VARS& vars,
   vars["service_name"] = service->name();
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
-    vars["arg_in_id"] = to_string(2 * i);
-    vars["arg_out_id"] = to_string(2 * i + 1);
+    vars["arg_in_id"] = to_string((long)2 * i); //trying to make msvc 10 happy
+    vars["arg_out_id"] = to_string((long)2 * i + 1);
     vars["method_name"] = method->name();
     vars["input_type_name"] = method->get_input_type_name();
     vars["output_type_name"] = method->get_output_type_name();
