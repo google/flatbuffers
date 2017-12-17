@@ -1097,9 +1097,9 @@ grpc::string GenerateServiceSource(
   grpc::string out;
   auto printer = file->CreatePrinter(&out);
   VARS vars;
-  vars["flatc_version"] = grpc::string{
+  vars["flatc_version"] = grpc::string(
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "." FLATBUFFERS_STRING(
-          FLATBUFFERS_VERSION_MINOR) "." FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION)};
+          FLATBUFFERS_VERSION_MINOR) "." FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION));
 
   vars["file_name"] = file->filename();
 
