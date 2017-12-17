@@ -1087,7 +1087,7 @@ void GenerateService(const grpc_generator::Service *service,
                                        grpc_java_generator::Parameters *parameters) {
         grpc::string out;
         auto printer = file->CreatePrinter(&out);
-        std::map<grpc::string, grpc::string> vars;
+        VARS vars;
         vars["flatc_version"] = grpc::string {
             FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
             FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
