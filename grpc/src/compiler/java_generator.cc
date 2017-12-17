@@ -9,6 +9,9 @@
 
 //just to get flatbuffer_version_string()
 #include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/util.h>
+#define to_string flatbuffers::NumToString
+
 // Stringify helpers used solely to cast GRPC_VERSION
 #ifndef STR
 #define STR(s) #s
@@ -43,8 +46,6 @@ namespace grpc_java_generator {
             printer->Print("\n\n");
         }
     }
-
-    using std::to_string;
 
     // Adjust a method name prefix identifier to follow the JavaBean spec:
     //   - decapitalize the first letter
