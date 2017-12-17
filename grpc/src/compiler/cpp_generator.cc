@@ -19,6 +19,7 @@
 #include <map>
 
 #include "src/compiler/cpp_generator.h"
+#include "flatbuffers/util.h"
 
 #include <sstream>
 
@@ -1640,7 +1641,7 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =
-          std::to_string(3 + async_prefix.extra_method_param_count);
+        flatbuffers::NumToString(3 + async_prefix.extra_method_param_count);
       printer->Print(*vars,
                      "MOCK_METHOD$MockArgs$($AsyncPrefix$$Method$Raw, "
                      "::grpc::ClientAsyncWriterInterface< $Request$>*"
@@ -1658,7 +1659,7 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =
-          std::to_string(3 + async_prefix.extra_method_param_count);
+          flatbuffers::NumToString(3 + async_prefix.extra_method_param_count);
       printer->Print(
           *vars,
           "MOCK_METHOD$MockArgs$($AsyncPrefix$$Method$Raw, "
@@ -1677,7 +1678,7 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
       (*vars)["AsyncMethodParams"] = async_prefix.method_params;
       (*vars)["MockArgs"] =
-          std::to_string(2 + async_prefix.extra_method_param_count);
+          flatbuffers::NumToString(2 + async_prefix.extra_method_param_count);
       printer->Print(
           *vars,
           "MOCK_METHOD$MockArgs$($AsyncPrefix$$Method$Raw, "

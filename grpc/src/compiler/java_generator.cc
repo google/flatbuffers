@@ -22,11 +22,11 @@
 #define FALLTHROUGH_INTENDED
 #endif
 
-using Printer=grpc_generator::Printer;
-using VARS=std::map<grpc::string, grpc::string>;
-using ServiceDescriptor=grpc_generator::Service;
-using DescriptorType=grpc_generator::CommentHolder; //base class of all 'descriptors'
-using MethodDescriptor=grpc_generator::Method;
+typedef grpc_generator::Printer Printer;
+typedef std::map<grpc::string, grpc::string> VARS;
+typedef grpc_generator::Service ServiceDescriptor;
+typedef grpc_generator::CommentHolder DescriptorType; //base class of all 'descriptors'
+typedef grpc_generator::Method MethodDescriptor;
 
 
 namespace grpc_java_generator {
