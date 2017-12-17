@@ -17,9 +17,20 @@
                 <configuration>
                     <tarLongFileMode>posix</tarLongFileMode>
                     <descriptors>
-                        <descriptor>src/assembly/linux.xml</descriptor>
-                        <descriptor>src/assembly/osx.xml</descriptor>
-                        <descriptor>src/assembly/windows.xml</descriptor>
+                        <!--
+                            Attention: depending on the decision on when/how to publish this maven artifact
+                            we may need to adjust the sructure of the descriptors below.
+                            In the current version - as-is, - only tar.gz for the current platform will be published to maven.
+                            This may work if publishing to maven is performed on each supported platform (linux, osx, windows).
+
+                            However, if the publishing to maven needs to be done for all platforms
+                            then we need to uncomment all descriptors below and ensure that flatc binaries for each platform
+                            are reachable by their assembly descriptors at the time of this publishing - all at once.
+                        -->
+                        <descriptor>src/assembly/${os.detected.name}.xml</descriptor>
+                        <!--<descriptor>src/assembly/linux.xml</descriptor>-->
+                        <!--<descriptor>src/assembly/osx.xml</descriptor>-->
+                        <!--<descriptor>src/assembly/windows.xml</descriptor>-->
                     </descriptors>
                 </configuration>
                 <executions>
