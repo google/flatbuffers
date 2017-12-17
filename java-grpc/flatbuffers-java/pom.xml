@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.google.flatbuffers</groupId>
+        <artifactId>flatbuffers-parent</artifactId>
+        <version>1.8.1</version>
+    </parent>
+    <artifactId>flatbuffers-java</artifactId>
+    <packaging>bundle</packaging>
+    <name>${project.artifactId}</name>
+    <description>
+        Java version of a Memory Efficient Platform-Independent Serialization Library
+    </description>
+
+    <properties>
+        <fbs.sources>${basedir}/src/test/flatbuffers</fbs.sources>
+        <fbs.generated.sources>${project.build.directory}/generated-test-sources/java</fbs.generated.sources>
+    </properties>
+
+    <dependencies/>
+
+    <build>
+        <!--All plugins below are used for testing only-->
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <!--download os-specific flatbuffers-compiler-1.8.1-distribution-* and extract flatc into target/bin -->
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.google.flatbuffers</groupId>
+                                    <artifactId>flatbuffers-compiler</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>tar.gz</type>
+                                    <classifier>distribution-${os.detected.name}</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <!--invoke flatc to generate test sources -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>${project.build.directory}/bin/flatc</executable>
+                    <!-- optional -->
+                    <workingDirectory>${fbs.sources}</workingDirectory>
+                    <arguments>
+                        <argument>--java</argument>
+                        <argument>--gen-mutable</argument>
+                        <argument>-o</argument>
+                        <argument>${fbs.generated.sources}</argument>
+                        <argument>monster.fbs</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-test-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${fbs.generated.sources}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+

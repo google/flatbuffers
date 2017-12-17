@@ -1,0 +1,38 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.google.flatbuffers</groupId>
+        <artifactId>flatbuffers-parent</artifactId>
+        <version>1.8.1</version>
+    </parent>
+    <artifactId>flatbuffers-compiler</artifactId>
+    <packaging>pom</packaging>
+    <description>Compressed archive of flatc binaries for generating classes. Multiple platforms supported via different classifications.</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                    <descriptors>
+                        <descriptor>src/assembly/linux.xml</descriptor>
+                        <descriptor>src/assembly/osx.xml</descriptor>
+                        <descriptor>src/assembly/windows.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
