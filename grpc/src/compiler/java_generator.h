@@ -3,17 +3,17 @@
 
 #include <stdlib.h>  // for abort()
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include "src/compiler/schema_interface.h"
 
 class LogMessageVoidify {
-public:
-    LogMessageVoidify() { }
-    // This has to be an operator with a precedence lower than << but
-    // higher than ?:
-    void operator&(std::ostream&) { }
+ public:
+  LogMessageVoidify() {}
+  // This has to be an operator with a precedence lower than << but
+  // higher than ?:
+  void operator&(std::ostream&) {}
 };
 
 class LogHelper {
@@ -23,8 +23,10 @@ class LogHelper {
   LogHelper(std::ostream* os) : os_(os) {}
 #if defined(_MSC_VER)
 #pragma warning(push)
-#pragma warning(disable: 4722) // the flow of control terminates in a destructor
-    // (needed to compile ~LogHelper where destructor emits abort intentionally - inherited from grpc/java code generator).
+#pragma warning( \
+    disable : 4722)  // the flow of control terminates in a destructor
+  // (needed to compile ~LogHelper where destructor emits abort intentionally -
+  // inherited from grpc/java code generator).
 #endif
   ~LogHelper() {
     *os_ << std::endl;
@@ -33,16 +35,16 @@ class LogHelper {
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
-  std::ostream& get_os() const {
-    return *os_;
-  }
+  std::ostream& get_os() const { return *os_; }
 };
 
 // Abort the program after logging the mesage if the given condition is not
 // true. Otherwise, do nothing.
-#define GRPC_CODEGEN_CHECK(x) (x) ? (void)0 : LogMessageVoidify() & LogHelper(&std::cerr).get_os() \
-                             << "CHECK FAILED: " << __FILE__ << ":" \
-                             << __LINE__ << ": "
+#define GRPC_CODEGEN_CHECK(x)                                            \
+  (x) ? (void)0                                                          \
+      : LogMessageVoidify() & LogHelper(&std::cerr).get_os()             \
+                                  << "CHECK FAILED: " << __FILE__ << ":" \
+                                  << __LINE__ << ": "
 
 // Abort the program after logging the mesage.
 #define GRPC_CODEGEN_FAIL GRPC_CODEGEN_CHECK(false)
@@ -50,20 +52,20 @@ class LogHelper {
 using namespace std;
 
 namespace grpc_java_generator {
-    struct Parameters {
-//        //Defines the custom parameter types for methods
-//        //eg: flatbuffers uses flatbuffers.Builder as input for the client and output for the server
-//        grpc::string custom_method_io_type;
-        
-        //Package name for the service
-        grpc::string package_name;
-    };
-    
-    // Return the source of the generated service file.
-    grpc::string GenerateServiceSource(grpc_generator::File *file,
-                                       const grpc_generator::Service *service,
-                                       grpc_java_generator::Parameters *parameters);
+struct Parameters {
+  //        //Defines the custom parameter types for methods
+  //        //eg: flatbuffers uses flatbuffers.Builder as input for the client
+  //        and output for the server grpc::string custom_method_io_type;
 
-}  // namespace java_grpc_generator
+  // Package name for the service
+  grpc::string package_name;
+};
+
+// Return the source of the generated service file.
+grpc::string GenerateServiceSource(grpc_generator::File* file,
+                                   const grpc_generator::Service* service,
+                                   grpc_java_generator::Parameters* parameters);
+
+}  // namespace grpc_java_generator
 
 #endif  // NET_GRPC_COMPILER_JAVA_GENERATOR_H_
