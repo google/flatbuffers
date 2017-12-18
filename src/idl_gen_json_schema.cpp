@@ -201,12 +201,15 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       code_ += closeType;  // close type
     }
-    code_ += "  },";  // close definitions
 
-    // mark root type
-    code_ += "  \"$ref\" : \"#/definitions/" +
-             GenFullName(parser_.root_struct_def_) + "\"";
-
+    // mark root type (if it exists)
+    if (parser_.root_struct_def_ != NULL) {
+        code_ += "  },";  // close definitions, but leave root scope open to add $ref below
+        code_ += "  \"$ref\" : \"#/definitions/" +
+            GenFullName(parser_.root_struct_def_) + "\"";
+    } else {
+        code_ += "  }";  // close definitions
+    }
     code_ += "}";  // close schema root
     const std::string file_path = GeneratedFileName(path_, file_name_);
     const std::string final_code = code_.ToString();
