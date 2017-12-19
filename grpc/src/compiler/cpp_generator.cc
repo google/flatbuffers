@@ -1223,16 +1223,9 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                    "::grpc::ClientContext* context, "
                    "const $Request$& request, $Response$* response) {\n");
     printer->Print(*vars,
-<<<<<<< HEAD
                    "  return ::grpc::internal::BlockingUnaryCall"
                    "(channel_.get(), rpcmethod_$Method$_, "
                    "context, request, response);\n}\n\n");
-=======
-                   "  return ::grpc::BlockingUnaryCall(channel_.get(), "
-                   "rpcmethod_$Method$_, "
-                   "context, request, response);\n"
-                   "}\n\n");
->>>>>>> upstream/master
     for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
       auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
@@ -1243,7 +1236,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                      "ClientContext* context, "
                      "const $Request$& request, "
                      "::grpc::CompletionQueue* cq) {\n");
-<<<<<<< HEAD
       printer->Print(
           *vars,
           "  return "
@@ -1252,22 +1244,12 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
           "rpcmethod_$Method$_, "
           "context, request, $AsyncStart$);\n"
           "}\n\n");
-=======
-      printer->Print(*vars,
-                     "  return "
-                     "::grpc::ClientAsyncResponseReader< $Response$>::Create("
-                     "channel_.get(), cq, "
-                     "rpcmethod_$Method$_, "
-                     "context, request, $AsyncStart$);\n"
-                     "}\n\n");
->>>>>>> upstream/master
     }
   } else if (ClientOnlyStreaming(method)) {
     printer->Print(*vars,
                    "::grpc::ClientWriter< $Request$>* "
                    "$ns$$Service$::Stub::$Method$Raw("
                    "::grpc::ClientContext* context, $Response$* response) {\n");
-<<<<<<< HEAD
     printer->Print(
         *vars,
         "  return ::grpc::internal::ClientWriterFactory< $Request$>::Create("
@@ -1275,14 +1257,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
         "rpcmethod_$Method$_, "
         "context, response);\n"
         "}\n\n");
-=======
-    printer->Print(*vars,
-                   "  return new ::grpc::ClientWriter< $Request$>("
-                   "channel_.get(), "
-                   "rpcmethod_$Method$_, "
-                   "context, response);\n"
-                   "}\n\n");
->>>>>>> upstream/master
     for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
       auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
@@ -1294,7 +1268,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                      "$ns$$Service$::Stub::$AsyncPrefix$$Method$Raw("
                      "::grpc::ClientContext* context, $Response$* response, "
                      "::grpc::CompletionQueue* cq$AsyncMethodParams$) {\n");
-<<<<<<< HEAD
       printer->Print(
           *vars,
           "  return ::grpc::internal::ClientAsyncWriterFactory< $Request$>"
@@ -1302,14 +1275,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
           "rpcmethod_$Method$_, "
           "context, response, $AsyncStart$$AsyncCreateArgs$);\n"
           "}\n\n");
-=======
-      printer->Print(*vars,
-                     "  return ::grpc::ClientAsyncWriter< $Request$>::Create("
-                     "channel_.get(), cq, "
-                     "rpcmethod_$Method$_, "
-                     "context, response, $AsyncStart$$AsyncCreateArgs$);\n"
-                     "}\n\n");
->>>>>>> upstream/master
     }
   } else if (ServerOnlyStreaming(method)) {
     printer->Print(
@@ -1317,7 +1282,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
         "::grpc::ClientReader< $Response$>* "
         "$ns$$Service$::Stub::$Method$Raw("
         "::grpc::ClientContext* context, const $Request$& request) {\n");
-<<<<<<< HEAD
     printer->Print(
         *vars,
         "  return ::grpc::internal::ClientReaderFactory< $Response$>::Create("
@@ -1325,14 +1289,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
         "rpcmethod_$Method$_, "
         "context, request);\n"
         "}\n\n");
-=======
-    printer->Print(*vars,
-                   "  return new ::grpc::ClientReader< $Response$>("
-                   "channel_.get(), "
-                   "rpcmethod_$Method$_, "
-                   "context, request);\n"
-                   "}\n\n");
->>>>>>> upstream/master
     for (size_t i = 0; i < sizeof(async_prefixes)/sizeof(async_prefixes[0]); i ++) {
       auto& async_prefix = async_prefixes[i];
       (*vars)["AsyncPrefix"] = async_prefix.prefix;
@@ -1345,7 +1301,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
           "$ns$$Service$::Stub::$AsyncPrefix$$Method$Raw("
           "::grpc::ClientContext* context, const $Request$& request, "
           "::grpc::CompletionQueue* cq$AsyncMethodParams$) {\n");
-<<<<<<< HEAD
       printer->Print(
           *vars,
           "  return ::grpc::internal::ClientAsyncReaderFactory< $Response$>"
@@ -1353,14 +1308,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
           "rpcmethod_$Method$_, "
           "context, request, $AsyncStart$$AsyncCreateArgs$);\n"
           "}\n\n");
-=======
-      printer->Print(*vars,
-                     "  return ::grpc::ClientAsyncReader< $Response$>::Create("
-                     "channel_.get(), cq, "
-                     "rpcmethod_$Method$_, "
-                     "context, request, $AsyncStart$$AsyncCreateArgs$);\n"
-                     "}\n\n");
->>>>>>> upstream/master
     }
   } else if (method->BidiStreaming()) {
     printer->Print(
@@ -1385,7 +1332,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                      "$ns$$Service$::Stub::$AsyncPrefix$$Method$Raw(::grpc::"
                      "ClientContext* context, "
                      "::grpc::CompletionQueue* cq$AsyncMethodParams$) {\n");
-<<<<<<< HEAD
       printer->Print(*vars,
                      "  return "
                      "::grpc::internal::ClientAsyncReaderWriterFactory< "
@@ -1394,16 +1340,6 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                      "rpcmethod_$Method$_, "
                      "context, $AsyncStart$$AsyncCreateArgs$);\n"
                      "}\n\n");
-=======
-      printer->Print(
-          *vars,
-          "  return "
-          "::grpc::ClientAsyncReaderWriter< $Request$, $Response$>::Create("
-          "channel_.get(), cq, "
-          "rpcmethod_$Method$_, "
-          "context, $AsyncStart$$AsyncCreateArgs$);\n"
-          "}\n\n");
->>>>>>> upstream/master
     }
   }
 }
