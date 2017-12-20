@@ -309,10 +309,40 @@ void GrpcWriteMethodDocComment(Printer* printer, VARS& vars,
   printer->Print(" */\n");
 }
 
+//outputs static singleton extractor for type stored in "extr_type" and "extr_type_name" vars
+static void PrintTypeExtractor(Printer* p, VARS& vars) {
+  p->Print(
+    vars,
+    "private static volatile FlatbuffersUtils.FBExtactor<$extr_type$> "
+    "extractorOf$extr_type_name$;\n"
+    "private static FlatbuffersUtils.FBExtactor<$extr_type$> "
+    "getExtractorOf$extr_type_name$() {\n"
+    "    if (extractorOf$extr_type_name$ != null) return "
+    "extractorOf$extr_type_name$;\n"
+    "    synchronized ($service_class_name$.class) {\n"
+    "        if (extractorOf$extr_type_name$ != null) return "
+    "extractorOf$extr_type_name$;\n"
+    "        extractorOf$extr_type_name$ = new "
+    "FlatbuffersUtils.FBExtactor<$extr_type$>() {\n"
+    "            public $extr_type$ extract (ByteBuffer buffer) {\n"
+    "                return "
+    "$extr_type$.getRootAs$extr_type_name$(buffer);\n"
+    "            }\n"
+    "        };\n"
+    "        return extractorOf$extr_type_name$;\n"
+    "    }\n"
+    "}\n\n");
+}
 static void PrintMethodFields(Printer* p, VARS& vars,
                               const ServiceDescriptor* service) {
   p->Print("// Static method descriptors that strictly reflect the proto.\n");
   vars["service_name"] = service->name();
+  
+  //set of names of rpc input- and output- types that were already encountered.
+  //this is needed to avoid duplicating type extractor since it's possible that
+  //the same type is used as an input or output type of more than a single RPC method
+  std::set<std::string> encounteredTypes;
+  
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
     vars["arg_in_id"] = to_string((long)2 * i); //trying to make msvc 10 happy
@@ -351,70 +381,47 @@ static void PrintMethodFields(Printer* p, VARS& vars,
         "\n"
         "private static volatile $MethodDescriptor$<$input_type$,\n"
         "    $output_type$> $method_new_field_name$;\n"
-        "\n\n"
-        "private static volatile FlatbuffersUtils.FBExtactor<$input_type$> "
-        "extractorOf$input_type_name$;\n"
-        "private static FlatbuffersUtils.FBExtactor<$input_type$> "
-        "getExtractorOf$input_type_name$() {\n"
-        "    if (extractorOf$input_type_name$ != null) return "
-        "extractorOf$input_type_name$;\n"
-        "    synchronized ($service_class_name$.class) {\n"
-        "        if (extractorOf$input_type_name$ != null) return "
-        "extractorOf$input_type_name$;\n"
-        "        extractorOf$input_type_name$ = new "
-        "FlatbuffersUtils.FBExtactor<$input_type$>() {\n"
-        "            public $input_type$ extract (ByteBuffer buffer) {\n"
-        "                return "
-        "$input_type$.getRootAs$input_type_name$(buffer);\n"
-        "            }\n"
-        "        };\n"
-        "        return extractorOf$input_type_name$;\n"
-        "    }\n"
-        "}\n\n"
-        "private static volatile FlatbuffersUtils.FBExtactor<$output_type$> "
-        "extractorOf$output_type_name$;\n"
-        "private static FlatbuffersUtils.FBExtactor<$output_type$> "
-        "getExtractorOf$output_type_name$() {\n"
-        "    if (extractorOf$output_type_name$ != null) return "
-        "extractorOf$output_type_name$;\n"
-        "    synchronized ($service_class_name$.class) {\n"
-        "        if (extractorOf$output_type_name$ != null) return "
-        "extractorOf$output_type_name$;\n"
-        "        extractorOf$output_type_name$ = new "
-        "FlatbuffersUtils.FBExtactor<$output_type$>() {\n"
-        "            public $output_type$ extract (ByteBuffer buffer) {\n"
-        "                return "
-        "$output_type$.getRootAs$output_type_name$(buffer);\n"
-        "            }\n"
-        "        };\n"
-        "        return extractorOf$output_type_name$;\n"
-        "    }\n"
-        "}\n\n"
-        "@$ExperimentalApi$(\"https://github.com/grpc/grpc-java/issues/"
-        "1901\")\n"
-        "public static $MethodDescriptor$<$input_type$,\n"
-        "    $output_type$> $method_method_name$() {\n"
-        "  $MethodDescriptor$<$input_type$, $output_type$> "
-        "$method_new_field_name$;\n"
-        "  if (($method_new_field_name$ = "
-        "$service_class_name$.$method_new_field_name$) == null) {\n"
-        "    synchronized ($service_class_name$.class) {\n"
-        "      if (($method_new_field_name$ = "
-        "$service_class_name$.$method_new_field_name$) == null) {\n"
-        "        $service_class_name$.$method_new_field_name$ = "
-        "$method_new_field_name$ = \n"
-        "            $MethodDescriptor$.<$input_type$, "
-        "$output_type$>newBuilder()\n"
-        "            .setType($MethodType$.$method_type$)\n"
-        "            .setFullMethodName(generateFullMethodName(\n"
-        "                \"$Package$$service_name$\", \"$method_name$\"))\n"
-        "            .setSampledToLocalTracing(true)\n"
-        "            .setRequestMarshaller(FlatbuffersUtils.marshaller(\n"
-        "                $input_type$.class, "
-        "getExtractorOf$input_type_name$()))\n"
-        "            .setResponseMarshaller(FlatbuffersUtils.marshaller(\n"
-        "                $output_type$.class, "
-        "getExtractorOf$output_type_name$()))\n");
+        "\n");
+    
+    if (encounteredTypes.insert(vars["input_type_name"]).second) {
+      vars["extr_type"] = vars["input_type"];
+      vars["extr_type_name"] = vars["input_type_name"];
+      PrintTypeExtractor(p, vars);
+    }
+
+    if (encounteredTypes.insert(vars["output_type_name"]).second) {
+      vars["extr_type"] = vars["output_type"];
+      vars["extr_type_name"] = vars["output_type_name"];
+      PrintTypeExtractor(p, vars);
+    }
+    
+    p->Print(
+      vars,
+      "@$ExperimentalApi$(\"https://github.com/grpc/grpc-java/issues/"
+      "1901\")\n"
+      "public static $MethodDescriptor$<$input_type$,\n"
+      "    $output_type$> $method_method_name$() {\n"
+      "  $MethodDescriptor$<$input_type$, $output_type$> "
+      "$method_new_field_name$;\n"
+      "  if (($method_new_field_name$ = "
+      "$service_class_name$.$method_new_field_name$) == null) {\n"
+      "    synchronized ($service_class_name$.class) {\n"
+      "      if (($method_new_field_name$ = "
+      "$service_class_name$.$method_new_field_name$) == null) {\n"
+      "        $service_class_name$.$method_new_field_name$ = "
+      "$method_new_field_name$ = \n"
+      "            $MethodDescriptor$.<$input_type$, "
+      "$output_type$>newBuilder()\n"
+      "            .setType($MethodType$.$method_type$)\n"
+      "            .setFullMethodName(generateFullMethodName(\n"
+      "                \"$Package$$service_name$\", \"$method_name$\"))\n"
+      "            .setSampledToLocalTracing(true)\n"
+      "            .setRequestMarshaller(FlatbuffersUtils.marshaller(\n"
+      "                $input_type$.class, "
+      "getExtractorOf$input_type_name$()))\n"
+      "            .setResponseMarshaller(FlatbuffersUtils.marshaller(\n"
+      "                $output_type$.class, "
+      "getExtractorOf$output_type_name$()))\n");
 
     //            vars["proto_method_descriptor_supplier"] = service->name() +
     //            "MethodDescriptorSupplier";
