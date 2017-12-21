@@ -855,7 +855,6 @@ bool GenerateCppGRPC(const Parser &parser,
 bool GenerateGoGRPC(const Parser &parser,
                     const std::string &path,
                     const std::string &file_name);
-    
 // Generate GRPC Java classes.
 // See idl_gen_grpc.cpp
 bool GenerateJavaGRPC(const Parser &parser,
