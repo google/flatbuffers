@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_STL_EMULATION_H_
 #define FLATBUFFERS_STL_EMULATION_H_
 
+// clang-format off
+
 #include <string>
 #include <type_traits>
 #include <vector>

@@ -9,7 +9,7 @@ export class TableInFirstNS {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -40,16 +40,16 @@ static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):T
  * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
 fooTable(obj?:NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
 /**
  * @returns {NamespaceA.NamespaceB.EnumInNestedNS}
  */
 fooEnum():NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? /** @type {NamespaceA.NamespaceB.EnumInNestedNS} */ (this.bb!.readInt8(this.bb_pos + offset)) : NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS.A;
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? /** @type {NamespaceA.NamespaceB.EnumInNestedNS} */ (this.bb.readInt8(this.bb_pos + offset)) : NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS.A;
 };
 
 /**
@@ -57,13 +57,13 @@ fooEnum():NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS {
  * @returns {boolean}
  */
 mutate_foo_enum(value:NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
+  var offset = this.bb.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeInt8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -72,8 +72,8 @@ mutate_foo_enum(value:NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS
  * @returns {NamespaceA.NamespaceB.StructInNestedNS|null}
  */
 fooStruct(obj?:NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS):NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS|null {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb!) : null;
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? (obj || new NS9459827973991502386.NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb) : null;
 };
 
 /**
@@ -126,7 +126,7 @@ export class TableInC {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -157,8 +157,8 @@ static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
  * @returns {NamespaceA.TableInFirstNS|null}
  */
 referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NamespaceA.TableInFirstNS).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? (obj || new NamespaceA.TableInFirstNS).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
 /**
@@ -166,8 +166,8 @@ referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS|null {
  * @returns {NamespaceA.SecondTableInA|null}
  */
 referToA2(obj?:NamespaceA.SecondTableInA):NamespaceA.SecondTableInA|null {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new NamespaceA.SecondTableInA).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? (obj || new NamespaceA.SecondTableInA).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
 /**
@@ -212,7 +212,7 @@ export class SecondTableInA {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -243,8 +243,8 @@ static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):S
  * @returns {NamespaceC.TableInC|null}
  */
 referToC(obj?:NamespaceC.TableInC):NamespaceC.TableInC|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NamespaceC.TableInC).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? (obj || new NamespaceC.TableInC).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
 /**
