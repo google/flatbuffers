@@ -1645,6 +1645,7 @@ CheckedError Parser::ParseService() {
   ECHECK(ParseMetaData(&service_def.attributes));
   EXPECT('{');
   do {
+    std::vector<std::string> rpc_comment = doc_comment_;
     auto rpc_name = attribute_;
     EXPECT(kTokenIdentifier);
     EXPECT('(');
@@ -1660,6 +1661,7 @@ CheckedError Parser::ParseService() {
     rpc.name = rpc_name;
     rpc.request = reqtype.struct_def;
     rpc.response = resptype.struct_def;
+    rpc.rpc_comment = rpc_comment;
     if (service_def.calls.Add(rpc_name, &rpc))
       return Error("rpc already exists: " + rpc_name);
     ECHECK(ParseMetaData(&rpc.attributes));
