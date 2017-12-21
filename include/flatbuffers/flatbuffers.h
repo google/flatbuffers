@@ -1621,9 +1621,9 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
 /// doubles.  If that vector is of size 100, the flatbuffer will
 /// contain 101 total tables and will have a total depth of 2. 
 ///
-/// If instead of doubles the `Prices` vector contained a table
+/// If, instead of doubles, the `Prices` vector contained a table
 /// named `Company`, that same `PriceTimeline` with a vector
-/// of length 100 will hold 301 tables and flatbuffer will
+/// of length 100 will hold 201 tables and flatbuffer will
 /// have a depth of 3.
 ///
 /// Also, remember keep in mind the maximum 2GB size limit for
