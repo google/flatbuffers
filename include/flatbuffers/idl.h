@@ -862,12 +862,6 @@ bool GenerateJavaGRPC(const Parser &parser,
                       const std::string &path,
                       const std::string &file_name);
 
-// Generate GRPC Java classes.
-// See idl_gen_grpc.cpp
-bool GenerateJavaGRPC(const Parser &parser,
-                      const std::string &path,
-                      const std::string &file_name);
-
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

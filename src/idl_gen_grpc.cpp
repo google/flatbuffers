@@ -171,15 +171,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
 
 class FlatBufFile : public grpc_generator::File {
  public:
-<<<<<<< HEAD
-  enum Language {
-    kLanguageGo,
-    kLanguageCpp,
-    kLanguageJava
-  };
-=======
   enum Language { kLanguageGo, kLanguageCpp, kLanguageJava };
->>>>>>> upstream/master
 
   FlatBufFile(const Parser &parser, const std::string &file_name,
               Language language)
