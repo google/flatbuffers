@@ -1036,11 +1036,12 @@ class GeneralGenerator : public BaseGenerator {
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
             auto &key_field = **kit;
             if (key_field.key) {
-              code += "  public " + sd.name + lang_.optional_suffix + " ";
+              auto qualified_name = WrapInNameSpace(sd);
+              code += "  public " + qualified_name + lang_.optional_suffix + " ";
               code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
               code += GenTypeNameDest(key_field.value.type) + " key)";
               code += offset_prefix;
-              code += sd.name + ".__lookup_by_key(";
+              code += qualified_name + ".__lookup_by_key(";
               code += lang_.accessor_prefix + "__vector(o), key, ";
               code += lang_.accessor_prefix + "bb) : null; ";
               code += "}\n";
