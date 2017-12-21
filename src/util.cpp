@@ -57,6 +57,7 @@ bool FileExists(const char *name) {
 }
 
 bool DirExists(const char *name) {
+  // clang-format off
   #ifdef _WIN32
     #define flatbuffers_stat _stat
     #define FLATBUFFERS_S_IFDIR _S_IFDIR
@@ -64,6 +65,7 @@ bool DirExists(const char *name) {
     #define flatbuffers_stat stat
     #define FLATBUFFERS_S_IFDIR S_IFDIR
   #endif
+  // clang-format on
   struct flatbuffers_stat file_info;
   if (flatbuffers_stat(name, &file_info) != 0) return false;
   return (file_info.st_mode & FLATBUFFERS_S_IFDIR) != 0;
@@ -78,8 +80,8 @@ LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function) {
 FileExistsFunction SetFileExistsFunction(
     FileExistsFunction file_exists_function) {
   FileExistsFunction previous_function = g_file_exists_function;
-  g_file_exists_function = file_exists_function ?
-      file_exists_function : FileExistsRaw;
+  g_file_exists_function =
+      file_exists_function ? file_exists_function : FileExistsRaw;
   return previous_function;
 }
 

@@ -1,6 +1,7 @@
 #ifndef FLATBUFFERS_BASE_H_
 #define FLATBUFFERS_BASE_H_
 
+// clang-format off
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
     defined(_MSC_VER) && defined(_DEBUG)
   #define _CRTDBG_MAP_ALLOC

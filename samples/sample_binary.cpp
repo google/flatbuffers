@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
+#include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
 
 // Example how to use FlatBuffers to create and read binary buffers.
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char * /*argv*/ []) {
   // Build up a serialized buffer algorithmically:
   flatbuffers::FlatBufferBuilder builder;
 
@@ -53,7 +53,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   auto orc = CreateMonster(builder, &position, 150, 80, name, inventory,
                            Color_Red, weapons, Equipment_Weapon, axe.Union());
 
-  builder.Finish(orc); // Serialize the root of the object.
+  builder.Finish(orc);  // Serialize the root of the object.
 
   // We now have a FlatBuffer we can store on disk or send over a network.
 
@@ -83,8 +83,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   (void)inv;
 
   // Get and test the `weapons` FlatBuffers's `vector`.
-  std::string expected_weapon_names[] = {"Sword", "Axe"};
-  short expected_weapon_damages[] = {3, 5};
+  std::string expected_weapon_names[] = { "Sword", "Axe" };
+  short expected_weapon_damages[] = { 3, 5 };
   auto weps = monster->weapons();
   for (unsigned int i = 0; i < weps->size(); i++) {
     assert(weps->Get(i)->name()->str() == expected_weapon_names[i]);
@@ -95,11 +95,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // Get and test the `Equipment` union (`equipped` field).
   assert(monster->equipped_type() == Equipment_Weapon);
-  auto equipped = static_cast<const Weapon*>(monster->equipped());
+  auto equipped = static_cast<const Weapon *>(monster->equipped());
   assert(equipped->name()->str() == "Axe");
   assert(equipped->damage() == 5);
   (void)equipped;
 
   printf("The FlatBuffer was successfully created and verified!\n");
 }
-

@@ -18,46 +18,48 @@
 
 #include <grpc++/grpc++.h>
 
-#include "monster_test_generated.h"
 #include "monster_test.grpc.fb.h"
+#include "monster_test_generated.h"
 
 using namespace MyGame::Example;
 
 // The callback implementation of our server, that derives from the generated
 // code. It implements all rpcs specified in the FlatBuffers schema.
 class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
-  virtual ::grpc::Status Store(::grpc::ServerContext* context,
-                               const flatbuffers::grpc::Message<Monster> *request,
-                               flatbuffers::grpc::Message<Stat> *response)
-                               override {
+  virtual ::grpc::Status Store(
+      ::grpc::ServerContext *context,
+      const flatbuffers::grpc::Message<Monster> *request,
+      flatbuffers::grpc::Message<Stat> *response) override {
     // Create a response from the incoming request name.
     fbb_.Clear();
-    auto stat_offset = CreateStat(fbb_, fbb_.CreateString("Hello, " +
-                                        request->GetRoot()->name()->str()));
+    auto stat_offset = CreateStat(
+        fbb_, fbb_.CreateString("Hello, " + request->GetRoot()->name()->str()));
     fbb_.Finish(stat_offset);
     // Transfer ownership of the message to gRPC
     *response = fbb_.ReleaseMessage<Stat>();
     return grpc::Status::OK;
   }
-  virtual ::grpc::Status Retrieve(::grpc::ServerContext *context,
-                               const flatbuffers::grpc::Message<Stat> *request,
-                               ::grpc::ServerWriter< flatbuffers::grpc::Message<Monster>>* writer)
-                               override {
+  virtual ::grpc::Status Retrieve(
+      ::grpc::ServerContext *context,
+      const flatbuffers::grpc::Message<Stat> *request,
+      ::grpc::ServerWriter<flatbuffers::grpc::Message<Monster>> *writer)
+      override {
+    for (int i = 0; i < 10; i++) {
+      fbb_.Clear();
+      // Create 10 monsters for resposne.
+      auto monster_offset =
+          CreateMonster(fbb_, 0, 0, 0,
+                        fbb_.CreateString(request->GetRoot()->id()->str() +
+                                          " No." + std::to_string(i)));
+      fbb_.Finish(monster_offset);
 
-    for (int i=0; i<10; i++) {
-       fbb_.Clear();
-       // Create 10 monsters for resposne.
-       auto monster_offset =
-       CreateMonster(fbb_, 0, 0, 0, fbb_.CreateString(
-         request->GetRoot()->id()->str() + " No." + std::to_string(i)));
-       fbb_.Finish(monster_offset);
+      flatbuffers::grpc::Message<Monster> monster =
+          fbb_.ReleaseMessage<Monster>();
 
-       flatbuffers::grpc::Message<Monster> monster = fbb_.ReleaseMessage<Monster>();
-
-       // Send monster to client using streaming.
-       writer->Write(monster);
-     }
-     return grpc::Status::OK;
+      // Send monster to client using streaming.
+      writer->Write(monster);
+    }
+    return grpc::Status::OK;
   }
 
  private:
@@ -90,7 +92,7 @@ void RunServer() {
   server_instance->Wait();
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char * /*argv*/ []) {
   // Launch server.
   std::thread server_thread(RunServer);
 
@@ -102,7 +104,6 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   auto channel = grpc::CreateChannel("localhost:50051",
                                      grpc::InsecureChannelCredentials());
   auto stub = MyGame::Example::MonsterStorage::NewStub(channel);
-
 
   flatbuffers::grpc::MessageBuilder fbb;
   {
@@ -138,7 +139,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     }
   }
 
-  #if !FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
+#if !FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
   {
     // Test that an invalid request errors out correctly
     grpc::ClientContext context;
@@ -149,9 +150,10 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     // matches the protobuf gRPC status code for an unparseable message.
     assert(!status.ok());
     assert(status.error_code() == ::grpc::StatusCode::INTERNAL);
-    assert(strcmp(status.error_message().c_str(), "Message verification failed") == 0);
+    assert(strcmp(status.error_message().c_str(),
+                  "Message verification failed") == 0);
   }
-  #endif
+#endif
 
   server_instance->Shutdown();
 

@@ -20,7 +20,7 @@ export class Attacker {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -50,8 +50,8 @@ static getRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
  * @returns {number}
  */
 swordAttackDamage():number {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -59,13 +59,13 @@ swordAttackDamage():number {
  * @returns {boolean}
  */
 mutate_sword_attack_damage(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
+  var offset = this.bb.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -101,7 +101,7 @@ export class Rapunzel {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -122,7 +122,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
  * @returns {number}
  */
 hairLength():number {
-  return this.bb!.readInt32(this.bb_pos);
+  return this.bb.readInt32(this.bb_pos);
 };
 
 /**
@@ -130,13 +130,13 @@ hairLength():number {
  * @returns {boolean}
  */
 mutate_hair_length(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
+  var offset = this.bb.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -159,7 +159,7 @@ export class BookReader {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -180,7 +180,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
  * @returns {number}
  */
 booksRead():number {
-  return this.bb!.readInt32(this.bb_pos);
+  return this.bb.readInt32(this.bb_pos);
 };
 
 /**
@@ -188,13 +188,13 @@ booksRead():number {
  * @returns {boolean}
  */
 mutate_books_read(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
+  var offset = this.bb.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -217,7 +217,7 @@ export class Movie {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer;
 
   /**
    * @type {number}
@@ -255,8 +255,8 @@ static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
  * @returns {Character}
  */
 mainCharacterType():Character {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /** @type {Character} */ (this.bb!.readUint8(this.bb_pos + offset)) : Character.NONE;
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? /** @type {Character} */ (this.bb.readUint8(this.bb_pos + offset)) : Character.NONE;
 };
 
 /**
@@ -264,13 +264,13 @@ mainCharacterType():Character {
  * @returns {boolean}
  */
 mutate_main_character_type(value:Character):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
+  var offset = this.bb.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb!.writeUint8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -279,8 +279,8 @@ mutate_main_character_type(value:Character):boolean {
  * @returns {?flatbuffers.Table}
  */
 mainCharacter<T extends flatbuffers.Table>(obj:T):T|null {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
 };
 
 /**
@@ -288,24 +288,24 @@ mainCharacter<T extends flatbuffers.Table>(obj:T):T|null {
  * @returns {Character}
  */
 charactersType(index: number):Character|null {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? /** @type {Character} */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /** @type {Character} */ (0);
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? /** @type {Character} */ (this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {Character} */ (0);
 };
 
 /**
  * @returns {number}
  */
 charactersTypeLength():number {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {Uint8Array}
  */
 charactersTypeArray():Uint8Array|null {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -314,16 +314,16 @@ charactersTypeArray():Uint8Array|null {
  * @returns {?flatbuffers.Table}
  */
 characters<T extends flatbuffers.Table>(index: number, obj:T):T|null {
-  var offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__union(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
+  var offset = this.bb.__offset(this.bb_pos, 10);
+  return offset ? this.bb.__union(obj, this.bb.__vector(this.bb_pos + offset) + index * 4) : null;
 };
 
 /**
  * @returns {number}
  */
 charactersLength():number {
-  var offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  var offset = this.bb.__offset(this.bb_pos, 10);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**

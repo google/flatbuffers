@@ -40,8 +40,8 @@
 #include <vector>
 
 #ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
+#  include <string>
+#  define GRPC_CUSTOM_STRING std::string
 #endif
 
 namespace grpc {
