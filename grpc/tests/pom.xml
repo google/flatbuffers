@@ -59,8 +59,8 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>namespace_test</source>
                                 <source>${project.basedir}</source>
+				<source>${project.basedir}/../../tests</source>
                             </sources>
                         </configuration>
                     </execution>
