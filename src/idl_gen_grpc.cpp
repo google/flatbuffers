@@ -23,6 +23,7 @@
 
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
+#include "src/compiler/java_generator.h"
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -53,7 +54,7 @@ class FlatBufMethod : public grpc_generator::Method {
     return "";
   }
   std::vector<grpc::string> GetAllComments() const {
-    return std::vector<grpc::string>();
+    return method_->rpc_comment;
   }
 
   std::string name() const { return method_->name; }
@@ -110,7 +111,7 @@ class FlatBufService : public grpc_generator::Service {
     return "";
   }
   std::vector<grpc::string> GetAllComments() const {
-    return std::vector<grpc::string>();
+    return service_->doc_comment;
   }
 
   std::string name() const { return service_->name; }
@@ -187,7 +188,8 @@ class FlatBufFile : public grpc_generator::File {
  public:
   enum Language {
     kLanguageGo,
-    kLanguageCpp
+    kLanguageCpp,
+    kLanguageJava
   };
 
   FlatBufFile(
@@ -228,6 +230,9 @@ class FlatBufFile : public grpc_generator::File {
       }
       case kLanguageGo: {
         return "import \"github.com/google/flatbuffers/go\"";
+      }
+      case kLanguageJava: {
+        return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
       }
     }
     return "";
@@ -328,9 +333,50 @@ bool GenerateCppGRPC(const Parser &parser,
                                source_code, false);
 }
 
+class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
+ public:
+  JavaGRPCGenerator(const Parser& parser, const std::string& path,
+                    const std::string& file_name)
+      : BaseGenerator(parser, path, file_name, "", "." /*separator*/),
+        parser_(parser),
+        path_(path),
+        file_name_(file_name) {}
+
+  bool generate() {
+    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
+    grpc_java_generator::Parameters p;
+    for (int i = 0; i < file.service_count(); i++) {
+      auto service = file.service(i);
+      const Definition* def = parser_.services_.vec[i];
+      p.package_name =
+          def->defined_namespace->GetFullyQualifiedName("");  // file.package();
+      std::string output =
+          grpc_java_generator::GenerateServiceSource(&file, service.get(), &p);
+      std::string filename =
+          NamespaceDir(*def->defined_namespace) + def->name + "Grpc.java";
+      if (!flatbuffers::SaveFile(filename.c_str(), output, false)) return false;
+    }
+    return true;
+  }
+
+ protected:
+  const Parser& parser_;
+  const std::string &path_, &file_name_;
+};
+
+bool GenerateJavaGRPC(const Parser& parser, const std::string& path,
+                      const std::string& file_name) {
+  int nservices = 0;
+  for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
+       ++it) {
+    if (!(*it)->generated) nservices++;
+  }
+  if (!nservices) return true;
+  return JavaGRPCGenerator(parser, path, file_name).generate();
+}
+
 }  // namespace flatbuffers
 
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
-
