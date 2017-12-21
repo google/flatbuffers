@@ -1607,9 +1607,42 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
                  identifier, FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 
-// Helper class to verify the integrity of a FlatBuffer
+/// @class Verifier
+/// @brief Helper class to verify the integrity of a FlatBuffer
+///
+/// The `Verifier` checks offsets within the data to ensure they are
+/// consistent with a correctly created buffer. Additionally it sets 
+/// conservative fixed limits for the maximum number of tables a
+/// flatbuffer can hold and the maximum depth of those tables,
+/// which can be increased if your application requires it.
+///
+/// For an example of these limits, consider a table `PriceTimeline`
+/// containing a vector of tables `Prices` that in turn contains
+/// doubles.  If that vector is of size 100, the flatbuffer will
+/// contain 101 total tables and will have a total depth of 2. 
+///
+/// If instead of doubles the `Prices` vector contained a table
+/// named `Company`, that same `PriceTimeline` with a vector
+/// of length 100 will hold 301 tables and flatbuffer will
+/// have a depth of 3.
+///
+/// Also, remember keep in mind the maximum 2GB size limit for
+/// a single FlatBuffer when verifying your buffers.
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
+  /// @brief Initialize a verifier with a finished flatbuffer
+  ///
+  /// Please note that if the maximum depth and tables limit parameters
+  /// are exceeded, the verifier will return failure, even if the 
+  /// flatbuffer is otherwise valid. This is useful to catch when
+  /// excessively large flatbuffers are created inadvertently, 
+  /// and the limits can be increased as needed up to the design
+  /// of the flatbuffers binary format.
+  ///
+  /// @param[in] buf the finished flatbuffer.
+  /// @param[in] buf_len the length of buf in bytes, not to exceed to 2GB.
+  /// @param[in] _max_depth maximum table depth limit for this flatbuffer.
+  /// @param[in] _max_tables maximum table count limit for this flatbuffer. 
   Verifier(const uint8_t *buf, size_t buf_len, uoffset_t _max_depth = 64,
            uoffset_t _max_tables = 1000000)
     : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth),
