@@ -455,6 +455,7 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
 }
 
 inline bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyCharacter(
