@@ -31,9 +31,10 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
+#  include <windows.h>  // Must be included before <direct.h>
 #  include <direct.h>
 #  include <winbase.h>
-#  include <windows.h>
+#  undef interface  // This is also important because of reasons
 #else
 #  include <limits.h>
 #endif
