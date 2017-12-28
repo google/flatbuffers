@@ -363,11 +363,16 @@ class Allocator {
   // Reallocate `new_size` bytes of memory, replacing the old region of size
   // `old_size` at `p`. In contrast to a normal realloc, this grows downwards,
   // and is intended specifcally for `vector_downward` use.
+  // `in_use_back` and `in_use_front` indicate how much of `old_size` is
+  // actually in use at each end, and needs to be copied.
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
-                                       size_t new_size) {
+                                       size_t new_size, size_t in_use_back,
+                                       size_t in_use_front) {
     assert(new_size > old_size);  // vector_downward only grows
     uint8_t *new_p = allocate(new_size);
-    memcpy(new_p + (new_size - old_size), old_p, old_size);
+    memcpy(new_p + new_size - in_use_back, old_p + old_size - in_use_back,
+           in_use_back);
+    memcpy(new_p, old_p, in_use_front);
     deallocate(old_p, old_size);
     return new_p;
   }
@@ -503,6 +508,9 @@ class DetachedBuffer {
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e push_back() inserts data
 // in the lowest address in the vector.
+// Since this vector leaves the lower part unused, we support a "scratch-pad"
+// that can be stored there for temporary data, to share the allocated space.
+// Essentially, this supports 2 std::vectors in a single buffer.
 class vector_downward {
  public:
   explicit vector_downward(size_t initial_size = 1024,
@@ -513,7 +521,8 @@ class vector_downward {
         initial_size_(initial_size),
         reserved_(0),
         buf_(nullptr),
-        cur_(nullptr) {
+        cur_(nullptr),
+        scratch_(nullptr) {
     assert(allocator_);
   }
 
@@ -533,15 +542,18 @@ class vector_downward {
     reserved_ = 0;
     buf_ = nullptr;
     cur_ = nullptr;
+    scratch_ = nullptr;
   }
 
   void clear() {
     if (buf_) {
       cur_ = buf_ + reserved_;
+      scratch_ = buf_;
     } else {
       reserved_ = 0;
       buf_ = nullptr;
       cur_ = nullptr;
+      scratch_ = nullptr;
     }
   }
 
@@ -554,6 +566,7 @@ class vector_downward {
     reserved_ = 0;
     buf_ = nullptr;
     cur_ = nullptr;
+    scratch_ = nullptr;
     return fb;
   }
 
@@ -562,13 +575,17 @@ class vector_downward {
                         : ((bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1));
   }
 
-  uint8_t *make_space(size_t len) {
-    assert(cur_ >= buf_);
-    if (len > static_cast<size_t>(cur_ - buf_)) { reallocate(len); }
-    cur_ -= len;
+  size_t ensure_space(size_t len) {
+    assert(cur_ >= scratch_ && scratch_ >= buf_);
+    if (len > static_cast<size_t>(cur_ - scratch_)) { reallocate(len); }
     // Beyond this, signed offsets may not have enough range:
     // (FlatBuffers > 2GB not supported).
     assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
+    return len;
+  }
+
+  inline uint8_t *make_space(size_t len) {
+    cur_ -= ensure_space(len);
     return cur_;
   }
 
@@ -578,45 +595,59 @@ class vector_downward {
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
   }
 
-  size_t capacity() const { return reserved_; }
-
-  uint8_t *buf() const {
-    assert(buf_);
-    return buf_;
+  uoffset_t scratch_size() const {
+    return static_cast<uoffset_t>(scratch_ - buf_);
   }
+
+  size_t capacity() const { return reserved_; }
 
   uint8_t *data() const {
     assert(cur_);
     return cur_;
   }
 
+  uint8_t *scratch_data() const {
+    assert(buf_);
+    return buf_;
+  }
+
+  uint8_t *scratch_end() const {
+    assert(scratch_);
+    return scratch_;
+  }
+
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    auto dest = make_space(num);
-    memcpy(dest, bytes, num);
+    memcpy(make_space(num), bytes, num);
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
   template<typename T> void push_small(const T &little_endian_t) {
-    auto dest = make_space(sizeof(T));
-    *reinterpret_cast<T *>(dest) = little_endian_t;
+    make_space(sizeof(T));
+    *reinterpret_cast<T *>(cur_) = little_endian_t;
+  }
+
+  template<typename T> void scratch_push_small(const T &t) {
+    ensure_space(sizeof(T));
+    *reinterpret_cast<T *>(scratch_) = t;
+    scratch_ += sizeof(T);
   }
 
   // fill() is most frequently called with small byte counts (<= 4),
   // which is why we're using loops rather than calling memset.
   void fill(size_t zero_pad_bytes) {
-    auto dest = make_space(zero_pad_bytes);
-    for (size_t i = 0; i < zero_pad_bytes; i++) dest[i] = 0;
+    make_space(zero_pad_bytes);
+    for (size_t i = 0; i < zero_pad_bytes; i++) cur_[i] = 0;
   }
 
   // Version for when we know the size is larger.
   void fill_big(size_t zero_pad_bytes) {
-    auto dest = make_space(zero_pad_bytes);
-    memset(dest, 0, zero_pad_bytes);
+    memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
 
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
+  void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
  private:
   // You shouldn't really be copying instances of this class.
@@ -629,20 +660,24 @@ class vector_downward {
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
+  uint8_t *scratch_;  // Points to the end of the scratchpad in use.
 
   void reallocate(size_t len) {
     assert(allocator_);
     auto old_reserved = reserved_;
     auto old_size = size();
+    auto old_scratch_size = scratch_size();
     reserved_ += (std::max)(len, growth_policy(old_reserved));
     FLATBUFFERS_CONSTEXPR size_t alignment = AlignOf<largest_scalar_t>();
     reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
     if (buf_) {
-      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_);
+      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_,
+                                             old_size, old_scratch_size);
     } else {
       buf_ = allocator_->allocate(reserved_);
     }
     cur_ = buf_ + reserved_ - old_size;
+    scratch_ = buf_ + old_scratch_size;
   }
 };
 
@@ -685,6 +720,7 @@ class FlatBufferBuilder {
                              Allocator *allocator = nullptr,
                              bool own_allocator = false)
       : buf_(initial_size, allocator, own_allocator),
+        num_field_loc(0),
         max_voffset_(0),
         nested(false),
         finished(false),
@@ -692,8 +728,6 @@ class FlatBufferBuilder {
         force_defaults_(false),
         dedup_vtables_(true),
         string_pool(nullptr) {
-    offsetbuf_.reserve(16);  // Avoid first few reallocs.
-    vtables_.reserve(16);
     EndianCheck();
   }
 
@@ -709,11 +743,10 @@ class FlatBufferBuilder {
   /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
   /// to construct another buffer.
   void Clear() {
-    buf_.clear();
     ClearOffsets();
+    buf_.clear();
     nested = false;
     finished = false;
-    vtables_.clear();
     minalign_ = 1;
     if (string_pool) string_pool->clear();
   }
@@ -821,7 +854,8 @@ class FlatBufferBuilder {
   // vtables later.
   void TrackField(voffset_t field, uoffset_t off) {
     FieldLoc fl = { off, field };
-    offsetbuf_.push_back(fl);
+    buf_.scratch_push_small(fl);
+    num_field_loc++;
     max_voffset_ = (std::max)(max_voffset_, field);
   }
 
@@ -870,6 +904,8 @@ class FlatBufferBuilder {
     // it is here is that storing objects in-line may cause vtable offsets
     // to not fit anymore. It also leads to vtable duplication.
     assert(!nested);
+    // If you hit this, fields were added outside the scope of a table.
+    assert(!num_field_loc);
   }
 
   // From generated code (or from the parser), we call StartTable/EndTable
@@ -904,8 +940,9 @@ class FlatBufferBuilder {
                            static_cast<voffset_t>(table_object_size));
     WriteScalar<voffset_t>(buf_.data(), max_voffset_);
     // Write the offsets into the table
-    for (auto field_location = offsetbuf_.begin();
-         field_location != offsetbuf_.end(); ++field_location) {
+    for (auto it = buf_.scratch_end() - num_field_loc * sizeof(FieldLoc);
+         it < buf_.scratch_end(); it += sizeof(FieldLoc)) {
+      auto field_location = reinterpret_cast<FieldLoc *>(it);
       auto pos = static_cast<voffset_t>(vtableoffsetloc - field_location->off);
       // If this asserts, it means you've set a field twice.
       assert(!ReadScalar<voffset_t>(buf_.data() + field_location->id));
@@ -918,17 +955,19 @@ class FlatBufferBuilder {
     // See if we already have generated a vtable with this exact same
     // layout before. If so, make it point to the old one, remove this one.
     if (dedup_vtables_) {
-      for (auto it = vtables_.begin(); it != vtables_.end(); ++it) {
-        auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*it));
+      for (auto it = buf_.scratch_data(); it < buf_.scratch_end();
+           it += sizeof(uoffset_t)) {
+        auto vt_offset_ptr = reinterpret_cast<uoffset_t *>(it);
+        auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*vt_offset_ptr));
         auto vt2_size = *vt2;
         if (vt1_size != vt2_size || memcmp(vt2, vt1, vt1_size)) continue;
-        vt_use = *it;
+        vt_use = *vt_offset_ptr;
         buf_.pop(GetSize() - vtableoffsetloc);
         break;
       }
     }
     // If this is a new vtable, remember it.
-    if (vt_use == GetSize()) { vtables_.push_back(vt_use); }
+    if (vt_use == GetSize()) { buf_.scratch_push_small(vt_use); }
     // Fill the vtable offset we created above.
     // The offset points from the beginning of the object to where the
     // vtable is stored.
@@ -966,7 +1005,8 @@ class FlatBufferBuilder {
   uoffset_t EndStruct() { return GetSize(); }
 
   void ClearOffsets() {
-    offsetbuf_.clear();
+    buf_.scratch_pop(num_field_loc * sizeof(FieldLoc));
+    num_field_loc = 0;
     max_voffset_ = 0;
   }
 
@@ -1105,9 +1145,6 @@ class FlatBufferBuilder {
     PreAlign(len * elemsize, alignment);
   }
 
-  uint8_t *ReserveElements(size_t len, size_t elemsize) {
-    return buf_.make_space(len * elemsize);
-  }
   /// @endcond
 
   /// @brief Serialize an array into a FlatBuffer `vector`.
@@ -1519,7 +1556,8 @@ class FlatBufferBuilder {
   vector_downward buf_;
 
   // Accumulating offsets of table members while it is being built.
-  std::vector<FieldLoc> offsetbuf_;
+  // We store these in the scratch pad of buf_, after the vtable offsets.
+  uoffset_t num_field_loc;
   // Track how much of the vtable is in use, so we can output the most compact
   // possible vtable.
   voffset_t max_voffset_;
@@ -1529,8 +1567,6 @@ class FlatBufferBuilder {
 
   // Ensure the buffer is finished before it is being accessed.
   bool finished;
-
-  std::vector<uoffset_t> vtables_;  // todo: Could make this into a map?
 
   size_t minalign_;
 
