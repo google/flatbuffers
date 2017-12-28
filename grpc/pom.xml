@@ -5,7 +5,8 @@
     <artifactId>flatbuffers-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.8.0</version>
-    <description>artifacts for use with flatbuffers</description>
+    <name>flatbuffers-parent</name>
+    <description>parent pom for flatbuffers java artifacts</description>
     <properties>
         <scm.url>https://github.com/google/flatbuffers</scm.url>
         <scm.connection>scm:git:${scm.url}.git</scm.connection>
@@ -30,6 +31,8 @@
             <name>Wouter van Oortmerssen</name>
         </developer>
     </developers>
+
+    <url>${scm.url}</url>
 
     <scm>
         <connection>${scm.connection}</connection>
