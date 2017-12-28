@@ -2142,6 +2142,13 @@ struct TypeTable;
 // Signature of the static method present in each type.
 typedef TypeTable *(*TypeFunction)();
 
+// Key-value pair array for storing custom attribute values.
+struct AttributeList {
+  size_t num_elems;  // of the two arrays below.
+  const char **keys;
+  const char **values;
+};
+
 struct TypeTable {
   SequenceType st;
   size_t num_elems;  // of each of the arrays below.
@@ -2149,6 +2156,8 @@ struct TypeTable {
   const TypeFunction *type_refs;
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
   const char **names;     // Only set if compiled with --reflect-names.
+  const AttributeList attributes; // Only set if compiled with --reflect-attrs.
+  const AttributeList *field_attributes; // Also only with --reflect-attrs.
 };
 
 // String which identifies the current version of FlatBuffers.

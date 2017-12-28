@@ -818,6 +818,21 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "}");
 }
 
+void ReflectAttributesTest() {
+  auto attrs_by_field = FlatBufferFieldAttributes(MonsterTypeTable());
+
+  TEST_EQ(attrs_by_field.find("friendly") != attrs_by_field.end(), true);
+  auto &attr_friendly = attrs_by_field["friendly"];
+  TEST_EQ(attr_friendly["priority"], std::string("1"));
+
+  TEST_EQ(attrs_by_field.find("testhashs32_fnv1") != attrs_by_field.end(), true);
+  auto &attr_testhashs32_fnv1 = attrs_by_field["testhashs32_fnv1"];
+  TEST_EQ(attr_testhashs32_fnv1["hash"], std::string("fnv1_32"));
+
+  auto vec3_attrs = FlatBufferTypeAttributes(Vec3TypeTable());
+  TEST_EQ(vec3_attrs["force_align"], std::string("16"));
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest() {
   // load the .proto and the golden file from disk
@@ -1900,6 +1915,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   ObjectFlatBuffersTest(flatbuf.data());
 
   MiniReflectFlatBuffersTest(flatbuf.data());
+  ReflectAttributesTest();
 
   SizePrefixedTest();
 

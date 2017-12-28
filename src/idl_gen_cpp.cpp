@@ -279,7 +279,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Generate code for mini reflection.
-    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+    if (parser_.opts.mini_reflect) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
       for (auto it = parser_.structs_.vec.begin();
            it != parser_.structs_.vec.end(); ++it) {
@@ -708,6 +708,23 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  // Split a SymbolTable of Value into key and value initializer strings. 
+  static void SerializeKeysAndValues(const SymbolTable<Value> &stable,
+                                     std::string *keys, std::string *vals) {
+    std::string sep = " ";
+    *keys = *vals = "{";
+    // TODO(joshv): the `dict` field does not preserve the insertion order
+    // of the symbols (their in-file order), and the `vec` field cannot be
+    // used to access both key and value in linear time. Add a `keys` field.
+    for (const auto &strvaluepair : stable.dict) {
+      *keys += sep + "\"" + strvaluepair.first + "\"";
+      *vals += sep + EscapeString(strvaluepair.second->constant, true);
+      sep = ", ";
+    }
+    *keys += " }";
+    *vals += " }";
+  }
+
   void GenMiniReflect(const StructDef *struct_def, const EnumDef *enum_def) {
     code_.SetValue("NAME", struct_def ? struct_def->name : enum_def->name);
     code_.SetValue("SEQ_TYPE",
@@ -716,23 +733,32 @@ class CppGenerator : public BaseGenerator {
     auto num_fields =
         struct_def ? struct_def->fields.vec.size() : enum_def->vals.vec.size();
     code_.SetValue("NUM_FIELDS", NumToString(num_fields));
+    bool has_field_attributes = false;
     std::vector<std::string> names;
     std::vector<Type> types;
-    bool consecutive_enum_from_zero = true;
+    const SymbolTable<Value> *attrs_table;
+    std::vector<const SymbolTable<Value>*> type_attrs;
+    bool consecutive_enum_from_zero = false;
     if (struct_def) {
+      attrs_table = &struct_def->attributes;
       for (auto it = struct_def->fields.vec.begin();
            it != struct_def->fields.vec.end(); ++it) {
         const auto &field = **it;
         names.push_back(Name(field));
         types.push_back(field.value.type);
+        type_attrs.push_back(&field.attributes);
+        has_field_attributes |= !field.attributes.dict.empty();
       }
     } else {
+      attrs_table = &enum_def->attributes;
       for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
            ++it) {
         const auto &ev = **it;
         names.push_back(Name(ev));
         types.push_back(enum_def->is_union ? ev.union_type
                                            : Type(enum_def->underlying_type));
+        type_attrs.push_back(&enum_def->attributes);
+        has_field_attributes |= !enum_def->attributes.dict.empty();
         if (static_cast<int64_t>(it - enum_def->vals.vec.begin()) != ev.value) {
           consecutive_enum_from_zero = false;
         }
@@ -796,10 +822,16 @@ class CppGenerator : public BaseGenerator {
       }
       vs += NumToString(struct_def->bytesize);
     }
+    std::string aks;
+    std::string avs;
+    SerializeKeysAndValues(*attrs_table, &aks, &avs);
     code_.SetValue("TYPES", ts);
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
+    code_.SetValue("ATTR_KEYS", aks);
+    code_.SetValue("ATTR_VALS", avs);
+    code_.SetValue("ATTR_COUNT", NumToString(attrs_table->dict.size()));
     code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
       code_ += "  static flatbuffers::TypeCode type_codes[] = {";
@@ -814,11 +846,47 @@ class CppGenerator : public BaseGenerator {
     if (!vs.empty()) {
       code_ += "  static const int32_t values[] = { {{VALUES}} };";
     }
-    auto has_names =
-        num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+    bool has_names = num_fields && parser_.opts.reflect_names;
     if (has_names) {
       code_ += "  static const char *names[] = {";
       code_ += "    {{NAMES}}";
+      code_ += "  };";
+    }
+    bool has_attributes = parser_.opts.reflect_attrs && attrs_table->dict.size();
+    if (has_attributes) {
+      code_ += "  static const char *attr_keys[] = {{ATTR_KEYS}};";
+      code_ += "  static const char *attr_vals[] = {{ATTR_VALS}};";
+      code_ += "  static const flatbuffers::AttributeList attrs = "
+               "{ {{ATTR_COUNT}}, attr_keys, attr_vals };";
+    }
+    has_field_attributes &= parser_.opts.reflect_attrs;
+    if (has_field_attributes) {
+      std::string field_attr_decl;
+      for (size_t index = 0; index < type_attrs.size(); index++) {
+        const SymbolTable<Value> *attr_table = type_attrs[index];
+        if (!field_attr_decl.empty()) field_attr_decl += ",\n    ";
+        if (attr_table->dict.empty()) {
+          field_attr_decl += "{}";
+          continue;
+        }
+
+        std::string attr_keys;
+        std::string attr_vals;
+        SerializeKeysAndValues(*attr_table, &attr_keys, &attr_vals);
+
+        const std::string idx = NumToString(index);
+        code_.SetValue("IDX", idx);
+        code_.SetValue("FA_KEYS", attr_keys);
+        code_.SetValue("FA_VALS", attr_vals);
+        code_ += "  static const char* attr_keys_{{IDX}}[] = {{FA_KEYS}};";
+        code_ += "  static const char* attr_vals_{{IDX}}[] = {{FA_VALS}};";
+        field_attr_decl += "{ " + NumToString(attr_table->dict.size()) + ", ";
+        field_attr_decl += "attr_keys_" + idx + ", ";
+        field_attr_decl += "attr_vals_" + idx + " }";
+      }
+      code_.SetValue("FIELD_ATTRS", field_attr_decl);
+      code_ += "  static const flatbuffers::AttributeList field_attrs[] = {";
+      code_ += "    {{FIELD_ATTRS}}";
       code_ += "  };";
     }
     code_ += "  static flatbuffers::TypeTable tt = {";
@@ -826,7 +894,9 @@ class CppGenerator : public BaseGenerator {
              (num_fields ? "type_codes, " : "nullptr, ") +
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
              (!vs.empty() ? "values, " : "nullptr, ") +
-             (has_names ? "names" : "nullptr");
+             (has_names ? "names, " : "nullptr, ") +
+             (has_attributes ? "attrs, " : "{}, ") +
+             (has_field_attributes ? "field_attrs" : "nullptr");
     code_ += "  };";
     code_ += "  return &tt;";
     code_ += "}";

@@ -478,7 +478,7 @@ static void PrintStub(Printer* p, VARS& vars, const ServiceDescriptor* service,
       break;
     case BLOCKING_CLIENT_INTERFACE:
       interface = true;
-      FALLTHROUGH_INTENDED;
+      FALLTHROUGH_INTENDED;  // fallthrough
     case BLOCKING_CLIENT_IMPL:
       call_type = BLOCKING_CALL;
       stub_name += "BlockingStub";
@@ -486,7 +486,7 @@ static void PrintStub(Printer* p, VARS& vars, const ServiceDescriptor* service,
       break;
     case FUTURE_CLIENT_INTERFACE:
       interface = true;
-      FALLTHROUGH_INTENDED;
+      FALLTHROUGH_INTENDED;  // fallthrough
     case FUTURE_CLIENT_IMPL:
       call_type = FUTURE_CALL;
       stub_name += "FutureStub";

@@ -1931,8 +1931,22 @@ inline flatbuffers::TypeTable *ColorTypeTable() {
     "Green",
     "Blue"
   };
+  static const char *attr_keys[] = { "bit_flags" };
+  static const char *attr_vals[] = { "0" };
+  static const flatbuffers::AttributeList attrs = { 1, attr_keys, attr_vals };
+  static const char* attr_keys_0[] = { "bit_flags" };
+  static const char* attr_vals_0[] = { "0" };
+  static const char* attr_keys_1[] = { "bit_flags" };
+  static const char* attr_vals_1[] = { "0" };
+  static const char* attr_keys_2[] = { "bit_flags" };
+  static const char* attr_vals_2[] = { "0" };
+  static const flatbuffers::AttributeList field_attrs[] = {
+    { 1, attr_keys_0, attr_vals_0 },
+    { 1, attr_keys_1, attr_vals_1 },
+    { 1, attr_keys_2, attr_vals_2 }
+  };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names, attrs, field_attrs
   };
   return &tt;
 }
@@ -1949,6 +1963,7 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
     TestSimpleTableWithEnumTypeTable,
     MyGame::Example2::MonsterTypeTable
   };
+  static const int32_t values[] = { 0, 1, 2, 3 };
   static const char *names[] = {
     "NONE",
     "Monster",
@@ -1956,7 +1971,7 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
     "MyGame_Example2_Monster"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, values, names, {}, nullptr
   };
   return &tt;
 }
@@ -1965,7 +1980,7 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
 
 inline flatbuffers::TypeTable *InParentNamespaceTypeTable() {
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, {}, nullptr
   };
   return &tt;
 }
@@ -1974,7 +1989,7 @@ namespace Example2 {
 
 inline flatbuffers::TypeTable *MonsterTypeTable() {
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, {}, nullptr
   };
   return &tt;
 }
@@ -1994,7 +2009,7 @@ inline flatbuffers::TypeTable *TestTypeTable() {
     "b"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names, {}, nullptr
   };
   return &tt;
 }
@@ -2009,8 +2024,11 @@ inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
   static const char *names[] = {
     "color"
   };
+  static const char *attr_keys[] = { "csharp_partial" };
+  static const char *attr_vals[] = { "0" };
+  static const flatbuffers::AttributeList attrs = { 1, attr_keys, attr_vals };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names, attrs, nullptr
   };
   return &tt;
 }
@@ -2037,8 +2055,11 @@ inline flatbuffers::TypeTable *Vec3TypeTable() {
     "test2",
     "test3"
   };
+  static const char *attr_keys[] = { "force_align" };
+  static const char *attr_vals[] = { "16" };
+  static const flatbuffers::AttributeList attrs = { 1, attr_keys, attr_vals };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
+    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names, attrs, nullptr
   };
   return &tt;
 }
@@ -2053,8 +2074,14 @@ inline flatbuffers::TypeTable *AbilityTypeTable() {
     "id",
     "distance"
   };
+  static const char* attr_keys_0[] = { "key" };
+  static const char* attr_vals_0[] = { "0" };
+  static const flatbuffers::AttributeList field_attrs[] = {
+    { 1, attr_keys_0, attr_vals_0 },
+    {}
+  };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names, {}, field_attrs
   };
   return &tt;
 }
@@ -2071,7 +2098,7 @@ inline flatbuffers::TypeTable *StatTypeTable() {
     "count"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names, {}, nullptr
   };
   return &tt;
 }
@@ -2161,8 +2188,115 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
     "vector_of_doubles",
     "parent_namespace_test"
   };
+  static const char* attr_keys_0[] = { "id" };
+  static const char* attr_vals_0[] = { "0" };
+  static const char* attr_keys_1[] = { "id" };
+  static const char* attr_vals_1[] = { "1" };
+  static const char* attr_keys_2[] = { "id" };
+  static const char* attr_vals_2[] = { "2" };
+  static const char* attr_keys_3[] = { "id", "key", "required" };
+  static const char* attr_vals_3[] = { "3", "0", "0" };
+  static const char* attr_keys_4[] = { "deprecated", "id", "priority" };
+  static const char* attr_vals_4[] = { "0", "4", "1" };
+  static const char* attr_keys_5[] = { "id" };
+  static const char* attr_vals_5[] = { "5" };
+  static const char* attr_keys_6[] = { "id" };
+  static const char* attr_vals_6[] = { "6" };
+  static const char* attr_keys_7[] = { "id" };
+  static const char* attr_vals_7[] = { "7" };
+  static const char* attr_keys_8[] = { "id" };
+  static const char* attr_vals_8[] = { "8" };
+  static const char* attr_keys_9[] = { "id" };
+  static const char* attr_vals_9[] = { "9" };
+  static const char* attr_keys_10[] = { "id" };
+  static const char* attr_vals_10[] = { "10" };
+  static const char* attr_keys_11[] = { "id" };
+  static const char* attr_vals_11[] = { "11" };
+  static const char* attr_keys_12[] = { "id" };
+  static const char* attr_vals_12[] = { "12" };
+  static const char* attr_keys_13[] = { "id", "nested_flatbuffer" };
+  static const char* attr_vals_13[] = { "13", "Monster" };
+  static const char* attr_keys_14[] = { "id" };
+  static const char* attr_vals_14[] = { "14" };
+  static const char* attr_keys_15[] = { "id" };
+  static const char* attr_vals_15[] = { "15" };
+  static const char* attr_keys_16[] = { "hash", "id" };
+  static const char* attr_vals_16[] = { "fnv1_32", "16" };
+  static const char* attr_keys_17[] = { "hash", "id" };
+  static const char* attr_vals_17[] = { "fnv1_32", "17" };
+  static const char* attr_keys_18[] = { "hash", "id" };
+  static const char* attr_vals_18[] = { "fnv1_64", "18" };
+  static const char* attr_keys_19[] = { "hash", "id" };
+  static const char* attr_vals_19[] = { "fnv1_64", "19" };
+  static const char* attr_keys_20[] = { "hash", "id" };
+  static const char* attr_vals_20[] = { "fnv1a_32", "20" };
+  static const char* attr_keys_21[] = { "cpp_type", "hash", "id" };
+  static const char* attr_vals_21[] = { "Stat", "fnv1a_32", "21" };
+  static const char* attr_keys_22[] = { "hash", "id" };
+  static const char* attr_vals_22[] = { "fnv1a_64", "22" };
+  static const char* attr_keys_23[] = { "hash", "id" };
+  static const char* attr_vals_23[] = { "fnv1a_64", "23" };
+  static const char* attr_keys_24[] = { "id" };
+  static const char* attr_vals_24[] = { "24" };
+  static const char* attr_keys_25[] = { "id" };
+  static const char* attr_vals_25[] = { "25" };
+  static const char* attr_keys_26[] = { "id" };
+  static const char* attr_vals_26[] = { "26" };
+  static const char* attr_keys_27[] = { "id" };
+  static const char* attr_vals_27[] = { "27" };
+  static const char* attr_keys_28[] = { "id" };
+  static const char* attr_vals_28[] = { "28" };
+  static const char* attr_keys_29[] = { "id" };
+  static const char* attr_vals_29[] = { "29" };
+  static const char* attr_keys_30[] = { "flexbuffer", "id" };
+  static const char* attr_vals_30[] = { "0", "30" };
+  static const char* attr_keys_31[] = { "id" };
+  static const char* attr_vals_31[] = { "31" };
+  static const char* attr_keys_32[] = { "id" };
+  static const char* attr_vals_32[] = { "32" };
+  static const char* attr_keys_33[] = { "id" };
+  static const char* attr_vals_33[] = { "33" };
+  static const char* attr_keys_34[] = { "id" };
+  static const char* attr_vals_34[] = { "34" };
+  static const flatbuffers::AttributeList field_attrs[] = {
+    { 1, attr_keys_0, attr_vals_0 },
+    { 1, attr_keys_1, attr_vals_1 },
+    { 1, attr_keys_2, attr_vals_2 },
+    { 3, attr_keys_3, attr_vals_3 },
+    { 3, attr_keys_4, attr_vals_4 },
+    { 1, attr_keys_5, attr_vals_5 },
+    { 1, attr_keys_6, attr_vals_6 },
+    { 1, attr_keys_7, attr_vals_7 },
+    { 1, attr_keys_8, attr_vals_8 },
+    { 1, attr_keys_9, attr_vals_9 },
+    { 1, attr_keys_10, attr_vals_10 },
+    { 1, attr_keys_11, attr_vals_11 },
+    { 1, attr_keys_12, attr_vals_12 },
+    { 2, attr_keys_13, attr_vals_13 },
+    { 1, attr_keys_14, attr_vals_14 },
+    { 1, attr_keys_15, attr_vals_15 },
+    { 2, attr_keys_16, attr_vals_16 },
+    { 2, attr_keys_17, attr_vals_17 },
+    { 2, attr_keys_18, attr_vals_18 },
+    { 2, attr_keys_19, attr_vals_19 },
+    { 2, attr_keys_20, attr_vals_20 },
+    { 3, attr_keys_21, attr_vals_21 },
+    { 2, attr_keys_22, attr_vals_22 },
+    { 2, attr_keys_23, attr_vals_23 },
+    { 1, attr_keys_24, attr_vals_24 },
+    { 1, attr_keys_25, attr_vals_25 },
+    { 1, attr_keys_26, attr_vals_26 },
+    { 1, attr_keys_27, attr_vals_27 },
+    { 1, attr_keys_28, attr_vals_28 },
+    { 1, attr_keys_29, attr_vals_29 },
+    { 2, attr_keys_30, attr_vals_30 },
+    { 1, attr_keys_31, attr_vals_31 },
+    { 1, attr_keys_32, attr_vals_32 },
+    { 1, attr_keys_33, attr_vals_33 },
+    { 1, attr_keys_34, attr_vals_34 }
+  };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names, {}, field_attrs
   };
   return &tt;
 }
@@ -2197,7 +2331,7 @@ inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
     "vf64"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names, {}, nullptr
   };
   return &tt;
 }

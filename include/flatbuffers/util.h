@@ -31,9 +31,10 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
+#  include <windows.h>  // Must be included before <direct.h>
 #  include <direct.h>
 #  include <winbase.h>
-#  include <windows.h>
+#  undef interface  // This is also important because of reasons
 #else
 #  include <limits.h>
 #endif
@@ -433,6 +434,14 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   }
   text += "\"";
   return true;
+}
+
+// Helper for EscapeString operating on an std::string. Returns the empty string
+// upon failure.
+inline std::string EscapeString(const std::string &s, bool allow_non_utf8) {
+  std::string result;
+  return EscapeString(s.c_str(), s.length(), &result, allow_non_utf8)
+       ? result : "";
 }
 
 }  // namespace flatbuffers
