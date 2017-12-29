@@ -332,29 +332,28 @@ inline std::string FlatBufferToString(const uint8_t *buffer,
   return tostring_visitor.s;
 }
 
-inline std::map<std::string, std::string>
-AttributeListToMap(const AttributeList &attr_list) {
-  std::map<std::string, std::string> result;
-  for (size_t j = 0; j < attr_list.num_elems; ++j) {
-    result[attr_list.keys[j]] = attr_list.values[j];
+const char *LookUpAttribute(RawAttributeList list, const std::string &key) {
+  if (list == nullptr) return nullptr;
+  for (size_t i = 0; i < list->num_elems; ++i) {
+    if (list->attributes[i].key == key) return list->attributes[i].value;
   }
-  return result;
+  return nullptr;
 }
 
-inline std::map<std::string, std::string>
-FlatBufferTypeAttributes(const TypeTable *type_table) {
-  return AttributeListToMap(type_table->attributes);
+const char *LookUpTypeAttribute(const TypeTable *type, const std::string &key) {
+  return LookUpAttribute(type->attributes, key);
 }
 
-inline std::map<std::string, std::map<std::string, std::string>>
-FlatBufferFieldAttributes(const TypeTable *type_table) {
-  std::map<std::string, std::map<std::string, std::string>> result;
-  if (!type_table->names || !type_table->field_attributes) return result;
-  for (size_t i = 0; i < type_table->num_elems; ++i) {
-    result[type_table->names[i]] =
-        AttributeListToMap(type_table->field_attributes[i]);
+const char *LookUpFieldAttribute(const TypeTable *type,
+                                 const std::string &field,
+                                 const std::string &key) {
+  if (!type->field_attributes || !type->names) return nullptr;
+  for (size_t i = 0; i < type->num_elems; ++i) {
+    if (type->names[i] == field) {
+      return LookUpAttribute(type->field_attributes[i], key);
+    }
   }
-  return result;
+  return nullptr;
 }
 
 }  // namespace flatbuffers

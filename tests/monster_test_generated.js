@@ -1929,6 +1929,367 @@ MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
 /**
  * @constructor
  */
+MyGame.Example.TestAttributeTable = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.TestAttributeTable}
+ */
+MyGame.Example.TestAttributeTable.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.TestAttributeTable=} obj
+ * @returns {MyGame.Example.TestAttributeTable}
+ */
+MyGame.Example.TestAttributeTable.getRootAsTestAttributeTable = function(bb, obj) {
+  return (obj || new MyGame.Example.TestAttributeTable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.dog = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_dog = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.cat = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_cat = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.goat = function() {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_goat = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.platypus = function() {
+  var offset = this.bb.__offset(this.bb_pos, 10);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_platypus = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 10);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.emu = function() {
+  var offset = this.bb.__offset(this.bb_pos, 12);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_emu = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 12);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.beaver = function() {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_beaver = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.ocelot = function() {
+  var offset = this.bb.__offset(this.bb_pos, 16);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_ocelot = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 16);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.axolotl = function() {
+  var offset = this.bb.__offset(this.bb_pos, 18);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_axolotl = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 18);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.phoenix = function() {
+  var offset = this.bb.__offset(this.bb_pos, 20);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_phoenix = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 20);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TestAttributeTable.prototype.stick = function() {
+  var offset = this.bb.__offset(this.bb_pos, 22);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.TestAttributeTable.prototype.mutate_stick = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 22);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.TestAttributeTable.startTestAttributeTable = function(builder) {
+  builder.startObject(10);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} dog
+ */
+MyGame.Example.TestAttributeTable.addDog = function(builder, dog) {
+  builder.addFieldInt32(0, dog, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} cat
+ */
+MyGame.Example.TestAttributeTable.addCat = function(builder, cat) {
+  builder.addFieldInt32(1, cat, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} goat
+ */
+MyGame.Example.TestAttributeTable.addGoat = function(builder, goat) {
+  builder.addFieldInt32(2, goat, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} platypus
+ */
+MyGame.Example.TestAttributeTable.addPlatypus = function(builder, platypus) {
+  builder.addFieldInt32(3, platypus, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} emu
+ */
+MyGame.Example.TestAttributeTable.addEmu = function(builder, emu) {
+  builder.addFieldInt32(4, emu, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} beaver
+ */
+MyGame.Example.TestAttributeTable.addBeaver = function(builder, beaver) {
+  builder.addFieldInt32(5, beaver, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} ocelot
+ */
+MyGame.Example.TestAttributeTable.addOcelot = function(builder, ocelot) {
+  builder.addFieldInt32(6, ocelot, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} axolotl
+ */
+MyGame.Example.TestAttributeTable.addAxolotl = function(builder, axolotl) {
+  builder.addFieldInt32(7, axolotl, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} phoenix
+ */
+MyGame.Example.TestAttributeTable.addPhoenix = function(builder, phoenix) {
+  builder.addFieldInt32(8, phoenix, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} stick
+ */
+MyGame.Example.TestAttributeTable.addStick = function(builder, stick) {
+  builder.addFieldInt32(9, stick, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TestAttributeTable.endTestAttributeTable = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @constructor
+ */
 MyGame.Example.TypeAliases = function() {
   /**
    * @type {flatbuffers.ByteBuffer}

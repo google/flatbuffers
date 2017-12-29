@@ -132,6 +132,22 @@
       "required" : ["name"],
       "additionalProperties" : false
     },
+    "MyGame_Example_TestAttributeTable" : {
+      "type" : "object",
+      "properties" : {
+        "dog" : { "type" : "number" },
+        "cat" : { "type" : "number" },
+        "goat" : { "type" : "number" },
+        "platypus" : { "type" : "number" },
+        "emu" : { "type" : "number" },
+        "beaver" : { "type" : "number" },
+        "ocelot" : { "type" : "number" },
+        "axolotl" : { "type" : "number" },
+        "phoenix" : { "type" : "number" },
+        "stick" : { "type" : "number" }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_TypeAliases" : {
       "type" : "object",
       "properties" : {

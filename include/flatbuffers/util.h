@@ -436,14 +436,6 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   return true;
 }
 
-// Helper for EscapeString operating on an std::string. Returns the empty string
-// upon failure.
-inline std::string EscapeString(const std::string &s, bool allow_non_utf8) {
-  std::string result;
-  return EscapeString(s.c_str(), s.length(), &result, allow_non_utf8)
-       ? result : "";
-}
-
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_UTIL_H_

@@ -115,7 +115,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
-    "  --reflect-attrs    Add reflection for built-in and user-defined attributes.\n"
+    "  --reflect-attrs    Add minimal type/name/attribute reflection.\n"
     "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
     "schema). FILEs after the -- must be binary flatbuffer format files.\n"
     "Output files are named using the base file name of the input,\n"
@@ -259,6 +259,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.reflect_names = true;
       } else if (arg == "--reflect-attrs") {
         opts.mini_reflect = true;
+        opts.reflect_names = true;
         opts.reflect_attrs = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {

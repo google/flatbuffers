@@ -243,7 +243,7 @@ inline flatbuffers::TypeTable *TableInFirstNSTypeTable() {
     "foo_struct"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names, {}, nullptr
+    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -266,7 +266,7 @@ inline flatbuffers::TypeTable *TableInCTypeTable() {
     "refer_to_a2"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names, {}, nullptr
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -286,7 +286,7 @@ inline flatbuffers::TypeTable *SecondTableInATypeTable() {
     "refer_to_c"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names, {}, nullptr
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }

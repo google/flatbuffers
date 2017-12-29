@@ -2142,17 +2142,20 @@ struct TypeTable;
 // Signature of the static method present in each type.
 typedef TypeTable *(*TypeFunction)();
 
-// Key-value pair array for storing custom attribute values.
-struct AttributeList {
-  size_t num_elems;  // of the two arrays below.
-  const char **keys;
-  const char **values;
-
-  // GCC doesn't want us to implicitly zero additional fields.
-  AttributeList(): num_elems(0), keys(), values() {}
-  AttributeList(size_t num, const char **k, const char **v):
-      num_elems(num), keys(k), values(v) {}
+// Key-value structure as used by an attribute
+struct AttributeKeyValue {
+  const char *key;
+  const char *value;
 };
+
+// Key-value pair array for storing custom attribute values.
+template<size_t count> struct AttributeList {
+  size_t num_elems;  // of the two arrays below.
+  AttributeKeyValue attributes[count];
+};
+
+// While the convention is 0, this is technically forbidden by ISO.
+typedef const AttributeList<1> *RawAttributeList;
 
 struct TypeTable {
   SequenceType st;
@@ -2161,18 +2164,8 @@ struct TypeTable {
   const TypeFunction *type_refs;
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
   const char **names;     // Only set if compiled with --reflect-names.
-  const AttributeList attributes;  // Only set if compiled with --reflect-attrs.
-  const AttributeList *field_attributes;  // Also only with --reflect-attrs.
-
-  // MSVC will refuse to generate a default constructor for this type,
-  // presumably because it now contains a struct member.
-  TypeTable(): st(), num_elems(0), type_codes(), type_refs(), values(), names(),
-               attributes(), field_attributes() {}
-  TypeTable(SequenceType seqtype, size_t num, const TypeCode *tc,
-            const TypeFunction *tf, const int32_t *vals, const char **namez,
-            AttributeList attrs, const AttributeList *field_attrs):
-      st(seqtype), num_elems(num), type_codes(tc), type_refs(tf), values(vals),
-      names(namez), attributes(attrs), field_attributes(field_attrs) {}
+  RawAttributeList attributes;    // Only set if compiled with --reflect-attrs.
+  const RawAttributeList *field_attributes;  // Also only with --reflect-attrs.
 };
 
 // String which identifies the current version of FlatBuffers.

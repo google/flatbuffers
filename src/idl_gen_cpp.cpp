@@ -708,21 +708,33 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  // Split a SymbolTable of Value into key and value initializer strings. 
-  static void SerializeKeysAndValues(const SymbolTable<Value> &stable,
-                                     std::string *keys, std::string *vals) {
+  bool IsBuiltinAttribute(const std::string &attribute) {
+    auto find = parser_.known_attributes_.find(attribute);
+    return find != parser_.known_attributes_.end() && find->second;
+  }
+
+  struct SerializedAttrs {
+    size_t count;
+    std::string initializer;
+  };
+
+  // Serialize a SymbolTable of Value into a key-value initializer list string. 
+  SerializedAttrs SerializeAttributeList(const SymbolTable<Value> &stable) {
+    size_t count = 0;
     std::string sep = " ";
-    *keys = *vals = "{";
-    // TODO(joshv): the `dict` field does not preserve the insertion order
-    // of the symbols (their in-file order), and the `vec` field cannot be
-    // used to access both key and value in linear time. Add a `keys` field.
-    for (const auto &strvaluepair : stable.dict) {
-      *keys += sep + "\"" + strvaluepair.first + "\"";
-      *vals += sep + EscapeString(strvaluepair.second->constant, true);
+    std::string initializer = "{ " + NumToString(stable.dict.size()) + ", {";
+    for (auto it = stable.dict.begin(); it != stable.dict.end(); ++it) {
+      if (IsBuiltinAttribute(it->first)) continue;
+      std::string escaped_value;
+      const std::string value = it->second->constant;
+      EscapeString(value.c_str(), value.length(), &escaped_value, true);
+      initializer += sep + "{ \"" + it->first + "\", " + escaped_value + " }";
       sep = ", ";
+      ++count;
     }
-    *keys += " }";
-    *vals += " }";
+    initializer += " } }";
+    SerializedAttrs result = {count, initializer};
+    return result;
   }
 
   void GenMiniReflect(const StructDef *struct_def, const EnumDef *enum_def) {
@@ -733,32 +745,30 @@ class CppGenerator : public BaseGenerator {
     auto num_fields =
         struct_def ? struct_def->fields.vec.size() : enum_def->vals.vec.size();
     code_.SetValue("NUM_FIELDS", NumToString(num_fields));
-    bool has_field_attributes = false;
     std::vector<std::string> names;
     std::vector<Type> types;
-    const SymbolTable<Value> *attrs_table;
-    std::vector<const SymbolTable<Value>*> type_attrs;
-    bool consecutive_enum_from_zero = false;
+    SerializedAttrs type_attrs;
+    std::vector<SerializedAttrs> field_attrs;
+    bool consecutive_enum_from_zero = true;
+    bool has_field_attributes = false;
     if (struct_def) {
-      attrs_table = &struct_def->attributes;
+      type_attrs = SerializeAttributeList(struct_def->attributes);
       for (auto it = struct_def->fields.vec.begin();
            it != struct_def->fields.vec.end(); ++it) {
         const auto &field = **it;
         names.push_back(Name(field));
         types.push_back(field.value.type);
-        type_attrs.push_back(&field.attributes);
-        has_field_attributes |= !field.attributes.dict.empty();
+        field_attrs.push_back(SerializeAttributeList(field.attributes));
+        if (field_attrs.back().count) has_field_attributes = true;
       }
     } else {
-      attrs_table = &enum_def->attributes;
+      type_attrs = SerializeAttributeList(enum_def->attributes);
       for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
            ++it) {
         const auto &ev = **it;
         names.push_back(Name(ev));
         types.push_back(enum_def->is_union ? ev.union_type
                                            : Type(enum_def->underlying_type));
-        type_attrs.push_back(&enum_def->attributes);
-        has_field_attributes |= !enum_def->attributes.dict.empty();
         if (static_cast<int64_t>(it - enum_def->vals.vec.begin()) != ev.value) {
           consecutive_enum_from_zero = false;
         }
@@ -822,16 +832,12 @@ class CppGenerator : public BaseGenerator {
       }
       vs += NumToString(struct_def->bytesize);
     }
-    std::string aks;
-    std::string avs;
-    SerializeKeysAndValues(*attrs_table, &aks, &avs);
     code_.SetValue("TYPES", ts);
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
-    code_.SetValue("ATTR_KEYS", aks);
-    code_.SetValue("ATTR_VALS", avs);
-    code_.SetValue("ATTR_COUNT", NumToString(attrs_table->dict.size()));
+    code_.SetValue("ATTR_LIST", type_attrs.initializer);
+    code_.SetValue("ATTR_COUNT", NumToString(type_attrs.count));
     code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
       code_ += "  static flatbuffers::TypeCode type_codes[] = {";
@@ -852,42 +858,47 @@ class CppGenerator : public BaseGenerator {
       code_ += "    {{NAMES}}";
       code_ += "  };";
     }
-    bool has_attributes = parser_.opts.reflect_attrs && attrs_table->dict.size();
+    bool has_attributes = parser_.opts.reflect_attrs && type_attrs.count;
     if (has_attributes) {
-      code_ += "  static const char *attr_keys[] = {{ATTR_KEYS}};";
-      code_ += "  static const char *attr_vals[] = {{ATTR_VALS}};";
-      code_ += "  static const flatbuffers::AttributeList attrs = "
-               "{ {{ATTR_COUNT}}, attr_keys, attr_vals };";
+      code_ += "  static const flatbuffers::AttributeList<{{ATTR_COUNT}}>"
+               " attrs = {{ATTR_LIST}};";
     }
+    static const std::string kAttrListCast =
+        "reinterpret_cast<flatbuffers::RawAttributeList>";
     has_field_attributes &= parser_.opts.reflect_attrs;
     if (has_field_attributes) {
       std::string field_attr_decl;
-      for (size_t index = 0; index < type_attrs.size(); index++) {
-        const SymbolTable<Value> *attr_table = type_attrs[index];
+      std::map<std::string, std::string> attr_interning;
+      // Allow reusing our Table's attribute list for its attributes.
+      attr_interning[type_attrs.initializer] = "attrs";
+      code_ += "# define DECL_FA_LIST(id, size) "
+          "static const flatbuffers::AttributeList<size> attr_list_ ## id =";
+      code_ += "# define CAST_FA_LIST(list) (" + kAttrListCast + "(&(list)))";
+      for (size_t i = 0; i < field_attrs.size(); i++) {
         if (!field_attr_decl.empty()) field_attr_decl += ",\n    ";
-        if (attr_table->dict.empty()) {
-          field_attr_decl += "{}";
+        if (!field_attrs[i].count) {
+          field_attr_decl += "nullptr";
           continue;
         }
-
-        std::string attr_keys;
-        std::string attr_vals;
-        SerializeKeysAndValues(*attr_table, &attr_keys, &attr_vals);
-
-        const std::string idx = NumToString(index);
-        code_.SetValue("IDX", idx);
-        code_.SetValue("FA_KEYS", attr_keys);
-        code_.SetValue("FA_VALS", attr_vals);
-        code_ += "  static const char* attr_keys_{{IDX}}[] = {{FA_KEYS}};";
-        code_ += "  static const char* attr_vals_{{IDX}}[] = {{FA_VALS}};";
-        field_attr_decl += "{ " + NumToString(attr_table->dict.size()) + ", ";
-        field_attr_decl += "attr_keys_" + idx + ", ";
-        field_attr_decl += "attr_vals_" + idx + " }";
+        std::string idx = NumToString(i);
+        auto insertion = attr_interning.insert(
+            std::pair<std::string, std::string>(field_attrs[i].initializer,
+                                                "attr_list_" + idx));
+        if (insertion.second) {
+          code_.SetValue("FA_LIST_IDX", idx);
+          code_.SetValue("FA_LIST_SIZE", NumToString(field_attrs[i].count));
+          code_.SetValue("FA_LIST", field_attrs[i].initializer);
+          code_ += "  DECL_FA_LIST({{FA_LIST_IDX}}, {{FA_LIST_SIZE}})"
+                   " {{FA_LIST}};";
+        }
+        field_attr_decl += "CAST_FA_LIST(" + insertion.first->second + ")";
       }
       code_.SetValue("FIELD_ATTRS", field_attr_decl);
-      code_ += "  static const flatbuffers::AttributeList field_attrs[] = {";
+      code_ += "  static const flatbuffers::RawAttributeList field_attrs[] = {";
       code_ += "    {{FIELD_ATTRS}}";
       code_ += "  };";
+      code_ += "# undef DECL_FA_LIST";
+      code_ += "# undef CAST_FA_LIST";
     }
     code_ += "  static flatbuffers::TypeTable tt = {";
     code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
@@ -895,7 +906,7 @@ class CppGenerator : public BaseGenerator {
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
              (!vs.empty() ? "values, " : "nullptr, ") +
              (has_names ? "names, " : "nullptr, ") +
-             (has_attributes ? "attrs, " : "{}, ") +
+             (has_attributes ? kAttrListCast + "(&attrs), " : "nullptr, ") +
              (has_field_attributes ? "field_attrs" : "nullptr");
     code_ += "  };";
     code_ += "  return &tt;";

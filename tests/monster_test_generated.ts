@@ -1924,6 +1924,368 @@ static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offse
  * @constructor
  */
 export namespace MyGame.Example{
+export class TestAttributeTable {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {TestAttributeTable}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):TestAttributeTable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {TestAttributeTable=} obj
+ * @returns {TestAttributeTable}
+ */
+static getRootAsTestAttributeTable(bb:flatbuffers.ByteBuffer, obj?:TestAttributeTable):TestAttributeTable {
+  return (obj || new TestAttributeTable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {number}
+ */
+dog():number {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_dog(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+cat():number {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_cat(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+goat():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_goat(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+platypus():number {
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_platypus(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+emu():number {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_emu(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+beaver():number {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_beaver(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+ocelot():number {
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_ocelot(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+axolotl():number {
+  var offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_axolotl(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 18);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+phoenix():number {
+  var offset = this.bb!.__offset(this.bb_pos, 20);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_phoenix(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 20);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @returns {number}
+ */
+stick():number {
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+mutate_stick(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+static startTestAttributeTable(builder:flatbuffers.Builder) {
+  builder.startObject(10);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} dog
+ */
+static addDog(builder:flatbuffers.Builder, dog:number) {
+  builder.addFieldInt32(0, dog, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} cat
+ */
+static addCat(builder:flatbuffers.Builder, cat:number) {
+  builder.addFieldInt32(1, cat, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} goat
+ */
+static addGoat(builder:flatbuffers.Builder, goat:number) {
+  builder.addFieldInt32(2, goat, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} platypus
+ */
+static addPlatypus(builder:flatbuffers.Builder, platypus:number) {
+  builder.addFieldInt32(3, platypus, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} emu
+ */
+static addEmu(builder:flatbuffers.Builder, emu:number) {
+  builder.addFieldInt32(4, emu, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} beaver
+ */
+static addBeaver(builder:flatbuffers.Builder, beaver:number) {
+  builder.addFieldInt32(5, beaver, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} ocelot
+ */
+static addOcelot(builder:flatbuffers.Builder, ocelot:number) {
+  builder.addFieldInt32(6, ocelot, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} axolotl
+ */
+static addAxolotl(builder:flatbuffers.Builder, axolotl:number) {
+  builder.addFieldInt32(7, axolotl, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} phoenix
+ */
+static addPhoenix(builder:flatbuffers.Builder, phoenix:number) {
+  builder.addFieldInt32(8, phoenix, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} stick
+ */
+static addStick(builder:flatbuffers.Builder, stick:number) {
+  builder.addFieldInt32(9, stick, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+static endTestAttributeTable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
 export class TypeAliases {
   /**
    * @type {flatbuffers.ByteBuffer}

@@ -13,6 +13,9 @@ table Monster {}  // Test having same name as below, but in different namespace.
 namespace MyGame.Example;
 
 attribute "priority";
+attribute "invincible";
+attribute "feeding";
+attribute "lays_eggs";
 
 enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
@@ -82,6 +85,19 @@ table Monster {
   vector_of_longs:[long] (id:32);
   vector_of_doubles:[double] (id:33);
   parent_namespace_test:InParentNamespace (id:34);
+}
+
+table TestAttributeTable (invincible) {
+  dog:int (feeding: "omnivorous");
+  cat:int (feeding: "carnivorous");
+  goat:int (feeding: "superomnivorous");
+  platypus:int (feeding: "carnivorous", lays_eggs);
+  emu:int (feeding: "omnivorous", lays_eggs);
+  beaver:int (feeding: "herbivorous");
+  ocelot:int (feeding: "carnivorous");
+  axolotl:int (feeding: "carnivorous", lays_eggs);
+  phoenix:int (feeding: "eats fire or something", lays_eggs, invincible);
+  stick:int (invincible);
 }
 
 table TypeAliases {

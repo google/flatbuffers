@@ -212,6 +212,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
             --gen-object-api -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
             --reflect-names
+            --reflect-attrs
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
