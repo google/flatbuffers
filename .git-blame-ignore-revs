@@ -1,0 +1,12 @@
+# git hyper-blame master ignore list.
+#
+# This file contains a list of revisions to be ignored by `git hyper-blame` tool
+# https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/git-hyper-blame.html
+# These revisions are considered "unimportant" in that they are unlikely to be
+# what you are interested in when blaming.
+#
+# Please, follow the instructions on how to add revisions to this file:
+# https://chromium.googlesource.com/chromium/src/+/master/.git-blame-ignore-revs
+
+# Made all C++ files clang-formatted.
+89711c9c470b8ad4e2a4cbc890743852ea9d7235
