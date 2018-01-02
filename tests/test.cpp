@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/util_base64.h"
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
@@ -1929,6 +1929,187 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
+void Base64InerTest() {
+  struct _B64T {
+    static std::vector<uint8_t> Decode(const std::string &base64,
+                                       const int base64_mode,
+                                       size_t *const err_pos = nullptr) {
+      if (err_pos) *err_pos = 0;
+      std::vector<uint8_t> out;
+      const auto indat = base64.c_str();
+      const auto inlen = base64.size();
+      // decode-size can fail if input sequence is bad
+      const auto req_size =
+          flatbuffers::Base64DecodedSize(base64_mode, indat, inlen, err_pos);
+      // decode-size can fail if input sequence is bad
+      if (req_size > 0) {
+        // allocate memory for result
+        out.resize(req_size);
+        // Android doesn't support data() for std::vector/std::string
+        const auto out_data = flatbuffers::vector_data(out);
+        const auto out_size = out.size();
+        // check violation of memory boundary, must return zero
+        TEST_EQ(
+            flatbuffers::Base64Decode(base64_mode, indat, inlen, out_data,
+                                      req_size ? (req_size - 1) : 0, err_pos),
+            0);
+        // check that none of a bytes have been changed
+        TEST_EQ(out.end() == std::upper_bound(out.begin(), out.end(), 0), true);
+        // DECODE can fail if input sequence is bad
+        const auto rc = flatbuffers::Base64Decode(base64_mode, indat, inlen,
+                                                  out_data, out_size, err_pos);
+        // reset result if failed
+        if (rc != req_size) out.clear();
+      }
+      return out;
+    }
+
+    static std::string Encode(const std::vector<uint8_t> &bin,
+                              const int base64_mode) {
+      // Android doesn't support data() for std::vector/std::string
+      const auto indat = bin.empty() ? nullptr : &bin[0];
+      const auto inlen = bin.size();
+      const auto req_size =
+          flatbuffers::Base64EncodedSize(base64_mode, indat, inlen);
+      // output length must be non-zero, if an input is non-empty sequence
+      TEST_EQ(req_size > 0, inlen > 0);
+      // check size estimator
+      std::vector<char> out(req_size);
+      const auto out_data = flatbuffers::vector_data(out);
+      const auto out_size = out.size();
+      // check violation of memory boundary, must return zero
+      TEST_EQ(flatbuffers::Base64Encode(base64_mode, indat, inlen, out_data,
+                                        req_size ? (req_size - 1) : 0),
+              0);
+      // check that none of a bytes have been changed
+      TEST_EQ(out.end() == std::upper_bound(out.begin(), out.end(), 0), true);
+      // ENCODE
+      const auto rc2 = flatbuffers::Base64Encode(base64_mode, indat, inlen,
+                                                 out_data, out_size);
+      TEST_EQ(rc2, req_size);
+      return std::string(out_data, out_size);
+    }
+
+    static std::string Test(const std::string &input, const int dec_mode,
+                            const int enc_mode,
+                            size_t *const err_pos = nullptr) {
+      auto dec = Decode(input, dec_mode, err_pos);
+      return dec.empty() ? "" : Encode(dec, enc_mode);
+    }
+  };
+
+  static const size_t B64ModeNum = 2;
+  const int BaseSet[B64ModeNum] = {
+    flatbuffers::kBase64Strict,
+    flatbuffers::kBase64Url,
+  };
+  // clang-format off
+  // Padding is mandatory for the strict Base64 and optional for Base64Url.
+  // Base64Url can decode base64 encoded using the strict Base64 encoder.
+  const bool expects[B64ModeNum * B64ModeNum] = {
+      true,  true, // enc: Strict
+      false, true, // enc: Url
+  //    |     |_______dec: Url
+  //    |_____________dec: Strict
+  };
+  // clang-format on
+
+  // auto-generated combinatoric encode-decode loop for
+  for (size_t enc_index = 0; enc_index < B64ModeNum; enc_index++) {
+    const auto enc_mode = BaseSet[enc_index];
+    for (size_t dec_index = 0; dec_index < B64ModeNum; dec_index++) {
+      const auto match_expects = expects[enc_index * B64ModeNum + dec_index];
+      const auto dec_mode = BaseSet[dec_index];
+      const size_t B = 128;
+      const auto N = 2 * B + 1;
+      size_t k = 0;
+      for (k = 0; k < N; k++) {
+        const auto M = (k % (B - 1));
+        // generate binary data
+        std::vector<uint8_t> bin(M);
+        for (size_t j = 0; j < M; j++) {
+          bin[j] = static_cast<uint8_t>(((k + j) % B) % 0x100);
+        }
+        auto res = _B64T::Decode(_B64T::Encode(bin, enc_mode), dec_mode);
+        if (res != bin) break;
+      }
+      TEST_EQ((N == k), match_expects);
+    }
+  }
+  // error position detector test
+  size_t epos = 0;
+  for (size_t mode_ind = 0; mode_ind < B64ModeNum; mode_ind++) {
+    const auto mode = BaseSet[mode_ind];
+    const std::string ref = "IARXA18BIg==";
+    for (size_t k = 0; k < ref.size(); k++) {
+      auto t = ref;
+      t[k] = '#';
+      TEST_EQ_STR(_B64T::Test(t, mode, mode, &epos).c_str(), "");
+      TEST_EQ(epos, (k / 4) * 4);
+    }
+  }
+  // determend sequences test
+  // clang-format off
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Strict,
+                            flatbuffers::kBase64Strict, &epos).c_str(),
+              "/43+AergFA==");
+  TEST_EQ(epos, 13);
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Strict,
+                            flatbuffers::kBase64Url, &epos).c_str(),
+              "_43-AergFA");
+  TEST_EQ(epos, 13);
+  TEST_EQ_STR(_B64T::Test("_43-AergFA", flatbuffers::kBase64Url,
+                            flatbuffers::kBase64Url, &epos).c_str(),
+              "_43-AergFA");
+  TEST_EQ(epos, 11);
+  // clang-format on
+}
+
+void JsonBase64Test() {
+  // clang-format off
+  const auto base64_schema =
+    "table TestBase64 {"
+    "data:[ubyte](base64);"
+    "urldata:[ubyte](base64url);"
+    "}\n"
+    "root_type TestBase64;"
+    "file_identifier \"B64T\";";
+  const auto test_array = "{"
+    "data: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42],"
+    "urldata: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42]"
+    "}";
+  const auto expected_b64 = "{"
+    "data: \"99A/+4E0s9wY+So=\","
+    "urldata: \"99A_-4E0s9wY-So\""
+    "}";
+  const auto test_base64 = "{"
+    "data: \"99A/+4E0s9wY+So=\","
+    "urldata: \"99A/+4E0s9wY+So=\""
+    "}";
+  // clang-format on
+
+  Base64InerTest();
+
+  flatbuffers::Parser parser;
+  // use compact form of json
+  parser.opts.indent_step = -1;
+  TEST_EQ(parser.Parse(base64_schema), true);
+  // test_array
+  TEST_EQ(parser.Parse(test_array), true);
+  std::string test_array_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+                            &test_array_b64);
+  TEST_EQ_STR(test_array_b64.c_str(), expected_b64);
+  // test_base64
+  TEST_EQ(parser.Parse(test_base64), true);
+  std::string test_base64_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+                            &test_base64_b64);
+  TEST_EQ_STR(test_base64_b64.c_str(), expected_b64);
+  // check that both strings used in test
+  TEST_EQ_STR(test_base64_b64.c_str(), test_array_b64.c_str());
+}
+
 int main(int /*argc*/, const char * /*argv*/ []) {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -1999,6 +2180,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   JsonDefaultTest();
 
   FlexBuffersTest();
+
+  JsonBase64Test();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

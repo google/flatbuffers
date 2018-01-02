@@ -543,6 +543,8 @@ class Parser : public ParserState {
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
+    known_attributes_["base64"] = true;
+    known_attributes_["base64url"] = true;
   }
 
   ~Parser() {
@@ -648,6 +650,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(
       size_t &count, ParseVectorDelimitersBody body, void *state);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseVectorBase64(const Type &type, int base64_mode,
+                                              uoffset_t *ovalue);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                                   size_t fieldn,
                                                   const StructDef *parent_struct_def);
