@@ -541,6 +541,37 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
+// Check stringify of an default enum value to json
+void JsonDefaultTest() {
+  // load FlatBuffer schema (.fbs) from disk
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                                false, &schemafile), true);
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  // create incomplete monster and store to json
+  parser.opts.output_default_scalars_in_json = true;
+  parser.opts.output_enum_identifiers = true;
+  flatbuffers::FlatBufferBuilder builder;
+  auto name = builder.CreateString("default_enum");
+  MonsterBuilder color_monster(builder);
+  color_monster.add_name(name);
+  FinishMonsterBuffer(builder, color_monster.Finish());
+  std::string jsongen;
+  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  // default value of the "color" field is Blue
+  TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
+  // default value of the "testf" field is 3.14159
+  TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
+}
+
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest() {
@@ -1936,6 +1967,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   TypeAliasesTest();
   EndianSwapTest();
 
+  JsonDefaultTest();
+  
   FlexBuffersTest();
 
   if (!testing_fails) {
