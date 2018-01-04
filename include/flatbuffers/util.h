@@ -216,7 +216,7 @@ inline std::string ConCatPathFileName(const std::string &path,
                                       const std::string &filename) {
   std::string filepath = path;
   if (filepath.length()) {
-    char filepath_last_character = string_back(filepath);
+    char &filepath_last_character = string_back(filepath);
     if (filepath_last_character == kPathSeparatorWindows) {
       filepath_last_character = kPathSeparator;
     } else if (filepath_last_character != kPathSeparator) {
