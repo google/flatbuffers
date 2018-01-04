@@ -53,7 +53,9 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
   if (type.enum_def && opts.output_enum_identifiers) {
     auto enum_val = type.enum_def->ReverseLookup(static_cast<int>(val));
     if (enum_val) {
-      OutputIdentifier(enum_val->name, opts, _text);
+      text += "\"";
+      text += enum_val->name;
+      text += "\"";
       return true;
     }
   }
@@ -147,13 +149,18 @@ bool Print<const void *>(const void *val, Type type, int indent,
 }
 
 // Generate text for a scalar field.
-template<typename T>
-static bool GenField(const FieldDef &fd, const Table *table, bool fixed,
-                     const IDLOptions &opts, int indent, std::string *_text) {
-  return Print(fixed ? reinterpret_cast<const Struct *>(table)->GetField<T>(
-                           fd.value.offset)
-                     : table->GetField<T>(fd.value.offset, 0),
-               fd.value.type, indent, nullptr, opts, _text);
+template<typename T> static bool GenField(const FieldDef &fd,
+                                          const Table *table, bool fixed,
+                                          const IDLOptions &opts,
+                                          int indent,
+                                          std::string *_text) {
+  return Print(fixed ?
+    reinterpret_cast<const Struct *>(table)->GetField<T>(fd.value.offset) :
+    table->GetField<T>(fd.value.offset,
+    IsFloat(fd.value.type.base_type) ?
+    static_cast<T>(strtod(fd.value.constant.c_str(), nullptr)) :
+    static_cast<T>(StringToInt(fd.value.constant.c_str()))),
+    fd.value.type, indent, nullptr, opts, _text);
 }
 
 static bool GenStruct(const StructDef &struct_def, const Table *table,
@@ -212,8 +219,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
            fd.value.type.base_type != BASE_TYPE_VECTOR))
         text += ":";
       text += " ";
-      if (is_present) {
-        switch (fd.value.type.base_type) {
+      switch (fd.value.type.base_type) {
           // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
@@ -223,29 +229,25 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
                 return false; \
               } \
               break;
-            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-          #undef FLATBUFFERS_TD
-          // Generate drop-thru case statements for all pointer types:
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
-            case BASE_TYPE_ ## ENUM:
-            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
-          #undef FLATBUFFERS_TD
-              if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
-                                  union_type, opts, _text)) {
-                return false;
-              }
-              break;
+          FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+        #undef FLATBUFFERS_TD
+        // Generate drop-thru case statements for all pointer types:
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+          case BASE_TYPE_ ## ENUM:
+          FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+        #undef FLATBUFFERS_TD
+            if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
+                                union_type, opts, _text)) {
+              return false;
+            }
+            break;
           // clang-format on
-        }
-        if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
-          auto enum_val = fd.value.type.enum_def->ReverseLookup(
-              table->GetField<uint8_t>(fd.value.offset, 0));
-          assert(enum_val);
-          union_type = &enum_val->union_type;
-        }
-      } else {
-        text += fd.value.constant;
+      }
+      if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
+        auto enum_val = fd.value.type.enum_def->ReverseLookup(
+            table->GetField<uint8_t>(fd.value.offset, 0));
+        union_type = enum_val ? &enum_val->union_type : nullptr;
       }
     }
   }
