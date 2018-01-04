@@ -631,7 +631,6 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
-  void AddVector(bool sortbysize, int count);
   // clang-format off
   #if defined(FLATBUFFERS_CPP98_STL)
     typedef CheckedError (*ParseVectorDelimitersBody)(size_t &count,
@@ -751,15 +750,12 @@ extern bool GenerateBinary(const Parser &parser,
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
-extern std::string GenerateCPP(const Parser &parser,
-                               const std::string &include_guard_ident);
 extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
-extern std::string GenerateJS(const Parser &parser);
 extern bool GenerateJS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
@@ -769,12 +765,6 @@ extern bool GenerateJS(const Parser &parser,
 extern bool GenerateGo(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
-
-// Generate Java files from the definitions in the Parser object.
-// See idl_gen_java.cpp.
-extern bool GenerateJava(const Parser &parser,
-                         const std::string &path,
-                         const std::string &file_name);
 
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
@@ -791,12 +781,6 @@ extern bool GeneratePython(const Parser &parser,
 // Generate Json schema file
 // See idl_gen_json_schema.cpp.
 extern bool GenerateJsonSchema(const Parser &parser,
-                           const std::string &path,
-                           const std::string &file_name);
-
-// Generate C# files from the definitions in the Parser object.
-// See idl_gen_csharp.cpp.
-extern bool GenerateCSharp(const Parser &parser,
                            const std::string &path,
                            const std::string &file_name);
 
