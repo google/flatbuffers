@@ -280,7 +280,7 @@ CheckedError Parser::Next() {
         int unicode_high_surrogate = -1;
 
         while (*cursor_ != c) {
-          if (*cursor_ < ' ' && *cursor_ >= 0)
+          if (*cursor_ < ' ' && static_cast<signed char>(*cursor_) >= 0)
             return Error("illegal character in string constant");
           if (*cursor_ == '\\') {
             cursor_++;
