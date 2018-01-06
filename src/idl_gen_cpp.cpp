@@ -940,7 +940,12 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
 
-      code_ += "  const size_t index = static_cast<int>(e)\\";
+      code_ += "  const int index = static_cast<int>(e)\\";
+
+      // For enum values that do not begin at zero, use the value of the first
+      // enum entry to compute an index. Note that enum values are guaranteed
+      // to be sorted in ascending order. Thus, "index" is guaranteed to always
+      // be >= 0.
       if (enum_def.vals.vec.front()->value) {
         auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
         code_ += " - static_cast<int>(" + vals + ")\\";

@@ -56,7 +56,7 @@ inline const char **EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
-  const size_t index = static_cast<int>(e);
+  const int index = static_cast<int>(e);
   return EnumNamesCharacter()[index];
 }
 

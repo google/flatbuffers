@@ -41,7 +41,7 @@ inline const char **EnumNamesEnumInNestedNS() {
 }
 
 inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
-  const size_t index = static_cast<int>(e);
+  const int index = static_cast<int>(e);
   return EnumNamesEnumInNestedNS()[index];
 }
 

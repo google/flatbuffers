@@ -45,7 +45,7 @@ inline const char **EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
-  const size_t index = static_cast<int>(e);
+  const int index = static_cast<int>(e);
   return EnumNamesColor()[index];
 }
 
@@ -74,7 +74,7 @@ inline const char **EnumNamesEquipment() {
 }
 
 inline const char *EnumNameEquipment(Equipment e) {
-  const size_t index = static_cast<int>(e);
+  const int index = static_cast<int>(e);
   return EnumNamesEquipment()[index];
 }
 
