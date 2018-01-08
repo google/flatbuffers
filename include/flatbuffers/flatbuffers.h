@@ -1001,6 +1001,13 @@ class FlatBufferBuilder {
     return CreateString(str, strlen(str));
   }
 
+  /// @brief Store a string in the buffer, which is null-terminated.
+  /// @param[in] str A char pointer to a C-string to add to the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  Offset<String> CreateString(char *str) {
+    return CreateString(str, strlen(str));
+  }
+
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
