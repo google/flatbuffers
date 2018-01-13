@@ -2,6 +2,21 @@ env:
   global:
     # Set at the root level as this is ignored when set under matrix.env.
     - GCC_VERSION="4.9"
+
+conan-linux: &conan-linux
+   os: linux
+   sudo: required
+   language: python
+   python: "3.6"
+   services:
+    - docker
+   install:
+     - pip install conan conan-package-tools
+   script:
+     - python conan/build.py
+   on:
+     tags: true
+
 matrix:
   include:
     #- language: python
