@@ -14,8 +14,7 @@ conan-linux: &conan-linux
     - pip install conan conan-package-tools
   script:
     - python conan/build.py
-  on:
-    tags: true
+  if: tag IS present
 
 conan-osx: &conan-osx
   os: osx
@@ -24,8 +23,7 @@ conan-osx: &conan-osx
     - ./conan/travis/osx_install.sh
   script:
     - ./conan/travis/osx_build.sh
-  on:
-    tags: true
+  if: tag IS present
 
 matrix:
   include:
