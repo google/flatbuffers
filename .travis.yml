@@ -4,18 +4,28 @@ env:
     - GCC_VERSION="4.9"
 
 conan-linux: &conan-linux
-   os: linux
-   sudo: required
-   language: python
-   python: "3.6"
-   services:
+  os: linux
+  sudo: required
+  language: python
+  python: "3.6"
+  services:
     - docker
-   install:
-     - pip install conan conan-package-tools
-   script:
-     - python conan/build.py
-   on:
-     tags: true
+  install:
+    - pip install conan conan-package-tools
+  script:
+    - python conan/build.py
+  on:
+    tags: true
+
+conan-osx: &conan-osx
+  os: osx
+  language: generic
+  install:
+    - ./conan/travis/osx_install.sh
+  script:
+    - ./conan/travis/osx_build.sh
+  on:
+    tags: true
 
 matrix:
   include:
