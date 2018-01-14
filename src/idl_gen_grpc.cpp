@@ -77,14 +77,6 @@ class FlatBufMethod : public grpc_generator::Method {
     return true;
   }
 
-  std::string get_input_type_name() const {
-    return (*method_->request).name;
-  }
-
-  std::string get_output_type_name() const {
-    return (*method_->response).name;
-  }
-
   std::string get_fb_builder() const {
     return "builder";
   }
@@ -229,6 +221,7 @@ class FlatBufFile : public grpc_generator::File {
         std::string header = "import flatbuffers\n\nbuilder = flatbuffers.Builder(0)";
         return header;
       }
+    }
     return "";
   }
 
