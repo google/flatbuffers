@@ -538,23 +538,23 @@ class vector_downward {
     if (buf_) {
       assert(allocator_);
       allocator_->deallocate(buf_, reserved_);
+      buf_ = nullptr;
     }
-    reserved_ = 0;
-    buf_ = nullptr;
-    cur_ = nullptr;
-    scratch_ = nullptr;
+    clear();
   }
 
   void clear() {
     if (buf_) {
       cur_ = buf_ + reserved_;
-      scratch_ = buf_;
     } else {
       reserved_ = 0;
-      buf_ = nullptr;
       cur_ = nullptr;
-      scratch_ = nullptr;
     }
+    clear_scratch();
+  }
+
+  void clear_scratch() {
+    scratch_ = buf_;
   }
 
   // Relinquish the pointer to the caller.
@@ -563,10 +563,8 @@ class vector_downward {
                       size());
     allocator_ = nullptr;
     own_allocator_ = false;
-    reserved_ = 0;
     buf_ = nullptr;
-    cur_ = nullptr;
-    scratch_ = nullptr;
+    clear();
     return fb;
   }
 
@@ -1534,6 +1532,7 @@ class FlatBufferBuilder {
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
+    buf_.clear_scratch();
     // This will cause the whole buffer to be aligned.
     PreAlign((size_prefix ? sizeof(uoffset_t) : 0) + sizeof(uoffset_t) +
                  (file_identifier ? kFileIdentifierLength : 0),
