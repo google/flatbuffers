@@ -653,7 +653,15 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
             "default values currently only supported for scalars in tables");
     ECHECK(ParseSingleValue(field->value));
   }
-  if (IsFloat(field->value.type.base_type)) {
+  if (type.enum_def &&
+      !type.enum_def->is_union &&
+      !type.enum_def->attributes.Lookup("bit_flags") &&
+      !type.enum_def->ReverseLookup(static_cast<int>(
+                                 StringToInt(field->value.constant.c_str())))) {
+    return Error("default value of " + field->value.constant + " for field " +
+                 name + " is not part of enum " + type.enum_def->name);
+  }
+  if (IsFloat(type.base_type)) {
     if (!strpbrk(field->value.constant.c_str(), ".eE"))
       field->value.constant += ".0";
   }
@@ -700,15 +708,15 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     return Error("can't deprecate fields in a struct");
   field->required = field->attributes.Lookup("required") != nullptr;
   if (field->required &&
-      (struct_def.fixed || IsScalar(field->value.type.base_type)))
+      (struct_def.fixed || IsScalar(type.base_type)))
     return Error("only non-scalar fields in tables may be 'required'");
   field->key = field->attributes.Lookup("key") != nullptr;
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
-    if (!IsScalar(field->value.type.base_type)) {
+    if (!IsScalar(type.base_type)) {
       field->required = true;
-      if (field->value.type.base_type != BASE_TYPE_STRING)
+      if (type.base_type != BASE_TYPE_STRING)
         return Error("'key' field must be string or scalar type");
     }
   }
@@ -729,8 +737,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     if (nested->type.base_type != BASE_TYPE_STRING)
       return Error(
           "nested_flatbuffer attribute must be a string (the root type)");
-    if (field->value.type.base_type != BASE_TYPE_VECTOR ||
-        field->value.type.element != BASE_TYPE_UCHAR)
+    if (type.base_type != BASE_TYPE_VECTOR || type.element != BASE_TYPE_UCHAR)
       return Error(
           "nested_flatbuffer attribute may only apply to a vector of ubyte");
     // This will cause an error if the root type of the nested flatbuffer
@@ -746,8 +753,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->attributes.Lookup("flexbuffer")) {
     field->flexbuffer = true;
     uses_flexbuffers_ = true;
-    if (field->value.type.base_type != BASE_TYPE_VECTOR ||
-        field->value.type.element != BASE_TYPE_UCHAR)
+    if (type.base_type != BASE_TYPE_VECTOR ||
+        type.element != BASE_TYPE_UCHAR)
       return Error("flexbuffer attribute may only apply to a vector of ubyte");
   }
 
