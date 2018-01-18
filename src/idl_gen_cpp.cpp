@@ -1316,7 +1316,13 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("PARAM_TYPE", "const char *");
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
-      auto type = GenTypeWire(field.value.type.VectorType(), "", false);
+      const auto vtype = field.value.type.VectorType();
+      std::string type;
+      if (IsStruct(vtype)) {
+        type = WrapInNameSpace(*vtype.struct_def);
+      } else {
+        type = GenTypeWire(vtype, "", false);
+      }
       code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
@@ -1908,11 +1914,16 @@ class CppGenerator : public BaseGenerator {
                 ",\n      {{FIELD_NAME}} ? "
                 "_fbb.CreateString({{FIELD_NAME}}) : 0\\";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            auto type = GenTypeWire(field.value.type.VectorType(), "", false);
-            code_ +=
-                ",\n      {{FIELD_NAME}} ? "
-                "_fbb.CreateVector<" +
-                type + ">(*{{FIELD_NAME}}) : 0\\";
+            code_ += ",\n      {{FIELD_NAME}} ? \\";
+            const auto vtype = field.value.type.VectorType();
+            if (IsStruct(vtype)) {
+              const auto type = WrapInNameSpace(*vtype.struct_def);
+              code_ += "_fbb.CreateVectorOfStructs<" + type + ">\\";
+            } else {
+              const auto type = GenTypeWire(vtype, "", false);
+              code_ += "_fbb.CreateVector<" + type + ">\\";
+            }
+            code_ += "(*{{FIELD_NAME}}) : 0\\";
           } else {
             code_ += ",\n      {{FIELD_NAME}}\\";
           }
