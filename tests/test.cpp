@@ -1179,6 +1179,8 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
+  TestError("table X { Y:string = 1; }", "default values");
+  TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
             "missing type field");
@@ -1968,7 +1970,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   EndianSwapTest();
 
   JsonDefaultTest();
-  
+
   FlexBuffersTest();
 
   if (!testing_fails) {
