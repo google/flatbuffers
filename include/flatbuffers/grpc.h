@@ -104,14 +104,16 @@ class SliceAllocator : public Allocator {
   }
 
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
-                                       size_t new_size) override {
+                                       size_t new_size, size_t in_use_back,
+                                       size_t in_use_front) override {
     assert(old_p == GRPC_SLICE_START_PTR(slice_));
     assert(old_size == GRPC_SLICE_LENGTH(slice_));
     assert(new_size > old_size);
     grpc_slice old_slice = slice_;
     grpc_slice new_slice = grpc_slice_malloc(new_size);
     uint8_t *new_p = GRPC_SLICE_START_PTR(new_slice);
-    memcpy(new_p + (new_size - old_size), old_p, old_size);
+    memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
+                    in_use_front);
     slice_ = new_slice;
     grpc_slice_unref(old_slice);
     return new_p;
@@ -155,7 +157,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   // flatbuffers-encoded region and wraps it in a `Message<T>` to handle buffer
   // ownership.
   template<class T> Message<T> GetMessage() {
-    auto buf_data = buf_.buf();       // pointer to memory
+    auto buf_data = buf_.scratch_data();       // pointer to memory
     auto buf_size = buf_.capacity();  // size of memory
     auto msg_data = buf_.data();      // pointer to msg
     auto msg_size = buf_.size();      // size of msg
