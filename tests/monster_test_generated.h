@@ -756,8 +756,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
-    auto data = testnestedflatbuffer()->Data();
-    return flatbuffers::GetRoot<MyGame::Example::Monster>(data);
+    return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data());
   }
   const Stat *testempty() const {
     return GetPointer<const Stat *>(VT_TESTEMPTY);
