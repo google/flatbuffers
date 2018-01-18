@@ -648,8 +648,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    if (!IsScalar(type.base_type))
-      return Error("default values currently only supported for scalars");
+    if (!IsScalar(type.base_type) || struct_def.fixed)
+      return Error(
+            "default values currently only supported for scalars in tables");
     ECHECK(ParseSingleValue(field->value));
   }
   if (IsFloat(field->value.type.base_type)) {
