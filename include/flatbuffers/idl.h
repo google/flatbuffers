@@ -317,7 +317,7 @@ struct EnumVal {
 struct EnumDef : public Definition {
   EnumDef() : is_union(false), uses_type_aliases(false) {}
 
-  EnumVal *ReverseLookup(int enum_idx, bool skip_union_default = true) {
+  EnumVal *ReverseLookup(int64_t enum_idx, bool skip_union_default = true) {
     for (auto it = vals.vec.begin() +
                    static_cast<int>(is_union && skip_union_default);
          it != vals.vec.end(); ++it) {
