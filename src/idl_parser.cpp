@@ -656,8 +656,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (type.enum_def &&
       !type.enum_def->is_union &&
       !type.enum_def->attributes.Lookup("bit_flags") &&
-      !type.enum_def->ReverseLookup(static_cast<int>(
-                                 StringToInt(field->value.constant.c_str())))) {
+      !type.enum_def->ReverseLookup(StringToInt(
+                                      field->value.constant.c_str()))) {
     return Error("default value of " + field->value.constant + " for field " +
                  name + " is not part of enum " + type.enum_def->name);
   }
@@ -668,8 +668,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (type.enum_def && IsScalar(type.base_type) && !struct_def.fixed &&
       !type.enum_def->attributes.Lookup("bit_flags") &&
-      !type.enum_def->ReverseLookup(
-          static_cast<int>(StringToInt(field->value.constant.c_str()))))
+      !type.enum_def->ReverseLookup(StringToInt(
+                                      field->value.constant.c_str())))
     Warning("enum " + type.enum_def->name +
             " does not have a declaration for this field\'s default of " +
             field->value.constant);
