@@ -371,7 +371,7 @@ class JsGenerator : public BaseGenerator {
   std::string GenDefaultValue(const Value &value, const std::string &context) {
     if (value.type.enum_def) {
       if (auto val = value.type.enum_def->ReverseLookup(
-              atoi(value.constant.c_str()), false)) {
+              StringToInt(value.constant.c_str()), false)) {
         if (lang_.language == IDLOptions::kTs) {
           return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
                                      value.type.enum_def->file) +

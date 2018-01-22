@@ -876,7 +876,7 @@ class PhpGenerator : public BaseGenerator {
   std::string GenDefaultValue(const Value &value) {
     if (value.type.enum_def) {
       if (auto val = value.type.enum_def->ReverseLookup(
-              atoi(value.constant.c_str()), false)) {
+              StringToInt(value.constant.c_str()), false)) {
         return WrapInNameSpace(*value.type.enum_def) + "::" + val->name;
       }
     }

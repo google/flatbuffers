@@ -1295,7 +1295,7 @@ class CppGenerator : public BaseGenerator {
   std::string GetDefaultScalarValue(const FieldDef &field) {
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
-          static_cast<int>(StringToInt(field.value.constant.c_str())), false);
+          StringToInt(field.value.constant.c_str()), false);
       if (ev) {
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValUse(*field.value.type.enum_def, *ev));
