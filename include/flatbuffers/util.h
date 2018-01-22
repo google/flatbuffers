@@ -76,12 +76,15 @@ inline std::string NumToString<unsigned long long>(unsigned long long t) {
 #endif  // defined(FLATBUFFERS_CPP98_STL)
 
 // Special versions for floats/doubles.
-template<> inline std::string NumToString<double>(double t) {
+template<typename T> std::string FloatToString(T t, int precision) {
   // to_string() prints different numbers of digits for floats depending on
   // platform and isn't available on Android, so we use stringstream
   std::stringstream ss;
   // Use std::fixed to surpress scientific notation.
-  ss << std::fixed << t;
+  ss << std::fixed;
+  // Default precision is 6, we want that to be higher for doubles.
+  ss << std::setprecision(precision);
+  ss << t;
   auto s = ss.str();
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
   auto p = s.find_last_not_of('0');
@@ -91,8 +94,12 @@ template<> inline std::string NumToString<double>(double t) {
   }
   return s;
 }
+
+template<> inline std::string NumToString<double>(double t) {
+  return FloatToString(t, 12);
+}
 template<> inline std::string NumToString<float>(float t) {
-  return NumToString(static_cast<double>(t));
+  return FloatToString(t, 6);
 }
 
 // Convert an integer value to a hexadecimal string.
