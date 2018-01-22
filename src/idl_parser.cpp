@@ -2273,6 +2273,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       NEXT();
       vector_emplace_back(&native_included_files_, attribute_);
       EXPECT(kTokenStringConstant);
+      EXPECT(';');
     } else if (IsIdent("include") || (opts.proto_mode && IsIdent("import"))) {
       NEXT();
       if (opts.proto_mode && attribute_ == "public") NEXT();
