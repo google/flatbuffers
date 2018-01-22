@@ -329,7 +329,7 @@ performs a swap operation on big endian machines), and also because
 the layout of things is generally not known to the user.
 
 For structs, layout is deterministic and guaranteed to be the same
-accross platforms (scalars are aligned to their
+across platforms (scalars are aligned to their
 own size, and structs themselves to their largest member), and you
 are allowed to access this memory directly by using `sizeof()` and
 `memcpy` on the pointer to a struct, or even an array of structs.
