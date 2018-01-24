@@ -4,25 +4,30 @@
 namespace flatbuffers {
 // [BASE64]{https://tools.ietf.org/html/rfc4648}
 
-// a Field doesn't have base64 attribute
+// a Field doesn't have base64/base64url attribute
 static const int kBase64Undefined = 0;
 
-// attribute (base64): strict RFC4648
-// general base64 alphabet, padding mandatory both for encoder and decoder
-static const int kBase64Strict = 1;
+// attribute (base64): standard RFC4648 alphabet
+// decoder: padding is optional
+// encoder: with padding
+static const int kBase64Standard = 1;
 
 // attribute (base64url): RFC4648 with URL and Filename Safe Alphabet
-// URL safe alphabet, padding optional both for decoder and skipped at encoder
-static const int kBase64Url = 2;
+// decoder: padding is optional
+// encoder: padding can be canceled using kBase64CancelPadding flag
+static const int kBase64UrlSafe = 2;
+
+// Cancel padding for Base64Url encoder
+static const int kBase64CancelPadding = 4;
 
 // Helper: FDT is <idl.h>::FieldDef type
 template<typename FDT> inline int field_base64_mode(const FDT *fd) {
   auto mode = kBase64Undefined;
   if (fd) {
     if (fd->attributes.Lookup("base64")) {
-      mode = kBase64Strict;
+      mode = kBase64Standard;
     } else if (fd->attributes.Lookup("base64url")) {
-      mode = kBase64Url;
+      mode = kBase64UrlSafe;
     }
   }
   return mode;

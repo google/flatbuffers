@@ -2,13 +2,7 @@
 
 #include "flatbuffers/util_base64.h"
 
-// BASE64 - https://tools.ietf.org/html/rfc4648
-
 namespace flatbuffers {
-
-static inline bool Base64ModeIsStrict(int base64_mode) {
-  return 0 == (base64_mode & kBase64Url);
-}
 
 // return number of written bytes if success or zero if an error.
 // error condition: (src_size!=0 && ret==0)
@@ -54,9 +48,9 @@ static size_t decode_b64(const int mode, const char *const src,
     64, 64, 64, 64, 64, 64, 64, 64, 64
   };
   if (error_position) *error_position = 0;
-  const auto b64_tbl = Base64ModeIsStrict(mode) ? strict_table : url_table;
-  // padding mandatory for strict base64, and optional for base64url
-  const auto padding_mandatory = Base64ModeIsStrict(mode);
+  const auto b64_tbl = (mode & kBase64UrlSafe) ? url_table : strict_table;
+  // padding always is optional for decoder
+  const auto padding_mandatory = false;
   // base64 decode transform 4 encoded charaters to 3 data bytes
   if (0 == src_size) return 0;
   // decode prepare stage
@@ -128,7 +122,7 @@ static size_t decode_b64(const int mode, const char *const src,
     *error_position = (src_size + 1);
   } else {
     // number of blocks processed and written to [src] memory
-    auto indx = C4full - loop_cnt;
+    const auto indx = C4full - loop_cnt;
     // reject writen data
     memset(dst, 0, indx * 3);
     // seve position of corrupted characters
@@ -159,9 +153,9 @@ static size_t encode_b64(const int mode, const uint8_t *const src,
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_'
   };
 
-  const auto tbl64 = Base64ModeIsStrict(mode) ? strict_table : url_table;
-  // padding mandatory for strict base64, and skipped for base64url
-  const auto force_padding = Base64ModeIsStrict(mode);
+  const auto b64_tbl = (mode & kBase64UrlSafe) ? url_table : strict_table;
+  // padding mandatory for standard base64, and managed for base64url
+  auto cancel_pad = (mode & kBase64UrlSafe) && (mode & kBase64CancelPadding);
   // base64 encode transform 3 data bytes to 4 encoded charaters
   if (0 == src_size) return 0;
   // number of complete blocks
@@ -174,7 +168,7 @@ static size_t encode_b64(const int mode, const uint8_t *const src,
     B3rem = 3;
   }
   // if pad is mandatory, the remainder shall be encoded to the complete char[4]
-  const auto last_enc_len = force_padding ? 4 : (B3rem + 1);
+  const auto last_enc_len = cancel_pad ? (B3rem + 1) : 4;
   const auto encoded_len = (B3full * 4) + last_enc_len;
   // if requested the only number of required bytes for encoding, return it
   if ((nullptr == dst) && (0 == dst_size)) return encoded_len;
@@ -188,10 +182,10 @@ static size_t encode_b64(const int mode, const uint8_t *const src,
   const uint8_t *src_ = &last_bin3[0];
   auto dst_ = &last_enc4[0];
   for (size_t k = 0; k < B3full + 1; k++) {
-    dst_[0] = tbl64[src_[0] >> 2];
-    dst_[1] = tbl64[(0x3f & (src_[0] << 4)) | (src_[1] >> 4)];
-    dst_[2] = tbl64[(0x3f & (src_[1] << 2)) | (src_[2] >> 6)];
-    dst_[3] = tbl64[0x3f & src_[2]];
+    dst_[0] = b64_tbl[src_[0] >> 2];
+    dst_[1] = b64_tbl[(0x3f & (src_[0] << 4)) | (src_[1] >> 4)];
+    dst_[2] = b64_tbl[(0x3f & (src_[1] << 2)) | (src_[2] >> 6)];
+    dst_[3] = b64_tbl[0x3f & src_[2]];
     src_ = src + (k * 3);
     dst_ = dst + (k * 4);
   }

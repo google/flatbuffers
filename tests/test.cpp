@@ -1946,7 +1946,7 @@ void Base64InerTest() {
         // allocate memory for result
         out.resize(req_size);
         // Android doesn't support data() for std::vector/std::string
-        const auto out_data = flatbuffers::vector_data(out);
+        const auto out_data = out.empty() ? nullptr : &out[0];
         const auto out_size = out.size();
         // check violation of memory boundary, must return zero
         TEST_EQ(
@@ -1975,7 +1975,7 @@ void Base64InerTest() {
       TEST_EQ(req_size > 0, inlen > 0);
       // check size estimator
       std::vector<char> out(req_size);
-      const auto out_data = flatbuffers::vector_data(out);
+      const auto out_data = out.empty() ? nullptr : &out[0];
       const auto out_size = out.size();
       // check violation of memory boundary, must return zero
       TEST_EQ(flatbuffers::Base64Encode(base64_mode, indat, inlen, out_data,
@@ -1999,10 +1999,8 @@ void Base64InerTest() {
   };
 
   static const size_t B64ModeNum = 2;
-  const int BaseSet[B64ModeNum] = {
-    flatbuffers::kBase64Strict,
-    flatbuffers::kBase64Url,
-  };
+  const int BaseSet[B64ModeNum] = { flatbuffers::kBase64Standard,
+                                    flatbuffers::kBase64UrlSafe };
   // clang-format off
   // Padding is mandatory for the strict Base64 and optional for Base64Url.
   // Base64Url can decode base64 encoded using the strict Base64 encoder.
@@ -2050,18 +2048,24 @@ void Base64InerTest() {
   }
   // determend sequences test
   // clang-format off
-  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Strict,
-                            flatbuffers::kBase64Strict, &epos).c_str(),
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Standard,
+                            flatbuffers::kBase64Standard, &epos).c_str(),
               "/43+AergFA==");
   TEST_EQ(epos, 13);
-  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Strict,
-                            flatbuffers::kBase64Url, &epos).c_str(),
-              "_43-AergFA");
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Standard,
+                            flatbuffers::kBase64UrlSafe, &epos).c_str(),
+              "_43-AergFA==");
   TEST_EQ(epos, 13);
-  TEST_EQ_STR(_B64T::Test("_43-AergFA", flatbuffers::kBase64Url,
-                            flatbuffers::kBase64Url, &epos).c_str(),
-              "_43-AergFA");
+  TEST_EQ_STR(_B64T::Test("_43-AergFA", flatbuffers::kBase64UrlSafe,
+                            flatbuffers::kBase64UrlSafe, &epos).c_str(),
+              "_43-AergFA==");
   TEST_EQ(epos, 11);
+  // cancel padding for Base64Url encoder
+  TEST_EQ_STR(_B64T::Test("_43-AergFA==", flatbuffers::kBase64UrlSafe,
+                          (flatbuffers::kBase64UrlSafe |
+                           flatbuffers::kBase64CancelPadding),
+                          &epos).c_str(),
+              "_43-AergFA");
   // clang-format on
 }
 
@@ -2078,13 +2082,15 @@ void JsonBase64Test() {
     "data: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42],"
     "urldata: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42]"
     "}";
+  // expected result, with mandatory padding after encoding
   const auto expected_b64 = "{"
     "data: \"99A/+4E0s9wY+So=\","
-    "urldata: \"99A_-4E0s9wY-So\""
+    "urldata: \"99A_-4E0s9wY-So=\""
     "}";
+  // urldata without padding
   const auto test_base64 = "{"
     "data: \"99A/+4E0s9wY+So=\","
-    "urldata: \"99A/+4E0s9wY+So=\""
+    "urldata: \"99A_-4E0s9wY-So\""
     "}";
   // clang-format on
 
@@ -2108,6 +2114,12 @@ void JsonBase64Test() {
   TEST_EQ_STR(test_base64_b64.c_str(), expected_b64);
   // check that both strings used in test
   TEST_EQ_STR(test_base64_b64.c_str(), test_array_b64.c_str());
+  // cancel padding base64url encoder and check
+  parser.opts.base64_cancel_padding = true;
+  std::string wopad_base64_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+    &wopad_base64_b64);
+  TEST_EQ_STR(wopad_base64_b64.c_str(), test_base64);
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {

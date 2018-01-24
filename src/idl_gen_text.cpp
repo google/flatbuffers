@@ -77,13 +77,15 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
 template<typename T>
 bool PrintVectorBase64(const Vector<T> &v, Type type, int indent,
                        const IDLOptions &opts, std::string *_text,
-                       int b64mode) {
+                       const FieldDef *fd) {
   (void)type;
   (void)indent;
-  (void)opts;
+  auto b64mode = field_base64_mode(fd);
+  // leave if the Filed doesn't have base64 attribute
+  if (!b64mode || (type.base_type != BASE_TYPE_UCHAR)) return false;
+
+  b64mode |= opts.base64_cancel_padding ? kBase64CancelPadding : 0;
   // Print a sequence of [uint8_t] as base64-encoded string
-  // only byte array supported
-  if (type.base_type != BASE_TYPE_UCHAR) return false;
   // type T can by any, not only uint8_t
   const auto *src = reinterpret_cast<const uint8_t *>(v.data());
   const auto src_size = v.size();
@@ -106,8 +108,9 @@ template<typename T>
 bool PrintVector(const Vector<T> &v, Type type, int indent,
                  const IDLOptions &opts, std::string *_text,
                  const FieldDef *fd = nullptr) {
-  auto b64mode = field_base64_mode(fd);
-  if (b64mode && PrintVectorBase64<T>(v, type, indent, opts, _text, b64mode))
+  // try to print UCHAR array as base64, if the Filed has base64 attribute
+  if ((type.base_type == BASE_TYPE_UCHAR) &&
+      PrintVectorBase64<T>(v, type, indent, opts, _text, fd))
     return true;
 
   std::string &text = *_text;
