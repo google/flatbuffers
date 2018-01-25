@@ -25,8 +25,6 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 
-#include <limits>
-
 // clang-format off
 #ifndef FLATBUFFERS_CPP98_STL
   #include <random>
@@ -1935,16 +1933,6 @@ void FloatToStringRoundtripTest()
 		auto parsed = strtod(s.c_str(), nullptr);
 		TEST_EQ(d, parsed);
 		d *= 4.3;
-	}
-
-
-	for (auto val : { std::numeric_limits<double>::min(),
-		std::numeric_limits<double>::max(),
-		std::numeric_limits<double>::lowest() })
-	{
-		auto s = flatbuffers::NumToString(val);
-		auto parsed = strtod(s.c_str(), nullptr);
-		TEST_EQ(val, parsed);
 	}
 }
 
