@@ -823,7 +823,7 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ_STR(
       s.c_str(),
       "{ "
-      "pos: { x: 1.0, y: 2.0, z: 3.0, test1: 0.0, test2: Red, test3: "
+      "pos: { x: 1, y: 2, z: 3, test1: 0, test2: Red, test3: "
       "{ a: 10, b: 20 } }, "
       "hp: 80, "
       "name: \"MyMonster\", "
@@ -1792,7 +1792,7 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsDouble(), 4.0);
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");     // This still works though.
-  TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
+  TEST_EQ_STR(vec[2].ToString().c_str(), "4");  // Or have it converted.
 
   // Few tests for templated version of As.
   TEST_EQ(vec[0].As<int64_t>(), -100);
@@ -1838,7 +1838,7 @@ void FlexBuffersTest() {
   // Parse from JSON:
   flatbuffers::Parser parser;
   slb.Clear();
-  auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
+  auto jsontest = "{ a: [ 123, 456 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
   auto jmap = jroot.AsMap();
@@ -1900,6 +1900,40 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int64_t>(0x1234567890ABCDEF)),
           0xEFCDAB9078563412);
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
+}
+
+void FloatToStringTest()
+{
+	// Double tests
+	TEST_EQ("3", flatbuffers::NumToString(3.0));
+	TEST_EQ("3.0000100000000001", flatbuffers::NumToString(3.00001));
+	TEST_EQ("1.0000000000000001e-17", flatbuffers::NumToString(0.00000000000000001)); // 17 significant decimals
+	TEST_EQ("0.01234567891234567", flatbuffers::NumToString(0.01234567891234567)); // 17 significant decimals can be displayed exactly
+
+	// Float tests
+	TEST_EQ("1e-08", flatbuffers::NumToString(0.00000001f));
+	TEST_EQ("1e-07", flatbuffers::NumToString(0.0000001f));
+}
+
+void FloatToStringRoundtripTest()
+{
+	auto d = 0.01234567891234567;
+	for (int i = 0; i < 50; ++i)
+	{
+		auto s = flatbuffers::NumToString(d);
+		auto parsed = strtod(s.c_str(), nullptr);
+		TEST_EQ(d, parsed);
+		d /= 4.3;
+	}
+
+	d = 0.01234567891234567;
+	for (int i = 0; i < 50; ++i)
+	{
+		auto s = flatbuffers::NumToString(d);
+		auto parsed = strtod(s.c_str(), nullptr);
+		TEST_EQ(d, parsed);
+		d *= 4.3;
+	}
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {
@@ -1972,6 +2006,10 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   JsonDefaultTest();
 
   FlexBuffersTest();
+
+  FloatToStringRoundtripTest();
+  FloatToStringTest();
+
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
