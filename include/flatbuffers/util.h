@@ -75,31 +75,24 @@ inline std::string NumToString<unsigned long long>(unsigned long long t) {
 }
 #endif  // defined(FLATBUFFERS_CPP98_STL)
 
-// Special versions for floats/doubles.
-template<typename T> std::string FloatToString(T t, int precision) {
-  // to_string() prints different numbers of digits for floats depending on
-  // platform and isn't available on Android, so we use stringstream
+template<typename T> std::string FloatToString(T t, int precision)
+{
   std::stringstream ss;
-  // Use std::fixed to surpress scientific notation.
-  ss << std::fixed;
-  // Default precision is 6, we want that to be higher for doubles.
   ss << std::setprecision(precision);
   ss << t;
-  auto s = ss.str();
-  // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
-  auto p = s.find_last_not_of('0');
-  if (p != std::string::npos) {
-    // Strip trailing zeroes. If it is a whole number, keep one zero.
-    s.resize(p + (s[p] == '.' ? 2 : 1));
-  }
-  return s;
+  return ss.str();
 }
 
-template<> inline std::string NumToString<double>(double t) {
-  return FloatToString(t, 12);
+// According to IEEE Standard 754 17 significant decimals suffice to represent
+// a double precisely.
+template<> inline std::string NumToString(double t) {
+  return FloatToString(t, 17);
 }
-template<> inline std::string NumToString<float>(float t) {
-  return FloatToString(t, 6);
+
+// According to IEEE Standard 754 7 significant decimals suffice to represent
+// a float precisely.
+template<> inline std::string NumToString(float t) {
+  return FloatToString(t, 7);
 }
 
 // Convert an integer value to a hexadecimal string.
