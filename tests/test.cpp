@@ -1902,19 +1902,6 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
-void FloatToStringTest()
-{
-  // Double tests
-  TEST_EQ("3", flatbuffers::NumToString(3.0));
-  TEST_EQ("3.0000100000000001", flatbuffers::NumToString(3.00001));
-  TEST_EQ("1.0000000000000001e-17", flatbuffers::NumToString(0.00000000000000001)); // 17 significant decimals
-  TEST_EQ("0.01234567891234567", flatbuffers::NumToString(0.01234567891234567)); // 17 significant decimals can be displayed exactly
-
-  // Float tests
-  TEST_EQ("1e-08", flatbuffers::NumToString(0.00000001f));
-  TEST_EQ("1e-07", flatbuffers::NumToString(0.0000001f));
-}
-
 void FloatToStringRoundtripTest()
 {
   auto d = 0.01234567891234567;
@@ -2008,7 +1995,6 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   FlexBuffersTest();
 
   FloatToStringRoundtripTest();
-  FloatToStringTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
