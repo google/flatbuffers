@@ -435,7 +435,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
             auto element_size = GetTypeSize(element_base_type);
             if (elemobjectdef && elemobjectdef->is_struct())
               element_size = elemobjectdef->bytesize();
-            fbb.StartVector(element_size, vec->size());
+            fbb.StartVector(vec->size(), element_size);
             fbb.PushBytes(vec->Data(), element_size * vec->size());
             offset = fbb.EndVector(vec->size());
             break;
