@@ -525,12 +525,14 @@ class DetachedBuffer {
 // Essentially, this supports 2 std::vectors in a single buffer.
 class vector_downward {
  public:
-  explicit vector_downward(size_t initial_size = 1024,
-                           Allocator *allocator = nullptr,
-                           bool own_allocator = false)
+  explicit vector_downward(size_t initial_size,
+                           Allocator *allocator,
+                           bool own_allocator,
+                           size_t buffer_minalign)
       : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
         own_allocator_(own_allocator),
         initial_size_(initial_size),
+        buffer_minalign_(buffer_minalign),
         reserved_(0),
         buf_(nullptr),
         cur_(nullptr),
@@ -578,11 +580,6 @@ class vector_downward {
     buf_ = nullptr;
     clear();
     return fb;
-  }
-
-  size_t growth_policy(size_t bytes) {
-    return (bytes == 0) ? initial_size_
-                        : ((bytes / 2) & ~(AlignOf<largest_scalar_t>() - 1));
   }
 
   size_t ensure_space(size_t len) {
@@ -667,6 +664,7 @@ class vector_downward {
   Allocator *allocator_;
   bool own_allocator_;
   size_t initial_size_;
+  size_t buffer_minalign_;
   size_t reserved_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
@@ -677,9 +675,9 @@ class vector_downward {
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();
-    reserved_ += (std::max)(len, growth_policy(old_reserved));
-    FLATBUFFERS_CONSTEXPR size_t alignment = AlignOf<largest_scalar_t>();
-    reserved_ = (reserved_ + alignment - 1) & ~(alignment - 1);
+    reserved_ += (std::max)(len,
+                            old_reserved ? old_reserved / 2 : initial_size_);
+    reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
     if (buf_) {
       buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_,
                                              old_size, old_scratch_size);
@@ -726,10 +724,16 @@ class FlatBufferBuilder {
   /// a `DefaultAllocator`.
   /// @param[in] own_allocator Whether the builder/vector should own the
   /// allocator. Defaults to / `false`.
+  /// @param[in] buffer_minalign Force the buffer to be aligned to the given
+  /// minimum alignment upon reallocation. Only needed if you intend to store
+  /// types with custom alignment AND you wish to read the buffer in-place
+  /// directly after creation.
   explicit FlatBufferBuilder(size_t initial_size = 1024,
                              Allocator *allocator = nullptr,
-                             bool own_allocator = false)
-      : buf_(initial_size, allocator, own_allocator),
+                             bool own_allocator = false,
+                             size_t buffer_minalign =
+                                 AlignOf<largest_scalar_t>())
+      : buf_(initial_size, allocator, own_allocator, buffer_minalign),
         num_field_loc(0),
         max_voffset_(0),
         nested(false),
@@ -827,8 +831,12 @@ class FlatBufferBuilder {
   /// @cond FLATBUFFERS_INTERNAL
   void Pad(size_t num_bytes) { buf_.fill(num_bytes); }
 
-  void Align(size_t elem_size) {
+  void TrackMinAlign(size_t elem_size) {
     if (elem_size > minalign_) minalign_ = elem_size;
+  }
+
+  void Align(size_t elem_size) {
+    TrackMinAlign(elem_size);
     buf_.fill(PaddingBytes(buf_.size(), elem_size));
   }
 
@@ -1023,6 +1031,7 @@ class FlatBufferBuilder {
   // Aligns such that when "len" bytes are written, an object can be written
   // after it with "alignment" without padding.
   void PreAlign(size_t len, size_t alignment) {
+    TrackMinAlign(alignment);
     buf_.fill(PaddingBytes(GetSize() + len, alignment));
   }
   template<typename T> void PreAlign(size_t len) {
