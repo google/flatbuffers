@@ -217,7 +217,7 @@ std::string Parser::TokenToStringId(int t) {
 // Parses exactly nibbles worth of hex digits into a number, or error.
 CheckedError Parser::ParseHexNum(int nibbles, uint64_t *val) {
   for (int i = 0; i < nibbles; i++)
-    if (!isxdigit(static_cast<const unsigned char>(cursor_[i])))
+    if (!isxdigit(static_cast<unsigned char>(cursor_[i])))
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
@@ -272,7 +272,7 @@ CheckedError Parser::Next() {
       case ';':
       case '=': return NoError();
       case '.':
-        if (!isdigit(static_cast<const unsigned char>(*cursor_)))
+        if (!isdigit(static_cast<unsigned char>(*cursor_)))
           return NoError();
         return Error("floating point constant can\'t start with \".\"");
       case '\"':
