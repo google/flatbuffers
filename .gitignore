@@ -82,3 +82,8 @@ samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
 js/flatbuffers.mjs
+/bazel-bin
+/bazel-flatbuffers
+/bazel-genfiles
+/bazel-out
+/bazel-testlogs
