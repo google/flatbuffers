@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2015 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,13 +124,13 @@ namespace FlatBuffers.Test
             builder.CreateString("moop");
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 
-                0, 0, 0, 0, 
+                0, 0, 0, 0,
+                0, 0, 0, 0,
                 0, 0, 0, 0,  // Padding to 32 bytes
-                4, 0, 0, 0, 
+                4, 0, 0, 0,
                 (byte)'m', (byte)'o', (byte)'o', (byte)'p',
                 0, 0, 0, 0, // zero terminator with 3 byte pad
-                3, 0, 0, 0, 
+                3, 0, 0, 0,
                 (byte)'f', (byte)'o', (byte)'o', 0
             }, builder.DataBuffer.Data);
         }
@@ -142,19 +142,19 @@ namespace FlatBuffers.Test
             builder.CreateString("\x01\x02\x03");
             Assert.ArrayEqual(new byte[]
             {
-                3, 0, 0, 0, 
+                3, 0, 0, 0,
                 0x01, 0x02, 0x03, 0
             }, builder.DataBuffer.Data); // No padding
             builder.CreateString("\x04\x05\x06\x07");
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 
-                0, 0, 0, 0, 
+                0, 0, 0, 0,
+                0, 0, 0, 0,
                 0, 0, 0, 0,  // Padding to 32 bytes
-                4, 0, 0, 0, 
+                4, 0, 0, 0,
                 0x04, 0x05, 0x06, 0x07,
                 0, 0, 0, 0, // zero terminator with 3 byte pad
-                3, 0, 0, 0, 
+                3, 0, 0, 0,
                 0x01, 0x02, 0x03, 0
             }, builder.DataBuffer.Data); // No padding
         }
@@ -168,9 +168,9 @@ namespace FlatBuffers.Test
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                4, 0, 4, 0, 
+                4, 0, 4, 0,
                 4, 0, 0, 0
-            }, 
+            },
                 builder.DataBuffer.Data);
         }
 
@@ -205,11 +205,11 @@ namespace FlatBuffers.Test
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 0, 0, // padding to 16 bytes
-                6, 0, // vtable bytes
+                // No padding.
+                4, 0, // vtable bytes
                 4, 0, // end of object from here
-                0, 0, // entry 0 is empty (default value)
-                6, 0, 0, 0, // int32 offset for start of vtable
+                // entry 0 is not stored (trimmed end of vtable)
+                4, 0, 0, 0, // int32 offset for start of vtable
             },
                 builder.DataBuffer.Data);
         }
@@ -287,20 +287,20 @@ namespace FlatBuffers.Test
             var vecEnd = builder.EndVector();
 
             builder.StartObject(1);
-            
+
             builder.AddOffset(0, vecEnd.Value, 0);
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 
                 0, 0, 0, 0,
-                0, 0, 0, 0, 
+                0, 0, 0, 0,
+                0, 0, 0, 0,
                 0, 0,       // Padding to 32 bytes
                 6, 0, // vtable bytes
                 8, 0, // object length inc vtable offset
                 4, 0, // start of vector offset value 0
                 6, 0, 0, 0, // int32 offset for start of vtable
-                4, 0, 0, 0, 
+                4, 0, 0, 0,
                 0, 0, 0, 0,
             },
                 builder.DataBuffer.Data);
@@ -320,7 +320,7 @@ namespace FlatBuffers.Test
             Assert.ArrayEqual(new byte[]
             {
                 0, 0, 0, 0,
-                0, 0, 0, 0, // Padding to 32 bytes       
+                0, 0, 0, 0, // Padding to 32 bytes
                 8, 0, // vtable bytes
                 12, 0, // object length inc vtable offset
                 10, 0,     // offset to int16 value 0
@@ -349,9 +349,9 @@ namespace FlatBuffers.Test
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, // Padding to 32 bytes       
+                0, 0, 0, 0, // Padding to 32 bytes
                 8, 0, // vtable bytes
-                12, 0, // object length 
+                12, 0, // object length
                 6, 0,     // start of value 0 from end of vtable
                 8, 0,     // start of value 1 from end of buffer
                 8, 0, 0, 0, // int32 offset for start of vtable
@@ -382,9 +382,9 @@ namespace FlatBuffers.Test
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, // Padding to 32 bytes       
+                0, 0, // Padding to 32 bytes
                 6, 0, // vtable bytes
-                16, 0, // object length 
+                16, 0, // object length
                 4, 0,     // start of struct from here
                 6, 0, 0, 0, // int32 offset for start of vtable
                 0x78, 0x56, 0x34, 0x12,  // struct value 2
@@ -413,9 +413,9 @@ namespace FlatBuffers.Test
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, // Padding to 32 bytes       
+                0, 0, // Padding to 32 bytes
                 6, 0, // vtable bytes
-                8, 0, // object length 
+                8, 0, // object length
                 4, 0,     // offset of vector offset
                 6, 0, 0, 0, // int32 offset for start of vtable
                 4, 0, 0, 0, // Vector start offset
@@ -442,16 +442,16 @@ namespace FlatBuffers.Test
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, 0, 0, //Padding to 32 bytes 
-                12, 0, 0, 0,     // root of table, pointing to vtable offset  
+                0, 0, 0, 0, //Padding to 32 bytes
+                12, 0, 0, 0,     // root of table, pointing to vtable offset
                 8, 0, // vtable bytes
-                8, 0, // object length 
+                8, 0, // object length
                 7, 0, // start of value 0
                 4, 0, // start of value 1
                 8, 0, 0, 0, // int32 offset for start of vtable
                 66, 0, // value 1
                 0, 33, // value 0
-   
+
             },
                 builder.DataBuffer.Data);
         }
@@ -480,23 +480,23 @@ namespace FlatBuffers.Test
                 0, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0,       // padding to 64 bytes
-                16, 0, 0, 0,     // root of table, pointing to vtable offset (obj1) 
+                16, 0, 0, 0,     // root of table, pointing to vtable offset (obj1)
                 0, 0, // padding
 
                 10, 0, // vtable bytes
-                8, 0, // object length 
+                8, 0, // object length
                 7, 0, // start of value 0
                 6, 0, // start of value 1
                 5, 0, // start of value 2
                 10, 0, 0, 0, // int32 offset for start of vtable
                 0, // pad
                 77, // values 2, 1, 0
-                66, 
+                66,
                 55,
 
                 12, 0, 0, 0,     // root of table, pointing to vtable offset (obj0)
                 8, 0, // vtable bytes
-                8, 0, // object length 
+                8, 0, // object length
                 7, 0, // start of value 0
                 6, 0, // start of value 1
                 8, 0, 0, 0, // int32 offset for start of vtable
@@ -531,7 +531,7 @@ namespace FlatBuffers.Test
 
                 24, 0, 0, 0,     // root of table, pointing to vtable offset (obj0)
                 20, 0, // vtable bytes
-                12, 0, // object length 
+                12, 0, // object length
                 11, 0, // start of value 0
                 10, 0, // start of value 1
                 9, 0, // start of value 2
@@ -542,10 +542,10 @@ namespace FlatBuffers.Test
                 4, 0, // start of value 7
 
                 20, 0, 0, 0, // int32 offset for start of vtable
-          
+
                 1, 1, 1, 1,  // values
                 1, 1, 1, 1,
-                
+
             },
                 builder.DataBuffer.Data);
         }
@@ -557,17 +557,17 @@ namespace FlatBuffers.Test
             builder.StartObject(1);
             builder.AddFloat(0, 1, 0);
             builder.EndObject();
-         
+
 
             Assert.ArrayEqual(new byte[]
             {
                 0, 0,
                 6, 0, // vtable bytes
-                8, 0, // object length 
+                8, 0, // object length
                 4, 0, // start of value 0
                 6, 0, 0, 0, // int32 offset for start of vtable
                 0, 0, 128, 63,  // value
-                
+
             },
                 builder.DataBuffer.Data);
         }
@@ -660,7 +660,7 @@ namespace FlatBuffers.Test
             }
 
             _lcg.Reset();
-            
+
             // Test all objects are readable and return expected values...
             for (var i = 0; i < objectCount; ++i)
             {

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ctypes
 import collections
 import struct
-from ctypes import sizeof
 
 from . import packer
+from .compat import import_numpy, NumpyRequiredForThisFeature
 
+np = import_numpy()
 
 # For reference, see:
 # https://docs.python.org/2/library/ctypes.html#ctypes-fundamental-data-types-2
@@ -172,3 +172,10 @@ def uint64_to_float64(n):
     packed = struct.pack("<1Q", n)
     (unpacked,) = struct.unpack("<1d", packed)
     return unpacked
+
+
+def to_numpy_type(number_type):
+    if np is not None:
+        return np.dtype(number_type.name).newbyteorder('<')
+    else:
+        raise NumpyRequiredForThisFeature('Numpy was not found.')

@@ -1,4 +1,5 @@
 #!/bin/bash -eu
+#
 # Copyright 2014 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,7 @@ gen_code_path=${test_dir}
 runtime_library_dir=${test_dir}/../python
 
 # Emit Python code for the example schema in the test dir:
-${test_dir}/../flatc -p -o ${gen_code_path} monster_test.fbs
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>

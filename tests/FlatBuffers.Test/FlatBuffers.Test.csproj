@@ -41,6 +41,9 @@
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
       <Link>FlatBuffers\ByteBuffer.cs</Link>
     </Compile>
+    <Compile Include="..\..\net\FlatBuffers\IFlatbufferObject.cs">
+      <Link>FlatBuffers\IFlatbufferObject.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\Offset.cs">
       <Link>FlatBuffers\Offset.cs</Link>
     </Compile>
@@ -77,6 +80,12 @@
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\Ability.cs">
+      <Link>MyGame\Example\Ability.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\InParentNamespace.cs">
+      <Link>MyGame\InParentNamespace.cs</Link>
+    </Compile>
     <Compile Include="..\namespace_test\NamespaceA\NamespaceB\EnumInNestedNS.cs">
       <Link>NamespaceA\NamespaceB\EnumInNestedNS.cs</Link>
     </Compile>
@@ -91,6 +100,7 @@
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
+    <Compile Include="FlatBufferBuilderTests.cs" />
     <Compile Include="FlatBuffersFuzzTests.cs" />
     <Compile Include="FlatBuffersTestClassAttribute.cs" />
     <Compile Include="FlatBuffersTestMethodAttribute.cs" />

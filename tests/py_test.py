@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2014 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +15,7 @@
 
 import os.path
 import sys
+import imp
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
@@ -24,6 +26,7 @@ import unittest
 
 from flatbuffers import compat
 from flatbuffers.compat import range_func as compat_range
+from flatbuffers.compat import NumpyRequiredForThisFeature
 
 import flatbuffers
 from flatbuffers import number_types as N
@@ -129,6 +132,40 @@ def CheckReadBuffer(buf, offset):
         invsum += int(v)
     asserter(invsum == 10)
 
+    for i in range(5):
+        asserter(monster.VectorOfLongs(i) == 10 ** (i * 2))
+
+    asserter(([-1.7976931348623157e+308, 0, 1.7976931348623157e+308]
+              == [monster.VectorOfDoubles(i)
+                  for i in range(monster.VectorOfDoublesLength())]))
+
+    try:
+        imp.find_module('numpy')
+        # if numpy exists, then we should be able to get the
+        # vector as a numpy array
+        import numpy as np
+
+        asserter(monster.InventoryAsNumpy().sum() == 10)
+        asserter(monster.InventoryAsNumpy().dtype == np.dtype('uint8'))
+
+        VectorOfLongs = monster.VectorOfLongsAsNumpy()
+        asserter(VectorOfLongs.dtype == np.dtype('int64'))
+        for i in range(5):
+            asserter(VectorOfLongs[i] == 10 ** (i * 2))
+
+        VectorOfDoubles = monster.VectorOfDoublesAsNumpy()
+        asserter(VectorOfDoubles.dtype == np.dtype('float64'))
+        asserter(VectorOfDoubles[0] == np.finfo('float64').min)
+        asserter(VectorOfDoubles[1] == 0.0)
+        asserter(VectorOfDoubles[2] == np.finfo('float64').max)
+
+    except ImportError:
+        # If numpy does not exist, trying to get vector as numpy
+        # array should raise NumpyRequiredForThisFeature. The way
+        # assertRaises has been implemented prevents us from
+        # asserting this error is raised outside of a test case.
+        pass
+
     asserter(monster.Test4Length() == 2)
 
     # create a 'Test' object and populate it:
@@ -152,8 +189,6 @@ def CheckReadBuffer(buf, offset):
     asserter(monster.Testarrayofstring(0) == b"test1")
     asserter(monster.Testarrayofstring(1) == b"test2")
 
-    asserter(monster.Enemy() is None)
-
     asserter(monster.TestarrayoftablesLength() == 0)
     asserter(monster.TestnestedflatbufferLength() == 0)
     asserter(monster.Testempty() is None)
@@ -163,9 +198,10 @@ class TestFuzz(unittest.TestCase):
     ''' Low level stress/fuzz test: serialize/deserialize a variety of
         different kinds of data in different combinations '''
 
-    ofInt32Bytes = compat.binary_type([0x83, 0x33, 0x33, 0x33])
-    ofInt64Bytes = compat.binary_type([0x84, 0x44, 0x44, 0x44,
-                                       0x44, 0x44, 0x44, 0x44])
+    binary_type = compat.binary_types[0] # this will always exist
+    ofInt32Bytes = binary_type([0x83, 0x33, 0x33, 0x33])
+    ofInt64Bytes = binary_type([0x84, 0x44, 0x44, 0x44,
+                                0x44, 0x44, 0x44, 0x44])
     overflowingInt32Val = flatbuffers.encode.Get(flatbuffers.packer.int32,
                                                  ofInt32Bytes, 0)
     overflowingInt64Val = flatbuffers.encode.Get(flatbuffers.packer.int64,
@@ -389,26 +425,50 @@ class TestByteLayout(unittest.TestCase):
 
     def test_create_ascii_string(self):
         b = flatbuffers.Builder(0)
-        b.CreateString(u"foo".encode('ascii'))
+        b.CreateString(u"foo", encoding='ascii')
+
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
-        b.CreateString(u"moop".encode('ascii'))
+        b.CreateString(u"moop", encoding='ascii')
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 'm', 'o', 'o', 'p',
                                      0, 0, 0, 0,
                                      3, 0, 0, 0, 'f', 'o', 'o', 0])
 
+    def test_create_utf8_string(self):
+        b = flatbuffers.Builder(0)
+        b.CreateString(u"Цлїςσδε")
+        self.assertBuilderEquals(b, "\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
+        b.CreateString(u"ﾌﾑｱﾑｶﾓｹﾓ")
+        self.assertBuilderEquals(b, "\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91" \
+            "\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef" \
+            "\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97" \
+            "\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00")
+
     def test_create_arbitrary_string(self):
         b = flatbuffers.Builder(0)
-        s = "\x01\x02\x03".encode('utf-8')
-        b.CreateString(s)
+        s = "\x01\x02\x03"
+        b.CreateString(s) # Default encoding is utf-8.
         # 0-terminated, no pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
-        s2 = "\x04\x05\x06\x07".encode('utf-8')
-        b.CreateString(s2)
+        s2 = "\x04\x05\x06\x07"
+        b.CreateString(s2) # Default encoding is utf-8.
         # 0-terminated, 3-byte pad:
         self.assertBuilderEquals(b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0,
                                      3, 0, 0, 0, 1, 2, 3, 0])
+
+    def test_create_byte_vector(self):
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"")
+        # 0-byte pad:
+        self.assertBuilderEquals(b, [0, 0, 0, 0])
+
+        b = flatbuffers.Builder(0)
+        b.CreateByteVector(b"\x01\x02\x03")
+        # 1-byte pad:
+        self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
@@ -441,10 +501,10 @@ class TestByteLayout(unittest.TestCase):
         b.PrependBoolSlot(0, False, False)
         b.EndObject()
         self.assertBuilderEquals(b, [
-            6, 0,  # vtable bytes
+            4, 0,  # vtable bytes
             4, 0,  # end of object from here
-            0, 0,  # entry 1 is zero
-            6, 0, 0, 0,  # offset for start of vtable (int32)
+            # entry 1 is zero and not stored
+            4, 0, 0, 0,  # offset for start of vtable (int32)
         ])
 
     def test_vtable_with_one_int16(self):
@@ -781,6 +841,20 @@ def make_monster_from_generated_code():
     b.PrependUOffsetTRelative(test1)
     testArrayOfString = b.EndVector(2)
 
+    MyGame.Example.Monster.MonsterStartVectorOfLongsVector(b, 5)
+    b.PrependInt64(100000000)
+    b.PrependInt64(1000000)
+    b.PrependInt64(10000)
+    b.PrependInt64(100)
+    b.PrependInt64(1)
+    VectorOfLongs = b.EndVector(5)
+
+    MyGame.Example.Monster.MonsterStartVectorOfDoublesVector(b, 3)
+    b.PrependFloat64(1.7976931348623157e+308)
+    b.PrependFloat64(0)
+    b.PrependFloat64(-1.7976931348623157e+308)
+    VectorOfDoubles = b.EndVector(3)
+
     MyGame.Example.Monster.MonsterStart(b)
 
     pos = MyGame.Example.Vec3.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
@@ -793,6 +867,8 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddTest(b, mon2)
     MyGame.Example.Monster.MonsterAddTest4(b, test4)
     MyGame.Example.Monster.MonsterAddTestarrayofstring(b, testArrayOfString)
+    MyGame.Example.Monster.MonsterAddVectorOfLongs(b, VectorOfLongs)
+    MyGame.Example.Monster.MonsterAddVectorOfDoubles(b, VectorOfDoubles)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     b.Finish(mon)
@@ -830,7 +906,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(100, self.mon.Hp())
 
     def test_default_monster_name(self):
-        self.assertEqual('', self.mon.Name())
+        self.assertEqual(b'', self.mon.Name())
 
     def test_default_monster_inventory_item(self):
         self.assertEqual(0, self.mon.Inventory(0))
@@ -949,6 +1025,15 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(0, mon2.Testnestedflatbuffer(0))
         self.assertEqual(2, mon2.Testnestedflatbuffer(1))
         self.assertEqual(4, mon2.Testnestedflatbuffer(2))
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            self.assertEqual([0, 2, 4], mon2.TestnestedflatbufferAsNumpy().tolist())
+        except ImportError:
+            assertRaises(self,
+                         lambda: mon2.TestnestedflatbufferAsNumpy(),
+                         NumpyRequiredForThisFeature)
 
     def test_nondefault_monster_testempty(self):
         b = flatbuffers.Builder(0)
@@ -1020,6 +1105,23 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(6, mon2.Testhashu32Fnv1a())
         self.assertEqual(7, mon2.Testhashs64Fnv1a())
         self.assertEqual(8, mon2.Testhashu64Fnv1a())
+
+    def test_getrootas_for_nonroot_table(self):
+        b = flatbuffers.Builder(0)
+        string = b.CreateString("MyStat")
+
+        MyGame.Example.Stat.StatStart(b)
+        MyGame.Example.Stat.StatAddId(b, string)
+        MyGame.Example.Stat.StatAddVal(b, 12345678)
+        MyGame.Example.Stat.StatAddCount(b, 12345)
+        stat = MyGame.Example.Stat.StatEnd(b)
+        b.Finish(stat)
+
+        stat2 = MyGame.Example.Stat.Stat.GetRootAsStat(b.Bytes, b.Head())
+
+        self.assertEqual(b"MyStat", stat2.Id())
+        self.assertEqual(12345678, stat2.Val())
+        self.assertEqual(12345, stat2.Count())
 
 
 class TestVtableDeduplication(unittest.TestCase):
@@ -1133,6 +1235,13 @@ class TestExceptions(unittest.TestCase):
         b.StartObject(0)
         s = 'test1'
         assertRaises(self, lambda: b.CreateString(s),
+                     flatbuffers.builder.IsNestedError)
+
+    def test_create_byte_vector_is_nested_error(self):
+        b = flatbuffers.Builder(0)
+        b.StartObject(0)
+        s = b'test1'
+        assertRaises(self, lambda: b.CreateByteVector(s),
                      flatbuffers.builder.IsNestedError)
 
     def test_finished_bytes_error(self):
@@ -1274,7 +1383,7 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
 
 def backward_compatible_run_tests(**kwargs):
     if PY_VERSION < (2, 6):
-        sys.stderr.write("Python version less than 2.6 are not supported") 
+        sys.stderr.write("Python version less than 2.6 are not supported")
         sys.stderr.flush()
         return False
 
@@ -1287,7 +1396,7 @@ def backward_compatible_run_tests(**kwargs):
                 return False
         return True
 
-    # python2.7 and above let us not exit once unittest.main is run: 
+    # python2.7 and above let us not exit once unittest.main is run:
     kwargs['exit'] = False
     kwargs['verbosity'] = 0
     ret = unittest.main(**kwargs)

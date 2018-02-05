@@ -1,11 +1,51 @@
-# Use in Go
+Use in Go    {#flatbuffers_guide_use_go}
+=========
 
-There's experimental support for reading FlatBuffers in Go. Generate code
-for Go with the `-g` option to `flatc`.
+## Before you get started
 
-See `go_test.go` for an example. You import the generated code, read a
-FlatBuffer binary file into a `[]byte`, which you pass to the
-`GetRootAsMonster` function:
+Before diving into the FlatBuffers usage in Go, it should be noted that
+the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide
+to general FlatBuffers usage in all of the supported languages (including Go).
+This page is designed to cover the nuances of FlatBuffers usage, specific to
+Go.
+
+You should also have read the [Building](@ref flatbuffers_guide_building)
+documentation to build `flatc` and should be familiar with
+[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
+[Writing a schema](@ref flatbuffers_guide_writing_schema).
+
+## FlatBuffers Go library code location
+
+The code for the FlatBuffers Go library can be found at
+`flatbuffers/go`. You can browse the library code on the [FlatBuffers
+GitHub page](https://github.com/google/flatbuffers/tree/master/go).
+
+## Testing the FlatBuffers Go library
+
+The code to test the Go library can be found at `flatbuffers/tests`.
+The test code itself is located in [go_test.go](https://github.com/google/
+flatbuffers/blob/master/tests/go_test.go).
+
+To run the tests, use the [GoTest.sh](https://github.com/google/flatbuffers/
+blob/master/tests/GoTest.sh) shell script.
+
+*Note: The shell script requires [Go](https://golang.org/doc/install) to
+be installed.*
+
+## Using the FlatBuffers Go library
+
+*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+example of how to use FlatBuffers in Go.*
+
+FlatBuffers supports reading and writing binary FlatBuffers in Go.
+
+To use FlatBuffers in your own code, first generate Go classes from your
+schema with the `--go` option to `flatc`. Then you can include both FlatBuffers
+and the generated code to read or write a FlatBuffer.
+
+For example, here is how you would read a FlatBuffer binary file in Go: First,
+include the library and generated code. Then read a FlatBuffer binary file into
+a `[]byte`, which you pass to the `GetRootAsMonster` function:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
     import (
@@ -27,96 +67,33 @@ Now you can access values like this:
     pos := monster.Pos(nil)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note that whenever you access a new object like in the `Pos` example above,
-a new temporary accessor object gets created. If your code is very performance
-sensitive (you iterate through a lot of objects), you can replace nil with a
-pointer to a `Vec3` object you've already created. This allows
-you to reuse it across many calls and reduce the amount of object allocation
-(and thus garbage collection) your program does.
 
-To access vectors you pass an extra index to the
-vector field accessor. Then a second method with the same name suffixed
-by `Length` let's you know the number of elements you can access:
+In some cases it's necessary to modify values in an existing FlatBuffer in place (without creating a copy). For this reason, scalar fields of a Flatbuffer table or struct can be mutated.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    for i := 0; i < monster.InventoryLength(); i++ {
-        monster.Inventory(i) // do something here
+    monster := example.GetRootAsMonster(buf, 0)
+
+    // Set table field.
+    if ok := monster.MutateHp(10); !ok {
+      panic("failed to mutate Hp")
+    }
+
+    // Set struct field.
+    monster.Pos().MutateZ(4)
+
+    // This mutation will fail because the mana field is not available in
+    // the buffer. It should be set when creating the buffer.
+    if ok := monster.MutateMana(20); !ok {
+      panic("failed to mutate Hp")
     }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can also construct these buffers in Go using the functions found in the
-generated code, and the FlatBufferBuilder class:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    builder := flatbuffers.NewBuilder(0)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create strings:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    str := builder.CreateString("MyMonster")
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create a table with a struct contained therein:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    example.MonsterStart(builder)
-    example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
-    example.MonsterAddHp(builder, 80)
-    example.MonsterAddName(builder, str)
-    example.MonsterAddInventory(builder, inv)
-    example.MonsterAddTest_Type(builder, 1)
-    example.MonsterAddTest(builder, mon2)
-    example.MonsterAddTest4(builder, test4s)
-    mon := example.MonsterEnd(builder)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Unlike C++, Go does not support table creation functions like 'createMonster()'.
-This is to create the buffer without
-using temporary object allocation (since the `Vec3` is an inline component of
-`Monster`, it has to be created right where it is added, whereas the name and
-the inventory are not inline, and **must** be created outside of the table
-creation sequence).
-Structs do have convenient methods that allow you to construct them in one call.
-These also have arguments for nested structs, e.g. if a struct has a field `a`
-and a nested struct field `b` (which has fields `c` and `d`), then the arguments
-will be `a`, `c` and `d`.
-
-Vectors also use this start/end pattern to allow vectors of both scalar types
-and structs:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    example.MonsterStartInventoryVector(builder, 5)
-    for i := 4; i >= 0; i-- {
-        builder.PrependByte(byte(i))
-    }
-    inv := builder.EndVector(5)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The generated method 'StartInventoryVector' is provided as a convenience
-function which calls 'StartVector' with the correct element size of the vector
-type which in this case is 'ubyte' or 1 byte per vector element.
-You pass the number of elements you want to write.
-You write the elements backwards since the buffer
-is being constructed back to front. Use the correct `Prepend` call for the type,
-or `PrependUOffsetT` for offsets. You then pass `inv` to the corresponding
-`Add` call when you construct the table containing it afterwards.
-
-There are `Prepend` functions for all the scalar types. You use
-`PrependUOffset` for any previously constructed objects (such as other tables,
-strings, vectors). For structs, you use the appropriate `create` function
-in-line, as shown above in the `Monster` example.
-
-Once you're done constructing a buffer, you call `Finish` with the root object
-offset (`mon` in the example above). Your data now resides in Builder.Bytes.
-Important to note is that the real data starts at the index indicated by Head(),
-for Offset() bytes (this is because the buffer is constructed backwards).
-If you wanted to read the buffer right after creating it (using
-`GetRootAsMonster` above), the second argument, instead of `0` would thus
-also be `Head()`.
+The term `mutate` is used instead of `set` to indicate that this is a special use case. All mutate functions return a boolean value which is false if the field we're trying to mutate is not available in the buffer.
 
 ## Text Parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly
 from Go, though you could use the C++ parser through cgo. Please see the
 C++ documentation for more on text parsing.
+
+<br>

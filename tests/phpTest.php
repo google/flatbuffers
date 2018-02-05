@@ -128,6 +128,7 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     }
     $assert->strictEqual($invsum, 10);
 
+    $assert->strictEqual(bin2hex($monster->GetInventoryBytes()), "0001020304");
 
     $test_0 = $monster->GetTest4(0);
     $test_1 = $monster->GetTest4(1);

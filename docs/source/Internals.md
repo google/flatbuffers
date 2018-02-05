@@ -1,4 +1,5 @@
-# FlatBuffer Internals
+FlatBuffer Internals    {#flatbuffers_internals}
+====================
 
 This section is entirely optional for the use of FlatBuffers. In normal
 usage, you should never need the information contained herein. If you're
@@ -16,7 +17,7 @@ byte-swap intrinsics.
 
 On purpose, the format leaves a lot of details about where exactly
 things live in memory undefined, e.g. fields in a table can have any
-order, and objects to some extend can be stored in many orders. This is
+order, and objects to some extent can be stored in many orders. This is
 because the format doesn't need this information to be efficient, and it
 leaves room for optimization and extension (for example, fields can be
 packed in a way that is most compact). Instead, the format is defined in
@@ -228,7 +229,12 @@ Otherwise, it uses the entry as an offset into the table to locate the field.
 `FlatBufferBuilder`. You can add the fields in any order, and the `Finish`
 call will ensure the correct vtable gets generated.
 
-    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const Vec3 *pos, int16_t mana, int16_t hp, flatbuffers::Offset<flatbuffers::String> name, flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory, int8_t color) {
+    inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
+                                                      const Vec3 *pos, int16_t mana,
+                                                      int16_t hp,
+                                                      flatbuffers::Offset<flatbuffers::String> name,
+                                                      flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory,
+                                                      int8_t color) {
       MonsterBuilder builder_(_fbb);
       builder_.add_inventory(inventory);
       builder_.add_name(name);
@@ -285,3 +291,159 @@ Note that this not the only possible encoding, since the writer has some
 flexibility in which of the children of root object to write first (though in
 this case there's only one string), and what order to write the fields in.
 Different orders may also cause different alignments to happen.
+
+### Additional reading.
+
+The author of the C language implementation has made a similar
+[document](https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#flatbuffers-binary-format)
+that may further help clarify the format.
+
+# FlexBuffers
+
+The [schema-less](@ref flexbuffers) version of FlatBuffers have their
+own encoding, detailed here.
+
+It shares many properties mentioned above, in that all data is accessed
+over offsets, all scalars are aligned to their own size, and
+all data is always stored in little endian format.
+
+One difference is that FlexBuffers are built front to back, so children are
+stored before parents, and the root of the data starts at the last byte.
+
+Another difference is that scalar data is stored with a variable number of bits
+(8/16/32/64). The current width is always determined by the *parent*, i.e. if
+the scalar sits in a vector, the vector determines the bit width for all
+elements at once. Selecting the minimum bit width for a particular vector is
+something the encoder does automatically and thus is typically of no concern
+to the user, though being aware of this feature (and not sticking a double in
+the same vector as a bunch of byte sized elements) is helpful for efficiency.
+
+Unlike FlatBuffers there is only one kind of offset, and that is an unsigned
+integer indicating the number of bytes in a negative direction from the address
+of itself (where the offset is stored).
+
+### Vectors
+
+The representation of the vector is at the core of how FlexBuffers works (since
+maps are really just a combination of 2 vectors), so it is worth starting there.
+
+As mentioned, a vector is governed by a single bit width (supplied by its
+parent). This includes the size field. For example, a vector that stores the
+integer values `1, 2, 3` is encoded as follows:
+
+    uint8_t 3, 1, 2, 3, 4, 4, 4
+
+The first `3` is the size field, and is placed before the vector (an offset
+from the parent to this vector points to the first element, not the size
+field, so the size field is effectively at index -1).
+Since this is an untyped vector `SL_VECTOR`, it is followed by 3 type
+bytes (one per element of the vector), which are always following the vector,
+and are always a uint8_t even if the vector is made up of bigger scalars.
+
+### Types
+
+A type byte is made up of 2 components (see flexbuffers.h for exact values):
+
+* 2 lower bits representing the bit-width of the child (8, 16, 32, 64).
+  This is only used if the child is accessed over an offset, such as a child
+  vector. It is ignored for inline types.
+* 6 bits representing the actual type (see flexbuffers.h).
+
+Thus, in this example `4` means 8 bit child (value 0, unused, since the value is
+in-line), type `SL_INT` (value 1).
+
+### Typed Vectors
+
+These are like the Vectors above, but omit the type bytes. The type is instead
+determined by the vector type supplied by the parent. Typed vectors are only
+available for a subset of types for which these savings can be significant,
+namely inline signed/unsigned integers (`TYPE_VECTOR_INT` / `TYPE_VECTOR_UINT`),
+floats (`TYPE_VECTOR_FLOAT`), and keys (`TYPE_VECTOR_KEY`, see below).
+
+Additionally, for scalars, there are fixed length vectors of sizes 2 / 3 / 4
+that don't store the size (`TYPE_VECTOR_INT2` etc.), for an additional savings
+in space when storing common vector or color data.
+
+### Scalars
+
+FlexBuffers supports integers (`TYPE_INT` and `TYPE_UINT`) and floats
+(`TYPE_FLOAT`), available in the bit-widths mentioned above. They can be stored
+both inline and over an offset (`TYPE_INDIRECT_*`).
+
+The offset version is useful to encode costly 64bit (or even 32bit) quantities
+into vectors / maps of smaller sizes, and to share / repeat a value multiple
+times.
+
+### Booleans and Nulls
+
+Booleans (`TYPE_BOOL`) and nulls (`TYPE_NULL`) are encoded as inlined unsigned integers.
+
+### Blobs, Strings and Keys.
+
+A blob (`TYPE_BLOB`) is encoded similar to a vector, with one difference: the
+elements are always `uint8_t`. The parent bit width only determines the width of
+the size field, allowing blobs to be large without the elements being large.
+
+Strings (`TYPE_STRING`) are similar to blobs, except they have an additional 0
+termination byte for convenience, and they MUST be UTF-8 encoded (since an
+accessor in a language that does not support pointers to UTF-8 data may have to
+convert them to a native string type).
+
+A "Key" (`TYPE_KEY`) is similar to a string, but doesn't store the size
+field. They're so named because they are used with maps, which don't care
+for the size, and can thus be even more compact. Unlike strings, keys cannot
+contain bytes of value 0 as part of their data (size can only be determined by
+`strlen`), so while you can use them outside the context of maps if you so
+desire, you're usually better off with strings.
+
+### Maps
+
+A map (`TYPE_MAP`) is like an (untyped) vector, but with 2 prefixes before the
+size field:
+
+| index | field                                                        |
+| ----: | :----------------------------------------------------------- |
+| -3    | An offset to the keys vector (may be shared between tables). |
+| -2    | Byte width of the keys vector.                               |
+| -1    | Size (from here on it is compatible with `TYPE_VECTOR`)      |
+| 0     | Elements.                                                    |
+| Size  | Types.                                                       |
+
+Since a map is otherwise the same as a vector, it can be iterated like
+a vector (which is probably faster than lookup by key).
+
+The keys vector is a typed vector of keys. Both the keys and corresponding
+values *have* to be stored in sorted order (as determined by `strcmp`), such
+that lookups can be made using binary search.
+
+The reason the key vector is a seperate structure from the value vector is
+such that it can be shared between multiple value vectors, and also to
+allow it to be treated as its own individual vector in code.
+
+An example map { foo: 13, bar: 14 } would be encoded as:
+
+    0 : uint8_t 'b', 'a', 'r', 0
+    4 : uint8_t 'f', 'o', 'o', 0
+    8 : uint8_t 2      // key vector of size 2
+    // key vector offset points here
+    9 : uint8_t 9, 6   // offsets to bar_key and foo_key
+    11: uint8_t 2, 1   // offset to key vector, and its byte width
+    13: uint8_t 2      // value vector of size
+    // value vector offset points here
+    14: uint8_t 14, 13 // values
+    16: uint8_t 4, 4   // types
+
+### The root
+
+As mentioned, the root starts at the end of the buffer.
+The last uint8_t is the width in bytes of the root (normally the parent
+determines the width, but the root has no parent). The uint8_t before this is
+the type of the root, and the bytes before that are the root value (of the
+number of bytes specified by the last byte).
+
+So for example, the integer value `13` as root would be:
+
+    uint8_t 13, 4, 1    // Value, type, root byte width.
+
+
+<br>
