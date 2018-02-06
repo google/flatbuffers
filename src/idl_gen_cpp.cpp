@@ -231,6 +231,18 @@ class CppGenerator : public BaseGenerator {
         code_ += "";
       }
     }
+    // Generate preablmle code for mini reflection.
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+      // To break cyclic dependencies, first pre-declare all tables/structs.
+      for (auto it = parser_.structs_.vec.begin();
+           it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          GenMiniReflectPre(&struct_def);
+        }
+      }
+    }
 
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -280,15 +292,6 @@ class CppGenerator : public BaseGenerator {
 
     // Generate code for mini reflection.
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
-      // To break cyclic dependencies, first pre-declare all tables/structs.
-      for (auto it = parser_.structs_.vec.begin();
-           it != parser_.structs_.vec.end(); ++it) {
-        const auto &struct_def = **it;
-        if (!struct_def.generated) {
-          SetNameSpace(struct_def.defined_namespace);
-          GenMiniReflectPre(&struct_def);
-        }
-      }
       // Then the unions/enums that may refer to them.
       for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
            ++it) {
@@ -1503,7 +1506,7 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
-    if (parser_.opts.mini_reflect != IDLOptions::kTypesAndNames) {
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
       code_ += "  static flatbuffers::TypeTable* DefaultTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";

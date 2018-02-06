@@ -16,6 +16,14 @@ struct BookReader;
 struct Movie;
 struct MovieT;
 
+inline flatbuffers::TypeTable *AttackerTypeTable();
+
+inline flatbuffers::TypeTable *RapunzelTypeTable();
+
+inline flatbuffers::TypeTable *BookReaderTypeTable();
+
+inline flatbuffers::TypeTable *MovieTypeTable();
+
 enum Character {
   Character_NONE = 0,
   Character_MuLan = 1,
@@ -183,7 +191,7 @@ struct AttackerT : public flatbuffers::NativeTable {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
-  static AttackerTypeTable DefaultTypeTable() {
+  static flatbuffers::TypeTable* DefaultTypeTable() {
     return AttackerTypeTable();
   }
   enum {
@@ -243,7 +251,7 @@ struct MovieT : public flatbuffers::NativeTable {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
-  static MovieTypeTable DefaultTypeTable() {
+  static flatbuffers::TypeTable* DefaultTypeTable() {
     return MovieTypeTable();
   }
   enum {
@@ -600,14 +608,6 @@ inline void CharacterUnion::Reset() {
   value = nullptr;
   type = Character_NONE;
 }
-
-inline flatbuffers::TypeTable *AttackerTypeTable();
-
-inline flatbuffers::TypeTable *RapunzelTypeTable();
-
-inline flatbuffers::TypeTable *BookReaderTypeTable();
-
-inline flatbuffers::TypeTable *MovieTypeTable();
 
 inline flatbuffers::TypeTable *CharacterTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {

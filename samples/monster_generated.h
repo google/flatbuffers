@@ -17,6 +17,12 @@ struct MonsterT;
 struct Weapon;
 struct WeaponT;
 
+inline flatbuffers::TypeTable *Vec3TypeTable();
+
+inline flatbuffers::TypeTable *MonsterTypeTable();
+
+inline flatbuffers::TypeTable *WeaponTypeTable();
+
 enum Color {
   Color_Red = 0,
   Color_Green = 1,
@@ -185,7 +191,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static MonsterTypeTable DefaultTypeTable() {
+  static flatbuffers::TypeTable* DefaultTypeTable() {
     return MonsterTypeTable();
   }
   enum {
@@ -387,7 +393,7 @@ struct WeaponT : public flatbuffers::NativeTable {
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;
-  static WeaponTypeTable DefaultTypeTable() {
+  static flatbuffers::TypeTable* DefaultTypeTable() {
     return WeaponTypeTable();
   }
   enum {
@@ -608,12 +614,6 @@ inline void EquipmentUnion::Reset() {
   value = nullptr;
   type = Equipment_NONE;
 }
-
-inline flatbuffers::TypeTable *Vec3TypeTable();
-
-inline flatbuffers::TypeTable *MonsterTypeTable();
-
-inline flatbuffers::TypeTable *WeaponTypeTable();
 
 inline flatbuffers::TypeTable *ColorTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
