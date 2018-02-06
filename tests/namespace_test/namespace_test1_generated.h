@@ -74,6 +74,9 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
 STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static TableInNestedNSTypeTable DefaultTypeTable() {
+    return TableInNestedNSTypeTable();
+  }
   enum {
     VT_FOO = 4
   };

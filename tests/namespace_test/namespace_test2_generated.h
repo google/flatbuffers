@@ -25,6 +25,9 @@ namespace NamespaceA {
 struct SecondTableInA;
 
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static TableInFirstNSTypeTable DefaultTypeTable() {
+    return TableInFirstNSTypeTable();
+  }
   enum {
     VT_FOO_TABLE = 4,
     VT_FOO_ENUM = 6,
@@ -99,6 +102,9 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
 namespace NamespaceC {
 
 struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static TableInCTypeTable DefaultTypeTable() {
+    return TableInCTypeTable();
+  }
   enum {
     VT_REFER_TO_A1 = 4,
     VT_REFER_TO_A2 = 6
@@ -161,6 +167,9 @@ inline flatbuffers::Offset<TableInC> CreateTableInC(
 namespace NamespaceA {
 
 struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static SecondTableInATypeTable DefaultTypeTable() {
+    return SecondTableInATypeTable();
+  }
   enum {
     VT_REFER_TO_C = 4
   };

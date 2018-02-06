@@ -332,6 +332,9 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
+  static InParentNamespaceTypeTable DefaultTypeTable() {
+    return InParentNamespaceTypeTable();
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -374,6 +377,9 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  static MonsterTypeTable DefaultTypeTable() {
+    return MonsterTypeTable();
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -420,6 +426,9 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
+  static TestSimpleTableWithEnumTypeTable DefaultTypeTable() {
+    return TestSimpleTableWithEnumTypeTable();
+  }
   enum {
     VT_COLOR = 4
   };
@@ -480,6 +489,9 @@ struct StatT : public flatbuffers::NativeTable {
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
+  static StatTypeTable DefaultTypeTable() {
+    return StatTypeTable();
+  }
   enum {
     VT_ID = 4,
     VT_VAL = 6,
@@ -623,6 +635,9 @@ struct MonsterT : public flatbuffers::NativeTable {
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  static MonsterTypeTable DefaultTypeTable() {
+    return MonsterTypeTable();
+  }
   enum {
     VT_POS = 4,
     VT_MANA = 6,
@@ -1261,6 +1276,9 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
+  static TypeAliasesTypeTable DefaultTypeTable() {
+    return TypeAliasesTypeTable();
+  }
   enum {
     VT_I8 = 4,
     VT_U8 = 6,

@@ -183,6 +183,9 @@ struct AttackerT : public flatbuffers::NativeTable {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
+  static AttackerTypeTable DefaultTypeTable() {
+    return AttackerTypeTable();
+  }
   enum {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
@@ -240,6 +243,9 @@ struct MovieT : public flatbuffers::NativeTable {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
+  static MovieTypeTable DefaultTypeTable() {
+    return MovieTypeTable();
+  }
   enum {
     VT_MAIN_CHARACTER_TYPE = 4,
     VT_MAIN_CHARACTER = 6,
