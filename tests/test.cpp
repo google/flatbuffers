@@ -542,7 +542,7 @@ void TriviallyCopyableTest() {
 }
 
 // Check stringify of an default enum value to json
-void JsonDefaultTest() {
+void JsonDefaultTest(bool useHexfloat=false) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
@@ -558,6 +558,7 @@ void JsonDefaultTest() {
   // create incomplete monster and store to json
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
+  parser.opts.generate_hexfloat_in_json = useHexfloat;
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("default_enum");
   MonsterBuilder color_monster(builder);
@@ -569,7 +570,17 @@ void JsonDefaultTest() {
   // default value of the "color" field is Blue
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
   // default value of the "testf" field is 3.14159
-  TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
+  if(useHexfloat)
+    TEST_EQ(std::string::npos != jsongen.find("testf: 0x1.921fa0p+1"), true);
+  else
+    TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
+
+
+  // Try to read the json data again
+  parser.builder_.Clear();
+  TEST_EQ(true, parser.Parse(jsongen.c_str()));
+  auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
+  TEST_EQ(3.14159, deserializedMonster->testf());
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -823,7 +834,7 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ_STR(
       s.c_str(),
       "{ "
-      "pos: { x: 1, y: 2, z: 3, test1: 0, test2: Red, test3: "
+      "pos: { x: 1.0, y: 2.0, z: 3.0, test1: 0.0, test2: Red, test3: "
       "{ a: 10, b: 20 } }, "
       "hp: 80, "
       "name: \"MyMonster\", "
@@ -1792,7 +1803,7 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsDouble(), 4.0);
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");     // This still works though.
-  TEST_EQ_STR(vec[2].ToString().c_str(), "4");  // Or have it converted.
+  TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
 
   // Few tests for templated version of As.
   TEST_EQ(vec[0].As<int64_t>(), -100);
@@ -1902,27 +1913,6 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
-void FloatToStringRoundtripTest()
-{
-  auto d = 0.01234567891234567;
-  for (int i = 0; i < 50; ++i)
-  {
-    auto s = flatbuffers::NumToString(d);
-    auto parsed = strtod(s.c_str(), nullptr);
-    TEST_EQ(d, parsed);
-    d /= 4.3;
-  }
-
-  d = 0.01234567891234567;
-  for (int i = 0; i < 50; ++i)
-  {
-    auto s = flatbuffers::NumToString(d);
-    auto parsed = strtod(s.c_str(), nullptr);
-    TEST_EQ(d, parsed);
-    d *= 4.3;
-  }
-}
-
 int main(int /*argc*/, const char * /*argv*/ []) {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -1991,10 +1981,9 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   EndianSwapTest();
 
   JsonDefaultTest();
+  JsonDefaultTest(true);
 
   FlexBuffersTest();
-
-  FloatToStringRoundtripTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

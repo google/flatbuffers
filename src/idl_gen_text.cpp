@@ -62,6 +62,8 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
 
   if (type.base_type == BASE_TYPE_BOOL) {
     text += val != 0 ? "true" : "false";
+  } else if (opts.generate_hexfloat_in_json && (type.base_type == BASE_TYPE_FLOAT || type.base_type == BASE_TYPE_DOUBLE)) {
+    text += FloatToStringtStringHex(val);
   } else {
     text += NumToString(val);
   }

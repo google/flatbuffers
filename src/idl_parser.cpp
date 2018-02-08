@@ -428,11 +428,27 @@ CheckedError Parser::Next() {
           if (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X')) {
             cursor_++;
             while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
-            attribute_.append(start + 2, cursor_);
-            attribute_ = NumToString(static_cast<int64_t>(
+            if (*cursor_ != '.') // Otherwise it might be a hexfloat, so lets handle this scenario down below
+            {
+              attribute_.append(start + 2, cursor_);
+              attribute_ = NumToString(static_cast<int64_t>(
                 StringToUInt(attribute_.c_str(), nullptr, 16)));
-            token_ = kTokenIntegerConstant;
-            return NoError();
+              token_ = kTokenIntegerConstant;
+              return NoError();
+            }
+            else
+            {
+              cursor_++;
+              while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++; // hexfloat
+              if (*cursor_ == 'p' || *cursor_ == 'P') {
+                cursor_++;
+                if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
+                while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
+              }
+              token_ = kTokenFloatConstant;
+              attribute_.append(start, cursor_);
+              return NoError();
+            }
           }
           while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
           if (*cursor_ == '.' || *cursor_ == 'e' || *cursor_ == 'E') {

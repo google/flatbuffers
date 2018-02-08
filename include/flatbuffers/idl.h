@@ -386,6 +386,7 @@ struct IDLOptions {
   std::string go_namespace;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
+  bool generate_hexfloat_in_json;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -442,7 +443,8 @@ struct IDLOptions {
         protobuf_ascii_alike(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
-        lang_to_generate(0) {}
+        lang_to_generate(0),
+        generate_hexfloat_in_json(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.
