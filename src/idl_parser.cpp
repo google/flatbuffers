@@ -161,7 +161,7 @@ inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
-  if (components.size() == 0 || !max_components) { return name; }
+  if (components.empty() || !max_components) { return name; }
   std::stringstream stream;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
     if (i) { stream << "."; }
@@ -648,10 +648,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    if (!IsScalar(type.base_type) || struct_def.fixed)
+    ECHECK(ParseSingleValue(field->value));
+    if (!IsScalar(type.base_type) ||
+        (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
-    ECHECK(ParseSingleValue(field->value));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
@@ -1492,7 +1493,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       }
       auto prevsize = enum_def.vals.vec.size();
       auto value =
-          enum_def.vals.vec.size() ? enum_def.vals.vec.back()->value + 1 : 0;
+          !enum_def.vals.vec.empty() ? enum_def.vals.vec.back()->value + 1 : 0;
       auto &ev = *new EnumVal(value_name, value);
       if (enum_def.vals.Add(value_name, &ev))
         return Error("enum value already exists: " + value_name);

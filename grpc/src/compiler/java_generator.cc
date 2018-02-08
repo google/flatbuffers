@@ -49,6 +49,7 @@ typedef grpc_generator::CommentHolder
 typedef grpc_generator::Method MethodDescriptor;
 
 namespace grpc_java_generator {
+typedef std::string string;
 // Generates imports for the service
 void GenerateImports(grpc_generator::File* file,
                      grpc_generator::Printer* printer, VARS& vars) {
@@ -60,7 +61,7 @@ void GenerateImports(grpc_generator::File* file,
   printer->Print(vars, "//source: $filename$.fbs\n\n");
   printer->Print(vars, "package $Package$;\n\n");
   vars["Package"] = vars["Package"] + ".";
-  if (file->additional_headers() != "") {
+  if (!file->additional_headers().empty()) {
     printer->Print(file->additional_headers().c_str());
     printer->Print("\n\n");
   }

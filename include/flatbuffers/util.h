@@ -231,6 +231,10 @@ inline std::string ConCatPathFileName(const std::string &path,
     }
   }
   filepath += filename;
+  // Ignore './' at the start of filepath.
+  if (filepath[0] == '.' && filepath[1] == kPathSeparator) {
+    filepath.erase(0, 2);
+  }
   return filepath;
 }
 

@@ -33,13 +33,13 @@ class PhpGenerator : public BaseGenerator {
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "\\", "\\"){};
   bool generate() {
-    if (!generateEnums()) return false;
-    if (!generateStructs()) return false;
+    if (!GenerateEnums()) return false;
+    if (!GenerateStructs()) return false;
     return true;
   }
 
  private:
-  bool generateEnums() {
+  bool GenerateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
@@ -50,7 +50,7 @@ class PhpGenerator : public BaseGenerator {
     return true;
   }
 
-  bool generateStructs() {
+  bool GenerateStructs() {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
@@ -62,9 +62,9 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Begin by declaring namespace and imports.
-  void BeginFile(const std::string name_space_name, const bool needs_imports,
+  void BeginFile(const std::string &name_space_name, const bool needs_imports,
                  std::string *code_ptr) {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     code += "<?php\n";
     code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
 
@@ -113,7 +113,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Begin enum code with a class declaration.
-  static void BeginEnum(const std::string class_name, std::string *code_ptr) {
+  static void BeginEnum(const std::string &class_name, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "class " + class_name + "\n{\n";
   }
