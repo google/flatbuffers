@@ -513,7 +513,7 @@ bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
 // forward declare to resolve cyclic deps between VerifyObject and VerifyVector
 bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const reflection::Object &obj,
-                  const flatbuffers::Table *table, bool isRequired);
+                  const flatbuffers::Table *table, bool required);
 
 bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const flatbuffers::Table &table,
