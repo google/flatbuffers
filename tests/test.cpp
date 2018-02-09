@@ -1946,7 +1946,7 @@ void Base64InerTest() {
         // allocate memory for result
         out.resize(req_size);
         // Android doesn't support data() for std::vector/std::string
-        const auto out_data = out.empty() ? nullptr : &out[0];
+        const auto out_data = flatbuffers::vector_data(out);
         const auto out_size = out.size();
         // check violation of memory boundary, must return zero
         TEST_EQ(
@@ -1975,7 +1975,7 @@ void Base64InerTest() {
       TEST_EQ(req_size > 0, inlen > 0);
       // check size estimator
       std::vector<char> out(req_size);
-      const auto out_data = out.empty() ? nullptr : &out[0];
+      const auto out_data = flatbuffers::vector_data(out);
       const auto out_size = out.size();
       // check violation of memory boundary, must return zero
       TEST_EQ(flatbuffers::Base64Encode(base64_mode, indat, inlen, out_data,
