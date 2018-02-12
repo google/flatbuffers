@@ -358,7 +358,7 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -403,7 +403,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -452,7 +452,7 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
   enum {
@@ -515,7 +515,7 @@ struct StatT : public flatbuffers::NativeTable {
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
   enum {
@@ -661,7 +661,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   enum {
@@ -1302,7 +1302,7 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
   enum {

@@ -39,7 +39,7 @@ namespace NamespaceA {
 inline flatbuffers::TypeTable *SecondTableInATypeTable();
 
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInFirstNSTypeTable();
   }
   enum {
@@ -116,7 +116,7 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
 namespace NamespaceC {
 
 struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInCTypeTable();
   }
   enum {
@@ -181,7 +181,7 @@ inline flatbuffers::Offset<TableInC> CreateTableInC(
 namespace NamespaceA {
 
 struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return SecondTableInATypeTable();
   }
   enum {

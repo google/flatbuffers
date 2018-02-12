@@ -191,7 +191,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   enum {
@@ -393,7 +393,7 @@ struct WeaponT : public flatbuffers::NativeTable {
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;
-  static flatbuffers::TypeTable* DefaultTypeTable() {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WeaponTypeTable();
   }
   enum {

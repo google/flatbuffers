@@ -1507,7 +1507,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
-      code_ += "  static flatbuffers::TypeTable* DefaultTypeTable() {";
+      code_ += "  static flatbuffers::TypeTable *MiniReflectTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
