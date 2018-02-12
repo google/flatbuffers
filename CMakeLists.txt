@@ -120,7 +120,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
-  if (GCC_VERSION VERSION_GREATER 4.4)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
+      set(CMAKE_CXX_FLAGS
+        "${CMAKE_CXX_FLAGS} -faligned-new")
+    endif()
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result \
                           -Wunused-parameter -Werror=unused-parameter")
