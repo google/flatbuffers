@@ -756,8 +756,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
-    auto data = testnestedflatbuffer()->Data();
-    return flatbuffers::GetRoot<MyGame::Example::Monster>(data);
+    return flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data());
   }
   const Stat *testempty() const {
     return GetPointer<const Stat *>(VT_TESTEMPTY);
@@ -1166,7 +1165,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     Color color = Color_Blue,
     Any test_type = Any_NONE,
     flatbuffers::Offset<void> test = 0,
-    const std::vector<const Test *> *test4 = nullptr,
+    const std::vector<Test> *test4 = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring = nullptr,
     const std::vector<flatbuffers::Offset<Monster>> *testarrayoftables = nullptr,
     flatbuffers::Offset<Monster> enemy = 0,
@@ -1186,9 +1185,9 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     float testf2 = 3.0f,
     float testf3 = 0.0f,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr,
-    const std::vector<const Ability *> *testarrayofsortedstruct = nullptr,
+    const std::vector<Ability> *testarrayofsortedstruct = nullptr,
     const std::vector<uint8_t> *flex = nullptr,
-    const std::vector<const Test *> *test5 = nullptr,
+    const std::vector<Test> *test5 = nullptr,
     const std::vector<int64_t> *vector_of_longs = nullptr,
     const std::vector<double> *vector_of_doubles = nullptr,
     flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0) {
@@ -1202,7 +1201,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       color,
       test_type,
       test,
-      test4 ? _fbb.CreateVector<const Test *>(*test4) : 0,
+      test4 ? _fbb.CreateVectorOfStructs<Test>(*test4) : 0,
       testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0,
       testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0,
       enemy,
@@ -1222,9 +1221,9 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       testf2,
       testf3,
       testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0,
-      testarrayofsortedstruct ? _fbb.CreateVector<const Ability *>(*testarrayofsortedstruct) : 0,
+      testarrayofsortedstruct ? _fbb.CreateVectorOfStructs<Ability>(*testarrayofsortedstruct) : 0,
       flex ? _fbb.CreateVector<uint8_t>(*flex) : 0,
-      test5 ? _fbb.CreateVector<const Test *>(*test5) : 0,
+      test5 ? _fbb.CreateVectorOfStructs<Test>(*test5) : 0,
       vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0,
       vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0,
       parent_namespace_test);
@@ -1802,6 +1801,7 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type
 }
 
 inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyAny(

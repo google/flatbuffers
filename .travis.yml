@@ -4,23 +4,47 @@ env:
     - GCC_VERSION="4.9"
 matrix:
   include:
+    #- language: python
+    #  python: "2.7"
+    #  install:
+    #    - "pip install wheel twine"
+    #  script:
+    #    - "cd python/"
+    #    - 'VERSION="$TRAVIS_TAG" python setup.py sdist bdist_wheel'
+    #    - "cd ../"
+    #  deploy:
+    #    # Checkpointed release builds.
+    #    - provider: script
+    #      script: .travis/deploy-python.sh
+    #      skip_cleanup: true
+    #      on:
+    #        tags: true
+    #        # all_branches must be set with tags: true. See below post:
+    #        # https://stackoverflow.com/a/27775257/1076585
+    #        all_branches: true
+    #    # Produce a new build for the cutting edge when master changes.
+    #    - provider: script
+    #      script: .travis/deploy-python.sh
+    #      skip_cleanup: true
+    #      on:
+    #        branch: master
     - language: cpp
       os:
       - linux
       - osx
-      
+
       compiler:
         - gcc
         #- clang
-      
+
       env:
         matrix:
           - BUILD_TYPE=Debug BIICODE=false
-          - BUILD_TYPE=Release BIICODE=false
+          - BUILD_TYPE=Release BIICODE=false CONAN=true
           # biicode .deb files no longer available.
           # - BUILD_TYPE=Release BIICODE=true
           # - BUILD_TYPE=Debug BIICODE=true
-      
+
       before_install:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
@@ -28,10 +52,11 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
-      
+
       script:
       - if [ "$BIICODE" == "false" ]; then cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test; fi
       - if [ "$BIICODE" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then ./biicode/support/bii-travis.sh $BUILD_TYPE; fi
+      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/testing -s build_type=$BUILD_TYPE; fi
 
     - language: android
       sudo: true

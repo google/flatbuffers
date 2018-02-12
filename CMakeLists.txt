@@ -60,6 +60,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/cpp_generator.cc
   grpc/src/compiler/go_generator.h
   grpc/src/compiler/go_generator.cc
+  grpc/src/compiler/java_generator.h
+  grpc/src/compiler/java_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -244,7 +246,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-shadow")
   endif()
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctest grpc++_unsecure grpc_unsecure pthread dl)
+  target_link_libraries(grpctest grpc++_unsecure grpc_unsecure gpr pthread dl)
 endif()
 
 if(FLATBUFFERS_INSTALL)
