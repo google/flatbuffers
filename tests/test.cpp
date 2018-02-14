@@ -849,6 +849,59 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "}");
 }
 
+void CheckAttrEq(flatbuffers::TypeTable *table, const std::string &field,
+                 const std::string &attr, const char *expected) {
+  bool pass;
+  const char *value = LookUpFieldAttribute(table, field, attr);
+  if (!expected) {
+    pass = !value;
+  } else if (!value) {
+    pass = !expected;
+  } else {
+    pass = !strcmp(value, expected);
+  }
+  if (!pass) {
+    TEST_OUTPUT_LINE("Expected %s's '%s' attribute to be %s, but got %s",
+        field.c_str(), attr.c_str(),
+        (expected ? ("\"" + std::string(expected) + "\"").c_str() : "null"),
+        (value ? ("\"" + std::string(value) + "\"").c_str() : "null"));
+    assert(pass);
+  }
+}
+
+void ReflectAttributesTest() {
+  static const char *const kDefaultAttrValue = "0";
+  const auto tat3 = TestAttributeTableTypeTable();
+  TEST_NOTNULL(tat3->attributes);
+  TEST_NOTNULL(tat3->field_attributes);
+  CheckAttrEq(MonsterTypeTable(), "friendly", "priority", "1");
+  CheckAttrEq(tat3, "dog", "feeding", "omnivorous");
+  CheckAttrEq(tat3, "cat", "feeding", "carnivorous");
+  CheckAttrEq(tat3, "goat", "feeding", "superomnivorous");
+  CheckAttrEq(tat3, "platypus", "feeding", "carnivorous");
+  CheckAttrEq(tat3, "platypus", "lays_eggs", kDefaultAttrValue);
+  CheckAttrEq(tat3, "emu", "feeding", "omnivorous");
+  CheckAttrEq(tat3, "emu", "lays_eggs", kDefaultAttrValue);
+  CheckAttrEq(tat3, "beaver", "feeding", "herbivorous");
+  CheckAttrEq(tat3, "ocelot", "feeding", "carnivorous");
+  CheckAttrEq(tat3, "axolotl", "feeding", "carnivorous");
+  CheckAttrEq(tat3, "axolotl", "lays_eggs", kDefaultAttrValue);
+  CheckAttrEq(tat3, "phoenix", "lays_eggs", kDefaultAttrValue);
+  CheckAttrEq(tat3, "phoenix", "invincible", kDefaultAttrValue);
+  CheckAttrEq(tat3, "stick", "invincible", kDefaultAttrValue);
+  CheckAttrEq(tat3, "dog", "lays_eggs", nullptr);
+  CheckAttrEq(tat3, "cat", "lays_eggs", nullptr);
+  CheckAttrEq(tat3, "platypus", "invincible", nullptr);
+  CheckAttrEq(tat3, "emu", "doesnotexist", nullptr);
+  CheckAttrEq(tat3, "doesnotexist", "doesnotexist", nullptr);
+  const char *type_attribute = LookUpTypeAttribute(tat3, "invincible");
+  if (!type_attribute || strcmp(type_attribute, kDefaultAttrValue)) {
+    TEST_OUTPUT_LINE("Expected type attribute 'invincible' to be 0, but got %s",
+        (type_attribute ? ("\"" + std::string(type_attribute) + "\"").c_str()
+                        : "null"));
+  }
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest() {
   // load the .proto and the golden file from disk
@@ -1932,6 +1985,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   ObjectFlatBuffersTest(flatbuf.data());
 
   MiniReflectFlatBuffersTest(flatbuf.data());
+  ReflectAttributesTest();
 
   SizePrefixedTest();
 

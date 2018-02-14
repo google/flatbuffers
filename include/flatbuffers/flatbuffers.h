@@ -2205,6 +2205,21 @@ struct TypeTable;
 // Signature of the static method present in each type.
 typedef TypeTable *(*TypeFunction)();
 
+// Key-value structure as used by an attribute
+struct AttributeKeyValue {
+  const char *key;
+  const char *value;
+};
+
+// Key-value pair array for storing custom attribute values.
+template<size_t count> struct AttributeList {
+  size_t num_elems;  // of the two arrays below.
+  AttributeKeyValue attributes[count];
+};
+
+// While the convention is 0, this is technically forbidden by ISO.
+typedef const AttributeList<1> *RawAttributeList;
+
 struct TypeTable {
   SequenceType st;
   size_t num_elems;  // of each of the arrays below.
@@ -2212,6 +2227,8 @@ struct TypeTable {
   const TypeFunction *type_refs;
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
   const char **names;     // Only set if compiled with --reflect-names.
+  RawAttributeList attributes;    // Only set if compiled with --reflect-attrs.
+  const RawAttributeList *field_attributes;  // Also only with --reflect-attrs.
 };
 
 // String which identifies the current version of FlatBuffers.

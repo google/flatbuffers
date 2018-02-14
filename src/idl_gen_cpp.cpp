@@ -279,7 +279,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Generate code for mini reflection.
-    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+    if (parser_.opts.mini_reflect) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
       for (auto it = parser_.structs_.vec.begin();
            it != parser_.structs_.vec.end(); ++it) {
@@ -708,6 +708,35 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  bool IsBuiltinAttribute(const std::string &attribute) {
+    auto find = parser_.known_attributes_.find(attribute);
+    return find != parser_.known_attributes_.end() && find->second;
+  }
+
+  struct SerializedAttrs {
+    size_t count;
+    std::string initializer;
+  };
+
+  // Serialize a SymbolTable of Value into a key-value initializer list string. 
+  SerializedAttrs SerializeAttributeList(const SymbolTable<Value> &stable) {
+    size_t count = 0;
+    std::string sep = " ";
+    std::string initializer = "{ " + NumToString(stable.dict.size()) + ", {";
+    for (auto it = stable.dict.begin(); it != stable.dict.end(); ++it) {
+      if (IsBuiltinAttribute(it->first)) continue;
+      std::string escaped_value;
+      const std::string value = it->second->constant;
+      EscapeString(value.c_str(), value.length(), &escaped_value, true);
+      initializer += sep + "{ \"" + it->first + "\", " + escaped_value + " }";
+      sep = ", ";
+      ++count;
+    }
+    initializer += " } }";
+    SerializedAttrs result = {count, initializer};
+    return result;
+  }
+
   void GenMiniReflect(const StructDef *struct_def, const EnumDef *enum_def) {
     code_.SetValue("NAME", struct_def ? struct_def->name : enum_def->name);
     code_.SetValue("SEQ_TYPE",
@@ -718,15 +747,22 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NUM_FIELDS", NumToString(num_fields));
     std::vector<std::string> names;
     std::vector<Type> types;
+    SerializedAttrs type_attrs;
+    std::vector<SerializedAttrs> field_attrs;
     bool consecutive_enum_from_zero = true;
+    bool has_field_attributes = false;
     if (struct_def) {
+      type_attrs = SerializeAttributeList(struct_def->attributes);
       for (auto it = struct_def->fields.vec.begin();
            it != struct_def->fields.vec.end(); ++it) {
         const auto &field = **it;
         names.push_back(Name(field));
         types.push_back(field.value.type);
+        field_attrs.push_back(SerializeAttributeList(field.attributes));
+        if (field_attrs.back().count) has_field_attributes = true;
       }
     } else {
+      type_attrs = SerializeAttributeList(enum_def->attributes);
       for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
            ++it) {
         const auto &ev = **it;
@@ -800,6 +836,8 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
+    code_.SetValue("ATTR_LIST", type_attrs.initializer);
+    code_.SetValue("ATTR_COUNT", NumToString(type_attrs.count));
     code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
       code_ += "  static flatbuffers::TypeCode type_codes[] = {";
@@ -814,19 +852,62 @@ class CppGenerator : public BaseGenerator {
     if (!vs.empty()) {
       code_ += "  static const int32_t values[] = { {{VALUES}} };";
     }
-    auto has_names =
-        num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+    bool has_names = num_fields && parser_.opts.reflect_names;
     if (has_names) {
       code_ += "  static const char *names[] = {";
       code_ += "    {{NAMES}}";
       code_ += "  };";
+    }
+    bool has_attributes = parser_.opts.reflect_attrs && type_attrs.count;
+    if (has_attributes) {
+      code_ += "  static const flatbuffers::AttributeList<{{ATTR_COUNT}}>"
+               " attrs = {{ATTR_LIST}};";
+    }
+    static const std::string kAttrListCast =
+        "reinterpret_cast<flatbuffers::RawAttributeList>";
+    has_field_attributes &= parser_.opts.reflect_attrs;
+    if (has_field_attributes) {
+      std::string field_attr_decl;
+      std::map<std::string, std::string> attr_interning;
+      // Allow reusing our Table's attribute list for its attributes.
+      attr_interning[type_attrs.initializer] = "attrs";
+      code_ += "# define DECL_FA_LIST(id, size) "
+          "static const flatbuffers::AttributeList<size> attr_list_ ## id =";
+      code_ += "# define CAST_FA_LIST(list) (" + kAttrListCast + "(&(list)))";
+      for (size_t i = 0; i < field_attrs.size(); i++) {
+        if (!field_attr_decl.empty()) field_attr_decl += ",\n    ";
+        if (!field_attrs[i].count) {
+          field_attr_decl += "nullptr";
+          continue;
+        }
+        std::string idx = NumToString(i);
+        auto insertion = attr_interning.insert(
+            std::pair<std::string, std::string>(field_attrs[i].initializer,
+                                                "attr_list_" + idx));
+        if (insertion.second) {
+          code_.SetValue("FA_LIST_IDX", idx);
+          code_.SetValue("FA_LIST_SIZE", NumToString(field_attrs[i].count));
+          code_.SetValue("FA_LIST", field_attrs[i].initializer);
+          code_ += "  DECL_FA_LIST({{FA_LIST_IDX}}, {{FA_LIST_SIZE}})"
+                   " {{FA_LIST}};";
+        }
+        field_attr_decl += "CAST_FA_LIST(" + insertion.first->second + ")";
+      }
+      code_.SetValue("FIELD_ATTRS", field_attr_decl);
+      code_ += "  static const flatbuffers::RawAttributeList field_attrs[] = {";
+      code_ += "    {{FIELD_ATTRS}}";
+      code_ += "  };";
+      code_ += "# undef DECL_FA_LIST";
+      code_ += "# undef CAST_FA_LIST";
     }
     code_ += "  static flatbuffers::TypeTable tt = {";
     code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
              (num_fields ? "type_codes, " : "nullptr, ") +
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
              (!vs.empty() ? "values, " : "nullptr, ") +
-             (has_names ? "names" : "nullptr");
+             (has_names ? "names, " : "nullptr, ") +
+             (has_attributes ? kAttrListCast + "(&attrs), " : "nullptr, ") +
+             (has_field_attributes ? "field_attrs" : "nullptr");
     code_ += "  };";
     code_ += "  return &tt;";
     code_ += "}";

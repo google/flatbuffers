@@ -148,7 +148,7 @@ struct Type {
                           // or for an integral type derived from an enum.
 };
 
-// Represents a parsed scalar value, it's type, and field offset.
+// Represents a parsed scalar value, its type, and field offset.
 struct Value {
   Value()
       : constant("0"),
@@ -405,9 +405,9 @@ struct IDLOptions {
 
   Language lang;
 
-  enum MiniReflect { kNone, kTypes, kTypesAndNames };
-
-  MiniReflect mini_reflect;
+  bool mini_reflect;
+  bool reflect_names;
+  bool reflect_attrs;
 
   // The corresponding language bit will be set if a language is included
   // for code generation.
@@ -441,7 +441,9 @@ struct IDLOptions {
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
         lang(IDLOptions::kJava),
-        mini_reflect(IDLOptions::kNone),
+        mini_reflect(false),
+        reflect_names(false),
+        reflect_attrs(false),
         lang_to_generate(0) {}
 };
 

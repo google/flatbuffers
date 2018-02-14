@@ -628,7 +628,7 @@ inline flatbuffers::TypeTable *CharacterTypeTable() {
     "Unused"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -641,7 +641,7 @@ inline flatbuffers::TypeTable *AttackerTypeTable() {
     "sword_attack_damage"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -655,7 +655,7 @@ inline flatbuffers::TypeTable *RapunzelTypeTable() {
     "hair_length"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -669,7 +669,7 @@ inline flatbuffers::TypeTable *BookReaderTypeTable() {
     "books_read"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -691,7 +691,7 @@ inline flatbuffers::TypeTable *MovieTypeTable() {
     "characters"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }

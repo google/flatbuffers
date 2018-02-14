@@ -332,6 +332,30 @@ inline std::string FlatBufferToString(const uint8_t *buffer,
   return tostring_visitor.s;
 }
 
+const char *LookUpAttribute(RawAttributeList list, const std::string &key) {
+  if (list == nullptr) return nullptr;
+  for (size_t i = 0; i < list->num_elems; ++i) {
+    if (list->attributes[i].key == key) return list->attributes[i].value;
+  }
+  return nullptr;
+}
+
+const char *LookUpTypeAttribute(const TypeTable *type, const std::string &key) {
+  return LookUpAttribute(type->attributes, key);
+}
+
+const char *LookUpFieldAttribute(const TypeTable *type,
+                                 const std::string &field,
+                                 const std::string &key) {
+  if (!type->field_attributes || !type->names) return nullptr;
+  for (size_t i = 0; i < type->num_elems; ++i) {
+    if (type->names[i] == field) {
+      return LookUpAttribute(type->field_attributes[i], key);
+    }
+  }
+  return nullptr;
+}
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_MINIREFLECT_H_

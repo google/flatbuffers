@@ -36,6 +36,9 @@ struct StatT;
 struct Monster;
 struct MonsterT;
 
+struct TestAttributeTable;
+struct TestAttributeTableT;
+
 struct TypeAliases;
 struct TypeAliasesT;
 
@@ -1231,6 +1234,198 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct TestAttributeTableT : public flatbuffers::NativeTable {
+  typedef TestAttributeTable TableType;
+  int32_t dog;
+  int32_t cat;
+  int32_t goat;
+  int32_t platypus;
+  int32_t emu;
+  int32_t beaver;
+  int32_t ocelot;
+  int32_t axolotl;
+  int32_t phoenix;
+  int32_t stick;
+  TestAttributeTableT()
+      : dog(0),
+        cat(0),
+        goat(0),
+        platypus(0),
+        emu(0),
+        beaver(0),
+        ocelot(0),
+        axolotl(0),
+        phoenix(0),
+        stick(0) {
+  }
+};
+
+struct TestAttributeTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TestAttributeTableT NativeTableType;
+  enum {
+    VT_DOG = 4,
+    VT_CAT = 6,
+    VT_GOAT = 8,
+    VT_PLATYPUS = 10,
+    VT_EMU = 12,
+    VT_BEAVER = 14,
+    VT_OCELOT = 16,
+    VT_AXOLOTL = 18,
+    VT_PHOENIX = 20,
+    VT_STICK = 22
+  };
+  int32_t dog() const {
+    return GetField<int32_t>(VT_DOG, 0);
+  }
+  bool mutate_dog(int32_t _dog) {
+    return SetField<int32_t>(VT_DOG, _dog, 0);
+  }
+  int32_t cat() const {
+    return GetField<int32_t>(VT_CAT, 0);
+  }
+  bool mutate_cat(int32_t _cat) {
+    return SetField<int32_t>(VT_CAT, _cat, 0);
+  }
+  int32_t goat() const {
+    return GetField<int32_t>(VT_GOAT, 0);
+  }
+  bool mutate_goat(int32_t _goat) {
+    return SetField<int32_t>(VT_GOAT, _goat, 0);
+  }
+  int32_t platypus() const {
+    return GetField<int32_t>(VT_PLATYPUS, 0);
+  }
+  bool mutate_platypus(int32_t _platypus) {
+    return SetField<int32_t>(VT_PLATYPUS, _platypus, 0);
+  }
+  int32_t emu() const {
+    return GetField<int32_t>(VT_EMU, 0);
+  }
+  bool mutate_emu(int32_t _emu) {
+    return SetField<int32_t>(VT_EMU, _emu, 0);
+  }
+  int32_t beaver() const {
+    return GetField<int32_t>(VT_BEAVER, 0);
+  }
+  bool mutate_beaver(int32_t _beaver) {
+    return SetField<int32_t>(VT_BEAVER, _beaver, 0);
+  }
+  int32_t ocelot() const {
+    return GetField<int32_t>(VT_OCELOT, 0);
+  }
+  bool mutate_ocelot(int32_t _ocelot) {
+    return SetField<int32_t>(VT_OCELOT, _ocelot, 0);
+  }
+  int32_t axolotl() const {
+    return GetField<int32_t>(VT_AXOLOTL, 0);
+  }
+  bool mutate_axolotl(int32_t _axolotl) {
+    return SetField<int32_t>(VT_AXOLOTL, _axolotl, 0);
+  }
+  int32_t phoenix() const {
+    return GetField<int32_t>(VT_PHOENIX, 0);
+  }
+  bool mutate_phoenix(int32_t _phoenix) {
+    return SetField<int32_t>(VT_PHOENIX, _phoenix, 0);
+  }
+  int32_t stick() const {
+    return GetField<int32_t>(VT_STICK, 0);
+  }
+  bool mutate_stick(int32_t _stick) {
+    return SetField<int32_t>(VT_STICK, _stick, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_DOG) &&
+           VerifyField<int32_t>(verifier, VT_CAT) &&
+           VerifyField<int32_t>(verifier, VT_GOAT) &&
+           VerifyField<int32_t>(verifier, VT_PLATYPUS) &&
+           VerifyField<int32_t>(verifier, VT_EMU) &&
+           VerifyField<int32_t>(verifier, VT_BEAVER) &&
+           VerifyField<int32_t>(verifier, VT_OCELOT) &&
+           VerifyField<int32_t>(verifier, VT_AXOLOTL) &&
+           VerifyField<int32_t>(verifier, VT_PHOENIX) &&
+           VerifyField<int32_t>(verifier, VT_STICK) &&
+           verifier.EndTable();
+  }
+  TestAttributeTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(TestAttributeTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<TestAttributeTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestAttributeTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct TestAttributeTableBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_dog(int32_t dog) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_DOG, dog, 0);
+  }
+  void add_cat(int32_t cat) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_CAT, cat, 0);
+  }
+  void add_goat(int32_t goat) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_GOAT, goat, 0);
+  }
+  void add_platypus(int32_t platypus) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_PLATYPUS, platypus, 0);
+  }
+  void add_emu(int32_t emu) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_EMU, emu, 0);
+  }
+  void add_beaver(int32_t beaver) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_BEAVER, beaver, 0);
+  }
+  void add_ocelot(int32_t ocelot) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_OCELOT, ocelot, 0);
+  }
+  void add_axolotl(int32_t axolotl) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_AXOLOTL, axolotl, 0);
+  }
+  void add_phoenix(int32_t phoenix) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_PHOENIX, phoenix, 0);
+  }
+  void add_stick(int32_t stick) {
+    fbb_.AddElement<int32_t>(TestAttributeTable::VT_STICK, stick, 0);
+  }
+  explicit TestAttributeTableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  TestAttributeTableBuilder &operator=(const TestAttributeTableBuilder &);
+  flatbuffers::Offset<TestAttributeTable> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<TestAttributeTable>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<TestAttributeTable> CreateTestAttributeTable(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t dog = 0,
+    int32_t cat = 0,
+    int32_t goat = 0,
+    int32_t platypus = 0,
+    int32_t emu = 0,
+    int32_t beaver = 0,
+    int32_t ocelot = 0,
+    int32_t axolotl = 0,
+    int32_t phoenix = 0,
+    int32_t stick = 0) {
+  TestAttributeTableBuilder builder_(_fbb);
+  builder_.add_stick(stick);
+  builder_.add_phoenix(phoenix);
+  builder_.add_axolotl(axolotl);
+  builder_.add_ocelot(ocelot);
+  builder_.add_beaver(beaver);
+  builder_.add_emu(emu);
+  builder_.add_platypus(platypus);
+  builder_.add_goat(goat);
+  builder_.add_cat(cat);
+  builder_.add_dog(dog);
+  return builder_.Finish();
+}
+
+flatbuffers::Offset<TestAttributeTable> CreateTestAttributeTable(flatbuffers::FlatBufferBuilder &_fbb, const TestAttributeTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct TypeAliasesT : public flatbuffers::NativeTable {
   typedef TypeAliases TableType;
   int8_t i8;
@@ -1720,6 +1915,59 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _parent_namespace_test);
 }
 
+inline TestAttributeTableT *TestAttributeTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new TestAttributeTableT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void TestAttributeTable::UnPackTo(TestAttributeTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = dog(); _o->dog = _e; };
+  { auto _e = cat(); _o->cat = _e; };
+  { auto _e = goat(); _o->goat = _e; };
+  { auto _e = platypus(); _o->platypus = _e; };
+  { auto _e = emu(); _o->emu = _e; };
+  { auto _e = beaver(); _o->beaver = _e; };
+  { auto _e = ocelot(); _o->ocelot = _e; };
+  { auto _e = axolotl(); _o->axolotl = _e; };
+  { auto _e = phoenix(); _o->phoenix = _e; };
+  { auto _e = stick(); _o->stick = _e; };
+}
+
+inline flatbuffers::Offset<TestAttributeTable> TestAttributeTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestAttributeTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateTestAttributeTable(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<TestAttributeTable> CreateTestAttributeTable(flatbuffers::FlatBufferBuilder &_fbb, const TestAttributeTableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const TestAttributeTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _dog = _o->dog;
+  auto _cat = _o->cat;
+  auto _goat = _o->goat;
+  auto _platypus = _o->platypus;
+  auto _emu = _o->emu;
+  auto _beaver = _o->beaver;
+  auto _ocelot = _o->ocelot;
+  auto _axolotl = _o->axolotl;
+  auto _phoenix = _o->phoenix;
+  auto _stick = _o->stick;
+  return MyGame::Example::CreateTestAttributeTable(
+      _fbb,
+      _dog,
+      _cat,
+      _goat,
+      _platypus,
+      _emu,
+      _beaver,
+      _ocelot,
+      _axolotl,
+      _phoenix,
+      _stick);
+}
+
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = new TypeAliasesT();
   UnPackTo(_o, _resolver);
@@ -1914,6 +2162,8 @@ inline flatbuffers::TypeTable *StatTypeTable();
 
 inline flatbuffers::TypeTable *MonsterTypeTable();
 
+inline flatbuffers::TypeTable *TestAttributeTableTypeTable();
+
 inline flatbuffers::TypeTable *TypeAliasesTypeTable();
 
 inline flatbuffers::TypeTable *ColorTypeTable() {
@@ -1932,7 +2182,7 @@ inline flatbuffers::TypeTable *ColorTypeTable() {
     "Blue"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -1956,7 +2206,7 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
     "MyGame_Example2_Monster"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -1965,7 +2215,7 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
 
 inline flatbuffers::TypeTable *InParentNamespaceTypeTable() {
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }
@@ -1974,7 +2224,7 @@ namespace Example2 {
 
 inline flatbuffers::TypeTable *MonsterTypeTable() {
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }
@@ -1994,7 +2244,7 @@ inline flatbuffers::TypeTable *TestTypeTable() {
     "b"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -2010,7 +2260,7 @@ inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
     "color"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -2038,7 +2288,7 @@ inline flatbuffers::TypeTable *Vec3TypeTable() {
     "test3"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
+    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -2054,7 +2304,7 @@ inline flatbuffers::TypeTable *AbilityTypeTable() {
     "distance"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -2071,7 +2321,7 @@ inline flatbuffers::TypeTable *StatTypeTable() {
     "count"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -2161,8 +2411,105 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
     "vector_of_doubles",
     "parent_namespace_test"
   };
+# define DECL_FA_LIST(id, size) static const flatbuffers::AttributeList<size> attr_list_ ## id =
+# define CAST_FA_LIST(list) (reinterpret_cast<flatbuffers::RawAttributeList>(&(list)))
+  DECL_FA_LIST(4, 1) { 3, { { "priority", "1" } } };
+  static const flatbuffers::RawAttributeList field_attrs[] = {
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    CAST_FA_LIST(attr_list_4),
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr
+  };
+# undef DECL_FA_LIST
+# undef CAST_FA_LIST
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names, nullptr, field_attrs
+  };
+  return &tt;
+}
+
+inline flatbuffers::TypeTable *TestAttributeTableTypeTable() {
+  static flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char *names[] = {
+    "dog",
+    "cat",
+    "goat",
+    "platypus",
+    "emu",
+    "beaver",
+    "ocelot",
+    "axolotl",
+    "phoenix",
+    "stick"
+  };
+  static const flatbuffers::AttributeList<1> attrs = { 1, { { "invincible", "0" } } };
+# define DECL_FA_LIST(id, size) static const flatbuffers::AttributeList<size> attr_list_ ## id =
+# define CAST_FA_LIST(list) (reinterpret_cast<flatbuffers::RawAttributeList>(&(list)))
+  DECL_FA_LIST(0, 1) { 1, { { "feeding", "omnivorous" } } };
+  DECL_FA_LIST(1, 1) { 1, { { "feeding", "carnivorous" } } };
+  DECL_FA_LIST(2, 1) { 1, { { "feeding", "superomnivorous" } } };
+  DECL_FA_LIST(3, 2) { 2, { { "feeding", "carnivorous" }, { "lays_eggs", "0" } } };
+  DECL_FA_LIST(4, 2) { 2, { { "feeding", "omnivorous" }, { "lays_eggs", "0" } } };
+  DECL_FA_LIST(5, 1) { 1, { { "feeding", "herbivorous" } } };
+  DECL_FA_LIST(8, 3) { 3, { { "feeding", "eats fire or something" }, { "invincible", "0" }, { "lays_eggs", "0" } } };
+  static const flatbuffers::RawAttributeList field_attrs[] = {
+    CAST_FA_LIST(attr_list_0),
+    CAST_FA_LIST(attr_list_1),
+    CAST_FA_LIST(attr_list_2),
+    CAST_FA_LIST(attr_list_3),
+    CAST_FA_LIST(attr_list_4),
+    CAST_FA_LIST(attr_list_5),
+    CAST_FA_LIST(attr_list_1),
+    CAST_FA_LIST(attr_list_3),
+    CAST_FA_LIST(attr_list_8),
+    CAST_FA_LIST(attrs)
+  };
+# undef DECL_FA_LIST
+# undef CAST_FA_LIST
+  static flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 10, type_codes, nullptr, nullptr, names, reinterpret_cast<flatbuffers::RawAttributeList>(&attrs), field_attrs
   };
   return &tt;
 }
@@ -2197,7 +2544,7 @@ inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
     "vf64"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }

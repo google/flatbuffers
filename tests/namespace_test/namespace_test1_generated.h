@@ -135,7 +135,7 @@ inline flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
     "C"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -148,7 +148,7 @@ inline flatbuffers::TypeTable *TableInNestedNSTypeTable() {
     "foo"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names, nullptr, nullptr
   };
   return &tt;
 }
@@ -164,7 +164,7 @@ inline flatbuffers::TypeTable *StructInNestedNSTypeTable() {
     "b"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names, nullptr, nullptr
   };
   return &tt;
 }
