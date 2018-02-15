@@ -819,7 +819,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 }
 
 void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
-  auto s = flatbuffers::FlatBufferToString(flatbuf, MonsterTypeTable());
+  auto s = flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
   TEST_EQ_STR(
       s.c_str(),
       "{ "
