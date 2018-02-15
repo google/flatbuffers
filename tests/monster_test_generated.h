@@ -39,6 +39,32 @@ struct MonsterT;
 struct TypeAliases;
 struct TypeAliasesT;
 
+}  // namespace Example
+
+inline flatbuffers::TypeTable *InParentNamespaceTypeTable();
+
+namespace Example2 {
+
+inline flatbuffers::TypeTable *MonsterTypeTable();
+
+}  // namespace Example2
+
+namespace Example {
+
+inline flatbuffers::TypeTable *TestTypeTable();
+
+inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
+
+inline flatbuffers::TypeTable *Vec3TypeTable();
+
+inline flatbuffers::TypeTable *AbilityTypeTable();
+
+inline flatbuffers::TypeTable *StatTypeTable();
+
+inline flatbuffers::TypeTable *MonsterTypeTable();
+
+inline flatbuffers::TypeTable *TypeAliasesTypeTable();
+
 enum Color {
   Color_Red = 1,
   Color_Green = 2,
@@ -332,6 +358,9 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return InParentNamespaceTypeTable();
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -374,6 +403,9 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MonsterTypeTable();
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -420,6 +452,9 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TestSimpleTableWithEnumTypeTable();
+  }
   enum {
     VT_COLOR = 4
   };
@@ -480,6 +515,9 @@ struct StatT : public flatbuffers::NativeTable {
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StatTypeTable();
+  }
   enum {
     VT_ID = 4,
     VT_VAL = 6,
@@ -623,6 +661,9 @@ struct MonsterT : public flatbuffers::NativeTable {
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MonsterTypeTable();
+  }
   enum {
     VT_POS = 4,
     VT_MANA = 6,
@@ -1261,6 +1302,9 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TypeAliasesTypeTable();
+  }
   enum {
     VT_I8 = 4,
     VT_U8 = 6,
@@ -1889,32 +1933,6 @@ inline void AnyUnion::Reset() {
   value = nullptr;
   type = Any_NONE;
 }
-
-}  // namespace Example
-
-inline flatbuffers::TypeTable *InParentNamespaceTypeTable();
-
-namespace Example2 {
-
-inline flatbuffers::TypeTable *MonsterTypeTable();
-
-}  // namespace Example2
-
-namespace Example {
-
-inline flatbuffers::TypeTable *TestTypeTable();
-
-inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
-
-inline flatbuffers::TypeTable *Vec3TypeTable();
-
-inline flatbuffers::TypeTable *AbilityTypeTable();
-
-inline flatbuffers::TypeTable *StatTypeTable();
-
-inline flatbuffers::TypeTable *MonsterTypeTable();
-
-inline flatbuffers::TypeTable *TypeAliasesTypeTable();
 
 inline flatbuffers::TypeTable *ColorTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
