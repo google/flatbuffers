@@ -647,11 +647,11 @@ class Parser : public ParserState {
                                                   size_t fieldn,
                                                   const StructDef *parent_struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseMetaData(SymbolTable<Value> *attributes);
-  FLATBUFFERS_CHECKED_ERROR TryTypedValue(int dtoken, bool check, Value &e,
+  FLATBUFFERS_CHECKED_ERROR TryTypedValue(const std::string *name, int dtoken, bool check, Value &e,
                                           BaseType req, bool *destmatch);
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR TokenError();
-  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(Value &e);
+  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e);
   FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
