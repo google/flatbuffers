@@ -441,10 +441,10 @@ struct IDLOptions {
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
+        generate_hexfloat_in_json(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
-        lang_to_generate(0),
-        generate_hexfloat_in_json(false) {}
+        lang_to_generate(0) {}
 };
 
 // This encapsulates where the parser is in the current source file.
