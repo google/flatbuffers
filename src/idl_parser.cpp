@@ -648,7 +648,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    ECHECK(ParseSingleValue(field->name, field->value));
+    ECHECK(ParseSingleValue(&field->name, field->value));
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
@@ -878,11 +878,11 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
         ECHECK(ParseHash(val, field));
       } else {
-        ECHECK(ParseSingleValue(field ? field->name : "", val));
+        ECHECK(ParseSingleValue(field ? &field->name : nullptr, val));
       }
       break;
     }
-    default: ECHECK(ParseSingleValue(field ? field->name : "", val)); break;
+    default: ECHECK(ParseSingleValue(field ? &field->name : nullptr, val)); break;
   }
   return NoError();
 }
@@ -1201,7 +1201,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       attributes->Add(name, e);
       if (Is(':')) {
         NEXT();
-        ECHECK(ParseSingleValue(name, *e));
+        ECHECK(ParseSingleValue(&name, *e));
       }
       if (Is(')')) {
         NEXT();
@@ -1213,7 +1213,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(const std::string &name, int dtoken, bool check, Value &e,
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken, bool check, Value &e,
                                    BaseType req, bool *destmatch) {
   bool match = dtoken == token_;
   if (match) {
@@ -1226,7 +1226,7 @@ CheckedError Parser::TryTypedValue(const std::string &name, int dtoken, bool che
         return Error(std::string("type mismatch: expecting: ") +
                      kTypeNames[e.type.base_type] +
                      ", found: " + kTypeNames[req] +
-                     ", name: " + name +
+                     ", name: " + (name ? *name : "") +
                      ", value: " + e.constant);
       }
     }
@@ -1312,7 +1312,7 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
-CheckedError Parser::ParseSingleValue(const std::string &name, Value &e) {
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e) {
   // First see if this could be a conversion function:
   if (token_ == kTokenIdentifier && *cursor_ == '(') {
     auto functionname = attribute_;
