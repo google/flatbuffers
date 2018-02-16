@@ -541,24 +541,28 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
-// Check stringify of an default enum value to json
-void JsonDefaultTest(bool useHexfloat=false) {
+void LoadMonsterSchema(flatbuffers::Parser& parser)
+{
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
-                                false, &schemafile), true);
+    false, &schemafile), true);
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+    flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
-
+    include_test_path.c_str(), nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+}
+
+// Check stringify of an default enum value to json
+void JsonDefaultTest() {
+  flatbuffers::Parser parser;
+  LoadMonsterSchema(parser);
+
   // create incomplete monster and store to json
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
-  parser.opts.generate_hexfloat_in_json = useHexfloat;
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("default_enum");
   MonsterBuilder color_monster(builder);
@@ -570,17 +574,111 @@ void JsonDefaultTest(bool useHexfloat=false) {
   // default value of the "color" field is Blue
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
   // default value of the "testf" field is 3.14159
-  if(useHexfloat)
-    TEST_EQ(std::string::npos != jsongen.find("testf: 0x1.921fa0p+1"), true);
-  else
-    TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
-
+  TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 
   // Try to read the json data again
   parser.builder_.Clear();
   TEST_EQ(true, parser.Parse(jsongen.c_str()));
   auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
   TEST_EQ(3.14159, deserializedMonster->testf());
+}
+
+std::string SerializeMonsterWithFloat(float value)
+{
+  flatbuffers::Parser parser;
+  LoadMonsterSchema(parser);
+
+  flatbuffers::FlatBufferBuilder builder;
+  auto name = builder.CreateString("foobar");
+  MonsterBuilder monster(builder);
+  monster.add_testf(value);
+  monster.add_name(name);
+  FinishMonsterBuffer(builder, monster.Finish());
+  std::string jsongen;
+  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  return jsongen;
+}
+
+void JsonNaNAndInfinityTest()
+{
+  flatbuffers::Parser parser;
+  LoadMonsterSchema(parser);
+
+  // Testing serialization of special values
+  auto jsongen = SerializeMonsterWithFloat((float)strtod("NaN", nullptr));
+  TEST_EQ(std::string::npos != jsongen.find("testf: \"nan\""), true);
+  jsongen = SerializeMonsterWithFloat((float)strtod("infinity", nullptr));
+  TEST_EQ(std::string::npos != jsongen.find("testf: \"inf\""), true);
+  jsongen = SerializeMonsterWithFloat((float)strtod("-infinity", nullptr));
+  TEST_EQ(std::string::npos != jsongen.find("testf: \"-inf\""), true);
+
+  // Testing deserialization of NaN special strings
+  std::vector<std::string> nanValues;
+  nanValues.push_back("nan");
+  nanValues.push_back("NaN");
+  for (auto it = nanValues.begin(); it != nanValues.end(); ++it)
+  {
+    parser.builder_.Clear();
+    std::stringstream ss;
+    ss << "{testf: \"" << *it << "\", name: \"a\"}";
+    TEST_EQ(true, parser.Parse(ss.str().c_str()));
+    auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
+    TEST_EQ(true, isnan(deserializedMonster->testf()));
+  }
+
+  // Testing deserialization of infinity special strings
+  std::vector<std::string> infinityValues;
+  infinityValues.push_back("infinity");
+  infinityValues.push_back("-infinity");
+  infinityValues.push_back("Infinity");
+  infinityValues.push_back("-Infinity");
+  infinityValues.push_back("inf");
+  infinityValues.push_back("-inf");
+  infinityValues.push_back("Inf");
+  infinityValues.push_back("-Inf");
+
+  for (auto it = infinityValues.begin(); it != infinityValues.end(); ++it)
+  {
+    parser.builder_.Clear();
+    std::stringstream ss;
+    ss << "{testf: \"" << *it << "\", name: \"a\"}";
+    TEST_EQ(true, parser.Parse(ss.str().c_str()));
+    auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
+    TEST_EQ(true, isinf(deserializedMonster->testf()));
+  }
+}
+
+void JsonHexfloatText()
+{
+  auto testRoundTrip = [](float value, const char* expectedString) {
+    // serialize value
+    flatbuffers::Parser parser;
+    LoadMonsterSchema(parser);
+    parser.opts.generate_hexfloat_in_json = true;
+    auto name = parser.builder_.CreateString("foobar");
+    MonsterBuilder monster(parser.builder_);
+    monster.add_testf(value);
+    monster.add_name(name);
+    FinishMonsterBuffer(parser.builder_, monster.Finish());
+    std::string jsongen;
+    auto result = GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+
+    // Expect value
+    TEST_EQ(true, result);
+    TEST_EQ(std::string::npos != jsongen.find(expectedString), true);
+
+    // Deserialize value
+    parser.builder_.Clear();
+    std::stringstream ss;
+    ss << "{testf: " << expectedString << ", name: \"a\"}";
+    TEST_EQ(true, parser.Parse(ss.str().c_str()));
+    auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
+    TEST_EQ(value, deserializedMonster->testf());
+  };
+
+  testRoundTrip(3.15532552f, "0x1.93e1b40p+1");
+  testRoundTrip(-3.15532552f, "-0x1.93e1b40p+1");
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -1981,7 +2079,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   EndianSwapTest();
 
   JsonDefaultTest();
-  JsonDefaultTest(true);
+  JsonNaNAndInfinityTest();
+  JsonHexfloatText();
 
   FlexBuffersTest();
 

@@ -428,18 +428,16 @@ CheckedError Parser::Next() {
           if (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X')) {
             cursor_++;
             while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
-            if (*cursor_ != '.') // Otherwise it might be a hexfloat, so lets handle this scenario down below
-            {
+            if (*cursor_ != '.') {
               attribute_.append(start + 2, cursor_);
               attribute_ = NumToString(static_cast<int64_t>(
                 StringToUInt(attribute_.c_str(), nullptr, 16)));
               token_ = kTokenIntegerConstant;
               return NoError();
-            }
-            else
-            {
+            } else {
               cursor_++;
-              while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++; // hexfloat
+              // See whether this float is represented int hexfloat notation.
+              while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
               if (*cursor_ == 'p' || *cursor_ == 'P') {
                 cursor_++;
                 if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
@@ -483,6 +481,22 @@ bool Parser::Is(int t) { return t == token_; }
 
 bool Parser::IsIdent(const char *id) {
   return token_ == kTokenIdentifier && attribute_ == id;
+}
+
+bool Parser::IsSpecialFloat()
+{
+  return token_ == kTokenStringConstant && (
+    attribute_ == "Infinity" ||
+    attribute_ == "-Infinity" ||
+    attribute_ == "infinity" ||
+    attribute_ == "-infinity" ||
+    attribute_ == "Inf" ||
+    attribute_ == "-Inf" ||
+    attribute_ == "inf" ||
+    attribute_ == "-inf" ||
+    attribute_ == "NaN" ||
+    attribute_ == "nan"
+  );
 }
 
 // Expect a given token to be next, consume it, or error if not present.
@@ -1355,7 +1369,10 @@ CheckedError Parser::ParseSingleValue(Value &e) {
              e.type.base_type != BASE_TYPE_BOOL &&
              e.type.base_type != BASE_TYPE_NONE &&
              (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
-    if (IsIdentifierStart(attribute_[0])) {  // Enum value.
+    if (IsFloat(e.type.base_type) && IsSpecialFloat()) {
+      e.constant = attribute_;
+      NEXT();
+    } else if (IsIdentifierStart(attribute_[0])) {  // Enum value.
       int64_t val;
       ECHECK(ParseEnumFromString(e.type, &val));
       e.constant = NumToString(val);

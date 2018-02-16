@@ -92,6 +92,9 @@ template<typename T> std::string FloatToString(T t, int precision) {
     // Strip trailing zeroes. If it is a whole number, keep one zero.
     s.resize(p + (s[p] == '.' ? 2 : 1));
   }
+  // If we have a special float let's serialize them as strings
+  if (isnan(t) || isinf(t))
+    return "\"" + s + "\"";
   return s;
 }
 
@@ -103,17 +106,33 @@ template<> inline std::string NumToString(double t) {
 }
 
 // According to IEEE Standard 754 7 significant decimals suffice to represent
-// a double precisely. But we use 6, as in many cases the last digit is 
+// a float precisely. But we use 6, as in many cases the last digit is 
 // often responsible for not having a condensed output.
 template<> inline std::string NumToString(float t) {
   return FloatToString(t, 6);
 }
 
-template<typename T> inline std::string FloatToStringtStringHex(T t) {
-  std::stringstream ss;
-  ss << std::hexfloat;
-  ss << t;
-  return ss.str();
+template<typename T> inline std::string FloatToStringHex(T t) {
+  return NumToString(t);
+}
+
+template<typename T> inline std::string FloatToStringHex(T t, int precision)
+{
+  char buffer[32];
+  if (isnan(t) || isinf(t)) {
+    snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
+  } else {
+    snprintf(buffer, sizeof(buffer), "%.*a", precision, (double)t);
+  }
+  return buffer;
+}
+
+template<> inline std::string FloatToStringHex(float t) {
+  return FloatToStringHex(t, 7);
+}
+
+template<> inline std::string FloatToStringHex(double t) {
+  return FloatToStringHex(t, 13);
 }
 
 // Convert an integer value to a hexadecimal string.

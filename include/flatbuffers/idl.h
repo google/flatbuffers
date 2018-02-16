@@ -599,6 +599,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
   bool Is(int t);
   bool IsIdent(const char *id);
+  bool IsSpecialFloat();
   FLATBUFFERS_CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t);
   EnumDef *LookupEnum(const std::string &id);
