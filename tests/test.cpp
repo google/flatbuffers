@@ -1931,67 +1931,50 @@ void EndianSwapTest() {
 
 void Base64InerTest() {
   struct _B64T {
-    static std::vector<uint8_t> Decode(const std::string &base64,
-                                       const int base64_mode,
-                                       size_t *const err_pos = nullptr) {
+    static std::vector<uint8_t> Decode(
+        const std::string &base64, const flatbuffers::Base64Mode base64_mode,
+        size_t *const err_pos = nullptr) {
       if (err_pos) *err_pos = 0;
       std::vector<uint8_t> out;
       const auto indat = base64.c_str();
       const auto inlen = base64.size();
-      // decode-size can fail if input sequence is bad
+      // DecodeSize can fail if the input sequence is bad.
       const auto req_size =
           flatbuffers::Base64DecodedSize(base64_mode, indat, inlen, err_pos);
-      // decode-size can fail if input sequence is bad
       if (req_size > 0) {
-        // allocate memory for result
+        // Allocate memory for a result.
         out.resize(req_size);
-        // Android doesn't support data() for std::vector/std::string
         const auto out_data = flatbuffers::vector_data(out);
         const auto out_size = out.size();
-        // check violation of memory boundary, must return zero
+        // Insufficient memory test must return zero.
         TEST_EQ(
             flatbuffers::Base64Decode(base64_mode, indat, inlen, out_data,
                                       req_size ? (req_size - 1) : 0, err_pos),
             0);
-        // check that none of a bytes have been changed
+        // Check that none of bytes have been changed if insufficient memory.
         TEST_EQ(out.end() == std::upper_bound(out.begin(), out.end(), 0), true);
-        // DECODE can fail if input sequence is bad
+        // Decode can fail if the input sequence is bad.
         const auto rc = flatbuffers::Base64Decode(base64_mode, indat, inlen,
                                                   out_data, out_size, err_pos);
-        // reset result if failed
+        // Reset the result if decode failed.
         if (rc != req_size) out.clear();
       }
       return out;
     }
 
     static std::string Encode(const std::vector<uint8_t> &bin,
-                              const int base64_mode) {
-      // Android doesn't support data() for std::vector/std::string
-      const auto indat = bin.empty() ? nullptr : &bin[0];
-      const auto inlen = bin.size();
-      const auto req_size =
-          flatbuffers::Base64EncodedSize(base64_mode, indat, inlen);
-      // output length must be non-zero, if an input is non-empty sequence
-      TEST_EQ(req_size > 0, inlen > 0);
-      // check size estimator
-      std::vector<char> out(req_size);
-      const auto out_data = flatbuffers::vector_data(out);
-      const auto out_size = out.size();
-      // check violation of memory boundary, must return zero
-      TEST_EQ(flatbuffers::Base64Encode(base64_mode, indat, inlen, out_data,
-                                        req_size ? (req_size - 1) : 0),
-              0);
-      // check that none of a bytes have been changed
-      TEST_EQ(out.end() == std::upper_bound(out.begin(), out.end(), 0), true);
-      // ENCODE
-      const auto rc2 = flatbuffers::Base64Encode(base64_mode, indat, inlen,
-                                                 out_data, out_size);
-      TEST_EQ(rc2, req_size);
-      return std::string(out_data, out_size);
+                              const flatbuffers::Base64Mode base64_mode) {
+      std::string text;
+      flatbuffers::Base64Encode(base64_mode, flatbuffers::vector_data(bin),
+                                bin.size(), &text);
+      // Output must be non-empty if an input is non-empty.
+      TEST_EQ(text.empty(), bin.empty());
+      return text;
     }
 
-    static std::string Test(const std::string &input, const int dec_mode,
-                            const int enc_mode,
+    static std::string Test(const std::string &input,
+                            const flatbuffers::Base64Mode dec_mode,
+                            const flatbuffers::Base64Mode enc_mode,
                             size_t *const err_pos = nullptr) {
       auto dec = Decode(input, dec_mode, err_pos);
       return dec.empty() ? "" : Encode(dec, enc_mode);
@@ -1999,20 +1982,21 @@ void Base64InerTest() {
   };
 
   static const size_t B64ModeNum = 2;
-  const int BaseSet[B64ModeNum] = { flatbuffers::kBase64Standard,
-                                    flatbuffers::kBase64UrlSafe };
+  const flatbuffers::Base64Mode BaseSet[B64ModeNum] = {
+    flatbuffers::Base64ModeStandard, flatbuffers::Base64ModeUrlSafe
+  };
   // clang-format off
-  // Padding is mandatory for the strict Base64 and optional for Base64Url.
-  // Base64Url can decode base64 encoded using the strict Base64 encoder.
+  // The padding is optional both for Standard and UrlSafe decoders.
+  // Standard decoder can't decode a UrlSafe string.
   const bool expects[B64ModeNum * B64ModeNum] = {
-      true,  true, // enc: Strict
-      false, true, // enc: Url
-  //    |     |_______dec: Url
-  //    |_____________dec: Strict
+      true,  true, // encoder: Standard
+      false, true, // encoder: UrlSafe
+  //    |     |_______decoder: UrlSafe
+  //    |_____________decoder: Standard
   };
   // clang-format on
 
-  // auto-generated combinatoric encode-decode loop for
+  // Auto-generated encode-decode loop:
   for (size_t enc_index = 0; enc_index < B64ModeNum; enc_index++) {
     const auto enc_mode = BaseSet[enc_index];
     for (size_t dec_index = 0; dec_index < B64ModeNum; dec_index++) {
@@ -2023,18 +2007,19 @@ void Base64InerTest() {
       size_t k = 0;
       for (k = 0; k < N; k++) {
         const auto M = (k % (B - 1));
-        // generate binary data
+        // Generate a binary data.
         std::vector<uint8_t> bin(M);
         for (size_t j = 0; j < M; j++) {
           bin[j] = static_cast<uint8_t>(((k + j) % B) % 0x100);
         }
+        // Check: Binary->Encode->Decode->Compare.
         auto res = _B64T::Decode(_B64T::Encode(bin, enc_mode), dec_mode);
         if (res != bin) break;
       }
       TEST_EQ((N == k), match_expects);
     }
   }
-  // error position detector test
+  // Test of error position detector.
   size_t epos = 0;
   for (size_t mode_ind = 0; mode_ind < B64ModeNum; mode_ind++) {
     const auto mode = BaseSet[mode_ind];
@@ -2046,27 +2031,33 @@ void Base64InerTest() {
       TEST_EQ(epos, (k / 4) * 4);
     }
   }
-  // determend sequences test
-  // clang-format off
-  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Standard,
-                            flatbuffers::kBase64Standard, &epos).c_str(),
+  // Test using predefined base64 sequences.
+  const auto b64std = flatbuffers::Base64ModeStandard;
+  const auto b64url = flatbuffers::Base64ModeUrlSafe;
+  const auto b64urlwop = flatbuffers::Base64ModeUrlSafeWithoutPadding;
+  // Input is a standard RFC4648 sequence.
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", b64std, b64std, &epos).c_str(),
               "/43+AergFA==");
   TEST_EQ(epos, 13);
-  TEST_EQ_STR(_B64T::Test("/43+AergFA==", flatbuffers::kBase64Standard,
-                            flatbuffers::kBase64UrlSafe, &epos).c_str(),
+  // Input is RFC4648 sequence without padding.
+  TEST_EQ_STR(_B64T::Test("/43+AergFA", b64std, b64std, &epos).c_str(),
+              "/43+AergFA==");
+  TEST_EQ(epos, 11);
+  // Test with the standard decoder and url-safe encoder.
+  TEST_EQ_STR(_B64T::Test("/43+AergFA==", b64std, b64url, &epos).c_str(),
               "_43-AergFA==");
   TEST_EQ(epos, 13);
-  TEST_EQ_STR(_B64T::Test("_43-AergFA", flatbuffers::kBase64UrlSafe,
-                            flatbuffers::kBase64UrlSafe, &epos).c_str(),
+  // Test with url-safe decoder and encoder.
+  TEST_EQ_STR(_B64T::Test("_43-AergFA==", b64url, b64url, &epos).c_str(),
+              "_43-AergFA==");
+  TEST_EQ(epos, 13);
+  // Test using base64 string without padding symbols.
+  TEST_EQ_STR(_B64T::Test("_43-AergFA", b64url, b64url, &epos).c_str(),
               "_43-AergFA==");
   TEST_EQ(epos, 11);
-  // cancel padding for Base64Url encoder
-  TEST_EQ_STR(_B64T::Test("_43-AergFA==", flatbuffers::kBase64UrlSafe,
-                          (flatbuffers::kBase64UrlSafe |
-                           flatbuffers::kBase64CancelPadding),
-                          &epos).c_str(),
+  // Cancel output padding for Base64Url encoder.
+  TEST_EQ_STR(_B64T::Test("_43-AergFA==", b64url, b64urlwop, &epos).c_str(),
               "_43-AergFA");
-  // clang-format on
 }
 
 void JsonBase64Test() {

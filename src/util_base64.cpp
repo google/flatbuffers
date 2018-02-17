@@ -4,15 +4,17 @@
 
 namespace flatbuffers {
 
-// return number of written bytes if success or zero if an error.
-// error condition: (src_size!=0 && ret==0)
-// return number of bytes requred for decoding if condition:
-// ((nullptr == dst) && (0 == dst_size))
-// <error_position> MUST be not-null
-static size_t decode_b64(const int mode, const char *const src,
-                         const size_t src_size, uint8_t *const dst,
-                         const size_t dst_size, size_t *const error_position) {
-  // strict base64 table (RFC 4648)
+// Base64 Decoder implementaton.
+// 1) If condition ((nullptr == dst) && (0 == dst_size)) is satisfied,
+// returns the number of bytes, need to save a decoded result.
+// 2) Returns the number of bytes written to the destination memory.
+// Returned Zero indicates nothing was written.
+// Error condition: (src_size!=0 && ret==0).
+static size_t B64DecodeImpl(const int mode, const char *const src,
+                            const size_t src_size, uint8_t *const dst,
+                            const size_t dst_size,
+                            size_t *const error_position) {
+  // Standard base64 table (RFC 4648).
   static const uint8_t strict_table[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -30,7 +32,7 @@ static size_t decode_b64(const int mode, const char *const src,
     64, 64, 64, 64, 64, 64, 64, 64, 64
   };
 
-  // Base 64 Encoding with URL and Filename Safe Alphabet, allow "+/-_"
+  // Mixed table with URL and Filename Safe Alphabet and Standard symbols.
   static const uint8_t url_table[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -47,36 +49,34 @@ static size_t decode_b64(const int mode, const char *const src,
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
     64, 64, 64, 64, 64, 64, 64, 64, 64
   };
-  if (error_position) *error_position = 0;
-  const auto b64_tbl = (mode & kBase64UrlSafe) ? url_table : strict_table;
-  // padding always is optional for decoder
-  const auto padding_mandatory = false;
-  // base64 decode transform 4 encoded charaters to 3 data bytes
+  *error_position = 0;
   if (0 == src_size) return 0;
-  // decode prepare stage
-  // number of perfect char[4] blocks
+  const auto b64_tbl = (mode == Base64ModeStandard) ? strict_table : url_table;
+  // The base64 decoder transforms 4 encoded characters to 3 data bytes.
+  // Prepare stage:
+  // Number of perfect char[4] blocks.
   auto C4full = src_size / 4;
-  // number of remained characters in the last char[4] block
+  // Number of remained characters in the last char[4] block.
   auto C4rem = src_size % 4;
-  // if C4rem==0, then move the last char[4] block to remainder
+  // If C4rem==0, then move the last char[4] block to remainder.
   if (C4rem == 0) {
     C4full = C4full - 1;
     C4rem = 4;
   }
-  // the C4rem is strictly positive value from: {1,2,3,4}
-  // build char[4] perfect block for the remainder
-  // if padding is mandatory, sets incomplete characters as invalid symbols
-  // if it is optional, sets to zero symbol ('A')
-  char last_enc4[4];
+  // The C4rem is strictly positive value from: {1,2,3,4}.
+  // Build char[4] perfect block for the remainder.
+  // If padding is mandatory, preset incomplete characters as invalid symbols
+  // ('#'). If it is optional, preset as zero symbols ('A').
+  // Now, padding is optional for the decoder.
+  char last_enc4[4] = { 'A', 'A', 'A', 'A' };
   uint8_t last_dec3[3];
-  memset(&last_enc4[0], padding_mandatory ? '#' : 'A', 4);
-  // copy available bytes
+  // Make the local copy of the remainder.
   memcpy(&last_enc4[0], &src[C4full * 4], C4rem);
-  // guest for size of last decoded block, can be 1,2 or 3
+  // Size of the last decoded block can be 1,2 or 3.
   auto last_dec_len = C4rem - 1;
-  // encoded sequence can has padding '=' symbols at the last char[4] block
-  // in this case are allowed only two variants: {x,y,=,=} or {x,y,z,=}
-  // replace '=' by 'zeros' and recalculate decoded size of the last block
+  // The input sequence can have padding symbols '=' in the last char[4] block.
+  // In this case are allowed only two variants: {x,y,=,=} or {x,y,z,=}.
+  // Replace '=' by 'zeros' and recalculate decoded size of the last block.
   if (last_enc4[3] == '=') {
     last_dec_len = 2;
     last_enc4[3] = 'A';
@@ -85,58 +85,64 @@ static size_t decode_b64(const int mode, const char *const src,
       last_enc4[2] = 'A';
     }
   }
-  // calculate size of decoded sequence if it has no errors
+  // Size of the decoded sequence if it has no errors.
   const auto decoded_len = (C4full * 3 + last_dec_len);
-  // if requested the only number of required bytes for decoding, return it
+  // If requested the only the number of required bytes for decoding, return it.
   if ((nullptr == dst) && (0 == dst_size)) return decoded_len;
-  // insufficient memory test
+  // Insufficient memory test.
   if (dst_size < decoded_len) return 0;
-  // decode loop:
-  // at first iteration decode the last block
+
+  // Main decode loop:
+  // At the first iteration decode the last block (remainder).
   auto dst_ = &last_dec3[0];
   const char *src_ = &last_enc4[0];
-  // loop counter: the last block plus all perfect blocks
+  // Loop counter: the last block plus all perfect blocks.
   auto loop_cnt = (1 + C4full);
-  // error mask can take only two states: (0)-ok and (1)-fail
-  // type of <err_mask> must match with unsigned <loop_cnt>
+  // Error mask can take only two states: (0)-ok and (1)-fail.
+  // Type of <err_mask> must match with unsigned <loop_cnt>.
   auto err_mask = loop_cnt * 0;
-  // use (err_mask - 1) = {0,~0} as conditional gate for the loop_cnt
+  // Use (err_mask - 1) = {0,~0} as conditional gate for the loop_cnt.
   for (size_t k = 0; loop_cnt & (err_mask - 1); loop_cnt--, k++) {
     const auto a0 = b64_tbl[static_cast<uint8_t>(src_[0])];
     const auto a1 = b64_tbl[static_cast<uint8_t>(src_[1])];
     const auto a2 = b64_tbl[static_cast<uint8_t>(src_[2])];
     const auto a3 = b64_tbl[static_cast<uint8_t>(src_[3])];
-    // decode by RFC 4648 alghorithm
+    // Decode by RFC4648 algorithm.
     dst_[0] = ((a0 << 2) | (a1 >> 4)) & 0xff;
     dst_[1] = ((a1 << 4) | (a2 >> 2)) & 0xff;
     dst_[2] = ((a2 << 6) | (a3 >> 0)) & 0xff;
-    // extract 0x40 bit from all decoded bytes and transform to {0,1}
+    // Extract 0x40 bit from all decoded bytes and transform to {0,1}.
     err_mask = ((a0 | a1 | a2 | a3) >> 6);
     src_ = src + (k * 4);
     dst_ = dst + (k * 3);
   }
+
   const auto done = (0 == err_mask);
   if (done) {
-    // copy the last decoded block to destanation
+    // Copy the decoded remainder to the destination.
     memcpy(&dst[C4full * 3], &last_dec3[0], last_dec_len);
     *error_position = (src_size + 1);
   } else {
-    // number of blocks processed and written to [src] memory
+    // If an error detected:
+    // Number of blocks processed and written to [src] memory:
     const auto indx = C4full - loop_cnt;
-    // reject writen data
+    // Reject written data.
     memset(dst, 0, indx * 3);
-    // seve position of corrupted characters
+    // Save a position of corrupted character.
     *error_position = 4 * (indx ? (indx - 1) : C4full);
   }
   return done ? decoded_len : 0;
 }
 
-// return number of written bytes or zero if error.
-// return number of bytes requred for decoding if:
-// ((nullptr == dst) && (0 == dst_size))
-static size_t encode_b64(const int mode, const uint8_t *const src,
-                         const size_t src_size, char *const dst,
-                         const size_t dst_size) {
+// Base64 Encoder implementaton.
+// 1) If condition ((nullptr == dst) && (0 == dst_size)) is satisfied,
+// returns the number of bytes, need to save a encoded result.
+// 2) Returns the number of bytes written to the destination memory.
+// Returned Zero indicates nothing was written.
+// Error condition: (src_size!=0 && ret==0).
+static size_t B64EncodeImpl(const int mode, const uint8_t *const src,
+                            const size_t src_size, char *const dst,
+                            const size_t dst_size) {
   static const char strict_table[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -152,33 +158,35 @@ static size_t encode_b64(const int mode, const uint8_t *const src,
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_'
   };
-
-  const auto b64_tbl = (mode & kBase64UrlSafe) ? url_table : strict_table;
-  // padding mandatory for standard base64, and managed for base64url
-  auto cancel_pad = (mode & kBase64UrlSafe) && (mode & kBase64CancelPadding);
-  // base64 encode transform 3 data bytes to 4 encoded charaters
   if (0 == src_size) return 0;
-  // number of complete blocks
+  const auto b64_tbl = (mode == Base64ModeStandard) ? strict_table : url_table;
+  // Padding is mandatory for the standard "base64" mode.
+  // The padding can be canceled by the user for the "base64url" mode.
+  auto cancel_pad = (Base64ModeUrlSafeWithoutPadding == mode);
+  // The base64 encoder transforms 3 data bytes to 4 encoded characters.
+  // Number of complete blocks:
   auto B3full = src_size / 3;
-  // incomplete remainder
+  // Size of remainder:
   auto B3rem = src_size % 3;
-  // if B3rem, then move the last comlete block to remainder
+  // If B3rem, then move the last complete block to remainder.
   if (B3rem == 0) {
     B3full = B3full - 1;
     B3rem = 3;
   }
-  // if pad is mandatory, the remainder shall be encoded to the complete char[4]
+  // If the padding is mandatory, the remainder shall be encoded to a complete
+  // char[4] sequence.
   const auto last_enc_len = cancel_pad ? (B3rem + 1) : 4;
   const auto encoded_len = (B3full * 4) + last_enc_len;
-  // if requested the only number of required bytes for encoding, return it
+  // If requested the only number of required bytes for encoding, return it.
   if ((nullptr == dst) && (0 == dst_size)) return encoded_len;
-  // insufficient memory test
+  // Insufficient memory test.
   if (dst_size < encoded_len) return 0;
-  // encode loop
+
+  // Main encode loop:
   char last_enc4[4];
   uint8_t last_bin3[3] = { 0, 0, 0 };
   memcpy(&last_bin3[0], &src[B3full * 3], B3rem);
-  // complemented remainder encoded first
+  // First, process the complemented remainder.
   const uint8_t *src_ = &last_bin3[0];
   auto dst_ = &last_enc4[0];
   for (size_t k = 0; k < B3full + 1; k++) {
@@ -189,42 +197,52 @@ static size_t encode_b64(const int mode, const uint8_t *const src,
     src_ = src + (k * 3);
     dst_ = dst + (k * 4);
   }
-  // set padding ({a,_,_}=>{'x','y','=','='}, {a,b,_}=>{'x','y','z','='})
+  // Set padding ({a,_,_}=>{'x','y','=','='}, {a,b,_}=>{'x','y','z','='}).
   if (B3rem < 3) last_enc4[3] = '=';
   if (B3rem < 2) last_enc4[2] = '=';
-  // copy remainder
+  // Copy remainder.
   memcpy(&dst[B3full * 4], &last_enc4[0], last_enc_len);
   return encoded_len;
 }
 
-size_t Base64DecodedSize(int base64_mode, const char *src, size_t src_size,
-                         size_t *error_position) {
+size_t Base64DecodedSize(Base64Mode base64_mode, const char *src,
+                         size_t src_size, size_t *error_position) {
   size_t err_pos = 0;
-  auto rc = decode_b64(base64_mode, src, src_size, nullptr, 0, &err_pos);
+  auto rc = B64DecodeImpl(base64_mode, src, src_size, nullptr, 0, &err_pos);
   if (error_position) *error_position = err_pos;
   return rc;
 }
 
-size_t Base64Decode(int base64_mode, const char *src, size_t src_size,
+size_t Base64Decode(Base64Mode base64_mode, const char *src, size_t src_size,
                     uint8_t *dst, size_t dst_size, size_t *error_position) {
   size_t err_pos = 0;
   size_t rc = 0;
-  // if 0==dst_size && nullptr==src function decode_b64 return required size
-  // avoid this by check dst_size>0
+  // If (0==dst_size) && (nullptr==src) then decode_b64 return the required size.
+  // Avoid this by check (dst_size>0).
   if (dst_size > 0) {
-    rc = decode_b64(base64_mode, src, src_size, dst, dst_size, &err_pos);
+    rc = B64DecodeImpl(base64_mode, src, src_size, dst, dst_size, &err_pos);
   }
   if (error_position) *error_position = err_pos;
   return rc;
 }
 
-size_t Base64EncodedSize(int base64_mode, const uint8_t *src, size_t src_size) {
-  return encode_b64(base64_mode, src, src_size, nullptr, 0);
+void Base64Encode(Base64Mode base64_mode, const uint8_t *src, size_t src_size,
+                  std::string *_text) {
+  const auto req_size = B64EncodeImpl(base64_mode, src, src_size, nullptr, 0);
+  if (req_size > 0) {
+    // std::string is a contiguous memory container since C++11.
+    // data() + i == &operator[](i) for every i in [0, size()].	(since C++11)
+    // http://en.cppreference.com/w/cpp/string/basic_string/data
+    // http://en.cppreference.com/w/cpp/string/basic_string/operator_at
+    // https://stackoverflow.com/questions/39200665/directly-write-into-char-buffer-of-stdstring
+
+    // Allocate memory for a result.
+    std::string &text = *_text;
+    const auto text_pos = text.size();
+    // Character '#' is out of the base64 alphabet.
+    text.append(req_size, '#');
+    B64EncodeImpl(base64_mode, src, src_size, &text[text_pos], req_size);
+  }
 }
 
-size_t Base64Encode(int base64_mode, const uint8_t *src, size_t src_size,
-                    char *dst, size_t dst_size) {
-  if (0 == dst_size) return 0;
-  return encode_b64(base64_mode, src, src_size, dst, dst_size);
-}
 }  // namespace flatbuffers

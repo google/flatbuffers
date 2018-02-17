@@ -73,47 +73,26 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
   return true;
 }
 
-// Print a vector as base64-encoded string
-template<typename T>
-bool PrintVectorBase64(const Vector<T> &v, Type type, int indent,
-                       const IDLOptions &opts, std::string *_text,
-                       const FieldDef *fd) {
-  (void)type;
-  (void)indent;
-  auto b64mode = field_base64_mode(fd);
-  // leave if the Filed doesn't have base64 attribute
-  if (!b64mode || (type.base_type != BASE_TYPE_UCHAR)) return false;
-
-  b64mode |= opts.base64_cancel_padding ? kBase64CancelPadding : 0;
-  // Print a sequence of [uint8_t] as base64-encoded string
-  // type T can by any, not only uint8_t
-  const auto *src = reinterpret_cast<const uint8_t *>(v.data());
-  const auto src_size = v.size();
-  const auto req_size = Base64EncodedSize(b64mode, src, src_size);
-  if ((0 == req_size) && (src_size > 0)) return false;
-  std::vector<char> buf(req_size);  // temporary buffer
-  auto b64_len = Base64Encode(b64mode, src, src_size,
-                              flatbuffers::vector_data(buf), buf.size());
-  if ((0 == b64_len) && (src_size > 0)) return false;
-  // copy data from temporary to the string
-  std::string &text = *_text;
-  text += "\"";
-  text.append(flatbuffers::vector_data(buf), buf.size());
-  text += "\"";
-  return true;
-}
-
 // Print a vector a sequence of JSON values, comma separated, wrapped in "[]".
 template<typename T>
 bool PrintVector(const Vector<T> &v, Type type, int indent,
                  const IDLOptions &opts, std::string *_text,
                  const FieldDef *fd = nullptr) {
-  // try to print UCHAR array as base64, if the Filed has base64 attribute
-  if ((type.base_type == BASE_TYPE_UCHAR) &&
-      PrintVectorBase64<T>(v, type, indent, opts, _text, fd))
-    return true;
-
   std::string &text = *_text;
+
+  // Try to print UCHAR array as base64 string.
+  if (type.base_type == BASE_TYPE_UCHAR) {
+    auto b64mode = FieldGetBase64Mode(fd);
+    if (b64mode) {
+      text += "\"";
+      Base64Encode(
+          opts.base64_cancel_padding ? Base64CancelPadding(b64mode) : b64mode,
+          reinterpret_cast<const uint8_t *>(v.data()), v.size(), &text);
+      text += "\"";
+      return true;
+    }
+  }
+
   text += "[";
   text += NewLine(opts);
   for (uoffset_t i = 0; i < v.size(); i++) {

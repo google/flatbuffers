@@ -896,10 +896,10 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       break;
     }
     case BASE_TYPE_VECTOR: {
-      if ((token_ == kTokenStringConstant) && field_base64_mode(field)) {
+      if ((token_ == kTokenStringConstant) && FieldGetBase64Mode(field)) {
         uoffset_t off;
         ECHECK(ParseVectorBase64(val.type.VectorType(),
-                                 field_base64_mode(field), &off));
+                                 FieldGetBase64Mode(field), &off));
         val.constant = NumToString(off);
       } else if (Is('[')) {
         uoffset_t off;
@@ -1203,14 +1203,15 @@ CheckedError Parser::ParseVectorBase64(const Type &type, const int base64_mode,
   const auto src_data = attribute_.c_str();
   const auto src_size = attribute_.size();
   size_t err_pos = 0;
-  // calculate number of required bytes
+  Base64Mode b64mode = static_cast<Base64Mode>(base64_mode);
+  // Calculate a number of required bytes.
   auto decoded_size =
-      Base64DecodedSize(base64_mode, src_data, src_size, &err_pos);
+      Base64DecodedSize(b64mode, src_data, src_size, &err_pos);
   if (decoded_size > 0) {
     uint8_t *dst = nullptr;
     *ovalue = builder_.CreateUninitializedVector(decoded_size, 1, &dst);
-    // Base64Decode return number of written bytes or zero if error detected
-    decoded_size = Base64Decode(base64_mode, src_data, src_size, dst,
+    // Base64Decode return number of written bytes or zero if error detected.
+    decoded_size = Base64Decode(b64mode, src_data, src_size, dst,
                                 decoded_size, &err_pos);
   }
   if ((0 == decoded_size) && (src_size > 0)) {
