@@ -93,7 +93,7 @@ template<typename T> std::string FloatToString(T t, int precision) {
     s.resize(p + (s[p] == '.' ? 2 : 1));
   }
   // If we have a special float let's serialize them as strings
-  if (isnan(t) || isinf(t))
+  if (::isnan(t) || ::isinf(t))
     return "\"" + s + "\"";
   return s;
 }
@@ -119,7 +119,7 @@ template<typename T> inline std::string FloatToStringHex(T t) {
 template<typename T> inline std::string FloatToStringHex(T t, int precision)
 {
   char buffer[32];
-  if (isnan(t) || isinf(t)) {
+  if (::isnan(t) || ::isinf(t)) {
     snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
   } else {
     snprintf(buffer, sizeof(buffer), "%.*a", precision, (double)t);
