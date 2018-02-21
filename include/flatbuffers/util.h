@@ -54,8 +54,8 @@
 #endif
 #include <cfloat>
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
-// MSVC <= 2010 has no snprintf defined but _snprintf
+#if defined(_MSC_VER) && _MSC_VER <= 1700
+// MSVC <= 2012 has no snprintf defined but _snprintf
 #define snprintf _snprintf
 #endif
 
@@ -159,7 +159,7 @@ template<typename T> inline std::string FloatToStringHex(T t) {
 template<typename T> inline std::string FloatToStringHex(T t, int precision)
 {
   char buffer[32];
-  assert(precision < sizeof(buffer) - 1);
+  assert(static_cast<unsigned int>(precision) < sizeof(buffer) - 1);
   if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t)) {
     snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
   } else {
