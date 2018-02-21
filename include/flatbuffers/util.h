@@ -54,11 +54,16 @@
 #endif
 #include <cfloat>
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+// MSVC <= 2010 has no snprintf defined but _snprintf
+#define snprintf _snprintf
+#endif
+
 namespace flatbuffers {
 
 template<typename T> bool is_nan(T val) {
 #ifdef _WIN32
-  return _isnan(val);
+  return _isnan(val) != NULL;
 #else
 # ifdef FLATBUFFERS_USE_STD_CMATH
   return std::isnan(val);
@@ -154,6 +159,7 @@ template<typename T> inline std::string FloatToStringHex(T t) {
 template<typename T> inline std::string FloatToStringHex(T t, int precision)
 {
   char buffer[32];
+  assert(precision < sizeof(buffer) - 1);
   if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t)) {
     snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
   } else {
