@@ -624,7 +624,7 @@ void JsonNaNAndInfinityTest()
     ss << "{testf: \"" << *it << "\", name: \"a\"}";
     TEST_EQ(true, parser.Parse(ss.str().c_str()));
     auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
-    TEST_EQ(true, isnan(deserializedMonster->testf()));
+    TEST_EQ(true, flatbuffers::is_nan(deserializedMonster->testf()));
   }
 
   // Testing deserialization of infinity special strings
@@ -645,7 +645,7 @@ void JsonNaNAndInfinityTest()
     ss << "{testf: \"" << *it << "\", name: \"a\"}";
     TEST_EQ(true, parser.Parse(ss.str().c_str()));
     auto deserializedMonster = flatbuffers::GetRoot<Monster>(parser.builder_.GetBufferPointer());
-    TEST_EQ(true, isinf(deserializedMonster->testf()));
+    TEST_EQ(true, flatbuffers::is_inf(deserializedMonster->testf()));
   }
 }
 

@@ -43,7 +43,38 @@
 
 #include "flatbuffers/base.h"
 
+#if __cplusplus >= 201103L
+#include <cmath>
+#define FLATBUFFERS_USE_STD_CMATH
+#elif _GLIBCXX_USE_C99_MATH && !_GLIBCXX_USE_C99_FP_MACROS_DYNAMIC
+#include <cmath>
+#define FLATBUFFERS_USE_STD_CMATH
+#else
+#include <math.h>
+#endif
+#include <cfloat>
+
 namespace flatbuffers {
+
+template<typename T> bool is_nan(T val) {
+#if _WIN32
+  return _isnan(val);
+#elif FLATBUFFERS_USE_STD_CMATH
+  return std::isnan(val);
+#else
+  return isnan(val);
+#endif
+}
+
+template<typename T> bool is_inf(T val) {
+#if _WIN32
+  return (_fpclass(val) & (_FPCLASS_NINF | _FPCLASS_PINF)) != 0;
+#elif FLATBUFFERS_USE_STD_CMATH
+  return std::isinf(val);
+#else
+  return isinf(val);
+#endif
+}
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
@@ -93,7 +124,7 @@ template<typename T> std::string FloatToString(T t, int precision) {
     s.resize(p + (s[p] == '.' ? 2 : 1));
   }
   // If we have a special float let's serialize them as strings
-  if (::isnan(t) || ::isinf(t))
+  if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t))
     return "\"" + s + "\"";
   return s;
 }
@@ -119,7 +150,7 @@ template<typename T> inline std::string FloatToStringHex(T t) {
 template<typename T> inline std::string FloatToStringHex(T t, int precision)
 {
   char buffer[32];
-  if (::isnan(t) || ::isinf(t)) {
+  if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t)) {
     snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
   } else {
     snprintf(buffer, sizeof(buffer), "%.*a", precision, (double)t);
