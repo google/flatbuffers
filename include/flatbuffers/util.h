@@ -57,22 +57,26 @@
 namespace flatbuffers {
 
 template<typename T> bool is_nan(T val) {
-#if _WIN32
+#ifdef _WIN32
   return _isnan(val);
-#elif FLATBUFFERS_USE_STD_CMATH
-  return std::isnan(val);
 #else
+# ifdef FLATBUFFERS_USE_STD_CMATH
+  return std::isnan(val);
+# else
   return isnan(val);
+# endif
 #endif
 }
 
 template<typename T> bool is_inf(T val) {
-#if _WIN32
+#ifdef _WIN32
   return (_fpclass(val) & (_FPCLASS_NINF | _FPCLASS_PINF)) != 0;
-#elif FLATBUFFERS_USE_STD_CMATH
-  return std::isinf(val);
 #else
+# ifdef FLATBUFFERS_USE_STD_CMATH
+  return std::isinf(val);
+# else
   return isinf(val);
+# endif
 #endif
 }
 
