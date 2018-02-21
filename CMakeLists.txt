@@ -120,7 +120,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
-  if (GCC_VERSION VERSION_GREATER 4.4)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
+      set(CMAKE_CXX_FLAGS
+        "${CMAKE_CXX_FLAGS} -faligned-new")
+    endif()
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result \
                           -Wunused-parameter -Werror=unused-parameter")
@@ -249,6 +253,8 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   target_link_libraries(grpctest grpc++_unsecure grpc_unsecure gpr pthread dl)
 endif()
 
+include(CMake/Version.cmake)
+
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
 
@@ -256,8 +262,9 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
+  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake"
+      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 

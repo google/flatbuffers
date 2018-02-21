@@ -314,10 +314,7 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   JavaGRPCGenerator(const Parser &parser, const std::string &path,
                     const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "." /*separator*/),
-        parser_(parser),
-        path_(path),
-        file_name_(file_name) {}
+      : BaseGenerator(parser, path, file_name, "", "." /*separator*/) {}
 
   bool generate() {
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
@@ -335,10 +332,6 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
     }
     return true;
   }
-
- protected:
-  const Parser &parser_;
-  const std::string &path_, &file_name_;
 };
 
 bool GenerateJavaGRPC(const Parser &parser, const std::string &path,

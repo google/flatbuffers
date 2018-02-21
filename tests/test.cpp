@@ -928,7 +928,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 }
 
 void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
-  auto s = flatbuffers::FlatBufferToString(flatbuf, MonsterTypeTable());
+  auto s = flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
   TEST_EQ_STR(
       s.c_str(),
       "{ "
@@ -1288,7 +1288,7 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
-  TestError("table X { Y:string = 1; }", "default values");
+  TestError("table X { Y:string = \"\"; }", "default values");
   TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
@@ -1321,7 +1321,6 @@ void ErrorTest() {
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
   TestError("table X { Y:[int]; YLength:int; }", "clash");
-  TestError("table X { Y:string = 1; }", "scalar");
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
 }
 

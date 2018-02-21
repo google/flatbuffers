@@ -161,7 +161,7 @@ inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
-  if (components.size() == 0 || !max_components) { return name; }
+  if (components.empty() || !max_components) { return name; }
   std::stringstream stream;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
     if (i) { stream << "."; }
@@ -678,10 +678,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    if (!IsScalar(type.base_type) || struct_def.fixed)
+    ECHECK(ParseSingleValue(&field->name, field->value));
+    if (!IsScalar(type.base_type) ||
+        (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
-    ECHECK(ParseSingleValue(field->value));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
@@ -907,11 +908,11 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
         ECHECK(ParseHash(val, field));
       } else {
-        ECHECK(ParseSingleValue(val));
+        ECHECK(ParseSingleValue(field ? &field->name : nullptr, val));
       }
       break;
     }
-    default: ECHECK(ParseSingleValue(val)); break;
+    default: ECHECK(ParseSingleValue(field ? &field->name : nullptr, val)); break;
   }
   return NoError();
 }
@@ -1230,7 +1231,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       attributes->Add(name, e);
       if (Is(':')) {
         NEXT();
-        ECHECK(ParseSingleValue(*e));
+        ECHECK(ParseSingleValue(&name, *e));
       }
       if (Is(')')) {
         NEXT();
@@ -1242,7 +1243,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(int dtoken, bool check, Value &e,
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken, bool check, Value &e,
                                    BaseType req, bool *destmatch) {
   bool match = dtoken == token_;
   if (match) {
@@ -1254,7 +1255,9 @@ CheckedError Parser::TryTypedValue(int dtoken, bool check, Value &e,
       } else {
         return Error(std::string("type mismatch: expecting: ") +
                      kTypeNames[e.type.base_type] +
-                     ", found: " + kTypeNames[req]);
+                     ", found: " + kTypeNames[req] +
+                     ", name: " + (name ? *name : "") +
+                     ", value: " + e.constant);
       }
     }
     NEXT();
@@ -1339,13 +1342,13 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
-CheckedError Parser::ParseSingleValue(Value &e) {
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e) {
   // First see if this could be a conversion function:
   if (token_ == kTokenIdentifier && *cursor_ == '(') {
     auto functionname = attribute_;
     NEXT();
     EXPECT('(');
-    ECHECK(ParseSingleValue(e));
+    ECHECK(ParseSingleValue(name, e));
     EXPECT(')');
     // clang-format off
     #define FLATBUFFERS_FN_DOUBLE(name, op) \
@@ -1394,17 +1397,17 @@ CheckedError Parser::ParseSingleValue(Value &e) {
     }
   } else {
     bool match = false;
-    ECHECK(TryTypedValue(kTokenIntegerConstant, IsScalar(e.type.base_type), e,
+    ECHECK(TryTypedValue(name, kTokenIntegerConstant, IsScalar(e.type.base_type), e,
                          BASE_TYPE_INT, &match));
-    ECHECK(TryTypedValue(kTokenFloatConstant, IsFloat(e.type.base_type), e,
+    ECHECK(TryTypedValue(name, kTokenFloatConstant, IsFloat(e.type.base_type), e,
                          BASE_TYPE_FLOAT, &match));
-    ECHECK(TryTypedValue(kTokenStringConstant,
+    ECHECK(TryTypedValue(name, kTokenStringConstant,
                          e.type.base_type == BASE_TYPE_STRING, e,
                          BASE_TYPE_STRING, &match));
     auto istrue = IsIdent("true");
     if (istrue || IsIdent("false")) {
       attribute_ = NumToString(istrue);
-      ECHECK(TryTypedValue(kTokenIdentifier, IsBool(e.type.base_type), e,
+      ECHECK(TryTypedValue(name, kTokenIdentifier, IsBool(e.type.base_type), e,
                            BASE_TYPE_BOOL, &match));
     }
     if (!match) return TokenError();
@@ -1525,7 +1528,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       }
       auto prevsize = enum_def.vals.vec.size();
       auto value =
-          enum_def.vals.vec.size() ? enum_def.vals.vec.back()->value + 1 : 0;
+          !enum_def.vals.vec.empty() ? enum_def.vals.vec.back()->value + 1 : 0;
       auto &ev = *new EnumVal(value_name, value);
       if (enum_def.vals.Add(value_name, &ev))
         return Error("enum value already exists: " + value_name);
