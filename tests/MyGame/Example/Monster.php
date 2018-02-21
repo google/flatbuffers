@@ -537,21 +537,96 @@ class Monster extends Table
     }
 
     /**
+     * @returnVectorOffset
+     */
+    public function getVectorOfStrongReferrables($j)
+    {
+        $o = $this->__offset(80);
+        $obj = new Referrable();
+        return $o != 0 ? $obj->init($this->__indirect($this->__vector($o) + $j * 4), $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfStrongReferrablesLength()
+    {
+        $o = $this->__offset(80);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getCoOwningReference()
+    {
+        $o = $this->__offset(82);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfCoOwningReferences($j)
+    {
+        $o = $this->__offset(84);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfCoOwningReferencesLength()
+    {
+        $o = $this->__offset(84);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getNonOwningReference()
+    {
+        $o = $this->__offset(86);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfNonOwningReferences($j)
+    {
+        $o = $this->__offset(88);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfNonOwningReferencesLength()
+    {
+        $o = $this->__offset(88);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(38);
+        $builder->StartObject(43);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references)
     {
-        $builder->startObject(38);
+        $builder->startObject(43);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -589,6 +664,11 @@ class Monster extends Table
         self::addVectorOfReferrables($builder, $vector_of_referrables);
         self::addSingleWeakReference($builder, $single_weak_reference);
         self::addVectorOfWeakReferences($builder, $vector_of_weak_references);
+        self::addVectorOfStrongReferrables($builder, $vector_of_strong_referrables);
+        self::addCoOwningReference($builder, $co_owning_reference);
+        self::addVectorOfCoOwningReferences($builder, $vector_of_co_owning_references);
+        self::addNonOwningReference($builder, $non_owning_reference);
+        self::addVectorOfNonOwningReferences($builder, $vector_of_non_owning_references);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1291,6 +1371,128 @@ class Monster extends Table
      * @return void
      */
     public static function startVectorOfWeakReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfStrongReferrables(FlatBufferBuilder $builder, $vectorOfStrongReferrables)
+    {
+        $builder->addOffsetX(38, $vectorOfStrongReferrables, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfStrongReferrablesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfStrongReferrablesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addCoOwningReference(FlatBufferBuilder $builder, $coOwningReference)
+    {
+        $builder->addUlongX(39, $coOwningReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfCoOwningReferences(FlatBufferBuilder $builder, $vectorOfCoOwningReferences)
+    {
+        $builder->addOffsetX(40, $vectorOfCoOwningReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfCoOwningReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfCoOwningReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addNonOwningReference(FlatBufferBuilder $builder, $nonOwningReference)
+    {
+        $builder->addUlongX(41, $nonOwningReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfNonOwningReferences(FlatBufferBuilder $builder, $vectorOfNonOwningReferences)
+    {
+        $builder->addOffsetX(42, $vectorOfNonOwningReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfNonOwningReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfNonOwningReferencesVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(8, $numElems, 8);
     }
