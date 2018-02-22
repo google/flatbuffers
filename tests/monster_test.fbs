@@ -44,6 +44,10 @@ table Stat {
   count:ushort;
 }
 
+table Referrable {
+  id:ulong(key, hash:"fnv1a_64");
+}
+
 /// an example documentation comment: monster object
 table Monster {
   pos:Vec3 (id: 0);
@@ -82,6 +86,9 @@ table Monster {
   vector_of_longs:[long] (id:32);
   vector_of_doubles:[double] (id:33);
   parent_namespace_test:InParentNamespace (id:34);
+  vector_of_referrables:[Referrable](id:35);
+  single_weak_reference:ulong(id:36, hash:"fnv1a_64", cpp_type:"ReferrableT");
+  vector_of_weak_references:[ulong](id:37, hash:"fnv1a_64", cpp_type:"ReferrableT");
 }
 
 table TypeAliases {
