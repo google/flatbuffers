@@ -13,6 +13,10 @@ struct TableInNestedNS;
 
 struct StructInNestedNS;
 
+inline flatbuffers::TypeTable *TableInNestedNSTypeTable();
+
+inline flatbuffers::TypeTable *StructInNestedNSTypeTable();
+
 enum EnumInNestedNS {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
@@ -54,9 +58,6 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
   StructInNestedNS() {
     memset(this, 0, sizeof(StructInNestedNS));
   }
-  StructInNestedNS(const StructInNestedNS &_o) {
-    memcpy(this, &_o, sizeof(StructInNestedNS));
-  }
   StructInNestedNS(int32_t _a, int32_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
         b_(flatbuffers::EndianScalar(_b)) {
@@ -77,6 +78,9 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
 STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TableInNestedNSTypeTable();
+  }
   enum {
     VT_FOO = 4
   };
@@ -118,10 +122,6 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
   builder_.add_foo(foo);
   return builder_.Finish();
 }
-
-inline flatbuffers::TypeTable *TableInNestedNSTypeTable();
-
-inline flatbuffers::TypeTable *StructInNestedNSTypeTable();
 
 inline flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {

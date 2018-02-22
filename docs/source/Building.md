@@ -5,7 +5,7 @@ Building    {#flatbuffers_guide_building}
 
 The distribution comes with a `cmake` file that should allow
 you to build project/make files for any platform. For details on `cmake`, see
-<http://www.cmake.org>. In brief, depending on your platform, use one of
+<https://www.cmake.org>. In brief, depending on your platform, use one of
 e.g.:
 
     cmake -G "Unix Makefiles"

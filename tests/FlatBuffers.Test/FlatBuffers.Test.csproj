@@ -68,6 +68,9 @@
     <Compile Include="..\MyGame\Example\Monster.cs">
       <Link>MyGame\Example\Monster.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\Referrable.cs">
+      <Link>MyGame\Example\Referrable.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Stat.cs">
       <Link>MyGame\Example\Stat.cs</Link>
     </Compile>

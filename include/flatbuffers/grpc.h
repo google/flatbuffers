@@ -30,13 +30,12 @@ namespace grpc {
 // `grpc_slice` and also provides flatbuffers-specific helpers such as `Verify`
 // and `GetRoot`. Since it is backed by a `grpc_slice`, the underlying buffer
 // is refcounted and ownership is be managed automatically.
-template <class T>
-class Message {
+template<class T> class Message {
  public:
   Message() : slice_(grpc_empty_slice()) {}
 
   Message(grpc_slice slice, bool add_ref)
-    : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
+      : slice_(add_ref ? grpc_slice_ref(slice) : slice) {}
 
   Message &operator=(const Message &other) = delete;
 
@@ -105,14 +104,16 @@ class SliceAllocator : public Allocator {
   }
 
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
-                                       size_t new_size) override {
+                                       size_t new_size, size_t in_use_back,
+                                       size_t in_use_front) override {
     assert(old_p == GRPC_SLICE_START_PTR(slice_));
     assert(old_size == GRPC_SLICE_LENGTH(slice_));
     assert(new_size > old_size);
     grpc_slice old_slice = slice_;
     grpc_slice new_slice = grpc_slice_malloc(new_size);
     uint8_t *new_p = GRPC_SLICE_START_PTR(new_slice);
-    memcpy(new_p + (new_size - old_size), old_p, old_size);
+    memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
+                    in_use_front);
     slice_ = new_slice;
     grpc_slice_unref(old_slice);
     return new_p;
@@ -137,7 +138,7 @@ namespace detail {
 struct SliceAllocatorMember {
   SliceAllocator slice_allocator_;
 };
-}
+}  // namespace detail
 
 // MessageBuilder is a gRPC-specific FlatBufferBuilder that uses SliceAllocator
 // to allocate gRPC buffers.
@@ -145,7 +146,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
   explicit MessageBuilder(uoffset_t initial_size = 1024)
-    : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
+      : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
@@ -155,9 +156,8 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   // GetMessage extracts the subslice of the buffer corresponding to the
   // flatbuffers-encoded region and wraps it in a `Message<T>` to handle buffer
   // ownership.
-  template <class T>
-  Message<T> GetMessage() {
-    auto buf_data = buf_.buf();       // pointer to memory
+  template<class T> Message<T> GetMessage() {
+    auto buf_data = buf_.scratch_data();       // pointer to memory
     auto buf_size = buf_.capacity();  // size of memory
     auto msg_data = buf_.data();      // pointer to msg
     auto msg_size = buf_.size();      // size of msg
@@ -178,8 +178,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     return msg;
   }
 
-  template <class T>
-  Message<T> ReleaseMessage() {
+  template<class T> Message<T> ReleaseMessage() {
     Message<T> msg = GetMessage<T>();
     Reset();
     return msg;
@@ -194,8 +193,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
 
 namespace grpc {
 
-template <class T>
-class SerializationTraits<flatbuffers::grpc::Message<T>> {
+template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
  public:
   static grpc::Status Serialize(const flatbuffers::grpc::Message<T> &msg,
                                 grpc_byte_buffer **buffer, bool *own_buffer) {
@@ -237,19 +235,19 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
     grpc_byte_buffer_destroy(buffer);
-    #if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
+#if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
     return ::grpc::Status::OK;
-    #else
+#else
     if (msg->Verify()) {
       return ::grpc::Status::OK;
     } else {
       return ::grpc::Status(::grpc::StatusCode::INTERNAL,
                             "Message verification failed");
     }
-    #endif
+#endif
   }
 };
 
-}  // namespace grpc;
+}  // namespace grpc
 
 #endif  // FLATBUFFERS_GRPC_H_

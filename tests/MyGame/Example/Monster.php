@@ -490,21 +490,68 @@ class Monster extends Table
     }
 
     /**
+     * @returnVectorOffset
+     */
+    public function getVectorOfReferrables($j)
+    {
+        $o = $this->__offset(74);
+        $obj = new Referrable();
+        return $o != 0 ? $obj->init($this->__indirect($this->__vector($o) + $j * 4), $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfReferrablesLength()
+    {
+        $o = $this->__offset(74);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getSingleWeakReference()
+    {
+        $o = $this->__offset(76);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfWeakReferences($j)
+    {
+        $o = $this->__offset(78);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfWeakReferencesLength()
+    {
+        $o = $this->__offset(78);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(35);
+        $builder->StartObject(38);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references)
     {
-        $builder->startObject(35);
+        $builder->startObject(38);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -539,6 +586,9 @@ class Monster extends Table
         self::addVectorOfLongs($builder, $vector_of_longs);
         self::addVectorOfDoubles($builder, $vector_of_doubles);
         self::addParentNamespaceTest($builder, $parent_namespace_test);
+        self::addVectorOfReferrables($builder, $vector_of_referrables);
+        self::addSingleWeakReference($builder, $single_weak_reference);
+        self::addVectorOfWeakReferences($builder, $vector_of_weak_references);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1165,6 +1215,84 @@ class Monster extends Table
     public static function addParentNamespaceTest(FlatBufferBuilder $builder, $parentNamespaceTest)
     {
         $builder->addOffsetX(34, $parentNamespaceTest, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfReferrables(FlatBufferBuilder $builder, $vectorOfReferrables)
+    {
+        $builder->addOffsetX(35, $vectorOfReferrables, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfReferrablesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfReferrablesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addSingleWeakReference(FlatBufferBuilder $builder, $singleWeakReference)
+    {
+        $builder->addUlongX(36, $singleWeakReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfWeakReferences(FlatBufferBuilder $builder, $vectorOfWeakReferences)
+    {
+        $builder->addOffsetX(37, $vectorOfWeakReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfWeakReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfWeakReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
     }
 
     /**
