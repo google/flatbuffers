@@ -122,7 +122,7 @@ public class Table {
         cr.throwException();
       }
     } catch (CharacterCodingException x) {
-      throw new Error(x);
+      throw new RuntimeException(x);
     }
 
     return dst.flip().toString();
