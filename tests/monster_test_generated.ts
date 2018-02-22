@@ -684,6 +684,89 @@ static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 }
 /**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class Referrable {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {Referrable}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {Referrable=} obj
+ * @returns {Referrable}
+ */
+static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
+  return (obj || new Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+id():flatbuffers.Long {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_id(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+static startReferrable(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} id
+ */
+static addId(builder:flatbuffers.Builder, id:flatbuffers.Long) {
+  builder.addFieldInt64(0, id, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+static endReferrable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+}
+}
+/**
  * an example documentation comment: monster object
  *
  * @constructor
@@ -1409,10 +1492,68 @@ parentNamespaceTest(obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+vectorOfReferrables(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
+  var offset = this.bb!.__offset(this.bb_pos, 74);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfReferrablesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 74);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+singleWeakReference():flatbuffers.Long {
+  var offset = this.bb!.__offset(this.bb_pos, 76);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_single_weak_reference(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 76);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfWeakReferences(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 78);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfWeakReferencesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 78);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(35);
+  builder.startObject(38);
 };
 
 /**
@@ -1898,6 +2039,72 @@ static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) 
  */
 static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset) {
   builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfReferrablesOffset
+ */
+static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} singleWeakReference
+ */
+static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:flatbuffers.Long) {
+  builder.addFieldInt64(36, singleWeakReference, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfWeakReferencesOffset
+ */
+static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
 };
 
 /**

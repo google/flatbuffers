@@ -108,8 +108,18 @@ public final class Monster extends Table {
   public boolean mutateVectorOfDoubles(int j, double vector_of_doubles) { int o = __offset(70); if (o != 0) { bb.putDouble(__vector(o) + j * 8, vector_of_doubles); return true; } else { return false; } }
   public MyGame.InParentNamespace parentNamespaceTest() { return parentNamespaceTest(new MyGame.InParentNamespace()); }
   public MyGame.InParentNamespace parentNamespaceTest(MyGame.InParentNamespace obj) { int o = __offset(72); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public Referrable vectorOfReferrables(int j) { return vectorOfReferrables(new Referrable(), j); }
+  public Referrable vectorOfReferrables(Referrable obj, int j) { int o = __offset(74); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int vectorOfReferrablesLength() { int o = __offset(74); return o != 0 ? __vector_len(o) : 0; }
+  public Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(__vector(o), key, bb) : null; }
+  public long singleWeakReference() { int o = __offset(76); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateSingleWeakReference(long single_weak_reference) { int o = __offset(76); if (o != 0) { bb.putLong(o + bb_pos, single_weak_reference); return true; } else { return false; } }
+  public long vectorOfWeakReferences(int j) { int o = __offset(78); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
+  public int vectorOfWeakReferencesLength() { int o = __offset(78); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vectorOfWeakReferencesAsByteBuffer() { return __vector_as_bytebuffer(78, 8); }
+  public boolean mutateVectorOfWeakReferences(int j, long vector_of_weak_references) { int o = __offset(78); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(35); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(38); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -165,6 +175,13 @@ public final class Monster extends Table {
   public static int createVectorOfDoublesVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
   public static void startVectorOfDoublesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addParentNamespaceTest(FlatBufferBuilder builder, int parentNamespaceTestOffset) { builder.addOffset(34, parentNamespaceTestOffset, 0); }
+  public static void addVectorOfReferrables(FlatBufferBuilder builder, int vectorOfReferrablesOffset) { builder.addOffset(35, vectorOfReferrablesOffset, 0); }
+  public static int createVectorOfReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVectorOfReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addSingleWeakReference(FlatBufferBuilder builder, long singleWeakReference) { builder.addLong(36, singleWeakReference, 0L); }
+  public static void addVectorOfWeakReferences(FlatBufferBuilder builder, int vectorOfWeakReferencesOffset) { builder.addOffset(37, vectorOfWeakReferencesOffset, 0); }
+  public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static void startVectorOfWeakReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name
