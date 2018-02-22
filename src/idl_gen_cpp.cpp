@@ -333,6 +333,14 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      code_ += "inline \\";
+      code_ +=
+          "const {{CPP_NAME}} *{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
+          "*buf) {";
+      code_ += "  return flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+      code_ += "}";
+      code_ += "";
+
       if (parser_.opts.mutable_buffer) {
         code_ += "inline \\";
         code_ += "{{STRUCT_NAME}} *GetMutable{{STRUCT_NAME}}(void *buf) {";
@@ -370,6 +378,12 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
+      code_ += "    flatbuffers::Verifier &verifier) {";
+      code_ += "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
+      code_ += "}";
+      code_ += "";
+
       if (parser_.file_extension_.length()) {
         // Return the extension
         code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
@@ -386,6 +400,16 @@ class CppGenerator : public BaseGenerator {
         code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
       else
         code_ += "  fbb.Finish(root);";
+      code_ += "}";
+      code_ += "";
+
+      code_ += "inline void FinishSizePrefixed{{STRUCT_NAME}}Buffer(";
+      code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
+      if (parser_.file_identifier_.length())
+        code_ += "  fbb.FinishSizePrefixed(root, {{STRUCT_NAME}}Identifier());";
+      else
+        code_ += "  fbb.FinishSizePrefixed(root);";
       code_ += "}";
       code_ += "";
 
