@@ -514,16 +514,16 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
 void SizePrefixedTest() {
   // Create size prefixed buffer.
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.FinishSizePrefixed(
+  FinishSizePrefixedMonsterBuffer(
+      fbb,
       CreateMonster(fbb, 0, 200, 300, fbb.CreateString("bob")));
 
   // Verify it.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
-  TEST_EQ(verifier.VerifySizePrefixedBuffer<Monster>(nullptr), true);
+  TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier), true);
 
   // Access it.
-  auto m = flatbuffers::GetSizePrefixedRoot<MyGame::Example::Monster>(
-      fbb.GetBufferPointer());
+  auto m = GetSizePrefixedMonster(fbb.GetBufferPointer());
   TEST_EQ(m->mana(), 200);
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");

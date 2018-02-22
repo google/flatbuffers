@@ -706,6 +706,10 @@ inline const Movie *GetMovie(const void *buf) {
   return flatbuffers::GetRoot<Movie>(buf);
 }
 
+inline const Movie *GetSizePrefixedMovie(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<Movie>(buf);
+}
+
 inline Movie *GetMutableMovie(void *buf) {
   return flatbuffers::GetMutableRoot<Movie>(buf);
 }
@@ -724,10 +728,21 @@ inline bool VerifyMovieBuffer(
   return verifier.VerifyBuffer<Movie>(MovieIdentifier());
 }
 
+inline bool VerifySizePrefixedMovieBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
+}
+
 inline void FinishMovieBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<Movie> root) {
   fbb.Finish(root, MovieIdentifier());
+}
+
+inline void FinishSizePrefixedMovieBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<Movie> root) {
+  fbb.FinishSizePrefixed(root, MovieIdentifier());
 }
 
 inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
