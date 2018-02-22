@@ -2224,6 +2224,10 @@ inline const MyGame::Example::Monster *GetMonster(const void *buf) {
   return flatbuffers::GetRoot<MyGame::Example::Monster>(buf);
 }
 
+inline const MyGame::Example::Monster *GetSizePrefixedMonster(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<MyGame::Example::Monster>(buf);
+}
+
 inline Monster *GetMutableMonster(void *buf) {
   return flatbuffers::GetMutableRoot<Monster>(buf);
 }
@@ -2242,6 +2246,11 @@ inline bool VerifyMonsterBuffer(
   return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 
+inline bool VerifySizePrefixedMonsterBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+}
+
 inline const char *MonsterExtension() {
   return "mon";
 }
@@ -2250,6 +2259,12 @@ inline void FinishMonsterBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<MyGame::Example::Monster> root) {
   fbb.Finish(root, MonsterIdentifier());
+}
+
+inline void FinishSizePrefixedMonsterBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<MyGame::Example::Monster> root) {
+  fbb.FinishSizePrefixed(root, MonsterIdentifier());
 }
 
 inline flatbuffers::unique_ptr<MonsterT> UnPackMonster(
