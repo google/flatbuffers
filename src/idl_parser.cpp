@@ -680,7 +680,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
-    switch (type.base_type) {
+    switch ((type.base_type == BASE_TYPE_VECTOR) ? type.element : type.base_type) {
       case BASE_TYPE_INT:
       case BASE_TYPE_UINT: {
         if (FindHashFunction32(hash_name->constant.c_str()) == nullptr)

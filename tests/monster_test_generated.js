@@ -697,6 +697,88 @@ MyGame.Example.Stat.endStat = function(builder) {
 };
 
 /**
+ * @constructor
+ */
+MyGame.Example.Referrable = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.Referrable}
+ */
+MyGame.Example.Referrable.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+MyGame.Example.Referrable.getRootAsReferrable = function(bb, obj) {
+  return (obj || new MyGame.Example.Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Referrable.prototype.id = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+MyGame.Example.Referrable.prototype.mutate_id = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.Referrable.startReferrable = function(builder) {
+  builder.startObject(1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} id
+ */
+MyGame.Example.Referrable.addId = function(builder, id) {
+  builder.addFieldInt64(0, id, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Referrable.endReferrable = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
  * an example documentation comment: monster object
  *
  * @constructor
@@ -1417,10 +1499,68 @@ MyGame.Example.Monster.prototype.parentNamespaceTest = function(obj) {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+MyGame.Example.Monster.prototype.vectorOfReferrables = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 74);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfReferrablesLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 74);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.singleWeakReference = function() {
+  var offset = this.bb.__offset(this.bb_pos, 76);
+  return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+MyGame.Example.Monster.prototype.mutate_single_weak_reference = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 76);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.vectorOfWeakReferences = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 78);
+  return offset ? this.bb.readUint64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfWeakReferencesLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 78);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(35);
+  builder.startObject(38);
 };
 
 /**
@@ -1906,6 +2046,72 @@ MyGame.Example.Monster.startVectorOfDoublesVector = function(builder, numElems) 
  */
 MyGame.Example.Monster.addParentNamespaceTest = function(builder, parentNamespaceTestOffset) {
   builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfReferrablesOffset
+ */
+MyGame.Example.Monster.addVectorOfReferrables = function(builder, vectorOfReferrablesOffset) {
+  builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfReferrablesVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfReferrablesVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} singleWeakReference
+ */
+MyGame.Example.Monster.addSingleWeakReference = function(builder, singleWeakReference) {
+  builder.addFieldInt64(36, singleWeakReference, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfWeakReferencesOffset
+ */
+MyGame.Example.Monster.addVectorOfWeakReferences = function(builder, vectorOfWeakReferencesOffset) {
+  builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfWeakReferencesVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfWeakReferencesVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
 };
 
 /**
