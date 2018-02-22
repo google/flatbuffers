@@ -73,6 +73,12 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
   EnsureDirExists(path.c_str());
   if (parser.opts.one_file) return path;
   std::string namespace_dir = path;  // Either empty or ends in separator.
+  const auto &prefixes = parser.opts.namespace_prefix;
+  for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+    namespace_dir += *it + kPathSeparator;
+    EnsureDirExists(namespace_dir.c_str());
+  }
+
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     namespace_dir += *it + kPathSeparator;
@@ -88,6 +94,12 @@ std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
 std::string BaseGenerator::FullNamespace(const char *separator,
                                          const Namespace &ns) {
   std::string namespace_name;
+  const auto &prefixes = parser_.opts.namespace_prefix;
+  for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+      if (namespace_name.length()) namespace_name += separator;
+      namespace_name += *it;
+  }
+
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (namespace_name.length()) namespace_name += separator;
@@ -109,6 +121,11 @@ std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
                                            const std::string &name) const {
   if (CurrentNameSpace() == ns) return name;
   std::string qualified_name = qualifying_start_;
+  const auto &prefixes = parser_.opts.namespace_prefix;
+  for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+      qualified_name += *it + qualifying_separator_;
+  }
+  
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
   return qualified_name + name;
@@ -122,6 +139,15 @@ std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   const Namespace *ns = def.defined_namespace;
   if (CurrentNameSpace() == ns) return "";
   std::string qualified_name = qualifying_start_;
+
+  const auto &prefixes = parser_.opts.namespace_prefix;
+  for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+    qualified_name += *it;
+    if ((it + 1) != prefixes.end()) {
+      qualified_name += qualifying_separator_;
+    }
+  }
+  
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
     if ((it + 1) != ns->components.end()) {

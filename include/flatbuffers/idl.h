@@ -207,6 +207,7 @@ struct Namespace {
                                     size_t max_components = 1000) const;
 
   std::vector<std::string> components;
+  std::string prefix;
   size_t from_table;  // Part of the namespace corresponds to a message/table.
 };
 
@@ -384,6 +385,7 @@ struct IDLOptions {
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
+  std::vector<std::string> namespace_prefix;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
 
