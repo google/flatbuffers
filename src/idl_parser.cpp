@@ -681,6 +681,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
     switch ((type.base_type == BASE_TYPE_VECTOR) ? type.element : type.base_type) {
+      case BASE_TYPE_SHORT:
+      case BASE_TYPE_USHORT: {
+        if (FindHashFunction16(hash_name->constant.c_str()) == nullptr)
+          return Error("Unknown hashing algorithm for 16 bit types: " +
+                       hash_name->constant);
+        break;
+      }
       case BASE_TYPE_INT:
       case BASE_TYPE_UINT: {
         if (FindHashFunction32(hash_name->constant.c_str()) == nullptr)
@@ -697,7 +704,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       }
       default:
         return Error(
-            "only int, uint, long and ulong data types support hashing.");
+            "only short, ushort, int, uint, long and ulong data types support hashing.");
     }
   }
   auto cpp_type = field->attributes.Lookup("cpp_type");
@@ -1278,6 +1285,18 @@ CheckedError Parser::ParseHash(Value &e, FieldDef *field) {
   assert(field);
   Value *hash_name = field->attributes.Lookup("hash");
   switch (e.type.base_type) {
+    case BASE_TYPE_SHORT: {
+      auto hash = FindHashFunction16(hash_name->constant.c_str());
+      int16_t hashed_value = static_cast<int16_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
+    case BASE_TYPE_USHORT: {
+      auto hash = FindHashFunction16(hash_name->constant.c_str());
+      uint16_t hashed_value = hash(attribute_.c_str());
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_INT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
       int32_t hashed_value = static_cast<int32_t>(hash(attribute_.c_str()));

@@ -26,8 +26,15 @@ int main(int argc, char *argv[]) {
   const char *name = argv[0];
   if (argc <= 1) {
     printf("%s HASH [OPTION]... STRING... [-- STRING...]\n", name);
-    printf("Available hashing algorithms:\n  32 bit:\n");
-    size_t size = sizeof(flatbuffers::kHashFunctions32) /
+    printf("Available hashing algorithms:\n");
+    printf("  16 bit:\n");
+    size_t size = sizeof(flatbuffers::kHashFunctions16) /
+                  sizeof(flatbuffers::kHashFunctions16[0]);
+    for (size_t i = 0; i < size; ++i) {
+      printf("    * %s\n", flatbuffers::kHashFunctions16[i].name);
+    }
+    printf("  32 bit:\n");
+    size = sizeof(flatbuffers::kHashFunctions32) /
                   sizeof(flatbuffers::kHashFunctions32[0]);
     for (size_t i = 0; i < size; ++i) {
       printf("    * %s\n", flatbuffers::kHashFunctions32[i].name);
@@ -48,12 +55,14 @@ int main(int argc, char *argv[]) {
 
   const char *hash_algorithm = argv[1];
 
+  flatbuffers::NamedHashFunction<uint16_t>::HashFunction hash_function16 =
+      flatbuffers::FindHashFunction16(hash_algorithm);
   flatbuffers::NamedHashFunction<uint32_t>::HashFunction hash_function32 =
       flatbuffers::FindHashFunction32(hash_algorithm);
   flatbuffers::NamedHashFunction<uint64_t>::HashFunction hash_function64 =
       flatbuffers::FindHashFunction64(hash_algorithm);
 
-  if (!hash_function32 && !hash_function64) {
+  if (!hash_function16 && !hash_function32 && !hash_function64) {
     printf("\"%s\" is not a known hash algorithm.\n", hash_algorithm);
     return 0;
   }
@@ -87,7 +96,9 @@ int main(int argc, char *argv[]) {
         ss << std::hex;
         ss << "0x";
       }
-      if (hash_function32)
+      if (hash_function16)
+        ss << hash_function16(arg);
+      else if (hash_function32)
         ss << hash_function32(arg);
       else if (hash_function64)
         ss << hash_function64(arg);

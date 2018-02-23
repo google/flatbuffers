@@ -57,11 +57,26 @@ template<typename T> T HashFnv1a(const char *input) {
   return hash;
 }
 
-template<typename T> struct NamedHashFunction {
+template <> inline uint16_t HashFnv1<uint16_t>(const char *input) {
+  uint32_t hash = HashFnv1<uint32_t>(input);
+  return (hash >> 16) ^ (hash & 0xffff);
+}
+
+template <> inline uint16_t HashFnv1a<uint16_t>(const char *input) {
+  uint32_t hash = HashFnv1a<uint32_t>(input);
+  return (hash >> 16) ^ (hash & 0xffff);
+}
+
+template <typename T> struct NamedHashFunction {
   const char *name;
 
   typedef T (*HashFunction)(const char *);
   HashFunction function;
+};
+
+const NamedHashFunction<uint16_t> kHashFunctions16[] = {
+  { "fnv1_16",  HashFnv1<uint16_t> },
+  { "fnv1a_16", HashFnv1a<uint16_t> },
 };
 
 const NamedHashFunction<uint32_t> kHashFunctions32[] = {
@@ -73,6 +88,17 @@ const NamedHashFunction<uint64_t> kHashFunctions64[] = {
   { "fnv1_64", HashFnv1<uint64_t> },
   { "fnv1a_64", HashFnv1a<uint64_t> },
 };
+
+inline NamedHashFunction<uint16_t>::HashFunction FindHashFunction16(
+    const char *name) {
+  std::size_t size = sizeof(kHashFunctions16) / sizeof(kHashFunctions16[0]);
+  for (std::size_t i = 0; i < size; ++i) {
+    if (std::strcmp(name, kHashFunctions16[i].name) == 0) {
+      return kHashFunctions16[i].function;
+    }
+  }
+  return nullptr;
+}
 
 inline NamedHashFunction<uint32_t>::HashFunction FindHashFunction32(
     const char *name) {
