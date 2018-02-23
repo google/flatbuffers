@@ -173,6 +173,27 @@ public class Table {
   }
 
   /**
+   * Initialize vector as a ByteBuffer.
+   *
+   * This is more efficient than using duplicate, since it doesn't copy the data
+   * nor allocattes a new {@link ByteBuffer}, creating no garbage to be collected.
+   *
+   * @param bb The {@link ByteBuffer} for the array
+   * @param vector_offset The position of the vector in the byte buffer
+   * @param elem_size The size of each element in the array
+   * @return The {@link ByteBuffer} for the array
+   */
+  protected ByteBuffer __vector_in_bytebuffer(ByteBuffer bb, int vector_offset, int elem_size) {
+    int o = this.__offset(vector_offset);
+    if (o == 0) return null;
+    int vectorstart = __vector(o);
+    bb.rewind();
+    bb.limit(vectorstart + __vector_len(o) * elem_size);
+    bb.position(vectorstart);
+    return bb;
+  }
+
+  /**
    * Initialize any Table-derived type to point to the union at the given `offset`.
    *
    * @param t A `Table`-derived type that should point to the union at `offset`.
