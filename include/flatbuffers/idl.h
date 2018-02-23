@@ -207,7 +207,6 @@ struct Namespace {
                                     size_t max_components = 1000) const;
 
   std::vector<std::string> components;
-  std::string prefix;
   size_t from_table;  // Part of the namespace corresponds to a message/table.
 };
 
