@@ -1643,6 +1643,15 @@ template<typename T> const T *GetSizePrefixedRoot(const void *buf) {
   return GetRoot<T>(reinterpret_cast<const uint8_t *>(buf) + sizeof(uoffset_t));
 }
 
+template<typename T> const T *GetEmptyTable() {
+#if FLATBUFFERS_LITTLEENDIAN
+  static const uint8_t empty_table[] = { 0, 0, 0, 0, /* table pointer points here */ 4, 0, 0, 0 };
+#else
+  static const uint8_t empty_table[] = { 0, 0, 0, 4, 0, 0, 0, 0 };
+#endif
+  return flatbuffers::GetRoot<T>(empty_table);
+}
+
 /// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates
 /// the pointer!
