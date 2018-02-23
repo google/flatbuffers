@@ -71,6 +71,7 @@ void TestEq(T expval, U val, const char *exp, const char *file, int line) {
 
 #define TEST_EQ(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__)
 #define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
+#define TEST_NULL(exp) TestEq(exp == NULL, true, #exp, __FILE__, __LINE__)
 #define TEST_EQ_STR(exp, val) TestEqStr(exp, val, #exp, __FILE__, __LINE__)
 
 // Include simple random number generator to ensure results will be the
@@ -1901,6 +1902,21 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
+void EmptyTableTest() {
+  auto monster = flatbuffers::GetEmptyTable<Monster>();
+  TEST_NOTNULL(monster);
+  TEST_NULL(monster->enemy());
+  TEST_NULL(monster->name());
+  TEST_NULL(monster->parent_namespace_test());
+  TEST_NULL(monster->pos());
+  TEST_NULL(monster->test4());
+  TEST_NULL(monster->test5());
+  TEST_NULL(monster->testarrayofstring2());
+  TEST_NULL(monster->testempty());
+  TEST_EQ(monster->hp(), 100);
+  TEST_EQ(monster->color(), Color_Blue);
+}
+
 int main(int /*argc*/, const char * /*argv*/ []) {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -1972,6 +1988,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   FlexBuffersTest();
 
+  EmptyTableTest();
+  
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
     return 0;
