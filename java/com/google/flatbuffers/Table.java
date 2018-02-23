@@ -185,14 +185,11 @@ public class Table {
    */
   protected ByteBuffer __vector_in_bytebuffer(ByteBuffer bb, int vector_offset, int elem_size) {
     int o = this.__offset(vector_offset);
-    if (o == 0) {
-      bb.position(bb.limit());
-    } else {
-      int vectorstart = __vector(o);
-      bb.position(0);
-      bb.limit(vectorstart + __vector_len(o) * elem_size);
-      bb.position(vectorstart);
-    }
+    if (o == 0) return null;
+    int vectorstart = __vector(o);
+    bb.rewind();
+    bb.limit(vectorstart + __vector_len(o) * elem_size);
+    bb.position(vectorstart);
     return bb;
   }
 
