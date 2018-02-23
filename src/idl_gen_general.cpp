@@ -1066,6 +1066,16 @@ class GeneralGenerator : public BaseGenerator {
                                 ? 1
                                 : InlineSize(field.value.type.VectorType()));
             code += "); }\n";
+            code += "  public ByteBuffer ";
+            code += MakeCamel(field.name, lang_.first_camel_upper);
+            code += "InByteBuffer(ByteBuffer _bb) { return ";
+            code += lang_.accessor_prefix + "__vector_in_bytebuffer(_bb, ";
+            code += NumToString(field.value.offset) + ", ";
+            code +=
+                NumToString(field.value.type.base_type == BASE_TYPE_STRING
+                                ? 1
+                                : InlineSize(field.value.type.VectorType()));
+            code += "); }\n";
             break;
           case IDLOptions::kCSharp:
             code += "  public ArraySegment<byte>? Get";
