@@ -189,14 +189,13 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         if (++argi >= argc) Error("missing prefix " + arg, true);
         const std::string prefix = argv[argi];
         size_t last=0, next = 0;
-        do {
-            next=prefix.find('.',last);
-            if ( next==prefix.npos )
-                break;
+        for ( next=prefix.find('.',last); next!=prefix.npos; next=prefix.find('.',last) ) {
             opts.namespace_prefix.push_back(prefix.substr(last,next-last));
             last = next + 1;
-        } while ( next != prefix.npos );
-        opts.namespace_prefix.push_back(prefix.substr(last,prefix.npos));
+        }
+        if ( last < prefix.size() ) {
+            opts.namespace_prefix.push_back(prefix.substr(last,prefix.npos));
+        }
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];

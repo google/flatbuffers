@@ -645,9 +645,16 @@ class PythonGenerator : public BaseGenerator {
     if (!classcode.length()) return true;
 
     std::string namespace_dir = path_;
+    const auto &prefixes = parser_.opts.namespace_prefix;
+    for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+      if (namespace_dir != path_) namespace_dir += kPathSeparator;
+      namespace_dir += *it;
+      std::string init_py_filename = namespace_dir + "/__init__.py";
+      SaveFile(init_py_filename.c_str(), "", false);
+    }
     auto &namespaces = def.defined_namespace->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-      if (it != namespaces.begin()) namespace_dir += kPathSeparator;
+      if (namespace_dir != path_) namespace_dir += kPathSeparator;
       namespace_dir += *it;
       std::string init_py_filename = namespace_dir + "/__init__.py";
       SaveFile(init_py_filename.c_str(), "", false);
