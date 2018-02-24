@@ -18,7 +18,7 @@ export class TableInNestedNS {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -48,8 +48,8 @@ static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS)
  * @returns {number}
  */
 foo():number {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 };
 
 /**
@@ -57,13 +57,13 @@ foo():number {
  * @returns {boolean}
  */
 mutate_foo(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -101,7 +101,7 @@ export class StructInNestedNS {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
-  bb: flatbuffers.ByteBuffer;
+  bb: flatbuffers.ByteBuffer|null = null;
 
   /**
    * @type {number}
@@ -122,7 +122,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):StructInNestedNS {
  * @returns {number}
  */
 a():number {
-  return this.bb.readInt32(this.bb_pos);
+  return this.bb!.readInt32(this.bb_pos);
 };
 
 /**
@@ -130,13 +130,13 @@ a():number {
  * @returns {boolean}
  */
 mutate_a(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 0);
+  var offset = this.bb!.__offset(this.bb_pos, 0);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 
@@ -144,7 +144,7 @@ mutate_a(value:number):boolean {
  * @returns {number}
  */
 b():number {
-  return this.bb.readInt32(this.bb_pos + 4);
+  return this.bb!.readInt32(this.bb_pos + 4);
 };
 
 /**
@@ -152,13 +152,13 @@ b():number {
  * @returns {boolean}
  */
 mutate_b(value:number):boolean {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
   }
 
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + offset, value);
   return true;
 };
 

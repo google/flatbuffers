@@ -126,6 +126,45 @@ The following attributes are specific to the object-based API code generation:
     "native_inline", the value specified with this attribute will be included
     verbatim in the class constructor initializer list for this member.
 
+-   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
+    object-based API all generated NativeTables that  are allocated when unpacking 
+    your  flatbuffer will use "custom allocator". The allocator is also used by 
+    any std::vector that appears in a table defined with `native_custom_alloc`. 
+    This can be  used to provide allocation from a pool for example, for faster 
+    unpacking when using the object-based API.
+
+    Minimal Example:
+
+    schema:
+
+    table mytable(native_custom_alloc:"custom_allocator") {
+      ...
+    }
+
+    with custom_allocator defined before flatbuffers.h is included, as:
+
+    template <typename T> struct custom_allocator : public std::allocator<T> {
+
+      typedef T *pointer;
+
+      template <class U>
+      struct rebind { 
+        typedef custom_allocator<U> other; 
+      };
+
+      pointer allocate(const std::size_t n) {
+        return std::allocator<T>::allocate(n);
+      }
+
+      void deallocate(T* ptr, std::size_t n) {
+        return std::allocator<T>::deallocate(ptr,n);
+      }
+
+      custom_allocator() throw() {}
+      template <class U> 
+      custom_allocator(const custom_allocator<U>&) throw() {}
+    };
+
 -   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
     type exists for a given struct.  For example, the following schema:
 
@@ -290,7 +329,7 @@ performs a swap operation on big endian machines), and also because
 the layout of things is generally not known to the user.
 
 For structs, layout is deterministic and guaranteed to be the same
-accross platforms (scalars are aligned to their
+across platforms (scalars are aligned to their
 own size, and structs themselves to their largest member), and you
 are allowed to access this memory directly by using `sizeof()` and
 `memcpy` on the pointer to a struct, or even an array of structs.

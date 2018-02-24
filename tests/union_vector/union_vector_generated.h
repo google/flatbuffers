@@ -16,6 +16,14 @@ struct BookReader;
 struct Movie;
 struct MovieT;
 
+inline flatbuffers::TypeTable *AttackerTypeTable();
+
+inline flatbuffers::TypeTable *RapunzelTypeTable();
+
+inline flatbuffers::TypeTable *BookReaderTypeTable();
+
+inline flatbuffers::TypeTable *MovieTypeTable();
+
 enum Character {
   Character_NONE = 0,
   Character_MuLan = 1,
@@ -141,9 +149,6 @@ MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   Rapunzel() {
     memset(this, 0, sizeof(Rapunzel));
   }
-  Rapunzel(const Rapunzel &_o) {
-    memcpy(this, &_o, sizeof(Rapunzel));
-  }
   Rapunzel(int32_t _hair_length)
       : hair_length_(flatbuffers::EndianScalar(_hair_length)) {
   }
@@ -163,9 +168,6 @@ MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  public:
   BookReader() {
     memset(this, 0, sizeof(BookReader));
-  }
-  BookReader(const BookReader &_o) {
-    memcpy(this, &_o, sizeof(BookReader));
   }
   BookReader(int32_t _books_read)
       : books_read_(flatbuffers::EndianScalar(_books_read)) {
@@ -189,6 +191,9 @@ struct AttackerT : public flatbuffers::NativeTable {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return AttackerTypeTable();
+  }
   enum {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
@@ -246,6 +251,9 @@ struct MovieT : public flatbuffers::NativeTable {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
+  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MovieTypeTable();
+  }
   enum {
     VT_MAIN_CHARACTER_TYPE = 4,
     VT_MAIN_CHARACTER = 6,
@@ -461,6 +469,7 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
 }
 
 inline bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyCharacter(
@@ -600,14 +609,6 @@ inline void CharacterUnion::Reset() {
   type = Character_NONE;
 }
 
-inline flatbuffers::TypeTable *AttackerTypeTable();
-
-inline flatbuffers::TypeTable *RapunzelTypeTable();
-
-inline flatbuffers::TypeTable *BookReaderTypeTable();
-
-inline flatbuffers::TypeTable *MovieTypeTable();
-
 inline flatbuffers::TypeTable *CharacterTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
@@ -705,6 +706,10 @@ inline const Movie *GetMovie(const void *buf) {
   return flatbuffers::GetRoot<Movie>(buf);
 }
 
+inline const Movie *GetSizePrefixedMovie(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<Movie>(buf);
+}
+
 inline Movie *GetMutableMovie(void *buf) {
   return flatbuffers::GetMutableRoot<Movie>(buf);
 }
@@ -723,10 +728,21 @@ inline bool VerifyMovieBuffer(
   return verifier.VerifyBuffer<Movie>(MovieIdentifier());
 }
 
+inline bool VerifySizePrefixedMovieBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
+}
+
 inline void FinishMovieBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<Movie> root) {
   fbb.Finish(root, MovieIdentifier());
+}
+
+inline void FinishSizePrefixedMovieBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<Movie> root) {
+  fbb.FinishSizePrefixed(root, MovieIdentifier());
 }
 
 inline flatbuffers::unique_ptr<MovieT> UnPackMovie(

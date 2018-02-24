@@ -210,11 +210,20 @@ The `Weapon` table is a sub-table used within our FlatBuffer. It is
 used twice: once within the `Monster` table and once within the `Equipment`
 enum. For our `Monster`, it is used to populate a `vector of tables` via the
 `weapons` field within our `Monster`. It is also the only table referenced by
-the `Equipment` enum.
+the `Equipment` union.
 
 The last part of the `schema` is the `root_type`. The root type declares what
 will be the root table for the serialized data. In our case, the root type is
 our `Monster` table.
+
+The scalar types can also use alias type names such as `int16` instead
+of `short` and `float32` instead of `float`. Thus we could also write
+the `Weapon` table as:
+
+  table Weapon {
+    name:string;
+    damage:int16;
+  }
 
 #### More Information About Schemas
 
@@ -604,7 +613,7 @@ traversal. This is generally easy to do on any tree structures.
 
   // Create a `vector` representing the inventory of the Orc. Each number
   // could correspond to an item that can be claimed after he is slain.
-  unsigned char treasure = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  unsigned char treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto inventory = builder.CreateVector(treasure, 10);
 ~~~
 </div>
@@ -811,7 +820,7 @@ for the `path` field above:
 <div class="language-cpp">
 ~~~{.cpp}
   Vec3 points[] = { Vec3(1.0f, 2.0f, 3.0f), Vec3(4.0f, 5.0f, 6.0f) };
-  auto path = fbb.CreateVectorOfStructs(points, 2);
+  auto path = builder.CreateVectorOfStructs(points, 2);
 ~~~
 </div>
 <div class="language-java">
@@ -840,7 +849,7 @@ for the `path` field above:
 </div>
 <div class="language-python">
 ~~~{.py}
-  MyGame.Example.Monster.MonsterStartPathVector(builder, 2)
+  MyGame.Sample.Monster.MonsterStartPathVector(builder, 2)
   MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
   MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
   path = builder.EndVector(2)
@@ -848,7 +857,7 @@ for the `path` field above:
 </div>
 <div class="language-javascript">
 ~~~{.js}
-  MyGame.Example.Monster.startPathVector(builder, 2);
+  MyGame.Sample.Monster.startPathVector(builder, 2);
   MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
   MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
   var path = builder.endVector();
@@ -1028,13 +1037,14 @@ a bit more flexibility.
   // manually.
   MonsterBuilder monster_builder(builder);
   monster_builder.add_pos(&pos);
+  auto pos = Vec3(1.0f, 2.0f, 3.0f);
   monster_builder.add_hp(hp);
   monster_builder.add_name(name);
   monster_builder.add_inventory(inventory);
   monster_builder.add_color(Color_Red);
   monster_builder.add_weapons(weapons);
   monster_builder.add_equipped_type(Equipment_Weapon);
-  monster_builder.add_equpped(axe);
+  monster_builder.add_equpped(axe.Union());
   auto orc = monster_builder.Finish();
 ~~~
 </div>
@@ -1166,7 +1176,7 @@ appropriate `finish` method.
 <div class="language-javascript">
 ~~~{.js}
   // Call `finish()` to instruct the builder that this monster is complete.
-  builder.finish(orc); // You could also call `MyGame.Example.Monster.finishMonsterBuffer(builder,
+  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder,
                        //                                                                 orc);`.
 ~~~
 </div>
