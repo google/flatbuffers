@@ -384,6 +384,7 @@ struct IDLOptions {
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
+  std::vector<std::string> namespace_prefix;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
 

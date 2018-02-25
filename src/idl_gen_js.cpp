@@ -188,10 +188,17 @@ class JsGenerator : public BaseGenerator {
     }
 
     std::set<std::string> namespaces;
+    std::string namespace_so_far;
+
+    for (auto it = parser_.opts.namespace_prefix.begin(); it != parser_.opts.namespace_prefix.end(); ++it) {
+        if (!namespace_so_far.empty()) { namespace_so_far += '.'; }
+        namespace_so_far += *it;
+        namespaces.insert(namespace_so_far);
+    }
 
     for (auto it = parser_.namespaces_.begin(); it != parser_.namespaces_.end();
          ++it) {
-      std::string namespace_so_far;
+      namespace_so_far.clear();
 
       // Gather all parent namespaces for this namespace
       for (auto component = (*it)->components.begin();

@@ -46,66 +46,6 @@ std::string GenNativeType(BaseType type) {
   }
 }
 
-template<class T> std::string GenFullName(const T *enum_def) {
-  std::string full_name;
-  const auto &name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
-  }
-  full_name.append(enum_def->name);
-  return full_name;
-}
-
-template<class T> std::string GenTypeRef(const T *enum_def) {
-  return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
-}
-
-std::string GenType(const std::string &name) {
-  return "\"type\" : \"" + name + "\"";
-}
-
-std::string GenType(const Type &type) {
-  if (type.enum_def != nullptr && !type.enum_def->is_union) {
-    // it is a reference to an enum type
-    return GenTypeRef(type.enum_def);
-  }
-  switch (type.base_type) {
-    case BASE_TYPE_VECTOR: {
-      std::string typeline;
-      typeline.append("\"type\" : \"array\", \"items\" : { ");
-      if (type.element == BASE_TYPE_STRUCT) {
-        typeline.append(GenTypeRef(type.struct_def));
-      } else {
-        typeline.append(GenType(GenNativeType(type.element)));
-      }
-      typeline.append(" }");
-      return typeline;
-    }
-    case BASE_TYPE_STRUCT: {
-      return GenTypeRef(type.struct_def);
-    }
-    case BASE_TYPE_UNION: {
-      std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->vals.vec;
-      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        auto &union_type = *ut;
-        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-          union_type_string.append(
-              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        }
-        if (union_type != *type.enum_def->vals.vec.rbegin()) {
-          union_type_string.append(",");
-        }
-      }
-      union_type_string.append("]");
-      return union_type_string;
-    }
-    case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: return GenType(GenNativeType(type.base_type));
-  }
-}
-
 class JsonSchemaGenerator : public BaseGenerator {
  private:
   CodeWriter code_;
@@ -117,6 +57,70 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
       : BaseGenerator(base_generator) {}
+
+  template<class T> std::string GenFullName(const T *enum_def) {
+      std::string full_name;
+      const auto &prefixes = parser_.opts.namespace_prefix;
+      for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+          full_name.append(*it + "_");
+      }
+      const auto &name_spaces = enum_def->defined_namespace->components;
+      for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+          full_name.append(*ns + "_");
+      }
+      full_name.append(enum_def->name);
+      return full_name;
+  }
+    
+  template<class T> std::string GenTypeRef(const T *enum_def) {
+      return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
+  }
+
+  std::string GenType(const std::string &name) {
+      return "\"type\" : \"" + name + "\"";
+  }
+
+  std::string GenType(const Type &type) {
+      if (type.enum_def != nullptr && !type.enum_def->is_union) {
+          // it is a reference to an enum type
+          return GenTypeRef(type.enum_def);
+      }
+      switch (type.base_type) {
+      case BASE_TYPE_VECTOR: {
+          std::string typeline;
+          typeline.append("\"type\" : \"array\", \"items\" : { ");
+          if (type.element == BASE_TYPE_STRUCT) {
+              typeline.append(GenTypeRef(type.struct_def));
+          } else {
+              typeline.append(GenType(GenNativeType(type.element)));
+          }
+          typeline.append(" }");
+          return typeline;
+      }
+      case BASE_TYPE_STRUCT: {
+          return GenTypeRef(type.struct_def);
+      }
+      case BASE_TYPE_UNION: {
+          std::string union_type_string("\"anyOf\": [");
+          const auto &union_types = type.enum_def->vals.vec;
+          for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+              auto &union_type = *ut;
+              if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+              if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+                  union_type_string.append(
+                      "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+              }
+              if (union_type != *type.enum_def->vals.vec.rbegin()) {
+                  union_type_string.append(",");
+              }
+          }
+          union_type_string.append("]");
+          return union_type_string;
+      }
+      case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
+      default: return GenType(GenNativeType(type.base_type));
+      }
+  }
 
   bool generate() {
     code_.Clear();

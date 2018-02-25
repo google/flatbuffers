@@ -2557,6 +2557,7 @@ class CppGenerator : public BaseGenerator {
     // and common_prefix_size = 2
     size_t old_size = cur_name_space_ ? cur_name_space_->components.size() : 0;
     size_t new_size = ns ? ns->components.size() : 0;
+    const auto &prefixes = parser_.opts.namespace_prefix;
 
     size_t common_prefix_size = 0;
     while (common_prefix_size < old_size && common_prefix_size < new_size &&
@@ -2570,10 +2571,23 @@ class CppGenerator : public BaseGenerator {
     for (size_t j = old_size; j > common_prefix_size; --j) {
       code_ += "}  // namespace " + cur_name_space_->components[j - 1];
     }
+
+    if ( new_size == 0 ) {
+        for (auto it = prefixes.rbegin(); it != prefixes.rend();++it) {
+            code_ += "}  // namespace " + *it;
+        }
+    }
+
     if (old_size != common_prefix_size) { code_ += ""; }
 
     // open namespace parts to reach the ns namespace
     // in the previous example, E, then F, then G are opened
+    if ( old_size == 0 ) {
+        for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+            code_ += "namespace " + *it + " {";
+        }
+    }
+
     for (auto j = common_prefix_size; j != new_size; ++j) {
       code_ += "namespace " + ns->components[j] + " {";
     }

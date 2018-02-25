@@ -197,7 +197,9 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::vector<std::string> package_parts() const {
-    return parser_.current_namespace_->components;
+    std::vector<std::string> parts = parser_.opts.namespace_prefix;
+    parts.insert(parts.end(), parser_.current_namespace_->components.begin(), parser_.current_namespace_->components.end());
+    return parts;
   }
 
   std::string additional_headers() const {

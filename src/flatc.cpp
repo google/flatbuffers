@@ -111,6 +111,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --include-prefix   Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix      Keep original prefix of schema include statement.\n"
+    "  --namespace-prefix Prefix all namespaces in generated code"
+    "                     (e.g. \"com.example\" for Java modules).\n"
     "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
@@ -183,6 +185,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_js_exports = true;
       } else if (arg == "--goog-js-export") {
         opts.use_goog_js_export_format = true;
+      } else if (arg == "--namespace-prefix") {
+        if (++argi >= argc) Error("missing prefix " + arg, true);
+        const std::string prefix = argv[argi];
+        size_t last=0, next = 0;
+        for ( next=prefix.find('.',last); next!=prefix.npos; next=prefix.find('.',last) ) {
+            opts.namespace_prefix.push_back(prefix.substr(last,next-last));
+            last = next + 1;
+        }
+        if ( last < prefix.size() ) {
+            opts.namespace_prefix.push_back(prefix.substr(last,prefix.npos));
+        }
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
