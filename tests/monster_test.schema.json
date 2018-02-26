@@ -89,6 +89,13 @@
       },
       "additionalProperties" : false
     },
+    "MyGame_Example_Referrable" : {
+      "type" : "object",
+      "properties" : {
+        "id" : { "type" : "number" }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_Monster" : {
       "type" : "object",
       "description" : " an example documentation comment: monster object",
@@ -127,7 +134,10 @@
         "test5" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
         "vector_of_longs" : { "type" : "array", "items" : { "type" : "number" } },
         "vector_of_doubles" : { "type" : "array", "items" : { "type" : "number" } },
-        "parent_namespace_test" : { "$ref" : "#/definitions/MyGame_InParentNamespace" }
+        "parent_namespace_test" : { "$ref" : "#/definitions/MyGame_InParentNamespace" },
+        "vector_of_referrables" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Referrable" } },
+        "single_weak_reference" : { "type" : "number" },
+        "vector_of_weak_references" : { "type" : "array", "items" : { "type" : "number" } }
       },
       "required" : ["name"],
       "additionalProperties" : false

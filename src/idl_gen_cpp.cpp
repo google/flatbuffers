@@ -231,6 +231,18 @@ class CppGenerator : public BaseGenerator {
         code_ += "";
       }
     }
+    // Generate preablmle code for mini reflection.
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+      // To break cyclic dependencies, first pre-declare all tables/structs.
+      for (auto it = parser_.structs_.vec.begin();
+           it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          GenMiniReflectPre(&struct_def);
+        }
+      }
+    }
 
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -280,15 +292,6 @@ class CppGenerator : public BaseGenerator {
 
     // Generate code for mini reflection.
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
-      // To break cyclic dependencies, first pre-declare all tables/structs.
-      for (auto it = parser_.structs_.vec.begin();
-           it != parser_.structs_.vec.end(); ++it) {
-        const auto &struct_def = **it;
-        if (!struct_def.generated) {
-          SetNameSpace(struct_def.defined_namespace);
-          GenMiniReflectPre(&struct_def);
-        }
-      }
       // Then the unions/enums that may refer to them.
       for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
            ++it) {
@@ -330,6 +333,14 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      code_ += "inline \\";
+      code_ +=
+          "const {{CPP_NAME}} *{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
+          "*buf) {";
+      code_ += "  return flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+      code_ += "}";
+      code_ += "";
+
       if (parser_.opts.mutable_buffer) {
         code_ += "inline \\";
         code_ += "{{STRUCT_NAME}} *GetMutable{{STRUCT_NAME}}(void *buf) {";
@@ -367,6 +378,12 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
+      code_ += "    flatbuffers::Verifier &verifier) {";
+      code_ += "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
+      code_ += "}";
+      code_ += "";
+
       if (parser_.file_extension_.length()) {
         // Return the extension
         code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
@@ -383,6 +400,16 @@ class CppGenerator : public BaseGenerator {
         code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
       else
         code_ += "  fbb.Finish(root);";
+      code_ += "}";
+      code_ += "";
+
+      code_ += "inline void FinishSizePrefixed{{STRUCT_NAME}}Buffer(";
+      code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
+      if (parser_.file_identifier_.length())
+        code_ += "  fbb.FinishSizePrefixed(root, {{STRUCT_NAME}}Identifier());";
+      else
+        code_ += "  fbb.FinishSizePrefixed(root);";
       code_ += "}";
       code_ += "";
 
@@ -1340,7 +1367,9 @@ class CppGenerator : public BaseGenerator {
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
-      auto full_type = (cpp_type ? cpp_type->constant + " *" : type + " ");
+      auto full_type = (cpp_type ?
+        (field.value.type.base_type == BASE_TYPE_VECTOR ? "std::vector<" + cpp_type->constant + "*> " : cpp_type->constant + " *")
+        : type + " ");
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
@@ -1373,7 +1402,7 @@ class CppGenerator : public BaseGenerator {
                   Name(field) + "(" + native_default->constant + ")";
             }
           }
-        } else if (cpp_type) {
+        } else if (cpp_type && field.value.type.base_type != BASE_TYPE_VECTOR) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field) + "(0)";
         }
@@ -1503,6 +1532,12 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+      code_ += "  static flatbuffers::TypeTable *MiniReflectTypeTable() {";
+      code_ += "    return {{STRUCT_NAME}}TypeTable();";
+      code_ += "  }";
+    }
+
 
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
@@ -1984,6 +2019,7 @@ class CppGenerator : public BaseGenerator {
     std::string code;
     switch (field.value.type.base_type) {
       case BASE_TYPE_VECTOR: {
+        auto cpp_type = field.attributes.Lookup("cpp_type");
         std::string indexing;
         if (field.value.type.enum_def) {
           indexing += "(" + field.value.type.enum_def->name + ")";
@@ -2006,9 +2042,23 @@ class CppGenerator : public BaseGenerator {
         code += "{ _o->" + name + ".resize(_e->size()); ";
         code += "for (flatbuffers::uoffset_t _i = 0;";
         code += " _i < _e->size(); _i++) { ";
-        code += "_o->" + name + "[_i]" + access + " = ";
-        code +=
+        if (cpp_type) {
+          // Generate code that resolves the cpp pointer type, of the form:
+          //  if (resolver)
+          //    (*resolver)(&_o->field, (hash_value_t)(_e));
+          //  else
+          //    _o->field = nullptr;
+          code += "if (_resolver) ";
+          code += "(*_resolver)";
+          code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access + "), ";
+          code += "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
+          code += " else ";
+          code += "_o->" + name + "[_i]" + access + " = nullptr";
+        } else {
+          code += "_o->" + name + "[_i]" + access + " = ";
+          code +=
             GenUnpackVal(field.value.type.VectorType(), indexing, true, field);
+        }
         code += "; } }";
         break;
       }
@@ -2061,7 +2111,7 @@ class CppGenerator : public BaseGenerator {
     } else {
       value += Name(field);
     }
-    if (field.attributes.Lookup("cpp_type")) {
+    if (field.value.type.base_type != BASE_TYPE_VECTOR && field.attributes.Lookup("cpp_type")) {
       auto type = GenTypeBasic(field.value.type, false);
       value =
           "_rehasher ? "
@@ -2149,6 +2199,14 @@ class CppGenerator : public BaseGenerator {
                   field.value.type.enum_def->underlying_type, false);
               code += "_fbb.CreateVector((const " + basetype + "*)" + value +
                       ".data(), " + value + ".size())";
+            } else if (field.attributes.Lookup("cpp_type")) {
+              auto type = GenTypeBasic(vector_type, false);
+              code += "_fbb.CreateVector<" + type + ">(" + value + ".size(), ";
+              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "return __va->__rehasher ? ";
+              code += "static_cast<" + type + ">((*__va->__rehasher)";
+              code += "(__va->_" + value + "[i]" + ")) : 0";
+              code += "; }, &_va )";
             } else {
               code += "_fbb.CreateVector(" + value + ")";
             }

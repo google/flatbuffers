@@ -648,7 +648,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    ECHECK(ParseSingleValue(field->value));
+    ECHECK(ParseSingleValue(&field->name, field->value));
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
@@ -680,7 +680,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
-    switch (type.base_type) {
+    switch ((type.base_type == BASE_TYPE_VECTOR) ? type.element : type.base_type) {
+      case BASE_TYPE_SHORT:
+      case BASE_TYPE_USHORT: {
+        if (FindHashFunction16(hash_name->constant.c_str()) == nullptr)
+          return Error("Unknown hashing algorithm for 16 bit types: " +
+                       hash_name->constant);
+        break;
+      }
       case BASE_TYPE_INT:
       case BASE_TYPE_UINT: {
         if (FindHashFunction32(hash_name->constant.c_str()) == nullptr)
@@ -697,7 +704,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       }
       default:
         return Error(
-            "only int, uint, long and ulong data types support hashing.");
+            "only short, ushort, int, uint, long and ulong data types support hashing.");
     }
   }
   auto cpp_type = field->attributes.Lookup("cpp_type");
@@ -878,11 +885,11 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
         ECHECK(ParseHash(val, field));
       } else {
-        ECHECK(ParseSingleValue(val));
+        ECHECK(ParseSingleValue(field ? &field->name : nullptr, val));
       }
       break;
     }
-    default: ECHECK(ParseSingleValue(val)); break;
+    default: ECHECK(ParseSingleValue(field ? &field->name : nullptr, val)); break;
   }
   return NoError();
 }
@@ -1201,7 +1208,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       attributes->Add(name, e);
       if (Is(':')) {
         NEXT();
-        ECHECK(ParseSingleValue(*e));
+        ECHECK(ParseSingleValue(&name, *e));
       }
       if (Is(')')) {
         NEXT();
@@ -1213,7 +1220,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(int dtoken, bool check, Value &e,
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken, bool check, Value &e,
                                    BaseType req, bool *destmatch) {
   bool match = dtoken == token_;
   if (match) {
@@ -1225,7 +1232,9 @@ CheckedError Parser::TryTypedValue(int dtoken, bool check, Value &e,
       } else {
         return Error(std::string("type mismatch: expecting: ") +
                      kTypeNames[e.type.base_type] +
-                     ", found: " + kTypeNames[req]);
+                     ", found: " + kTypeNames[req] +
+                     ", name: " + (name ? *name : "") +
+                     ", value: " + e.constant);
       }
     }
     NEXT();
@@ -1276,6 +1285,18 @@ CheckedError Parser::ParseHash(Value &e, FieldDef *field) {
   assert(field);
   Value *hash_name = field->attributes.Lookup("hash");
   switch (e.type.base_type) {
+    case BASE_TYPE_SHORT: {
+      auto hash = FindHashFunction16(hash_name->constant.c_str());
+      int16_t hashed_value = static_cast<int16_t>(hash(attribute_.c_str()));
+      e.constant = NumToString(hashed_value);
+      break;
+    }
+    case BASE_TYPE_USHORT: {
+      auto hash = FindHashFunction16(hash_name->constant.c_str());
+      uint16_t hashed_value = hash(attribute_.c_str());
+      e.constant = NumToString(hashed_value);
+      break;
+    }
     case BASE_TYPE_INT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
       int32_t hashed_value = static_cast<int32_t>(hash(attribute_.c_str()));
@@ -1310,13 +1331,13 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
-CheckedError Parser::ParseSingleValue(Value &e) {
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e) {
   // First see if this could be a conversion function:
   if (token_ == kTokenIdentifier && *cursor_ == '(') {
     auto functionname = attribute_;
     NEXT();
     EXPECT('(');
-    ECHECK(ParseSingleValue(e));
+    ECHECK(ParseSingleValue(name, e));
     EXPECT(')');
     // clang-format off
     #define FLATBUFFERS_FN_DOUBLE(name, op) \
@@ -1362,17 +1383,17 @@ CheckedError Parser::ParseSingleValue(Value &e) {
     }
   } else {
     bool match = false;
-    ECHECK(TryTypedValue(kTokenIntegerConstant, IsScalar(e.type.base_type), e,
+    ECHECK(TryTypedValue(name, kTokenIntegerConstant, IsScalar(e.type.base_type), e,
                          BASE_TYPE_INT, &match));
-    ECHECK(TryTypedValue(kTokenFloatConstant, IsFloat(e.type.base_type), e,
+    ECHECK(TryTypedValue(name, kTokenFloatConstant, IsFloat(e.type.base_type), e,
                          BASE_TYPE_FLOAT, &match));
-    ECHECK(TryTypedValue(kTokenStringConstant,
+    ECHECK(TryTypedValue(name, kTokenStringConstant,
                          e.type.base_type == BASE_TYPE_STRING, e,
                          BASE_TYPE_STRING, &match));
     auto istrue = IsIdent("true");
     if (istrue || IsIdent("false")) {
       attribute_ = NumToString(istrue);
-      ECHECK(TryTypedValue(kTokenIdentifier, IsBool(e.type.base_type), e,
+      ECHECK(TryTypedValue(name, kTokenIdentifier, IsBool(e.type.base_type), e,
                            BASE_TYPE_BOOL, &match));
     }
     if (!match) return TokenError();

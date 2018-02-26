@@ -253,6 +253,8 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   target_link_libraries(grpctest grpc++_unsecure grpc_unsecure gpr pthread dl)
 endif()
 
+include(CMake/Version.cmake)
+
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
 
@@ -260,8 +262,9 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
+  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake"
+      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 
