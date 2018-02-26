@@ -532,6 +532,7 @@ class Parser : public ParserState {
     known_attributes_["idempotent"] = true;
     known_attributes_["cpp_type"] = true;
     known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["cpp_ptr_type_get"] = true;
     known_attributes_["cpp_str_type"] = true;
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;

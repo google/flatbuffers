@@ -567,6 +567,9 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GenPtrGet(const FieldDef &field) {
+    auto cpp_ptr_type_get = field.attributes.Lookup("cpp_ptr_type_get");
+    if (cpp_ptr_type_get)
+      return cpp_ptr_type_get->constant;
     auto &ptr_type = PtrType(&field);
     return ptr_type == "naked" ? "" : ".get()";
   }
