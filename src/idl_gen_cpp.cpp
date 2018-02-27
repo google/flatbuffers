@@ -1322,7 +1322,7 @@ class CppGenerator : public BaseGenerator {
                : field.value.constant;
   }
 
-  std::string GetDefaultScalarValue(const FieldDef &field) {
+  std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
       auto ev = field.value.type.enum_def->ReverseLookup(
           StringToInt(field.value.constant.c_str()), false);
@@ -1335,10 +1335,14 @@ class CppGenerator : public BaseGenerator {
     } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
       return field.value.constant == "0" ? "false" : "true";
     } else if (field.attributes.Lookup("cpp_type")) {
-      if (PtrType(&field) == "naked") {
-        return "0";
+      if (is_ctor) {
+        if (PtrType(&field) == "naked") {
+          return "nullptr";
+        } else {
+          return "";
+        }
       } else {
-        return "";
+        return "0";
       }
     } else {
       return GenDefaultConstant(field);
@@ -1363,7 +1367,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
       code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
-      code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field));
+      code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
     }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }
@@ -1402,7 +1406,7 @@ class CppGenerator : public BaseGenerator {
         if (IsScalar(field.value.type.base_type)) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field);
-          initializer_list += "(" + (native_default ? std::string(native_default->constant) : GetDefaultScalarValue(field)) + ")";
+          initializer_list += "(" + (native_default ? std::string(native_default->constant) : GetDefaultScalarValue(field, true)) + ")";
         } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
           if (IsStruct(field.value.type)) {
             if (native_default) {
