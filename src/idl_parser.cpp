@@ -1459,42 +1459,29 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
   NEXT();
   std::string enum_name = attribute_;
   EXPECT(kTokenIdentifier);
-  auto &enum_def = *new EnumDef();
-  enum_def.name = enum_name;
-  enum_def.file = file_being_parsed_;
-  enum_def.doc_comment = enum_comment;
-  enum_def.is_union = is_union;
-  enum_def.defined_namespace = current_namespace_;
-  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
-                 &enum_def))
-    return Error("enum already exists: " + enum_name);
-  if (is_union) {
-    enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
-    enum_def.underlying_type.enum_def = &enum_def;
-  } else {
-    if (opts.proto_mode) {
-      enum_def.underlying_type.base_type = BASE_TYPE_INT;
+  EnumDef *enum_def;
+  ECHECK(StartEnum(enum_name, is_union, &enum_def));
+  enum_def->doc_comment = enum_comment;
+  if (!is_union && !opts.proto_mode) {
+    // Give specialized error message, since this type spec used to
+    // be optional in the first FlatBuffers release.
+    if (!Is(':')) {
+      return Error(
+          "must specify the underlying integer type for this"
+          " enum (e.g. \': short\', which was the default).");
     } else {
-      // Give specialized error message, since this type spec used to
-      // be optional in the first FlatBuffers release.
-      if (!Is(':')) {
-        return Error(
-            "must specify the underlying integer type for this"
-            " enum (e.g. \': short\', which was the default).");
-      } else {
-        NEXT();
-      }
-      // Specify the integer type underlying this enum.
-      ECHECK(ParseType(enum_def.underlying_type));
-      if (!IsInteger(enum_def.underlying_type.base_type))
-        return Error("underlying enum type must be integral");
+      NEXT();
     }
+    // Specify the integer type underlying this enum.
+    ECHECK(ParseType(enum_def->underlying_type));
+    if (!IsInteger(enum_def->underlying_type.base_type))
+      return Error("underlying enum type must be integral");
     // Make this type refer back to the enum it was derived from.
-    enum_def.underlying_type.enum_def = &enum_def;
+    enum_def->underlying_type.enum_def = enum_def;
   }
-  ECHECK(ParseMetaData(&enum_def.attributes));
+  ECHECK(ParseMetaData(&enum_def->attributes));
   EXPECT('{');
-  if (is_union) enum_def.vals.Add("NONE", new EnumVal("NONE", 0));
+  if (is_union) enum_def->vals.Add("NONE", new EnumVal("NONE", 0));
   for (;;) {
     if (opts.proto_mode && attribute_ == "option") {
       ECHECK(ParseProtoOption());
@@ -1512,11 +1499,12 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
           std::replace(value_name.begin(), value_name.end(), '.', '_');
         }
       }
-      auto prevsize = enum_def.vals.vec.size();
-      auto value =
-          !enum_def.vals.vec.empty() ? enum_def.vals.vec.back()->value + 1 : 0;
+      auto prevsize = enum_def->vals.vec.size();
+      auto value = !enum_def->vals.vec.empty()
+          ? enum_def->vals.vec.back()->value + 1
+          : 0;
       auto &ev = *new EnumVal(value_name, value);
-      if (enum_def.vals.Add(value_name, &ev))
+      if (enum_def->vals.Add(value_name, &ev))
         return Error("enum value already exists: " + value_name);
       ev.doc_comment = value_comment;
       if (is_union) {
@@ -1526,7 +1514,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
           if (ev.union_type.base_type != BASE_TYPE_STRUCT &&
               ev.union_type.base_type != BASE_TYPE_STRING)
             return Error("union value type may only be table/struct/string");
-          enum_def.uses_type_aliases = true;
+          enum_def->uses_type_aliases = true;
         } else {
           ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
         }
@@ -1536,7 +1524,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         ev.value = StringToInt(attribute_.c_str());
         EXPECT(kTokenIntegerConstant);
         if (!opts.proto_mode && prevsize &&
-            enum_def.vals.vec[prevsize - 1]->value >= ev.value)
+            enum_def->vals.vec[prevsize - 1]->value >= ev.value)
           return Error("enum values must be specified in ascending order");
       }
       if (is_union) {
@@ -1555,18 +1543,18 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     if (Is('}')) break;
   }
   EXPECT('}');
-  if (enum_def.attributes.Lookup("bit_flags")) {
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+  if (enum_def->attributes.Lookup("bit_flags")) {
+    for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
          ++it) {
       if (static_cast<size_t>((*it)->value) >=
-          SizeOf(enum_def.underlying_type.base_type) * 8)
+          SizeOf(enum_def->underlying_type.base_type) * 8)
         return Error("bit flag out of range of underlying integral type");
       (*it)->value = 1LL << (*it)->value;
     }
   }
-  if (dest) *dest = &enum_def;
-  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def.name),
-             new Type(BASE_TYPE_UNION, nullptr, &enum_def));
+  if (dest) *dest = enum_def;
+  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
+             new Type(BASE_TYPE_UNION, nullptr, enum_def));
   return NoError();
 }
 
@@ -1856,6 +1844,24 @@ CheckedError Parser::ParseProtoDecl() {
   return NoError();
 }
 
+CheckedError Parser::StartEnum(const std::string &enum_name, bool is_union,
+                               EnumDef **dest) {
+  auto &enum_def = *new EnumDef();
+  enum_def.name = enum_name;
+  enum_def.file = file_being_parsed_;
+  enum_def.doc_comment = doc_comment_;
+  enum_def.is_union = is_union;
+  enum_def.defined_namespace = current_namespace_;
+  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
+                 &enum_def))
+    return Error("enum already exists: " + enum_name);
+  enum_def.underlying_type.base_type = is_union ? BASE_TYPE_UTYPE
+                                                : BASE_TYPE_INT;
+  enum_def.underlying_type.enum_def = &enum_def;
+  if (dest) *dest = &enum_def;
+  return NoError();
+}
+
 CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
                                       bool inside_oneof) {
   EXPECT('{');
@@ -1902,12 +1908,19 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
         }
       }
       StructDef *anonymous_struct = nullptr;
+      EnumDef *oneof_union = nullptr;
       Type type;
       if (IsIdent("group") || oneof) {
         if (!oneof) NEXT();
-        auto name = "Anonymous" + NumToString(anonymous_counter++);
-        ECHECK(StartStruct(name, &anonymous_struct));
-        type = Type(BASE_TYPE_STRUCT, anonymous_struct);
+        if (oneof && opts.proto_oneof_union) {
+          auto name = MakeCamel(attribute_, true) + "Union";
+          ECHECK(StartEnum(name, true, &oneof_union));
+          type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
+        } else {
+          auto name = "Anonymous" + NumToString(anonymous_counter++);
+          ECHECK(StartStruct(name, &anonymous_struct));
+          type = Type(BASE_TYPE_STRUCT, anonymous_struct);
+        }
       } else {
         ECHECK(ParseTypeFromProtoType(&type));
       }
@@ -1966,6 +1979,27 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       if (anonymous_struct) {
         ECHECK(ParseProtoFields(anonymous_struct, false, oneof));
         if (Is(';')) NEXT();
+      } else if (oneof_union) {
+        // Parse into a temporary StructDef, then transfer fields into an
+        // EnumDef describing the oneof as a union.
+        StructDef oneof_struct;
+        ECHECK(ParseProtoFields(&oneof_struct, false, oneof));
+        if (Is(';')) NEXT();
+        for (auto field_it = oneof_struct.fields.vec.begin();
+             field_it != oneof_struct.fields.vec.end(); ++field_it) {
+          const auto &field = **field_it;
+          const auto &type = field.value.type;
+          if (type.base_type != BASE_TYPE_STRUCT || !type.struct_def ||
+              type.struct_def->fixed)
+            return Error("oneof '" + name +
+                "' cannot be mapped to a union because member '" + field.name +
+                "' is not a table type.");
+          auto enum_val = new EnumVal(type.struct_def->name,
+                                      oneof_union->vals.vec.size());
+          enum_val->union_type = type;
+          enum_val->doc_comment = field.doc_comment;
+          oneof_union->vals.Add(field.name, enum_val);
+        }
       } else {
         EXPECT(';');
       }
