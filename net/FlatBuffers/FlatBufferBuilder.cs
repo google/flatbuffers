@@ -59,7 +59,7 @@ namespace FlatBuffers
                 throw new ArgumentOutOfRangeException("initialSize",
                     initialSize, "Must be greater than zero");
             _space = initialSize;
-            _bb = new ByteBuffer(new byte[initialSize]);
+            _bb = new ByteBuffer(initialSize);
         }
 
         /// <summary>
@@ -99,18 +99,7 @@ namespace FlatBuffers
         // the end of the new buffer (since we build the buffer backwards).
         void GrowBuffer()
         {
-            var oldBuf = _bb.Data;
-            var oldBufSize = oldBuf.Length;
-            if ((oldBufSize & 0xC0000000) != 0)
-                throw new Exception(
-                    "FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
-
-            var newBufSize = oldBufSize << 1;
-            var newBuf = new byte[newBufSize];
-
-            Buffer.BlockCopy(oldBuf, 0, newBuf, newBufSize - oldBufSize,
-                             oldBufSize);
-            _bb = new ByteBuffer(newBuf, newBufSize);
+            _bb.GrowFront(_bb.Length << 1);
         }
 
         // Prepare to write an element of `size` after `additional_bytes`
@@ -475,7 +464,7 @@ namespace FlatBuffers
             AddByte(0);
             var utf8StringLen = Encoding.UTF8.GetByteCount(s);
             StartVector(1, utf8StringLen, 1);
-            Encoding.UTF8.GetBytes(s, 0, s.Length, _bb.Data, _space -= utf8StringLen);
+            _bb.PutStringUTF8(_space -= utf8StringLen, s);
             return new StringOffset(EndVector().Value);
         }
 
@@ -643,10 +632,7 @@ namespace FlatBuffers
         /// </returns>
         public byte[] SizedByteArray()
         {
-            var newArray = new byte[_bb.Data.Length - _bb.Position];
-            Buffer.BlockCopy(_bb.Data, _bb.Position, newArray, 0,
-                             _bb.Data.Length - _bb.Position);
-            return newArray;
+            return _bb.ToSizedArray();
         }
 
         /// <summary>

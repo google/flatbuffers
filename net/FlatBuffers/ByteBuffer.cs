@@ -30,6 +30,8 @@
 //
 
 using System;
+using System.IO;
+using System.Text;
 
 namespace FlatBuffers
 {
@@ -38,13 +40,13 @@ namespace FlatBuffers
     /// </summary>
     public class ByteBuffer
     {
-        private readonly byte[] _buffer;
+        private byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
-        private int _off; // parent's position if sliced
+        private readonly int _off; // Parent's position if sliced
 
-        public int Length { get { return _buffer.Length; } }
+        public int Length { get { return _buffer.Length - _off; } }
 
-        public byte[] Data { get { return _buffer; } }
+        public ByteBuffer(int size) : this(new byte[size]) { }
 
         public ByteBuffer(byte[] buffer) : this(buffer, 0) { }
 
@@ -58,7 +60,7 @@ namespace FlatBuffers
         }
 
         public int Position {
-            get { return _pos + _off; }
+            get { return _pos; }
             set { _pos = value; }
         }
 
@@ -72,14 +74,65 @@ namespace FlatBuffers
         // from this ByteBuffer's current position.
         public ByteBuffer Slice()
         {
-            return new ByteBuffer(_buffer, 0, Position);
+            return new ByteBuffer(_buffer, 0, _off + Position);
         }
 
+        // Increases the size of the ByteBuffer, and copies the old data towards
+        // the end of the new buffer.
+        public void GrowFront(int newSize)
+        {
+            // We cannot grow slices, only the original buffers.
+            // All current slices of this buffer will become invalid.
+            if (_off > 0)
+                throw new Exception("ByteBuffer: cannot grow slices.");
+
+            if ((Length & 0xC0000000) != 0)
+                throw new Exception(
+                    "ByteBuffer: cannot grow buffer beyond 2 gigabytes.");
+
+            if (newSize < Length)
+                throw new Exception("ByteBuffer: cannot truncate buffer.");
+
+            byte[] newBuffer = new byte[newSize];
+            Buffer.BlockCopy(_buffer, 0, newBuffer, newSize - Length,
+                             Length);
+            _buffer = newBuffer;
+        }
+
+        public byte[] ToArray(int pos, int len)
+        {
+            byte[] arr = new byte[len];
+            Buffer.BlockCopy(_buffer, _off + pos, arr, 0, len);
+            return arr;
+        }
+
+        public byte[] ToSizedArray()
+        {
+            return ToArray(Position, Length - Position);
+        }
+
+        public byte[] ToFullArray()
+        {
+            return ToArray(0, Length);
+        }
+
+        public ArraySegment<byte> ToArraySegment(int pos, int len)
+        {
+            return new ArraySegment<byte>(_buffer, _off + pos, len);
+        }
+
+        public MemoryStream ToMemoryStream(int pos, int len)
+        {
+            return new MemoryStream(_buffer, _off + pos, len);
+        }
+
+#if !UNSAFE_BYTEBUFFER
         // Pre-allocated helper arrays for convertion.
         private float[] floathelper = new[] { 0.0f };
         private int[] inthelper = new[] { 0 };
         private double[] doublehelper = new[] { 0.0 };
         private ulong[] ulonghelper = new[] { 0UL };
+#endif // !UNSAFE_BYTEBUFFER
 
         // Helper functions for the unsafe version.
         static public ushort ReverseBytes(ushort input)
@@ -110,6 +163,7 @@ namespace FlatBuffers
         // Helper functions for the safe (but slower) version.
         protected void WriteLittleEndian(int offset, int count, ulong data)
         {
+            offset += _off;
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
@@ -130,6 +184,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, count);
             ulong r = 0;
+            offset += _off;
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
@@ -148,12 +203,11 @@ namespace FlatBuffers
         }
 #endif // !UNSAFE_BYTEBUFFER
 
-
         private void AssertOffsetAndLength(int offset, int length)
         {
             #if !BYTEBUFFER_NO_BOUNDS_CHECK
             if (offset < 0 ||
-                offset > _buffer.Length - length)
+                offset > Length - length)
                 throw new ArgumentOutOfRangeException();
             #endif
         }
@@ -161,18 +215,19 @@ namespace FlatBuffers
         public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
-            _buffer[offset] = (byte)value;
+            _buffer[_off + offset] = (byte)value;
         }
 
         public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
-            _buffer[offset] = value;
+            _buffer[_off + offset] = value;
         }
 
         public void PutByte(int offset, byte value, int count)
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
+            offset += _off;
             for (var i = 0; i < count; ++i)
                 _buffer[offset + i] = value;
         }
@@ -181,6 +236,12 @@ namespace FlatBuffers
         public void Put(int offset, byte value)
         {
             PutByte(offset, value);
+        }
+
+        public void PutStringUTF8(int offset, string value)
+        {
+            Encoding.UTF8.GetBytes(value, 0, value.Length,
+                _buffer, _off + offset);
         }
 
 #if UNSAFE_BYTEBUFFER
@@ -193,7 +254,7 @@ namespace FlatBuffers
         public unsafe void PutUshort(int offset, ushort value)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 *(ushort*)(ptr + offset) = BitConverter.IsLittleEndian
                     ? value
@@ -209,7 +270,7 @@ namespace FlatBuffers
         public unsafe void PutUint(int offset, uint value)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 *(uint*)(ptr + offset) = BitConverter.IsLittleEndian
                     ? value
@@ -225,7 +286,7 @@ namespace FlatBuffers
         public unsafe void PutUlong(int offset, ulong value)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian
                     ? value
@@ -236,7 +297,7 @@ namespace FlatBuffers
         public unsafe void PutFloat(int offset, float value)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -252,7 +313,7 @@ namespace FlatBuffers
         public unsafe void PutDouble(int offset, double value)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -324,13 +385,18 @@ namespace FlatBuffers
         public sbyte GetSbyte(int index)
         {
             AssertOffsetAndLength(index, sizeof(sbyte));
-            return (sbyte)_buffer[index];
+            return (sbyte)_buffer[_off + index];
         }
 
         public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
-            return _buffer[index];
+            return _buffer[_off + index];
+        }
+
+        public string GetStringUTF8(int startPos, int len)
+        {
+            return Encoding.UTF8.GetString(_buffer, _off + startPos, len);
         }
 
 #if UNSAFE_BYTEBUFFER
@@ -343,7 +409,7 @@ namespace FlatBuffers
         public unsafe ushort GetUshort(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 return BitConverter.IsLittleEndian
                     ? *(ushort*)(ptr + offset)
@@ -359,7 +425,7 @@ namespace FlatBuffers
         public unsafe uint GetUint(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 return BitConverter.IsLittleEndian
                     ? *(uint*)(ptr + offset)
@@ -375,7 +441,7 @@ namespace FlatBuffers
         public unsafe ulong GetUlong(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 return BitConverter.IsLittleEndian
                     ? *(ulong*)(ptr + offset)
@@ -386,7 +452,7 @@ namespace FlatBuffers
         public unsafe float GetFloat(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -403,7 +469,7 @@ namespace FlatBuffers
         public unsafe double GetDouble(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = &_buffer[_off])
             {
                 if (BitConverter.IsLittleEndian)
                 {
