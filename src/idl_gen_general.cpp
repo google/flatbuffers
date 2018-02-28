@@ -1045,6 +1045,16 @@ class GeneralGenerator : public BaseGenerator {
               code += lang_.accessor_prefix + "__vector(o), key, ";
               code += lang_.accessor_prefix + "bb) : null; ";
               code += "}\n";
+
+              code += "  public " + qualified_name + lang_.optional_suffix + " ";
+              code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
+              code += qualified_name + lang_.optional_suffix + " obj, ";
+              code += GenTypeNameDest(key_field.value.type) + " key)";
+              code += offset_prefix;
+              code += qualified_name + ".__lookup_by_key(obj, ";
+              code += lang_.accessor_prefix + "__vector(o), key, ";
+              code += lang_.accessor_prefix + "bb) : null; ";
+              code += "}\n";
               break;
             }
           }
@@ -1393,6 +1403,36 @@ class GeneralGenerator : public BaseGenerator {
       code += "      } else {\n";
       code += "        return new " + struct_def.name;
       code += "().__assign(tableOffset, bb);\n";
+      code += "      }\n    }\n";
+      code += "    return null;\n";
+      code += "  }\n";
+
+      code += "\n  public static " + struct_def.name + lang_.optional_suffix;
+      code += " __lookup_by_key(" + struct_def.name;
+      code += " obj, int vectorLocation, ";
+      code += GenTypeNameDest(key_field->value.type);
+      code += " key, ByteBuffer bb) {\n";
+      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+        code += "    byte[] byteKey = ";
+        if (lang_.language == IDLOptions::kJava)
+          code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+        else
+          code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+      }
+      code += "    int span = ";
+      code += "bb." + FunctionStart('G') + "etInt(vectorLocation - 4);\n";
+      code += "    int start = 0;\n";
+      code += "    while (span != 0) {\n";
+      code += "      int middle = span / 2;\n";
+      code += GenLookupKeyGetter(key_field);
+      code += "      if (comp > 0) {\n";
+      code += "        span = middle;\n";
+      code += "      } else if (comp < 0) {\n";
+      code += "        middle++;\n";
+      code += "        start += middle;\n";
+      code += "        span -= middle;\n";
+      code += "      } else {\n";
+      code += "        return obj.__assign(tableOffset, bb);\n";
       code += "      }\n    }\n";
       code += "    return null;\n";
       code += "  }\n";
