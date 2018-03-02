@@ -16,6 +16,7 @@ public final class Stat extends Table {
 
   public String id() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer idAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
+  public ByteBuffer idInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 4, 1); }
   public long val() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateVal(long val) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, val); return true; } else { return false; } }
   public int count() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }

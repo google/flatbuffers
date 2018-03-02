@@ -37,10 +37,12 @@ public final class TypeAliases extends Table {
   public byte v8(int j) { int o = __offset(24); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int v8Length() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer v8AsByteBuffer() { return __vector_as_bytebuffer(24, 1); }
+  public ByteBuffer v8InByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 24, 1); }
   public boolean mutateV8(int j, byte v8) { int o = __offset(24); if (o != 0) { bb.put(__vector(o) + j * 1, v8); return true; } else { return false; } }
   public double vf64(int j) { int o = __offset(26); return o != 0 ? bb.getDouble(__vector(o) + j * 8) : 0; }
   public int vf64Length() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer vf64AsByteBuffer() { return __vector_as_bytebuffer(26, 8); }
+  public ByteBuffer vf64InByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 26, 8); }
   public boolean mutateVf64(int j, double vf64) { int o = __offset(26); if (o != 0) { bb.putDouble(__vector(o) + j * 8, vf64); return true; } else { return false; } }
 
   public static int createTypeAliases(FlatBufferBuilder builder,
