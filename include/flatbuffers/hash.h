@@ -39,7 +39,7 @@ template<> struct FnvTraits<uint64_t> {
   static const uint64_t kOffsetBasis = 0xcbf29ce484222645ULL;
 };
 
-template<typename T> T HashFnv1(const char *input) {
+template<typename T> FLATBUFFERS_CONSTEXPR_CPP14 T HashFnv1(const char *input) {
   T hash = FnvTraits<T>::kOffsetBasis;
   for (const char *c = input; *c; ++c) {
     hash *= FnvTraits<T>::kFnvPrime;
@@ -48,7 +48,7 @@ template<typename T> T HashFnv1(const char *input) {
   return hash;
 }
 
-template<typename T> T HashFnv1a(const char *input) {
+template<typename T> FLATBUFFERS_CONSTEXPR_CPP14 T HashFnv1a(const char *input) {
   T hash = FnvTraits<T>::kOffsetBasis;
   for (const char *c = input; *c; ++c) {
     hash ^= static_cast<unsigned char>(*c);
@@ -57,12 +57,12 @@ template<typename T> T HashFnv1a(const char *input) {
   return hash;
 }
 
-template <> inline uint16_t HashFnv1<uint16_t>(const char *input) {
+template <> FLATBUFFERS_CONSTEXPR_CPP14 inline uint16_t HashFnv1<uint16_t>(const char *input) {
   uint32_t hash = HashFnv1<uint32_t>(input);
   return (hash >> 16) ^ (hash & 0xffff);
 }
 
-template <> inline uint16_t HashFnv1a<uint16_t>(const char *input) {
+template <> FLATBUFFERS_CONSTEXPR_CPP14 inline uint16_t HashFnv1a<uint16_t>(const char *input) {
   uint32_t hash = HashFnv1a<uint32_t>(input);
   return (hash >> 16) ^ (hash & 0xffff);
 }
