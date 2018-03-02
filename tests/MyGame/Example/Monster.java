@@ -49,7 +49,7 @@ public final class Monster extends Table {
   public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
   public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
-  public Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(__vector(o), key, bb) : null; }
+  public Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public Monster testarrayoftablesByKey(Monster obj, String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public Monster enemy() { return enemy(new Monster()); }
   public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
@@ -119,7 +119,7 @@ public final class Monster extends Table {
   public Referrable vectorOfReferrables(int j) { return vectorOfReferrables(new Referrable(), j); }
   public Referrable vectorOfReferrables(Referrable obj, int j) { int o = __offset(74); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int vectorOfReferrablesLength() { int o = __offset(74); return o != 0 ? __vector_len(o) : 0; }
-  public Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(__vector(o), key, bb) : null; }
+  public Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public Referrable vectorOfReferrablesByKey(Referrable obj, long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public long singleWeakReference() { int o = __offset(76); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateSingleWeakReference(long single_weak_reference) { int o = __offset(76); if (o != 0) { bb.putLong(o + bb_pos, single_weak_reference); return true; } else { return false; } }
@@ -202,27 +202,6 @@ public final class Monster extends Table {
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
-  public static Monster __lookup_by_key(int vectorLocation, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
-    int span = bb.getInt(vectorLocation - 4);
-    int start = 0;
-    while (span != 0) {
-      int middle = span / 2;
-      int tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = compareStrings(__offset(10, bb.capacity() - tableOffset, bb), byteKey, bb);
-      if (comp > 0) {
-        span = middle;
-      } else if (comp < 0) {
-        middle++;
-        start += middle;
-        span -= middle;
-      } else {
-        return new Monster().__assign(tableOffset, bb);
-      }
-    }
-    return null;
-  }
-
   public static Monster __lookup_by_key(Monster obj, int vectorLocation, String key, ByteBuffer bb) {
     byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
     int span = bb.getInt(vectorLocation - 4);
@@ -238,7 +217,7 @@ public final class Monster extends Table {
         start += middle;
         span -= middle;
       } else {
-        return obj.__assign(tableOffset, bb);
+        return (obj == null ? new Monster(), obj).__assign(tableOffset, bb);
       }
     }
     return null;
