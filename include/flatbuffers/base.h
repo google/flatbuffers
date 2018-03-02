@@ -121,6 +121,13 @@
   #define FLATBUFFERS_CONSTEXPR
 #endif
 
+#if (defined(__cplusplus) && __cplusplus >= 201402L) || \
+    (defined(__cpp_constexpr) && __cpp_constexpr >= 201304)
+  #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR
+#else
+  #define FLATBUFFERS_CONSTEXPR_CPP14
+#endif
+
 #if defined(__GXX_EXPERIMENTAL_CXX0X__) && __GNUC__ * 10 + __GNUC_MINOR__ >= 46 || \
     defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026
   #define FLATBUFFERS_NOEXCEPT noexcept
