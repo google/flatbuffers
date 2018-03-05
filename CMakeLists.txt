@@ -37,7 +37,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/minireflect.h
   src/code_generators.cpp
   src/idl_parser.cpp
-  src/idl_gen_general.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
   src/util.cpp

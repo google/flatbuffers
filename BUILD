@@ -57,7 +57,6 @@ cc_library(
         "src/code_generators.cpp",
         "src/flatc.cpp",
         "src/idl_gen_fbs.cpp",
-        "src/idl_gen_general.cpp",
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",

@@ -76,6 +76,21 @@ static bool ValidateUTF8(const std::string &str) {
   return true;
 }
 
+// Convert an underscore_based_indentifier in to camelCase.
+// Also uppercases the first character if first is true.
+std::string MakeCamel(const std::string &in, bool first) {
+  std::string s;
+  for (size_t i = 0; i < in.length(); i++) {
+    if (!i && first)
+      s += static_cast<char>(toupper(in[0]));
+    else if (in[i] == '_' && i + 1 < in.length())
+      s += static_cast<char>(toupper(in[++i]));
+    else
+      s += in[i];
+  }
+  return s;
+}
+
 void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
