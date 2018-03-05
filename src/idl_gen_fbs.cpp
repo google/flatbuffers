@@ -91,13 +91,19 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     EnumDef &enum_def = **enum_def_it;
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
-    schema += "enum " + enum_def.name + " : ";
+    if (enum_def.is_union)
+      schema += "union " + enum_def.name;
+    else
+      schema += "enum " + enum_def.name + " : ";
     schema += GenType(enum_def.underlying_type, true) + " {\n";
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
-      schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
+      if (enum_def.is_union)
+        schema += "  " + GenType(ev.union_type) + ",\n";
+      else
+        schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
     }
     schema += "}\n\n";
   }

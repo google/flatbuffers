@@ -863,6 +863,7 @@ void ParseProtoTest() {
   // load the .proto and the golden file from disk
   std::string protofile;
   std::string goldenfile;
+  std::string goldenunionfile;
   TEST_EQ(
       flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
                             false, &protofile),
@@ -870,6 +871,11 @@ void ParseProtoTest() {
   TEST_EQ(
       flatbuffers::LoadFile((test_data_path + "prototest/test.golden").c_str(),
                             false, &goldenfile),
+      true);
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path +
+                            "prototest/test_union.golden").c_str(),
+                            false, &goldenunionfile),
       true);
 
   flatbuffers::IDLOptions opts;
@@ -889,6 +895,19 @@ void ParseProtoTest() {
   flatbuffers::Parser parser2;
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
 
 template<typename T>

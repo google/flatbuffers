@@ -42,4 +42,12 @@ message ProtoMessage {
   optional OtherMessage n = 12;
   repeated string o = 14;
   optional ImportedMessage z = 16;
+  /// doc comment for r.
+  oneof r {
+    /// doc comment for s.
+    ImportedMessage s = 17;
+    /// doc comment for t on 2
+    /// lines.
+    OtherMessage t = 18;
+  }
 }
