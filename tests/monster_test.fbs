@@ -89,6 +89,11 @@ table Monster {
   vector_of_referrables:[Referrable](id:35);
   single_weak_reference:ulong(id:36, hash:"fnv1a_64", cpp_type:"ReferrableT");
   vector_of_weak_references:[ulong](id:37, hash:"fnv1a_64", cpp_type:"ReferrableT");
+  vector_of_strong_referrables:[Referrable](id:38, cpp_ptr_type:"std::unique_ptr");                 //was shared_ptr
+  co_owning_reference:ulong(id:39, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked");  //was shared_ptr as well
+  vector_of_co_owning_references:[ulong](id:40, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"std::unique_ptr", cpp_ptr_type_get:".get()");  //was shared_ptr
+  non_owning_reference:ulong(id:41, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked", cpp_ptr_type_get:"");                              //was weak_ptr
+  vector_of_non_owning_references:[ulong](id:42, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked", cpp_ptr_type_get:"");                 //was weak_ptr
 }
 
 table TypeAliases {
