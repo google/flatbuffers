@@ -1672,9 +1672,13 @@ class CppGenerator : public BaseGenerator {
 
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
-        std::string qualified_name =
-            parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
-        auto nested_root = parser_.LookupStruct(qualified_name);
+        std::string qualified_name = nested->constant;
+        auto nested_root = parser_.LookupStruct(nested->constant);
+        if (nested_root == nullptr) {
+          qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
+              nested->constant);
+          nested_root = parser_.LookupStruct(qualified_name);
+        }
         assert(nested_root);  // Guaranteed to exist by parser.
         (void)nested_root;
         code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
