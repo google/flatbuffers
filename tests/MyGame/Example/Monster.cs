@@ -111,7 +111,8 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfWeakReferences(int j, ulong vector_of_weak_references) { int o = __p.__offset(78); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
   public Referrable? VectorOfStrongReferrables(int j) { int o = __p.__offset(80); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int VectorOfStrongReferrablesLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Referrable? VectorOfStrongReferrablesByKey(ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
+  public Referrable? VectorOfStrongReferrablesByKey(ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(null, __p.__vector(o), key, __p.bb) : null; }
+  public Referrable? VectorOfStrongReferrablesByKey(Referrable? obj, ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(obj, __p.__vector(o), key, __p.bb) : null; }
   public ulong CoOwningReference { get { int o = __p.__offset(82); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateCoOwningReference(ulong co_owning_reference) { int o = __p.__offset(82); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, co_owning_reference); return true; } else { return false; } }
   public ulong VectorOfCoOwningReferences(int j) { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
