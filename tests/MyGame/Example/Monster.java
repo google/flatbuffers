@@ -131,7 +131,8 @@ public final class Monster extends Table {
   public Referrable vectorOfStrongReferrables(int j) { return vectorOfStrongReferrables(new Referrable(), j); }
   public Referrable vectorOfStrongReferrables(Referrable obj, int j) { int o = __offset(80); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int vectorOfStrongReferrablesLength() { int o = __offset(80); return o != 0 ? __vector_len(o) : 0; }
-  public Referrable vectorOfStrongReferrablesByKey(long key) { int o = __offset(80); return o != 0 ? Referrable.__lookup_by_key(__vector(o), key, bb) : null; }
+  public Referrable vectorOfStrongReferrablesByKey(long key) { int o = __offset(80); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Referrable vectorOfStrongReferrablesByKey(Referrable obj, long key) { int o = __offset(80); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public long coOwningReference() { int o = __offset(82); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateCoOwningReference(long co_owning_reference) { int o = __offset(82); if (o != 0) { bb.putLong(o + bb_pos, co_owning_reference); return true; } else { return false; } }
   public long vectorOfCoOwningReferences(int j) { int o = __offset(84); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
