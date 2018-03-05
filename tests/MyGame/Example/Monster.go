@@ -578,8 +578,86 @@ func (rcv *Monster) VectorOfWeakReferencesLength() int {
 	return 0
 }
 
+func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VectorOfStrongReferrablesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) CoOwningReference() uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(82))
+	if o != 0 {
+		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateCoOwningReference(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(82, n)
+}
+
+func (rcv *Monster) VectorOfCoOwningReferences(j int) uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) VectorOfCoOwningReferencesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) NonOwningReference() uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(86))
+	if o != 0 {
+		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateNonOwningReference(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(86, n)
+}
+
+func (rcv *Monster) VectorOfNonOwningReferences(j int) uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) VectorOfNonOwningReferencesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(38)
+	builder.StartObject(43)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -732,6 +810,30 @@ func MonsterAddVectorOfWeakReferences(builder *flatbuffers.Builder, vectorOfWeak
 	builder.PrependUOffsetTSlot(37, flatbuffers.UOffsetT(vectorOfWeakReferences), 0)
 }
 func MonsterStartVectorOfWeakReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddVectorOfStrongReferrables(builder *flatbuffers.Builder, vectorOfStrongReferrables flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(38, flatbuffers.UOffsetT(vectorOfStrongReferrables), 0)
+}
+func MonsterStartVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddCoOwningReference(builder *flatbuffers.Builder, coOwningReference uint64) {
+	builder.PrependUint64Slot(39, coOwningReference, 0)
+}
+func MonsterAddVectorOfCoOwningReferences(builder *flatbuffers.Builder, vectorOfCoOwningReferences flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(40, flatbuffers.UOffsetT(vectorOfCoOwningReferences), 0)
+}
+func MonsterStartVectorOfCoOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddNonOwningReference(builder *flatbuffers.Builder, nonOwningReference uint64) {
+	builder.PrependUint64Slot(41, nonOwningReference, 0)
+}
+func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorOfNonOwningReferences flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(42, flatbuffers.UOffsetT(vectorOfNonOwningReferences), 0)
+}
+func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

@@ -711,6 +711,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (cpp_type) {
     if (!hash_name)
       return Error("cpp_type can only be used with a hashed field");
+    /// forcing cpp_ptr_type to 'naked' if unset
+    auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
+    if (!cpp_ptr_type) {
+      auto val = new Value();
+      val->type = cpp_type->type;
+      val->constant = "naked";
+      field->attributes.Add("cpp_ptr_type", val);
+    }
   }
   if (field->deprecated && struct_def.fixed)
     return Error("can't deprecate fields in a struct");

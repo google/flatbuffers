@@ -20,6 +20,15 @@
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 
+// clang-format off
+#ifdef FLATBUFFERS_CPP98_STL
+  #include "flatbuffers/stl_emulation.h"
+  namespace std {
+    using flatbuffers::unique_ptr;
+  }
+#endif
+// clang-format on
+
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"

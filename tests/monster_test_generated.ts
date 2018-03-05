@@ -1550,10 +1550,108 @@ vectorOfWeakReferencesLength():number {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+vectorOfStrongReferrables(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
+  var offset = this.bb!.__offset(this.bb_pos, 80);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfStrongReferrablesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 80);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+coOwningReference():flatbuffers.Long {
+  var offset = this.bb!.__offset(this.bb_pos, 82);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_co_owning_reference(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 82);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfCoOwningReferences(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 84);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfCoOwningReferencesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 84);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {flatbuffers.Long}
+ */
+nonOwningReference():flatbuffers.Long {
+  var offset = this.bb!.__offset(this.bb_pos, 86);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+mutate_non_owning_reference(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 86);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfNonOwningReferences(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 88);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfNonOwningReferencesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 88);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(38);
+  builder.startObject(43);
 };
 
 /**
@@ -2104,6 +2202,109 @@ static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flat
  * @param {number} numElems
  */
 static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfStrongReferrablesOffset
+ */
+static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongReferrablesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(38, vectorOfStrongReferrablesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} coOwningReference
+ */
+static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:flatbuffers.Long) {
+  builder.addFieldInt64(39, coOwningReference, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfCoOwningReferencesOffset
+ */
+static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} nonOwningReference
+ */
+static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:flatbuffers.Long) {
+  builder.addFieldInt64(41, nonOwningReference, builder.createLong(0, 0));
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfNonOwningReferencesOffset
+ */
+static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 };
 
