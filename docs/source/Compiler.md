@@ -64,6 +64,8 @@ Additional options:
 
 -   `--defaults-json` : Output fields whose value is equal to the default value
     when writing JSON text.
+    
+-   `--hexfloat-json` : Output float and double fields as hexfloat when writing JSON.
 
 -   `--no-prefix` : Don't prefix enum values in generated C++ by their enum
     type.

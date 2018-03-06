@@ -43,7 +43,68 @@
 
 #include "flatbuffers/base.h"
 
+#if __cplusplus >= 201103L
+#include <cmath>
+#define FLATBUFFERS_USE_STD_CMATH
+#elif _GLIBCXX_USE_C99_MATH && !_GLIBCXX_USE_C99_FP_MACROS_DYNAMIC
+#include <cmath>
+#define FLATBUFFERS_USE_STD_CMATH
+#else
+#include <math.h>
+#endif
+#include <cfloat>
+
+#if defined(_MSC_VER) && _MSC_VER <= 1700
+ // MSVC <= 2010 has no snprintf defined but _snprintf
+#define snprintf _snprintf_s
+#endif
+
 namespace flatbuffers {
+
+inline double nan()
+{
+#if _MSC_VER == 1600
+  union {
+    uint8_t bytes[sizeof(float)];
+    float nan;
+  } __ecl_nan = {
+    { 0, 0, 0xc0, 0x7f }
+  };
+  return __ecl_nan.nan;
+#elif defined(__ANDROID__)
+#ifdef NAN
+  return NAN;
+#else
+  return ::nan("1");
+#endif
+#else
+  return std::nan("1");
+#endif
+}
+
+template<typename T> bool is_nan(T val) {
+#ifdef _WIN32
+  return _isnan(val) != NULL;
+#else
+# ifdef FLATBUFFERS_USE_STD_CMATH
+  return std::isnan(val);
+# else
+  return isnan(val);
+# endif
+#endif
+}
+
+template<typename T> bool is_inf(T val) {
+#ifdef _WIN32
+  return (_fpclass(val) & (_FPCLASS_NINF | _FPCLASS_PINF)) != 0;
+#else
+# ifdef FLATBUFFERS_USE_STD_CMATH
+  return std::isinf(val);
+# else
+  return isinf(val);
+# endif
+#endif
+}
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
@@ -92,14 +153,48 @@ template<typename T> std::string FloatToString(T t, int precision) {
     // Strip trailing zeroes. If it is a whole number, keep one zero.
     s.resize(p + (s[p] == '.' ? 2 : 1));
   }
+  // If we have a special float let's serialize them as strings
+  if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t))
+    return "\"" + s + "\"";
   return s;
 }
 
-template<> inline std::string NumToString<double>(double t) {
-  return FloatToString(t, 12);
+// According to IEEE Standard 754 17 significant decimals suffice to represent
+// a double precisely. But we use 16, as in many cases the last digit is 
+// often responsible for not having a condensed output.
+template<> inline std::string NumToString(double t) {
+  return FloatToString(t, 16);
 }
-template<> inline std::string NumToString<float>(float t) {
+
+// According to IEEE Standard 754 7 significant decimals suffice to represent
+// a float precisely. But we use 6, as in many cases the last digit is 
+// often responsible for not having a condensed output.
+template<> inline std::string NumToString(float t) {
   return FloatToString(t, 6);
+}
+
+template<typename T> inline std::string FloatToStringHex(T t) {
+  return NumToString(t);
+}
+
+template<typename T> inline std::string FloatToStringHex(T t, int precision)
+{
+  char buffer[32];
+  assert(static_cast<unsigned int>(precision) < sizeof(buffer) - 1);
+  if (flatbuffers::is_nan(t) || flatbuffers::is_inf(t)) {
+    snprintf(buffer, sizeof(buffer), "\"%.*a\"", precision, (double)t);
+  } else {
+    snprintf(buffer, sizeof(buffer), "%.*a", precision, (double)t);
+  }
+  return buffer;
+}
+
+template<> inline std::string FloatToStringHex(float t) {
+  return FloatToStringHex(t, 7);
+}
+
+template<> inline std::string FloatToStringHex(double t) {
+  return FloatToStringHex(t, 13);
 }
 
 // Convert an integer value to a hexadecimal string.
