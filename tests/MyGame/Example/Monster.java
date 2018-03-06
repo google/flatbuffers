@@ -247,7 +247,7 @@ public final class Monster extends Table {
         start += middle;
         span -= middle;
       } else {
-        return (obj == null ? new Monster(), obj).__assign(tableOffset, bb);
+        return (obj == null ? new Monster() : obj).__assign(tableOffset, bb);
       }
     }
     return null;
