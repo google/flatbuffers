@@ -183,7 +183,9 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
     return true;
   } else if (fd.nested_flatbuffer) {
     auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
-    auto root = GetRoot<Table>(vec->data());
+    auto root = opts.prefix_size
+              ? GetSizePrefixedRoot<Table>(vec->data())
+              : GetRoot<Table>(vec->data());
     return GenStruct(*fd.nested_flatbuffer, root, indent, opts, _text);
   } else {
     val = IsStruct(fd.value.type)
@@ -263,7 +265,10 @@ bool GenerateText(const Parser &parser, const void *flatbuffer,
   std::string &text = *_text;
   assert(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);               // Reduce amount of inevitable reallocs.
-  if (!GenStruct(*parser.root_struct_def_, GetRoot<Table>(flatbuffer), 0,
+  auto root = parser.opts.prefix_size
+              ? GetSizePrefixedRoot<Table>(flatbuffer)
+              : GetRoot<Table>(flatbuffer);
+  if (!GenStruct(*parser.root_struct_def_, root, 0,
                  parser.opts, _text)) {
     return false;
   }
