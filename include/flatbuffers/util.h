@@ -71,6 +71,12 @@ inline double nan()
     { 0, 0, 0xc0, 0x7f }
   };
   return __ecl_nan.nan;
+#elif defined(__ANDROID__)
+#ifdef NAN
+  return NAN;
+#else
+  return ::nan("1");
+#endif
 #else
   return std::nan("1");
 #endif
