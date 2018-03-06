@@ -39,7 +39,7 @@ public struct Referrable : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static Referrable? __lookup_by_key(Referrable obj, int vectorLocation, ulong key, ByteBuffer bb) {
+  public static Referrable? __lookup_by_key(int vectorLocation, ulong key, ByteBuffer bb) {
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
@@ -53,7 +53,7 @@ public struct Referrable : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return (obj == null ? new Referrable(), obj).__assign(tableOffset, bb);
+        return new Referrable().__assign(tableOffset, bb);
       }
     }
     return null;

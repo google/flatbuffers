@@ -43,8 +43,7 @@ public struct Monster : IFlatbufferObject
   /// multiline too
   public Monster? Testarrayoftables(int j) { int o = __p.__offset(26); return o != 0 ? (Monster?)(new Monster()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int TestarrayoftablesLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Monster? TestarrayoftablesByKey(string key) { int o = __p.__offset(26); return o != 0 ? Monster.__lookup_by_key(null, __p.__vector(o), key, __p.bb) : null; }
-  public Monster? TestarrayoftablesByKey(Monster? obj, string key) { int o = __p.__offset(26); return o != 0 ? Monster.__lookup_by_key(obj, __p.__vector(o), key, __p.bb) : null; }
+  public Monster? TestarrayoftablesByKey(string key) { int o = __p.__offset(26); return o != 0 ? Monster.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
   public Monster? Enemy { get { int o = __p.__offset(28); return o != 0 ? (Monster?)(new Monster()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public byte Testnestedflatbuffer(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -101,8 +100,7 @@ public struct Monster : IFlatbufferObject
   public MyGame.InParentNamespace? ParentNamespaceTest { get { int o = __p.__offset(72); return o != 0 ? (MyGame.InParentNamespace?)(new MyGame.InParentNamespace()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public Referrable? VectorOfReferrables(int j) { int o = __p.__offset(74); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int VectorOfReferrablesLength { get { int o = __p.__offset(74); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Referrable? VectorOfReferrablesByKey(ulong key) { int o = __p.__offset(74); return o != 0 ? Referrable.__lookup_by_key(null, __p.__vector(o), key, __p.bb) : null; }
-  public Referrable? VectorOfReferrablesByKey(Referrable? obj, ulong key) { int o = __p.__offset(74); return o != 0 ? Referrable.__lookup_by_key(obj, __p.__vector(o), key, __p.bb) : null; }
+  public Referrable? VectorOfReferrablesByKey(ulong key) { int o = __p.__offset(74); return o != 0 ? Referrable.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
   public ulong SingleWeakReference { get { int o = __p.__offset(76); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateSingleWeakReference(ulong single_weak_reference) { int o = __p.__offset(76); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, single_weak_reference); return true; } else { return false; } }
   public ulong VectorOfWeakReferences(int j) { int o = __p.__offset(78); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
@@ -111,8 +109,7 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfWeakReferences(int j, ulong vector_of_weak_references) { int o = __p.__offset(78); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
   public Referrable? VectorOfStrongReferrables(int j) { int o = __p.__offset(80); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int VectorOfStrongReferrablesLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Referrable? VectorOfStrongReferrablesByKey(ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(null, __p.__vector(o), key, __p.bb) : null; }
-  public Referrable? VectorOfStrongReferrablesByKey(Referrable? obj, ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(obj, __p.__vector(o), key, __p.bb) : null; }
+  public Referrable? VectorOfStrongReferrablesByKey(ulong key) { int o = __p.__offset(80); return o != 0 ? Referrable.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
   public ulong CoOwningReference { get { int o = __p.__offset(82); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateCoOwningReference(ulong co_owning_reference) { int o = __p.__offset(82); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, co_owning_reference); return true; } else { return false; } }
   public ulong VectorOfCoOwningReferences(int j) { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
@@ -212,7 +209,7 @@ public struct Monster : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static Monster? __lookup_by_key(Monster obj, int vectorLocation, string key, ByteBuffer bb) {
+  public static Monster? __lookup_by_key(int vectorLocation, string key, ByteBuffer bb) {
     byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
@@ -227,7 +224,7 @@ public struct Monster : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return (obj == null ? new Monster(), obj).__assign(tableOffset, bb);
+        return new Monster().__assign(tableOffset, bb);
       }
     }
     return null;
