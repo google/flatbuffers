@@ -1026,20 +1026,23 @@ class GeneralGenerator : public BaseGenerator {
               code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
               code += GenTypeNameDest(key_field.value.type) + " key)";
               code += offset_prefix;
-              code += qualified_name + ".__lookup_by_key(null, ";
+              code += qualified_name + ".__lookup_by_key(";
+              if (lang_.language == IDLOptions::kJava)
+                code += "null, ";
               code += lang_.accessor_prefix + "__vector(o), key, ";
               code += lang_.accessor_prefix + "bb) : null; ";
               code += "}\n";
-
-              code += "  public " + qualified_name + lang_.optional_suffix + " ";
-              code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
-              code += qualified_name + lang_.optional_suffix + " obj, ";
-              code += GenTypeNameDest(key_field.value.type) + " key)";
-              code += offset_prefix;
-              code += qualified_name + ".__lookup_by_key(obj, ";
-              code += lang_.accessor_prefix + "__vector(o), key, ";
-              code += lang_.accessor_prefix + "bb) : null; ";
-              code += "}\n";
+              if (lang_.language == IDLOptions::kJava) {
+                code += "  public " + qualified_name + lang_.optional_suffix + " ";
+                code += MakeCamel(field.name, lang_.first_camel_upper) + "ByKey(";
+                code += qualified_name + lang_.optional_suffix + " obj, ";
+                code += GenTypeNameDest(key_field.value.type) + " key)";
+                code += offset_prefix;
+                code += qualified_name + ".__lookup_by_key(obj, ";
+                code += lang_.accessor_prefix + "__vector(o), key, ";
+                code += lang_.accessor_prefix + "bb) : null; ";
+                code += "}\n";
+              }
               break;
             }
           }
@@ -1363,8 +1366,10 @@ class GeneralGenerator : public BaseGenerator {
       }
 
       code += "\n  public static " + struct_def.name + lang_.optional_suffix;
-      code += " __lookup_by_key(" + struct_def.name;
-      code += " obj, int vectorLocation, ";
+      code += " __lookup_by_key(";
+      if (lang_.language == IDLOptions::kJava)
+        code +=  struct_def.name + " obj, ";
+      code += "int vectorLocation, ";
       code += GenTypeNameDest(key_field->value.type);
       code += " key, ByteBuffer bb) {\n";
       if (key_field->value.type.base_type == BASE_TYPE_STRING) {
@@ -1387,9 +1392,12 @@ class GeneralGenerator : public BaseGenerator {
       code += "        start += middle;\n";
       code += "        span -= middle;\n";
       code += "      } else {\n";
-      code += "        return (obj == null ? ";
-      code += "new " + struct_def.name;
-      code += "(), obj).__assign(tableOffset, bb);\n";
+      code += "        return ";
+      if (lang_.language == IDLOptions::kJava)
+        code += "(obj == null ? new " + struct_def.name + "() : obj)";
+      else
+        code += "new " + struct_def.name + "()";
+      code += ".__assign(tableOffset, bb);\n";
       code += "      }\n    }\n";
       code += "    return null;\n";
       code += "  }\n";

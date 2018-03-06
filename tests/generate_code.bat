@@ -21,7 +21,7 @@ if "%1"=="-b" set buildtype=%2
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments -I include_test monster_test.fbs
 ..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs
 cd ../samples
-..\%buildtype%\flatc.exe --cpp --gen-mutable --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+..\%buildtype%\flatc.exe --cpp --gen-mutable --reflect-names --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 cd ../reflection
 
 cd ../tests

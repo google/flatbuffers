@@ -53,7 +53,7 @@ public final class Referrable extends Table {
         start += middle;
         span -= middle;
       } else {
-        return (obj == null ? new Referrable(), obj).__assign(tableOffset, bb);
+        return (obj == null ? new Referrable() : obj).__assign(tableOffset, bb);
       }
     }
     return null;
