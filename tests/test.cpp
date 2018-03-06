@@ -20,6 +20,15 @@
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 
+// clang-format off
+#ifdef FLATBUFFERS_CPP98_STL
+  #include "flatbuffers/stl_emulation.h"
+  namespace std {
+    using flatbuffers::unique_ptr;
+  }
+#endif
+// clang-format on
+
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
@@ -514,16 +523,16 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
 void SizePrefixedTest() {
   // Create size prefixed buffer.
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.FinishSizePrefixed(
+  FinishSizePrefixedMonsterBuffer(
+      fbb,
       CreateMonster(fbb, 0, 200, 300, fbb.CreateString("bob")));
 
   // Verify it.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
-  TEST_EQ(verifier.VerifySizePrefixedBuffer<Monster>(nullptr), true);
+  TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier), true);
 
   // Access it.
-  auto m = flatbuffers::GetSizePrefixedRoot<MyGame::Example::Monster>(
-      fbb.GetBufferPointer());
+  auto m = GetSizePrefixedMonster(fbb.GetBufferPointer());
   TEST_EQ(m->mana(), 200);
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");
@@ -963,6 +972,7 @@ void ParseProtoTest() {
   // load the .proto and the golden file from disk
   std::string protofile;
   std::string goldenfile;
+  std::string goldenunionfile;
   TEST_EQ(
       flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
                             false, &protofile),
@@ -970,6 +980,11 @@ void ParseProtoTest() {
   TEST_EQ(
       flatbuffers::LoadFile((test_data_path + "prototest/test.golden").c_str(),
                             false, &goldenfile),
+      true);
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path +
+                            "prototest/test_union.golden").c_str(),
+                            false, &goldenunionfile),
       true);
 
   flatbuffers::IDLOptions opts;
@@ -989,6 +1004,19 @@ void ParseProtoTest() {
   flatbuffers::Parser parser2;
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
 
 template<typename T>

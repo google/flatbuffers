@@ -433,7 +433,134 @@ class Monster(object):
             return obj
         return None
 
-def MonsterStart(builder): builder.StartObject(35)
+    # Monster
+    def VectorOfReferrables(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(74))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .Referrable import Referrable
+            obj = Referrable()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VectorOfReferrablesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(74))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def SingleWeakReference(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(76))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def VectorOfWeakReferences(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(78))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VectorOfWeakReferencesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(78))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+        return 0
+
+    # Monster
+    def VectorOfWeakReferencesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(78))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VectorOfStrongReferrables(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(80))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .Referrable import Referrable
+            obj = Referrable()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VectorOfStrongReferrablesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(80))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def CoOwningReference(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(82))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def VectorOfCoOwningReferences(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(84))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VectorOfCoOwningReferencesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(84))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+        return 0
+
+    # Monster
+    def VectorOfCoOwningReferencesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(84))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def NonOwningReference(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(86))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def VectorOfNonOwningReferences(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(88))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VectorOfNonOwningReferencesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(88))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+        return 0
+
+    # Monster
+    def VectorOfNonOwningReferencesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(88))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MonsterStart(builder): builder.StartObject(43)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -480,4 +607,17 @@ def MonsterStartVectorOfLongsVector(builder, numElems): return builder.StartVect
 def MonsterAddVectorOfDoubles(builder, vectorOfDoubles): builder.PrependUOffsetTRelativeSlot(33, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfDoubles), 0)
 def MonsterStartVectorOfDoublesVector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def MonsterAddParentNamespaceTest(builder, parentNamespaceTest): builder.PrependUOffsetTRelativeSlot(34, flatbuffers.number_types.UOffsetTFlags.py_type(parentNamespaceTest), 0)
+def MonsterAddVectorOfReferrables(builder, vectorOfReferrables): builder.PrependUOffsetTRelativeSlot(35, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfReferrables), 0)
+def MonsterStartVectorOfReferrablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddSingleWeakReference(builder, singleWeakReference): builder.PrependUint64Slot(36, singleWeakReference, 0)
+def MonsterAddVectorOfWeakReferences(builder, vectorOfWeakReferences): builder.PrependUOffsetTRelativeSlot(37, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfWeakReferences), 0)
+def MonsterStartVectorOfWeakReferencesVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrables): builder.PrependUOffsetTRelativeSlot(38, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfStrongReferrables), 0)
+def MonsterStartVectorOfStrongReferrablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddCoOwningReference(builder, coOwningReference): builder.PrependUint64Slot(39, coOwningReference, 0)
+def MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences): builder.PrependUOffsetTRelativeSlot(40, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfCoOwningReferences), 0)
+def MonsterStartVectorOfCoOwningReferencesVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterAddNonOwningReference(builder, nonOwningReference): builder.PrependUint64Slot(41, nonOwningReference, 0)
+def MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferences): builder.PrependUOffsetTRelativeSlot(42, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfNonOwningReferences), 0)
+def MonsterStartVectorOfNonOwningReferencesVector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def MonsterEnd(builder): return builder.EndObject()
