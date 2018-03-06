@@ -367,6 +367,7 @@ struct IDLOptions {
   bool mutable_buffer;
   bool one_file;
   bool proto_mode;
+  bool proto_oneof_union;
   bool generate_all;
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
@@ -427,6 +428,7 @@ struct IDLOptions {
         mutable_buffer(false),
         one_file(false),
         proto_mode(false),
+        proto_oneof_union(false),
         generate_all(false),
         skip_unexpected_fields_in_json(false),
         generate_name_strings(false),
@@ -534,6 +536,7 @@ class Parser : public ParserState {
     known_attributes_["idempotent"] = true;
     known_attributes_["cpp_type"] = true;
     known_attributes_["cpp_ptr_type"] = true;
+    known_attributes_["cpp_ptr_type_get"] = true;
     known_attributes_["cpp_str_type"] = true;
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
@@ -662,6 +665,9 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
+  FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name,
+                                      bool is_union,
+                                      EnumDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseDecl();
   FLATBUFFERS_CHECKED_ERROR ParseService();
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,

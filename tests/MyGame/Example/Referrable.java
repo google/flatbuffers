@@ -38,7 +38,7 @@ public final class Referrable extends Table {
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static Referrable __lookup_by_key(int vectorLocation, long key, ByteBuffer bb) {
+  public static Referrable __lookup_by_key(Referrable obj, int vectorLocation, long key, ByteBuffer bb) {
     int span = bb.getInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
@@ -53,7 +53,7 @@ public final class Referrable extends Table {
         start += middle;
         span -= middle;
       } else {
-        return new Referrable().__assign(tableOffset, bb);
+        return (obj == null ? new Referrable() : obj).__assign(tableOffset, bb);
       }
     }
     return null;

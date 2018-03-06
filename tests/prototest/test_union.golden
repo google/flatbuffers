@@ -9,6 +9,18 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
+namespace proto.test.ProtoMessage_;
+
+union RUnion {
+  /// doc comment for s.
+  proto.test.ImportedMessage,
+  /// doc comment for t on 2
+  /// lines.
+  proto.test.ProtoMessage_.OtherMessage,
+}
+
+namespace proto.test;
+
 table ImportedMessage {
   a:int;
 }
@@ -37,7 +49,7 @@ table ProtoMessage {
   o:[string];
   z:proto.test.ImportedMessage;
   /// doc comment for r.
-  r:proto.test.ProtoMessage_.Anonymous0;
+  r:proto.test.ProtoMessage_.RUnion;
 }
 
 namespace proto.test.ProtoMessage_;
@@ -46,13 +58,5 @@ table OtherMessage {
   a:double;
   /// doc comment for b.
   b:float = 3.14149;
-}
-
-table Anonymous0 {
-  /// doc comment for s.
-  s:proto.test.ImportedMessage;
-  /// doc comment for t on 2
-  /// lines.
-  t:proto.test.ProtoMessage_.OtherMessage;
 }
 

@@ -136,6 +136,7 @@ cc_test(
         ":tests/prototest/imported.proto",
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
+        ":tests/prototest/test_union.golden",
         ":tests/union_vector/union_vector.fbs",
     ],
     includes = ["include/"],
