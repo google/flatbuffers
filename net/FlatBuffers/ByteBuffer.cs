@@ -49,7 +49,7 @@ namespace FlatBuffers
 
         public ByteBuffer(byte[] buffer) : this(buffer, 0) { }
 
-        protected ByteBuffer(byte[] buffer, int pos)
+        public ByteBuffer(byte[] buffer, int pos)
         {
             _buffer = buffer;
             _pos = pos;
@@ -152,7 +152,7 @@ namespace FlatBuffers
 
 #if !UNSAFE_BYTEBUFFER
         // Helper functions for the safe (but slower) version.
-        private void WriteLittleEndian(int offset, int count, ulong data)
+        protected void WriteLittleEndian(int offset, int count, ulong data)
         {
             if (BitConverter.IsLittleEndian)
             {
@@ -170,7 +170,7 @@ namespace FlatBuffers
             }
         }
 
-        private ulong ReadLittleEndian(int offset, int count)
+        protected ulong ReadLittleEndian(int offset, int count)
         {
             AssertOffsetAndLength(offset, count);
             ulong r = 0;
