@@ -101,6 +101,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
     "  --proto            Input is a .proto, translate to .fbs.\n"
+    "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
@@ -237,6 +238,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         binary_files_from = filenames.size();
       } else if (arg == "--proto") {
         opts.proto_mode = true;
+      } else if (arg == "--oneof-union") {
+        opts.proto_oneof_union = true;
       } else if (arg == "--schema") {
         schema_binary = true;
       } else if (arg == "-M") {

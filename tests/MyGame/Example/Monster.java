@@ -49,7 +49,8 @@ public final class Monster extends Table {
   public Monster testarrayoftables(int j) { return testarrayoftables(new Monster(), j); }
   public Monster testarrayoftables(Monster obj, int j) { int o = __offset(26); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
-  public Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(__vector(o), key, bb) : null; }
+  public Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Monster testarrayoftablesByKey(Monster obj, String key) { int o = __offset(26); return o != 0 ? Monster.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public Monster enemy() { return enemy(new Monster()); }
   public Monster enemy(Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
@@ -118,7 +119,8 @@ public final class Monster extends Table {
   public Referrable vectorOfReferrables(int j) { return vectorOfReferrables(new Referrable(), j); }
   public Referrable vectorOfReferrables(Referrable obj, int j) { int o = __offset(74); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int vectorOfReferrablesLength() { int o = __offset(74); return o != 0 ? __vector_len(o) : 0; }
-  public Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(__vector(o), key, bb) : null; }
+  public Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Referrable vectorOfReferrablesByKey(Referrable obj, long key) { int o = __offset(74); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public long singleWeakReference() { int o = __offset(76); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateSingleWeakReference(long single_weak_reference) { int o = __offset(76); if (o != 0) { bb.putLong(o + bb_pos, single_weak_reference); return true; } else { return false; } }
   public long vectorOfWeakReferences(int j) { int o = __offset(78); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
@@ -126,8 +128,27 @@ public final class Monster extends Table {
   public ByteBuffer vectorOfWeakReferencesAsByteBuffer() { return __vector_as_bytebuffer(78, 8); }
   public ByteBuffer vectorOfWeakReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 78, 8); }
   public boolean mutateVectorOfWeakReferences(int j, long vector_of_weak_references) { int o = __offset(78); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
+  public Referrable vectorOfStrongReferrables(int j) { return vectorOfStrongReferrables(new Referrable(), j); }
+  public Referrable vectorOfStrongReferrables(Referrable obj, int j) { int o = __offset(80); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int vectorOfStrongReferrablesLength() { int o = __offset(80); return o != 0 ? __vector_len(o) : 0; }
+  public Referrable vectorOfStrongReferrablesByKey(long key) { int o = __offset(80); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Referrable vectorOfStrongReferrablesByKey(Referrable obj, long key) { int o = __offset(80); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
+  public long coOwningReference() { int o = __offset(82); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateCoOwningReference(long co_owning_reference) { int o = __offset(82); if (o != 0) { bb.putLong(o + bb_pos, co_owning_reference); return true; } else { return false; } }
+  public long vectorOfCoOwningReferences(int j) { int o = __offset(84); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
+  public int vectorOfCoOwningReferencesLength() { int o = __offset(84); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vectorOfCoOwningReferencesAsByteBuffer() { return __vector_as_bytebuffer(84, 8); }
+  public ByteBuffer vectorOfCoOwningReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 84, 8); }
+  public boolean mutateVectorOfCoOwningReferences(int j, long vector_of_co_owning_references) { int o = __offset(84); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_co_owning_references); return true; } else { return false; } }
+  public long nonOwningReference() { int o = __offset(86); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateNonOwningReference(long non_owning_reference) { int o = __offset(86); if (o != 0) { bb.putLong(o + bb_pos, non_owning_reference); return true; } else { return false; } }
+  public long vectorOfNonOwningReferences(int j) { int o = __offset(88); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
+  public int vectorOfNonOwningReferencesLength() { int o = __offset(88); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vectorOfNonOwningReferencesAsByteBuffer() { return __vector_as_bytebuffer(88, 8); }
+  public ByteBuffer vectorOfNonOwningReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 88, 8); }
+  public boolean mutateVectorOfNonOwningReferences(int j, long vector_of_non_owning_references) { int o = __offset(88); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(38); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(43); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -190,6 +211,17 @@ public final class Monster extends Table {
   public static void addVectorOfWeakReferences(FlatBufferBuilder builder, int vectorOfWeakReferencesOffset) { builder.addOffset(37, vectorOfWeakReferencesOffset, 0); }
   public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
   public static void startVectorOfWeakReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
+  public static void addVectorOfStrongReferrables(FlatBufferBuilder builder, int vectorOfStrongReferrablesOffset) { builder.addOffset(38, vectorOfStrongReferrablesOffset, 0); }
+  public static int createVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addCoOwningReference(FlatBufferBuilder builder, long coOwningReference) { builder.addLong(39, coOwningReference, 0L); }
+  public static void addVectorOfCoOwningReferences(FlatBufferBuilder builder, int vectorOfCoOwningReferencesOffset) { builder.addOffset(40, vectorOfCoOwningReferencesOffset, 0); }
+  public static int createVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static void startVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
+  public static void addNonOwningReference(FlatBufferBuilder builder, long nonOwningReference) { builder.addLong(41, nonOwningReference, 0L); }
+  public static void addVectorOfNonOwningReferences(FlatBufferBuilder builder, int vectorOfNonOwningReferencesOffset) { builder.addOffset(42, vectorOfNonOwningReferencesOffset, 0); }
+  public static int createVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static void startVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name
@@ -201,7 +233,7 @@ public final class Monster extends Table {
   @Override
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
-  public static Monster __lookup_by_key(int vectorLocation, String key, ByteBuffer bb) {
+  public static Monster __lookup_by_key(Monster obj, int vectorLocation, String key, ByteBuffer bb) {
     byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
     int span = bb.getInt(vectorLocation - 4);
     int start = 0;
@@ -216,7 +248,7 @@ public final class Monster extends Table {
         start += middle;
         span -= middle;
       } else {
-        return new Monster().__assign(tableOffset, bb);
+        return (obj == null ? new Monster() : obj).__assign(tableOffset, bb);
       }
     }
     return null;
