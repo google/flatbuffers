@@ -606,7 +606,7 @@ void JsonNaNAndInfinityTest()
   LoadMonsterSchema(parser);
 
   // Testing serialization of special values
-  auto jsongen = SerializeMonsterWithFloat((float)strtod("NaN", nullptr));
+  auto jsongen = SerializeMonsterWithFloat((float)flatbuffers::nan());
   TEST_EQ(std::string::npos != jsongen.find("testf: \"nan\""), true);
   jsongen = SerializeMonsterWithFloat((float)strtod("infinity", nullptr));
   TEST_EQ(std::string::npos != jsongen.find("testf: \"inf\""), true);

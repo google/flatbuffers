@@ -55,11 +55,26 @@
 #include <cfloat>
 
 #if defined(_MSC_VER) && _MSC_VER <= 1700
-// MSVC <= 2012 has no snprintf defined but _snprintf
-#define snprintf _snprintf
+ // MSVC <= 2010 has no snprintf defined but _snprintf
+#define snprintf _snprintf_s
 #endif
 
 namespace flatbuffers {
+
+inline double nan()
+{
+#if _MSC_VER == 1600
+  union {
+    uint8_t bytes[sizeof(float)];
+    float nan;
+  } __ecl_nan = {
+    { 0, 0, 0xc0, 0x7f }
+  };
+  return __ecl_nan.nan;
+#else
+  return std::nan("1");
+#endif
+}
 
 template<typename T> bool is_nan(T val) {
 #ifdef _WIN32
