@@ -183,9 +183,7 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
     return true;
   } else if (fd.nested_flatbuffer) {
     auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
-    auto root = opts.prefix_size
-              ? GetSizePrefixedRoot<Table>(vec->data())
-              : GetRoot<Table>(vec->data());
+    auto root = GetRoot<Table>(vec->data());
     return GenStruct(*fd.nested_flatbuffer, root, indent, opts, _text);
   } else {
     val = IsStruct(fd.value.type)
