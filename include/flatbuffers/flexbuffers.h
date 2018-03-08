@@ -1274,7 +1274,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   void WriteOffset(uint64_t o, uint8_t byte_width) {
     auto reloff = buf_.size() - o;
-    assert(reloff < 1ULL << (byte_width * 8) || byte_width == 8);
+    assert(byte_width == 8 || reloff < 1ULL << (byte_width * 8));
     Write(reloff, byte_width);
   }
 
