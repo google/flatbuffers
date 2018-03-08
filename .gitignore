@@ -55,6 +55,7 @@ tests/php/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
+FlatbuffersConfigVersion.cmake
 FlatBuffers.cbp
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
@@ -87,3 +88,7 @@ js/flatbuffers.mjs
 /bazel-genfiles
 /bazel-out
 /bazel-testlogs
+.ninja_deps
+.ninja_log
+build.ninja
+rules.ninja
