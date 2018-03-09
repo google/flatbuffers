@@ -387,6 +387,7 @@ struct IDLOptions {
   std::string go_namespace;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
+  bool size_prefixed;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -442,6 +443,7 @@ struct IDLOptions {
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
+        size_prefixed(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0) {}
