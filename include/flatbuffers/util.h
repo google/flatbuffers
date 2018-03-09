@@ -321,10 +321,7 @@ inline int FromUTF8(const char **in) {
       break;
     }
   }
-  // the input byte can be negative.
-  // '<<' of a negative value is undefined behavior
-  const unsigned char unsignedIn = static_cast<unsigned char>(**in);
-  if ((unsignedIn << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
+  if ((static_cast<const unsigned char>(**in) << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
   if (!len) return *(*in)++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
   if (len < 2 || len > 4) { return -1; }
