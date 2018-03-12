@@ -33,6 +33,12 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanCreateNewFlatBufferFromScratch()
         {
+            CanCreateNewFlatBufferFromScratch(true);
+            CanCreateNewFlatBufferFromScratch(false);
+        }
+
+        private void CanCreateNewFlatBufferFromScratch(bool sizePrefix)
+        {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
             // We use an initial size of 1 to exercise the reallocation algorithm,
             // normally a size larger than the typical FlatBuffer you generate would be
@@ -95,22 +101,40 @@ namespace FlatBuffers.Test
             Monster.AddTestarrayoftables(fbb, sortMons);
             var mon = Monster.EndMonster(fbb);
 
-            Monster.FinishMonsterBuffer(fbb, mon);
+            if (sizePrefix)
+            {
+                Monster.FinishSizePrefixedMonsterBuffer(fbb, mon);
+            }
+            else
+            {
+                Monster.FinishMonsterBuffer(fbb, mon);
+            }
 
 
             // Dump to output directory so we can inspect later, if needed
-            using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))
+            using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                File.WriteAllBytes(@"Resources/monsterdata_cstest.mon",data);
+                string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                File.WriteAllBytes(filename, data);
+            }
+
+            // Remove the size prefix if necessary for further testing
+            ByteBuffer dataBuffer = fbb.DataBuffer;
+            if (sizePrefix)
+            {
+                Assert.AreEqual(ByteBufferUtil.GetSizePrefix(dataBuffer) + FlatBufferConstants.SizePrefixLength,
+                                dataBuffer.Length - dataBuffer.Position);
+                dataBuffer = ByteBufferUtil.RemoveSizePrefix(dataBuffer);
             }
 
             // Now assert the buffer
-            TestBuffer(fbb.DataBuffer);
+            TestBuffer(dataBuffer);
 
             //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
             // revert to original values after testing
-            Monster monster = Monster.GetRootAsMonster(fbb.DataBuffer);
+            Monster monster = Monster.GetRootAsMonster(dataBuffer);
+            
 
             // mana is optional and does not exist in the buffer so the mutation should fail
             // the mana field should retain its default value
@@ -161,12 +185,12 @@ namespace FlatBuffers.Test
             pos.MutateX(1.0f);
             Assert.AreEqual(pos.X, 1.0f);
 
-            TestBuffer(fbb.DataBuffer);
+            TestBuffer(dataBuffer);
         }
 
         private void TestBuffer(ByteBuffer bb)
         {
-            var monster = Monster.GetRootAsMonster(bb);
+            Monster monster = Monster.GetRootAsMonster(bb);
 
             Assert.AreEqual(80, monster.Hp);
             Assert.AreEqual(150, monster.Mana);

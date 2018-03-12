@@ -816,12 +816,53 @@ public class FlatBufferBuilder {
      * Finalize a buffer, pointing to the given `root_table`.
      *
      * @param root_table An offset to be added to the buffer.
+     * @param size_prefix Whether to prefix the size to the buffer.
      */
-    public void finish(int root_table) {
-        prep(minalign, SIZEOF_INT);
+    protected void finish(int root_table, boolean size_prefix) {
+        prep(minalign, SIZEOF_INT + (size_prefix ? SIZEOF_INT : 0));
         addOffset(root_table);
+        if (size_prefix) {
+            addInt(bb.capacity() - space);
+        }
         bb.position(space);
         finished = true;
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `root_table`.
+     *
+     * @param root_table An offset to be added to the buffer.
+     */
+    public void finish(int root_table) {
+        finish(root_table, false);
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
+     *
+     * @param root_table An offset to be added to the buffer.
+     */
+    public void finishSizePrefixed(int root_table) {
+        finish(root_table, true);
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `root_table`.
+     *
+     * @param root_table An offset to be added to the buffer.
+     * @param file_identifier A FlatBuffer file identifier to be added to the buffer before
+     * `root_table`.
+     * @param size_prefix Whether to prefix the size to the buffer.
+     */
+    protected void finish(int root_table, String file_identifier, boolean size_prefix) {
+        prep(minalign, SIZEOF_INT + FILE_IDENTIFIER_LENGTH + (size_prefix ? SIZEOF_INT : 0));
+        if (file_identifier.length() != FILE_IDENTIFIER_LENGTH)
+            throw new AssertionError("FlatBuffers: file identifier must be length " +
+                                     FILE_IDENTIFIER_LENGTH);
+        for (int i = FILE_IDENTIFIER_LENGTH - 1; i >= 0; i--) {
+            addByte((byte)file_identifier.charAt(i));
+        }
+        finish(root_table, size_prefix);
     }
 
     /**
@@ -832,14 +873,18 @@ public class FlatBufferBuilder {
      * `root_table`.
      */
     public void finish(int root_table, String file_identifier) {
-        prep(minalign, SIZEOF_INT + FILE_IDENTIFIER_LENGTH);
-        if (file_identifier.length() != FILE_IDENTIFIER_LENGTH)
-            throw new AssertionError("FlatBuffers: file identifier must be length " +
-                                     FILE_IDENTIFIER_LENGTH);
-        for (int i = FILE_IDENTIFIER_LENGTH - 1; i >= 0; i--) {
-            addByte((byte)file_identifier.charAt(i));
-        }
-        finish(root_table);
+        finish(root_table, file_identifier, false);
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
+     *
+     * @param root_table An offset to be added to the buffer.
+     * @param file_identifier A FlatBuffer file identifier to be added to the buffer before
+     * `root_table`.
+     */
+    public void finishSizePrefixed(int root_table, String file_identifier) {
+        finish(root_table, file_identifier, true);
     }
 
     /**

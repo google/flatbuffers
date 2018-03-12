@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google Inc. All rights reserved.
+ * Copyright 2017 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,25 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FlatBuffers
 {
-    public static class FlatBufferConstants
-    {
-        public const int FileIdentifierLength = 4;
-        public const int SizePrefixLength = 4;
-    }
+	/// <summary>
+	/// Class that collects utility functions around `ByteBuffer`.
+	/// </summary>
+	public class ByteBufferUtil
+	{
+		// Extract the size prefix from a `ByteBuffer`.
+		public static int GetSizePrefix(ByteBuffer bb) {
+			return bb.GetInt(bb.Position);
+		}
+
+		// Create a duplicate of a size-prefixed `ByteBuffer` that has its position
+		// advanced just past the size prefix.
+		public static ByteBuffer RemoveSizePrefix(ByteBuffer bb) {
+			ByteBuffer s = bb.Duplicate();
+			s.Position += FlatBufferConstants.SizePrefixLength;
+			return s;
+		}
+	}
 }
