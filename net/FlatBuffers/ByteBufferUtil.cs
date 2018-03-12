@@ -28,11 +28,11 @@ namespace FlatBuffers
 			return bb.GetInt(bb.Position);
 		}
 
-		// Create a slice of a size-prefixed `ByteBuffer` that has its position
+		// Create a duplicate of a size-prefixed `ByteBuffer` that has its position
 		// advanced just past the size prefix.
 		public static ByteBuffer RemoveSizePrefix(ByteBuffer bb) {
-			ByteBuffer s = bb.Slice();
-			s.Position = FlatBufferConstants.SizePrefixLength;
+			ByteBuffer s = bb.Duplicate();
+			s.Position += FlatBufferConstants.SizePrefixLength;
 			return s;
 		}
 	}
