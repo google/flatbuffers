@@ -191,7 +191,7 @@ struct AttackerT : public flatbuffers::NativeTable {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
-  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
   enum {
@@ -251,7 +251,7 @@ struct MovieT : public flatbuffers::NativeTable {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
-  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * MiniReflectTypeTable() {
     return MovieTypeTable();
   }
   enum {
