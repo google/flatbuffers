@@ -1664,13 +1664,14 @@ const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 /// This function is UNDEFINED for FlatBuffers whose schema does not include
 /// a file_identifier (likely points at padding or the start of a the root
 /// vtable).
-inline const char *GetBufferIdentifier(const void *buf) {
-  return reinterpret_cast<const char *>(buf) + sizeof(uoffset_t);
+inline const char *GetBufferIdentifier(const void *buf, bool size_prefixed = false) {
+  return reinterpret_cast<const char *>(buf) +
+         ((size_prefixed) ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t));
 }
 
 // Helper to see if the identifier in a buffer has the expected value.
-inline bool BufferHasIdentifier(const void *buf, const char *identifier) {
-  return strncmp(GetBufferIdentifier(buf), identifier,
+inline bool BufferHasIdentifier(const void *buf, const char *identifier, bool size_prefixed = false) {
+  return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
                  FlatBufferBuilder::kFileIdentifierLength) == 0;
 }
 

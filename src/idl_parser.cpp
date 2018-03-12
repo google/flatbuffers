@@ -2412,11 +2412,10 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       uoffset_t toff;
       ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
-      if (opts.prefix_size) {
-        builder_.FinishSizePrefixed(Offset<Table>(toff),
-                                    file_identifier_.length()
-                                                 ? file_identifier_.c_str()
-                                                 : nullptr);
+      if (opts.size_prefixed) {
+        builder_.FinishSizePrefixed(Offset<Table>(toff), file_identifier_.length()
+                                                             ? file_identifier_.c_str()
+                                                             : nullptr);
       } else {
         builder_.Finish(Offset<Table>(toff), file_identifier_.length()
                                                  ? file_identifier_.c_str()
@@ -2528,7 +2527,7 @@ void Parser::Serialize() {
       builder_.CreateString(file_identifier_),
       builder_.CreateString(file_extension_),
       root_struct_def_ ? root_struct_def_->serialized_location : 0);
-  if (opts.prefix_size) {
+  if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
     builder_.Finish(schema_offset, reflection::SchemaIdentifier());
