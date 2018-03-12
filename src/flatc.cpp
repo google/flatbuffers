@@ -117,7 +117,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
-    "  --prefix-size      Prefix size field to generated wire format (-b).\n"
     "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
     "schema). FILEs after the -- must be binary flatbuffer format files.\n"
     "Output files are named using the base file name of the input,\n"
