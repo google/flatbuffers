@@ -78,21 +78,10 @@ template<typename T>
 bool PrintVector(const Vector<T> &v, Type type, int indent,
                  const IDLOptions &opts, std::string *_text,
                  const FieldDef *fd = nullptr) {
+  // Try to print an array as base64 string.
+  if (PrintBase64Vector(v, type, indent, opts, _text, fd)) return true;
+
   std::string &text = *_text;
-
-  // Try to print UCHAR array as base64 string.
-  if (type.base_type == BASE_TYPE_UCHAR) {
-    auto b64mode = FieldGetBase64Mode(fd);
-    if (b64mode) {
-      text += "\"";
-      Base64Encode(
-          opts.base64_cancel_padding ? Base64CancelPadding(b64mode) : b64mode,
-          reinterpret_cast<const uint8_t *>(v.data()), v.size(), &text);
-      text += "\"";
-      return true;
-    }
-  }
-
   text += "[";
   text += NewLine(opts);
   for (uoffset_t i = 0; i < v.size(); i++) {
