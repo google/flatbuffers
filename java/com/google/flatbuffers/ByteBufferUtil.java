@@ -40,7 +40,7 @@ public class ByteBufferUtil {
     }
 
 	/**
-     * Create a slice of a size-prefixed `ByteBuffer` that has its position
+     * Create a duplicate of a size-prefixed `ByteBuffer` that has its position
      * advanced just past the size prefix.
      * 
      * @param bb a size-prefixed buffer
@@ -48,8 +48,8 @@ public class ByteBufferUtil {
      *         size prefix
      */
     public static ByteBuffer removeSizePrefix(ByteBuffer bb) {
-        ByteBuffer s = bb.slice();
-        s.position(SIZE_PREFIX_LENGTH);
+        ByteBuffer s = bb.duplicate();
+        s.position(s.position() + SIZE_PREFIX_LENGTH);
         return s;
     }
 
