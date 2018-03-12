@@ -1331,17 +1331,22 @@ class GeneralGenerator : public BaseGenerator {
       }
       code += "    return " + GenOffsetConstruct(struct_def, "o") + ";\n  }\n";
       if (parser_.root_struct_def_ == &struct_def) {
-        code += "  public static void ";
-        code += FunctionStart('F') + "inish" + struct_def.name;
-        code +=
-            "Buffer(FlatBufferBuilder builder, " + GenOffsetType(struct_def);
-        code += " offset) {";
-        code += " builder." + FunctionStart('F') + "inish(offset";
-        if (lang_.language == IDLOptions::kCSharp) { code += ".Value"; }
+        std::string size_prefix[] = { "", "SizePrefixed" };
+        for (int i = 0; i < 2; ++i) {
+          code += "  public static void ";
+          code += FunctionStart('F') + "inish" + size_prefix[i] +
+                  struct_def.name;
+          code += "Buffer(FlatBufferBuilder builder, " +
+                  GenOffsetType(struct_def);
+          code += " offset) {";
+          code += " builder." + FunctionStart('F') + "inish" + size_prefix[i] +
+                  "(offset";
+          if (lang_.language == IDLOptions::kCSharp) { code += ".Value"; }
 
-        if (parser_.file_identifier_.length())
-          code += ", \"" + parser_.file_identifier_ + "\"";
-        code += "); }\n";
+          if (parser_.file_identifier_.length())
+            code += ", \"" + parser_.file_identifier_ + "\"";
+          code += "); }\n";
+        }
       }
     }
     // Only generate key compare function for table,
