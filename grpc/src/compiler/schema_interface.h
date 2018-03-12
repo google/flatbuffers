@@ -99,8 +99,8 @@ struct Printer {
   virtual ~Printer() {}
 
   virtual void Print(const std::map<grpc::string, grpc::string> &vars,
-                     const char *template_string) = 0;
-  virtual void Print(const char *string) = 0;
+                     const char *template_string) const = 0;
+  virtual void Print(const char *string) const = 0;
   virtual void Indent() = 0;
   virtual void Outdent() = 0;
 };

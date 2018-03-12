@@ -66,7 +66,7 @@ grpc::string FilenameIdentifier(const grpc::string &filename) {
     if (isalnum(c)) {
       result.push_back(c);
     } else {
-      static char hex[] = "0123456789abcdef";
+      static const char hex[] = "0123456789abcdef";
       result.push_back('_');
       result.push_back(hex[(c >> 4) & 0xf]);
       result.push_back(hex[c & 0xf]);
@@ -143,7 +143,7 @@ grpc::string GetHeaderIncludes(grpc_generator::File *file,
     auto printer = file->CreatePrinter(&output);
     std::map<grpc::string, grpc::string> vars;
 
-    static const char *headers_strs[] = {
+    static const char * const headers_strs[] = {
         "grpc++/impl/codegen/async_stream.h",
         "grpc++/impl/codegen/async_unary_call.h",
         "grpc++/impl/codegen/method_handler_impl.h",
@@ -187,8 +187,8 @@ void PrintHeaderClientMethodInterfaces(
     grpc::string prefix;
     grpc::string method_params;  // extra arguments to method
     grpc::string raw_args;       // extra arguments to raw version of method
-  } async_prefixes[] = {{"Async", ", void* tag", ", tag"},
-                        {"PrepareAsync", "", ""}};
+  } const async_prefixes[] = {{"Async", ", void* tag", ", tag"},
+                             {"PrepareAsync", "", ""}};
 
   if (is_public) {
     if (method->NoStreaming()) {
@@ -393,8 +393,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
     grpc::string prefix;
     grpc::string method_params;  // extra arguments to method
     grpc::string raw_args;       // extra arguments to raw version of method
-  } async_prefixes[] = {{"Async", ", void* tag", ", tag"},
-                        {"PrepareAsync", "", ""}};
+  } const async_prefixes[] = {{"Async", ", void* tag", ", tag"},
+                             {"PrepareAsync", "", ""}};
 
   if (is_public) {
     if (method->NoStreaming()) {
@@ -1178,7 +1178,7 @@ grpc::string GetSourceIncludes(grpc_generator::File *file,
     auto printer = file->CreatePrinter(&output);
     std::map<grpc::string, grpc::string> vars;
 
-    static const char *headers_strs[] = {
+    static const char * const headers_strs[] = {
         "grpc++/impl/codegen/async_stream.h",
         "grpc++/impl/codegen/async_unary_call.h",
         "grpc++/impl/codegen/channel_interface.h",
@@ -1215,8 +1215,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
     grpc::string start;          // bool literal expressed as string
     grpc::string method_params;  // extra arguments to method
     grpc::string create_args;    // extra arguments to creator
-  } async_prefixes[] = {{"Async", "true", ", void* tag", ", tag"},
-                        {"PrepareAsync", "false", "", ", nullptr"}};
+  } const async_prefixes[] = {{"Async", "true", ", void* tag", ", tag"},
+                             {"PrepareAsync", "false", "", ", nullptr"}};
   if (method->NoStreaming()) {
     printer->Print(*vars,
                    "::grpc::Status $ns$$Service$::Stub::$Method$("
@@ -1603,7 +1603,7 @@ grpc::string GetMockIncludes(grpc_generator::File *file,
     auto printer = file->CreatePrinter(&output);
     std::map<grpc::string, grpc::string> vars;
 
-    static const char *headers_strs[] = {
+    static const char * const headers_strs[] = {
         "grpc++/impl/codegen/async_stream.h",
         "grpc++/impl/codegen/sync_stream.h",
         "gmock/gmock.h",

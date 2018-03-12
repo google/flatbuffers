@@ -42,8 +42,8 @@ enum BaseType {
   Union = 16
 };
 
-inline BaseType (&EnumValuesBaseType())[17] {
-  static BaseType values[] = {
+inline const BaseType (&EnumValuesBaseType())[17] {
+  static const BaseType values[] = {
     None,
     UType,
     Bool,
@@ -65,8 +65,8 @@ inline BaseType (&EnumValuesBaseType())[17] {
   return values;
 }
 
-inline const char **EnumNamesBaseType() {
-  static const char *names[] = {
+inline const char * const * EnumNamesBaseType() {
+  static const char * const names[] = {
     "None",
     "UType",
     "Bool",
@@ -130,7 +130,7 @@ struct TypeBuilder {
   void add_index(int32_t index) {
     fbb_.AddElement<int32_t>(Type::VT_INDEX, index, -1);
   }
-  TypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -190,7 +190,7 @@ struct KeyValueBuilder {
   void add_value(flatbuffers::Offset<flatbuffers::String> value) {
     fbb_.AddOffset(KeyValue::VT_VALUE, value);
   }
-  KeyValueBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit KeyValueBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -283,7 +283,7 @@ struct EnumValBuilder {
   void add_union_type(flatbuffers::Offset<Type> union_type) {
     fbb_.AddOffset(EnumVal::VT_UNION_TYPE, union_type);
   }
-  EnumValBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit EnumValBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -398,7 +398,7 @@ struct EnumBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Enum::VT_DOCUMENTATION, documentation);
   }
-  EnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit EnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -561,7 +561,7 @@ struct FieldBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Field::VT_DOCUMENTATION, documentation);
   }
-  FieldBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FieldBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -712,7 +712,7 @@ struct ObjectBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Object::VT_DOCUMENTATION, documentation);
   }
-  ObjectBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ObjectBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -825,7 +825,7 @@ struct SchemaBuilder {
   void add_root_table(flatbuffers::Offset<Object> root_table) {
     fbb_.AddOffset(Schema::VT_ROOT_TABLE, root_table);
   }
-  SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -875,6 +875,10 @@ inline const reflection::Schema *GetSchema(const void *buf) {
   return flatbuffers::GetRoot<reflection::Schema>(buf);
 }
 
+inline const reflection::Schema *GetSizePrefixedSchema(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<reflection::Schema>(buf);
+}
+
 inline const char *SchemaIdentifier() {
   return "BFBS";
 }
@@ -889,6 +893,11 @@ inline bool VerifySchemaBuffer(
   return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier());
 }
 
+inline bool VerifySizePrefixedSchemaBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<reflection::Schema>(SchemaIdentifier());
+}
+
 inline const char *SchemaExtension() {
   return "bfbs";
 }
@@ -897,6 +906,12 @@ inline void FinishSchemaBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<reflection::Schema> root) {
   fbb.Finish(root, SchemaIdentifier());
+}
+
+inline void FinishSizePrefixedSchemaBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<reflection::Schema> root) {
+  fbb.FinishSizePrefixed(root, SchemaIdentifier());
 }
 
 }  // namespace reflection
