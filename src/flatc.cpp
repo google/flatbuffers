@@ -100,6 +100,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     (default is \"github.com/google/flatbuffers/go\")\n"
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
+    "  --size-prefixed    Input binaries are size prefixed buffers.\n"
     "  --proto            Input is a .proto, translate to .fbs.\n"
     "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
@@ -234,6 +235,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.one_file = true;
       } else if (arg == "--raw-binary") {
         raw_binary = true;
+      } else if (arg == "--size-prefixed") {
+        opts.size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
       } else if (arg == "--proto") {
@@ -259,8 +262,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
-      } else if(arg == "--prefix-size") {
-        opts.prefix_size = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -328,7 +329,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                 "\" matches the schema, use --raw-binary to read this file"
                 " anyway.");
         } else if (!flatbuffers::BufferHasIdentifier(
-                       contents.c_str(), parser->file_identifier_.c_str())) {
+                       contents.c_str(), parser->file_identifier_.c_str(), opts.size_prefixed)) {
           Error("binary \"" + filename +
                 "\" does not have expected file_identifier \"" +
                 parser->file_identifier_ +
