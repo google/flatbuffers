@@ -59,7 +59,7 @@ namespace FlatBuffers
                 throw new ArgumentOutOfRangeException("initialSize",
                     initialSize, "Must be greater than zero");
             _space = initialSize;
-            _bb = new ByteBuffer(new byte[initialSize]);
+            _bb = new ByteBuffer(initialSize);
         }
 
         /// <summary>
@@ -99,18 +99,7 @@ namespace FlatBuffers
         // the end of the new buffer (since we build the buffer backwards).
         void GrowBuffer()
         {
-            var oldBuf = _bb.Data;
-            var oldBufSize = oldBuf.Length;
-            if ((oldBufSize & 0xC0000000) != 0)
-                throw new Exception(
-                    "FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
-
-            var newBufSize = oldBufSize << 1;
-            var newBuf = new byte[newBufSize];
-
-            Buffer.BlockCopy(oldBuf, 0, newBuf, newBufSize - oldBufSize,
-                             oldBufSize);
-            _bb = new ByteBuffer(newBuf, newBufSize);
+            _bb.GrowFront(_bb.Length << 1);
         }
 
         // Prepare to write an element of `size` after `additional_bytes`
@@ -475,7 +464,7 @@ namespace FlatBuffers
             AddByte(0);
             var utf8StringLen = Encoding.UTF8.GetByteCount(s);
             StartVector(1, utf8StringLen, 1);
-            Encoding.UTF8.GetBytes(s, 0, s.Length, _bb.Data, _space -= utf8StringLen);
+            _bb.PutStringUTF8(_space -= utf8StringLen, s);
             return new StringOffset(EndVector().Value);
         }
 
@@ -586,11 +575,39 @@ namespace FlatBuffers
         /// <param name="rootTable">
         /// An offset to be added to the buffer.
         /// </param>
+        /// <param name="sizePrefix">
+        /// Whether to prefix the size to the buffer.
+        /// </param>
+        protected void Finish(int rootTable, bool sizePrefix)
+        {
+            Prep(_minAlign, sizeof(int) + (sizePrefix ? sizeof(int) : 0));
+            AddOffset(rootTable);
+            if (sizePrefix) {
+                AddInt(_bb.Length - _space);
+            }
+            _bb.Position = _space;
+        }
+
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `root_table`.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
         public void Finish(int rootTable)
         {
-            Prep(_minAlign, sizeof(int));
-            AddOffset(rootTable);
-            _bb.Position = _space;
+            Finish(rootTable, false);
+        }
+
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
+        public void FinishSizePrefixed(int rootTable)
+        {
+            Finish(rootTable, true);
         }
 
         /// <summary>
@@ -615,41 +632,69 @@ namespace FlatBuffers
         /// </returns>
         public byte[] SizedByteArray()
         {
-            var newArray = new byte[_bb.Data.Length - _bb.Position];
-            Buffer.BlockCopy(_bb.Data, _bb.Position, newArray, 0,
-                             _bb.Data.Length - _bb.Position);
-            return newArray;
+            return _bb.ToSizedArray();
         }
 
-         /// <summary>
-         /// Finalize a buffer, pointing to the given `rootTable`.
-         /// </summary>
-         /// <param name="rootTable">
-         /// An offset to be added to the buffer.
-         /// </param>
-         /// <param name="fileIdentifier">
-         /// A FlatBuffer file identifier to be added to the buffer before
-         /// `root_table`.
-         /// </param>
-         public void Finish(int rootTable, string fileIdentifier)
-         {
-             Prep(_minAlign, sizeof(int) +
-                             FlatBufferConstants.FileIdentifierLength);
-             if (fileIdentifier.Length !=
-                 FlatBufferConstants.FileIdentifierLength)
-                 throw new ArgumentException(
-                     "FlatBuffers: file identifier must be length " +
-                     FlatBufferConstants.FileIdentifierLength,
-                     "fileIdentifier");
-             for (int i = FlatBufferConstants.FileIdentifierLength - 1; i >= 0;
-                  i--)
-             {
-                AddByte((byte)fileIdentifier[i]);
-             }
-             Finish(rootTable);
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `rootTable`.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
+        /// <param name="fileIdentifier">
+        /// A FlatBuffer file identifier to be added to the buffer before
+        /// `root_table`.
+        /// </param>
+        /// <param name="sizePrefix">
+        /// Whether to prefix the size to the buffer.
+        /// </param>
+        protected void Finish(int rootTable, string fileIdentifier, bool sizePrefix)
+        {
+            Prep(_minAlign, sizeof(int) + (sizePrefix ? sizeof(int) : 0) +
+                            FlatBufferConstants.FileIdentifierLength);
+            if (fileIdentifier.Length !=
+                FlatBufferConstants.FileIdentifierLength)
+                throw new ArgumentException(
+                    "FlatBuffers: file identifier must be length " +
+                    FlatBufferConstants.FileIdentifierLength,
+                    "fileIdentifier");
+            for (int i = FlatBufferConstants.FileIdentifierLength - 1; i >= 0;
+                 i--)
+            {
+               AddByte((byte)fileIdentifier[i]);
+            }
+            Finish(rootTable, sizePrefix);
         }
 
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `rootTable`.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
+        /// <param name="fileIdentifier">
+        /// A FlatBuffer file identifier to be added to the buffer before
+        /// `root_table`.
+        /// </param>
+        public void Finish(int rootTable, string fileIdentifier)
+        {
+            Finish(rootTable, fileIdentifier, false);
+        }
 
+        /// <summary>
+        /// Finalize a buffer, pointing to the given `rootTable`, with the size prefixed.
+        /// </summary>
+        /// <param name="rootTable">
+        /// An offset to be added to the buffer.
+        /// </param>
+        /// <param name="fileIdentifier">
+        /// A FlatBuffer file identifier to be added to the buffer before
+        /// `root_table`.
+        /// </param>
+        public void FinishSizePrefixed(int rootTable, string fileIdentifier)
+        {
+            Finish(rootTable, fileIdentifier, true);
+        }
     }
 }
 

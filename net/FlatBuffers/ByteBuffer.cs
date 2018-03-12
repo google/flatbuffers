@@ -30,6 +30,8 @@
 //
 
 using System;
+using System.IO;
+using System.Text;
 
 namespace FlatBuffers
 {
@@ -38,12 +40,12 @@ namespace FlatBuffers
     /// </summary>
     public class ByteBuffer
     {
-        private readonly byte[] _buffer;
+        protected byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
 
         public int Length { get { return _buffer.Length; } }
 
-        public byte[] Data { get { return _buffer; } }
+        public ByteBuffer(int size) : this(new byte[size]) { }
 
         public ByteBuffer(byte[] buffer) : this(buffer, 0) { }
 
@@ -63,11 +65,64 @@ namespace FlatBuffers
             _pos = 0;
         }
 
+        // Create a new ByteBuffer on the same underlying data.
+        // The new ByteBuffer's position will be same as this buffer's.
+        public ByteBuffer Duplicate()
+        {
+            return new ByteBuffer(_buffer, Position);
+        }
+
+        // Increases the size of the ByteBuffer, and copies the old data towards
+        // the end of the new buffer.
+        public void GrowFront(int newSize)
+        {
+            if ((Length & 0xC0000000) != 0)
+                throw new Exception(
+                    "ByteBuffer: cannot grow buffer beyond 2 gigabytes.");
+
+            if (newSize < Length)
+                throw new Exception("ByteBuffer: cannot truncate buffer.");
+
+            byte[] newBuffer = new byte[newSize];
+            Buffer.BlockCopy(_buffer, 0, newBuffer, newSize - Length,
+                             Length);
+            _buffer = newBuffer;
+        }
+
+        public byte[] ToArray(int pos, int len)
+        {
+            byte[] arr = new byte[len];
+            Buffer.BlockCopy(_buffer, pos, arr, 0, len);
+            return arr;
+        }
+
+        public byte[] ToSizedArray()
+        {
+            return ToArray(Position, Length - Position);
+        }
+
+        public byte[] ToFullArray()
+        {
+            return ToArray(0, Length);
+        }
+
+        public ArraySegment<byte> ToArraySegment(int pos, int len)
+        {
+            return new ArraySegment<byte>(_buffer, pos, len);
+        }
+
+        public MemoryStream ToMemoryStream(int pos, int len)
+        {
+            return new MemoryStream(_buffer, pos, len);
+        }
+
+#if !UNSAFE_BYTEBUFFER
         // Pre-allocated helper arrays for convertion.
         private float[] floathelper = new[] { 0.0f };
         private int[] inthelper = new[] { 0 };
         private double[] doublehelper = new[] { 0.0 };
         private ulong[] ulonghelper = new[] { 0UL };
+#endif // !UNSAFE_BYTEBUFFER
 
         // Helper functions for the unsafe version.
         static public ushort ReverseBytes(ushort input)
@@ -136,7 +191,6 @@ namespace FlatBuffers
         }
 #endif // !UNSAFE_BYTEBUFFER
 
-
         private void AssertOffsetAndLength(int offset, int length)
         {
             #if !BYTEBUFFER_NO_BOUNDS_CHECK
@@ -169,6 +223,13 @@ namespace FlatBuffers
         public void Put(int offset, byte value)
         {
             PutByte(offset, value);
+        }
+
+        public void PutStringUTF8(int offset, string value)
+        {
+            AssertOffsetAndLength(offset, value.Length);
+            Encoding.UTF8.GetBytes(value, 0, value.Length,
+                _buffer, offset);
         }
 
 #if UNSAFE_BYTEBUFFER
@@ -319,6 +380,11 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(index, sizeof(byte));
             return _buffer[index];
+        }
+
+        public string GetStringUTF8(int startPos, int len)
+        {
+            return Encoding.UTF8.GetString(_buffer, startPos, len);
         }
 
 #if UNSAFE_BYTEBUFFER
