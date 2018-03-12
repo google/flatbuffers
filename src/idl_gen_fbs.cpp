@@ -86,8 +86,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   }
   // Generate code for all the enum declarations.
   const Namespace *last_namespace = nullptr;
-  for (auto enum_def_it = parser.enums_.vec.begin();
-       enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
+  auto &enums = parser.enums_.vec;
+  for (auto enum_def_it = enums.begin(); enum_def_it != enums.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
@@ -96,8 +96,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     else
       schema += "enum " + enum_def.name + " : ";
     schema += GenType(enum_def.underlying_type, true) + " {\n";
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    auto &enum_values = enum_def.vals.vec;
+    for (auto it = enum_values.begin(); it != enum_values.end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
       if (enum_def.is_union)
@@ -108,14 +108,14 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     schema += "}\n\n";
   }
   // Generate code for all structs/tables.
-  for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
-       ++it) {
+  auto &structs = parser.structs_.vec;
+  for (auto it = structs.begin(); it != structs.end(); ++it) {
     StructDef &struct_def = **it;
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
-    for (auto field_it = struct_def.fields.vec.begin();
-         field_it != struct_def.fields.vec.end(); ++field_it) {
+    auto &fields = struct_def.fields.vec;
+    for (auto field_it = fields.begin(); field_it != fields.end(); ++field_it) {
       auto &field = **field_it;
       if (field.value.type.base_type != BASE_TYPE_UTYPE) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");

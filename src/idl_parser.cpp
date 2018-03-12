@@ -205,7 +205,7 @@ enum {
 };
 
 static std::string TokenToString(int t) {
-  static const char *tokens[] = {
+  static const char * const tokens[] = {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
@@ -225,7 +225,7 @@ static std::string TokenToString(int t) {
 }
 // clang-format on
 
-std::string Parser::TokenToStringId(int t) {
+std::string Parser::TokenToStringId(int t) const {
   return t == kTokenIdentifier ? attribute_ : TokenToString(t);
 }
 
@@ -478,9 +478,9 @@ CheckedError Parser::Next() {
 }
 
 // Check if a given token is next.
-bool Parser::Is(int t) { return t == token_; }
+bool Parser::Is(int t) const { return t == token_; }
 
-bool Parser::IsIdent(const char *id) {
+bool Parser::IsIdent(const char *id) const {
   return token_ == kTokenIdentifier && attribute_ == id;
 }
 
@@ -1029,8 +1029,8 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   ECHECK(err);
 
   // Check if all required fields are parsed.
-  for (auto field_it = struct_def.fields.vec.begin();
-       field_it != struct_def.fields.vec.end(); ++field_it) {
+  auto &fields = struct_def.fields.vec;
+  for (auto field_it = fields.begin(); field_it != fields.end(); ++field_it) {
     auto required_field = *field_it;
     if (!required_field->required) { continue; }
     bool found = false;
@@ -1048,7 +1048,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
     }
   }
 
-  if (struct_def.fixed && fieldn_outer != struct_def.fields.vec.size())
+  if (struct_def.fixed && fieldn_outer != fields.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
   auto start = struct_def.fixed ? builder_.StartStruct(struct_def.minalign)
@@ -2247,7 +2247,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   ECHECK(DoParse(source, include_paths, source_filename, nullptr));
 
   // Check that all types were defined.
-  for (auto it = structs_.vec.begin(); it != structs_.vec.end();) {
+  auto &structs = structs_.vec;
+  for (auto it = structs.begin(); it != structs.end();) {
     auto &struct_def = **it;
     if (struct_def.predecl) {
       if (opts.proto_mode) {
@@ -2265,8 +2266,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
         if (enum_def) {
           // This is pretty slow, but a simple solution for now.
           auto initial_count = struct_def.refcount;
-          for (auto struct_it = structs_.vec.begin();
-               struct_it != structs_.vec.end(); ++struct_it) {
+          for (auto struct_it = structs.begin();
+               struct_it != structs.end(); ++struct_it) {
             auto &sd = **struct_it;
             for (auto field_it = sd.fields.vec.begin();
                  field_it != sd.fields.vec.end(); ++field_it) {
@@ -2306,11 +2307,12 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
 
   // This check has to happen here and not earlier, because only now do we
   // know for sure what the type of these are.
-  for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
+  auto &enums = enums_.vec;
+  for (auto it = enums.begin(); it != enums.end(); ++it) {
     auto &enum_def = **it;
     if (enum_def.is_union) {
-      for (auto val_it = enum_def.vals.vec.begin();
-           val_it != enum_def.vals.vec.end(); ++val_it) {
+      auto& enum_values = enum_def.vals.vec;
+      for (auto val_it = enum_values.begin(); val_it != enum_values.end(); ++val_it) {
         auto &val = **val_it;
         if (!SupportsVectorOfUnions() && val.union_type.struct_def &&
             val.union_type.struct_def->fixed)
@@ -2628,8 +2630,8 @@ std::string Parser::ConformTo(const Parser &base) {
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
-    for (auto fit = struct_def.fields.vec.begin();
-         fit != struct_def.fields.vec.end(); ++fit) {
+    auto &fields = struct_def.fields.vec;
+    for (auto fit = fields.begin(); fit != fields.end(); ++fit) {
       auto &field = **fit;
       auto field_base = struct_def_base->fields.Lookup(field.name);
       if (field_base) {
@@ -2661,8 +2663,8 @@ std::string Parser::ConformTo(const Parser &base) {
         enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
     auto enum_def_base = base.enums_.Lookup(qualified_name);
     if (!enum_def_base) continue;
-    for (auto evit = enum_def.vals.vec.begin(); evit != enum_def.vals.vec.end();
-         ++evit) {
+    auto &enum_values = enum_def.vals.vec;
+    for (auto evit = enum_values.begin(); evit != enum_values.end(); ++evit) {
       auto &enum_val = **evit;
       auto enum_val_base = enum_def_base->vals.Lookup(enum_val.name);
       if (enum_val_base) {

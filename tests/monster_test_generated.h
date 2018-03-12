@@ -44,31 +44,31 @@ struct TypeAliasesT;
 
 }  // namespace Example
 
-inline flatbuffers::TypeTable *InParentNamespaceTypeTable();
+inline const flatbuffers::TypeTable *InParentNamespaceTypeTable();
 
 namespace Example2 {
 
-inline flatbuffers::TypeTable *MonsterTypeTable();
+inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 }  // namespace Example2
 
 namespace Example {
 
-inline flatbuffers::TypeTable *TestTypeTable();
+inline const flatbuffers::TypeTable *TestTypeTable();
 
-inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
+inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
 
-inline flatbuffers::TypeTable *Vec3TypeTable();
+inline const flatbuffers::TypeTable *Vec3TypeTable();
 
-inline flatbuffers::TypeTable *AbilityTypeTable();
+inline const flatbuffers::TypeTable *AbilityTypeTable();
 
-inline flatbuffers::TypeTable *StatTypeTable();
+inline const flatbuffers::TypeTable *StatTypeTable();
 
-inline flatbuffers::TypeTable *ReferrableTypeTable();
+inline const flatbuffers::TypeTable *ReferrableTypeTable();
 
-inline flatbuffers::TypeTable *MonsterTypeTable();
+inline const flatbuffers::TypeTable *MonsterTypeTable();
 
-inline flatbuffers::TypeTable *TypeAliasesTypeTable();
+inline const flatbuffers::TypeTable *TypeAliasesTypeTable();
 
 enum Color {
   Color_Red = 1,
@@ -78,8 +78,8 @@ enum Color {
   Color_ANY = 11
 };
 
-inline Color (&EnumValuesColor())[3] {
-  static Color values[] = {
+inline const Color (&EnumValuesColor())[3] {
+  static const Color values[] = {
     Color_Red,
     Color_Green,
     Color_Blue
@@ -87,8 +87,8 @@ inline Color (&EnumValuesColor())[3] {
   return values;
 }
 
-inline const char **EnumNamesColor() {
-  static const char *names[] = {
+inline const char * const * EnumNamesColor() {
+  static const char * const names[] = {
     "Red",
     "Green",
     "",
@@ -116,8 +116,8 @@ enum Any {
   Any_MAX = Any_MyGame_Example2_Monster
 };
 
-inline Any (&EnumValuesAny())[4] {
-  static Any values[] = {
+inline const Any (&EnumValuesAny())[4] {
+  static const Any values[] = {
     Any_NONE,
     Any_Monster,
     Any_TestSimpleTableWithEnum,
@@ -126,8 +126,8 @@ inline Any (&EnumValuesAny())[4] {
   return values;
 }
 
-inline const char **EnumNamesAny() {
-  static const char *names[] = {
+inline const char * const * EnumNamesAny() {
+  static const char * const names[] = {
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
@@ -363,7 +363,7 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -408,7 +408,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -457,7 +457,7 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
   enum {
@@ -520,7 +520,7 @@ struct StatT : public flatbuffers::NativeTable {
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return StatTypeTable();
   }
   enum {
@@ -619,7 +619,7 @@ struct ReferrableT : public flatbuffers::NativeTable {
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
   enum {
@@ -750,7 +750,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   enum {
@@ -1518,7 +1518,7 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable * const MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
   enum {
@@ -2207,46 +2207,46 @@ inline void AnyUnion::Reset() {
   type = Any_NONE;
 }
 
-inline flatbuffers::TypeTable *ColorTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ColorTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
   };
   static const int32_t values[] = { 1, 2, 8 };
-  static const char *names[] = {
+  static const char * const names[] = {
     "Red",
     "Green",
     "Blue"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *AnyTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *AnyTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 },
     { flatbuffers::ET_SEQUENCE, 0, 2 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     MonsterTypeTable,
     TestSimpleTableWithEnumTypeTable,
     MyGame::Example2::MonsterTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
     "MyGame_Example2_Monster"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
   };
   return &tt;
@@ -2254,8 +2254,8 @@ inline flatbuffers::TypeTable *AnyTypeTable() {
 
 }  // namespace Example
 
-inline flatbuffers::TypeTable *InParentNamespaceTypeTable() {
-  static flatbuffers::TypeTable tt = {
+inline const flatbuffers::TypeTable *InParentNamespaceTypeTable() {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
@@ -2263,8 +2263,8 @@ inline flatbuffers::TypeTable *InParentNamespaceTypeTable() {
 
 namespace Example2 {
 
-inline flatbuffers::TypeTable *MonsterTypeTable() {
-  static flatbuffers::TypeTable tt = {
+inline const flatbuffers::TypeTable *MonsterTypeTable() {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
@@ -2274,40 +2274,40 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
 
 namespace Example {
 
-inline flatbuffers::TypeTable *TestTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *TestTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_CHAR, 0, -1 }
   };
   static const int32_t values[] = { 0, 2, 4 };
-  static const char *names[] = {
+  static const char * const names[] = {
     "a",
     "b"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "color"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *Vec3TypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *Vec3TypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
@@ -2315,12 +2315,12 @@ inline flatbuffers::TypeTable *Vec3TypeTable() {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable,
     TestTypeTable
   };
   static const int32_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
-  static const char *names[] = {
+  static const char * const names[] = {
     "x",
     "y",
     "z",
@@ -2328,60 +2328,60 @@ inline flatbuffers::TypeTable *Vec3TypeTable() {
     "test2",
     "test3"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *AbilityTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *AbilityTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
   static const int32_t values[] = { 0, 4, 8 };
-  static const char *names[] = {
+  static const char * const names[] = {
     "id",
     "distance"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *StatTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *StatTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_LONG, 0, -1 },
     { flatbuffers::ET_USHORT, 0, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "id",
     "val",
     "count"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *ReferrableTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ReferrableTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_ULONG, 0, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "id"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *MonsterTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *MonsterTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_SHORT, 0, -1 },
@@ -2426,7 +2426,7 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_ULONG, 0, -1 },
     { flatbuffers::ET_ULONG, 1, -1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     Vec3TypeTable,
     ColorTypeTable,
     AnyTypeTable,
@@ -2437,7 +2437,7 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::InParentNamespaceTypeTable,
     ReferrableTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "pos",
     "mana",
     "hp",
@@ -2482,14 +2482,14 @@ inline flatbuffers::TypeTable *MonsterTypeTable() {
     "non_owning_reference",
     "vector_of_non_owning_references"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 43, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *TypeAliasesTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, -1 },
     { flatbuffers::ET_UCHAR, 0, -1 },
     { flatbuffers::ET_SHORT, 0, -1 },
@@ -2503,7 +2503,7 @@ inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
     { flatbuffers::ET_CHAR, 1, -1 },
     { flatbuffers::ET_DOUBLE, 1, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "i8",
     "u8",
     "i16",
@@ -2517,7 +2517,7 @@ inline flatbuffers::TypeTable *TypeAliasesTypeTable() {
     "v8",
     "vf64"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
   };
   return &tt;

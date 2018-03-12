@@ -119,7 +119,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
   FlatBufPrinter(std::string *str) : str_(str), escape_char_('$'), indent_(0) {}
 
   void Print(const std::map<std::string, std::string> &vars,
-             const char *string_template) {
+             const char *string_template) const {
     std::string s = string_template;
     // Replace any occurrences of strings in "vars" that are surrounded
     // by the escape character by what they're mapped to.
@@ -138,7 +138,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
     Print(s.c_str());
   }
 
-  void Print(const char *s) {
+  void Print(const char *s) const {
     if (s == nullptr || std::strlen(s) == 0) { return; }
     // Add this string, but for each part separated by \n, add indentation.
     for (;;) {

@@ -201,8 +201,8 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
   text += "{";
   int fieldout = 0;
   Type *union_type = nullptr;
-  for (auto it = struct_def.fields.vec.begin();
-       it != struct_def.fields.vec.end(); ++it) {
+  auto &fields = struct_def.fields.vec;
+  for (auto it = fields.begin(); it != fields.end(); ++it) {
     FieldDef &fd = **it;
     auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
     auto output_anyway = opts.output_default_scalars_in_json &&
