@@ -402,6 +402,7 @@ struct IDLOptions {
     kBinary = 1 << 8,
     kTs = 1 << 9,
     kJsonSchema = 1 << 10,
+    kDart = 1 << 11,
     kMAX
   };
 
@@ -762,6 +763,10 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
+extern bool GenerateDart(const Parser &parser,
+                         const std::string &path,
+                         const std::string &file_name);
+
 // Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
 extern bool GenerateJS(const Parser &parser,
@@ -817,6 +822,12 @@ extern std::string JSMakeRule(const Parser &parser,
 extern std::string CPPMakeRule(const Parser &parser,
                                const std::string &path,
                                const std::string &file_name);
+
+// Generate a make rule for the generated Dart code
+// see idl_gen_dart.cpp
+extern std::string DartMakeRule(const Parser &parser,
+                                const std::string &path,
+                                const std::string &file_name);
 
 // Generate a make rule for the generated Java/C#/... files.
 // See idl_gen_general.cpp.
