@@ -69,7 +69,7 @@ class DartGenerator : public BaseGenerator {
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
       code = code + "// " + FlatBuffersGeneratedWarning() + "\n";
-      code = code + "// ignore_for_file: unused_import\n\n";
+      code = code + "// ignore_for_file: unused_import, non_constant_identifier_names\n\n";
 
       code += "library " + kv->first + ";\n\n";
 
@@ -246,10 +246,30 @@ class DartGenerator : public BaseGenerator {
       auto &ev = **it;
       code += ev.name + ",";
     }
-    code += "];\n";
+    code += "];\n\n";
+    code += "  static const fb.Reader<" + enum_def.name + "> reader = const _" +
+            enum_def.name + "Reader();\n";
     code += "}\n\n";
 
+    GenEnumReader(enum_def, &code);
+
     (*namespace_code)[ns] += code;
+  }
+
+  void GenEnumReader(EnumDef &enum_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "class _" + enum_def.name + "Reader extends " + _kFb + ".Reader<" +
+            enum_def.name + "> {\n";
+    code += "  const _" + enum_def.name + "Reader();\n\n";
+    code += "  @override\n";
+    code += "  int get size => 1;\n\n";
+    code += "  @override\n";
+    code += "  " + enum_def.name + " read(" + _kFb +
+            ".BufferContext bc, int offset) =>\n";
+    code += "      new " + enum_def.name + ".fromValue(const " + _kFb + "." +
+            GenType(enum_def.underlying_type) + "Reader().read(bc, offset));\n";
+    code += "}\n\n";
   }
 
   static std::string GenType(const Type &type) {
@@ -275,19 +295,27 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string GenReaderTypeName(const Type &type, Namespace *current_namespace,
-                                const FieldDef &def) {
+                                const FieldDef &def,
+                                bool parent_is_vector = false) {
     if (type.base_type == BASE_TYPE_BOOL) {
       return "const " + _kFb + ".BoolReader()";
     } else if (type.base_type == BASE_TYPE_VECTOR) {
       return "const " + _kFb + ".ListReader<" +
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
-             GenReaderTypeName(type.VectorType(), current_namespace, def) + ")";
+             GenReaderTypeName(type.VectorType(), current_namespace, def,
+                               true) +
+             ")";
     } else if (type.base_type == BASE_TYPE_STRING) {
       return "const " + _kFb + ".StringReader()";
     }
-    return IsScalar(type.base_type)
-               ? "const " + _kFb + "." + GenType(type) + "Reader()"
-               : GenDartTypeName(type, current_namespace, def) + ".reader";
+    if (IsScalar(type.base_type)) {
+      if (type.enum_def && parent_is_vector) {
+        return GenDartTypeName(type, current_namespace, def) + ".reader";
+      }
+      return "const " + _kFb + "." + GenType(type) + "Reader()";
+    } else {
+      return GenDartTypeName(type, current_namespace, def) + ".reader";
+    }
   }
 
   std::string GenDartTypeName(const Type &type, Namespace *current_namespace,
@@ -297,7 +325,7 @@ class DartGenerator : public BaseGenerator {
         return type.enum_def->name + "TypeId";
       } else if (type.enum_def->is_union) {
         return "dynamic";
-      } else {
+      } else if (type.base_type != BASE_TYPE_VECTOR) {
         return type.enum_def->name;
       }
     }
@@ -460,7 +488,8 @@ class DartGenerator : public BaseGenerator {
         code += "    }\n";
       } else {
         code += "    _" + field_name + " \?\?= ";
-        if (field.value.type.enum_def) {
+        if (field.value.type.enum_def &&
+            field.value.type.base_type != BASE_TYPE_VECTOR) {
           code += "new " +
                   GenDartTypeName(field.value.type,
                                   struct_def.defined_namespace, field) +
@@ -471,7 +500,10 @@ class DartGenerator : public BaseGenerator {
         code += GenReaderTypeName(field.value.type,
                                   struct_def.defined_namespace, field) +
                 ".vTableGet(_bc, _bcOffset, " + NumToString(offset) + ", null)";
-        if (field.value.type.enum_def) { code += ")"; }
+        if (field.value.type.enum_def &&
+            field.value.type.base_type != BASE_TYPE_VECTOR) {
+          code += ")";
+        }
         code += ";\n";
         code += "    return _" + field_name + ";\n";
       }
@@ -557,13 +589,13 @@ class DartGenerator : public BaseGenerator {
                     ".map((b) => fbBuilder.writeString(b)).toList())";
             break;
           case BASE_TYPE_STRUCT:
-            // case BASE_TYPE_UNION:
             code += "(_" + field.name +
                     ".map((b) => b.finish(fbBuilder)).toList())";
             break;
           default:
-            code += GenType(field.value.type.VectorType()) + "(_" + field.name +
-                    ")";
+            code += GenType(field.value.type.VectorType()) + "(_" + field.name;
+            if (field.value.type.enum_def) { code += ".map((f) => f.value)"; }
+            code += ")";
         }
         code += "\n        : null;\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
