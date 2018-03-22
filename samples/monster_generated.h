@@ -40,7 +40,7 @@ inline const Color (&EnumValuesColor())[3] {
   return values;
 }
 
-inline const char * const * EnumNamesColor() {
+inline const char * const *EnumNamesColor() {
   static const char * const names[] = {
     "Red",
     "Green",
@@ -70,7 +70,7 @@ inline const Equipment (&EnumValuesEquipment())[2] {
   return values;
 }
 
-inline const char * const * EnumNamesEquipment() {
+inline const char * const *EnumNamesEquipment() {
   static const char * const names[] = {
     "NONE",
     "Weapon",
@@ -191,7 +191,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
-  static const flatbuffers::TypeTable * MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
   enum {
@@ -393,7 +393,7 @@ struct WeaponT : public flatbuffers::NativeTable {
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;
-  static const flatbuffers::TypeTable * MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WeaponTypeTable();
   }
   enum {

@@ -65,7 +65,7 @@ inline const BaseType (&EnumValuesBaseType())[17] {
   return values;
 }
 
-inline const char * const * EnumNamesBaseType() {
+inline const char * const *EnumNamesBaseType() {
   static const char * const names[] = {
     "None",
     "UType",
