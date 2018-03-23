@@ -7,11 +7,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-/**
- * Reader of lists of boolean values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+///Reader of lists of boolean values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class BoolListReader extends Reader<List<bool>> {
   const BoolListReader();
 
@@ -23,9 +21,7 @@ class BoolListReader extends Reader<List<bool>> {
       new _FbBoolList(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of booleans.
- */
+/// The reader of booleans.
 class BoolReader extends Reader<bool> {
   const BoolReader() : super();
 
@@ -36,9 +32,7 @@ class BoolReader extends Reader<bool> {
   bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
 }
 
-/**
- * Buffer with data and some context about it.
- */
+/// Buffer with data and some context about it.
 class BufferContext {
   final ByteData _buffer;
 
@@ -90,9 +84,7 @@ class BufferContext {
   }
 }
 
-/**
- * Class that helps building flat buffers.
- */
+/// Class that helps building flat buffers.
 class Builder {
   final int initialSize;
 
@@ -501,7 +493,7 @@ class Builder {
   /// the [value] is `null`.  If [intern] is set to true, the method will
   /// check to see if an identical string has already been written and reuse
   /// it if possible.
-  Offset<String> writeString(String value, {bool intern = true}) {
+  Offset<String> writeString(String value, {bool intern = false}) {
     _ensureNoVTable();
     if (value != null) {
       if (intern == true) {
@@ -613,11 +605,9 @@ class Builder {
   }
 }
 
-/**
- * The reader of lists of 64-bit float values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// The reader of lists of 64-bit float values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Float64ListReader extends Reader<List<double>> {
   const Float64ListReader();
 
@@ -660,9 +650,7 @@ class Float32Reader extends Reader<double> {
   double read(BufferContext bc, int offset) => bc._getFloat32(offset);
 }
 
-/**
- * The reader of signed 32-bit integers.
- */
+/// The reader of signed 32-bit integers.
 class Int32Reader extends Reader<int> {
   const Int32Reader() : super();
 
@@ -673,9 +661,7 @@ class Int32Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt32(offset);
 }
 
-/**
- * The reader of signed 32-bit integers.
- */
+/// The reader of signed 32-bit integers.
 class Int16Reader extends Reader<int> {
   const Int16Reader() : super();
 
@@ -686,9 +672,7 @@ class Int16Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt16(offset);
 }
 
-/**
- * The reader of 8-bit signed integers.
- */
+/// The reader of 8-bit signed integers.
 class Int8Reader extends Reader<int> {
   const Int8Reader() : super();
 
@@ -699,11 +683,9 @@ class Int8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt8(offset);
 }
 
-/**
- * The reader of lists of objects.
- *
- * The returned unmodifiable lists lazily read objects on access.
- */
+/// The reader of lists of objects.
+///
+/// The returned unmodifiable lists lazily read objects on access.
 class ListReader<E> extends Reader<List<E>> {
   final Reader<E> _elementReader;
 
@@ -717,18 +699,14 @@ class ListReader<E> extends Reader<List<E>> {
       new _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
 }
 
-/**
- * The offset from the end of the buffer to a serialized object of the type [T].
- */
+/// The offset from the end of the buffer to a serialized object of the type [T].
 class Offset<T> {
   final int _tail;
 
   Offset(this._tail);
 }
 
-/**
- * Object that can read a value at a [BufferContext].
- */
+/// Object that can read a value at a [BufferContext].
 abstract class Reader<T> {
   const Reader();
 
@@ -755,9 +733,7 @@ abstract class Reader<T> {
   }
 }
 
-/**
- * The reader of string values.
- */
+/// The reader of string values.
 class StringReader extends Reader<String> {
   const StringReader() : super();
 
@@ -786,9 +762,7 @@ class StringReader extends Reader<String> {
   }
 }
 
-/**
- * An abstract reader for tables.
- */
+/// An abstract reader for tables.
 abstract class TableReader<T> extends Reader<T> {
   const TableReader();
 
@@ -805,11 +779,9 @@ abstract class TableReader<T> extends Reader<T> {
   }
 }
 
-/**
- * Reader of lists of unsigned 32-bit integer values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of unsigned 32-bit integer values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Uint32ListReader extends Reader<List<int>> {
   const Uint32ListReader();
 
@@ -821,9 +793,7 @@ class Uint32ListReader extends Reader<List<int>> {
       new _FbUint32List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of unsigned 32-bit integers.
- */
+/// The reader of unsigned 32-bit integers.
 class Uint32Reader extends Reader<int> {
   const Uint32Reader() : super();
 
@@ -834,11 +804,9 @@ class Uint32Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint32(offset);
 }
 
-/**
- * Reader of lists of unsigned 32-bit integer values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of unsigned 32-bit integer values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Uint16ListReader extends Reader<List<int>> {
   const Uint16ListReader();
 
@@ -850,9 +818,7 @@ class Uint16ListReader extends Reader<List<int>> {
       new _FbUint16List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of unsigned 32-bit integers.
- */
+/// The reader of unsigned 32-bit integers.
 class Uint16Reader extends Reader<int> {
   const Uint16Reader() : super();
 
@@ -863,11 +829,9 @@ class Uint16Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint16(offset);
 }
 
-/**
- * Reader of lists of unsigned 8-bit integer values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of unsigned 8-bit integer values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Uint8ListReader extends Reader<List<int>> {
   const Uint8ListReader();
 
@@ -879,9 +843,7 @@ class Uint8ListReader extends Reader<List<int>> {
       new _FbUint8List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of unsigned 8-bit integers.
- */
+/// The reader of unsigned 8-bit integers.
 class Uint8Reader extends Reader<int> {
   const Uint8Reader() : super();
 
@@ -892,9 +854,7 @@ class Uint8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
-/**
- * List of booleans backed by 8-bit unsigned integers.
- */
+/// List of booleans backed by 8-bit unsigned integers.
 class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
   final BufferContext bc;
   final int offset;
@@ -929,9 +889,7 @@ class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
   int _getByte(int index) => bc._getUint8(offset + 4 + index);
 }
 
-/**
- * The list backed by 64-bit values - Uint64 length and Float64.
- */
+/// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
   _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -941,9 +899,7 @@ class _FbFloat64List extends _FbList<double> {
   }
 }
 
-/**
- * The list backed by 32-bit values - Float32.
- */
+/// The list backed by 32-bit values - Float32.
 class _FbFloat32List extends _FbList<double> {
   _FbFloat32List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -953,9 +909,7 @@ class _FbFloat32List extends _FbList<double> {
   }
 }
 
-/**
- * List backed by a generic object which may have any size.
- */
+/// List backed by a generic object which may have any size.
 class _FbGenericList<E> extends _FbList<E> {
   final Reader<E> elementReader;
 
@@ -976,9 +930,7 @@ class _FbGenericList<E> extends _FbList<E> {
   }
 }
 
-/**
- * The base class for immutable lists read from flat buffers.
- */
+/// The base class for immutable lists read from flat buffers.
 abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   final BufferContext bc;
   final int offset;
@@ -1001,9 +953,7 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
       throw new StateError('Attempt to modify immutable list');
 }
 
-/**
- * List backed by 32-bit unsigned integers.
- */
+/// List backed by 32-bit unsigned integers.
 class _FbUint32List extends _FbList<int> {
   _FbUint32List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -1013,9 +963,7 @@ class _FbUint32List extends _FbList<int> {
   }
 }
 
-/**
- * List backed by 16-bit unsigned integers.
- */
+/// List backed by 16-bit unsigned integers.
 class _FbUint16List extends _FbList<int> {
   _FbUint16List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -1025,9 +973,7 @@ class _FbUint16List extends _FbList<int> {
   }
 }
 
-/**
- * List backed by 8-bit unsigned integers.
- */
+/// List backed by 8-bit unsigned integers.
 class _FbUint8List extends _FbList<int> {
   _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -1037,9 +983,7 @@ class _FbUint8List extends _FbList<int> {
   }
 }
 
-/**
- * Class that describes the structure of a table.
- */
+/// Class that describes the structure of a table.
 class _VTable {
   final List<int> fieldTails = <int>[];
   final List<int> fieldOffsets = <int>[];
