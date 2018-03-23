@@ -47,6 +47,7 @@ snapshot.sh
 tags
 tests/go_gen
 tests/monsterdata_java_wire.mon
+tests/monsterdata_java_wire_sp.mon
 tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
 tests/unicode_test.mon
@@ -55,6 +56,7 @@ tests/php/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
+FlatbuffersConfigVersion.cmake
 FlatBuffers.cbp
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
@@ -87,3 +89,7 @@ js/flatbuffers.mjs
 /bazel-genfiles
 /bazel-out
 /bazel-testlogs
+.ninja_deps
+.ninja_log
+build.ninja
+rules.ninja

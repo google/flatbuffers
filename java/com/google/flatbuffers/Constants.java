@@ -37,6 +37,8 @@ public class Constants {
     static final int SIZEOF_DOUBLE = 8;
     /** The number of bytes in a file identifier. */
     static final int FILE_IDENTIFIER_LENGTH = 4;
+    /** The number of bytes in a size prefix. */
+    public static final int SIZE_PREFIX_LENGTH = 4;
 }
 
 /// @endcond

@@ -263,8 +263,9 @@ bool GenerateText(const Parser &parser, const void *flatbuffer,
   std::string &text = *_text;
   assert(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);               // Reduce amount of inevitable reallocs.
-  if (!GenStruct(*parser.root_struct_def_, GetRoot<Table>(flatbuffer), 0,
-                 parser.opts, _text)) {
+  auto root = parser.opts.size_prefixed ?
+      GetSizePrefixedRoot<Table>(flatbuffer) : GetRoot<Table>(flatbuffer);
+  if (!GenStruct(*parser.root_struct_def_, root, 0, parser.opts, _text)) {
     return false;
   }
   text += NewLine(parser.opts);

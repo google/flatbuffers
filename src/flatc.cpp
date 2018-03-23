@@ -100,7 +100,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     (default is \"github.com/google/flatbuffers/go\")\n"
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
+    "  --size-prefixed    Input binaries are size prefixed buffers.\n"
     "  --proto            Input is a .proto, translate to .fbs.\n"
+    "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
@@ -232,10 +234,14 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.one_file = true;
       } else if (arg == "--raw-binary") {
         raw_binary = true;
+      } else if (arg == "--size-prefixed") {
+        opts.size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
       } else if (arg == "--proto") {
         opts.proto_mode = true;
+      } else if (arg == "--oneof-union") {
+        opts.proto_oneof_union = true;
       } else if (arg == "--schema") {
         schema_binary = true;
       } else if (arg == "-M") {
@@ -322,7 +328,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                 "\" matches the schema, use --raw-binary to read this file"
                 " anyway.");
         } else if (!flatbuffers::BufferHasIdentifier(
-                       contents.c_str(), parser->file_identifier_.c_str())) {
+                       contents.c_str(), parser->file_identifier_.c_str(), opts.size_prefixed)) {
           Error("binary \"" + filename +
                 "\" does not have expected file_identifier \"" +
                 parser->file_identifier_ +
