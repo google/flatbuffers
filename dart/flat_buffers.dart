@@ -242,6 +242,7 @@ class Builder {
       _setFloat64AtTail(_buf, _tail, value);
     }
   }
+
   /// End the current table and return its offset.
   Offset endTable() {
     if (_currentVTable == null) {
@@ -406,7 +407,7 @@ class Builder {
     return result;
   }
 
-  /// Write the given list of 32-bit float [values]. 
+  /// Write the given list of 32-bit float [values].
   Offset writeListFloat32(List<double> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
@@ -420,7 +421,7 @@ class Builder {
     }
     return result;
   }
-  
+
   /// Write the given list of signed 32-bit integer [values].
   Offset writeListInt32(List<int> values) {
     _ensureNoVTable();
@@ -451,8 +452,7 @@ class Builder {
     return result;
   }
 
-  
-  /// Write the given list of signed 16-bit integer [values]. 
+  /// Write the given list of signed 16-bit integer [values].
   Offset writeListInt16(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: 2 * values.length);
@@ -498,25 +498,35 @@ class Builder {
   }
 
   /// Write the given string [value] and return its [Offset], or `null` if
-  /// the [value] is equal to [def].
-  Offset<String> writeString(String value, [String def]) {
+  /// the [value] is `null`.  If [intern] is set to true, the method will
+  /// check to see if an identical string has already been written and reuse
+  /// it if possible.
+  Offset<String> writeString(String value, {bool intern = true}) {
     _ensureNoVTable();
-    if (value != def) {
-      return _strings.putIfAbsent(value, () {
-        // TODO(scheglov) optimize for ASCII strings
-        List<int> bytes = UTF8.encode(value);
-        int length = bytes.length;
-        _prepare(4, 1, additionalBytes: length);
-        Offset<String> result = new Offset(_tail);
-        _setUint32AtTail(_buf, _tail, length);
-        int offset = _buf.lengthInBytes - _tail + 4;
-        for (int i = 0; i < length; i++) {
-          _buf.setUint8(offset++, bytes[i]);
-        }
-        return result;
-      });
+    if (value != null) {
+      if (intern == true) {
+        return _strings.putIfAbsent(value, () {
+          return _writeString(value);
+        });
+      } else {
+        return _writeString(value);
+      }
     }
     return null;
+  }
+
+  Offset<String> _writeString(String value) {
+    // TODO(scheglov) optimize for ASCII strings
+    List<int> bytes = UTF8.encode(value);
+    int length = bytes.length;
+    _prepare(4, 1, additionalBytes: length);
+    Offset<String> result = new Offset(_tail);
+    _setUint32AtTail(_buf, _tail, length);
+    int offset = _buf.lengthInBytes - _tail + 4;
+    for (int i = 0; i < length; i++) {
+      _buf.setUint8(offset++, bytes[i]);
+    }
+    return result;
   }
 
   /// Throw an exception if there is not currently a vtable.
@@ -633,24 +643,22 @@ class Float32ListReader extends Reader<List<double>> {
 class Float64Reader extends Reader<double> {
   const Float64Reader();
 
-  @override 
+  @override
   int get size => 8;
 
   @override
   double read(BufferContext bc, int offset) => bc._getFloat64(offset);
 }
 
-
 class Float32Reader extends Reader<double> {
   const Float32Reader();
 
-  @override 
+  @override
   int get size => 4;
 
   @override
   double read(BufferContext bc, int offset) => bc._getFloat32(offset);
 }
-
 
 /**
  * The reader of signed 32-bit integers.
