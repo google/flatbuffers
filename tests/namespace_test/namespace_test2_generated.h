@@ -24,22 +24,22 @@ namespace NamespaceA {
 
 struct SecondTableInA;
 
-inline flatbuffers::TypeTable *TableInFirstNSTypeTable();
+inline const flatbuffers::TypeTable *TableInFirstNSTypeTable();
 
 }  // namespace NamespaceA
 
 namespace NamespaceC {
 
-inline flatbuffers::TypeTable *TableInCTypeTable();
+inline const flatbuffers::TypeTable *TableInCTypeTable();
 
 }  // namespace NamespaceC
 
 namespace NamespaceA {
 
-inline flatbuffers::TypeTable *SecondTableInATypeTable();
+inline const flatbuffers::TypeTable *SecondTableInATypeTable();
 
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInFirstNSTypeTable();
   }
   enum {
@@ -116,7 +116,7 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
 namespace NamespaceC {
 
 struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInCTypeTable();
   }
   enum {
@@ -181,7 +181,7 @@ inline flatbuffers::Offset<TableInC> CreateTableInC(
 namespace NamespaceA {
 
 struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  static flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return SecondTableInATypeTable();
   }
   enum {
@@ -235,23 +235,23 @@ namespace NamespaceC {
 
 namespace NamespaceA {
 
-inline flatbuffers::TypeTable *TableInFirstNSTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *TableInFirstNSTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 1 },
     { flatbuffers::ET_SEQUENCE, 0, 2 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     NamespaceA::NamespaceB::TableInNestedNSTypeTable,
     NamespaceA::NamespaceB::EnumInNestedNSTypeTable,
     NamespaceA::NamespaceB::StructInNestedNSTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "foo_table",
     "foo_enum",
     "foo_struct"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
@@ -261,20 +261,20 @@ inline flatbuffers::TypeTable *TableInFirstNSTypeTable() {
 
 namespace NamespaceC {
 
-inline flatbuffers::TypeTable *TableInCTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *TableInCTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     NamespaceA::TableInFirstNSTypeTable,
     NamespaceA::SecondTableInATypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "refer_to_a1",
     "refer_to_a2"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
@@ -284,17 +284,17 @@ inline flatbuffers::TypeTable *TableInCTypeTable() {
 
 namespace NamespaceA {
 
-inline flatbuffers::TypeTable *SecondTableInATypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *SecondTableInATypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     NamespaceC::TableInCTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "refer_to_c"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
