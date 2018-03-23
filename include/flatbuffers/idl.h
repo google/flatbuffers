@@ -600,10 +600,10 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
   FLATBUFFERS_CHECKED_ERROR Next();
   FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
-  bool Is(int t);
-  bool IsIdent(const char *id);
+  bool Is(int t) const;
+  bool IsIdent(const char *id) const;
   FLATBUFFERS_CHECKED_ERROR Expect(int t);
-  std::string TokenToStringId(int t);
+  std::string TokenToStringId(int t) const;
   EnumDef *LookupEnum(const std::string &id);
   FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string *id,
                                              std::string *last);

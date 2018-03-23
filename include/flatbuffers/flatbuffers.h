@@ -2185,8 +2185,8 @@ enum ElementaryType {
   #undef FLATBUFFERS_ET
 };
 
-inline const char **ElementaryTypeNames() {
-  static const char *names[] = {
+inline const char * const *ElementaryTypeNames() {
+  static const char * const names[] = {
     #define FLATBUFFERS_ET(E) #E,
       FLATBUFFERS_GEN_ELEMENTARY_TYPES(FLATBUFFERS_ET)
     #undef FLATBUFFERS_ET
@@ -2207,7 +2207,7 @@ static_assert(sizeof(TypeCode) == 2, "TypeCode");
 struct TypeTable;
 
 // Signature of the static method present in each type.
-typedef TypeTable *(*TypeFunction)();
+typedef const TypeTable *(*TypeFunction)();
 
 struct TypeTable {
   SequenceType st;
@@ -2215,7 +2215,7 @@ struct TypeTable {
   const TypeCode *type_codes;
   const TypeFunction *type_refs;
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
-  const char **names;     // Only set if compiled with --reflect-names.
+  const char * const *names;     // Only set if compiled with --reflect-names.
 };
 
 // String which identifies the current version of FlatBuffers.
