@@ -4,7 +4,7 @@ FlatBuffers    {#flatbuffers_index}
 # Overview {#flatbuffers_overview}
 
 [FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
-serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python.
+serialization library for C++, C#, C, Go, Java, JavaScript, TypeScript, PHP, and Python.
 It was originally created at Google for game development and other
 performance-critical applications.
 

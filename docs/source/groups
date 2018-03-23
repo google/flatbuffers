@@ -13,6 +13,9 @@
 /// @defgroup flatbuffers_javascript_api JavaScript API
 /// @brief FlatBuffers API for JavaScript
 
+/// @defgroup flatbuffers_typescript_api TypeScript API
+/// @brief FlatBuffers API for TypeScript
+
 /// @defgroup flatbuffers_php_api PHP API
 /// @brief FlatBuffers API for PHP
 
