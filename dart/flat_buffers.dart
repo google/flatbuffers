@@ -110,7 +110,7 @@ class Builder {
 
   /// Map containing all strings that have been written so far.  This allows us
   /// to avoid duplicating strings.
-  Map<String, Offset<String>> _strings = <String, Offset<String>>{};
+  Map<String, int> _strings = <String, int>{};
 
   Builder({this.initialSize: 1024}) {
     reset();
@@ -166,12 +166,12 @@ class Builder {
   }
 
   /// Add the [field] referencing an object with the given [offset].
-  void addOffset(int field, Offset offset) {
+  void addOffset(int field, int offset) {
     _ensureCurrentVTable();
     if (offset != null) {
       _prepare(4, 1);
       _trackField(field);
-      _setUint32AtTail(_buf, _tail, _tail - offset._tail);
+      _setUint32AtTail(_buf, _tail, _tail - offset);
     }
   }
 
@@ -236,7 +236,7 @@ class Builder {
   }
 
   /// End the current table and return its offset.
-  Offset endTable() {
+  int endTable() {
     if (_currentVTable == null) {
       throw new StateError('Start a table before ending it.');
     }
@@ -253,12 +253,14 @@ class Builder {
       for (int i = 0; i < _vTables.length; i++) {
         _VTable vTable = _vTables[i];
         if (_currentVTable.canUseExistingVTable(vTable)) {
+          print('found one ${vTable.tail}');
           vTableTail = vTable.tail;
           break;
         }
       }
       // Write a new VTable.
       if (vTableTail == null) {
+        print('could not find one');
         _prepare(2, _currentVTable.numOfUint16);
         vTableTail = _tail;
         _currentVTable.tail = vTableTail;
@@ -270,7 +272,7 @@ class Builder {
     _setInt32AtTail(_buf, tableTail, vTableTail - tableTail);
     // Done with this table.
     _currentVTable = null;
-    return new Offset(tableTail);
+    return tableTail;
   }
 
   /// Finish off the creation of the buffer.  The given [offset] is used as the
@@ -278,10 +280,10 @@ class Builder {
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
-  Uint8List finish(Offset offset, [String fileIdentifier]) {
+  Uint8List finish(int offset, [String fileIdentifier]) {
     _prepare(max(4, _maxAlign), fileIdentifier == null ? 1 : 2);
     int alignedTail = _tail + ((-_tail) % _maxAlign);
-    _setUint32AtTail(_buf, alignedTail, alignedTail - offset._tail);
+    _setUint32AtTail(_buf, alignedTail, alignedTail - offset);
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
         _setUint8AtTail(
@@ -340,22 +342,22 @@ class Builder {
   }
 
   /// Write the given list of [values].
-  Offset writeList(List<Offset> values) {
+  int writeList(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
-    for (Offset value in values) {
-      _setUint32AtTail(_buf, tail, tail - value._tail);
+    for (int value in values) {
+      _setUint32AtTail(_buf, tail, tail - value);
       tail -= 4;
     }
     return result;
   }
 
   /// Write the given list of boolean [values].
-  Offset writeListBool(List<bool> values) {
+  int writeListBool(List<bool> values) {
     int bitLength = values.length;
     int padding = (-bitLength) % 8;
     int byteLength = (bitLength + padding) ~/ 8;
@@ -385,10 +387,10 @@ class Builder {
   }
 
   /// Write the given list of 64-bit float [values].
-  Offset writeListFloat64(List<double> values) {
+  int writeListFloat64(List<double> values) {
     _ensureNoVTable();
     _prepare(8, 1 + values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 8;
@@ -400,10 +402,10 @@ class Builder {
   }
 
   /// Write the given list of 32-bit float [values].
-  Offset writeListFloat32(List<double> values) {
+  int writeListFloat32(List<double> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -415,10 +417,10 @@ class Builder {
   }
 
   /// Write the given list of signed 32-bit integer [values].
-  Offset writeListInt32(List<int> values) {
+  int writeListInt32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -430,10 +432,10 @@ class Builder {
   }
 
   /// Write the given list of unsigned 32-bit integer [values].
-  Offset writeListUint32(List<int> values) {
+  int writeListUint32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -445,10 +447,10 @@ class Builder {
   }
 
   /// Write the given list of signed 16-bit integer [values].
-  Offset writeListInt16(List<int> values) {
+  int writeListInt16(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: 2 * values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -460,10 +462,10 @@ class Builder {
   }
 
   /// Write the given list of unsigned 16-bit integer [values].
-  Offset writeListUint16(List<int> values) {
+  int writeListUint16(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: 2 * values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -475,10 +477,10 @@ class Builder {
   }
 
   /// Write the given list of unsigned 8-bit integer [values].
-  Offset writeListUint8(List<int> values) {
+   int writeListUint8(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: values.length);
-    Offset result = new Offset(_tail);
+    final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
     tail -= 4;
@@ -493,7 +495,7 @@ class Builder {
   /// the [value] is `null`.  If [intern] is set to true, the method will
   /// check to see if an identical string has already been written and reuse
   /// it if possible.
-  Offset<String> writeString(String value, {bool intern = false}) {
+  int writeString(String value, {bool intern = false}) {
     _ensureNoVTable();
     if (value != null) {
       if (intern == true) {
@@ -507,12 +509,12 @@ class Builder {
     return null;
   }
 
-  Offset<String> _writeString(String value) {
+  int _writeString(String value) {
     // TODO(scheglov) optimize for ASCII strings
     List<int> bytes = UTF8.encode(value);
     int length = bytes.length;
     _prepare(4, 1, additionalBytes: length);
-    Offset<String> result = new Offset(_tail);
+    final int result = _tail;
     _setUint32AtTail(_buf, _tail, length);
     int offset = _buf.lengthInBytes - _tail + 4;
     for (int i = 0; i < length; i++) {
@@ -697,13 +699,6 @@ class ListReader<E> extends Reader<List<E>> {
   @override
   List<E> read(BufferContext bc, int offset) =>
       new _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
-}
-
-/// The offset from the end of the buffer to a serialized object of the type [T].
-class Offset<T> {
-  final int _tail;
-
-  Offset(this._tail);
 }
 
 /// Object that can read a value at a [BufferContext].

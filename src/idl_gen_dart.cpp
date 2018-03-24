@@ -356,22 +356,6 @@ class DartGenerator : public BaseGenerator {
     }
   }
 
-  // Returns the method name for use with add/put calls.
-  static std::string GenWriteMethod(const Type &type) {
-    // Forward to signed versions since unsigned versions don't exist
-    switch (type.base_type) {
-      case BASE_TYPE_UTYPE:
-      case BASE_TYPE_UCHAR: return GenWriteMethod(Type(BASE_TYPE_CHAR));
-      case BASE_TYPE_USHORT: return GenWriteMethod(Type(BASE_TYPE_SHORT));
-      case BASE_TYPE_UINT: return GenWriteMethod(Type(BASE_TYPE_INT));
-      case BASE_TYPE_ULONG: return GenWriteMethod(Type(BASE_TYPE_LONG));
-      default: break;
-    }
-
-    return IsScalar(type.base_type) ? MakeCamel(GenType(type))
-                                    : (IsStruct(type) ? "Struct" : "Offset");
-  }
-
   static const std::string MaybeWrapNamespace(const std::string &type_name,
                                               Namespace *current_ns,
                                               const FieldDef &field) {
@@ -570,7 +554,7 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "  /// Finish building, and store into the [fbBuilder].\n";
-    code += "  " + _kFb + ".Offset finish(" + _kFb + ".Builder fbBuilder) {\n";
+    code += "  int finish(" + _kFb + ".Builder fbBuilder) {\n";
     code += "    assert(fbBuilder != null);\n";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -579,7 +563,7 @@ class DartGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (IsScalar(field.value.type.base_type)) continue;
 
-      code += "    final " + _kFb + ".Offset offset_" + field.name;
+      code += "    final int offset_" + field.name;
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         code += " = _" + field.name + "?.isNotEmpty == true\n";
         code += "        ? fbBuilder.writeList";
@@ -635,7 +619,7 @@ class DartGenerator : public BaseGenerator {
     code += "  Uint8List toBytes() {\n";
     code +=
         "    " + _kFb + ".Builder fbBuilder = new " + _kFb + ".Builder();\n";
-    code += "    " + _kFb + ".Offset offset = finish(fbBuilder);\n";
+    code += "    int offset = finish(fbBuilder);\n";
     code += "    return fbBuilder.finish(offset);\n";
     code += "  }\n";
     code += "}\n";
