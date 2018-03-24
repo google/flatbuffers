@@ -7,6 +7,17 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+const int _sizeofUint8 = 1;
+const int _sizeofUint16 = 2;
+const int _sizeofUint32 = 4;
+const int _sizeofUint64 = 8;
+const int _sizeofInt8 = 1;
+const int _sizeofInt16 = 2;
+const int _sizeofInt32 = 4;
+const int _sizeofInt64 = 8;
+const int _sizeofFloat32 = 4;
+const int _sizeofFloat64 = 8;
+
 ///Reader of lists of boolean values.
 ///
 /// The returned unmodifiable lists lazily read values on access.
@@ -26,7 +37,7 @@ class BoolReader extends Reader<bool> {
   const BoolReader() : super();
 
   @override
-  int get size => 1;
+  int get size => _sizeofUint8;
 
   @override
   bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
@@ -89,7 +100,8 @@ class Builder {
   final int initialSize;
 
   /// The list of existing VTable(s).
-  final List<_VTable> _vTables = <_VTable>[];
+  //final List<_VTable> _vTables = <_VTable>[];
+  final List<int> _vTables = <int>[];
 
   ByteData _buf;
 
@@ -122,8 +134,7 @@ class Builder {
   void addBool(int field, bool value, [bool def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 1;
-      _prepare(size, 1);
+      _prepare(_sizeofUint8, 1);
       _trackField(field);
       _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
     }
@@ -134,8 +145,7 @@ class Builder {
   void addInt32(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 4;
-      _prepare(size, 1);
+      _prepare(_sizeofInt32, 1);
       _trackField(field);
       _setInt32AtTail(_buf, _tail, value);
     }
@@ -146,8 +156,7 @@ class Builder {
   void addInt16(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 2;
-      _prepare(size, 1);
+      _prepare(_sizeofInt16, 1);
       _trackField(field);
       _setInt16AtTail(_buf, _tail, value);
     }
@@ -158,8 +167,7 @@ class Builder {
   void addInt8(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 1;
-      _prepare(size, 1);
+      _prepare(_sizeofInt8, 1);
       _trackField(field);
       _setInt8AtTail(_buf, _tail, value);
     }
@@ -169,7 +177,7 @@ class Builder {
   void addOffset(int field, int offset) {
     _ensureCurrentVTable();
     if (offset != null) {
-      _prepare(4, 1);
+      _prepare(_sizeofUint32, 1);
       _trackField(field);
       _setUint32AtTail(_buf, _tail, _tail - offset);
     }
@@ -180,8 +188,7 @@ class Builder {
   void addUint32(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 4;
-      _prepare(size, 1);
+      _prepare(_sizeofUint32, 1);
       _trackField(field);
       _setUint32AtTail(_buf, _tail, value);
     }
@@ -192,8 +199,7 @@ class Builder {
   void addUint16(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 2;
-      _prepare(size, 1);
+      _prepare(_sizeofUint16, 1);
       _trackField(field);
       _setUint16AtTail(_buf, _tail, value);
     }
@@ -204,8 +210,7 @@ class Builder {
   void addUint8(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 1;
-      _prepare(size, 1);
+      _prepare(_sizeofUint8, 1);
       _trackField(field);
       _setUint8AtTail(_buf, _tail, value);
     }
@@ -216,22 +221,31 @@ class Builder {
   void addFloat32(int field, double value, [double def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 4;
-      _prepare(size, 1);
+      _prepare(_sizeofFloat32, 1);
       _trackField(field);
       _setFloat32AtTail(_buf, _tail, value);
     }
   }
 
-  /// Add the [field] with the given 32-bit unsigned integer [value].  The field
+  /// Add the [field] with the given 64-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
-  void addUint64(int field, double value, [double def]) {
+  void addUint64(int field, int value, [double def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
-      int size = 4;
-      _prepare(size, 1);
+      _prepare(_sizeofUint64, 1);
       _trackField(field);
-      _setFloat64AtTail(_buf, _tail, value);
+      _setUint64AtTail(_buf, _tail, value);
+    }
+  }
+
+  /// Add the [field] with the given 64-bit unsigned integer [value].  The field
+  /// is not added if the [value] is equal to [def].
+  void addInt64(int field, int value, [double def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      _prepare(_sizeofInt64, 1);
+      _trackField(field);
+      _setInt64AtTail(_buf, _tail, value);
     }
   }
 
@@ -241,7 +255,7 @@ class Builder {
       throw new StateError('Start a table before ending it.');
     }
     // Prepare for writing the VTable.
-    _prepare(4, 1);
+    _prepare(_sizeofInt32, 1);
     int tableTail = _tail;
     // Prepare the size of the current table.
     _currentVTable.tableSize = tableTail - _currentTableEndTail;
@@ -250,22 +264,25 @@ class Builder {
     {
       _currentVTable.computeFieldOffsets(tableTail);
       // Try to find an existing compatible VTable.
-      for (int i = 0; i < _vTables.length; i++) {
-        _VTable vTable = _vTables[i];
-        if (_currentVTable.canUseExistingVTable(vTable)) {
-          print('found one ${vTable.tail}');
-          vTableTail = vTable.tail;
+      // Search backward - more likely to have recently used one
+      for (int i = _vTables.length - 1; i >= 0; i--) {
+        final int vt2Offset = _vTables[i];
+        final int vt2Start = _buf.lengthInBytes - vt2Offset;
+        final int vt2Size = _buf.getUint16(vt2Start, Endianness.LITTLE_ENDIAN);
+
+        if (_currentVTable._vTableSize == vt2Size &&
+            _currentVTable._offsetsMatch(vt2Start, _buf)) {
+          vTableTail = vt2Offset;
           break;
         }
       }
       // Write a new VTable.
       if (vTableTail == null) {
-        print('could not find one');
-        _prepare(2, _currentVTable.numOfUint16);
+        _prepare(_sizeofUint16, _currentVTable.numOfUint16);
         vTableTail = _tail;
         _currentVTable.tail = vTableTail;
         _currentVTable.output(_buf, _buf.lengthInBytes - _tail);
-        _vTables.add(_currentVTable);
+        _vTables.add(_currentVTable.tail);
       }
     }
     // Set the VTable offset.
@@ -281,13 +298,13 @@ class Builder {
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
   Uint8List finish(int offset, [String fileIdentifier]) {
-    _prepare(max(4, _maxAlign), fileIdentifier == null ? 1 : 2);
+    _prepare(max(_sizeofUint32, _maxAlign), fileIdentifier == null ? 1 : 2);
     int alignedTail = _tail + ((-_tail) % _maxAlign);
     _setUint32AtTail(_buf, alignedTail, alignedTail - offset);
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
-        _setUint8AtTail(
-            _buf, alignedTail - 4 - i, fileIdentifier.codeUnitAt(i));
+        _setUint8AtTail(_buf, alignedTail - _sizeofUint32 - i,
+            fileIdentifier.codeUnitAt(i));
       }
     }
     return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
@@ -308,19 +325,19 @@ class Builder {
 
   /// This is a low-level method, it should not be invoked by clients.
   void lowWriteUint32(int value) {
-    _prepare(4, 1);
+    _prepare(_sizeofUint32, 1);
     _setUint32AtTail(_buf, _tail, value);
   }
 
   /// This is a low-level method, it should not be invoked by clients.
   void lowWriteUint16(int value) {
-    _prepare(2, 1);
+    _prepare(_sizeofUint16, 1);
     _setUint16AtTail(_buf, _tail, value);
   }
 
   /// This is a low-level method, it should not be invoked by clients.
   void lowWriteUint8(int value) {
-    _prepare(1, 1);
+    _prepare(_sizeofUint8, 1);
     _buf.setUint8(_buf.lengthInBytes - _tail, value);
   }
 
@@ -344,14 +361,14 @@ class Builder {
   /// Write the given list of [values].
   int writeList(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1 + values.length);
+    _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setUint32AtTail(_buf, tail, tail - value);
-      tail -= 4;
+      tail -= _sizeofUint32;
     }
     return result;
   }
@@ -389,14 +406,14 @@ class Builder {
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
     _ensureNoVTable();
-    _prepare(8, 1 + values.length);
+    _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 8;
+    tail -= _sizeofUint32;
     for (double value in values) {
       _setFloat64AtTail(_buf, tail, value);
-      tail -= 8;
+      tail -= _sizeofFloat64;
     }
     return result;
   }
@@ -404,14 +421,14 @@ class Builder {
   /// Write the given list of 32-bit float [values].
   int writeListFloat32(List<double> values) {
     _ensureNoVTable();
-    _prepare(4, 1 + values.length);
+    _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (double value in values) {
       _setFloat32AtTail(_buf, tail, value);
-      tail -= 4;
+      tail -= _sizeofFloat32;
     }
     return result;
   }
@@ -419,14 +436,14 @@ class Builder {
   /// Write the given list of signed 32-bit integer [values].
   int writeListInt32(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1 + values.length);
+    _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setInt32AtTail(_buf, tail, value);
-      tail -= 4;
+      tail -= _sizeofInt32;
     }
     return result;
   }
@@ -434,14 +451,14 @@ class Builder {
   /// Write the given list of unsigned 32-bit integer [values].
   int writeListUint32(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1 + values.length);
+    _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setUint32AtTail(_buf, tail, value);
-      tail -= 4;
+      tail -= _sizeofUint32;
     }
     return result;
   }
@@ -449,14 +466,14 @@ class Builder {
   /// Write the given list of signed 16-bit integer [values].
   int writeListInt16(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1, additionalBytes: 2 * values.length);
+    _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setInt16AtTail(_buf, tail, value);
-      tail -= 2;
+      tail -= _sizeofInt16;
     }
     return result;
   }
@@ -464,29 +481,29 @@ class Builder {
   /// Write the given list of unsigned 16-bit integer [values].
   int writeListUint16(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1, additionalBytes: 2 * values.length);
+    _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setUint16AtTail(_buf, tail, value);
-      tail -= 2;
+      tail -= _sizeofUint16;
     }
     return result;
   }
 
   /// Write the given list of unsigned 8-bit integer [values].
-   int writeListUint8(List<int> values) {
+  int writeListUint8(List<int> values) {
     _ensureNoVTable();
-    _prepare(4, 1, additionalBytes: values.length);
+    _prepare(_sizeofUint32, 1, additionalBytes: values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
-    tail -= 4;
+    tail -= _sizeofUint32;
     for (int value in values) {
       _setUint8AtTail(_buf, tail, value);
-      tail -= 1;
+      tail -= _sizeofUint8;
     }
     return result;
   }
@@ -580,6 +597,14 @@ class Builder {
 
   static void _setFloat32AtTail(ByteData _buf, int tail, double x) {
     _buf.setFloat32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+  }
+
+  static void _setUint64AtTail(ByteData _buf, int tail, int x) {
+    _buf.setUint64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+  }
+
+  static void _setInt64AtTail(ByteData _buf, int tail, int x) {
+    _buf.setInt64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
   }
 
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
@@ -980,6 +1005,8 @@ class _FbUint8List extends _FbList<int> {
 
 /// Class that describes the structure of a table.
 class _VTable {
+  static const int _metadataLength = 4;
+
   final List<int> fieldTails = <int>[];
   final List<int> fieldOffsets = <int>[];
 
@@ -990,6 +1017,8 @@ class _VTable {
   /// multiple tables of identical structure.
   int tail;
 
+  int get _vTableSize => numOfUint16 * _sizeofUint16;
+
   int get numOfUint16 => 1 + 1 + fieldTails.length;
 
   void addField(int field, int offset) {
@@ -999,20 +1028,15 @@ class _VTable {
     fieldTails[field] = offset;
   }
 
-  /// Return `true` if the [existing] VTable can be used instead of this.
-  bool canUseExistingVTable(_VTable existing) {
-    assert(tail == null);
-    assert(existing.tail != null);
-    if (tableSize == existing.tableSize &&
-        fieldOffsets.length == existing.fieldOffsets.length) {
-      for (int i = 0; i < fieldOffsets.length; i++) {
-        if (fieldOffsets[i] != existing.fieldOffsets[i]) {
-          return false;
-        }
+  bool _offsetsMatch(int vt2Start, ByteData buf) {
+    for (int i = 0; i < fieldOffsets.length; i++) {
+      if (fieldOffsets[i] !=
+          buf.getUint16(
+              vt2Start + _metadataLength + (2 * i), Endianness.LITTLE_ENDIAN)) {
+        return false;
       }
-      return true;
     }
-    return false;
+    return true;
   }
 
   /// Fill the [fieldOffsets] field.
