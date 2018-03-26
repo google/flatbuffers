@@ -205,7 +205,7 @@ enum {
 };
 
 static std::string TokenToString(int t) {
-  static const char *tokens[] = {
+  static const char * const tokens[] = {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
@@ -225,7 +225,7 @@ static std::string TokenToString(int t) {
 }
 // clang-format on
 
-std::string Parser::TokenToStringId(int t) {
+std::string Parser::TokenToStringId(int t) const {
   return t == kTokenIdentifier ? attribute_ : TokenToString(t);
 }
 
@@ -478,9 +478,9 @@ CheckedError Parser::Next() {
 }
 
 // Check if a given token is next.
-bool Parser::Is(int t) { return t == token_; }
+bool Parser::Is(int t) const { return t == token_; }
 
-bool Parser::IsIdent(const char *id) {
+bool Parser::IsIdent(const char *id) const {
   return token_ == kTokenIdentifier && attribute_ == id;
 }
 

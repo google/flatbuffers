@@ -43,7 +43,7 @@ static std::string GeneratedFileName(const std::string &path,
 namespace go {
 
 // see https://golang.org/ref/spec#Keywords
-static const char *g_golang_keywords[] = {
+static const char * const g_golang_keywords[] = {
   "break",  "default", "func",        "interface", "select", "case", "defer",
   "go",     "map",     "struct",      "chan",      "else",   "goto", "package",
   "switch", "const",   "fallthrough", "if",        "range",  "type", "continue",
