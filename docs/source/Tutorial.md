@@ -949,15 +949,18 @@ can serialize the monster itself:
 
 <div class="language-cpp">
 ~~~{.cpp}
+  // Create the position struct
+  auto position = Vec3(1.0f, 2.0f, 3.0f);
+   
   // Set his hit points to 300 and his mana to 150.
   int hp = 300;
   int mana = 150;
 
   // Finally, create the monster using the `CreateMonster` helper function
   // to set all fields.
-  auto orc = CreateMonster(builder, Vec3(1.0f, 2.0f, 3.0f), mana, hp, name,
-                           inventory, Color_Red, weapons, Equipment_Weapon,
-                           axe.Union(), path);
+  auto orc = CreateMonster(builder, &position, mana, hp, name, inventory,
+                          Color_Red, weapons, Equipment_Weapon, axe.Union(),
+                          path);
 ~~~
 </div>
 <div class="language-java">
@@ -1120,15 +1123,14 @@ a bit more flexibility.
   // You can use this code instead of `CreateMonster()`, to create our orc
   // manually.
   MonsterBuilder monster_builder(builder);
-  monster_builder.add_pos(&pos);
-  auto pos = Vec3(1.0f, 2.0f, 3.0f);
+  monster_builder.add_pos(&position);
   monster_builder.add_hp(hp);
   monster_builder.add_name(name);
   monster_builder.add_inventory(inventory);
   monster_builder.add_color(Color_Red);
   monster_builder.add_weapons(weapons);
   monster_builder.add_equipped_type(Equipment_Weapon);
-  monster_builder.add_equpped(axe.Union());
+  monster_builder.add_equipped(axe.Union());
   auto orc = monster_builder.Finish();
 ~~~
 </div>
