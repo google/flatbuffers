@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/util_base64.h"
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
@@ -1929,6 +1929,59 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
+void JsonBase64Test() {
+  // clang-format off
+  const auto base64_schema =
+    "table TestBase64 {"
+    "data:[ubyte](base64);"
+    "urldata:[ubyte](base64url);"
+    "}\n"
+    "root_type TestBase64;"
+    "file_identifier \"B64T\";";
+  const auto test_array = "{"
+    "data: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42],"
+    "urldata: [247, 208, 63, 251, 129, 52, 179, 220, 24, 249, 42]"
+    "}";
+  // expected result, with mandatory padding after encoding
+  const auto expected_b64 = "{"
+    "data: \"99A/+4E0s9wY+So=\","
+    "urldata: \"99A_-4E0s9wY-So=\""
+    "}";
+  // urldata without padding
+  const auto test_base64 = "{"
+    "data: \"99A/+4E0s9wY+So=\","
+    "urldata: \"99A_-4E0s9wY-So\""
+    "}";
+  // clang-format on
+
+  TEST_EQ(flatbuffers::UtilBase64InerTest(), 0);
+
+  flatbuffers::Parser parser;
+  // use compact form of json
+  parser.opts.indent_step = -1;
+  TEST_EQ(parser.Parse(base64_schema), true);
+  // test_array
+  TEST_EQ(parser.Parse(test_array), true);
+  std::string test_array_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+                            &test_array_b64);
+  TEST_EQ_STR(test_array_b64.c_str(), expected_b64);
+  // test_base64
+  TEST_EQ(parser.Parse(test_base64), true);
+  std::string test_base64_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+                            &test_base64_b64);
+  TEST_EQ_STR(test_base64_b64.c_str(), expected_b64);
+  // check that both strings used in test
+  TEST_EQ_STR(test_base64_b64.c_str(), test_array_b64.c_str());
+  // cancel padding base64url encoder and check
+  parser.opts.base64_cancel_padding = true;
+  std::string wopad_base64_b64;
+  flatbuffers::GenerateText(parser, parser.builder_.GetBufferPointer(),
+    &wopad_base64_b64);
+  TEST_EQ_STR(wopad_base64_b64.c_str(), test_base64);
+}
+
 int main(int /*argc*/, const char * /*argv*/ []) {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -1999,6 +2052,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   JsonDefaultTest();
 
   FlexBuffersTest();
+
+  JsonBase64Test();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

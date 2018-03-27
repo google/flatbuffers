@@ -19,7 +19,9 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/util_base64.h"
 
 namespace flatbuffers {
 
@@ -48,7 +50,9 @@ void OutputIdentifier(const std::string &name, const IDLOptions &opts,
 // The general case for scalars:
 template<typename T>
 bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
-           const IDLOptions &opts, std::string *_text) {
+           const IDLOptions &opts, std::string *_text,
+           const FieldDef *fd = nullptr) {
+  (void)fd;
   std::string &text = *_text;
   if (type.enum_def && opts.output_enum_identifiers) {
     auto enum_val = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
@@ -72,7 +76,11 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
 // Print a vector a sequence of JSON values, comma separated, wrapped in "[]".
 template<typename T>
 bool PrintVector(const Vector<T> &v, Type type, int indent,
-                 const IDLOptions &opts, std::string *_text) {
+                 const IDLOptions &opts, std::string *_text,
+                 const FieldDef *fd = nullptr) {
+  // Try to print an array as base64 string.
+  if (PrintBase64Vector(v, type, indent, opts, _text, fd)) return true;
+
   std::string &text = *_text;
   text += "[";
   text += NewLine(opts);
@@ -103,7 +111,7 @@ bool PrintVector(const Vector<T> &v, Type type, int indent,
 template<>
 bool Print<const void *>(const void *val, Type type, int indent,
                          Type *union_type, const IDLOptions &opts,
-                         std::string *_text) {
+                         std::string *_text, const FieldDef *fd) {
   switch (type.base_type) {
     case BASE_TYPE_UNION:
       // If this assert hits, you have an corrupt buffer, a union type field
@@ -134,7 +142,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
           case BASE_TYPE_ ## ENUM: \
             if (!PrintVector<CTYPE>( \
                   *reinterpret_cast<const Vector<CTYPE> *>(val), \
-                  type, indent, opts, _text)) { \
+                  type, indent, opts, _text, fd)) { \
               return false; \
             } \
             break;
@@ -190,7 +198,7 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
               ? table->GetStruct<const void *>(fd.value.offset)
               : table->GetPointer<const void *>(fd.value.offset);
   }
-  return Print(val, fd.value.type, indent, union_type, opts, _text);
+  return Print(val, fd.value.type, indent, union_type, opts, _text, &fd);
 }
 
 // Generate text for a struct or table, values separated by commas, indented,

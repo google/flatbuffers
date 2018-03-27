@@ -22,6 +22,7 @@
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/util_base64.h"
 
 namespace flatbuffers {
 
@@ -895,9 +896,25 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       break;
     }
     case BASE_TYPE_VECTOR: {
-      uoffset_t off;
-      ECHECK(ParseVector(val.type.VectorType(), &off));
-      val.constant = NumToString(off);
+      if (Is('[')) {
+        uoffset_t off;
+        ECHECK(ParseVector(val.type.VectorType(), &off));
+        val.constant = NumToString(off);
+      } else if ((token_ == kTokenStringConstant) && !attribute_.empty()) {
+        uoffset_t off;
+        auto decoded = ParseBase64Vector(val.type.VectorType(), opts,
+                                         attribute_, field, &off, &builder_);
+        if (decoded != attribute_.size()) {
+          return Error(
+              "Invalid (base64) string. Possibly an invalid symbol inside "
+              "interval [0, " +
+              NumToString(decoded) + "]");
+        }
+        val.constant = NumToString(off);
+        NEXT();
+      } else {
+        EXPECT('[');
+      }
       break;
     }
     case BASE_TYPE_INT:

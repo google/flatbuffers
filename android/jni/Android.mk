@@ -37,6 +37,7 @@ LOCAL_SRC_FILES := src/idl_parser.cpp \
                    src/idl_gen_text.cpp \
                    src/reflection.cpp \
                    src/util.cpp \
+                   src/util_base64.cpp \
                    src/code_generators.cpp
 LOCAL_STATIC_LIBRARIES := flatbuffers
 LOCAL_ARM_MODE := arm
