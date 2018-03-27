@@ -82,7 +82,7 @@ class DartGenerator : public BaseGenerator {
            ++kv2) {
         if (kv2->first != kv->first) {
           code += "import '" +
-                  GeneratedFileName(path_, file_name_ + "_" + kv2->first) +
+                  GeneratedFileName("./", file_name_ + "_" + kv2->first) +
                   "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
@@ -515,6 +515,9 @@ class DartGenerator : public BaseGenerator {
 
   void GenBuilder(std::string *builder_name_ptr, StructDef &struct_def,
                   std::string *code_ptr) {
+    if (struct_def.fields.vec.size() == 0) {
+      return;
+    }
     std::string &code = *code_ptr;
     std::string &builder_name = *builder_name_ptr;
 

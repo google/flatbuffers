@@ -68,6 +68,9 @@ class BufferContext {
   double _getFloat32(int offset) =>
       _buffer.getFloat32(offset, Endianness.LITTLE_ENDIAN);
 
+  int _getInt64(int offset) =>
+      _buffer.getInt64(offset, Endianness.LITTLE_ENDIAN);
+
   int _getInt32(int offset) =>
       _buffer.getInt32(offset, Endianness.LITTLE_ENDIAN);
 
@@ -75,6 +78,9 @@ class BufferContext {
       _buffer.getInt16(offset, Endianness.LITTLE_ENDIAN);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
+
+  int _getUint64(int offset) =>
+      _buffer.getUint64(offset, Endianness.LITTLE_ENDIAN);
 
   int _getUint32(int offset) =>
       _buffer.getUint32(offset, Endianness.LITTLE_ENDIAN);
@@ -639,7 +645,7 @@ class Float64ListReader extends Reader<List<double>> {
   const Float64ListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<double> read(BufferContext bc, int offset) =>
@@ -650,7 +656,7 @@ class Float32ListReader extends Reader<List<double>> {
   const Float32ListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<double> read(BufferContext bc, int offset) =>
@@ -661,7 +667,7 @@ class Float64Reader extends Reader<double> {
   const Float64Reader();
 
   @override
-  int get size => 8;
+  int get size => _sizeofFloat64;
 
   @override
   double read(BufferContext bc, int offset) => bc._getFloat64(offset);
@@ -671,10 +677,19 @@ class Float32Reader extends Reader<double> {
   const Float32Reader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofFloat32;
 
   @override
   double read(BufferContext bc, int offset) => bc._getFloat32(offset);
+}
+
+class Int64Reader extends Reader<int> {
+  const Int64Reader() : super();
+  @override
+  int get size => _sizeofInt64;
+
+  @override
+  int read(BufferContext bc, int offset) => bc._getInt64(offset);
 }
 
 /// The reader of signed 32-bit integers.
@@ -682,7 +697,7 @@ class Int32Reader extends Reader<int> {
   const Int32Reader() : super();
 
   @override
-  int get size => 4;
+  int get size => _sizeofInt32;
 
   @override
   int read(BufferContext bc, int offset) => bc._getInt32(offset);
@@ -693,7 +708,7 @@ class Int16Reader extends Reader<int> {
   const Int16Reader() : super();
 
   @override
-  int get size => 4;
+  int get size => _sizeofInt16;
 
   @override
   int read(BufferContext bc, int offset) => bc._getInt16(offset);
@@ -704,7 +719,7 @@ class Int8Reader extends Reader<int> {
   const Int8Reader() : super();
 
   @override
-  int get size => 1;
+  int get size => _sizeofInt8;
 
   @override
   int read(BufferContext bc, int offset) => bc._getInt8(offset);
@@ -719,7 +734,7 @@ class ListReader<E> extends Reader<List<E>> {
   const ListReader(this._elementReader);
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<E> read(BufferContext bc, int offset) =>
@@ -806,11 +821,25 @@ class Uint32ListReader extends Reader<List<int>> {
   const Uint32ListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<int> read(BufferContext bc, int offset) =>
       new _FbUint32List(bc, bc.derefObject(offset));
+}
+
+
+/// The reader of unsigned 64-bit integers.
+/// 
+/// WARNING: May have compatibility issues with JavaScript
+class Uint64Reader extends Reader<int> {
+  const Uint64Reader() : super();
+
+  @override
+  int get size => _sizeofUint64;
+
+  @override
+  int read(BufferContext bc, int offset) => bc._getUint64(offset);
 }
 
 /// The reader of unsigned 32-bit integers.
@@ -818,7 +847,7 @@ class Uint32Reader extends Reader<int> {
   const Uint32Reader() : super();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   int read(BufferContext bc, int offset) => bc._getUint32(offset);
@@ -831,7 +860,7 @@ class Uint16ListReader extends Reader<List<int>> {
   const Uint16ListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<int> read(BufferContext bc, int offset) =>
@@ -843,7 +872,7 @@ class Uint16Reader extends Reader<int> {
   const Uint16Reader() : super();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint16;
 
   @override
   int read(BufferContext bc, int offset) => bc._getUint16(offset);
@@ -856,7 +885,7 @@ class Uint8ListReader extends Reader<List<int>> {
   const Uint8ListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<int> read(BufferContext bc, int offset) =>
@@ -868,7 +897,7 @@ class Uint8Reader extends Reader<int> {
   const Uint8Reader() : super();
 
   @override
-  int get size => 1;
+  int get size => _sizeofUint8;
 
   @override
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
