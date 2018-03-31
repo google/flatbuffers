@@ -257,6 +257,10 @@ bool IsIdentifierStart(char c) {
   return isalpha(static_cast<unsigned char>(c)) || c == '_';
 }
 
+bool IsIdentifierBody(char c) {
+  return isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
@@ -425,8 +429,7 @@ CheckedError Parser::Next() {
         if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
-          while (isalnum(static_cast<unsigned char>(*cursor_)) ||
-                 *cursor_ == '_')
+          while (IsIdentifierBody(*cursor_))
             cursor_++;
           attribute_.append(start, cursor_);
           token_ = kTokenIdentifier;
@@ -2453,7 +2456,18 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("attribute")) {
       NEXT();
       auto name = attribute_;
-      EXPECT(kTokenStringConstant);
+      auto compatible = Is(kTokenIdentifier);
+      if(!compatible && Is(kTokenStringConstant)) {
+        compatible = IsIdentifierStart(*name.begin());
+        for (auto it = name.begin() + 1; compatible && it != name.end(); ++it) {
+          compatible = IsIdentifierBody(*it);
+        }
+      }
+      if (false == compatible)
+        return Error(
+            "Declared attribute should be either identifier or string with the "
+            "identifier.");
+      NEXT();
       EXPECT(';');
       known_attributes_[name] = false;
     } else if (IsIdent("rpc_service")) {
