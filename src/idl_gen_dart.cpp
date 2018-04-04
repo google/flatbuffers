@@ -249,27 +249,31 @@ class DartGenerator : public BaseGenerator {
       code += ev.name + ",";
     }
     code += "];\n\n";
-    code += "  static const " + _kFb + ".Reader<" + enum_def.name +
-            "> reader = const _" + enum_def.name + "Reader();\n";
+    code += "  static const " + _kFb + ".Reader<" + name +
+            "> reader = const _" + name + "Reader();\n\n";
+    code += "  @override\n";
+    code += "  String toString() {\n";
+    code += "    return '" + name + "{value: $value}';\n";
+    code += "  }\n";
     code += "}\n\n";
 
-    GenEnumReader(enum_def, &code);
-
+    GenEnumReader(enum_def, name, &code);
     (*namespace_code)[ns] += code;
   }
 
-  void GenEnumReader(EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnumReader(EnumDef &enum_def, const std::string &name,
+                     std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "class _" + enum_def.name + "Reader extends " + _kFb + ".Reader<" +
-            enum_def.name + "> {\n";
-    code += "  const _" + enum_def.name + "Reader();\n\n";
+    code += "class _" + name + "Reader extends " + _kFb + ".Reader<" + name +
+            "> {\n";
+    code += "  const _" + name + "Reader();\n\n";
     code += "  @override\n";
     code += "  int get size => 1;\n\n";
     code += "  @override\n";
-    code += "  " + enum_def.name + " read(" + _kFb +
-            ".BufferContext bc, int offset) =>\n";
-    code += "      new " + enum_def.name + ".fromValue(const " + _kFb + "." +
+    code +=
+        "  " + name + " read(" + _kFb + ".BufferContext bc, int offset) =>\n";
+    code += "      new " + name + ".fromValue(const " + _kFb + "." +
             GenType(enum_def.underlying_type) + "Reader().read(bc, offset));\n";
     code += "}\n\n";
   }
@@ -463,7 +467,7 @@ class DartGenerator : public BaseGenerator {
       code += "  @override\n";
       code += "  " + type_name + " get " + field_name + " {\n";
       if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += "    switch (" + field_name + "?.value) {\n";
+        code += "    switch (" + field_name + "Type?.value) {\n";
         for (auto en_it = field.value.type.enum_def->vals.vec.begin() + 1;
              en_it != field.value.type.enum_def->vals.vec.end(); ++en_it) {
           auto &ev = **en_it;
@@ -490,8 +494,13 @@ class DartGenerator : public BaseGenerator {
           code +=
               ".read(_bc, _bcOffset + " + NumToString(field.value.offset) + ")";
         } else {
-          code +=
-              ".vTableGet(_bc, _bcOffset, " + NumToString(offset) + ", null)";
+          code += ".vTableGet(_bc, _bcOffset, " + NumToString(offset) + ", ";
+          if (!field.value.constant.empty() && field.value.constant != "0") {
+            code += field.value.constant;
+          } else {
+            code += "null";
+          }
+          code += ")";
         }
         if (field.value.type.enum_def &&
             field.value.type.base_type != BASE_TYPE_VECTOR) {
@@ -503,6 +512,18 @@ class DartGenerator : public BaseGenerator {
       code += "  }\n\n";
     }
 
+    code += "  @override\n";
+    code += "  String toString() {\n";
+    code += "    return '" + struct_def.name + "{";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      code +=  MakeCamel(field.name, false) + ": $" +  MakeCamel(field.name, false);
+      if (it != struct_def.fields.vec.end() - 1) { code += ", "; }
+    }
+    code += "}';\n";
+    code += "  }\n";
     code += "}\n\n";  // end impl
   }
 
@@ -520,6 +541,11 @@ class DartGenerator : public BaseGenerator {
     }
     code += impl_name + "> {\n";
     code += "  const " + reader_name + "();\n\n";
+
+    if (struct_def.fixed) {
+      code += "  @override\n";
+      code += "  int get size => " + NumToString(struct_def.bytesize) + ";\n\n";
+    }
     code += "  @override\n";
     code += "  " + impl_name +
             " createObject(fb.BufferContext bc, int offset) => \n    new " +
