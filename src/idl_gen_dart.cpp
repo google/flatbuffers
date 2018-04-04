@@ -69,7 +69,9 @@ class DartGenerator : public BaseGenerator {
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
       code = code + "// " + FlatBuffersGeneratedWarning() + "\n";
-      code = code + "// ignore_for_file: unused_import, non_constant_identifier_names\n\n";
+      code = code +
+             "// ignore_for_file: unused_import, "
+             "non_constant_identifier_names\n\n";
 
       code += "library " + kv->first + ";\n\n";
 
@@ -247,8 +249,8 @@ class DartGenerator : public BaseGenerator {
       code += ev.name + ",";
     }
     code += "];\n\n";
-    code += "  static const fb.Reader<" + enum_def.name + "> reader = const _" +
-            enum_def.name + "Reader();\n";
+    code += "  static const " + _kFb + ".Reader<" + enum_def.name +
+            "> reader = const _" + enum_def.name + "Reader();\n";
     code += "}\n\n";
 
     GenEnumReader(enum_def, &code);
@@ -377,7 +379,8 @@ class DartGenerator : public BaseGenerator {
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
-  void GenStruct(StructDef &struct_def, namespace_code_map *namespace_code) {
+  void GenStruct(const StructDef &struct_def,
+                 namespace_code_map *namespace_code) {
     if (struct_def.generated) return;
 
     std::string object_namespace =
@@ -420,13 +423,13 @@ class DartGenerator : public BaseGenerator {
             ".BufferContext.fromBytes(bytes);\n";
     code += "    return reader.read(rootRef, 0);\n";
     code += "  }\n\n";
-    code += "  static const " + _kFb + ".TableReader<" + struct_def.name +
+    code += "  static const " + _kFb + ".Reader<" + struct_def.name +
             "> reader = const " + reader_name + "();\n\n";
     code += "}\n\n";
 
-    GenImplementation(&impl_name, struct_def, &impl_code);
-    GenReader(&reader_name, &impl_name, &reader_code);
-    GenBuilder(&builder_name, struct_def, &builder_code);
+    GenImplementation(struct_def, &impl_name, &impl_code);
+    GenReader(struct_def, &reader_name, &impl_name, &reader_code);
+    GenBuilder(struct_def, &builder_name, &builder_code);
 
     code += impl_code;
     code += reader_code;
@@ -435,8 +438,8 @@ class DartGenerator : public BaseGenerator {
     (*namespace_code)[object_namespace] += code;
   }
 
-  void GenImplementation(std::string *impl_name_ptr, StructDef &struct_def,
-                         std::string *code_ptr) {
+  void GenImplementation(const StructDef &struct_def,
+                         std::string *impl_name_ptr, std::string *code_ptr) {
     std::string &code = *code_ptr;
     std::string &impl_name = *impl_name_ptr;
 
@@ -460,7 +463,7 @@ class DartGenerator : public BaseGenerator {
       code += "  @override\n";
       code += "  " + type_name + " get " + field_name + " {\n";
       if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += "    switch (equippedType?.value) {\n";
+        code += "    switch (" + field_name + "?.value) {\n";
         for (auto en_it = field.value.type.enum_def->vals.vec.begin() + 1;
              en_it != field.value.type.enum_def->vals.vec.end(); ++en_it) {
           auto &ev = **en_it;
@@ -479,11 +482,17 @@ class DartGenerator : public BaseGenerator {
                                   struct_def.defined_namespace, field) +
                   ".fromValue(";
         }
-        code += "\n        ";
+        if (!struct_def.fixed) { code += "\n        "; }
 
         code += GenReaderTypeName(field.value.type,
-                                  struct_def.defined_namespace, field) +
-                ".vTableGet(_bc, _bcOffset, " + NumToString(offset) + ", null)";
+                                  struct_def.defined_namespace, field);
+        if (struct_def.fixed) {
+          code +=
+              ".read(_bc, _bcOffset + " + NumToString(field.value.offset) + ")";
+        } else {
+          code +=
+              ".vTableGet(_bc, _bcOffset, " + NumToString(offset) + ", null)";
+        }
         if (field.value.type.enum_def &&
             field.value.type.base_type != BASE_TYPE_VECTOR) {
           code += ")";
@@ -497,14 +506,19 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";  // end impl
   }
 
-  void GenReader(std::string *reader_name_ptr, std::string *impl_name_ptr,
-                 std::string *code_ptr) {
+  void GenReader(const StructDef &struct_def, std::string *reader_name_ptr,
+                 std::string *impl_name_ptr, std::string *code_ptr) {
     std::string &code = *code_ptr;
     std::string &reader_name = *reader_name_ptr;
     std::string &impl_name = *impl_name_ptr;
 
-    code += "class " + reader_name + " extends fb.TableReader<" + impl_name +
-            "> {\n";
+    code += "class " + reader_name + " extends " + _kFb;
+    if (struct_def.fixed) {
+      code += ".StructReader<";
+    } else {
+      code += ".TableReader<";
+    }
+    code += impl_name + "> {\n";
     code += "  const " + reader_name + "();\n\n";
     code += "  @override\n";
     code += "  " + impl_name +
@@ -513,11 +527,9 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenBuilder(std::string *builder_name_ptr, StructDef &struct_def,
+  void GenBuilder(const StructDef &struct_def, std::string *builder_name_ptr,
                   std::string *code_ptr) {
-    if (struct_def.fields.vec.size() == 0) {
-      return;
-    }
+    if (struct_def.fields.vec.size() == 0) { return; }
     std::string &code = *code_ptr;
     std::string &builder_name = *builder_name_ptr;
 
@@ -593,6 +605,51 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "\n";
+    if (struct_def.fixed) {
+      StructBuilderBody(struct_def, code_ptr);
+    } else {
+      TableBuilderBody(struct_def, code_ptr);
+    }
+    code += "  }\n\n";
+
+    code += "  Uint8List toBytes() {\n";
+    code += "    " + _kFb + ".Builder fbBuilder = new ";
+    code += _kFb + ".Builder();\n";
+    code += "    int offset = finish(fbBuilder);\n";
+    code += "    return fbBuilder.finish(offset);\n";
+    code += "  }\n";
+    code += "}\n";
+  }
+
+  void StructBuilderBody(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "    fbBuilder.prep(" + NumToString(struct_def.minalign) + ", ";
+    code += NumToString(struct_def.bytesize) + ");\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+
+      if (field.deprecated) continue;
+
+      if (field.padding) {
+        code += "    fbBuilder.pad(" + NumToString(field.padding) + ");\n";
+      }
+
+      if (IsStruct(field.value.type)) {
+        code += "    _" + field.name + ".finish(fbBuilder);\n";
+      } else {
+        code += "    fbBuilder.put" + GenType(field.value.type) + "(";
+        code += "_" + field.name + ");\n";
+      }
+    }
+
+    code += "    return fbBuilder.offset;\n";
+  }
+
+  void TableBuilderBody(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
     code += "    fbBuilder.startTable();\n";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -615,17 +672,7 @@ class DartGenerator : public BaseGenerator {
         code += "    }\n";
       }
     }
-
     code += "    return fbBuilder.endTable();\n";
-    code += "  }\n\n";
-
-    code += "  Uint8List toBytes() {\n";
-    code +=
-        "    " + _kFb + ".Builder fbBuilder = new " + _kFb + ".Builder();\n";
-    code += "    int offset = finish(fbBuilder);\n";
-    code += "    return fbBuilder.finish(offset);\n";
-    code += "  }\n";
-    code += "}\n";
   }
 };
 }  // namespace dart
