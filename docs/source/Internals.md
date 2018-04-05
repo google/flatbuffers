@@ -183,7 +183,7 @@ Predeclare all data types since circular references between types are allowed
       float y() const { return flatbuffers::EndianScalar(y_); }
       float z() const { return flatbuffers::EndianScalar(z_); }
     };
-    STRUCT_END(Vec3, 12);
+    FLATBUFFERS_STRUCT_END(Vec3, 12);
 
 These ugly macros do a couple of things: they turn off any padding the compiler
 might normally do, since we add padding manually (though none in this example),

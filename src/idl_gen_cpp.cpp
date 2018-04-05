@@ -2576,7 +2576,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
-    code_ += "STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
+    code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     code_ += "";
   }
 
