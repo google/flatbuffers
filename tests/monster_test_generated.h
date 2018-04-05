@@ -247,7 +247,7 @@ MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&b_, _b);
   }
 };
-STRUCT_END(Test, 4);
+FLATBUFFERS_STRUCT_END(Test, 4);
 
 MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -316,7 +316,7 @@ MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
     return test3_;
   }
 };
-STRUCT_END(Vec3, 32);
+FLATBUFFERS_STRUCT_END(Vec3, 32);
 
 MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
@@ -351,7 +351,7 @@ MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&distance_, _distance);
   }
 };
-STRUCT_END(Ability, 8);
+FLATBUFFERS_STRUCT_END(Ability, 8);
 
 }  // namespace Example
 
