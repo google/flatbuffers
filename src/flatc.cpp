@@ -18,7 +18,7 @@
 
 #include <list>
 
-#define FLATC_VERSION "1.8.0 (" __DATE__ " " __TIME__ ")"
+#define FLATC_VERSION "1.9.0 (" __DATE__ " " __TIME__ ")"
 
 namespace flatbuffers {
 
