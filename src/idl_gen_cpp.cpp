@@ -922,7 +922,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
-      code_ += "DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
+      code_ += "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
     code_ += "";
 
@@ -2434,7 +2434,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ +=
-        "MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
+        "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
         "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
     code_ += " private:";
 
@@ -2576,7 +2576,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
-    code_ += "STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
+    code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     code_ += "";
   }
 

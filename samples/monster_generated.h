@@ -170,7 +170,7 @@ MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&z_, _z);
   }
 };
-STRUCT_END(Vec3, 12);
+FLATBUFFERS_STRUCT_END(Vec3, 12);
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;

@@ -2131,17 +2131,17 @@ inline int LookupEnum(const char **names, const char *name) {
 
 // clang-format off
 #if defined(_MSC_VER)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     __pragma(pack(1)); \
     struct __declspec(align(alignment))
-  #define STRUCT_END(name, size) \
+  #define FLATBUFFERS_STRUCT_END(name, size) \
     __pragma(pack()); \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #elif defined(__GNUC__) || defined(__clang__)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))
-  #define STRUCT_END(name, size) \
+  #define FLATBUFFERS_STRUCT_END(name, size) \
     _Pragma("pack()") \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #else
@@ -2240,7 +2240,7 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 #endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
-#define DEFINE_BITMASK_OPERATORS(E, T)\
+#define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
     inline E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\
     }\

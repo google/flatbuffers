@@ -159,7 +159,7 @@ MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&hair_length_, _hair_length);
   }
 };
-STRUCT_END(Rapunzel, 4);
+FLATBUFFERS_STRUCT_END(Rapunzel, 4);
 
 MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
@@ -179,7 +179,7 @@ MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&books_read_, _books_read);
   }
 };
-STRUCT_END(BookReader, 4);
+FLATBUFFERS_STRUCT_END(BookReader, 4);
 
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
