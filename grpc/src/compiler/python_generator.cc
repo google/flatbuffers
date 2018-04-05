@@ -233,36 +233,36 @@ void PrivateGenerator::PrintBetaServerFactory(
     }
     StringMap method_dict;
     method_dict["PackageQualifiedServiceName"] = package_qualified_service_name;
-    out->Print("request_deserializers = {\n");
-    for (StringMap::iterator name_and_input_module_class_pair =
-             input_message_modules_and_classes.begin();
-         name_and_input_module_class_pair !=
-         input_message_modules_and_classes.end();
-         name_and_input_module_class_pair++) {
-      method_dict["MethodName"] = name_and_input_module_class_pair->first;
-      method_dict["InputTypeModuleAndClass"] =
-          name_and_input_module_class_pair->second;
-      IndentScope raii_indent(out);
-      out->Print(method_dict,
-                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
-                 "$InputTypeModuleAndClass$.FromString,\n");
-    }
-    out->Print("}\n");
-    out->Print("response_serializers = {\n");
-    for (StringMap::iterator name_and_output_module_class_pair =
-             output_message_modules_and_classes.begin();
-         name_and_output_module_class_pair !=
-         output_message_modules_and_classes.end();
-         name_and_output_module_class_pair++) {
-      method_dict["MethodName"] = name_and_output_module_class_pair->first;
-      method_dict["OutputTypeModuleAndClass"] =
-          name_and_output_module_class_pair->second;
-      IndentScope raii_indent(out);
-      out->Print(method_dict,
-                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
-                 "$OutputTypeModuleAndClass$.SerializeToString,\n");
-    }
-    out->Print("}\n");
+//    out->Print("request_deserializers = {\n");
+//    for (StringMap::iterator name_and_input_module_class_pair =
+//             input_message_modules_and_classes.begin();
+//         name_and_input_module_class_pair !=
+//         input_message_modules_and_classes.end();
+//         name_and_input_module_class_pair++) {
+//      method_dict["MethodName"] = name_and_input_module_class_pair->first;
+//      method_dict["InputTypeModuleAndClass"] =
+//          name_and_input_module_class_pair->second;
+//      IndentScope raii_indent(out);
+//      out->Print(method_dict,
+//                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
+//                 "$InputTypeModuleAndClass$.FromString,\n");
+//    }
+//    out->Print("}\n");
+//    out->Print("response_serializers = {\n");
+//    for (StringMap::iterator name_and_output_module_class_pair =
+//             output_message_modules_and_classes.begin();
+//         name_and_output_module_class_pair !=
+//         output_message_modules_and_classes.end();
+//         name_and_output_module_class_pair++) {
+//      method_dict["MethodName"] = name_and_output_module_class_pair->first;
+//      method_dict["OutputTypeModuleAndClass"] =
+//          name_and_output_module_class_pair->second;
+//      IndentScope raii_indent(out);
+//      out->Print(method_dict,
+//                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
+//                 "$OutputTypeModuleAndClass$.SerializeToString,\n");
+//    }
+//    out->Print("}\n");
     out->Print("method_implementations = {\n");
     for (StringMap::iterator name_and_implementation_constructor =
              method_implementation_constructors.begin();
@@ -281,14 +281,14 @@ void PrivateGenerator::PrintBetaServerFactory(
     out->Print("}\n");
     out->Print(
         "server_options = beta_implementations.server_options("
-        "request_deserializers=request_deserializers, "
-        "response_serializers=response_serializers, "
         "thread_pool=pool, thread_pool_size=pool_size, "
         "default_timeout=default_timeout, "
         "maximum_timeout=maximum_timeout)\n");
     out->Print(
         "return beta_implementations.server(method_implementations, "
         "options=server_options)\n");
+        //"request_deserializers=request_deserializers, "
+        //"response_serializers=response_serializers, "
   }
 }
 
@@ -329,36 +329,36 @@ void PrivateGenerator::PrintBetaStubFactory(
     }
     StringMap method_dict;
     method_dict["PackageQualifiedServiceName"] = package_qualified_service_name;
-    out->Print("request_serializers = {\n");
-    for (StringMap::iterator name_and_input_module_class_pair =
-             input_message_modules_and_classes.begin();
-         name_and_input_module_class_pair !=
-         input_message_modules_and_classes.end();
-         name_and_input_module_class_pair++) {
-      method_dict["MethodName"] = name_and_input_module_class_pair->first;
-      method_dict["InputTypeModuleAndClass"] =
-          name_and_input_module_class_pair->second;
-      IndentScope raii_indent(out);
-      out->Print(method_dict,
-                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
-                 "$InputTypeModuleAndClass$.SerializeToString,\n");
-    }
-    out->Print("}\n");
-    out->Print("response_deserializers = {\n");
-    for (StringMap::iterator name_and_output_module_class_pair =
-             output_message_modules_and_classes.begin();
-         name_and_output_module_class_pair !=
-         output_message_modules_and_classes.end();
-         name_and_output_module_class_pair++) {
-      method_dict["MethodName"] = name_and_output_module_class_pair->first;
-      method_dict["OutputTypeModuleAndClass"] =
-          name_and_output_module_class_pair->second;
-      IndentScope raii_indent(out);
-      out->Print(method_dict,
-                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
-                 "$OutputTypeModuleAndClass$.FromString,\n");
-    }
-    out->Print("}\n");
+//    out->Print("request_serializers = {\n");
+//    for (StringMap::iterator name_and_input_module_class_pair =
+//             input_message_modules_and_classes.begin();
+//         name_and_input_module_class_pair !=
+//         input_message_modules_and_classes.end();
+//         name_and_input_module_class_pair++) {
+//      method_dict["MethodName"] = name_and_input_module_class_pair->first;
+//      method_dict["InputTypeModuleAndClass"] =
+//          name_and_input_module_class_pair->second;
+//      IndentScope raii_indent(out);
+//      out->Print(method_dict,
+//                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
+//                 "$InputTypeModuleAndClass$.SerializeToString,\n");
+//    }
+//    out->Print("}\n");
+//    out->Print("response_deserializers = {\n");
+//    for (StringMap::iterator name_and_output_module_class_pair =
+//             output_message_modules_and_classes.begin();
+//         name_and_output_module_class_pair !=
+//         output_message_modules_and_classes.end();
+//         name_and_output_module_class_pair++) {
+//      method_dict["MethodName"] = name_and_output_module_class_pair->first;
+//      method_dict["OutputTypeModuleAndClass"] =
+//          name_and_output_module_class_pair->second;
+//      IndentScope raii_indent(out);
+//      out->Print(method_dict,
+//                 "(\'$PackageQualifiedServiceName$\', \'$MethodName$\'): "
+//                 "$OutputTypeModuleAndClass$.FromString,\n");
+//    }
+//    out->Print("}\n");
     out->Print("cardinalities = {\n");
     for (StringMap::iterator name_and_cardinality =
              method_cardinalities.begin();
@@ -374,13 +374,13 @@ void PrivateGenerator::PrintBetaStubFactory(
     out->Print(
         "stub_options = beta_implementations.stub_options("
         "host=host, metadata_transformer=metadata_transformer, "
-        "request_serializers=request_serializers, "
-        "response_deserializers=response_deserializers, "
         "thread_pool=pool, thread_pool_size=pool_size)\n");
     out->Print(method_dict,
                "return beta_implementations.dynamic_stub(channel, "
                "\'$PackageQualifiedServiceName$\', "
                "cardinalities, options=stub_options)\n");
+        // "request_serializers=request_serializers, "
+        //"response_deserializers=response_deserializers, "
   }
 }
 
@@ -426,12 +426,9 @@ void PrivateGenerator::PrintStub(
           IndentScope raii_first_attribute_indent(out);
           IndentScope raii_second_attribute_indent(out);
           out->Print(method_dict, "'/$PackageQualifiedService$/$Method$',\n");
-          out->Print(method_dict,
-                     "request_serializer=$RequestModuleAndClass$."
-                     "SerializeToString,\n");
+          out->Print(method_dict,"\n");
           out->Print(
-              method_dict,
-              "response_deserializer=$ResponseModuleAndClass$.FromString,\n");
+              method_dict,"\n");
           out->Print(")\n");
         }
       }
@@ -501,11 +498,9 @@ void PrivateGenerator::PrintAddServicerToServer(
           IndentScope raii_call_second_indent(out);
           out->Print(method_dict, "servicer.$Method$,\n");
           out->Print(
-              method_dict,
-              "request_deserializer=$RequestModuleAndClass$.FromString,\n");
+              method_dict,"\n");
           out->Print(
               method_dict,
-              "response_serializer=$ResponseModuleAndClass$.SerializeToString,"
               "\n");
         }
         out->Print("),\n");
