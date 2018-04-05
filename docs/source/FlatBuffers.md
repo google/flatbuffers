@@ -134,6 +134,10 @@ sections provide a more in-depth usage guide.
     in your own programs.
 -   How to [use the generated Go code](@ref flatbuffers_guide_use_go) in your
     own programs.
+-   How to [use the generated JavaScript code](@ref flatbuffers_guide_use_javascript) in your
+    own programs.
+-   How to [use the generated TypeScript code](@ref flatbuffers_guide_use_typescript) in your
+    own programs.
 -   How to [use FlatBuffers in C with `flatcc`](@ref flatbuffers_guide_use_c) in your
     own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.

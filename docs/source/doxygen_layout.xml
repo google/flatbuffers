@@ -33,6 +33,8 @@
           title="Use in Java/C#"/>
       <tab type="user" url="@ref flatbuffers_guide_use_javascript"
           title="Use in JavaScript"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_typescript"
+          title="Use in TypeScript"/>
       <tab type="user" url="@ref flatbuffers_guide_use_php"
           title="Use in PHP"/>
       <tab type="user" url="@ref flatbuffers_guide_use_python"
