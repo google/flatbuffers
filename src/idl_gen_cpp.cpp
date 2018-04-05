@@ -2434,7 +2434,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ +=
-        "MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
+        "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
         "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
     code_ += " private:";
 

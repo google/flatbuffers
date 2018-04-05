@@ -2131,14 +2131,14 @@ inline int LookupEnum(const char **names, const char *name) {
 
 // clang-format off
 #if defined(_MSC_VER)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     __pragma(pack(1)); \
     struct __declspec(align(alignment))
   #define FLATBUFFERS_STRUCT_END(name, size) \
     __pragma(pack()); \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #elif defined(__GNUC__) || defined(__clang__)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))
   #define FLATBUFFERS_STRUCT_END(name, size) \

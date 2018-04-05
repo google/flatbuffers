@@ -169,7 +169,7 @@ Unions share a lot with enums.
 Predeclare all data types since circular references between types are allowed
 (circular references between object are not, though).
 
-    MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+    FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 {
      private:
       float x_;
       float y_;
