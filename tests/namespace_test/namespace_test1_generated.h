@@ -49,7 +49,7 @@ inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
   return EnumNamesEnumInNestedNS()[index];
 }
 
-MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t a_;
   int32_t b_;
