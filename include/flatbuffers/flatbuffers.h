@@ -2240,7 +2240,7 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 #endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
-#define DEFINE_BITMASK_OPERATORS(E, T)\
+#define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
     inline E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\
     }\
