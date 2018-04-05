@@ -13,14 +13,14 @@ class MonsterStorageStub(object):
       channel: A grpc.Channel.
     """
     self.Store = channel.unary_unary(
-        '/MyGame.Sample.MonsterStorage/Store',
-        request_serializer=builder.SerializeToString,
-        response_deserializer=builder.FromString,
+        '/MyGame.Example.MonsterStorage/Store',
+        
+        
         )
-    self.Retrieve = channel.unary_unary(
-        '/MyGame.Sample.MonsterStorage/Retrieve',
-        request_serializer=builder.SerializeToString,
-        response_deserializer=builder.FromString,
+    self.Retrieve = channel.unary_stream(
+        '/MyGame.Example.MonsterStorage/Retrieve',
+        
+        
         )
 
 
@@ -41,17 +41,17 @@ def add_MonsterStorageServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'Store': grpc.unary_unary_rpc_method_handler(
           servicer.Store,
-          request_deserializer=builder.FromString,
-          response_serializer=builder.SerializeToString,
+          
+          
       ),
-      'Retrieve': grpc.unary_unary_rpc_method_handler(
+      'Retrieve': grpc.unary_stream_rpc_method_handler(
           servicer.Retrieve,
-          request_deserializer=builder.FromString,
-          response_serializer=builder.SerializeToString,
+          
+          
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'MyGame.Sample.MonsterStorage', rpc_method_handlers)
+      'MyGame.Example.MonsterStorage', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
 try:
   # THESE ELEMENTS WILL BE DEPRECATED.
@@ -74,14 +74,14 @@ try:
         channel: A grpc.Channel.
       """
       self.Store = channel.unary_unary(
-          '/MyGame.Sample.MonsterStorage/Store',
-          request_serializer=builder.SerializeToString,
-          response_deserializer=builder.FromString,
+          '/MyGame.Example.MonsterStorage/Store',
+          
+          
           )
-      self.Retrieve = channel.unary_unary(
-          '/MyGame.Sample.MonsterStorage/Retrieve',
-          request_serializer=builder.SerializeToString,
-          response_deserializer=builder.FromString,
+      self.Retrieve = channel.unary_stream(
+          '/MyGame.Example.MonsterStorage/Retrieve',
+          
+          
           )
   
   
@@ -102,17 +102,17 @@ try:
     rpc_method_handlers = {
         'Store': grpc.unary_unary_rpc_method_handler(
             servicer.Store,
-            request_deserializer=builder.FromString,
-            response_serializer=builder.SerializeToString,
+            
+            
         ),
-        'Retrieve': grpc.unary_unary_rpc_method_handler(
+        'Retrieve': grpc.unary_stream_rpc_method_handler(
             servicer.Retrieve,
-            request_deserializer=builder.FromString,
-            response_serializer=builder.SerializeToString,
+            
+            
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        'MyGame.Sample.MonsterStorage', rpc_method_handlers)
+        'MyGame.Example.MonsterStorage', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
   
   
@@ -139,7 +139,6 @@ try:
     Store.future = None
     def Retrieve(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
       raise NotImplementedError()
-    Retrieve.future = None
   
   
   def beta_create_MonsterStorage_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
@@ -148,19 +147,11 @@ try:
     It is recommended to use the GA API (classes and functions in this
     file not marked beta) for all further purposes. This function was
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
-    request_deserializers = {
-      ('MyGame.Sample.MonsterStorage', 'Retrieve'): builder.FromString,
-      ('MyGame.Sample.MonsterStorage', 'Store'): builder.FromString,
-    }
-    response_serializers = {
-      ('MyGame.Sample.MonsterStorage', 'Retrieve'): builder.SerializeToString,
-      ('MyGame.Sample.MonsterStorage', 'Store'): builder.SerializeToString,
-    }
     method_implementations = {
-      ('MyGame.Sample.MonsterStorage', 'Retrieve'): face_utilities.unary_unary_inline(servicer.Retrieve),
-      ('MyGame.Sample.MonsterStorage', 'Store'): face_utilities.unary_unary_inline(servicer.Store),
+      ('MyGame.Example.MonsterStorage', 'Retrieve'): face_utilities.unary_stream_inline(servicer.Retrieve),
+      ('MyGame.Example.MonsterStorage', 'Store'): face_utilities.unary_unary_inline(servicer.Store),
     }
-    server_options = beta_implementations.server_options(request_deserializers=request_deserializers, response_serializers=response_serializers, thread_pool=pool, thread_pool_size=pool_size, default_timeout=default_timeout, maximum_timeout=maximum_timeout)
+    server_options = beta_implementations.server_options(thread_pool=pool, thread_pool_size=pool_size, default_timeout=default_timeout, maximum_timeout=maximum_timeout)
     return beta_implementations.server(method_implementations, options=server_options)
   
   
@@ -170,19 +161,11 @@ try:
     It is recommended to use the GA API (classes and functions in this
     file not marked beta) for all further purposes. This function was
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
-    request_serializers = {
-      ('MyGame.Sample.MonsterStorage', 'Retrieve'): builder.SerializeToString,
-      ('MyGame.Sample.MonsterStorage', 'Store'): builder.SerializeToString,
-    }
-    response_deserializers = {
-      ('MyGame.Sample.MonsterStorage', 'Retrieve'): builder.FromString,
-      ('MyGame.Sample.MonsterStorage', 'Store'): builder.FromString,
-    }
     cardinalities = {
-      'Retrieve': cardinality.Cardinality.UNARY_UNARY,
+      'Retrieve': cardinality.Cardinality.UNARY_STREAM,
       'Store': cardinality.Cardinality.UNARY_UNARY,
     }
-    stub_options = beta_implementations.stub_options(host=host, metadata_transformer=metadata_transformer, request_serializers=request_serializers, response_deserializers=response_deserializers, thread_pool=pool, thread_pool_size=pool_size)
-    return beta_implementations.dynamic_stub(channel, 'MyGame.Sample.MonsterStorage', cardinalities, options=stub_options)
+    stub_options = beta_implementations.stub_options(host=host, metadata_transformer=metadata_transformer, thread_pool=pool, thread_pool_size=pool_size)
+    return beta_implementations.dynamic_stub(channel, 'MyGame.Example.MonsterStorage', cardinalities, options=stub_options)
 except ImportError:
   pass
