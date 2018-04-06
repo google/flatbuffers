@@ -21,6 +21,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#include <unordered_set>
+
 namespace flatbuffers {
 
 // Pedantic warning free version of toupper().
@@ -38,7 +40,8 @@ class CppGenerator : public BaseGenerator {
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::"),
         cur_name_space_(nullptr) {
-    const char *keywords[] = { "alignas",
+    static const char * const keywords[] = {
+                               "alignas",
                                "alignof",
                                "and",
                                "and_eq",
@@ -142,7 +145,7 @@ class CppGenerator : public BaseGenerator {
     std::string guard = file_name_;
     // Remove any non-alpha-numeric characters that may appear in a filename.
     struct IsAlnum {
-      bool operator()(char c) { return !isalnum(c); }
+      bool operator()(char c) const { return !isalnum(c); }
     };
     guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
                 guard.end());
@@ -445,7 +448,7 @@ class CppGenerator : public BaseGenerator {
  private:
   CodeWriter code_;
 
-  std::set<std::string> keywords_;
+  std::unordered_set<std::string> keywords_;
 
   // This tracks the current namespace so we can insert namespace declarations.
   const Namespace *cur_name_space_;
@@ -472,7 +475,7 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
-    static const char *ctypename[] = {
+    static const char * const ctypename[] = {
     // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             #CTYPE,
@@ -734,7 +737,7 @@ class CppGenerator : public BaseGenerator {
 
   void GenMiniReflectPre(const StructDef *struct_def) {
     code_.SetValue("NAME", struct_def->name);
-    code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable();";
+    code_ += "inline const flatbuffers::TypeTable *{{NAME}}TypeTable();";
     code_ += "";
   }
 
@@ -830,14 +833,14 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
-    code_ += "inline flatbuffers::TypeTable *{{NAME}}TypeTable() {";
+    code_ += "inline const flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
-      code_ += "  static flatbuffers::TypeCode type_codes[] = {";
+      code_ += "  static const flatbuffers::TypeCode type_codes[] = {";
       code_ += "    {{TYPES}}";
       code_ += "  };";
     }
     if (!type_refs.empty()) {
-      code_ += "  static flatbuffers::TypeFunction type_refs[] = {";
+      code_ += "  static const flatbuffers::TypeFunction type_refs[] = {";
       code_ += "    {{REFS}}";
       code_ += "  };";
     }
@@ -847,11 +850,11 @@ class CppGenerator : public BaseGenerator {
     auto has_names =
         num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
     if (has_names) {
-      code_ += "  static const char *names[] = {";
+      code_ += "  static const char * const names[] = {";
       code_ += "    {{NAMES}}";
       code_ += "  };";
     }
-    code_ += "  static flatbuffers::TypeTable tt = {";
+    code_ += "  static const flatbuffers::TypeTable tt = {";
     code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
              (num_fields ? "type_codes, " : "nullptr, ") +
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
@@ -919,15 +922,15 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
-      code_ += "DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
+      code_ += "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
     code_ += "";
 
     // Generate an array of all enumeration values
     auto num_fields = NumToString(enum_def.vals.vec.size());
-    code_ += "inline {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" + num_fields +
+    code_ += "inline const {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" + num_fields +
              "] {";
-    code_ += "  static {{ENUM_NAME}} values[] = {";
+    code_ += "  static const {{ENUM_NAME}} values[] = {";
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
       const auto &ev = **it;
@@ -951,8 +954,8 @@ class CppGenerator : public BaseGenerator {
     static const int kMaxSparseness = 5;
     if (range / static_cast<int64_t>(enum_def.vals.vec.size()) <
         kMaxSparseness) {
-      code_ += "inline const char **EnumNames{{ENUM_NAME}}() {";
-      code_ += "  static const char *names[] = {";
+      code_ += "inline const char * const *EnumNames{{ENUM_NAME}}() {";
+      code_ += "  static const char * const names[] = {";
 
       auto val = enum_def.vals.vec.front()->value;
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
@@ -1548,7 +1551,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
-      code_ += "  static flatbuffers::TypeTable *MiniReflectTypeTable() {";
+      code_ += "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
@@ -2431,7 +2434,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ +=
-        "MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
+        "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
         "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
     code_ += " private:";
 
@@ -2573,7 +2576,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
-    code_ += "STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
+    code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     code_ += "";
   }
 

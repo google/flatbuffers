@@ -679,6 +679,10 @@ class JsGenerator : public BaseGenerator {
                 GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                     field.value.type.enum_def->file) +
                 " {\n";
+
+            if (!parser_.opts.generate_all) {
+                imported_files.insert(field.value.type.enum_def->file);
+            }
           } else {
             code += "):" + GenTypeName(field.value.type, false, true) + " {\n";
           }
