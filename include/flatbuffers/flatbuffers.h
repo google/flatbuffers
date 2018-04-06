@@ -2131,17 +2131,17 @@ inline int LookupEnum(const char **names, const char *name) {
 
 // clang-format off
 #if defined(_MSC_VER)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     __pragma(pack(1)); \
     struct __declspec(align(alignment))
-  #define STRUCT_END(name, size) \
+  #define FLATBUFFERS_STRUCT_END(name, size) \
     __pragma(pack()); \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #elif defined(__GNUC__) || defined(__clang__)
-  #define MANUALLY_ALIGNED_STRUCT(alignment) \
+  #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))
-  #define STRUCT_END(name, size) \
+  #define FLATBUFFERS_STRUCT_END(name, size) \
     _Pragma("pack()") \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
 #else
@@ -2185,8 +2185,8 @@ enum ElementaryType {
   #undef FLATBUFFERS_ET
 };
 
-inline const char **ElementaryTypeNames() {
-  static const char *names[] = {
+inline const char * const *ElementaryTypeNames() {
+  static const char * const names[] = {
     #define FLATBUFFERS_ET(E) #E,
       FLATBUFFERS_GEN_ELEMENTARY_TYPES(FLATBUFFERS_ET)
     #undef FLATBUFFERS_ET
@@ -2207,7 +2207,7 @@ static_assert(sizeof(TypeCode) == 2, "TypeCode");
 struct TypeTable;
 
 // Signature of the static method present in each type.
-typedef TypeTable *(*TypeFunction)();
+typedef const TypeTable *(*TypeFunction)();
 
 struct TypeTable {
   SequenceType st;
@@ -2215,7 +2215,7 @@ struct TypeTable {
   const TypeCode *type_codes;
   const TypeFunction *type_refs;
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
-  const char **names;     // Only set if compiled with --reflect-names.
+  const char * const *names;     // Only set if compiled with --reflect-names.
 };
 
 // String which identifies the current version of FlatBuffers.
@@ -2240,7 +2240,7 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 
 #endif  // !defined(_WIN32) && !defined(__CYGWIN__)
 
-#define DEFINE_BITMASK_OPERATORS(E, T)\
+#define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
     inline E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\
     }\

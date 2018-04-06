@@ -9,7 +9,7 @@ from conans import ConanFile, CMake, tools
 
 class FlatbuffersConan(ConanFile):
     name = "flatbuffers"
-    version = "1.8.0"
+    version = "1.9.0"
     license = "https://github.com/google/flatbuffers/blob/master/LICENSE.txt"
     url = "https://github.com/google/flatbuffers"
     description = "Memory Efficient Serialization Library"

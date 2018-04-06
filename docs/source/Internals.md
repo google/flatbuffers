@@ -169,7 +169,7 @@ Unions share a lot with enums.
 Predeclare all data types since circular references between types are allowed
 (circular references between object are not, though).
 
-    MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+    FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 {
      private:
       float x_;
       float y_;
@@ -183,7 +183,7 @@ Predeclare all data types since circular references between types are allowed
       float y() const { return flatbuffers::EndianScalar(y_); }
       float z() const { return flatbuffers::EndianScalar(z_); }
     };
-    STRUCT_END(Vec3, 12);
+    FLATBUFFERS_STRUCT_END(Vec3, 12);
 
 These ugly macros do a couple of things: they turn off any padding the compiler
 might normally do, since we add padding manually (though none in this example),

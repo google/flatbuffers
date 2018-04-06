@@ -18,27 +18,29 @@ In general:
 
 NOTE: this table is a start, it needs to be extended.
 
-Feature                        | C++    | Java   | C#     | Go     | Python | JS        | C       | PHP | Ruby | Dart
------------------------------- | ------ | ------ | ------ | ------ | ------ | --------- | ------  | --- | ---- | ----
-Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes     | WiP | WiP  | Yes
-JSON parsing                   | Yes    | No     | No     | No     | No     | No        | Yes     | No  | No   | No
-Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No      | No  | No   | No
-Reflection                     | Yes    | No     | No     | No     | No     | No        | Basic   | No  | No   | No
-Buffer verifier                | Yes    | No     | No     | No     | No     | No        | Yes     | No  | No   | No
-Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes     | ?   | ?    | Yes
-Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No      | ?   | ?    | No
-Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | Superb  | ?   | ?    | ?
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | VS2010  | ?   | ?    | Yes
-Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes     | ?   | ?    | Yes
-Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes     | ?   | ?    | Yes
-Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?       | ?   | ?    | Flutter
-Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?       | ?   | ?    | Flutter
-Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?       | ?   | ?    | ?
-Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | evanw/ev* | mik*    | ch* | rw   | dnfield
+Feature                        | C++    | Java   | C#     | Go     | Python | JS        | TS        | C       | PHP | Ruby | Dart
+------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | --------- | ------  | --- | ---- | ----
+Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | WiP | WiP  | Yes
+JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No   | No
+Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No   | No
+Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No   | No
+Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No   | No
+Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | ?    | Yes
+Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | ?    | No
+Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?    | ?
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | Yes       | VS2010  | ?   | ?    | Yes
+Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes       | Yes     | ?   | ?    | Yes
+Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes       | Yes     | ?   | ?    | Yes
+Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | ?    | Flutter
+Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?         | ?       | ?   | ?    | Flutter
+Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?         | ?       | ?   | ?    | ?
+Primary authors (github)       | gwvo   | gwvo   | ev*/js*| rw     | rw     | evanw/ev* | kr        | mik*    | ch* | rw   | dnfield
+
 
   * ev = evolutional
   * js = jonsimantov
   * mik = mikkelfj
   * ch = chobie
+  * kr = krojew
 
 <br>
