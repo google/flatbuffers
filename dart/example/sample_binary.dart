@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import '../dart/lib/flat_buffers.dart' as fb;
 import './monster_my_game.sample_generated.dart' as myGame;
 
 // Example how to use FlatBuffers to create and read binary buffers.

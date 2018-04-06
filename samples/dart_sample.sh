@@ -27,12 +27,14 @@ if [[ "$sampledir" != "$currentdir" ]]; then
   exit 1
 fi
 
+cd ../dart/example
+
 # Run `flatc`. Note: This requires you to compile using `cmake` from the
 # root `/flatbuffers` directory.
-if [ -e ../flatc ]; then
-  ../flatc --dart monster.fbs
-elif [ -e ../Debug/flatc ]; then
-  ../Debug/flatc --js monster.fbs
+if [ -e ../../flatc ]; then
+  ../../flatc --dart monster.fbs
+elif [ -e ../../Debug/flatc ]; then
+  ../../Debug/flatc --dart monster.fbs
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.
@@ -42,9 +44,9 @@ fi
 echo Running the Dart sample.
 
 # Execute the sample.
-ln -s ../dart/lib ../dart/flat_buffers
-dart --package-root=../dart/ sample_binary.dart
+dart sample_binary.dart
 
 # Cleanup temporary files.
-rm ../dart/flat_buffers
-rm monster_my_game.sample_generated.dart
+git checkout monster_my_game.sample_generated.dart
+
+cd ../../samples
