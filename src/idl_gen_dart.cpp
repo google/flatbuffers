@@ -78,7 +78,7 @@ class DartGenerator : public BaseGenerator {
       code += "import 'dart:typed_data' show Uint8List;\n";
       // code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
       // ";\n\n";
-      code += "import './flat_buffers.dart' as " + _kFb + ";\n\n";
+      code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb + ";\n\n";
 
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
