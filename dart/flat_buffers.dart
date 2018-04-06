@@ -25,7 +25,7 @@ class BoolListReader extends Reader<List<bool>> {
   const BoolListReader();
 
   @override
-  int get size => 4;
+  int get size => _sizeofUint32;
 
   @override
   List<bool> read(BufferContext bc, int offset) =>
@@ -107,9 +107,9 @@ abstract class BuilderHelper {
 
   /// Can be used to write the data represented by this builder to the [Builder]
   /// and reuse the offset created in multiple tables.
-  /// 
-  /// Note that this method assumes you call it using the same [Builder] instance 
-  /// every time. The returned offset is only good for the [Builder] used in the 
+  ///
+  /// Note that this method assumes you call it using the same [Builder] instance
+  /// every time. The returned offset is only good for the [Builder] used in the
   /// first call to this method.
   int getOrCreateOffset(Builder fbBuilder, {bool internStrings = false}) {
     _firstOffset ??= finish(fbBuilder, internStrings: internStrings);
@@ -478,36 +478,6 @@ class Builder {
     return result;
   }
 
-  /// Write the given list of boolean [values].
-  int writeListBool(List<bool> values) {
-    int bitLength = values.length;
-    int padding = (-bitLength) % 8;
-    int byteLength = (bitLength + padding) ~/ 8;
-    // Prepare the backing Uint8List.
-    Uint8List bytes = new Uint8List(byteLength + 1);
-    // Record every bit.
-    int byteIndex = 0;
-    int byte = 0;
-    int mask = 1;
-    for (int bitIndex = 0; bitIndex < bitLength; bitIndex++) {
-      if (bitIndex != 0 && (bitIndex % 8 == 0)) {
-        bytes[byteIndex++] = byte;
-        byte = 0;
-        mask = 1;
-      }
-      if (values[bitIndex]) {
-        byte |= mask;
-      }
-      mask <<= 1;
-    }
-    // Write the last byte, even if it may be on the padding.
-    bytes[byteIndex] = byte;
-    // Write the padding length.
-    bytes[byteLength] = padding;
-    // Write as a Uint8 list.
-    return writeListUint8(bytes);
-  }
-
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
     _ensureNoVTable();
@@ -596,6 +566,11 @@ class Builder {
       tail -= _sizeofUint16;
     }
     return result;
+  }
+
+  /// Write the given list of bools as unsigend 8-bit integer [values].
+  int writeListBool(List<bool> values) {
+    return writeListUint8(values?.map((b) => b ? 1 : 0)?.toList());
   }
 
   /// Write the given list of unsigned 8-bit integer [values].
@@ -1017,41 +992,6 @@ class Uint8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
-/// List of booleans backed by 8-bit unsigned integers.
-class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
-  final BufferContext bc;
-  final int offset;
-  int _length;
-
-  _FbBoolList(this.bc, this.offset);
-
-  @override
-  int get length {
-    if (_length == null) {
-      int byteLength = bc._getUint32(offset);
-      _length = (byteLength - 1) * 8 - _getByte(byteLength - 1);
-    }
-    return _length;
-  }
-
-  @override
-  void set length(int i) =>
-      throw new StateError('Attempt to modify immutable list');
-
-  @override
-  bool operator [](int i) {
-    int index = i ~/ 8;
-    int mask = 1 << i % 8;
-    return _getByte(index) & mask != 0;
-  }
-
-  @override
-  void operator []=(int i, bool e) =>
-      throw new StateError('Attempt to modify immutable list');
-
-  int _getByte(int index) => bc._getUint8(offset + 4 + index);
-}
-
 /// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
   _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
@@ -1143,6 +1083,16 @@ class _FbUint8List extends _FbList<int> {
   @override
   int operator [](int i) {
     return bc._getUint8(offset + 4 + i);
+  }
+}
+
+/// List backed by 8-bit unsigned integers.
+class _FbBoolList extends _FbList<bool> {
+  _FbBoolList(BufferContext bc, int offset) : super(bc, offset);
+
+  @override
+  bool operator [](int i) {
+    return bc._getUint8(offset + 4 + i) == 1 ? true : false;
   }
 }
 
