@@ -257,10 +257,6 @@ bool IsIdentifierStart(char c) {
   return isalpha(static_cast<unsigned char>(c)) || c == '_';
 }
 
-bool IsIdentifierBody(char c) {
-  return isalnum(static_cast<unsigned char>(c)) || c == '_';
-}
-
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = false;
@@ -429,7 +425,7 @@ CheckedError Parser::Next() {
         if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
-          while (IsIdentifierBody(*cursor_))
+          while (isalnum(static_cast<unsigned char>(*cursor_)) || *cursor_ == '_')
             cursor_++;
           attribute_.append(start, cursor_);
           token_ = kTokenIdentifier;
@@ -1226,10 +1222,13 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
     NEXT();
     for (;;) {
       auto name = attribute_;
-      EXPECT(kTokenIdentifier);
+      if (false == (Is(kTokenIdentifier) || Is(kTokenStringConstant)))
+        return Error("attribute name must be either identifier or string: " +
+          name);
       if (known_attributes_.find(name) == known_attributes_.end())
         return Error("user define attributes must be declared before use: " +
                      name);
+      NEXT();
       auto e = new Value();
       attributes->Add(name, e);
       if (Is(':')) {
@@ -2456,18 +2455,11 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("attribute")) {
       NEXT();
       auto name = attribute_;
-      auto compatible = Is(kTokenIdentifier);
-      if(!compatible && Is(kTokenStringConstant)) {
-        compatible = IsIdentifierStart(*name.begin());
-        for (auto it = name.begin() + 1; compatible && it != name.end(); ++it) {
-          compatible = IsIdentifierBody(*it);
-        }
+      if (Is(kTokenIdentifier)) {
+        NEXT();
+      } else {
+        EXPECT(kTokenStringConstant);
       }
-      if (false == compatible)
-        return Error(
-            "Declared attribute should be either identifier or string with the "
-            "identifier.");
-      NEXT();
       EXPECT(';');
       known_attributes_[name] = false;
     } else if (IsIdent("rpc_service")) {
