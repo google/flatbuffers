@@ -492,7 +492,8 @@ which will grow automatically if needed:
   // Create the fb.Builder object that will be used by our generated builders
   // Note that if you are only planning to immediately get the byte array this builder would create,
   // you can use the convenience method `toBytes()` on the generated builders.
-  var builder = new fb.Builder();
+  // For example, you could do something like `new myGame.MonsterBuilder(...).toBytes()`
+  var builder = new fb.Builder(initialSize: 1024);
 ~~~
 </div>
 
@@ -621,22 +622,27 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 </div>
 <div class="language-dart">
 ~~~{.dart}
-  final int weaponOneName = builder.createString("Sword")
+  final String weaponOneName = "Sword";
   final int weaponOneDamage = 3;
 
-  final int weaponTwoName = builder.createString("Axe");
+  final String weaponTwoName = "Axe";
   final int weaponTwoDamage = 5;
 
-  // Use the `WeaponBuilder.finish()` helper function to create the weapons, since we set every field.
-  int sword = new myGame.WeaponBuilder(
+  // Unlike in other languages in this tutorial, the generated builder knows
+  // how to preserve its offset if written multiple times. Calling `.finish()`
+  // here would write this data to the buffer and return an offset,  but it
+  // would be more tedious to use with the other generated helpers.
+  // You can find examples of how to make use of the offsets directly in the 
+  // generated classes.
+  final myGame.WeaponBuilder sword = new myGame.WeaponBuilder(
     name: weaponOneName,
-    damange: weaponOneDamage,
-  ).finish(builder);
+    damage: weaponOneDamage,
+  );
 
-  int axe = new myGame.WeaponBuilder(n
-    ame: weaponTwoName,
-    damage: weaponTwoDamage
-  ).finish(builder);
+  final myGame.WeaponBuilder axe = new myGame.WeaponBuilder(
+    name: weaponTwoName,
+    damage: weaponTwoDamage,
+  );
 ~~~
 </div>
 
@@ -758,12 +764,11 @@ traversal. This is generally easy to do on any tree structures.
 <div class="language-dart">
 ~~~{.dart}
   // Serialize a name for our monster, called "Orc".
-  var nameOffset = builder.writeString("Orc");
+  final String name = 'Orc';
 
   // Create a list representing the inventory of the Orc. Each number
   // could correspond to an item that can be claimed after he is slain.
-  var treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  var inv = buffer.writeListUint8(treasure);
+  final List<int> treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 ~~~
 </div>
 
@@ -863,10 +868,8 @@ offsets.
 </div>
 <div class="language-dart">
 ~~~{.dart}
-  // Create an array from the two `Weapon`s and pass it to the
-  // `createWeaponsVector()` method to create a FlatBuffer vector.
-  final List<int> weaps = [sword, axe];
-  final int weapons = builder.writeList(weaps);
+  // Create an array from the two `Weapon`s
+  final List<myGame.WeaponBuilder> weaps = [sword, axe];
 ~~~
 </div>
 
@@ -943,10 +946,13 @@ for the `path` field above:
 </div>
 <div class="language-dart">
 ~~~{.dart}
-  MyGame.Sample.Monster.startPathVector(builder, 2);
-  MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
-  MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
-  var path = builder.endVector();
+  // The dart implementation provides a simple interface for writing vectors
+  // of structs, in `writeListOfStructs`. This method takes
+  // `List<BuilderHelper>` and is used by the generated builder classes.
+  final List<myGame.Vec3Builder> path = [
+    new myGame.Vec3Builder(x: 1.0, y: 2.0, z: 3.0),
+    new myGame.Vec3Builder(x: 4.0, y: 5.0, z: 6.0)
+  ];
 ~~~
 </div>
 
@@ -1081,6 +1087,34 @@ can serialize the monster itself:
           weapons, equipped, path));
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+  // Set his hit points to 300 and his mana to 150.
+  final int hp = 300;
+  final int mana = 150;
+
+  // Note that these parameters are optional - it is not necessary to set
+  // all of them.
+  // Also note that it is not necessary to `finish` the builder helpers above
+  // - the generated code will automatically reuse offsets if the same object
+  // is used in more than one place (e.g. the axe appearing in `weapons` and 
+  // `equipped`).
+  final myGame.MonsterBuilder orcBuilder = new myGame.MonsterBuilder(
+    name: name,
+    inventory: treasure,
+    weapons: weaps,
+    equippedType: myGame.EquipmentTypeId.Weapon,
+    equipped: axe,
+    path: path,
+    hp: hp,
+    mana: mana,
+    pos: new myGame.Vec3Builder(x: 1.0, y: 2.0, z: 3.0),
+    color: myGame.Color.Red,
+  );
+
+  final int orc = orcBuilder.finish(builder);
+~~~
+</div>
 
 Note how we create `Vec3` struct in-line in the table. Unlike tables, structs
 are simple combinations of scalars that are always stored inline, just like
@@ -1207,6 +1241,12 @@ Here is a repetition these lines, to help highlight them more clearly:
   ns(Monster_equipped_Weapon_add(B, axe));
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+  equippedTypeId: myGame.EquipmentTypeId.Weapon,  // Union type
+  equipped: axe,                                  // Union data
+~~~
+</div>
 
 After you have created your buffer, you will have the offset to the root of the
 data in the `orc` variable, so you can finish the buffer by calling the
@@ -1263,6 +1303,12 @@ appropriate `finish` method.
 <div class="language-c">
 ~~~{.c}
   // Because we used `Monster_create_as_root`, we do not need a `finish` call in C`.
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  // Call `finish()` to instruct the builder that this monster is complete.
+  // See the next code section, as in Dart `finish` will also return the byte array.
 ~~~
 </div>
 
@@ -1349,6 +1395,11 @@ like so:
 
   // Cleanup.
   flatcc_builder_clear(B);
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  final Uint8List buf = builder.finish(orc);
 ~~~
 </div>
 
@@ -1451,6 +1502,12 @@ before:
   #define ns(x) FLATBUFFERS_WRAP_NAMESPACE(MyGame_Sample, x) // Specified in the schema.
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+import 'package:flat_buffers/flat_buffers.dart' as fb;
+import './monster_my_game.sample_generated.dart' as myGame;
+~~~
+</div>
 
 Then, assuming you have a buffer of bytes received from disk,
 network, etc., you can create start accessing the buffer like so:
@@ -1543,6 +1600,13 @@ won't work**
   // Note: root object pointers are NOT the same as the `buffer` pointer.
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+List<int> data = ... // the data, e.g. from file or network
+// A generated factory constructor that will read the data.
+myGame.Monster monster = new myGame.Monster(data);
+~~~
+</div>
 
 If you look in the generated files from the schema compiler, you will see it generated
 accessors for all non-`deprecated` fields. For example:
@@ -1563,7 +1627,7 @@ accessors for all non-`deprecated` fields. For example:
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  // For C#, unlike other languages support by FlatBuffers, most values (except for
+  // For C#, unlike most other languages support by FlatBuffers, most values (except for
   // vectors and unions) are available as propreties instead of asccessor methods.
   var hp = monster.Hp
   var mana = monster.Mana
@@ -1603,6 +1667,15 @@ accessors for all non-`deprecated` fields. For example:
   uint16_t hp = ns(Monster_hp(monster));
   uint16_t mana = ns(Monster_mana(monster));
   flatbuffers_string_t name = ns(Monster_name(monster));
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  // For Dart, unlike other languages support by FlatBuffers, most values
+  // are available as propreties instead of asccessor methods.
+  var hp = monster.hp;
+  var mana = monster.mana;
+  var name = monster.name;
 ~~~
 </div>
 
@@ -1682,6 +1755,14 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
   float z = ns(Vec3_z(pos));
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+  myGame.Vec3 pos = monster.pos;
+  double x = pos.x;
+  double y = pos.y;
+  double z = pos.z;
+~~~
+</div>
 
 `x`, `y`, and `z` will contain `1.0`, `2.0`, and `3.0`, respectively.
 
@@ -1740,6 +1821,12 @@ FlatBuffers `vector`.
     // the length of null which will be 0, useful for iteration.
     flatbuffers_uint8_vec_t inv = ns(Monster_inventory(monster));
     size_t inv_len = flatbuffers_uint8_vec_len(inv);
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  int invLength = monster.inventory.length;
+  var thirdItem = monster.inventory[2];
 ~~~
 </div>
 
@@ -1807,6 +1894,13 @@ except your need to handle the result as a FlatBuffer `table`:
   // We can use `const char *` instead of `flatbuffers_string_t`.
   const char *second_weapon_name = ns(Weapon_name(ns(Weapon_vec_at(weapons, 1))));
   uint16_t second_weapon_damage =  ns(Weapon_damage(ns(Weapon_vec_at(weapons, 1))));
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  int weaponsLength = monster.weapons.length;
+  var secondWeaponName = monster.weapons[1].name;
+  var secondWeaponDamage = monster.Weapons[1].damage;
 ~~~
 </div>
 
@@ -1922,6 +2016,18 @@ We can access the type to dynamically cast the data as needed (since the
   }
 ~~~
 </div>
+<div class="language-dart">
+~~~{.dart}
+  var unionType = monster.equippedType.value;
+
+  if (unionType == myGame.EquipmentTypeId.Weapon.value) {
+    myGame.Weapon weapon = mon.equipped as myGame.Weapon;
+
+    var weaponName = weapon.name;     // "Axe"
+    var weaponDamage = weapon.damage; // 5
+  }
+~~~
+</div>
 
 ## Mutating FlatBuffers
 
@@ -1990,6 +2096,11 @@ mutators like so:
 ~~~{.c}
   <API for in-place mutating FlatBuffers will not be supported in C
   (except in-place vector sorting is possible).>
+~~~
+</div>
+<div class="language-dart">
+~~~{.dart}
+  <API for mutating FlatBuffers not yet available in Dart.>
 ~~~
 </div>
 
@@ -2097,6 +2208,9 @@ For your chosen language, see:
 </div>
 <div class="language-c">
 [Use in C](@ref flatbuffers_guide_use_c)
+</div>
+<div class="language-dart">
+[Use in Dart](@ref flatbuffers_guide_use_dart)
 </div>
 
 <br>

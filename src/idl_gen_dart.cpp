@@ -239,7 +239,7 @@ class DartGenerator : public BaseGenerator {
         if (it != enum_def.vals.vec.begin()) { code += '\n'; }
         GenDocComment(ev.doc_comment, &code, "", "  ");
       }
-      code += "  static const " + ev.name + " = ";
+      code += "  static const " + name + " " + ev.name + " = ";
       code += "const " + name + "._(" + NumToString(ev.value) + ");\n";
     }
 
@@ -560,8 +560,7 @@ class DartGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     std::string &builder_name = *builder_name_ptr;
 
-    code +=
-        "class " + builder_name + " extends " + _kFb + ".BuilderHelper {\n";
+    code += "class " + builder_name + " extends " + _kFb + ".BuilderHelper {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -600,7 +599,8 @@ class DartGenerator : public BaseGenerator {
     code += "  /// Finish building, and store into the [fbBuilder].\n";
     code += "  @override\n";
     code += "  int finish(\n";
-    code += "    " + _kFb + ".Builder fbBuilder, { bool internStrings = false }) {\n";
+    code += "    " + _kFb +
+            ".Builder fbBuilder, { bool internStrings = false }) {\n";
     code += "    assert(fbBuilder != null);\n";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -640,8 +640,8 @@ class DartGenerator : public BaseGenerator {
         code += " = fbBuilder.writeString(_" + field.name +
                 ", intern: internStrings);\n";
       } else {
-        code +=
-            " = _" + MakeCamel(field.name, false) + "?.getOrCreateOffset(fbBuilder);\n";
+        code += " = _" + MakeCamel(field.name, false) +
+                "?.getOrCreateOffset(fbBuilder);\n";
       }
     }
 
