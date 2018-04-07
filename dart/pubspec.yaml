@@ -12,7 +12,6 @@ authors:
 - Paul Berry
 homepage: https://github.com/google/flatbuffers
 documentation: https://google.github.io/flatbuffers/index.html
-dependencies:
 dev_dependencies:
-  test: any
-  test_reflective_loader: any
+  test: ^0.12.33
+  test_reflective_loader: ^0.1.4
