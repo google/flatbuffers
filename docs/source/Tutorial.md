@@ -134,7 +134,7 @@ For your chosen language, please cross-reference with:
 [monster.c](https://github.com/dvidelabs/flatcc/blob/master/samples/monster/monster.c)
 </div>
 <div class="language-dart">
-[sample_binary.dart](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.dart)
+[example.dart](https://github.com/google/flatbuffers/blob/master/dart/example/example.dart)
 </div>
 
 ## Writing the Monsters' FlatBuffer Schema

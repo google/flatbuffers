@@ -7,7 +7,7 @@ compiler to generate Dart code from a FlatBuffers IDL schema.  For example, the
 `monster_my_game.sample_generated.dart` was generated with `flatc` from
 `monster.fbs` in the example folder. The generated classes can be used to read
 or write binary files that are interoperable with other languages and platforms
-supported by FlatBuffers, as illustrated in the `sample_binary.dart` in the
+supported by FlatBuffers, as illustrated in the `example.dart` in the
 examples folder.
 
 Additional documentation and examples are available [at the FlatBuffers site](https://google.github.io/flatbuffers/index.html)
