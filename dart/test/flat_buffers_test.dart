@@ -14,29 +14,6 @@ main() {
   });
 }
 
-Matcher moreOrLessEquals(double value, {double epsilon: .001}) {
-  return new _MoreOrLessEquals(value, epsilon);
-}
-
-class _MoreOrLessEquals extends Matcher {
-  const _MoreOrLessEquals(this.value, this.epsilon);
-
-  final double value;
-  final double epsilon;
-
-  @override
-  bool matches(Object object, Map<dynamic, dynamic> matchState) {
-    if (object is! double) return false;
-    if (object == value) return true;
-    final double test = object;
-    return (test - value).abs() <= epsilon;
-  }
-
-  @override
-  Description describe(Description description) =>
-      description.add('$value (±$epsilon)');
-}
-
 int indexToField(int index) {
   return (1 + 1 + index) * 2;
 }
@@ -326,7 +303,7 @@ class BuilderTest {
 
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
-      expect(values[i], moreOrLessEquals(items[i]));
+      expect(values[i], closeTo(items[i], .001));
     }
   }
 
@@ -344,7 +321,7 @@ class BuilderTest {
     List<double> items = const Float32ListReader().read(buf, 0);
     expect(items, hasLength(5));
     for (int i = 0; i < values.length; i++) {
-      expect(values[i], moreOrLessEquals(items[i]));
+      expect(values[i], closeTo(items[i], .001));
     }
   }
 
