@@ -15,5 +15,6 @@
 # limitations under the License.
 
 pushd "$(dirname $0)" >/dev/null
-../flatc --dart -o dart_gen/ -I include_test monster_test.fbs
-dart DartTest.dart
+
+# Execute the sample.
+dart ../dart/test/flat_buffers_test.dart

@@ -331,6 +331,15 @@ class Builder {
     return tableTail;
   }
 
+  /// This method low level method can be used to return a raw piece of the buffer
+  /// after using the the put* methods.
+  ///
+  /// Most clients should prefer calling [finish].
+  Uint8List lowFinish() {
+    int alignedTail = _tail + ((-_tail) % _maxAlign);
+    return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
+  }
+
   /// Finish off the creation of the buffer.  The given [offset] is used as the
   /// root object offset, and usually references directly or indirectly every
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
@@ -481,7 +490,7 @@ class Builder {
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
     _ensureNoVTable();
-    _prepare(_sizeofUint32, 1 + values.length);
+    _prepare(4, 1 + (2 * values.length));
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -496,7 +505,7 @@ class Builder {
   /// Write the given list of 32-bit float [values].
   int writeListFloat32(List<double> values) {
     _ensureNoVTable();
-    _prepare(_sizeofUint32, 1 + values.length);
+    _prepare(_sizeofFloat32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -723,7 +732,7 @@ class Float64ListReader extends Reader<List<double>> {
   const Float64ListReader();
 
   @override
-  int get size => _sizeofUint32;
+  int get size => _sizeofFloat64;
 
   @override
   List<double> read(BufferContext bc, int offset) =>
@@ -734,7 +743,7 @@ class Float32ListReader extends Reader<List<double>> {
   const Float32ListReader();
 
   @override
-  int get size => _sizeofUint32;
+  int get size => _sizeofFloat32;
 
   @override
   List<double> read(BufferContext bc, int offset) =>
@@ -834,7 +843,7 @@ abstract class Reader<T> {
     int vTableSOffset = object._getInt32(offset);
     int vTableOffset = offset - vTableSOffset;
     int vTableSize = object._getUint16(vTableOffset);
-    int vTableFieldOffset = field; //(1 + 1 + field) * 2;
+    int vTableFieldOffset = field;
     if (vTableFieldOffset < vTableSize) {
       int fieldOffsetInObject =
           object._getUint16(vTableOffset + vTableFieldOffset);
@@ -998,7 +1007,7 @@ class _FbFloat64List extends _FbList<double> {
 
   @override
   double operator [](int i) {
-    return bc._getFloat64(offset + 8 + 8 * i);
+    return bc._getFloat64(offset + 4 + 8 * i);
   }
 }
 
@@ -1008,7 +1017,7 @@ class _FbFloat32List extends _FbList<double> {
 
   @override
   double operator [](int i) {
-    return bc._getFloat32(offset + 8 + 4 * i);
+    return bc._getFloat32(offset + 4 + 4 * i);
   }
 }
 
@@ -1072,7 +1081,7 @@ class _FbUint16List extends _FbList<int> {
 
   @override
   int operator [](int i) {
-    return bc._getUint16(offset + 4 * i);
+    return bc._getUint16(offset + 4 + 2 * i);
   }
 }
 
