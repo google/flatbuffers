@@ -15,7 +15,11 @@
  */
 
 #include <algorithm>
+#ifndef FLATBUFFERS_PREFER_PRINTF
 #include <iostream>
+#else // FLATBUFFERS_PREFER_PRINTF
+#include <string>
+#endif // FLATBUFFERS_PREFER_PRINTF
 #include <list>
 
 #include <math.h>
@@ -177,6 +181,7 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
   if (components.empty() || !max_components) { return name; }
+#ifndef FLATBUFFERS_PREFER_PRINTF
   std::stringstream stream;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
     if (i) { stream << "."; }
@@ -184,6 +189,15 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   }
   if (name.length()) stream << "." << name;
   return stream.str();
+#else // FLATBUFFERS_PREFER_PRINTF
+  std::string stream_str;
+  for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
+    if (i) { stream_str += "."; }
+    stream_str += std::string{components[i]};
+  }
+  if (name.length()) stream_str += std::string{"."} + name;
+  return stream_str;
+#endif // FLATBUFFERS_PREFER_PRINTF
 }
 
 // Declare tokens we'll use. Single character tokens are represented by their
