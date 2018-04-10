@@ -77,7 +77,7 @@ template<typename T> std::string NumToString(T t) {
   }
   auto s = std::string(char_count+1, 0x00); // Allocate an extra null byte
   //TODO: handle floating point specially
-  snprintf(const_cast<char*>(s.data()), char_count, "%0.*f", precision, (double)t);
+  snprintf(const_cast<char*>(s.data()), s.size(), "%0.*f", precision, (double)t);
   s.resize(char_count); // Remove the null byte
   return s;
 #endif // FLATBUFFERS_PREFER_PRINTF
@@ -123,7 +123,7 @@ template<typename T> std::string FloatToString(T t, int precision) {
   }
   auto s = std::string(char_count+1, 0x00); // Allocate an extra null byte
   //TODO: handle floating point specially
-  snprintf(const_cast<char*>(s.data()), precision, "%0.*f", precision, (double)t);
+  snprintf(const_cast<char*>(s.data()), s.size(), "%0.*f", precision, (double)t);
   s.resize(char_count); // Remove the null byte
 #endif // FLATBUFFERS_PREFER_PRINTF
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
@@ -153,7 +153,7 @@ inline std::string IntToStringHex(int i, int xdigits) {
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
   std::string s(xdigits+1, 0x00); // Allocate an extra null byte
-  snprintf(const_cast<char*>(s.data()), xdigits, "%.*X", xdigits, i);
+  snprintf(const_cast<char*>(s.data()), s.size(), "%.*X", xdigits, i);
   s.resize(xdigits); // Remove the null byte
   return s;
 #endif // FLATBUFFERS_PREFER_PRINTF
