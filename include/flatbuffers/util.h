@@ -50,16 +50,51 @@
 
 namespace flatbuffers {
 
+#ifdef FLATBUFFERS_PREFER_PRINTF
 template<typename T> size_t IntToDigitCount(T t) {
-  size_t digit_count = (t < 0)? 1 : 0; // Count the sign for negative numbers
+  size_t digit_count = 0;
 
-  while (t > 0) {
+  // Count the sign for negative numbers
+  if (t < 0) {
+    digit_count++;
+  }
+
+  // Count a single 0 left of the dot for fractional numbers
+  if (-1 < t && t < 1) {
+    digit_count++;
+  }
+
+  // Count digits until fractional part
+  T eps = std::numeric_limits<float>::epsilon();
+  while (t <= (-1.0 + eps) || (1.0 - eps) <= t) {
     t /= 10;
     digit_count++;
   }
 
   return digit_count;
 }
+
+template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
+  size_t string_width = IntToDigitCount(t);
+
+  if (precision) {
+    string_width += (precision + 1); // Count the dot for floating point numbers
+  }
+
+  return string_width;
+}
+
+template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
+                                                        int precision = 0) {
+  size_t string_width = NumToStringWidth(t, precision);
+  std::string s(string_width+1, 0x00); // Allocate an extra null byte
+
+  snprintf(const_cast<char*>(s.data()), s.size(), fmt, precision, t);
+  s.resize(string_width); // Remove the null byte
+
+  return s;
+}
+#endif // FLATBUFFERS_PREFER_PRINTF
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
@@ -70,15 +105,8 @@ template<typename T> std::string NumToString(T t) {
   ss << t;
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
-  auto char_count = IntToDigitCount(t);
-  auto precision = 6;
-  if (precision) {
-    char_count += (precision + 1); // Count the dot for floating point numbers
-  }
-  auto s = std::string(char_count+1, 0x00); // Allocate an extra null byte
-  //TODO: handle floating point specially
-  snprintf(const_cast<char*>(s.data()), s.size(), "%0.*f", precision, (double)t);
-  s.resize(char_count); // Remove the null byte
+  auto v = static_cast<long long>(t);
+  auto s = NumToStringImplWrapper(v, "%.*lld");
   return s;
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
@@ -117,14 +145,8 @@ template<typename T> std::string FloatToString(T t, int precision) {
   ss << t;
   auto s = ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
-  auto char_count = IntToDigitCount(t);
-  if (precision) {
-    char_count += (precision + 1); // Count the dot for floating point numbers
-  }
-  auto s = std::string(char_count+1, 0x00); // Allocate an extra null byte
-  //TODO: handle floating point specially
-  snprintf(const_cast<char*>(s.data()), s.size(), "%0.*f", precision, (double)t);
-  s.resize(char_count); // Remove the null byte
+  auto v = static_cast<double>(t);
+  auto s = NumToStringImplWrapper(v, "%0.*f", precision);
 #endif // FLATBUFFERS_PREFER_PRINTF
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
   auto p = s.find_last_not_of('0');
@@ -152,9 +174,7 @@ inline std::string IntToStringHex(int i, int xdigits) {
      << i;
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
-  std::string s(xdigits+1, 0x00); // Allocate an extra null byte
-  snprintf(const_cast<char*>(s.data()), s.size(), "%.*X", xdigits, i);
-  s.resize(xdigits); // Remove the null byte
+  auto s = NumToStringImplWrapper(i, "%.*X", xdigits);
   return s;
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
