@@ -66,7 +66,7 @@ template<typename T> size_t IntToDigitCount(T t) {
 
   // Count digits until fractional part
   T eps = std::numeric_limits<float>::epsilon();
-  while (t <= (-1.0 + eps) || (1.0 - eps) <= t) {
+  while (t <= (-1 + eps) || (1 - eps) <= t) {
     t /= 10;
     digit_count++;
   }
