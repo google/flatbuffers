@@ -91,14 +91,14 @@ class SliceAllocator : public Allocator {
   virtual ~SliceAllocator() { grpc_slice_unref(slice_); }
 
   virtual uint8_t *allocate(size_t size) override {
-    assert(GRPC_SLICE_IS_EMPTY(slice_));
+    FLATBUFFERS_ASSERT(GRPC_SLICE_IS_EMPTY(slice_));
     slice_ = grpc_slice_malloc(size);
     return GRPC_SLICE_START_PTR(slice_);
   }
 
   virtual void deallocate(uint8_t *p, size_t size) override {
-    assert(p == GRPC_SLICE_START_PTR(slice_));
-    assert(size == GRPC_SLICE_LENGTH(slice_));
+    FLATBUFFERS_ASSERT(p == GRPC_SLICE_START_PTR(slice_));
+    FLATBUFFERS_ASSERT(size == GRPC_SLICE_LENGTH(slice_));
     grpc_slice_unref(slice_);
     slice_ = grpc_empty_slice();
   }
@@ -106,9 +106,9 @@ class SliceAllocator : public Allocator {
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
                                        size_t new_size, size_t in_use_back,
                                        size_t in_use_front) override {
-    assert(old_p == GRPC_SLICE_START_PTR(slice_));
-    assert(old_size == GRPC_SLICE_LENGTH(slice_));
-    assert(new_size > old_size);
+    FLATBUFFERS_ASSERT(old_p == GRPC_SLICE_START_PTR(slice_));
+    FLATBUFFERS_ASSERT(old_size == GRPC_SLICE_LENGTH(slice_));
+    FLATBUFFERS_ASSERT(new_size > old_size);
     grpc_slice old_slice = slice_;
     grpc_slice new_slice = grpc_slice_malloc(new_size);
     uint8_t *new_p = GRPC_SLICE_START_PTR(new_slice);
@@ -121,8 +121,8 @@ class SliceAllocator : public Allocator {
 
  private:
   grpc_slice &get_slice(uint8_t *p, size_t size) {
-    assert(p == GRPC_SLICE_START_PTR(slice_));
-    assert(size == GRPC_SLICE_LENGTH(slice_));
+    FLATBUFFERS_ASSERT(p == GRPC_SLICE_START_PTR(slice_));
+    FLATBUFFERS_ASSERT(size == GRPC_SLICE_LENGTH(slice_));
     return slice_;
   }
 
@@ -162,10 +162,10 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     auto msg_data = buf_.data();      // pointer to msg
     auto msg_size = buf_.size();      // size of msg
     // Do some sanity checks on data/size
-    assert(msg_data);
-    assert(msg_size);
-    assert(msg_data >= buf_data);
-    assert(msg_data + msg_size <= buf_data + buf_size);
+    FLATBUFFERS_ASSERT(msg_data);
+    FLATBUFFERS_ASSERT(msg_size);
+    FLATBUFFERS_ASSERT(msg_data >= buf_data);
+    FLATBUFFERS_ASSERT(msg_data + msg_size <= buf_data + buf_size);
     // Calculate offsets from the buffer start
     auto begin = msg_data - buf_data;
     auto end = begin + msg_size;

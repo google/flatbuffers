@@ -54,7 +54,7 @@ const JsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
   if (lang == IDLOptions::kJs) {
     return js_language_parameters[0];
   } else {
-    assert(lang == IDLOptions::kTs);
+    FLATBUFFERS_ASSERT(lang == IDLOptions::kTs);
     return js_language_parameters[1];
   }
 }
@@ -870,7 +870,7 @@ class JsGenerator : public BaseGenerator {
                     " : null;\n";
             break;
 
-          default: assert(0);
+          default: FLATBUFFERS_ASSERT(0);
         }
       }
       code += "};\n\n";
@@ -1181,7 +1181,7 @@ bool GenerateJS(const Parser &parser, const std::string &path,
 
 std::string JSMakeRule(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
-  assert(parser.opts.lang <= IDLOptions::kMAX);
+  FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetJsLangParams(parser.opts.lang);
 
   std::string filebase =
