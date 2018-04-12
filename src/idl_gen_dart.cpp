@@ -60,11 +60,10 @@ class DartGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
-    // std::string enum_code, struct_code, import_code, code;
     std::string code;
     namespace_code_map namespace_code;
-    generateEnums(&namespace_code);
-    generateStructs(&namespace_code);
+    GenerateEnums(&namespace_code);
+    GenerateStructs(&namespace_code);
 
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
@@ -76,9 +75,8 @@ class DartGenerator : public BaseGenerator {
       code += "library " + kv->first + ";\n\n";
 
       code += "import 'dart:typed_data' show Uint8List;\n";
-      // code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
-      // ";\n\n";
-      code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb + ";\n\n";
+      code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
+              ";\n\n";
 
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
@@ -118,7 +116,7 @@ class DartGenerator : public BaseGenerator {
     std::copy(ns.components.begin(), ns.components.end() - 1,
               std::ostream_iterator<std::string>(sstream, "."));
 
-    std::string ret = sstream.str() + ns.components.back();
+    auto ret = sstream.str() + ns.components.back();
     for (int i = 0; ret[i]; i++) {
       auto lower = tolower(ret[i]);
       if (lower != ret[i]) {
@@ -140,9 +138,7 @@ class DartGenerator : public BaseGenerator {
     return MakeCamel(name, false);
   }
 
-  // Generate code for all enums.
-  void generateEnums(
-      namespace_code_map *namespace_code) {  // std::string *enum_code_ptr) {
+  void GenerateEnums(namespace_code_map *namespace_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
@@ -150,8 +146,7 @@ class DartGenerator : public BaseGenerator {
     }
   }
 
-  // Generate code for all structs.
-  void generateStructs(namespace_code_map *namespace_code) {
+  void GenerateStructs(namespace_code_map *namespace_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
@@ -169,7 +164,7 @@ class DartGenerator : public BaseGenerator {
       return;
     }
 
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     if (indent) code += indent;
 
     for (auto it = dc.begin(); it != dc.end(); ++it) {
@@ -204,12 +199,11 @@ class DartGenerator : public BaseGenerator {
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, namespace_code_map *namespace_code) {
     if (enum_def.generated) return;
-    std::string ns = BuildNamespaceName(*enum_def.defined_namespace);
+    auto ns = BuildNamespaceName(*enum_def.defined_namespace);
     std::string code;
     GenDocComment(enum_def.doc_comment, &code, "");
 
-    std::string name =
-        enum_def.is_union ? enum_def.name + "TypeId" : enum_def.name;
+    auto name = enum_def.is_union ? enum_def.name + "TypeId" : enum_def.name;
 
     code += "class " + name + " {\n";
     code += "  final int value;\n";
@@ -264,7 +258,7 @@ class DartGenerator : public BaseGenerator {
 
   void GenEnumReader(EnumDef &enum_def, const std::string &name,
                      std::string *code_ptr) {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
 
     code += "class _" + name + "Reader extends " + _kFb + ".Reader<" + name +
             "> {\n";
@@ -366,7 +360,7 @@ class DartGenerator : public BaseGenerator {
   static const std::string MaybeWrapNamespace(const std::string &type_name,
                                               Namespace *current_ns,
                                               const FieldDef &field) {
-    std::string curr_ns_str = BuildNamespaceName(*current_ns);
+    auto curr_ns_str = BuildNamespaceName(*current_ns);
     std::string field_ns_str = "";
     if (field.value.type.struct_def) {
       field_ns_str +=
@@ -388,20 +382,18 @@ class DartGenerator : public BaseGenerator {
                  namespace_code_map *namespace_code) {
     if (struct_def.generated) return;
 
-    std::string object_namespace =
-        BuildNamespaceName(*struct_def.defined_namespace);
+    auto object_namespace = BuildNamespaceName(*struct_def.defined_namespace);
     std::string code;
 
-    std::string object_name;
+    auto object_name = struct_def.name;
 
     // Emit constructor
 
-    object_name = struct_def.name;
     GenDocComment(struct_def.doc_comment, &code, object_name);
 
-    std::string impl_name = "_" + struct_def.name + "Impl";
-    std::string reader_name = "_" + struct_def.name + "Reader";
-    std::string builder_name = struct_def.name + "Builder";
+    auto impl_name = "_" + struct_def.name + "Impl";
+    auto reader_name = "_" + struct_def.name + "Reader";
+    auto builder_name = struct_def.name + "Builder";
 
     std::string impl_code, reader_code, builder_code;
 
@@ -445,8 +437,8 @@ class DartGenerator : public BaseGenerator {
 
   void GenImplementation(const StructDef &struct_def,
                          std::string *impl_name_ptr, std::string *code_ptr) {
-    std::string &code = *code_ptr;
-    std::string &impl_name = *impl_name_ptr;
+    auto &code = *code_ptr;
+    auto &impl_name = *impl_name_ptr;
 
     code += "class " + impl_name + " implements " + struct_def.name + " {\n";
     code += "  final " + _kFb + ".BufferContext _bc;\n";
@@ -530,9 +522,9 @@ class DartGenerator : public BaseGenerator {
 
   void GenReader(const StructDef &struct_def, std::string *reader_name_ptr,
                  std::string *impl_name_ptr, std::string *code_ptr) {
-    std::string &code = *code_ptr;
-    std::string &reader_name = *reader_name_ptr;
-    std::string &impl_name = *impl_name_ptr;
+    auto &code = *code_ptr;
+    auto &reader_name = *reader_name_ptr;
+    auto &impl_name = *impl_name_ptr;
 
     code += "class " + reader_name + " extends " + _kFb;
     if (struct_def.fixed) {
@@ -557,8 +549,8 @@ class DartGenerator : public BaseGenerator {
   void GenBuilder(const StructDef &struct_def, std::string *builder_name_ptr,
                   std::string *code_ptr) {
     if (struct_def.fields.vec.size() == 0) { return; }
-    std::string &code = *code_ptr;
-    std::string &builder_name = *builder_name_ptr;
+    auto &code = *code_ptr;
+    auto &builder_name = *builder_name_ptr;
 
     code += "class " + builder_name + " extends " + _kFb + ".BuilderHelper {\n";
     for (auto it = struct_def.fields.vec.begin();
@@ -665,7 +657,7 @@ class DartGenerator : public BaseGenerator {
   }
 
   void StructBuilderBody(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
 
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
@@ -731,9 +723,9 @@ std::string DartMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   assert(parser.opts.lang <= IDLOptions::kMAX);
 
-  std::string filebase =
+  auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedFileName(path, filebase) + ": ";
+  auto make_rule = GeneratedFileName(path, filebase) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

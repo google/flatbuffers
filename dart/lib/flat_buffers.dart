@@ -18,31 +18,6 @@ const int _sizeofInt64 = 8;
 const int _sizeofFloat32 = 4;
 const int _sizeofFloat64 = 8;
 
-/// Reader of lists of boolean values.
-///
-/// The returned unmodifiable lists lazily read values on access.
-class BoolListReader extends Reader<List<bool>> {
-  const BoolListReader();
-
-  @override
-  int get size => _sizeofUint32;
-
-  @override
-  List<bool> read(BufferContext bc, int offset) =>
-      new _FbBoolList(bc, bc.derefObject(offset));
-}
-
-/// The reader of booleans.
-class BoolReader extends Reader<bool> {
-  const BoolReader() : super();
-
-  @override
-  int get size => _sizeofUint8;
-
-  @override
-  bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
-}
-
 /// Buffer with data and some context about it.
 class BufferContext {
   final ByteData _buffer;
@@ -723,6 +698,31 @@ class Builder {
   static void _setUint8AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint8(_buf.lengthInBytes - tail, x);
   }
+}
+
+/// Reader of lists of boolean values.
+///
+/// The returned unmodifiable lists lazily read values on access.
+class BoolListReader extends Reader<List<bool>> {
+  const BoolListReader();
+
+  @override
+  int get size => _sizeofUint32;
+
+  @override
+  List<bool> read(BufferContext bc, int offset) =>
+      new _FbBoolList(bc, bc.derefObject(offset));
+}
+
+/// The reader of booleans.
+class BoolReader extends Reader<bool> {
+  const BoolReader() : super();
+
+  @override
+  int get size => _sizeofUint8;
+
+  @override
+  bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
 }
 
 /// The reader of lists of 64-bit float values.
