@@ -702,7 +702,7 @@ class PhpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_UNION: GetUnionField(field, code_ptr); break;
-        default: assert(0);
+        default: FLATBUFFERS_ASSERT(0);
       }
     }
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {

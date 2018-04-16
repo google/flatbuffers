@@ -2168,7 +2168,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
 inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
   switch (type) {
     case Any_Monster: {
-      assert(false);  // MonsterT not copyable.
+      FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
       break;
     }
     case Any_TestSimpleTableWithEnum: {

@@ -131,7 +131,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
   if (lang == IDLOptions::kJava) {
     return language_parameters[0];
   } else {
-    assert(lang == IDLOptions::kCSharp);
+    FLATBUFFERS_ASSERT(lang == IDLOptions::kCSharp);
     return language_parameters[1];
   }
 }
@@ -274,7 +274,7 @@ class GeneralGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kJava) {
       return java_typename[type.base_type];
     } else {
-      assert(lang_.language == IDLOptions::kCSharp);
+      FLATBUFFERS_ASSERT(lang_.language == IDLOptions::kCSharp);
       return csharp_typename[type.base_type];
     }
   }
@@ -999,7 +999,7 @@ class GeneralGenerator : public BaseGenerator {
               code += "(obj, o) : null";
             }
             break;
-          default: assert(0);
+          default: FLATBUFFERS_ASSERT(0);
         }
       }
       code += member_suffix;
@@ -1427,7 +1427,7 @@ bool GenerateGeneral(const Parser &parser, const std::string &path,
 
 std::string GeneralMakeRule(const Parser &parser, const std::string &path,
                             const std::string &file_name) {
-  assert(parser.opts.lang <= IDLOptions::kMAX);
+  FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetLangParams(parser.opts.lang);
 
   std::string make_rule;

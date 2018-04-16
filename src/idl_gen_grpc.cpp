@@ -160,7 +160,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
   void Indent() { indent_++; }
   void Outdent() {
     indent_--;
-    assert(indent_ >= 0);
+    FLATBUFFERS_ASSERT(indent_ >= 0);
   }
 
  private:
