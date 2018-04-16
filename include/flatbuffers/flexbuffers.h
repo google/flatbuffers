@@ -97,23 +97,23 @@ inline bool IsFixedTypedVector(Type t) {
 }
 
 inline Type ToTypedVector(Type t, size_t fixed_len = 0) {
-  assert(IsTypedVectorElementType(t));
+  FLATBUFFERS_ASSERT(IsTypedVectorElementType(t));
   switch (fixed_len) {
     case 0: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT);
     case 2: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT2);
     case 3: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT3);
     case 4: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT4);
-    default: assert(0); return TYPE_NULL;
+    default: FLATBUFFERS_ASSERT(0); return TYPE_NULL;
   }
 }
 
 inline Type ToTypedVectorElementType(Type t) {
-  assert(IsTypedVector(t));
+  FLATBUFFERS_ASSERT(IsTypedVector(t));
   return static_cast<Type>(t - TYPE_VECTOR_INT + TYPE_INT);
 }
 
 inline Type ToFixedTypedVectorElementType(Type t, uint8_t *len) {
-  assert(IsFixedTypedVector(t));
+  FLATBUFFERS_ASSERT(IsFixedTypedVector(t));
   auto fixed_type = t - TYPE_VECTOR_INT2;
   *len = static_cast<uint8_t>(fixed_type / 3 +
                               2);  // 3 types each, starting from length 2.
@@ -690,7 +690,7 @@ class Reference {
       return Mutate(dest, static_cast<double>(t), byte_width, value_width);
     if (byte_width == sizeof(float))
       return Mutate(dest, static_cast<float>(t), byte_width, value_width);
-    assert(false);
+    FLATBUFFERS_ASSERT(false);
     return false;
   }
 
@@ -1026,11 +1026,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // We should have interleaved keys and values on the stack.
     // Make sure it is an even number:
     auto len = stack_.size() - start;
-    assert(!(len & 1));
+    FLATBUFFERS_ASSERT(!(len & 1));
     len /= 2;
     // Make sure keys are all strings:
     for (auto key = start; key < stack_.size(); key += 2) {
-      assert(stack_[key].type_ == TYPE_KEY);
+      FLATBUFFERS_ASSERT(stack_[key].type_ == TYPE_KEY);
     }
     // Now sort values, so later we can do a binary seach lookup.
     // We want to sort 2 array elements at a time.
@@ -1061,7 +1061,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                 // TODO: Have to check for pointer equality, as some sort
                 // implementation apparently call this function with the same
                 // element?? Why?
-                assert(comp || &a == &b);
+                FLATBUFFERS_ASSERT(comp || &a == &b);
                 return comp < 0;
               });
     // First create a vector out of all keys.
@@ -1141,9 +1141,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   template<typename T> size_t FixedTypedVector(const T *elems, size_t len) {
     // We only support a few fixed vector lengths. Anything bigger use a
     // regular typed vector.
-    assert(len >= 2 && len <= 4);
+    FLATBUFFERS_ASSERT(len >= 2 && len <= 4);
     // And only scalar values.
-    assert(flatbuffers::is_scalar<T>::value);
+    static_assert(flatbuffers::is_scalar<T>::value, "Unrelated types");
     return ScalarVector(elems, len, true);
   }
 
@@ -1222,7 +1222,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // in a parent. You need to have exactly one root to finish a buffer.
     // Check your Start/End calls are matched, and all objects are inside
     // some other object.
-    assert(stack_.size() == 1);
+    FLATBUFFERS_ASSERT(stack_.size() == 1);
 
     // Write root value.
     auto byte_width = Align(stack_[0].ElemWidth(buf_.size(), 0));
@@ -1240,7 +1240,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // If you get this assert, you're attempting to get access a buffer
     // which hasn't been finished yet. Be sure to call
     // Builder::Finish with your root object.
-    assert(finished_);
+    FLATBUFFERS_ASSERT(finished_);
   }
 
   // Align to prepare for writing a scalar with a certain size.
@@ -1257,7 +1257,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> void Write(T val, size_t byte_width) {
-    assert(sizeof(T) >= byte_width);
+    FLATBUFFERS_ASSERT(sizeof(T) >= byte_width);
     val = flatbuffers::EndianScalar(val);
     WriteBytes(&val, byte_width);
   }
@@ -1268,13 +1268,13 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       case 4: Write(static_cast<float>(f), byte_width); break;
       // case 2: Write(static_cast<half>(f), byte_width); break;
       // case 1: Write(static_cast<quarter>(f), byte_width); break;
-      default: assert(0);
+      default: FLATBUFFERS_ASSERT(0);
     }
   }
 
   void WriteOffset(uint64_t o, uint8_t byte_width) {
     auto reloff = buf_.size() - o;
-    assert(byte_width == 8 || reloff < 1ULL << (byte_width * 8));
+    FLATBUFFERS_ASSERT(byte_width == 8 || reloff < 1ULL << (byte_width * 8));
     Write(reloff, byte_width);
   }
 
@@ -1291,12 +1291,12 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       case 2: return BIT_WIDTH_16;
       case 4: return BIT_WIDTH_32;
       case 8: return BIT_WIDTH_64;
-      default: assert(false); return BIT_WIDTH_64;
+      default: FLATBUFFERS_ASSERT(false); return BIT_WIDTH_64;
     }
   }
 
   template<typename T> static Type GetScalarType() {
-    assert(flatbuffers::is_scalar<T>::value);
+    static_assert(flatbuffers::is_scalar<T>::value, "Unrelated types");
     return flatbuffers::is_floating_point<T>::value
                ? TYPE_FLOAT
                : flatbuffers::is_same<T, bool>::value
@@ -1360,7 +1360,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
               byte_width)
             return bit_width;
         }
-        assert(false);  // Must match one of the sizes above.
+        FLATBUFFERS_ASSERT(false);  // Must match one of the sizes above.
         return BIT_WIDTH_64;
       }
     }
@@ -1405,7 +1405,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // byte vector > 255 elements). For such types, write a "blob" instead.
     // TODO: instead of asserting, could write vector with larger elements
     // instead, though that would be wasteful.
-    assert(WidthU(len) <= bit_width);
+    FLATBUFFERS_ASSERT(WidthU(len) <= bit_width);
     if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
     for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);
@@ -1437,13 +1437,13 @@ class Builder FLATBUFFERS_FINAL_CLASS {
         } else {
           // If you get this assert, you are writing a typed vector with
           // elements that are not all the same type.
-          assert(vector_type == stack_[i].type_);
+          FLATBUFFERS_ASSERT(vector_type == stack_[i].type_);
         }
       }
     }
     // If you get this assert, your fixed types are not one of:
     // Int / UInt / Float / Key.
-    assert(IsTypedVectorElementType(vector_type));
+    FLATBUFFERS_ASSERT(IsTypedVectorElementType(vector_type));
     auto byte_width = Align(bit_width);
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {

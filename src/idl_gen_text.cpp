@@ -108,7 +108,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
     case BASE_TYPE_UNION:
       // If this assert hits, you have an corrupt buffer, a union type field
       // was not present or was out of range.
-      assert(union_type);
+      FLATBUFFERS_ASSERT(union_type);
       return Print<const void *>(val, *union_type, indent, nullptr, opts,
                                  _text);
     case BASE_TYPE_STRUCT:
@@ -143,7 +143,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
         // clang-format on
       }
       break;
-    default: assert(0);
+    default: FLATBUFFERS_ASSERT(0);
   }
   return true;
 }
@@ -173,7 +173,7 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
   const void *val = nullptr;
   if (fixed) {
     // The only non-scalar fields in structs are structs.
-    assert(IsStruct(fd.value.type));
+    FLATBUFFERS_ASSERT(IsStruct(fd.value.type));
     val = reinterpret_cast<const Struct *>(table)->GetStruct<const void *>(
         fd.value.offset);
   } else if (fd.flexbuffer) {
@@ -261,7 +261,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
 bool GenerateText(const Parser &parser, const void *flatbuffer,
                   std::string *_text) {
   std::string &text = *_text;
-  assert(parser.root_struct_def_);  // call SetRootType()
+  FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   text.reserve(1024);               // Reduce amount of inevitable reallocs.
   auto root = parser.opts.size_prefixed ?
       GetSizePrefixedRoot<Table>(flatbuffer) : GetRoot<Table>(flatbuffer);
