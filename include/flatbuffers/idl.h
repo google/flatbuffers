@@ -47,7 +47,7 @@ namespace flatbuffers {
   TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8) \
   TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8) \
   TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16) \
+  TD(USHORT, "ushort", uint16_t, char,   uint16,  ushort, uint16) \
   TD(INT,    "int",    int32_t,  int,    int32,   int,    int32) \
   TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32) \
   TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64) \

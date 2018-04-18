@@ -272,6 +272,14 @@ public class FlatBufferBuilder {
     public void putShort  (short   x) { bb.putShort (space -= Constants.SIZEOF_SHORT, x); }
 
     /**
+     * Add a `char` to the buffer, backwards from the current location. Doesn't align nor
+     * check for space.
+     *
+     * @param x A `char` to put into the buffer.
+     */
+    public void putChar   (char   x) { bb.putChar (space -= Constants.SIZEOF_CHAR, x); }
+
+    /**
      * Add an `int` to the buffer, backwards from the current location. Doesn't align nor
      * check for space.
      *
@@ -324,6 +332,13 @@ public class FlatBufferBuilder {
      * @param x A `short` to put into the buffer.
      */
     public void addShort  (short   x) { prep(Constants.SIZEOF_SHORT, 0); putShort  (x); }
+
+    /**
+     * Add a `char` to the buffer, properly aligned, and grows the buffer (if necessary).
+     *
+     * @param x A `char` to put into the buffer.
+     */
+    public void addChar   (char   x) { prep(Constants.SIZEOF_CHAR, 0); putChar  (x); }
 
     /**
      * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
@@ -652,6 +667,17 @@ public class FlatBufferBuilder {
      * @param d A `short` default value to compare against when `force_defaults` is `false`.
      */
     public void addShort  (int o, short   x, int     d) { if(force_defaults || x != d) { addShort  (x); slot(o); } }
+
+    /**
+     * Add a `char` to a table at `o` into its vtable, with value `x` and default `d`.
+     *
+     * @param o The index into the vtable.
+     * @param x A `char` to put into the buffer, depending on how defaults are handled. If
+     * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+     * default value, it can be skipped.
+     * @param d A `char` default value to compare against when `force_defaults` is `false`.
+     */
+    public void addChar   (int o, char   x, char     d) { if(force_defaults || x != d) { addChar  (x); slot(o); } }
 
     /**
      * Add an `int` to a table at `o` into its vtable, with value `x` and default `d`.

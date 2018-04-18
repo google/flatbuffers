@@ -27,6 +27,8 @@ public class Constants {
     static final int SIZEOF_BYTE = 1;
     /** The number of bytes in a `short`. */
     static final int SIZEOF_SHORT = 2;
+    /** The number of bytes in a `char`. */
+    static final int SIZEOF_CHAR = 2;
     /** The number of bytes in an `int`. */
     static final int SIZEOF_INT = 4;
     /** The number of bytes in an `float`. */
