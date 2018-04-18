@@ -49,7 +49,7 @@ inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
   return EnumNamesEnumInNestedNS()[index];
 }
 
-MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t a_;
   int32_t b_;
@@ -75,7 +75,7 @@ MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&b_, _b);
   }
 };
-STRUCT_END(StructInNestedNS, 8);
+FLATBUFFERS_STRUCT_END(StructInNestedNS, 8);
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {

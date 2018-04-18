@@ -9,6 +9,10 @@
 
 #include <assert.h>
 
+#if !defined(FLATBUFFERS_ASSERT)
+#define FLATBUFFERS_ASSERT assert
+#endif
+
 #ifndef ARDUINO
 #include <cstdint>
 #endif
@@ -100,7 +104,7 @@
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 1
-#define FLATBUFFERS_VERSION_MINOR 8
+#define FLATBUFFERS_VERSION_MINOR 9
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
@@ -209,7 +213,7 @@ template<typename T> T EndianSwap(T t) {
     u.i = FLATBUFFERS_BYTESWAP64(u.i);
     return u.t;
   } else {
-    assert(0);
+    FLATBUFFERS_ASSERT(0);
   }
 }
 

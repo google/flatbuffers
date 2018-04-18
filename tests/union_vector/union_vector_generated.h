@@ -141,7 +141,7 @@ struct CharacterUnion {
 bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Character type);
 bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t hair_length_;
 
@@ -159,9 +159,9 @@ MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&hair_length_, _hair_length);
   }
 };
-STRUCT_END(Rapunzel, 4);
+FLATBUFFERS_STRUCT_END(Rapunzel, 4);
 
-MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t books_read_;
 
@@ -179,7 +179,7 @@ MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&books_read_, _books_read);
   }
 };
-STRUCT_END(BookReader, 4);
+FLATBUFFERS_STRUCT_END(BookReader, 4);
 
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;

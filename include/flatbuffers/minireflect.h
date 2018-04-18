@@ -89,9 +89,9 @@ inline size_t InlineSize(ElementaryType type, const TypeTable *type_table) {
         case ST_TABLE:
         case ST_UNION: return 4;
         case ST_STRUCT: return type_table->values[type_table->num_elems];
-        default: assert(false); return 1;
+        default: FLATBUFFERS_ASSERT(false); return 1;
       }
-    default: assert(false); return 1;
+    default: FLATBUFFERS_ASSERT(false); return 1;
   }
 }
 
@@ -190,7 +190,7 @@ inline void IterateValue(ElementaryType type, const uint8_t *val,
         case ST_STRUCT: IterateObject(val, type_table, visitor); break;
         case ST_UNION: {
           val += ReadScalar<uoffset_t>(val);
-          assert(prev_val);
+          FLATBUFFERS_ASSERT(prev_val);
           auto union_type = *prev_val;  // Always a uint8_t.
           if (vector_index >= 0) {
             auto type_vec = reinterpret_cast<const Vector<uint8_t> *>(prev_val);
@@ -217,7 +217,7 @@ inline void IterateValue(ElementaryType type, const uint8_t *val,
           }
           break;
         }
-        case ST_ENUM: assert(false); break;
+        case ST_ENUM: FLATBUFFERS_ASSERT(false); break;
       }
       break;
     }

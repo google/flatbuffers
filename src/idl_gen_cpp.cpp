@@ -216,7 +216,7 @@ class CppGenerator : public BaseGenerator {
 
     if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
 
-    assert(!cur_name_space_);
+    FLATBUFFERS_ASSERT(!cur_name_space_);
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -667,7 +667,7 @@ class CppGenerator : public BaseGenerator {
       return actual_type ? (native_type ? "std::string" : "flatbuffers::String")
                          : Name(ev);
     } else {
-      assert(false);
+      FLATBUFFERS_ASSERT(false);
       return Name(ev);
     }
   }
@@ -897,7 +897,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.scoped_enums || parser_.opts.prefixed_enums) {
-      assert(minv && maxv);
+      FLATBUFFERS_ASSERT(minv && maxv);
 
       code_.SetValue("SEP", ",\n");
       if (enum_def.attributes.Lookup("bit_flags")) {
@@ -922,7 +922,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
-      code_ += "DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
+      code_ += "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
     code_ += "";
 
@@ -1118,7 +1118,7 @@ class CppGenerator : public BaseGenerator {
           code_ += getptr;
           code_ += "      return verifier.Verify(ptr);";
         } else {
-          assert(false);
+          FLATBUFFERS_ASSERT(false);
         }
         code_ += "    }";
       } else {
@@ -1169,7 +1169,7 @@ class CppGenerator : public BaseGenerator {
         } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
           code_ += "      return new std::string(ptr->c_str(), ptr->size());";
         } else {
-          assert(false);
+          FLATBUFFERS_ASSERT(false);
         }
         code_ += "    }";
       }
@@ -1202,7 +1202,7 @@ class CppGenerator : public BaseGenerator {
         } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
           code_ += "      return _fbb.CreateString(*ptr).Union();";
         } else {
-          assert(false);
+          FLATBUFFERS_ASSERT(false);
         }
         code_ += "    }";
       }
@@ -1244,7 +1244,7 @@ class CppGenerator : public BaseGenerator {
               "      value = new {{TYPE}}(*reinterpret_cast<{{TYPE}} *>"
               "(u.value));";
         } else {
-          code_ += "      assert(false);  // {{TYPE}} not copyable.";
+          code_ += "      FLATBUFFERS_ASSERT(false);  // {{TYPE}} not copyable.";
         }
         code_ += "      break;";
         code_ += "    }";
@@ -1697,7 +1697,7 @@ class CppGenerator : public BaseGenerator {
               nested->constant);
           nested_root = parser_.LookupStruct(qualified_name);
         }
-        assert(nested_root);  // Guaranteed to exist by parser.
+        FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
         (void)nested_root;
         code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
 
@@ -2092,7 +2092,7 @@ class CppGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UTYPE: {
-        assert(union_field->value.type.base_type == BASE_TYPE_UNION);
+        FLATBUFFERS_ASSERT(union_field->value.type.base_type == BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
         code += "_o->" + union_field->name + ".type = _e;";
@@ -2403,7 +2403,7 @@ class CppGenerator : public BaseGenerator {
           f((1 << i) * 8, code_ptr, id);
         }
       }
-      assert(!(field.padding & ~0xF));
+      FLATBUFFERS_ASSERT(!(field.padding & ~0xF));
     }
   }
 
@@ -2434,7 +2434,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ +=
-        "MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
+        "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
         "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
     code_ += " private:";
 
@@ -2576,7 +2576,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
-    code_ += "STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
+    code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     code_ += "";
   }
 
