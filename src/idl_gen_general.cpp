@@ -399,7 +399,7 @@ class GeneralGenerator : public BaseGenerator {
             if (type.base_type == BASE_TYPE_UINT)
               return "(int)";
             else if (type.base_type == BASE_TYPE_USHORT)
-              return "(short)";
+              return "(char)";
             else if (type.base_type == BASE_TYPE_UCHAR)
               return "(byte)";
           }
