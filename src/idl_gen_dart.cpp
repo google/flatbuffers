@@ -75,7 +75,8 @@ class DartGenerator : public BaseGenerator {
       code += "library " + kv->first + ";\n\n";
 
       code += "import 'dart:typed_data' show Uint8List;\n";
-      code += "import './flat_buffers.dart' as " + _kFb + ";\n\n";
+      code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
+              ";\n\n";
 
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
@@ -203,26 +204,36 @@ class DartGenerator : public BaseGenerator {
     GenDocComment(enum_def.doc_comment, &code, "");
 
     auto name = enum_def.is_union ? enum_def.name + "TypeId" : enum_def.name;
+    auto is_bit_flags = enum_def.attributes.Lookup("bit_flags");
 
     code += "class " + name + " {\n";
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
     code += "    if (value == null) return null;\n";
-    code += "    if (value < minValue || maxValue < value) {\n";
-    code += "      throw new RangeError.range(value, minValue, maxValue);\n";
+
+    code += "    if (!values.containsKey(value)) {\n";
+    code +=
+        "      throw new StateError('Invalid value $value for bit flag enum ";
+    code += name + "');\n";
     code += "    }\n";
-    code += "    return values[value - minValue];\n";
+
+    code += "    return values[value];\n";
     code += "  }\n\n";
 
-    code += "  static const int minValue = " +
-            NumToString(enum_def.vals.vec.front()->value) + ";\n";
-    code += "  static const int maxValue = " +
-            NumToString(enum_def.vals.vec.back()->value) + ";\n";
+    // this is meaningless for bit_flags
+    // however, note that unlike "regular" dart enums this enum can still have
+    // holes.
+    if (!is_bit_flags) {
+      code += "  static const int minValue = " +
+              NumToString(enum_def.vals.vec.front()->value) + ";\n";
+      code += "  static const int maxValue = " +
+              NumToString(enum_def.vals.vec.back()->value) + ";\n";
+    }
 
     code +=
-        "  static bool containsValue(int value) => minValue <= value && "
-        "value <= maxValue;\n\n";
+        "  static bool containsValue(int value) =>"
+        " values.containsKey(value);\n\n";
 
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
@@ -236,13 +247,14 @@ class DartGenerator : public BaseGenerator {
       code += "const " + name + "._(" + NumToString(ev.value) + ");\n";
     }
 
-    code += "  static get values => [";
+    code += "  static get values => {";
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
-      code += ev.name + ",";
+      code += NumToString(ev.value) + ": " + ev.name + ",";
     }
-    code += "];\n\n";
+    code += "};\n\n";
+
     code += "  static const " + _kFb + ".Reader<" + name +
             "> reader = const _" + name + "Reader();\n\n";
     code += "  @override\n";
@@ -388,7 +400,7 @@ class DartGenerator : public BaseGenerator {
 
     // Emit constructor
 
-    GenDocComment(struct_def.doc_comment, &code, object_name);
+    GenDocComment(struct_def.doc_comment, &code, "");
 
     auto reader_name = "_" + struct_def.name + "Reader";
     auto builder_name = struct_def.name + "Builder";
@@ -399,30 +411,21 @@ class DartGenerator : public BaseGenerator {
     code += "class " + struct_def.name + " {\n";
 
     code += "  " + struct_def.name + "._(this._bc, this._bcOffset);\n";
+    if (!struct_def.fixed) {
+      code += "  factory " + struct_def.name + "(List<int> bytes) {\n";
+      code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
+              ".BufferContext.fromBytes(bytes);\n";
+      code += "    return reader.read(rootRef, 0);\n";
+      code += "  }\n";
+    }
 
-    code += "  factory " + struct_def.name + "(List<int> bytes) {\n";
-    code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
-            ".BufferContext.fromBytes(bytes);\n";
-    code += "    return reader.read(rootRef, 0);\n";
-    code += "  }\n\n";
+    code += "\n";
     code += "  static const " + _kFb + ".Reader<" + struct_def.name +
             "> reader = const " + reader_name + "();\n\n";
 
     code += "  final " + _kFb + ".BufferContext _bc;\n";
     code += "  final int _bcOffset;\n\n";
 
-    // for (auto it = struct_def.fields.vec.begin();
-    //      it != struct_def.fields.vec.end(); ++it) {
-    //   auto &field = **it;
-    //   if (field.deprecated) continue;
-
-    //   GenDocComment(field.doc_comment, &code, "");
-
-    //   code += "  " +
-    //           GenDartTypeName(field.value.type, struct_def.defined_namespace,
-    //                           field, false) +
-    //           " get " + MakeCamel(field.name, false) + ";\n";
-    // }
     GenImplementationGetters(struct_def, &code);
 
     code += "}\n\n";
@@ -579,9 +582,7 @@ class DartGenerator : public BaseGenerator {
                                 field);
       }
       code += " " + field.name;
-      if (it != struct_def.fields.vec.end() - 1) {
-        code += ", ";
-      }
+      if (it != struct_def.fields.vec.end() - 1) { code += ", "; }
     }
     code += ") {\n";
 
@@ -599,7 +600,9 @@ class DartGenerator : public BaseGenerator {
         code += "    " + field.name + "();\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
-        code += field.name + ");\n";
+        code += field.name;
+        if (field.value.type.enum_def) { code += "?.value"; }
+        code += ");\n";
       }
     }
     code += "    return fbBuilder.offset;\n";
@@ -694,8 +697,7 @@ class DartGenerator : public BaseGenerator {
     code += "  /// Finish building, and store into the [fbBuilder].\n";
     code += "  @override\n";
     code += "  int finish(\n";
-    code += "    " + _kFb +
-            ".Builder fbBuilder, { bool internStrings = false }) {\n";
+    code += "    " + _kFb + ".Builder fbBuilder) {\n";
     code += "    assert(fbBuilder != null);\n";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -713,8 +715,7 @@ class DartGenerator : public BaseGenerator {
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
             code += "(_" + MakeCamel(field.name, false) +
-                    ".map((b) => fbBuilder.writeString(b, intern: "
-                    "internStrings)).toList())";
+                    ".map((b) => fbBuilder.writeString(b)).toList())";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
@@ -732,8 +733,7 @@ class DartGenerator : public BaseGenerator {
         }
         code += "\n        : null;\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += " = fbBuilder.writeString(_" + field.name +
-                ", intern: internStrings);\n";
+        code += " = fbBuilder.writeString(_" + field.name + ");\n";
       } else {
         code += " = _" + MakeCamel(field.name, false) +
                 "?.getOrCreateOffset(fbBuilder);\n";

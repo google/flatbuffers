@@ -19,7 +19,7 @@ const int _sizeofFloat32 = 4;
 const int _sizeofFloat64 = 8;
 
 /// Callback used to invoke a struct builder's finish method.
-/// 
+///
 /// This callback is used by other struct's `finish` methods to write the nested
 /// struct's fields inline.
 typedef void StructBuilder();
@@ -92,17 +92,13 @@ abstract class ObjectBuilder {
   /// Note that this method assumes you call it using the same [Builder] instance
   /// every time. The returned offset is only good for the [Builder] used in the
   /// first call to this method.
-  int getOrCreateOffset(Builder fbBuilder, {bool internStrings = false}) {
-    _firstOffset ??= finish(fbBuilder, internStrings: internStrings);
+  int getOrCreateOffset(Builder fbBuilder) {
+    _firstOffset ??= finish(fbBuilder);
     return _firstOffset;
   }
 
   /// Writes the data in this helper to the [Builder].
-  ///
-  /// `internStrings` controls whether or not to pool strings and avoid writing
-  /// duplicates to the buffer.  It requires more resources during write but may
-  /// result in a smaller flatbuffer.
-  int finish(Builder fbBuilder, {bool internStrings = false});
+  int finish(Builder fbBuilder);
 
   /// Convenience method that will create a new [Builder], [finish]es the data,
   /// and returns the buffer as a [Uint8List] of bytes.
@@ -136,9 +132,20 @@ class Builder {
 
   /// Map containing all strings that have been written so far.  This allows us
   /// to avoid duplicating strings.
+  ///
+  /// Allocated only if `internStrings` is set to true on the constructor.
   Map<String, int> _strings;
 
-  Builder({this.initialSize: 1024}) {
+  /// Creates a new FlatBuffers Builder.
+  ///
+  /// `initialSize` is the initial array size in bytes.  The [Builder] will
+  /// automatically grow the array if/as needed.  `internStrings`, if set to
+  /// true, will cause [writeString] to pool strings in the buffer so that
+  /// identical strings will always use the same offset in tables.
+  Builder({this.initialSize: 1024, bool internStrings = false}) {
+    if (internStrings == true) {
+      _strings = new Map<String, int>();
+    }
     reset();
   }
 
@@ -425,6 +432,9 @@ class Builder {
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
+    if (_strings != null) {
+      _strings = new Map<String, int>();
+    }
   }
 
   /// Start a new table.  Must be finished with [endTable] invocation.
@@ -579,14 +589,11 @@ class Builder {
   }
 
   /// Write the given string [value] and return its offset, or `null` if
-  /// the [value] is `null`.  If [intern] is set to true, the method will
-  /// check to see if an identical string has already been written and reuse
-  /// it if possible.
-  int writeString(String value, {bool intern = false}) {
+  /// the [value] is `null`.
+  int writeString(String value) {
     _ensureNoVTable();
     if (value != null) {
-      if (intern == true) {
-        _strings ??= <String, int>{};
+      if (_strings != null) {
         return _strings.putIfAbsent(value, () => _writeString(value));
       } else {
         return _writeString(value);
@@ -627,6 +634,11 @@ class Builder {
   /// The number of bytes that have been written to the buffer so far.  The
   /// most recently written byte is this many bytes from the end of the buffer.
   int get offset => _tail;
+
+  /// Zero-pads the buffer, which may be required for some struct layouts.
+  void pad(int howManyBytes) {
+    for (int i = 0; i < howManyBytes; i++) putUint8(0);
+  }
 
   /// Prepare for writing the given `count` of scalars of the given `size`.
   /// Additionally allocate the specified `additionalBytes`. Update the current

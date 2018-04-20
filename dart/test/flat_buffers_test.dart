@@ -3,14 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
+import 'dart:io' as io;
+
+import 'package:path/path.dart' as path;
 
 import 'package:flat_buffers/flat_buffers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import './monster_test_my_game.example_generated.dart' as example;
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuilderTest);
+    defineReflectiveTests(CheckOtherLangaugesData);
   });
 }
 
@@ -19,7 +25,93 @@ int indexToField(int index) {
 }
 
 @reflectiveTest
+class CheckOtherLangaugesData {
+  void test_cppData() async {
+    List<int> data = await new io.File(path.join(
+      path.dirname(io.Platform.script.path),
+      'monsterdata_test.mon',
+    ))
+        .readAsBytes();
+    example.Monster mon = new example.Monster(data);
+    expect(mon.hp, 80);
+    expect(mon.mana, 150);
+    expect(mon.name, 'MyMonster');
+    expect(mon.pos.x, 1.0);
+    expect(mon.pos.y, 2.0);
+    expect(mon.pos.z, 3.0);
+    expect(mon.pos.test1, 3.0);
+    expect(mon.pos.test2.value, 2.0);
+    expect(mon.pos.test3.a, 5);
+    expect(mon.pos.test3.b, 6);
+    expect(mon.testType.value, example.AnyTypeId.Monster.value);
+    expect(mon.test is example.Monster, true);
+    final monster2 = mon.test as example.Monster;
+    expect(monster2.name, "Fred");
+
+    expect(mon.inventory.length, 5);
+    expect(mon.inventory.reduce((cur, next) => cur + next), 10);
+    expect(mon.test4.length, 2);
+    expect(
+        mon.test4[0].a + mon.test4[0].b + mon.test4[1].a + mon.test4[1].b, 100);
+    expect(mon.testarrayofstring.length, 2);
+    expect(mon.testarrayofstring[0], "test1");
+    expect(mon.testarrayofstring[1], "test2");
+
+    // this will fail if accessing any field fails.
+    expect(mon.toString(),
+        'Monster{pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], color: Color{value: 8}, testType: AnyTypeId{value: 1}, test: Monster{pos: null, mana: 150, hp: 100, name: Fred, inventory: null, color: Color{value: 8}, testType: null, test: null, test4: null, testarrayofstring: null, testarrayoftables: null, enemy: null, testnestedflatbuffer: null, testempty: null, testbool: null, testhashs32Fnv1: null, testhashu32Fnv1: null, testhashs64Fnv1: null, testhashu64Fnv1: null, testhashs32Fnv1a: null, testhashu32Fnv1a: null, testhashs64Fnv1a: null, testhashu64Fnv1a: null, testarrayofbools: null, testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: null, vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: null, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: null, vectorOfCoOwningReferences: null, nonOwningReference: null, vectorOfNonOwningReferences: null}, test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], testarrayofstring: [test1, test2], testarrayoftables: null, enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, inventory: null, color: Color{value: 8}, testType: null, test: null, test4: null, testarrayofstring: null, testarrayoftables: null, enemy: null, testnestedflatbuffer: null, testempty: null, testbool: null, testhashs32Fnv1: null, testhashu32Fnv1: null, testhashs64Fnv1: null, testhashu64Fnv1: null, testhashs32Fnv1a: null, testhashu32Fnv1a: null, testhashs64Fnv1a: null, testhashu64Fnv1a: null, testarrayofbools: null, testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: null, vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: null, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: null, vectorOfCoOwningReferences: null, nonOwningReference: null, vectorOfNonOwningReferences: null}, testnestedflatbuffer: null, testempty: null, testbool: null, testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, testhashs64Fnv1: 7930699090847568257, testhashu64Fnv1: 7930699090847568257, testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, testhashs64Fnv1a: 4898026182817603057, testhashu64Fnv1a: 4898026182817603057, testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], vectorOfLongs: [1, 100, 10000, 1000000, 100000000], vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: null, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: null, vectorOfCoOwningReferences: null, nonOwningReference: null, vectorOfNonOwningReferences: null}');
+  }
+}
+
+@reflectiveTest
 class BuilderTest {
+  void test_monsterBuilder() {
+    final fbBuilder = new Builder();
+    final str = fbBuilder.writeString('MyMonster');
+
+    final test1 = fbBuilder.writeString('test1');
+    final test2 = fbBuilder.writeString('test2');
+    final testArrayOfString = fbBuilder.endStructVector(2);
+
+    final fred = fbBuilder.writeString('Fred');
+
+    final List<int> treasure = [0, 1, 2, 3, 4];
+    final inventory = fbBuilder.writeListUint8(treasure);
+
+    final monBuilder = new example.MonsterBuilder(fbBuilder)
+      ..begin()
+      ..addNameOffset(fred);
+    final mon2 = monBuilder.finish();
+
+    final testBuilder = new example.TestBuilder(fbBuilder);
+    testBuilder.finish(10, 20);
+    testBuilder.finish(30, 40);
+    final test4 = fbBuilder.endStructVector(2);
+
+
+    monBuilder
+      ..begin()
+      ..addPos(
+        new example.Vec3Builder(fbBuilder).finish(
+          1.0,
+          2.0,
+          3.0,
+          3.0,
+          example.Color.Green,
+          () => testBuilder.finish(5, 6),
+        ),
+      )
+      ..addHp(80)
+      ..addNameOffset(str)
+      ..addInventoryOffset(inventory)
+      ..addTestType(example.AnyTypeId.Monster)
+      ..addTestOffset(mon2)
+      ..addTest4Offset(test4)
+      ..addTestarrayofstringOffset(testArrayOfString);
+    final mon = monBuilder.finish();
+    fbBuilder.finish(mon);
+  }
+
   void test_error_addInt32_withoutStartTable() {
     Builder builder = new Builder();
     expect(() {
@@ -412,7 +504,7 @@ class BuilderTest {
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
 
- void test_writeList_ofUint16() {
+  void test_writeList_ofUint16() {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
@@ -425,6 +517,7 @@ class BuilderTest {
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }
+
   void test_writeList_ofUint8() {
     List<int> byteList;
     {

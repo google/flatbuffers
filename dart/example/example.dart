@@ -14,23 +14,85 @@
  * limitations under the License.
  */
 
+import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './monster_my_game.sample_generated.dart' as myGame;
 
 // Example how to use FlatBuffers to create and read binary buffers.
 
 void main() {
+  builderTest();
+  objectBuilderTest();
+}
+
+void builderTest() {
+  final builder = new fb.Builder(initialSize: 1024);
+  final int weaponOneName = builder.writeString("Sword");
+  final int weaponOneDamage = 3;
+
+  final int weaponTwoName = builder.writeString("Axe");
+  final int weaponTwoDamage = 5;
+
+  final swordBuilder = new myGame.WeaponBuilder(builder)
+    ..begin()
+    ..addNameOffset(weaponOneName)
+    ..addDamage(weaponOneDamage);
+  final int sword = swordBuilder.finish();
+
+  final axeBuilder = new myGame.WeaponBuilder(builder)
+    ..begin()
+    ..addNameOffset(weaponTwoName)
+    ..addDamage(weaponTwoDamage);
+  final int axe = axeBuilder.finish();
+
+  // Serialize a name for our monster, called "Orc".
+  final int name = builder.writeString('Orc');
+
+  // Create a list representing the inventory of the Orc. Each number
+  // could correspond to an item that can be claimed after he is slain.
+  final List<int> treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  final inventory = builder.writeListUint8(treasure);
+  final weapons = builder.writeList([sword, axe]);
+
+  // Struct builders are very easy to reuse.
+  final vec3Builder = new myGame.Vec3Builder(builder);
+
+  // Set his hit points to 300 and his mana to 150.
+  final int hp = 300;
+  final int mana = 150;
+
+  final monster = new myGame.MonsterBuilder(builder)
+    ..begin()
+    ..addNameOffset(name)
+    ..addInventoryOffset(inventory)
+    ..addWeaponsOffset(weapons)
+    ..addEquippedType(myGame.EquipmentTypeId.Weapon)
+    ..addEquippedOffset(axe)
+    ..addHp(hp)
+    ..addMana(mana)
+    ..addPos(vec3Builder.finish(1.0, 2.0, 3.0))
+    ..addColor(myGame.Color.Red);
+
+  final int monsteroff = monster.finish();
+  final buffer = builder.finish(monsteroff);
+  if (verify(buffer)) {
+    print(
+        "The FlatBuffer was successfully created with a builder and verified!");
+  }
+}
+
+void objectBuilderTest() {
   // Create the builder here so we can use it for both weapons and equipped
   // the actual data will only be written to the buffer once.
-  var axe = new myGame.WeaponBuilder(name: 'Axe', damage: 5);
+  var axe = new myGame.WeaponObjectBuilder(name: 'Axe', damage: 5);
 
-  var monsterBuilder = new myGame.MonsterBuilder(
-    pos: new myGame.Vec3Builder(x: 1.0,y: 2.0, z: 3.0),
+  var monsterBuilder = new myGame.MonsterObjectBuilder(
+    pos: new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
     mana: 150,
     hp: 80,
     name: 'MyMonster',
     inventory: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     color: myGame.Color.Red,
-    weapons: [new myGame.WeaponBuilder(name: 'Sword', damage: 3), axe],
+    weapons: [new myGame.WeaponObjectBuilder(name: 'Sword', damage: 3), axe],
     equippedType: myGame.EquipmentTypeId.Weapon,
     equipped: axe,
   );
@@ -42,14 +104,19 @@ void main() {
   // ** file/network code goes here :) **
 
   // Instead, we're going to access it right away (as if we just received it).
+  if (verify(buffer)) {
+    print(
+        "The FlatBuffer was successfully created with an object builder and verified!");
+  }
+}
 
+bool verify(List<int> buffer) {
   // Get access to the root:
-
   var monster = new myGame.Monster(buffer);
 
   // Get and test some scalar types from the FlatBuffer.
   assert(monster.hp == 80);
-  assert(monster.mana == 150);  // default
+  assert(monster.mana == 150); // default
   assert(monster.name == "MyMonster");
 
   // Get and test a field of the FlatBuffer's `struct`.
@@ -65,7 +132,7 @@ void main() {
 
   // Get and test the `weapons` FlatBuffers's `vector`.
   var expected_weapon_names = ["Sword", "Axe"];
-  var expected_weapon_damages = [ 3, 5 ];
+  var expected_weapon_damages = [3, 5];
   var weps = monster.weapons;
   for (int i = 0; i < weps.length; i++) {
     assert(weps[i].name == expected_weapon_names[i]);
@@ -81,6 +148,5 @@ void main() {
   assert(equipped.name == "Axe");
   assert(equipped.damage == 5);
 
-
-  print("The FlatBuffer was successfully created and verified!");
+  return true;
 }

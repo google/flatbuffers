@@ -87,11 +87,8 @@ class _EquipmentTypeIdReader extends fb.Reader<EquipmentTypeId> {
 }
 
 /// Vec3
-abstract class Vec3 {
-  double get x;
-  double get y;
-  double get z;
-
+class Vec3 {
+  Vec3._(this._bc, this._bcOffset);
   factory Vec3(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
@@ -99,34 +96,12 @@ abstract class Vec3 {
 
   static const fb.Reader<Vec3> reader = const _Vec3Reader();
 
-}
-
-class _Vec3Impl implements Vec3 {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _Vec3Impl(this._bc, this._bcOffset);
-
-  double _x;
-  @override
-  double get x {
-    _x ??= const fb.Float32Reader().read(_bc, _bcOffset + 0);
-    return _x;
-  }
-
-  double _y;
-  @override
-  double get y {
-    _y ??= const fb.Float32Reader().read(_bc, _bcOffset + 4);
-    return _y;
-  }
-
-  double _z;
-  @override
-  double get z {
-    _z ??= const fb.Float32Reader().read(_bc, _bcOffset + 8);
-    return _z;
-  }
+  double get x => const fb.Float32Reader().read(_bc, _bcOffset + 0);
+  double get y => const fb.Float32Reader().read(_bc, _bcOffset + 4);
+  double get z => const fb.Float32Reader().read(_bc, _bcOffset + 8);
 
   @override
   String toString() {
@@ -134,23 +109,39 @@ class _Vec3Impl implements Vec3 {
   }
 }
 
-class _Vec3Reader extends fb.StructReader<_Vec3Impl> {
+class _Vec3Reader extends fb.StructReader<Vec3> {
   const _Vec3Reader();
 
   @override
   int get size => 12;
 
   @override
-  _Vec3Impl createObject(fb.BufferContext bc, int offset) => 
-    new _Vec3Impl(bc, offset);
+  Vec3 createObject(fb.BufferContext bc, int offset) => 
+    new Vec3._(bc, offset);
 }
 
-class Vec3Builder extends fb.BuilderHelper {
+class Vec3Builder {
+  Vec3Builder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  int finish(double x, double y, double z) {
+    fbBuilder.putFloat32(z);
+    fbBuilder.putFloat32(y);
+    fbBuilder.putFloat32(x);
+    return fbBuilder.offset;
+  }
+
+}
+
+class Vec3ObjectBuilder extends fb.ObjectBuilder {
   final double _x;
   final double _y;
   final double _z;
 
-  Vec3Builder({
+  Vec3ObjectBuilder({
     double x,
     double y,
     double z,
@@ -162,7 +153,7 @@ class Vec3Builder extends fb.BuilderHelper {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(
-    fb.Builder fbBuilder, { bool internStrings = false }) {
+    fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.putFloat32(_z);
@@ -173,24 +164,15 @@ class Vec3Builder extends fb.BuilderHelper {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes() {
+  Uint8List toBytes([String fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset);
+    return fbBuilder.finish(offset, fileIdentifier);
   }
 }
 /// Monster
-abstract class Monster {
-  Vec3 get pos;
-  int get mana;
-  int get hp;
-  String get name;
-  List<int> get inventory;
-  Color get color;
-  List<Weapon> get weapons;
-  EquipmentTypeId get equippedType;
-  dynamic get equipped;
-
+class Monster {
+  Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
@@ -198,80 +180,17 @@ abstract class Monster {
 
   static const fb.Reader<Monster> reader = const _MonsterReader();
 
-}
-
-class _MonsterImpl implements Monster {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _MonsterImpl(this._bc, this._bcOffset);
-
-  Vec3 _pos;
-  @override
-  Vec3 get pos {
-    _pos ??= 
-        Vec3.reader.vTableGet(_bc, _bcOffset, 4, null);
-    return _pos;
-  }
-
-  int _mana;
-  @override
-  int get mana {
-    _mana ??= 
-        const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
-    return _mana;
-  }
-
-  int _hp;
-  @override
-  int get hp {
-    _hp ??= 
-        const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
-    return _hp;
-  }
-
-  String _name;
-  @override
-  String get name {
-    _name ??= 
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 10, null);
-    return _name;
-  }
-
-  List<int> _inventory;
-  @override
-  List<int> get inventory {
-    _inventory ??= 
-        const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 14, null);
-    return _inventory;
-  }
-
-  Color _color;
-  @override
-  Color get color {
-    _color ??= new Color.fromValue(
-        const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 2));
-    return _color;
-  }
-
-  List<Weapon> _weapons;
-  @override
-  List<Weapon> get weapons {
-    _weapons ??= 
-        const fb.ListReader<Weapon>(Weapon.reader).vTableGet(_bc, _bcOffset, 18, null);
-    return _weapons;
-  }
-
-  EquipmentTypeId _equippedType;
-  @override
-  EquipmentTypeId get equippedType {
-    _equippedType ??= new EquipmentTypeId.fromValue(
-        const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 20, null));
-    return _equippedType;
-  }
-
-  dynamic _equipped;
-  @override
+  Vec3 get pos => Vec3.reader.vTableGet(_bc, _bcOffset, 4, null);
+  int get mana => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
+  int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
+  String get name => const fb.StringReader().vTableGet(_bc, _bcOffset, 10, null);
+  List<int> get inventory => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 14, null);
+  Color get color => new Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 2));
+  List<Weapon> get weapons => const fb.ListReader<Weapon>(Weapon.reader).vTableGet(_bc, _bcOffset, 18, null);
+  EquipmentTypeId get equippedType => new EquipmentTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 20, null));
   dynamic get equipped {
     switch (equippedType?.value) {
       case 1: return Weapon.reader.vTableGet(_bc, _bcOffset, 22, null);
@@ -285,33 +204,86 @@ class _MonsterImpl implements Monster {
   }
 }
 
-class _MonsterReader extends fb.TableReader<_MonsterImpl> {
+class _MonsterReader extends fb.TableReader<Monster> {
   const _MonsterReader();
 
   @override
-  _MonsterImpl createObject(fb.BufferContext bc, int offset) => 
-    new _MonsterImpl(bc, offset);
+  Monster createObject(fb.BufferContext bc, int offset) => 
+    new Monster._(bc, offset);
 }
 
-class MonsterBuilder extends fb.BuilderHelper {
-  final Vec3Builder _pos;
+class MonsterBuilder {
+  MonsterBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable();
+  }
+
+  int addPos(int offset) {
+    fbBuilder.addStruct(0, offset);
+    return fbBuilder.offset;
+  }
+  int addMana(int mana) {
+    fbBuilder.addInt16(1, mana);
+    return fbBuilder.offset;
+  }
+  int addHp(int hp) {
+    fbBuilder.addInt16(2, hp);
+    return fbBuilder.offset;
+  }
+  int addNameOffset(int offset) {
+    fbBuilder.addOffset(3, offset);
+    return fbBuilder.offset;
+  }
+  int addInventoryOffset(int offset) {
+    fbBuilder.addOffset(5, offset);
+    return fbBuilder.offset;
+  }
+  int addColor(Color color) {
+    fbBuilder.addInt8(6, color?.value);
+    return fbBuilder.offset;
+  }
+  int addWeaponsOffset(int offset) {
+    fbBuilder.addOffset(7, offset);
+    return fbBuilder.offset;
+  }
+  int addEquippedType(EquipmentTypeId equippedType) {
+    fbBuilder.addUint8(8, equippedType?.value);
+    return fbBuilder.offset;
+  }
+  int addEquippedOffset(int offset) {
+    fbBuilder.addOffset(9, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class MonsterObjectBuilder extends fb.ObjectBuilder {
+  final Vec3ObjectBuilder _pos;
   final int _mana;
   final int _hp;
   final String _name;
   final List<int> _inventory;
   final Color _color;
-  final List<WeaponBuilder> _weapons;
+  final List<WeaponObjectBuilder> _weapons;
   final EquipmentTypeId _equippedType;
   final dynamic _equipped;
 
-  MonsterBuilder({
-    Vec3Builder pos,
+  MonsterObjectBuilder({
+    Vec3ObjectBuilder pos,
     int mana,
     int hp,
     String name,
     List<int> inventory,
     Color color,
-    List<WeaponBuilder> weapons,
+    List<WeaponObjectBuilder> weapons,
     EquipmentTypeId equippedType,
     dynamic equipped,
   })
@@ -328,16 +300,16 @@ class MonsterBuilder extends fb.BuilderHelper {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(
-    fb.Builder fbBuilder, { bool internStrings = false }) {
+    fb.Builder fbBuilder) {
     assert(fbBuilder != null);
-    final int offset_name = fbBuilder.writeString(_name, intern: internStrings);
-    final int offset_inventory = _inventory?.isNotEmpty == true
+    final int nameOffset = fbBuilder.writeString(_name);
+    final int inventoryOffset = _inventory?.isNotEmpty == true
         ? fbBuilder.writeListUint8(_inventory)
         : null;
-    final int offset_weapons = _weapons?.isNotEmpty == true
+    final int weaponsOffset = _weapons?.isNotEmpty == true
         ? fbBuilder.writeList(_weapons.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
-    final int offset_equipped = _equipped?.getOrCreateOffset(fbBuilder);
+    final int equippedOffset = _equipped?.getOrCreateOffset(fbBuilder);
 
     fbBuilder.startTable();
     if (_pos != null) {
@@ -345,36 +317,34 @@ class MonsterBuilder extends fb.BuilderHelper {
     }
     fbBuilder.addInt16(1, _mana);
     fbBuilder.addInt16(2, _hp);
-    if (offset_name != null) {
-      fbBuilder.addOffset(3, offset_name);
+    if (nameOffset != null) {
+      fbBuilder.addOffset(3, nameOffset);
     }
-    if (offset_inventory != null) {
-      fbBuilder.addOffset(5, offset_inventory);
+    if (inventoryOffset != null) {
+      fbBuilder.addOffset(5, inventoryOffset);
     }
     fbBuilder.addInt8(6, _color?.value);
-    if (offset_weapons != null) {
-      fbBuilder.addOffset(7, offset_weapons);
+    if (weaponsOffset != null) {
+      fbBuilder.addOffset(7, weaponsOffset);
     }
     fbBuilder.addUint8(8, _equippedType?.value);
-    if (offset_equipped != null) {
-      fbBuilder.addOffset(9, offset_equipped);
+    if (equippedOffset != null) {
+      fbBuilder.addOffset(9, equippedOffset);
     }
     return fbBuilder.endTable();
   }
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes() {
+  Uint8List toBytes([String fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset);
+    return fbBuilder.finish(offset, fileIdentifier);
   }
 }
 /// Weapon
-abstract class Weapon {
-  String get name;
-  int get damage;
-
+class Weapon {
+  Weapon._(this._bc, this._bcOffset);
   factory Weapon(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
@@ -382,29 +352,11 @@ abstract class Weapon {
 
   static const fb.Reader<Weapon> reader = const _WeaponReader();
 
-}
-
-class _WeaponImpl implements Weapon {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _WeaponImpl(this._bc, this._bcOffset);
-
-  String _name;
-  @override
-  String get name {
-    _name ??= 
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 4, null);
-    return _name;
-  }
-
-  int _damage;
-  @override
-  int get damage {
-    _damage ??= 
-        const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, null);
-    return _damage;
-  }
+  String get name => const fb.StringReader().vTableGet(_bc, _bcOffset, 4, null);
+  int get damage => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, null);
 
   @override
   String toString() {
@@ -412,19 +364,44 @@ class _WeaponImpl implements Weapon {
   }
 }
 
-class _WeaponReader extends fb.TableReader<_WeaponImpl> {
+class _WeaponReader extends fb.TableReader<Weapon> {
   const _WeaponReader();
 
   @override
-  _WeaponImpl createObject(fb.BufferContext bc, int offset) => 
-    new _WeaponImpl(bc, offset);
+  Weapon createObject(fb.BufferContext bc, int offset) => 
+    new Weapon._(bc, offset);
 }
 
-class WeaponBuilder extends fb.BuilderHelper {
+class WeaponBuilder {
+  WeaponBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable();
+  }
+
+  int addNameOffset(int offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+  int addDamage(int damage) {
+    fbBuilder.addInt16(1, damage);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class WeaponObjectBuilder extends fb.ObjectBuilder {
   final String _name;
   final int _damage;
 
-  WeaponBuilder({
+  WeaponObjectBuilder({
     String name,
     int damage,
   })
@@ -434,13 +411,13 @@ class WeaponBuilder extends fb.BuilderHelper {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(
-    fb.Builder fbBuilder, { bool internStrings = false }) {
+    fb.Builder fbBuilder) {
     assert(fbBuilder != null);
-    final int offset_name = fbBuilder.writeString(_name, intern: internStrings);
+    final int nameOffset = fbBuilder.writeString(_name);
 
     fbBuilder.startTable();
-    if (offset_name != null) {
-      fbBuilder.addOffset(0, offset_name);
+    if (nameOffset != null) {
+      fbBuilder.addOffset(0, nameOffset);
     }
     fbBuilder.addInt16(1, _damage);
     return fbBuilder.endTable();
@@ -448,9 +425,9 @@ class WeaponBuilder extends fb.BuilderHelper {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes() {
+  Uint8List toBytes([String fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset);
+    return fbBuilder.finish(offset, fileIdentifier);
   }
 }
