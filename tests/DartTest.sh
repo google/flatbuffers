@@ -16,5 +16,16 @@
 
 pushd "$(dirname $0)" >/dev/null
 
+command -v pub >/dev/null 2>&1 || { echo >&2 "Dart tests require `pub` but it's not installed.  Aborting."; exit 1; }
+command -v dart >/dev/null 2>&1 || { echo >&2 "Dart tests require dart to be in path but it's not installed.  Aborting."; exit 1; }
+# output required files to the dart folder so that pub will be able to 
+# distrubte them and more people can more easily run the dart tests
+../flatc --dart -I include_test -o ../dart/test monster_test.fbs 
+cp monsterdata_test.mon ../dart/test
+
+cd ../dart
+
+# update packages
+pub get
 # Execute the sample.
-dart ../dart/test/flat_buffers_test.dart
+dart test/flat_buffers_test.dart
