@@ -228,7 +228,8 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_VALUE = 6,
     VT_OBJECT = 8,
-    VT_UNION_TYPE = 10
+    VT_UNION_TYPE = 10,
+    VT_DOCUMENTATION = 12
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -255,6 +256,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Type *union_type() const {
     return GetPointer<const Type *>(VT_UNION_TYPE);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -264,6 +268,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(object()) &&
            VerifyOffset(verifier, VT_UNION_TYPE) &&
            verifier.VerifyTable(union_type()) &&
+           VerifyOffset(verifier, VT_DOCUMENTATION) &&
+           verifier.Verify(documentation()) &&
+           verifier.VerifyVectorOfStrings(documentation()) &&
            verifier.EndTable();
   }
 };
@@ -283,6 +290,9 @@ struct EnumValBuilder {
   void add_union_type(flatbuffers::Offset<Type> union_type) {
     fbb_.AddOffset(EnumVal::VT_UNION_TYPE, union_type);
   }
+  void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
+    fbb_.AddOffset(EnumVal::VT_DOCUMENTATION, documentation);
+  }
   explicit EnumValBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -301,9 +311,11 @@ inline flatbuffers::Offset<EnumVal> CreateEnumVal(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     int64_t value = 0,
     flatbuffers::Offset<Object> object = 0,
-    flatbuffers::Offset<Type> union_type = 0) {
+    flatbuffers::Offset<Type> union_type = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
   EnumValBuilder builder_(_fbb);
   builder_.add_value(value);
+  builder_.add_documentation(documentation);
   builder_.add_union_type(union_type);
   builder_.add_object(object);
   builder_.add_name(name);
@@ -315,13 +327,15 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<Object> object = 0,
-    flatbuffers::Offset<Type> union_type = 0) {
+    flatbuffers::Offset<Type> union_type = 0,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
   return reflection::CreateEnumVal(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       value,
       object,
-      union_type);
+      union_type,
+      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
