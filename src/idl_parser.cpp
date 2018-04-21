@@ -2669,7 +2669,6 @@ Definition::SerializeAttributes(FlatBufferBuilder *builder,
                                 const Parser &parser) const {
   std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
   for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
-    std::cout << "KV " << kv->first << " -> " << kv->second->constant << std::endl;
     auto it = parser.known_attributes_.find(kv->first);
     FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
     if (parser.opts.binary_schema_builtin_attrs || !it->second) {
