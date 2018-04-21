@@ -1481,11 +1481,6 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
 
 CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
   std::vector<std::string> enum_comment = doc_comment_;
-  if (enum_comment.size() > 0) {
-    std::cout << "ENUM with comments: " << enum_comment[0] << " " << enum_comment.size() << std::endl;
-  } else {
-    std::cout << "ENUM without comments" << std::endl;
-  }
   NEXT();
   std::string enum_name = attribute_;
   EXPECT(kTokenIdentifier);
@@ -1519,12 +1514,6 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       auto value_name = attribute_;
       auto full_name = value_name;
       std::vector<std::string> value_comment = doc_comment_;
-      if (value_comment.size() > 0) {
-        std::cout << "ENUM VALUE with comments: " << value_comment[0] << " " << value_comment.size() << std::endl;
-      } else {
-        std::cout << "ENUM VALUE without comments" << std::endl;
-      }
-
       EXPECT(kTokenIdentifier);
       if (is_union) {
         ECHECK(ParseNamespacing(&full_name, &value_name));
@@ -2605,7 +2594,9 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
 Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
                                                const Parser &parser) const {
   return reflection::CreateEnumVal(
-      *builder, builder->CreateString(name), value,
+      *builder,
+      builder->CreateString(name),
+      value,
       union_type.struct_def ? union_type.struct_def->serialized_location : 0,
       union_type.Serialize(builder),
       parser.opts.binary_schema_comments
