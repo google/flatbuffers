@@ -306,7 +306,7 @@ inline size_t InlineAlignment(const Type &type) {
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
 
-  Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder) const;
+  Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   std::string name;
   std::vector<std::string> doc_comment;
@@ -326,8 +326,7 @@ struct EnumDef : public Definition {
     return nullptr;
   }
 
-  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder,
-                                     const Parser &parser) const;
+  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   SymbolTable<EnumVal> vals;
   bool is_union;
