@@ -2591,12 +2591,16 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
 
 Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
                                                const Parser &parser) const {
+  flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> _attributes =
+    SerializeAttributes(builder, parser);
+  //std::cout << _attributes << std::endl;
   return reflection::CreateRPCCall(
       *builder,
       builder->CreateString(name),
       request->serialized_location,
       response->serialized_location,
-      SerializeAttributes(builder, parser),
+      //SerializeAttributes(builder, parser),
+      _attributes,
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(rpc_comment)
           : 0);
@@ -2665,9 +2669,10 @@ Definition::SerializeAttributes(FlatBufferBuilder *builder,
                                 const Parser &parser) const {
   std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
   for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
+    std::cout << "KV " << kv->first << " -> " << kv->second->constant << std::endl;
     auto it = parser.known_attributes_.find(kv->first);
     FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
-    if (!it->second) {  // Custom attribute.
+    if (parser.opts.binary_schema_builtin_attrs || !it->second) {
       attrs.push_back(reflection::CreateKeyValue(
           *builder, builder->CreateString(kv->first),
           builder->CreateString(kv->second->constant)));

@@ -346,7 +346,6 @@ struct RPCCall : public Definition {
 
   std::string name;
   StructDef *request, *response;
-  SymbolTable<Value> attributes;
   std::vector<std::string> rpc_comment;
 };
 
@@ -385,6 +384,7 @@ struct IDLOptions {
   std::string include_prefix;
   bool keep_include_path;
   bool binary_schema_comments;
+  bool binary_schema_builtin_attrs;
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
@@ -443,6 +443,7 @@ struct IDLOptions {
         allow_non_utf8(false),
         keep_include_path(false),
         binary_schema_comments(false),
+        binary_schema_builtin_attrs(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
