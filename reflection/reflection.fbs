@@ -44,6 +44,7 @@ table EnumVal {
     value:long (key);
     object:Object;  // Will be deprecated in favor of union_type in the future.
     union_type:Type;
+    documentation:[string];
 }
 
 table Enum {
