@@ -405,6 +405,8 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
             if (allow_non_utf8) {
               text += "\\x";
               text += IntToStringHex(static_cast<uint8_t>(c), 2);
+              // force escapes for next enteties
+              print_natural_utf8 = false;
             } else {
               // There are two cases here:
               //
@@ -421,7 +423,7 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
               return false;
             }
           } else {
-            if (print_natural_utf8 && !allow_non_utf8) {
+            if (print_natural_utf8) {
               // utf8 points to past all utf-8 bytes parsed
               text.append(s + i, static_cast<size_t>(utf8 - s - i));
             } else if (ucc <= 0xFFFF) {
