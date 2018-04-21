@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1412,6 +1412,57 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
   TEST_EQ(result, false);
 }
 
+void UnicodeTestPrintAsNaturatUTF8() {
+  // There exist "unicode_test.json" file used in js, php, java and typescript.
+  // This file is compatible with the Monster table in compact form and includes
+  // the correct utf-8 strings.
+  const std::string json_data_file = "unicode_test.json";
+
+  // Block copy-paste form ParseAndGenerateTextTest.
+  // It may be better to extract loading to separate function which returns
+  // loaded data and parser, like:
+  // bool LoadMonster(const std::string& file_name,
+  //                  std::string * _file_data,
+  //                  flatbuffers::Parser * _parser);
+
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + json_data_file).c_str(),
+                                false, &jsonfile),
+          true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
+
+  // here, parser.builder_ contains a binary buffer that is the parsed data.
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                 parser.builder_.GetSize());
+  TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  // to ensure it is correct, we now generate text back from the binary,
+  // and compare the two:
+  std::string jsongen;
+  // request natural printing for utf-8 strings
+  parser.opts.print_natural_utf8 = true;
+  parser.opts.strict_json = true;
+  auto result =
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
+}
+
 void UnicodeSurrogatesTest() {
   flatbuffers::Parser parser;
 
@@ -1985,6 +2036,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   IntegerBoundaryTest();
   UnicodeTest();
   UnicodeTestAllowNonUTF8();
+  UnicodeTestPrintAsNaturatUTF8();
   UnicodeTestGenerateTextFailsOnNonUTF8();
   UnicodeSurrogatesTest();
   UnicodeInvalidSurrogatesTest();

@@ -314,7 +314,7 @@ struct ToStringVisitor : public IterationVisitor {
   void Float(float x) { s += NumToString(x); }
   void Double(double x) { s += NumToString(x); }
   void String(const struct String *str) {
-    EscapeString(str->c_str(), str->size(), &s, true);
+    EscapeString(str->c_str(), str->size(), &s, true, false);
   }
   void Unknown(const uint8_t *) { s += "(?)"; }
   void StartVector() { s += "[ "; }

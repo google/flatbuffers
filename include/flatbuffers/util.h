@@ -381,7 +381,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 }
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
-                         bool allow_non_utf8) {
+                         bool allow_non_utf8, bool print_natural_utf8) {
   std::string &text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
@@ -421,7 +421,10 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
               return false;
             }
           } else {
-            if (ucc <= 0xFFFF) {
+            if (print_natural_utf8 && !allow_non_utf8) {
+              // utf8 points to past all utf-8 bytes parsed
+              text.append(s + i, static_cast<size_t>(utf8 - s - i));
+            } else if (ucc <= 0xFFFF) {
               // Parses as Unicode within JSON's \uXXXX range, so use that.
               text += "\\u";
               text += IntToStringHex(ucc, 4);
