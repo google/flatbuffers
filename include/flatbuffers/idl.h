@@ -341,14 +341,18 @@ inline bool EqualByName(const Type &a, const Type &b) {
          (a.enum_def == b.enum_def || a.enum_def->name == b.enum_def->name);
 }
 
-struct RPCCall {
+struct RPCCall : public Definition {
+  Offset<reflection::RPCCall> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
   std::string name;
-  SymbolTable<Value> attributes;
   StructDef *request, *response;
+  SymbolTable<Value> attributes;
   std::vector<std::string> rpc_comment;
 };
 
 struct ServiceDef : public Definition {
+  Offset<reflection::Service> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
   SymbolTable<RPCCall> calls;
 };
 

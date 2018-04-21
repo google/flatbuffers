@@ -80,9 +80,25 @@ table Object {  // Used for both tables and structs.
     documentation:[string];
 }
 
+table RPCCall {
+    name:string (required, key);
+    request:Object (required);      // must be a table (not a struct)
+    response:Object (required);     // must be a table (not a struct)
+    attributes:[KeyValue];
+    documentation:[string];
+}
+
+table Service {
+    name:string (required, key);
+    calls:[RPCCall];
+    attributes:[KeyValue];
+    documentation:[string];
+}
+
 table Schema {
-    objects:[Object] (required);  // Sorted.
-    enums:[Enum] (required);      // Sorted.
+    objects:[Object] (required);    // Sorted.
+    enums:[Enum] (required);        // Sorted.
+    services:[Service];             // Sorted.
     file_ident:string;
     file_ext:string;
     root_table:Object;
