@@ -13,20 +13,20 @@ class Color {
 
   factory Color.fromValue(int value) {
     if (value == null) return null;
-    if (value < minValue || maxValue < value) {
-      throw new RangeError.range(value, minValue, maxValue);
+    if (!values.containsKey(value)) {
+      throw new StateError('Invalid value $value for bit flag enum Color');
     }
-    return values[value - minValue];
+    return values[value];
   }
 
   static const int minValue = 0;
   static const int maxValue = 2;
-  static bool containsValue(int value) => minValue <= value && value <= maxValue;
+  static bool containsValue(int value) => values.containsKey(value);
 
   static const Color Red = const Color._(0);
   static const Color Green = const Color._(1);
   static const Color Blue = const Color._(2);
-  static get values => [Red,Green,Blue,];
+  static get values => {0: Red,1: Green,2: Blue,};
 
   static const fb.Reader<Color> reader = const _ColorReader();
 
@@ -53,19 +53,19 @@ class EquipmentTypeId {
 
   factory EquipmentTypeId.fromValue(int value) {
     if (value == null) return null;
-    if (value < minValue || maxValue < value) {
-      throw new RangeError.range(value, minValue, maxValue);
+    if (!values.containsKey(value)) {
+      throw new StateError('Invalid value $value for bit flag enum EquipmentTypeId');
     }
-    return values[value - minValue];
+    return values[value];
   }
 
   static const int minValue = 0;
   static const int maxValue = 1;
-  static bool containsValue(int value) => minValue <= value && value <= maxValue;
+  static bool containsValue(int value) => values.containsKey(value);
 
   static const EquipmentTypeId NONE = const EquipmentTypeId._(0);
   static const EquipmentTypeId Weapon = const EquipmentTypeId._(1);
-  static get values => [NONE,Weapon,];
+  static get values => {0: NONE,1: Weapon,};
 
   static const fb.Reader<EquipmentTypeId> reader = const _EquipmentTypeIdReader();
 
@@ -86,13 +86,8 @@ class _EquipmentTypeIdReader extends fb.Reader<EquipmentTypeId> {
       new EquipmentTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
-/// Vec3
 class Vec3 {
   Vec3._(this._bc, this._bcOffset);
-  factory Vec3(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
-  }
 
   static const fb.Reader<Vec3> reader = const _Vec3Reader();
 
@@ -170,7 +165,6 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-/// Monster
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
@@ -197,10 +191,11 @@ class Monster {
       default: return null;
     }
   }
+  List<Vec3> get path => const fb.ListReader<Vec3>(Vec3.reader).vTableGet(_bc, _bcOffset, 24, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, weapons: $weapons, equippedType: $equippedType, equipped: $equipped}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, weapons: $weapons, equippedType: $equippedType, equipped: $equipped, path: $path}';
   }
 }
 
@@ -259,6 +254,10 @@ class MonsterBuilder {
     fbBuilder.addOffset(9, offset);
     return fbBuilder.offset;
   }
+  int addPathOffset(int offset) {
+    fbBuilder.addOffset(10, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -275,6 +274,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final List<WeaponObjectBuilder> _weapons;
   final EquipmentTypeId _equippedType;
   final dynamic _equipped;
+  final List<Vec3ObjectBuilder> _path;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -286,6 +286,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     List<WeaponObjectBuilder> weapons,
     EquipmentTypeId equippedType,
     dynamic equipped,
+    List<Vec3ObjectBuilder> path,
   })
       : _pos = pos,
         _mana = mana,
@@ -295,7 +296,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _color = color,
         _weapons = weapons,
         _equippedType = equippedType,
-        _equipped = equipped;
+        _equipped = equipped,
+        _path = path;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -310,6 +312,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         ? fbBuilder.writeList(_weapons.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
     final int equippedOffset = _equipped?.getOrCreateOffset(fbBuilder);
+    final int pathOffset = _path?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(_path)
+        : null;
 
     fbBuilder.startTable();
     if (_pos != null) {
@@ -331,6 +336,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     if (equippedOffset != null) {
       fbBuilder.addOffset(9, equippedOffset);
     }
+    if (pathOffset != null) {
+      fbBuilder.addOffset(10, pathOffset);
+    }
     return fbBuilder.endTable();
   }
 
@@ -342,7 +350,6 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-/// Weapon
 class Weapon {
   Weapon._(this._bc, this._bcOffset);
   factory Weapon(List<int> bytes) {

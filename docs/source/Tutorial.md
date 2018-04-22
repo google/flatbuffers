@@ -662,24 +662,44 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 </div>
 <div class="language-dart">
 ~~~{.dart}
+  // The generated Builder classes work much like in other languages, 
+  final int weaponOneName = builder.writeString("Sword");
+  final int weaponOneDamage = 3;
+
+  final int weaponTwoName = builder.writeString("Axe");
+  final int weaponTwoDamage = 5;
+
+  final swordBuilder = new myGame.WeaponBuilder(builder)
+    ..begin()
+    ..addNameOffset(weaponOneName)
+    ..addDamage(weaponOneDamage);
+  final int sword = swordBuilder.finish();
+
+  final axeBuilder = new myGame.WeaponBuilder(builder)
+    ..begin()
+    ..addNameOffset(weaponTwoName)
+    ..addDamage(weaponTwoDamage);
+  final int axe = axeBuilder.finish();
+
+
+
+  // The genearted ObjectBuilder classes offer an easier to use alternative
+  // at the cost of requiring some additional reference allocations. If memory
+  // usage is critical, or if you'll be working with especially large messages
+  // or tables, you should prefer using the generated Builder classes.
+  // The following code would produce an identical buffer as above.
   final String weaponOneName = "Sword";
   final int weaponOneDamage = 3;
 
   final String weaponTwoName = "Axe";
   final int weaponTwoDamage = 5;
 
-  // Unlike in other languages in this tutorial, the generated builder knows
-  // how to preserve its offset if written multiple times. Calling `.finish()`
-  // here would write this data to the buffer and return an offset,  but it
-  // would be more tedious to use with the other generated helpers.
-  // You can find examples of how to make use of the offsets directly in the 
-  // generated classes.
-  final myGame.WeaponBuilder sword = new myGame.WeaponBuilder(
+  final myGame.WeaponBuilder sword = new myGame.WeaponObjectBuilder(
     name: weaponOneName,
     damage: weaponOneDamage,
   );
 
-  final myGame.WeaponBuilder axe = new myGame.WeaponBuilder(
+  final myGame.WeaponBuilder axe = new myGame.WeaponObjectBuilder(
     name: weaponTwoName,
     damage: weaponTwoDamage,
   );
@@ -815,6 +835,16 @@ traversal. This is generally easy to do on any tree structures.
 <div class="language-dart">
 ~~~{.dart}
   // Serialize a name for our monster, called "Orc".
+  final int name = builder.writeString('Orc');
+
+  // Create a list representing the inventory of the Orc. Each number
+  // could correspond to an item that can be claimed after he is slain.
+  final List<int> treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  final inventory = builder.writeListUint8(treasure);
+  
+  // The following code should be used instead if you intend to use the
+  // ObjectBuilder classes:
+  // Serialize a name for our monster, called "Orc".
   final String name = 'Orc';
 
   // Create a list representing the inventory of the Orc. Each number
@@ -927,7 +957,10 @@ offsets.
 </div>
 <div class="language-dart">
 ~~~{.dart}
-  // Create an array from the two `Weapon`s
+  // If using the Builder classes, serialize the `[sword,axe]`
+  final weapons = builder.writeList([sword, axe]);
+
+  // If using the ObjectBuilders, just create an array from the two `Weapon`s
   final List<myGame.WeaponBuilder> weaps = [sword, axe];
 ~~~
 </div>
@@ -1013,12 +1046,20 @@ for the `path` field above:
 </div>
 <div class="language-dart">
 ~~~{.dart}
+  // Using the Builder classes, you can write a list of structs like so:
+  // Note that the intended order should be reversed if order is important.
+  final vec3Builder = new myGame.Vec3Builder(builder);
+  vec3Builder.finish(4.0, 5.0, 6.0);
+  vec3Builder.finish(1.0, 2.0, 3.0);
+  final int path = builder.endStructVector(2); // the lenght of the vector
+
+  // Otherwise, using the ObjectBuilder classes:
   // The dart implementation provides a simple interface for writing vectors
   // of structs, in `writeListOfStructs`. This method takes
-  // `List<BuilderHelper>` and is used by the generated builder classes.
-  final List<myGame.Vec3Builder> path = [
-    new myGame.Vec3Builder(x: 1.0, y: 2.0, z: 3.0),
-    new myGame.Vec3Builder(x: 4.0, y: 5.0, z: 6.0)
+  // `List<ObjectBuilder>` and is used by the generated builder classes.
+  final List<myGame.Vec3ObjectBuilder> path = [
+    new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
+    new myGame.Vec3ObjectBuilder(x: 4.0, y: 5.0, z: 6.0)
   ];
 ~~~
 </div>
@@ -1176,6 +1217,27 @@ can serialize the monster itself:
 </div>
 <div class="language-dart">
 ~~~{.dart}
+  // Using the Builder API:
+  // Set his hit points to 300 and his mana to 150.
+  final int hp = 300;
+  final int mana = 150;
+
+  final monster = new myGame.MonsterBuilder(builder)
+    ..begin()
+    ..addNameOffset(name)
+    ..addInventoryOffset(inventory)
+    ..addWeaponsOffset(weapons)
+    ..addEquippedType(myGame.EquipmentTypeId.Weapon)
+    ..addEquippedOffset(axe)
+    ..addHp(hp)
+    ..addMana(mana)
+    ..addPos(vec3Builder.finish(1.0, 2.0, 3.0))
+    ..addPathOffset(path)
+    ..addColor(myGame.Color.Red);
+
+  final int orc = monster.finish();
+
+  // -Or- using the ObjectBuilder API:
   // Set his hit points to 300 and his mana to 150.
   final int hp = 300;
   final int mana = 150;
@@ -1197,7 +1259,10 @@ can serialize the monster itself:
     mana: mana,
     pos: new myGame.Vec3Builder(x: 1.0, y: 2.0, z: 3.0),
     color: myGame.Color.Red,
-  );
+    path: [
+        new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
+        new myGame.Vec3ObjectBuilder(x: 4.0, y: 5.0, z: 6.0)
+    ]);
 
   final int orc = orcBuilder.finish(builder);
 ~~~
@@ -1335,6 +1400,11 @@ Here is a repetition these lines, to help highlight them more clearly:
 </div>
 <div class="language-dart">
 ~~~{.dart}
+  // using the builder API:
+  ..addEquippedType(myGame.EquipmentTypeId.Weapon)
+  ..addEquippedOffset(axe)
+
+  // in the ObjectBuilder API:
   equippedTypeId: myGame.EquipmentTypeId.Weapon,  // Union type
   equipped: axe,                                  // Union data
 ~~~
