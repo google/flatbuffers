@@ -2527,9 +2527,17 @@ void Parser::Serialize() {
     enum_offsets.push_back(offset);
     (*it)->serialized_location = offset.o;
   }
+  std::vector<Offset<reflection::Service>> service_offsets;
+  for (auto it = services_.vec.begin(); it != services_.vec.end(); ++it) {
+    auto offset = (*it)->Serialize(&builder_, *this);
+    service_offsets.push_back(offset);
+    (*it)->serialized_location = offset.o;
+  }
   auto schema_offset = reflection::CreateSchema(
-      builder_, builder_.CreateVectorOfSortedTables(&object_offsets),
+      builder_,
+      builder_.CreateVectorOfSortedTables(&object_offsets),
       builder_.CreateVectorOfSortedTables(&enum_offsets),
+      builder_.CreateVectorOfSortedTables(&service_offsets),
       builder_.CreateString(file_identifier_),
       builder_.CreateString(file_extension_),
       root_struct_def_ ? root_struct_def_->serialized_location : 0);
@@ -2549,9 +2557,12 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
   }
   auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   return reflection::CreateObject(
-      *builder, builder->CreateString(qualified_name),
-      builder->CreateVectorOfSortedTables(&field_offsets), fixed,
-      static_cast<int>(minalign), static_cast<int>(bytesize),
+      *builder,
+      builder->CreateString(qualified_name),
+      builder->CreateVectorOfSortedTables(&field_offsets),
+      fixed,
+      static_cast<int>(minalign),
+      static_cast<int>(bytesize),
       SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(doc_comment)
@@ -2567,7 +2578,10 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       IsFloat(value.type.base_type) ? strtod(value.constant.c_str(), nullptr)
                                     : 0.0,
-      deprecated, required, key, SerializeAttributes(builder, parser),
+      deprecated,
+      required,
+      key,
+      SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(doc_comment)
           : 0);
@@ -2575,33 +2589,72 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   // space by sharing it. Same for common values of value.type.
 }
 
-Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
-                                            const Parser &parser) const {
-  std::vector<Offset<reflection::EnumVal>> enumval_offsets;
-  for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
-    enumval_offsets.push_back((*it)->Serialize(builder));
+Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
+                                               const Parser &parser) const {
+  return reflection::CreateRPCCall(
+      *builder,
+      builder->CreateString(name),
+      request->serialized_location,
+      response->serialized_location,
+      SerializeAttributes(builder, parser),
+      parser.opts.binary_schema_comments
+          ? builder->CreateVectorOfStrings(rpc_comment)
+          : 0);
+}
+
+Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
+                                                  const Parser &parser) const {
+  std::vector<Offset<reflection::RPCCall>> servicecall_offsets;
+  for (auto it = calls.vec.begin(); it != calls.vec.end(); ++it) {
+    servicecall_offsets.push_back((*it)->Serialize(builder, parser));
   }
   auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
-  return reflection::CreateEnum(
-      *builder, builder->CreateString(qualified_name),
-      builder->CreateVector(enumval_offsets), is_union,
-      underlying_type.Serialize(builder), SerializeAttributes(builder, parser),
+  return reflection::CreateService(
+      *builder,
+      builder->CreateString(qualified_name),
+      builder->CreateVector(servicecall_offsets),
+      SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(doc_comment)
           : 0);
 }
 
-Offset<reflection::EnumVal> EnumVal::Serialize(
-    FlatBufferBuilder *builder) const {
+Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
+                                            const Parser &parser) const {
+  std::vector<Offset<reflection::EnumVal>> enumval_offsets;
+  for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
+    enumval_offsets.push_back((*it)->Serialize(builder, parser));
+  }
+  auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  return reflection::CreateEnum(
+      *builder,
+      builder->CreateString(qualified_name),
+      builder->CreateVector(enumval_offsets),
+      is_union,
+      underlying_type.Serialize(builder),
+      SerializeAttributes(builder, parser),
+      parser.opts.binary_schema_comments
+          ? builder->CreateVectorOfStrings(doc_comment)
+          : 0);
+}
+
+Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
+                                               const Parser &parser) const {
   return reflection::CreateEnumVal(
-      *builder, builder->CreateString(name), value,
+      *builder,
+      builder->CreateString(name),
+      value,
       union_type.struct_def ? union_type.struct_def->serialized_location : 0,
-      union_type.Serialize(builder));
+      union_type.Serialize(builder),
+      parser.opts.binary_schema_comments
+          ? builder->CreateVectorOfStrings(doc_comment)
+          : 0);
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
   return reflection::CreateType(
-      *builder, static_cast<reflection::BaseType>(base_type),
+      *builder,
+      static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1));
 }
@@ -2614,7 +2667,7 @@ Definition::SerializeAttributes(FlatBufferBuilder *builder,
   for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
     auto it = parser.known_attributes_.find(kv->first);
     FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
-    if (!it->second) {  // Custom attribute.
+    if (parser.opts.binary_schema_builtin_attrs || !it->second) {
       attrs.push_back(reflection::CreateKeyValue(
           *builder, builder->CreateString(kv->first),
           builder->CreateString(kv->second->constant)));
