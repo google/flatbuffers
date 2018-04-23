@@ -2591,16 +2591,12 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
 
 Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
                                                const Parser &parser) const {
-  flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> _attributes =
-    SerializeAttributes(builder, parser);
-  //std::cout << _attributes << std::endl;
   return reflection::CreateRPCCall(
       *builder,
       builder->CreateString(name),
       request->serialized_location,
       response->serialized_location,
-      //SerializeAttributes(builder, parser),
-      _attributes,
+      SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(rpc_comment)
           : 0);
