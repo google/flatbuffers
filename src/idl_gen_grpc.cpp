@@ -50,7 +50,7 @@ class FlatBufMethod : public grpc_generator::Method {
   grpc::string GetLeadingComments(const grpc::string) const { return ""; }
   grpc::string GetTrailingComments(const grpc::string) const { return ""; }
   std::vector<grpc::string> GetAllComments() const {
-    return method_->rpc_comment;
+    return method_->doc_comment;
   }
 
   std::string name() const { return method_->name; }

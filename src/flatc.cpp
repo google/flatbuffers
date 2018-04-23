@@ -106,7 +106,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
-    "  --bfbs-builtin-attrs  Add builtin attributes to the binary schema files.\n"
+    "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
     "  --conform FILE     Specify a schema the following schemas should be\n"
     "                     an evolution of. Gives errors if not.\n"
     "  --conform-includes Include path for the schema given with --conform\n"
@@ -254,8 +254,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         grpc_enabled = true;
       } else if (arg == "--bfbs-comments") {
         opts.binary_schema_comments = true;
-      } else if (arg == "--bfbs-builtin-attrs") {
-        opts.binary_schema_builtin_attrs = true;
+      } else if (arg == "--bfbs-builtins") {
+        opts.binary_schema_builtins = true;
       } else if (arg == "--no-fb-import") {
         opts.skip_flatbuffers_import = true;
       } else if (arg == "--no-ts-reexport") {

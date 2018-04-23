@@ -1724,7 +1724,7 @@ CheckedError Parser::ParseService() {
   ECHECK(ParseMetaData(&service_def.attributes));
   EXPECT('{');
   do {
-    std::vector<std::string> rpc_comment = doc_comment_;
+    std::vector<std::string> doc_comment = doc_comment_;
     auto rpc_name = attribute_;
     EXPECT(kTokenIdentifier);
     EXPECT('(');
@@ -1740,7 +1740,7 @@ CheckedError Parser::ParseService() {
     rpc.name = rpc_name;
     rpc.request = reqtype.struct_def;
     rpc.response = resptype.struct_def;
-    rpc.rpc_comment = rpc_comment;
+    rpc.doc_comment = doc_comment;
     if (service_def.calls.Add(rpc_name, &rpc))
       return Error("rpc already exists: " + rpc_name);
     ECHECK(ParseMetaData(&rpc.attributes));
@@ -2537,10 +2537,10 @@ void Parser::Serialize() {
       builder_,
       builder_.CreateVectorOfSortedTables(&object_offsets),
       builder_.CreateVectorOfSortedTables(&enum_offsets),
-      builder_.CreateVectorOfSortedTables(&service_offsets),
       builder_.CreateString(file_identifier_),
       builder_.CreateString(file_extension_),
-      root_struct_def_ ? root_struct_def_->serialized_location : 0);
+      (root_struct_def_ ? root_struct_def_->serialized_location : 0),
+      builder_.CreateVectorOfSortedTables(&service_offsets));
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -2578,10 +2578,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       IsFloat(value.type.base_type) ? strtod(value.constant.c_str(), nullptr)
                                     : 0.0,
-      deprecated,
-      required,
-      key,
-      SerializeAttributes(builder, parser),
+      deprecated, required, key, SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
           ? builder->CreateVectorOfStrings(doc_comment)
           : 0);
@@ -2598,7 +2595,7 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
       response->serialized_location,
       SerializeAttributes(builder, parser),
       parser.opts.binary_schema_comments
-          ? builder->CreateVectorOfStrings(rpc_comment)
+          ? builder->CreateVectorOfStrings(doc_comment)
           : 0);
 }
 
@@ -2667,7 +2664,7 @@ Definition::SerializeAttributes(FlatBufferBuilder *builder,
   for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
     auto it = parser.known_attributes_.find(kv->first);
     FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
-    if (parser.opts.binary_schema_builtin_attrs || !it->second) {
+    if (parser.opts.binary_schema_builtins || !it->second) {
       attrs.push_back(reflection::CreateKeyValue(
           *builder, builder->CreateString(kv->first),
           builder->CreateString(kv->second->constant)));

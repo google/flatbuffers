@@ -98,10 +98,10 @@ table Service {
 table Schema {
     objects:[Object] (required);    // Sorted.
     enums:[Enum] (required);        // Sorted.
-    services:[Service];             // Sorted.
     file_ident:string;
     file_ext:string;
     root_table:Object;
+    services:[Service];             // Sorted.
 }
 
 root_type Schema;

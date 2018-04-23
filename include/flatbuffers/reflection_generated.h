@@ -998,19 +998,16 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_OBJECTS = 4,
     VT_ENUMS = 6,
-    VT_SERVICES = 8,
-    VT_FILE_IDENT = 10,
-    VT_FILE_EXT = 12,
-    VT_ROOT_TABLE = 14
+    VT_FILE_IDENT = 8,
+    VT_FILE_EXT = 10,
+    VT_ROOT_TABLE = 12,
+    VT_SERVICES = 14
   };
   const flatbuffers::Vector<flatbuffers::Offset<Object>> *objects() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Object>> *>(VT_OBJECTS);
   }
   const flatbuffers::Vector<flatbuffers::Offset<Enum>> *enums() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Enum>> *>(VT_ENUMS);
-  }
-  const flatbuffers::Vector<flatbuffers::Offset<Service>> *services() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Service>> *>(VT_SERVICES);
   }
   const flatbuffers::String *file_ident() const {
     return GetPointer<const flatbuffers::String *>(VT_FILE_IDENT);
@@ -1021,6 +1018,9 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Object *root_table() const {
     return GetPointer<const Object *>(VT_ROOT_TABLE);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<Service>> *services() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Service>> *>(VT_SERVICES);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_OBJECTS) &&
@@ -1029,15 +1029,15 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_ENUMS) &&
            verifier.Verify(enums()) &&
            verifier.VerifyVectorOfTables(enums()) &&
-           VerifyOffset(verifier, VT_SERVICES) &&
-           verifier.Verify(services()) &&
-           verifier.VerifyVectorOfTables(services()) &&
            VerifyOffset(verifier, VT_FILE_IDENT) &&
            verifier.Verify(file_ident()) &&
            VerifyOffset(verifier, VT_FILE_EXT) &&
            verifier.Verify(file_ext()) &&
            VerifyOffset(verifier, VT_ROOT_TABLE) &&
            verifier.VerifyTable(root_table()) &&
+           VerifyOffset(verifier, VT_SERVICES) &&
+           verifier.Verify(services()) &&
+           verifier.VerifyVectorOfTables(services()) &&
            verifier.EndTable();
   }
 };
@@ -1051,9 +1051,6 @@ struct SchemaBuilder {
   void add_enums(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Enum>>> enums) {
     fbb_.AddOffset(Schema::VT_ENUMS, enums);
   }
-  void add_services(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Service>>> services) {
-    fbb_.AddOffset(Schema::VT_SERVICES, services);
-  }
   void add_file_ident(flatbuffers::Offset<flatbuffers::String> file_ident) {
     fbb_.AddOffset(Schema::VT_FILE_IDENT, file_ident);
   }
@@ -1062,6 +1059,9 @@ struct SchemaBuilder {
   }
   void add_root_table(flatbuffers::Offset<Object> root_table) {
     fbb_.AddOffset(Schema::VT_ROOT_TABLE, root_table);
+  }
+  void add_services(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Service>>> services) {
+    fbb_.AddOffset(Schema::VT_SERVICES, services);
   }
   explicit SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1081,15 +1081,15 @@ inline flatbuffers::Offset<Schema> CreateSchema(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Object>>> objects = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Enum>>> enums = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Service>>> services = 0,
     flatbuffers::Offset<flatbuffers::String> file_ident = 0,
     flatbuffers::Offset<flatbuffers::String> file_ext = 0,
-    flatbuffers::Offset<Object> root_table = 0) {
+    flatbuffers::Offset<Object> root_table = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Service>>> services = 0) {
   SchemaBuilder builder_(_fbb);
+  builder_.add_services(services);
   builder_.add_root_table(root_table);
   builder_.add_file_ext(file_ext);
   builder_.add_file_ident(file_ident);
-  builder_.add_services(services);
   builder_.add_enums(enums);
   builder_.add_objects(objects);
   return builder_.Finish();
@@ -1099,18 +1099,18 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<Object>> *objects = nullptr,
     const std::vector<flatbuffers::Offset<Enum>> *enums = nullptr,
-    const std::vector<flatbuffers::Offset<Service>> *services = nullptr,
     const char *file_ident = nullptr,
     const char *file_ext = nullptr,
-    flatbuffers::Offset<Object> root_table = 0) {
+    flatbuffers::Offset<Object> root_table = 0,
+    const std::vector<flatbuffers::Offset<Service>> *services = nullptr) {
   return reflection::CreateSchema(
       _fbb,
       objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0,
       enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0,
-      services ? _fbb.CreateVector<flatbuffers::Offset<Service>>(*services) : 0,
       file_ident ? _fbb.CreateString(file_ident) : 0,
       file_ext ? _fbb.CreateString(file_ext) : 0,
-      root_table);
+      root_table,
+      services ? _fbb.CreateVector<flatbuffers::Offset<Service>>(*services) : 0);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) {

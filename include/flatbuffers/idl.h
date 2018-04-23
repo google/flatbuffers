@@ -344,9 +344,7 @@ inline bool EqualByName(const Type &a, const Type &b) {
 struct RPCCall : public Definition {
   Offset<reflection::RPCCall> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
-  std::string name;
   StructDef *request, *response;
-  std::vector<std::string> rpc_comment;
 };
 
 struct ServiceDef : public Definition {
@@ -384,7 +382,7 @@ struct IDLOptions {
   std::string include_prefix;
   bool keep_include_path;
   bool binary_schema_comments;
-  bool binary_schema_builtin_attrs;
+  bool binary_schema_builtins;
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
@@ -443,7 +441,7 @@ struct IDLOptions {
         allow_non_utf8(false),
         keep_include_path(false),
         binary_schema_comments(false),
-        binary_schema_builtin_attrs(false),
+        binary_schema_builtins(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
