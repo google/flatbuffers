@@ -1041,6 +1041,26 @@ flatbuffers.ByteBuffer.prototype.writeFloat64 = function(offset, value) {
 };
 
 /**
+ * Return the file identifier.   Behavior is undefined for FlatBuffers whose
+ * schema does not include a file_identifier (likely points at padding or the
+ * start of a the root vtable).
+ * @returns {string}
+ */
+flatbuffers.ByteBuffer.prototype.getBufferIdentifier = function() {
+  if (this.bytes_.length < this.position_ + flatbuffers.SIZEOF_INT +
+      flatbuffers.FILE_IDENTIFIER_LENGTH) {
+    throw new Error(
+        'FlatBuffers: ByteBuffer is too short to contain an identifier.');
+  }
+  var result = "";
+  for (var i = 0; i < flatbuffers.FILE_IDENTIFIER_LENGTH; i++) {
+    result += String.fromCharCode(
+        this.readInt8(this.position_ + flatbuffers.SIZEOF_INT + i));
+  }
+  return result;
+};
+
+/**
  * Look up a field in the vtable, return an offset into the object, or 0 if the
  * field is not present.
  *
