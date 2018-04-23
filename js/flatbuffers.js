@@ -1052,7 +1052,7 @@ flatbuffers.ByteBuffer.prototype.getBufferIdentifier = function() {
     throw new Error(
         'FlatBuffers: ByteBuffer is too short to contain an identifier.');
   }
-  let result = "";
+  var result = "";
   for (var i = 0; i < flatbuffers.FILE_IDENTIFIER_LENGTH; i++) {
     result += String.fromCharCode(
         this.readInt8(this.position_ + flatbuffers.SIZEOF_INT + i));
