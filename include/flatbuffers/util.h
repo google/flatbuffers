@@ -381,7 +381,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 }
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
-                         bool allow_non_utf8, bool print_natural_utf8) {
+                         bool allow_non_utf8, bool natural_utf8) {
   std::string &text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
@@ -405,8 +405,9 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
             if (allow_non_utf8) {
               text += "\\x";
               text += IntToStringHex(static_cast<uint8_t>(c), 2);
-              // force escapes for next enteties
-              print_natural_utf8 = false;
+              // Cancel natural printing for current string and switch to escape
+              // mode for further utf-8 characters till the end of the string.
+              natural_utf8 = false;
             } else {
               // There are two cases here:
               //
@@ -423,7 +424,7 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
               return false;
             }
           } else {
-            if (print_natural_utf8) {
+            if (natural_utf8) {
               // utf8 points to past all utf-8 bytes parsed
               text.append(s + i, static_cast<size_t>(utf8 - s - i));
             } else if (ucc <= 0xFFFF) {

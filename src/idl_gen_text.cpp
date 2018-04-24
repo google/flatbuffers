@@ -120,7 +120,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
     case BASE_TYPE_STRING: {
       auto s = reinterpret_cast<const String *>(val);
       if (!EscapeString(s->c_str(), s->Length(), _text, opts.allow_non_utf8,
-                        opts.print_natural_utf8)) {
+                        opts.natural_utf8)) {
         return false;
       }
       break;

@@ -379,7 +379,7 @@ struct IDLOptions {
   std::string object_suffix;
   bool union_value_namespacing;
   bool allow_non_utf8;
-  bool print_natural_utf8;
+  bool natural_utf8;
   std::string include_prefix;
   bool keep_include_path;
   bool binary_schema_comments;
@@ -439,7 +439,7 @@ struct IDLOptions {
         object_suffix("T"),
         union_value_namespacing(true),
         allow_non_utf8(false),
-        print_natural_utf8(false),
+        natural_utf8(false),
         keep_include_path(false),
         binary_schema_comments(false),
         skip_flatbuffers_import(false),

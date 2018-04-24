@@ -69,8 +69,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --allow-non-utf8   Pass non-UTF-8 input through parser and emit nonstandard\n"
     "                     \\x escapes in JSON. (Default is to raise parse error on\n"
     "                     non-UTF-8 input.)\n"
-    "  --output-as-utf8   Output string as a natural UTF-8 sequence without escapes.\n"
-    "                     Without this UTF-8 symbols are printed as \\uXXXX escapes.\n"
+    "  --natural-utf8     Output strings with UTF-8 as human-readable strings.\n"
+    "                     By default, UTF-8 characters are printed as \\uXXXX escapes.\n"
     "  --defaults-json    Output fields whose value is the default when\n"
     "                     writing JSON\n"
     "  --unknown-json     Allow fields in JSON that are not defined in the\n"
@@ -183,8 +183,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {
         opts.allow_non_utf8 = true;
-      } else if (arg == "--output-as-utf8") {
-        opts.print_natural_utf8 = true;
+      } else if (arg == "--natural-utf8") {
+        opts.natural_utf8 = true;
       } else if (arg == "--no-js-exports") {
         opts.skip_js_exports = true;
       } else if (arg == "--goog-js-export") {
