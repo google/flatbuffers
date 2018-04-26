@@ -1776,7 +1776,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         const auto str = vec->Get(i);
-        if (!str)
+        if (!str || !Verify(str, sizeof(flatbuffers::uoffset_t)))
             return false;
 
         if (!Verify(str)) return false;
