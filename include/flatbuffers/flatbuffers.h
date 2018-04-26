@@ -1775,7 +1775,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyVectorOfStrings(const Vector<Offset<String>> *vec) const {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!Verify(vec->Get(i))) return false;
+        const auto str = vec->Get(i);
+        if (!str)
+            return false;
+
+        if (!Verify(str)) return false;
       }
     }
     return true;
