@@ -1789,7 +1789,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!vec->Get(i)->Verify(*this)) return false;
+        const auto table = vec->Get(i);
+        if (!table || !Verify(table, sizeof(flatbuffers::uoffset_t)))
+            return false;
+
+        if (!table->Verify(*this)) return false;
       }
     }
     return true;
