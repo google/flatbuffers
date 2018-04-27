@@ -1776,7 +1776,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         const auto str = vec->Get(i);
-        if (!str || !Verify(str, sizeof(flatbuffers::uoffset_t)))
+        if (!str)
             return false;
 
         if (!Verify(str)) return false;
@@ -1790,7 +1790,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         const auto table = vec->Get(i);
-        if (!table || !Verify(table, sizeof(flatbuffers::uoffset_t)))
+        if (!table || !Verify(table, sizeof(T)))
             return false;
 
         if (!table->Verify(*this)) return false;
