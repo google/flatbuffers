@@ -93,3 +93,4 @@ js/flatbuffers.mjs
 .ninja_log
 build.ninja
 rules.ninja
+.vscode
