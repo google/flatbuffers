@@ -1775,7 +1775,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyVectorOfStrings(const Vector<Offset<String>> *vec) const {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!Verify(vec->Get(i))) return false;
+        const auto str = vec->Get(i);
+        if (!str)
+            return false;
+
+        if (!Verify(str)) return false;
       }
     }
     return true;
@@ -1785,7 +1789,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T> bool VerifyVectorOfTables(const Vector<Offset<T>> *vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!vec->Get(i)->Verify(*this)) return false;
+        const auto table = vec->Get(i);
+        if (!table || !Verify(table, sizeof(T)))
+            return false;
+
+        if (!table->Verify(*this)) return false;
       }
     }
     return true;
