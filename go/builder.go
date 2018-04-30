@@ -551,7 +551,7 @@ func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 	}
 	// In order to add a file identifier to the flatbuffer message, we need
 	// to prepare an alignment and file identifier length
-	b.Prep(SizeInt32+fileIdentifierLength, 0)
+	b.Prep(b.minalign, SizeInt32+fileIdentifierLength)
 	for i := fileIdentifierLength - 1; i >= 0; i-- {
 		// place the file identifier
 		b.PlaceByte(fid[i])
