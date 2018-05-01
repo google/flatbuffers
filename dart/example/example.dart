@@ -58,7 +58,6 @@ void builderTest() {
 
   vec3Builder.finish(4.0, 5.0, 6.0);
   vec3Builder.finish(1.0, 2.0, 3.0);
-  final int path = builder.endStructVector(2); // the lenght of the vector
   // Set his hit points to 300 and his mana to 150.
   final int hp = 300;
   final int mana = 150;
@@ -72,7 +71,6 @@ void builderTest() {
     ..addEquippedOffset(axe)
     ..addHp(hp)
     ..addMana(mana)
-    ..addPathOffset(path)
     ..addPos(vec3Builder.finish(1.0, 2.0, 3.0))
     ..addColor(myGame.Color.Red);
 
@@ -90,19 +88,16 @@ void objectBuilderTest() {
   var axe = new myGame.WeaponObjectBuilder(name: 'Axe', damage: 5);
 
   var monsterBuilder = new myGame.MonsterObjectBuilder(
-      pos: new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
-      mana: 150,
-      hp: 300,
-      name: 'Orc',
-      inventory: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      color: myGame.Color.Red,
-      weapons: [new myGame.WeaponObjectBuilder(name: 'Sword', damage: 3), axe],
-      equippedType: myGame.EquipmentTypeId.Weapon,
-      equipped: axe,
-      path: [
-        new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
-        new myGame.Vec3ObjectBuilder(x: 4.0, y: 5.0, z: 6.0)
-      ]);
+    pos: new myGame.Vec3ObjectBuilder(x: 1.0, y: 2.0, z: 3.0),
+    mana: 150,
+    hp: 300,
+    name: 'Orc',
+    inventory: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    color: myGame.Color.Red,
+    weapons: [new myGame.WeaponObjectBuilder(name: 'Sword', damage: 3), axe],
+    equippedType: myGame.EquipmentTypeId.Weapon,
+    equipped: axe,
+  );
 
   var buffer = monsterBuilder.toBytes();
 

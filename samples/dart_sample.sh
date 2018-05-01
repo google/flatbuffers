@@ -32,9 +32,9 @@ cd ../dart/example
 # Run `flatc`. Note: This requires you to compile using `cmake` from the
 # root `/flatbuffers` directory.
 if [ -e ../../flatc ]; then
-  ../../flatc --dart monster.fbs
+  ../../flatc --dart ../../samples/monster.fbs
 elif [ -e ../../Debug/flatc ]; then
-  ../../Debug/flatc --dart monster.fbs
+  ../../Debug/flatc --dart ../../samples/monster.fbs
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.

@@ -111,8 +111,7 @@ class DartGenerator : public BaseGenerator {
     return ret;
   }
 
-  static std::string BuildNamespaceName(const Namespace &ns,
-                                        const std::string &sep = ".") {
+  static std::string BuildNamespaceName(const Namespace &ns) {
     std::stringstream sstream;
     std::copy(ns.components.begin(), ns.components.end() - 1,
               std::ostream_iterator<std::string>(sstream, "."));
