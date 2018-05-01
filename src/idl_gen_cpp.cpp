@@ -1996,8 +1996,8 @@ class CppGenerator : public BaseGenerator {
   std::string GenUnionUnpackVal(const FieldDef &afield,
                                 const char *vec_elem_access,
                                 const char *vec_type_access) {
-    return afield.value.type.enum_def->name + "Union::UnPack(" + "_e" +
-           vec_elem_access + ", " +
+    return afield.value.type.enum_def->name +
+           "Union::UnPack(" + "_e" + vec_elem_access + ", " +
            EscapeKeyword(afield.name + UnionTypeFieldSuffix()) +
            "()" + vec_type_access + ", _resolver)";
   }
