@@ -10,7 +10,7 @@ include = `include` string\_constant `;`
 
 namespace\_decl = `namespace` ident ( `.` ident )* `;`
 
-attribute\_decl = `attribute` string\_constant `;`
+attribute\_decl = `attribute` ident | `"`ident`"` `;`
 
 type\_decl = ( `table` | `struct` ) ident metadata `{` field\_decl+ `}`
 

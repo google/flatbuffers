@@ -284,7 +284,7 @@ inline std::string AbsolutePath(const std::string &filepath) {
 // Convert a unicode code point into a UTF-8 representation by appending it
 // to a string. Returns the number of bytes generated.
 inline int ToUTF8(uint32_t ucc, std::string *out) {
-  assert(!(ucc & 0x80000000));  // Top bit can't be set.
+  FLATBUFFERS_ASSERT(!(ucc & 0x80000000));  // Top bit can't be set.
   // 6 possible encodings: http://en.wikipedia.org/wiki/UTF-8
   for (int i = 0; i < 6; i++) {
     // Max bits this encoding can represent.
@@ -302,7 +302,7 @@ inline int ToUTF8(uint32_t ucc, std::string *out) {
       return i + 1;  // Return the number of bytes added.
     }
   }
-  assert(0);  // Impossible to arrive here.
+  FLATBUFFERS_ASSERT(0);  // Impossible to arrive here.
   return -1;
 }
 
@@ -321,7 +321,7 @@ inline int FromUTF8(const char **in) {
       break;
     }
   }
-  if ((static_cast<const unsigned char>(**in) << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
+  if ((static_cast<unsigned char>(**in) << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
   if (!len) return *(*in)++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
   if (len < 2 || len > 4) { return -1; }

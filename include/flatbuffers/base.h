@@ -9,6 +9,10 @@
 
 #include <assert.h>
 
+#if !defined(FLATBUFFERS_ASSERT)
+#define FLATBUFFERS_ASSERT assert
+#endif
+
 #ifndef ARDUINO
 #include <cstdint>
 #endif
@@ -209,7 +213,7 @@ template<typename T> T EndianSwap(T t) {
     u.i = FLATBUFFERS_BYTESWAP64(u.i);
     return u.t;
   } else {
-    assert(0);
+    FLATBUFFERS_ASSERT(0);
   }
 }
 

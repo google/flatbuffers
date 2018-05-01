@@ -50,7 +50,7 @@ class FlatBufMethod : public grpc_generator::Method {
   grpc::string GetLeadingComments(const grpc::string) const { return ""; }
   grpc::string GetTrailingComments(const grpc::string) const { return ""; }
   std::vector<grpc::string> GetAllComments() const {
-    return method_->rpc_comment;
+    return method_->doc_comment;
   }
 
   std::string name() const { return method_->name; }
@@ -160,7 +160,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
   void Indent() { indent_++; }
   void Outdent() {
     indent_--;
-    assert(indent_ >= 0);
+    FLATBUFFERS_ASSERT(indent_ >= 0);
   }
 
  private:
