@@ -29,3 +29,6 @@ cd ../dart
 pub get
 # Execute the sample.
 dart test/flat_buffers_test.dart
+
+# cleanup
+rm ../dart/test/monsterdata_test.mon

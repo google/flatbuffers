@@ -95,3 +95,9 @@ js/flatbuffers.mjs
 build.ninja
 rules.ninja
 .vscode
+dart/.pub/
+dart/.packages
+dart/pubspec.lock
+dart/.dart_tool/
+dart/build/
+dart/doc/api/

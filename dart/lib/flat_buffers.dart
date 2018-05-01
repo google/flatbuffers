@@ -243,7 +243,7 @@ class Builder {
     }
   }
 
-  /// Add the [field] with the given 32-bit unsigned integer [value].  The field
+  /// Add the [field] with the given 32-bit float [value].  The field
   /// is not added if the [value] is equal to [def].
   void addFloat32(int field, double value, [double def]) {
     _ensureCurrentVTable();
@@ -251,6 +251,17 @@ class Builder {
       _prepare(_sizeofFloat32, 1);
       _trackField(field);
       _setFloat32AtTail(_buf, _tail, value);
+    }
+  }
+
+  /// Add the [field] with the given 64-bit double [value].  The field
+  /// is not added if the [value] is equal to [def].
+  void addFloat64(int field, double value, [double def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      _prepare(_sizeofFloat64, 1);
+      _trackField(field);
+      _setFloat64AtTail(_buf, _tail, value);
     }
   }
 
@@ -508,6 +519,36 @@ class Builder {
     return result;
   }
 
+  /// Write the given list of signed 64-bit integer [values].
+  int writeListInt64(List<int> values) {
+    _ensureNoVTable();
+    _prepare(_sizeofUint32, 2 * values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt64AtTail(_buf, tail, value);
+      tail -= _sizeofInt64;
+    }
+    return result;
+  }
+
+  /// Write the given list of signed 64-bit integer [values].
+  int writeListUint64(List<int> values) {
+    _ensureNoVTable();
+    _prepare(_sizeofUint32, 2 * values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint64AtTail(_buf, tail, value);
+      tail -= _sizeofUint64;
+    }
+    return result;
+  }
+
   /// Write the given list of signed 32-bit integer [values].
   int writeListInt32(List<int> values) {
     _ensureNoVTable();
@@ -571,6 +612,21 @@ class Builder {
   /// Write the given list of bools as unsigend 8-bit integer [values].
   int writeListBool(List<bool> values) {
     return writeListUint8(values?.map((b) => b ? 1 : 0)?.toList());
+  }
+
+  /// Write the given list of signed 8-bit integer [values].
+  int writeListInt8(List<int> values) {
+    _ensureNoVTable();
+    _prepare(_sizeofUint32, 1, additionalBytes: values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt8AtTail(_buf, tail, value);
+      tail -= _sizeofUint8;
+    }
+    return result;
   }
 
   /// Write the given list of unsigned 8-bit integer [values].

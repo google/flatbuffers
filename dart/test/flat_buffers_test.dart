@@ -26,7 +26,7 @@ int indexToField(int index) {
 
 @reflectiveTest
 class CheckOtherLangaugesData {
-  void test_cppData() async {
+  test_cppData() async {
     List<int> data = await new io.File(path.join(
       path.dirname(io.Platform.script.path),
       'monsterdata_test.mon',
@@ -69,8 +69,8 @@ class BuilderTest {
     final fbBuilder = new Builder();
     final str = fbBuilder.writeString('MyMonster');
 
-    final test1 = fbBuilder.writeString('test1');
-    final test2 = fbBuilder.writeString('test2');
+    fbBuilder.writeString('test1');
+    fbBuilder.writeString('test2');
     final testArrayOfString = fbBuilder.endStructVector(2);
 
     final fred = fbBuilder.writeString('Fred');
