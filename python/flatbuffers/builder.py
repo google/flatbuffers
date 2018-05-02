@@ -396,14 +396,6 @@ class Builder(object):
         self.PlaceUOffsetT(vectorNumElems)
         return self.Offset()
 
-    def SerializeToString(self, s):
-        serialized = pickle.dumps(s)
-        return serialized
-
-    def FromString(self, s):
-        deserialized = pickle.loads(s)
-        return deserialized
-
     def CreateString(self, s, encoding='utf-8', errors='strict'):
         """CreateString writes a null-terminated byte string as a vector."""
 

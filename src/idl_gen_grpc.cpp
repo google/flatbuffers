@@ -218,8 +218,7 @@ class FlatBufFile : public grpc_generator::File {
         return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
       }
       case kLanguagePython: {
-        std::string header = "import flatbuffers\n\nbuilder = flatbuffers.Builder(0)";
-        return header;
+        return "";
       }
     }
     return "";
