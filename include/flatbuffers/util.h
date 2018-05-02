@@ -405,9 +405,6 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
             if (allow_non_utf8) {
               text += "\\x";
               text += IntToStringHex(static_cast<uint8_t>(c), 2);
-              // Cancel natural printing for current string and switch to escape
-              // mode for further utf-8 characters till the end of the string.
-              natural_utf8 = false;
             } else {
               // There are two cases here:
               //
