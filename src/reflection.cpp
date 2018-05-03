@@ -91,7 +91,8 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
             auto val = GetAnyFieldS(*table_field, fielddef, schema);
             if (fielddef.type()->base_type() == reflection::String) {
               std::string esc;
-              flatbuffers::EscapeString(val.c_str(), val.length(), &esc, true);
+              flatbuffers::EscapeString(val.c_str(), val.length(), &esc, true,
+                                        false);
               val = esc;
             }
             s += fielddef.name()->str();

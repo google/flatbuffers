@@ -495,14 +495,14 @@ class Reference {
     if (type_ == TYPE_STRING) {
       String str(Indirect(), byte_width_);
       if (strings_quoted) {
-        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true);
+        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true, false);
       } else {
         s.append(str.c_str(), str.length());
       }
     } else if (IsKey()) {
       auto str = AsKey();
       if (keys_quoted) {
-        flatbuffers::EscapeString(str, strlen(str), &s, true);
+        flatbuffers::EscapeString(str, strlen(str), &s, true, false);
       } else {
         s += str;
       }
