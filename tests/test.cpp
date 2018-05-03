@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -645,6 +645,22 @@ void ParseAndGenerateTextTest() {
   // If this fails, check registry.lasterror_.
   TEST_EQ(ok, true);
   TEST_EQ_STR(text.c_str(), jsonfile.c_str());
+
+  // Generate text for UTF-8 strings without escapes.
+  std::string jsonfile_utf8;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "unicode_test.json").c_str(),
+                                false, &jsonfile_utf8),
+          true);
+  TEST_EQ(parser.Parse(jsonfile_utf8.c_str(), include_directories), true);
+  // To ensure it is correct, generate utf-8 text back from the binary.
+  std::string jsongen_utf8;
+  // request natural printing for utf-8 strings
+  parser.opts.natural_utf8 = true;
+  parser.opts.strict_json = true;
+  TEST_EQ(
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8),
+      true);
+  TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
 }
 
 void ReflectionTest(uint8_t *flatbuf, size_t length) {
