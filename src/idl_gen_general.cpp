@@ -861,7 +861,7 @@ class GeneralGenerator : public BaseGenerator {
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
       std::string method_start = "  public " +
-                                 GenNullableAnnotation(field.value.type) +
+                                 (field.required ? "" : GenNullableAnnotation(field.value.type)) +
                                  type_name_dest + optional + " " +
                                  MakeCamel(field.name, lang_.first_camel_upper);
       std::string obj = lang_.language == IDLOptions::kCSharp
