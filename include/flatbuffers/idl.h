@@ -392,6 +392,7 @@ struct IDLOptions {
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
+  bool force_defaults;
 
   // Possible options for the more general generator below.
   enum Language {
