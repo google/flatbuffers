@@ -340,9 +340,26 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->Length() : 0;
 }
 
+#ifndef FLATBUFFERS_STRING_VIEW
+  #if defined(__has_include)
+    #if __has_include(<string_view>) && (__cplusplus > 201402)
+      #include <string_view>
+      #define FLATBUFFERS_STRING_VIEW std::string_view
+    #elif __has_include(<experimental/string_view>)
+      #include <experimental/string_view>
+      #define FLATBUFFERS_STRING_VIEW std::experimental::string_view
+    #endif
+  #endif // __has_include
+#endif // !FLATBUFFERS_STRING_VIEW
+
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), Length()); }
+#ifdef FLATBUFFERS_STRING_VIEW
+  FLATBUFFERS_STRING_VIEW view() const {
+    return FLATBUFFERS_STRING_VIEW(Data(), Length());
+  }
+#endif // FLATBUFFERS_STRING_VIEW
 
   bool operator<(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
@@ -1076,6 +1093,15 @@ class FlatBufferBuilder {
   Offset<String> CreateString(const std::string &str) {
     return CreateString(str.c_str(), str.length());
   }
+
+#ifdef FLATBUFFERS_STRING_VIEW
+  /// @brief Store a string in the buffer, which can contain any binary data.
+  /// @param[in] str A const string_view to copy in to the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  Offset<String> CreateString(const string_view &str) {
+    return CreateString(str.data(), str.size());
+  }
+#endif // FLATBUFFERS_STRING_VIEW
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
