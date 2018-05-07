@@ -128,5 +128,7 @@ Additional options:
 -   `--reflect-types` : Add minimal type reflection to code generation.
 -   `--reflect-names` : Add minimal type/name reflection.
 
+-   `--root-type T` : Select or override the default root_type.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
