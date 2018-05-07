@@ -344,8 +344,8 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), Length()); }
 #ifdef FLATBUFFERS_STRING_VIEW
-  FLATBUFFERS_STRING_VIEW view() const {
-    return FLATBUFFERS_STRING_VIEW(Data(), Length());
+  FLATBUFFERS_STRING_VIEW string_view() const {
+    return FLATBUFFERS_STRING_VIEW(c_str(), Length());
   }
 #endif // FLATBUFFERS_STRING_VIEW
 
