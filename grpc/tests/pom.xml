@@ -4,13 +4,13 @@
     <parent>
         <groupId>com.google.flatbuffers</groupId>
         <artifactId>flatbuffers-parent</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
     </parent>
     <artifactId>grpc-test</artifactId>
     <description>Example/Test project demonstrating usage of flatbuffers with GRPC-Java instead of protobufs
     </description>
     <properties>
-        <gRPC.version>1.8.0</gRPC.version>
+        <gRPC.version>1.9.0</gRPC.version>
     </properties>
     <dependencies>
         <dependency>
