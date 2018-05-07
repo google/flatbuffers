@@ -320,10 +320,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
 
-  if (opts.force_defaults) {
-    parser->builder_.ForceDefaults(true);
-  }
-
   for (auto file_it = filenames.begin(); file_it != filenames.end();
        ++file_it) {
     auto &filename = *file_it;

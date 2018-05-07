@@ -453,6 +453,7 @@ struct IDLOptions {
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
         size_prefixed(false),
+        force_defaults(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0) {}
@@ -528,6 +529,9 @@ class Parser : public ParserState {
         source_(nullptr),
         anonymous_counter(0),
         recurse_protection_counter(0) {
+    if (opts.force_defaults) {
+      builder_.ForceDefaults(true);
+    }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
     namespaces_.push_back(empty_namespace_);
