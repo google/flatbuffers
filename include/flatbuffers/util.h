@@ -76,7 +76,6 @@ template<typename T> size_t IntToDigitCount(T t) {
 
 template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
   size_t string_width = IntToDigitCount(t);
-
   if (precision) {
     string_width += (precision + 1); // Count the dot for floating point numbers
   }
@@ -106,8 +105,7 @@ template<typename T> std::string NumToString(T t) {
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
   auto v = static_cast<long long>(t);
-  auto s = NumToStringImplWrapper(v, "%.*lld");
-  return s;
+  return NumToStringImplWrapper(v, "%.*lld");
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
 // Avoid char types used as character data.
@@ -174,8 +172,7 @@ inline std::string IntToStringHex(int i, int xdigits) {
      << i;
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
-  auto s = NumToStringImplWrapper(i, "%.*X", xdigits);
-  return s;
+  return NumToStringImplWrapper(i, "%.*X", xdigits);
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
 
