@@ -193,9 +193,9 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   std::string stream_str;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
     if (i) { stream_str += "."; }
-    stream_str += std::string{components[i]};
+    stream_str += std::string(components[i]);
   }
-  if (name.length()) stream_str += std::string{"."} + name;
+  if (name.length()) { stream_str += name; }
   return stream_str;
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
