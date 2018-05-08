@@ -92,7 +92,11 @@ std::string MakeCamel(const std::string &in, bool first) {
 }
 
 void Parser::Message(const std::string &msg) {
+#ifndef FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
+#else // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
+  error_ = file_being_parsed_.length() ? file_being_parsed_ : "";
+#endif // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
   // clang-format off
   #ifdef _WIN32
     error_ += "(" + NumToString(line_) + ")";  // MSVC alike
@@ -2382,6 +2386,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("include") || (opts.proto_mode && IsIdent("import"))) {
       NEXT();
       if (opts.proto_mode && attribute_ == "public") NEXT();
+#ifndef FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
       auto name = flatbuffers::PosixPath(attribute_.c_str());
       EXPECT(kTokenStringConstant);
       // Look for the file in include_paths.
@@ -2420,6 +2425,10 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
                        include_filename);
       }
       EXPECT(';');
+#else // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
+      auto name = attribute_;
+      return Error("unable to load include file: " + name);
+#endif // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
     } else {
       break;
     }
