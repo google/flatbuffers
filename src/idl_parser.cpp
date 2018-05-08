@@ -183,7 +183,7 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   if (components.empty() || !max_components) { return name; }
   std::string stream_str;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
-    if (i) { stream_str += "."; }
+    if (i) { stream_str += '.'; }
     stream_str += std::string(components[i]);
   }
   if (name.length()) {
