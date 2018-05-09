@@ -883,7 +883,8 @@ class GeneralGenerator : public BaseGenerator {
           code += type_name + "()); }\n";
         }
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-                 field.value.type.element == BASE_TYPE_STRUCT) {
+                 (field.value.type.element == BASE_TYPE_STRUCT ||
+                  field.value.type.element == BASE_TYPE_UNION)) {
         // Accessors for vectors of structs also take accessor objects, this
         // generates a variant without that argument.
         if (lang_.language != IDLOptions::kCSharp) {
@@ -968,8 +969,13 @@ class GeneralGenerator : public BaseGenerator {
               if (lang_.language != IDLOptions::kCSharp)
                 code += type_name + " obj, ";
               getter = obj + ".__assign";
+            } else if (vectortype.base_type == BASE_TYPE_UNION) {
+              if (lang_.language != IDLOptions::kCSharp)
+                code += type_name + " obj, ";
             }
             code += "int j)" + offset_prefix + conditional_cast + getter + "(";
+            if (vectortype.base_type == BASE_TYPE_UNION && lang_.language != IDLOptions::kCSharp)
+              code += "obj, ";
             auto index = lang_.accessor_prefix + "__vector(o) + j * " +
                          NumToString(InlineSize(vectortype));
             if (vectortype.base_type == BASE_TYPE_STRUCT) {

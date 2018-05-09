@@ -19,7 +19,8 @@ public final class Movie extends Table {
   public int charactersTypeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer charactersTypeAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer charactersTypeInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
-  public Table characters(int j) { int o = __offset(10); return o != 0 ? __union(__vector(o) + j * 4) : null; }
+  public Table characters(int j) { return characters(new Table(), j); }
+  public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
 
   public static int createMovie(FlatBufferBuilder builder,
