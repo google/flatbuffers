@@ -69,6 +69,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --allow-non-utf8   Pass non-UTF-8 input through parser and emit nonstandard\n"
     "                     \\x escapes in JSON. (Default is to raise parse error on\n"
     "                     non-UTF-8 input.)\n"
+    "  --natural-utf8     Output strings with UTF-8 as human-readable strings.\n"
+    "                     By default, UTF-8 characters are printed as \\uXXXX escapes.\n"
     "  --defaults-json    Output fields whose value is the default when\n"
     "                     writing JSON\n"
     "  --unknown-json     Allow fields in JSON that are not defined in the\n"
@@ -106,6 +108,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
+    "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
     "  --conform FILE     Specify a schema the following schemas should be\n"
     "                     an evolution of. Gives errors if not.\n"
     "  --conform-includes Include path for the schema given with --conform\n"
@@ -117,6 +120,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
+    "  --root-type T      Select or override the default root_type\n"
     "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
     "schema). FILEs after the -- must be binary flatbuffer format files.\n"
     "Output files are named using the base file name of the input,\n"
@@ -181,6 +185,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {
         opts.allow_non_utf8 = true;
+      } else if (arg == "--natural-utf8") {
+        opts.natural_utf8 = true;
       } else if (arg == "--no-js-exports") {
         opts.skip_js_exports = true;
       } else if (arg == "--goog-js-export") {
@@ -253,6 +259,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         grpc_enabled = true;
       } else if (arg == "--bfbs-comments") {
         opts.binary_schema_comments = true;
+      } else if (arg == "--bfbs-builtins") {
+        opts.binary_schema_builtins = true;
       } else if (arg == "--no-fb-import") {
         opts.skip_flatbuffers_import = true;
       } else if (arg == "--no-ts-reexport") {
@@ -261,6 +269,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--root-type") {
+        if (++argi >= argc) Error("missing type following" + arg, true);
+        opts.root_type = argv[argi];
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -398,6 +409,13 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           }
         }
       }
+    }
+
+    if (!opts.root_type.empty()) {
+      if (!parser->SetRootType(opts.root_type.c_str()))
+        Error("unknown root type: " + opts.root_type);
+      else if (parser->root_struct_def_->fixed)
+        Error("root type must be a table");
     }
 
     if (opts.proto_mode) GenerateFBS(*parser.get(), output_path, filebase);

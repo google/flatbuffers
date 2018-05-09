@@ -306,7 +306,7 @@ inline size_t InlineAlignment(const Type &type) {
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
 
-  Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder) const;
+  Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   std::string name;
   std::vector<std::string> doc_comment;
@@ -326,8 +326,7 @@ struct EnumDef : public Definition {
     return nullptr;
   }
 
-  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder,
-                                     const Parser &parser) const;
+  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   SymbolTable<EnumVal> vals;
   bool is_union;
@@ -342,14 +341,15 @@ inline bool EqualByName(const Type &a, const Type &b) {
          (a.enum_def == b.enum_def || a.enum_def->name == b.enum_def->name);
 }
 
-struct RPCCall {
-  std::string name;
-  SymbolTable<Value> attributes;
+struct RPCCall : public Definition {
+  Offset<reflection::RPCCall> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
   StructDef *request, *response;
-  std::vector<std::string> rpc_comment;
 };
 
 struct ServiceDef : public Definition {
+  Offset<reflection::Service> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
   SymbolTable<RPCCall> calls;
 };
 
@@ -379,15 +379,18 @@ struct IDLOptions {
   std::string object_suffix;
   bool union_value_namespacing;
   bool allow_non_utf8;
+  bool natural_utf8;
   std::string include_prefix;
   bool keep_include_path;
   bool binary_schema_comments;
+  bool binary_schema_builtins;
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
   bool size_prefixed;
+  std::string root_type;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -438,8 +441,10 @@ struct IDLOptions {
         object_suffix("T"),
         union_value_namespacing(true),
         allow_non_utf8(false),
+        natural_utf8(false),
         keep_include_path(false),
         binary_schema_comments(false),
+        binary_schema_builtins(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),

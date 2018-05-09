@@ -4,7 +4,7 @@
     <groupId>com.google.flatbuffers</groupId>
     <artifactId>flatbuffers-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <name>flatbuffers-parent</name>
     <description>parent pom for flatbuffers java artifacts</description>
     <properties>
@@ -201,7 +201,7 @@
     </build>
 
     <modules>
-<!-- consider the benefits of publishing all maven artifacts in this project 
+<!-- consider the benefits of publishing all maven artifacts in this project
 
         <module>flatbuffers-compiler</module>
         <module>flatbuffers-java</module>
