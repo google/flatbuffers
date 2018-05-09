@@ -1620,7 +1620,8 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 bool Parser::SupportsVectorOfUnions() const {
   return opts.lang_to_generate != 0 &&
          (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kJs |
-                                    IDLOptions::kTs | IDLOptions::kPhp)) == 0;
+                                    IDLOptions::kTs | IDLOptions::kPhp |
+                                    IDLOptions::kJava)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
