@@ -883,8 +883,7 @@ class GeneralGenerator : public BaseGenerator {
           code += type_name + "()); }\n";
         }
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-                 (field.value.type.element == BASE_TYPE_STRUCT ||
-                  field.value.type.element == BASE_TYPE_UNION)) {
+                 field.value.type.element == BASE_TYPE_STRUCT) {
         // Accessors for vectors of structs also take accessor objects, this
         // generates a variant without that argument.
         if (lang_.language != IDLOptions::kCSharp) {
