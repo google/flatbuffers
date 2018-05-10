@@ -53,33 +53,23 @@ namespace flatbuffers {
 #ifdef FLATBUFFERS_PREFER_PRINTF
 template<typename T> size_t IntToDigitCount(T t) {
   size_t digit_count = 0;
-
   // Count the sign for negative numbers
-  if (t < 0) {
-    digit_count++;
-  }
-
+  if (t < 0) digit_count++;
   // Count a single 0 left of the dot for fractional numbers
-  if (-1 < t && t < 1) {
-    digit_count++;
-  }
-
+  if (-1 < t && t < 1) digit_count++;
   // Count digits until fractional part
   T eps = std::numeric_limits<float>::epsilon();
   while (t <= (-1 + eps) || (1 - eps) <= t) {
     t /= 10;
     digit_count++;
   }
-
   return digit_count;
 }
 
 template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
   size_t string_width = IntToDigitCount(t);
-  if (precision) {
-    string_width += (precision + 1); // Count the dot for floating point numbers
-  }
-
+  // Count the dot for floating point numbers
+  if (precision) string_width += (precision + 1);
   return string_width;
 }
 
@@ -87,9 +77,7 @@ template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
                                                         int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
-
   snprintf(const_cast<char*>(s.data()), s.size(), fmt, precision, t);
-
   return s;
 }
 #endif // FLATBUFFERS_PREFER_PRINTF
