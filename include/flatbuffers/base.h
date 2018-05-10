@@ -153,20 +153,27 @@
   #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif
 
-#ifndef FLATBUFFERS_STRING_VIEW
-  // Only provide string_view features if __has_include can be used to detect it
+#ifndef FLATBUFFERS_HAS_STRING_VIEW
+  // Only provide flatbuffers::string_view if __has_include can be used
+  // to detect a header that provides an implementation
   #if defined(__has_include)
     // Check for std::string_view (in c++17)
     #if __has_include(<string_view>) && (__cplusplus > 201402)
       #include <string_view>
-      #define FLATBUFFERS_STRING_VIEW std::string_view
+      namespace flatbuffers {
+        typedef std::string_view string_view;
+      }
+      #define FLATBUFFERS_HAS_STRING_VIEW 1
     // Check for std::experimental::string_view (in c++14, compiler-dependent)
     #elif __has_include(<experimental/string_view>) && (__cplusplus > 201103)
       #include <experimental/string_view>
-      #define FLATBUFFERS_STRING_VIEW std::experimental::string_view
+      namespace flatbuffers {
+        typedef std::experimental::string_view string_view;
+      }
+      #define FLATBUFFERS_HAS_STRING_VIEW 1
     #endif
   #endif // __has_include
-#endif // !FLATBUFFERS_STRING_VIEW
+#endif // !FLATBUFFERS_HAS_STRING_VIEW
 
 /// @endcond
 
