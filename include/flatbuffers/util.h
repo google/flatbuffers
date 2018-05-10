@@ -22,7 +22,12 @@
 #include <stdlib.h>
 #include <fstream>
 #include <iomanip>
-#include <sstream>
+#ifndef FLATBUFFERS_PREFER_PRINTF
+#  include <sstream>
+#else // FLATBUFFERS_PREFER_PRINTF
+#  include <float.h>
+#  include <stdio.h>
+#endif // FLATBUFFERS_PREFER_PRINTF
 #include <string>
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
@@ -45,13 +50,53 @@
 
 namespace flatbuffers {
 
+#ifdef FLATBUFFERS_PREFER_PRINTF
+template<typename T> size_t IntToDigitCount(T t) {
+  size_t digit_count = 0;
+  // Count the sign for negative numbers
+  if (t < 0) digit_count++;
+  // Count a single 0 left of the dot for fractional numbers
+  if (-1 < t && t < 1) digit_count++;
+  // Count digits until fractional part
+  T eps = std::numeric_limits<float>::epsilon();
+  while (t <= (-1 + eps) || (1 - eps) <= t) {
+    t /= 10;
+    digit_count++;
+  }
+  return digit_count;
+}
+
+template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
+  size_t string_width = IntToDigitCount(t);
+  // Count the dot for floating point numbers
+  if (precision) string_width += (precision + 1);
+  return string_width;
+}
+
+template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
+                                                        int precision = 0) {
+  size_t string_width = NumToStringWidth(t, precision);
+  std::string s(string_width, 0x00);
+  // Allow snprintf to use std::string trailing null to detect buffer overflow
+  snprintf(const_cast<char*>(s.data()), (s.size()+1), fmt, precision, t);
+  return s;
+}
+#endif // FLATBUFFERS_PREFER_PRINTF
+
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
-  std::stringstream ss;
-  ss << t;
-  return ss.str();
+  // clang-format off
+  #ifndef FLATBUFFERS_PREFER_PRINTF
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+  #else // FLATBUFFERS_PREFER_PRINTF
+    auto v = static_cast<long long>(t);
+    return NumToStringImplWrapper(v, "%.*lld");
+  #endif // FLATBUFFERS_PREFER_PRINTF
+  // clang-format on
 }
 // Avoid char types used as character data.
 template<> inline std::string NumToString<signed char>(signed char t) {
@@ -77,15 +122,22 @@ inline std::string NumToString<unsigned long long>(unsigned long long t) {
 
 // Special versions for floats/doubles.
 template<typename T> std::string FloatToString(T t, int precision) {
-  // to_string() prints different numbers of digits for floats depending on
-  // platform and isn't available on Android, so we use stringstream
-  std::stringstream ss;
-  // Use std::fixed to surpress scientific notation.
-  ss << std::fixed;
-  // Default precision is 6, we want that to be higher for doubles.
-  ss << std::setprecision(precision);
-  ss << t;
-  auto s = ss.str();
+  // clang-format off
+  #ifndef FLATBUFFERS_PREFER_PRINTF
+    // to_string() prints different numbers of digits for floats depending on
+    // platform and isn't available on Android, so we use stringstream
+    std::stringstream ss;
+    // Use std::fixed to suppress scientific notation.
+    ss << std::fixed;
+    // Default precision is 6, we want that to be higher for doubles.
+    ss << std::setprecision(precision);
+    ss << t;
+    auto s = ss.str();
+  #else // FLATBUFFERS_PREFER_PRINTF
+    auto v = static_cast<double>(t);
+    auto s = NumToStringImplWrapper(v, "%0.*f", precision);
+  #endif // FLATBUFFERS_PREFER_PRINTF
+  // clang-format on
   // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
   auto p = s.find_last_not_of('0');
   if (p != std::string::npos) {
@@ -106,10 +158,16 @@ template<> inline std::string NumToString<float>(float t) {
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
 inline std::string IntToStringHex(int i, int xdigits) {
-  std::stringstream ss;
-  ss << std::setw(xdigits) << std::setfill('0') << std::hex << std::uppercase
-     << i;
-  return ss.str();
+  // clang-format off
+  #ifndef FLATBUFFERS_PREFER_PRINTF
+    std::stringstream ss;
+    ss << std::setw(xdigits) << std::setfill('0') << std::hex << std::uppercase
+       << i;
+    return ss.str();
+  #else // FLATBUFFERS_PREFER_PRINTF
+    return NumToStringImplWrapper(i, "%.*X", xdigits);
+  #endif // FLATBUFFERS_PREFER_PRINTF
+  // clang-format on
 }
 
 // Portable implementation of strtoll().
@@ -353,6 +411,7 @@ inline int FromUTF8(const char **in) {
   return ucc;
 }
 
+#ifndef FLATBUFFERS_PREFER_PRINTF
 // Wraps a string to a maximum length, inserting new lines where necessary. Any
 // existing whitespace will be collapsed down to a single space. A prefix or
 // suffix can be provided, which will be inserted before or after a wrapped
@@ -379,6 +438,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
   return wrapped;
 }
+#endif // !FLATBUFFERS_PREFER_PRINTF
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
                          bool allow_non_utf8, bool natural_utf8) {
