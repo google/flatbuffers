@@ -141,9 +141,17 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += MakeCamel(field.name);
   code += "(self):";
   code += OffsetPrefix(field);
-  code += Indent + Indent + Indent + "return " + getter;
-  code += "o + self._tab.Pos)\n";
-  code += Indent + Indent + "return " + field.value.constant + "\n\n";
+  getter += "o + self._tab.Pos)";
+  if (field.value.type.base_type == BASE_TYPE_BOOL) {
+    getter = "bool(" + getter + ")";
+  }
+  code += Indent + Indent + Indent + "return " + getter + "\n";
+  if (field.value.type.base_type == BASE_TYPE_BOOL) {
+    code += Indent + Indent + "return False\n\n";
+  } else {
+    code += Indent + Indent + "return " + field.value.constant + "\n\n";
+  }
+
 }
 
 // Get a struct by initializing an existing struct.
