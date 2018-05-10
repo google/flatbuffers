@@ -344,7 +344,7 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), Length()); }
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
-  string_view string_view() const {
+  flatbuffers::string_view string_view() const {
     return flatbuffers::string_view(c_str(), Length());
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
@@ -1086,7 +1086,7 @@ class FlatBufferBuilder {
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(string_view str) {
+  Offset<String> CreateString(flatbuffers::string_view str) {
     return CreateString(str.data(), str.size());
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
