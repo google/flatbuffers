@@ -136,8 +136,8 @@ Additional options:
 
 -   `--root-type T` : Select or override the default root_type.
 
--   `--force-defaults` : Emit default values for fields which are not present
-    or which are set to the default value.
+-   `--force-defaults` : Emit objects/values for all fields which are present,
+    even if they match the default value and could otherwise be excluded.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
