@@ -86,10 +86,9 @@ template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
 template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
                                                         int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
-  std::string s(string_width+1, 0x00); // Allocate an extra null byte
+  std::string s(string_width, 0x00);
 
   snprintf(const_cast<char*>(s.data()), s.size(), fmt, precision, t);
-  s.resize(string_width); // Remove the null byte
 
   return s;
 }
