@@ -15,12 +15,8 @@
  */
 
 #include <algorithm>
-#ifndef FLATBUFFERS_PREFER_PRINTF
-#include <iostream>
-#else // FLATBUFFERS_PREFER_PRINTF
-#include <string>
-#endif // FLATBUFFERS_PREFER_PRINTF
 #include <list>
+#include <string>
 
 #include <math.h>
 
