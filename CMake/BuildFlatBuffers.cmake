@@ -71,6 +71,8 @@ function(build_flatbuffers flatbuffers_schemas
       )
   endif()
 
+  set(working_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+
   set(schema_glob "*.fbs")
   # Generate the include files parameters.
   set(include_params "")
@@ -97,7 +99,8 @@ function(build_flatbuffers flatbuffers_schemas
         -o ${generated_includes_dir}
         ${include_params}
         -c ${schema}
-        DEPENDS ${FLATC_TARGET} ${schema} ${additional_dependencies})
+        DEPENDS ${FLATC_TARGET} ${schema} ${additional_dependencies}
+        WORKING_DIRECTORY "${working_dir}")
       list(APPEND all_generated_files ${generated_include})
     endif()
 
@@ -109,7 +112,8 @@ function(build_flatbuffers flatbuffers_schemas
         -o ${binary_schemas_dir}
         ${include_params}
         ${schema}
-        DEPENDS ${FLATC_TARGET} ${schema} ${additional_dependencies})
+        DEPENDS ${FLATC_TARGET} ${schema} ${additional_dependencies}
+        WORKING_DIRECTORY "${working_dir}")
       list(APPEND all_generated_files ${binary_schema})
     endif()
 
