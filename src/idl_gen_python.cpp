@@ -142,16 +142,17 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += "(self):";
   code += OffsetPrefix(field);
   getter += "o + self._tab.Pos)";
-  if (field.value.type.base_type == BASE_TYPE_BOOL) {
+
+  bool isBool = field.value.type.base_type == BASE_TYPE_BOOL;
+
+  if (isBool) {
     getter = "bool(" + getter + ")";
   }
   code += Indent + Indent + Indent + "return " + getter + "\n";
-  if (field.value.type.base_type == BASE_TYPE_BOOL) {
-    code += Indent + Indent + "return False\n\n";
-  } else {
-    code += Indent + Indent + "return " + field.value.constant + "\n\n";
-  }
 
+  std::string defaultValue = (isBool ? "False" : field.value.constant);
+
+  code += Indent + Indent + "return " + defaultValue + "\n\n";
 }
 
 // Get a struct by initializing an existing struct.
