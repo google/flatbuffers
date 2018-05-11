@@ -1621,7 +1621,7 @@ bool Parser::SupportsVectorOfUnions() const {
   return opts.lang_to_generate != 0 &&
          (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kJs |
                                     IDLOptions::kTs | IDLOptions::kPhp |
-                                    IDLOptions::kJava)) == 0;
+                                    IDLOptions::kJava | IDLOptions::kCSharp)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
