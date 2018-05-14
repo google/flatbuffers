@@ -142,16 +142,12 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += "(self):";
   code += OffsetPrefix(field);
   getter += "o + self._tab.Pos)";
-
-  bool isBool = field.value.type.base_type == BASE_TYPE_BOOL;
-
-  if (isBool) {
+  auto is_bool = field.value.type.base_type == BASE_TYPE_BOOL;
+  if (is_bool) {
     getter = "bool(" + getter + ")";
   }
   code += Indent + Indent + Indent + "return " + getter + "\n";
-
-  std::string defaultValue = (isBool ? "False" : field.value.constant);
-
+  auto defaultValue = (is_bool ? "False" : field.value.constant);
   code += Indent + Indent + "return " + defaultValue + "\n\n";
 }
 
