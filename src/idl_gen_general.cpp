@@ -853,7 +853,8 @@ class GeneralGenerator : public BaseGenerator {
           (field.value.type.base_type == BASE_TYPE_STRUCT ||
            field.value.type.base_type == BASE_TYPE_UNION ||
            (field.value.type.base_type == BASE_TYPE_VECTOR &&
-            field.value.type.element == BASE_TYPE_STRUCT))) {
+            (field.value.type.element == BASE_TYPE_STRUCT ||
+             field.value.type.element == BASE_TYPE_UNION)))) {
         optional = lang_.optional_suffix;
         conditional_cast = "(" + type_name_dest + optional + ")";
       }
@@ -891,7 +892,9 @@ class GeneralGenerator : public BaseGenerator {
           code += MakeCamel(field.name, lang_.first_camel_upper);
           code += "(new " + type_name + "(), j); }\n";
         }
-      } else if (field.value.type.base_type == BASE_TYPE_UNION) {
+      } else if (field.value.type.base_type == BASE_TYPE_UNION ||
+          (field.value.type.base_type == BASE_TYPE_VECTOR &&
+           field.value.type.VectorType().base_type == BASE_TYPE_UNION)) {
         if (lang_.language == IDLOptions::kCSharp) {
           // Union types in C# use generic Table-derived type for better type
           // safety.
@@ -963,13 +966,30 @@ class GeneralGenerator : public BaseGenerator {
             break;
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
+            if (vectortype.base_type == BASE_TYPE_UNION &&
+                lang_.language == IDLOptions::kCSharp) {
+                  conditional_cast = "(TTable?)";
+                  getter += "<TTable>";
+            }
             code += "(";
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               if (lang_.language != IDLOptions::kCSharp)
                 code += type_name + " obj, ";
               getter = obj + ".__assign";
+            } else if (vectortype.base_type == BASE_TYPE_UNION) {
+              if (lang_.language != IDLOptions::kCSharp)
+                code += type_name + " obj, ";
             }
-            code += "int j)" + offset_prefix + conditional_cast + getter + "(";
+            code += "int j)";
+            const auto body = offset_prefix + conditional_cast + getter + "(";
+            if (vectortype.base_type == BASE_TYPE_UNION) {
+              if (lang_.language != IDLOptions::kCSharp)
+                code += body + "obj, ";
+              else
+                code += " where TTable : struct, IFlatbufferObject" + body;
+            } else {
+              code += body;
+            }
             auto index = lang_.accessor_prefix + "__vector(o) + j * " +
                          NumToString(InlineSize(vectortype));
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
