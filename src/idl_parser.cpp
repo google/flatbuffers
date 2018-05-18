@@ -50,7 +50,7 @@ const char kTypeSizes[] = {
 
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
-static_assert(BASE_TYPE_UNION == static_cast<BaseType>(reflection::Union),
+static_assert(BASE_TYPE_BYTES == static_cast<BaseType>(reflection::Bytes),
               "enums don't match");
 
 // Any parsing calls have to be wrapped in this macro, which automates
@@ -576,6 +576,9 @@ CheckedError Parser::ParseType(Type &type) {
       NEXT();
     } else if (IsIdent("string")) {
       type.base_type = BASE_TYPE_STRING;
+      NEXT();
+    } else if (IsIdent("bytes")) {
+      type.base_type = BASE_TYPE_BYTES;
       NEXT();
     } else {
       ECHECK(ParseTypeIdent(type));

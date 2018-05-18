@@ -43,10 +43,11 @@ enum BaseType {
   String = 13,
   Vector = 14,
   Obj = 15,
-  Union = 16
+  Union = 16,
+  Bytes = 17
 };
 
-inline const BaseType (&EnumValuesBaseType())[17] {
+inline const BaseType (&EnumValuesBaseType())[18] {
   static const BaseType values[] = {
     None,
     UType,
@@ -64,7 +65,8 @@ inline const BaseType (&EnumValuesBaseType())[17] {
     String,
     Vector,
     Obj,
-    Union
+    Union,
+    Bytes
   };
   return values;
 }
@@ -88,6 +90,7 @@ inline const char * const *EnumNamesBaseType() {
     "Vector",
     "Obj",
     "Union",
+    "Bytes",
     nullptr
   };
   return names;
