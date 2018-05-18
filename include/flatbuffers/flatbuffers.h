@@ -601,7 +601,8 @@ class vector_downward {
   }
 
   inline uint8_t *make_space(size_t len) {
-    cur_ -= ensure_space(len);
+    size_t space = ensure_space(len);
+    cur_ -= space;
     return cur_;
   }
 
