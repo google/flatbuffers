@@ -36,6 +36,10 @@ echo "************************ PHP:"
 php phpTest.php
 sh phpUnionVectorTest.sh
 
+echo "************************ Dart:"
+
+sh DartTest.sh
+
 echo "************************ C:"
 
 echo "(in a different repo)"
