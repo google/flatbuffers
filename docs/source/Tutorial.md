@@ -662,7 +662,7 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 </div>
 <div class="language-dart">
 ~~~{.dart}
-  // The generated Builder classes work much like in other languages, 
+  // The generated Builder classes work much like in other languages,
   final int weaponOneName = builder.writeString("Sword");
   final int weaponOneDamage = 3;
 
@@ -841,7 +841,7 @@ traversal. This is generally easy to do on any tree structures.
   // could correspond to an item that can be claimed after he is slain.
   final List<int> treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   final inventory = builder.writeListUint8(treasure);
-  
+
   // The following code should be used instead if you intend to use the
   // ObjectBuilder classes:
   // Serialize a name for our monster, called "Orc".
@@ -1071,7 +1071,7 @@ can serialize the monster itself:
 ~~~{.cpp}
   // Create the position struct
   auto position = Vec3(1.0f, 2.0f, 3.0f);
-   
+
   // Set his hit points to 300 and his mana to 150.
   int hp = 300;
   int mana = 150;
@@ -1246,7 +1246,7 @@ can serialize the monster itself:
   // all of them.
   // Also note that it is not necessary to `finish` the builder helpers above
   // - the generated code will automatically reuse offsets if the same object
-  // is used in more than one place (e.g. the axe appearing in `weapons` and 
+  // is used in more than one place (e.g. the axe appearing in `weapons` and
   // `equipped`).
   final myGame.MonsterBuilder orcBuilder = new myGame.MonsterBuilder(
     name: name,
@@ -1501,7 +1501,7 @@ like so:
   // The number of bytes is buf.remaining().
 
   // Alternatively this copies the above data out of the ByteBuffer for you:
-  bytes[] buf = builder.sizedByteArray();
+  byte[] buf = builder.sizedByteArray();
 ~~~
 </div>
 <div class="language-csharp">
@@ -1513,7 +1513,7 @@ like so:
   // buf.Length - buf.Position.
 
   // Alternatively this copies the above data out of the ByteBuffer for you:
-  bytes[] buf = builder.SizedByteArray();
+  byte[] buf = builder.SizedByteArray();
 ~~~
 </div>
 <div class="language-go">
