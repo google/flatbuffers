@@ -768,7 +768,7 @@ traversal. This is generally easy to do on any tree structures.
   for i := 9; i >= 0; i-- {
           builder.PrependByte(byte(i))
   }
-  int := builder.EndVector(10)
+  inv := builder.EndVector(10)
 ~~~
 </div>
 <div class="language-python">
