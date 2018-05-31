@@ -1858,7 +1858,7 @@ void FlexBuffersTest() {
   TEST_EQ(tvec3[2].AsInt8(), 3);
   TEST_EQ(map["bool"].AsBool(), true);
   auto tvecb = map["bools"].AsTypedVector();
-  TEST_EQ(tvecb.ElementType(), flexbuffers::TYPE_BOOL);
+  TEST_EQ(tvecb.ElementType(), flexbuffers::FBT_BOOL);
   TEST_EQ(map["foo"].AsUInt8(), 100);
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();
