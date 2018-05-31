@@ -135,9 +135,8 @@ inline CheckedError atot(const char *s, Parser &parser, T *val) {
   int64_t i = StringToInt(s);
   const int64_t min = flatbuffers::numeric_limits<T>::min();
   const int64_t max = flatbuffers::numeric_limits<T>::max();
-  ECHECK(parser.CheckInRange(i, min, max));
-  *val = (T)i;
-  return NoError();
+  *val = (T)i;  // Assign this first to make ASAN happy.
+  return parser.CheckInRange(i, min, max);
 }
 template<>
 inline CheckedError atot<uint64_t>(const char *s, Parser &parser,
