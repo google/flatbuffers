@@ -49,75 +49,75 @@ enum BitWidth {
 // These are used as the upper 6 bits of a type field to indicate the actual
 // type.
 enum Type {
-  TYPE_NULL = 0,
-  TYPE_INT = 1,
-  TYPE_UINT = 2,
-  TYPE_FLOAT = 3,
+  FBT_NULL = 0,
+  FBT_INT = 1,
+  FBT_UINT = 2,
+  FBT_FLOAT = 3,
   // Types above stored inline, types below store an offset.
-  TYPE_KEY = 4,
-  TYPE_STRING = 5,
-  TYPE_INDIRECT_INT = 6,
-  TYPE_INDIRECT_UINT = 7,
-  TYPE_INDIRECT_FLOAT = 8,
-  TYPE_MAP = 9,
-  TYPE_VECTOR = 10,      // Untyped.
-  TYPE_VECTOR_INT = 11,  // Typed any size (stores no type table).
-  TYPE_VECTOR_UINT = 12,
-  TYPE_VECTOR_FLOAT = 13,
-  TYPE_VECTOR_KEY = 14,
-  TYPE_VECTOR_STRING = 15,
-  TYPE_VECTOR_INT2 = 16,  // Typed tuple (no type table, no size field).
-  TYPE_VECTOR_UINT2 = 17,
-  TYPE_VECTOR_FLOAT2 = 18,
-  TYPE_VECTOR_INT3 = 19,  // Typed triple (no type table, no size field).
-  TYPE_VECTOR_UINT3 = 20,
-  TYPE_VECTOR_FLOAT3 = 21,
-  TYPE_VECTOR_INT4 = 22,  // Typed quad (no type table, no size field).
-  TYPE_VECTOR_UINT4 = 23,
-  TYPE_VECTOR_FLOAT4 = 24,
-  TYPE_BLOB = 25,
-  TYPE_BOOL = 26,
-  TYPE_VECTOR_BOOL =
+  FBT_KEY = 4,
+  FBT_STRING = 5,
+  FBT_INDIRECT_INT = 6,
+  FBT_INDIRECT_UINT = 7,
+  FBT_INDIRECT_FLOAT = 8,
+  FBT_MAP = 9,
+  FBT_VECTOR = 10,      // Untyped.
+  FBT_VECTOR_INT = 11,  // Typed any size (stores no type table).
+  FBT_VECTOR_UINT = 12,
+  FBT_VECTOR_FLOAT = 13,
+  FBT_VECTOR_KEY = 14,
+  FBT_VECTOR_STRING = 15,
+  FBT_VECTOR_INT2 = 16,  // Typed tuple (no type table, no size field).
+  FBT_VECTOR_UINT2 = 17,
+  FBT_VECTOR_FLOAT2 = 18,
+  FBT_VECTOR_INT3 = 19,  // Typed triple (no type table, no size field).
+  FBT_VECTOR_UINT3 = 20,
+  FBT_VECTOR_FLOAT3 = 21,
+  FBT_VECTOR_INT4 = 22,  // Typed quad (no type table, no size field).
+  FBT_VECTOR_UINT4 = 23,
+  FBT_VECTOR_FLOAT4 = 24,
+  FBT_BLOB = 25,
+  FBT_BOOL = 26,
+  FBT_VECTOR_BOOL =
       36,  // To Allow the same type of conversion of type to vector type
 };
 
-inline bool IsInline(Type t) { return t <= TYPE_FLOAT || t == TYPE_BOOL; }
+inline bool IsInline(Type t) { return t <= FBT_FLOAT || t == FBT_BOOL; }
 
 inline bool IsTypedVectorElementType(Type t) {
-  return (t >= TYPE_INT && t <= TYPE_STRING) || t == TYPE_BOOL;
+  return (t >= FBT_INT && t <= FBT_STRING) || t == FBT_BOOL;
 }
 
 inline bool IsTypedVector(Type t) {
-  return (t >= TYPE_VECTOR_INT && t <= TYPE_VECTOR_STRING) ||
-         t == TYPE_VECTOR_BOOL;
+  return (t >= FBT_VECTOR_INT && t <= FBT_VECTOR_STRING) ||
+         t == FBT_VECTOR_BOOL;
 }
 
 inline bool IsFixedTypedVector(Type t) {
-  return t >= TYPE_VECTOR_INT2 && t <= TYPE_VECTOR_FLOAT4;
+  return t >= FBT_VECTOR_INT2 && t <= FBT_VECTOR_FLOAT4;
 }
 
 inline Type ToTypedVector(Type t, size_t fixed_len = 0) {
   FLATBUFFERS_ASSERT(IsTypedVectorElementType(t));
   switch (fixed_len) {
-    case 0: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT);
-    case 2: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT2);
-    case 3: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT3);
-    case 4: return static_cast<Type>(t - TYPE_INT + TYPE_VECTOR_INT4);
-    default: FLATBUFFERS_ASSERT(0); return TYPE_NULL;
+    case 0: return static_cast<Type>(t - FBT_INT + FBT_VECTOR_INT);
+    case 2: return static_cast<Type>(t - FBT_INT + FBT_VECTOR_INT2);
+    case 3: return static_cast<Type>(t - FBT_INT + FBT_VECTOR_INT3);
+    case 4: return static_cast<Type>(t - FBT_INT + FBT_VECTOR_INT4);
+    default: FLATBUFFERS_ASSERT(0); return FBT_NULL;
   }
 }
 
 inline Type ToTypedVectorElementType(Type t) {
   FLATBUFFERS_ASSERT(IsTypedVector(t));
-  return static_cast<Type>(t - TYPE_VECTOR_INT + TYPE_INT);
+  return static_cast<Type>(t - FBT_VECTOR_INT + FBT_INT);
 }
 
 inline Type ToFixedTypedVectorElementType(Type t, uint8_t *len) {
   FLATBUFFERS_ASSERT(IsFixedTypedVector(t));
-  auto fixed_type = t - TYPE_VECTOR_INT2;
+  auto fixed_type = t - FBT_VECTOR_INT2;
   *len = static_cast<uint8_t>(fixed_type / 3 +
                               2);  // 3 types each, starting from length 2.
-  return static_cast<Type>(fixed_type % 3 + TYPE_INT);
+  return static_cast<Type>(fixed_type % 3 + FBT_INT);
 }
 
 // TODO: implement proper support for 8/16bit floats, or decide not to
@@ -271,7 +271,7 @@ class TypedVector : public Sized {
 
   static TypedVector EmptyTypedVector() {
     static const uint8_t empty_typed_vector[] = { 0 /*len*/ };
-    return TypedVector(empty_typed_vector + 1, 1, TYPE_INT);
+    return TypedVector(empty_typed_vector + 1, 1, FBT_INT);
   }
   bool IsTheEmptyVector() const {
     return data_ == TypedVector::EmptyTypedVector().data_;
@@ -295,7 +295,7 @@ class FixedTypedVector : public Object {
 
   static FixedTypedVector EmptyFixedTypedVector() {
     static const uint8_t fixed_empty_vector[] = { 0 /* unused */ };
-    return FixedTypedVector(fixed_empty_vector, 1, TYPE_INT, 0);
+    return FixedTypedVector(fixed_empty_vector, 1, FBT_INT, 0);
   }
   bool IsTheEmptyFixedTypedVector() const {
     return data_ == FixedTypedVector::EmptyFixedTypedVector().data_;
@@ -324,7 +324,7 @@ class Map : public Vector {
     return TypedVector(Indirect(keys_offset, byte_width_),
                        static_cast<uint8_t>(
                            ReadUInt64(keys_offset + byte_width_, byte_width_)),
-                       TYPE_KEY);
+                       FBT_KEY);
   }
 
   static Map EmptyMap() {
@@ -354,25 +354,25 @@ class Reference {
 
   Type GetType() const { return type_; }
 
-  bool IsNull() const { return type_ == TYPE_NULL; }
-  bool IsBool() const { return type_ == TYPE_BOOL; }
-  bool IsInt() const { return type_ == TYPE_INT || type_ == TYPE_INDIRECT_INT; }
+  bool IsNull() const { return type_ == FBT_NULL; }
+  bool IsBool() const { return type_ == FBT_BOOL; }
+  bool IsInt() const { return type_ == FBT_INT || type_ == FBT_INDIRECT_INT; }
   bool IsUInt() const {
-    return type_ == TYPE_UINT || type_ == TYPE_INDIRECT_UINT;
+    return type_ == FBT_UINT || type_ == FBT_INDIRECT_UINT;
   }
   bool IsIntOrUint() const { return IsInt() || IsUInt(); }
   bool IsFloat() const {
-    return type_ == TYPE_FLOAT || type_ == TYPE_INDIRECT_FLOAT;
+    return type_ == FBT_FLOAT || type_ == FBT_INDIRECT_FLOAT;
   }
   bool IsNumeric() const { return IsIntOrUint() || IsFloat(); }
-  bool IsString() const { return type_ == TYPE_STRING; }
-  bool IsKey() const { return type_ == TYPE_KEY; }
-  bool IsVector() const { return type_ == TYPE_VECTOR || type_ == TYPE_MAP; }
-  bool IsMap() const { return type_ == TYPE_MAP; }
-  bool IsBlob() const { return type_ == TYPE_BLOB; }
+  bool IsString() const { return type_ == FBT_STRING; }
+  bool IsKey() const { return type_ == FBT_KEY; }
+  bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
+  bool IsMap() const { return type_ == FBT_MAP; }
+  bool IsBlob() const { return type_ == FBT_BLOB; }
 
   bool AsBool() const {
-    return (type_ == TYPE_BOOL ? ReadUInt64(data_, parent_width_)
+    return (type_ == FBT_BOOL ? ReadUInt64(data_, parent_width_)
                                : AsUInt64()) != 0;
   }
 
@@ -380,22 +380,22 @@ class Reference {
   // Truncates floats, strings are attempted to be parsed for a number,
   // vectors/maps return their size. Returns 0 if all else fails.
   int64_t AsInt64() const {
-    if (type_ == TYPE_INT) {
+    if (type_ == FBT_INT) {
       // A fast path for the common case.
       return ReadInt64(data_, parent_width_);
     } else
       switch (type_) {
-        case TYPE_INDIRECT_INT: return ReadInt64(Indirect(), byte_width_);
-        case TYPE_UINT: return ReadUInt64(data_, parent_width_);
-        case TYPE_INDIRECT_UINT: return ReadUInt64(Indirect(), byte_width_);
-        case TYPE_FLOAT:
+        case FBT_INDIRECT_INT: return ReadInt64(Indirect(), byte_width_);
+        case FBT_UINT: return ReadUInt64(data_, parent_width_);
+        case FBT_INDIRECT_UINT: return ReadUInt64(Indirect(), byte_width_);
+        case FBT_FLOAT:
           return static_cast<int64_t>(ReadDouble(data_, parent_width_));
-        case TYPE_INDIRECT_FLOAT:
+        case FBT_INDIRECT_FLOAT:
           return static_cast<int64_t>(ReadDouble(Indirect(), byte_width_));
-        case TYPE_NULL: return 0;
-        case TYPE_STRING: return flatbuffers::StringToInt(AsString().c_str());
-        case TYPE_VECTOR: return static_cast<int64_t>(AsVector().size());
-        case TYPE_BOOL: return ReadInt64(data_, parent_width_);
+        case FBT_NULL: return 0;
+        case FBT_STRING: return flatbuffers::StringToInt(AsString().c_str());
+        case FBT_VECTOR: return static_cast<int64_t>(AsVector().size());
+        case FBT_BOOL: return ReadInt64(data_, parent_width_);
         default:
           // Convert other things to int.
           return 0;
@@ -409,22 +409,22 @@ class Reference {
   int8_t AsInt8() const { return static_cast<int8_t>(AsInt64()); }
 
   uint64_t AsUInt64() const {
-    if (type_ == TYPE_UINT) {
+    if (type_ == FBT_UINT) {
       // A fast path for the common case.
       return ReadUInt64(data_, parent_width_);
     } else
       switch (type_) {
-        case TYPE_INDIRECT_UINT: return ReadUInt64(Indirect(), byte_width_);
-        case TYPE_INT: return ReadInt64(data_, parent_width_);
-        case TYPE_INDIRECT_INT: return ReadInt64(Indirect(), byte_width_);
-        case TYPE_FLOAT:
+        case FBT_INDIRECT_UINT: return ReadUInt64(Indirect(), byte_width_);
+        case FBT_INT: return ReadInt64(data_, parent_width_);
+        case FBT_INDIRECT_INT: return ReadInt64(Indirect(), byte_width_);
+        case FBT_FLOAT:
           return static_cast<uint64_t>(ReadDouble(data_, parent_width_));
-        case TYPE_INDIRECT_FLOAT:
+        case FBT_INDIRECT_FLOAT:
           return static_cast<uint64_t>(ReadDouble(Indirect(), byte_width_));
-        case TYPE_NULL: return 0;
-        case TYPE_STRING: return flatbuffers::StringToUInt(AsString().c_str());
-        case TYPE_VECTOR: return static_cast<uint64_t>(AsVector().size());
-        case TYPE_BOOL: return ReadUInt64(data_, parent_width_);
+        case FBT_NULL: return 0;
+        case FBT_STRING: return flatbuffers::StringToUInt(AsString().c_str());
+        case FBT_VECTOR: return static_cast<uint64_t>(AsVector().size());
+        case FBT_BOOL: return ReadUInt64(data_, parent_width_);
         default:
           // Convert other things to uint.
           return 0;
@@ -436,24 +436,24 @@ class Reference {
   uint8_t AsUInt8() const { return static_cast<uint8_t>(AsUInt64()); }
 
   double AsDouble() const {
-    if (type_ == TYPE_FLOAT) {
+    if (type_ == FBT_FLOAT) {
       // A fast path for the common case.
       return ReadDouble(data_, parent_width_);
     } else
       switch (type_) {
-        case TYPE_INDIRECT_FLOAT: return ReadDouble(Indirect(), byte_width_);
-        case TYPE_INT:
+        case FBT_INDIRECT_FLOAT: return ReadDouble(Indirect(), byte_width_);
+        case FBT_INT:
           return static_cast<double>(ReadInt64(data_, parent_width_));
-        case TYPE_UINT:
+        case FBT_UINT:
           return static_cast<double>(ReadUInt64(data_, parent_width_));
-        case TYPE_INDIRECT_INT:
+        case FBT_INDIRECT_INT:
           return static_cast<double>(ReadInt64(Indirect(), byte_width_));
-        case TYPE_INDIRECT_UINT:
+        case FBT_INDIRECT_UINT:
           return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
-        case TYPE_NULL: return 0.0;
-        case TYPE_STRING: return strtod(AsString().c_str(), nullptr);
-        case TYPE_VECTOR: return static_cast<double>(AsVector().size());
-        case TYPE_BOOL:
+        case FBT_NULL: return 0.0;
+        case FBT_STRING: return strtod(AsString().c_str(), nullptr);
+        case FBT_VECTOR: return static_cast<double>(AsVector().size());
+        case FBT_BOOL:
           return static_cast<double>(ReadUInt64(data_, parent_width_));
         default:
           // Convert strings and other things to float.
@@ -464,7 +464,7 @@ class Reference {
   float AsFloat() const { return static_cast<float>(AsDouble()); }
 
   const char *AsKey() const {
-    if (type_ == TYPE_KEY) {
+    if (type_ == FBT_KEY) {
       return reinterpret_cast<const char *>(Indirect());
     } else {
       return "";
@@ -473,7 +473,7 @@ class Reference {
 
   // This function returns the empty string if you try to read a not-string.
   String AsString() const {
-    if (type_ == TYPE_STRING) {
+    if (type_ == FBT_STRING) {
       return String(Indirect(), byte_width_);
     } else {
       return String::EmptyString();
@@ -492,7 +492,7 @@ class Reference {
   // they always do). keys_quoted determines if keys are quoted, at any level.
   // TODO(wvo): add further options to have indentation/newlines.
   void ToString(bool strings_quoted, bool keys_quoted, std::string &s) const {
-    if (type_ == TYPE_STRING) {
+    if (type_ == FBT_STRING) {
       String str(Indirect(), byte_width_);
       if (strings_quoted) {
         flatbuffers::EscapeString(str.c_str(), str.length(), &s, true, false);
@@ -544,7 +544,7 @@ class Reference {
   // This function returns the empty blob if you try to read a not-blob.
   // Strings can be viewed as blobs too.
   Blob AsBlob() const {
-    if (type_ == TYPE_BLOB || type_ == TYPE_STRING) {
+    if (type_ == FBT_BLOB || type_ == FBT_STRING) {
       return Blob(Indirect(), byte_width_);
     } else {
       return Blob::EmptyBlob();
@@ -554,7 +554,7 @@ class Reference {
   // This function returns the empty vector if you try to read a not-vector.
   // Maps can be viewed as vectors too.
   Vector AsVector() const {
-    if (type_ == TYPE_VECTOR || type_ == TYPE_MAP) {
+    if (type_ == FBT_VECTOR || type_ == FBT_MAP) {
       return Vector(Indirect(), byte_width_);
     } else {
       return Vector::EmptyVector();
@@ -581,7 +581,7 @@ class Reference {
   }
 
   Map AsMap() const {
-    if (type_ == TYPE_MAP) {
+    if (type_ == FBT_MAP) {
       return Map(Indirect(), byte_width_);
     } else {
       return Map::EmptyMap();
@@ -597,14 +597,14 @@ class Reference {
   // To avoid this, you can construct the values you intend to mutate using
   // Builder::ForceMinimumBitWidth.
   bool MutateInt(int64_t i) {
-    if (type_ == TYPE_INT) {
+    if (type_ == FBT_INT) {
       return Mutate(data_, i, parent_width_, WidthI(i));
-    } else if (type_ == TYPE_INDIRECT_INT) {
+    } else if (type_ == FBT_INDIRECT_INT) {
       return Mutate(Indirect(), i, byte_width_, WidthI(i));
-    } else if (type_ == TYPE_UINT) {
+    } else if (type_ == FBT_UINT) {
       auto u = static_cast<uint64_t>(i);
       return Mutate(data_, u, parent_width_, WidthU(u));
-    } else if (type_ == TYPE_INDIRECT_UINT) {
+    } else if (type_ == FBT_INDIRECT_UINT) {
       auto u = static_cast<uint64_t>(i);
       return Mutate(Indirect(), u, byte_width_, WidthU(u));
     } else {
@@ -613,18 +613,18 @@ class Reference {
   }
 
   bool MutateBool(bool b) {
-    return type_ == TYPE_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
+    return type_ == FBT_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
   }
 
   bool MutateUInt(uint64_t u) {
-    if (type_ == TYPE_UINT) {
+    if (type_ == FBT_UINT) {
       return Mutate(data_, u, parent_width_, WidthU(u));
-    } else if (type_ == TYPE_INDIRECT_UINT) {
+    } else if (type_ == FBT_INDIRECT_UINT) {
       return Mutate(Indirect(), u, byte_width_, WidthU(u));
-    } else if (type_ == TYPE_INT) {
+    } else if (type_ == FBT_INT) {
       auto i = static_cast<int64_t>(u);
       return Mutate(data_, i, parent_width_, WidthI(i));
-    } else if (type_ == TYPE_INDIRECT_INT) {
+    } else if (type_ == FBT_INDIRECT_INT) {
       auto i = static_cast<int64_t>(u);
       return Mutate(Indirect(), i, byte_width_, WidthI(i));
     } else {
@@ -633,9 +633,9 @@ class Reference {
   }
 
   bool MutateFloat(float f) {
-    if (type_ == TYPE_FLOAT) {
+    if (type_ == FBT_FLOAT) {
       return MutateF(data_, f, parent_width_, BIT_WIDTH_32);
-    } else if (type_ == TYPE_INDIRECT_FLOAT) {
+    } else if (type_ == FBT_INDIRECT_FLOAT) {
       return MutateF(Indirect(), f, byte_width_, BIT_WIDTH_32);
     } else {
       return false;
@@ -643,9 +643,9 @@ class Reference {
   }
 
   bool MutateFloat(double d) {
-    if (type_ == TYPE_FLOAT) {
+    if (type_ == FBT_FLOAT) {
       return MutateF(data_, d, parent_width_, WidthF(d));
-    } else if (type_ == TYPE_INDIRECT_FLOAT) {
+    } else if (type_ == FBT_INDIRECT_FLOAT) {
       return MutateF(Indirect(), d, byte_width_, WidthF(d));
     } else {
       return false;
@@ -735,7 +735,7 @@ inline uint8_t PackedType(BitWidth bit_width, Type type) {
   return static_cast<uint8_t>(bit_width | (type << 2));
 }
 
-inline uint8_t NullPackedType() { return PackedType(BIT_WIDTH_8, TYPE_NULL); }
+inline uint8_t NullPackedType() { return PackedType(BIT_WIDTH_8, FBT_NULL); }
 
 // Vector accessors.
 // Note: if you try to access outside of bounds, you get a Null value back
@@ -870,13 +870,13 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Null();
   }
 
-  void Int(int64_t i) { stack_.push_back(Value(i, TYPE_INT, WidthI(i))); }
+  void Int(int64_t i) { stack_.push_back(Value(i, FBT_INT, WidthI(i))); }
   void Int(const char *key, int64_t i) {
     Key(key);
     Int(i);
   }
 
-  void UInt(uint64_t u) { stack_.push_back(Value(u, TYPE_UINT, WidthU(u))); }
+  void UInt(uint64_t u) { stack_.push_back(Value(u, FBT_UINT, WidthU(u))); }
   void UInt(const char *key, uint64_t u) {
     Key(key);
     Int(u);
@@ -900,14 +900,14 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Bool(b);
   }
 
-  void IndirectInt(int64_t i) { PushIndirect(i, TYPE_INDIRECT_INT, WidthI(i)); }
+  void IndirectInt(int64_t i) { PushIndirect(i, FBT_INDIRECT_INT, WidthI(i)); }
   void IndirectInt(const char *key, int64_t i) {
     Key(key);
     IndirectInt(i);
   }
 
   void IndirectUInt(uint64_t u) {
-    PushIndirect(u, TYPE_INDIRECT_UINT, WidthU(u));
+    PushIndirect(u, FBT_INDIRECT_UINT, WidthU(u));
   }
   void IndirectUInt(const char *key, uint64_t u) {
     Key(key);
@@ -915,7 +915,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   void IndirectFloat(float f) {
-    PushIndirect(f, TYPE_INDIRECT_FLOAT, BIT_WIDTH_32);
+    PushIndirect(f, FBT_INDIRECT_FLOAT, BIT_WIDTH_32);
   }
   void IndirectFloat(const char *key, float f) {
     Key(key);
@@ -923,7 +923,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   void IndirectDouble(double f) {
-    PushIndirect(f, TYPE_INDIRECT_FLOAT, WidthF(f));
+    PushIndirect(f, FBT_INDIRECT_FLOAT, WidthF(f));
   }
   void IndirectDouble(const char *key, double d) {
     Key(key);
@@ -944,7 +944,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
         key_pool.insert(sloc);
       }
     }
-    stack_.push_back(Value(static_cast<uint64_t>(sloc), TYPE_KEY, BIT_WIDTH_8));
+    stack_.push_back(Value(static_cast<uint64_t>(sloc), FBT_KEY, BIT_WIDTH_8));
     return sloc;
   }
 
@@ -953,7 +953,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t String(const char *str, size_t len) {
     auto reset_to = buf_.size();
-    auto sloc = CreateBlob(str, len, 1, TYPE_STRING);
+    auto sloc = CreateBlob(str, len, 1, FBT_STRING);
     if (flags_ & BUILDER_FLAG_SHARE_STRINGS) {
       StringOffset so(sloc, len);
       auto it = string_pool.find(so);
@@ -991,10 +991,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   size_t Blob(const void *data, size_t len) {
-    return CreateBlob(data, len, 0, TYPE_BLOB);
+    return CreateBlob(data, len, 0, FBT_BLOB);
   }
   size_t Blob(const std::vector<uint8_t> &v) {
-    return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, TYPE_BLOB);
+    return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, FBT_BLOB);
   }
 
   // TODO(wvo): support all the FlexBuffer types (like flexbuffers::String),
@@ -1030,7 +1030,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     len /= 2;
     // Make sure keys are all strings:
     for (auto key = start; key < stack_.size(); key += 2) {
-      FLATBUFFERS_ASSERT(stack_[key].type_ == TYPE_KEY);
+      FLATBUFFERS_ASSERT(stack_[key].type_ == FBT_KEY);
     }
     // Now sort values, so later we can do a binary seach lookup.
     // We want to sort 2 array elements at a time.
@@ -1298,11 +1298,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   template<typename T> static Type GetScalarType() {
     static_assert(flatbuffers::is_scalar<T>::value, "Unrelated types");
     return flatbuffers::is_floating_point<T>::value
-               ? TYPE_FLOAT
+               ? FBT_FLOAT
                : flatbuffers::is_same<T, bool>::value
-                     ? TYPE_BOOL
-                     : (flatbuffers::is_unsigned<T>::value ? TYPE_UINT
-                                                           : TYPE_INT);
+                     ? FBT_BOOL
+                     : (flatbuffers::is_unsigned<T>::value ? FBT_UINT
+                                                           : FBT_INT);
   }
 
   struct Value {
@@ -1317,11 +1317,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // For scalars: of itself, for vector: of its elements, for string: length.
     BitWidth min_bit_width_;
 
-    Value() : i_(0), type_(TYPE_NULL), min_bit_width_(BIT_WIDTH_8) {}
+    Value() : i_(0), type_(FBT_NULL), min_bit_width_(BIT_WIDTH_8) {}
 
     Value(bool b)
         : u_(static_cast<uint64_t>(b)),
-          type_(TYPE_BOOL),
+          type_(FBT_BOOL),
           min_bit_width_(BIT_WIDTH_8) {}
 
     Value(int64_t i, Type t, BitWidth bw)
@@ -1329,8 +1329,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Value(uint64_t u, Type t, BitWidth bw)
         : u_(u), type_(t), min_bit_width_(bw) {}
 
-    Value(float f) : f_(f), type_(TYPE_FLOAT), min_bit_width_(BIT_WIDTH_32) {}
-    Value(double f) : f_(f), type_(TYPE_FLOAT), min_bit_width_(WidthF(f)) {}
+    Value(float f) : f_(f), type_(FBT_FLOAT), min_bit_width_(BIT_WIDTH_32) {}
+    Value(double f) : f_(f), type_(FBT_FLOAT), min_bit_width_(WidthF(f)) {}
 
     uint8_t StoredPackedType(BitWidth parent_bit_width_ = BIT_WIDTH_8) const {
       return PackedType(StoredWidth(parent_bit_width_), type_);
@@ -1376,11 +1376,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   void WriteAny(const Value &val, uint8_t byte_width) {
     switch (val.type_) {
-      case TYPE_NULL:
-      case TYPE_INT: Write(val.i_, byte_width); break;
-      case TYPE_BOOL:
-      case TYPE_UINT: Write(val.u_, byte_width); break;
-      case TYPE_FLOAT: WriteDouble(val.f_, byte_width); break;
+      case FBT_NULL:
+      case FBT_INT: Write(val.i_, byte_width); break;
+      case FBT_BOOL:
+      case FBT_UINT: Write(val.u_, byte_width); break;
+      case FBT_FLOAT: WriteDouble(val.f_, byte_width); break;
       default: WriteOffset(val.u_, byte_width); break;
     }
   }
@@ -1426,7 +1426,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       bit_width = (std::max)(bit_width, keys->ElemWidth(buf_.size(), 0));
       prefix_elems += 2;
     }
-    Type vector_type = TYPE_KEY;
+    Type vector_type = FBT_KEY;
     // Check bit widths and types for all elements.
     for (size_t i = start; i < stack_.size(); i += step) {
       auto elem_width = stack_[i].ElemWidth(buf_.size(), i + prefix_elems);
@@ -1463,9 +1463,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
       }
     }
     return Value(static_cast<uint64_t>(vloc),
-                 keys ? TYPE_MAP
+                 keys ? FBT_MAP
                       : (typed ? ToTypedVector(vector_type, fixed ? vec_len : 0)
-                               : TYPE_VECTOR),
+                               : FBT_VECTOR),
                  bit_width);
   }
 
