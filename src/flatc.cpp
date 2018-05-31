@@ -97,6 +97,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     Default value is \"T\"\n"
     "  --no-js-exports    Removes Node.js style export lines in JS.\n"
     "  --goog-js-export   Uses goog.exports* for closure compiler exporting in JS.\n"
+    "  --es6-js-export    Uses ECMAScript 6 export style lines in JS.\n"
     "  --go-namespace     Generate the overrided namespace in Golang.\n"
     "  --go-import        Generate the overrided import for flatbuffers in Golang.\n"
     "                     (default is \"github.com/google/flatbuffers/go\")\n"
@@ -191,6 +192,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_js_exports = true;
       } else if (arg == "--goog-js-export") {
         opts.use_goog_js_export_format = true;
+        opts.use_ES6_js_export_format = false;
+      } else if (arg == "--es6-js-export") {
+        opts.use_goog_js_export_format = false;
+        opts.use_ES6_js_export_format = true;
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
