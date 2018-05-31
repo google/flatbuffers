@@ -101,6 +101,10 @@ Additional options:
     instead of Node.js style exporting.  Needed for compatibility with the
     Google closure compiler (useful for JS).
 
+-   `--es6-js-export` : Generates ECMAScript v6 style export definitions
+    instead of Node.js style exporting. Useful when integrating flatbuffers
+    with modern Javascript projects.
+
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 

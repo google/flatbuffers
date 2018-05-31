@@ -358,6 +358,7 @@ struct IDLOptions {
   bool strict_json;
   bool skip_js_exports;
   bool use_goog_js_export_format;
+  bool use_ES6_js_export_format;
   bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
@@ -423,6 +424,7 @@ struct IDLOptions {
       : strict_json(false),
         skip_js_exports(false),
         use_goog_js_export_format(false),
+        use_ES6_js_export_format(false),
         output_default_scalars_in_json(false),
         indent_step(2),
         output_enum_identifiers(true),

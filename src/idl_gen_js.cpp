@@ -103,7 +103,10 @@ class JsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
         !parser_.opts.skip_js_exports) {
-      code += "// Exports for Node.js and RequireJS\n";
+        if( parser_.opts.use_ES6_js_export_format )
+            code += "// Exports for ECMAScript6 Modules\n";
+        else
+            code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
@@ -223,6 +226,8 @@ class JsGenerator : public BaseGenerator {
           code += "var ";
           if (parser_.opts.use_goog_js_export_format) {
             exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
+          } else if( parser_.opts.use_ES6_js_export_format){
+            exports += "export {" + *it + "};\n";
           } else {
             exports += "this." + *it + " = " + *it + ";\n";
           }
@@ -293,6 +298,8 @@ class JsGenerator : public BaseGenerator {
         if (parser_.opts.use_goog_js_export_format) {
           exports += "goog.exportSymbol('" + enum_def.name + "', " +
                      enum_def.name + ");\n";
+        } else if (parser_.opts.use_ES6_js_export_format) {
+          exports += "export {" + enum_def.name + "};\n";   
         } else {
           exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
         }
@@ -561,6 +568,8 @@ class JsGenerator : public BaseGenerator {
         if (parser_.opts.use_goog_js_export_format) {
           exports += "goog.exportSymbol('" + struct_def.name + "', " +
                      struct_def.name + ");\n";
+        } else if (parser_.opts.use_ES6_js_export_format) {
+          exports += "export {" + struct_def.name + "};\n";
         } else {
           exports +=
               "this." + struct_def.name + " = " + struct_def.name + ";\n";
