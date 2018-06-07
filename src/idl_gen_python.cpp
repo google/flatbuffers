@@ -23,6 +23,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#include <unordered_set>
+
 namespace flatbuffers {
 namespace python {
 
@@ -37,6 +39,43 @@ static std::string TypeName(const FieldDef &field);
 
 // Hardcode spaces per indentation.
 const std::string Indent = "    ";
+
+const std::string keywords_[] = {
+  "False",
+  "None",
+  "True",
+  "and",
+  "as",
+  "assert",
+  "break",
+  "class",
+  "continue",
+  "def",
+  "del",
+  "elif",
+  "else",
+  "except",
+  "finally",
+  "for",
+  "from",
+  "global",
+  "if",
+  "import",
+  "in",
+  "is",
+  "lambda",
+  "nonlocal",
+  "not",
+  "or",
+  "pass",
+  "raise",
+  "return",
+  "try",
+  "while",
+  "with",
+  "yield"
+};
+const std::unordered_set<std::string> Keywords(std::begin(keywords_), std::end(keywords_));
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -61,11 +100,15 @@ static void BeginEnum(const std::string class_name, std::string *code_ptr) {
   code += "class " + class_name + "(object):\n";
 }
 
+std::string EscapeKeyword(const std::string &name) {
+  return Keywords.find(name) == Keywords.end() ? name : name + "_";
+}
+
 // A single enum member.
 static void EnumMember(const EnumVal ev, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += Indent;
-  code += ev.name;
+  code += EscapeKeyword(ev.name);
   code += " = ";
   code += NumToString(ev.value) + "\n";
 }
