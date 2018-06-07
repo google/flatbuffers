@@ -147,13 +147,13 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
     getter = "bool(" + getter + ")";
   }
   code += Indent + Indent + Indent + "return " + getter + "\n";
-  std::string defaultValue;
+  std::string default_value;
   if (is_bool) {
-    defaultValue = field.value.constant == "0" ? "False" : "True";
+    default_value = field.value.constant == "0" ? "False" : "True";
   } else {
-    defaultValue = field.value.constant;
+    default_value = field.value.constant;
   }
-  code += Indent + Indent + "return " + defaultValue + "\n\n";
+  code += Indent + Indent + "return " + default_value + "\n\n";
 }
 
 // Get a struct by initializing an existing struct.
