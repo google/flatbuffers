@@ -147,7 +147,12 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
     getter = "bool(" + getter + ")";
   }
   code += Indent + Indent + Indent + "return " + getter + "\n";
-  auto defaultValue = (is_bool ? "False" : field.value.constant);
+  std::string defaultValue;
+  if (is_bool) {
+    defaultValue = field.value.constant == "0" ? "False" : "True";
+  } else {
+    defaultValue = field.value.constant;
+  }
   code += Indent + Indent + "return " + defaultValue + "\n\n";
 }
 
