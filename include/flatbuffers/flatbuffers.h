@@ -1540,6 +1540,7 @@ class FlatBufferBuilder {
   /// in the buffer.
   template<typename T>
   Offset<Vector<T>> CreateUninitializedVector(size_t len, T **buf) {
+    AssertScalarT<T>();
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
   }
