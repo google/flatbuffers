@@ -357,6 +357,69 @@ struct String : public Vector<char> {
   }
 };
 
+// Contains a pre-allocated range
+// Contents can be transferred to Bytes once written to
+class BytesAlloc {
+public:
+  BytesAlloc() : ptr_(nullptr), size_(0) {};
+
+  uint8_t *ptr() { return ptr_; }
+  uint32_t size() const { return size_; }
+  Offset<String> offset() const { return offset_; }
+
+  bool empty() const { return size() == 0; }
+
+  // pre-allocated data
+  void set(uint8_t *p, uint32_t s, Offset<String> o) {
+    ptr_ = p;
+    size_ = s;
+    offset_ = o;
+  }
+
+protected:
+  uint8_t *ptr_;
+  uint32_t size_;
+  // pre-allocated offset
+  Offset<String> offset_;
+};
+
+// Contains a raw byte range
+// Either user supplied or pre-allocated
+class Bytes {
+public:
+  Bytes() : ptr_(nullptr), size_(0) {};
+
+  const uint8_t *ptr() const { return ptr_; }
+  uint32_t size() const { return size_; }
+  Offset<String> offset() const { return offset_; }
+
+  // empty only if no bytes and no pre-allocated bytes are present
+  bool empty() const { return offset_.IsNull() && size() == 0; }
+
+  // used for unpack
+  void set(const flatbuffers::String *bytes) {
+    ptr_ = reinterpret_cast<const uint8_t *>(bytes->data());
+    size_ = bytes->size();
+  }
+
+  // user supplied data
+  void set(const uint8_t *p, uint32_t s) {
+    ptr_ = p;
+    size_ = s;
+  }
+
+  // pre-allocated data
+  void set(BytesAlloc &bytes) {
+    offset_ = bytes.offset();
+  }
+
+protected:
+  const uint8_t *ptr_;
+  uint32_t size_;
+  // pre-allocated offset
+  Offset<String> offset_;
+};
+
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
 class Allocator {
@@ -1091,6 +1154,51 @@ class FlatBufferBuilder {
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateString(const std::string &str) {
     return CreateString(str.c_str(), str.length());
+  }
+
+  /// @brief Store raw bytes in the buffer.
+  /// @param[in] ptr A const pointer to the source data.
+  /// @param[in] size The number of bytes that should be stored.
+  /// @return Returns the offset in the buffer where the bytes start.
+  Offset<String> CreateBytes(const uint8_t *ptr, uint32_t size) {
+    NotNested();
+    PreAlign<uoffset_t>(size);
+    PushBytes(ptr, size);
+    PushElement(static_cast<uoffset_t>(size));
+    return Offset<String>(GetSize());
+  }
+
+  /// @brief Store bytes in the buffer or use pre-allocated region.
+  /// @param[in] bytes An object with a new byte range or having a pre-allocated region.
+  /// @return Returns the offset in the buffer where the bytes start.
+  Offset<String> CreateBytes(const Bytes &bytes) {
+    if (!bytes.offset().IsNull())
+      return bytes.offset();
+
+    NotNested();
+    PreAlign<uoffset_t>(bytes.size());
+    PushBytes(bytes.ptr(), bytes.size());
+    PushElement(static_cast<uoffset_t>(bytes.size()));
+    return Offset<String>(GetSize());
+  }
+
+  /// @brief Allocate bytes in the buffer for later writing.
+  /// @param[in] size The number of bytes that should be stored.
+  /// @return Returns the offset in the buffer where the byte region starts.
+  Offset<String> CreateBytesAlloc(uint32_t size) {
+    NotNested();
+    PreAlign<uoffset_t>(size);
+    buf_.make_space(size);
+    PushElement(static_cast<uoffset_t>(size));
+    return Offset<String>(GetSize());
+  }
+
+  /// @brief Allocate bytes in the buffer for later writing.
+  /// @param[in] size The number of bytes that should be stored.
+  /// @param[out] bytes A BytesAlloc object receiving the allocated range on return.
+  void CreateBytesAlloc(uint32_t size, BytesAlloc &bytes) {
+    Offset<String> offset = CreateBytesAlloc(size);
+    bytes.set(buf_.data_at(GetSize()) + sizeof(uoffset_t), size, offset);
   }
 
   // clang-format off

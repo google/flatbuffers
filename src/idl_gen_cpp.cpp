@@ -494,6 +494,7 @@ class CppGenerator : public BaseGenerator {
   // and vector element types.
   std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
+      case BASE_TYPE_BYTES:
       case BASE_TYPE_STRING: {
         return "flatbuffers::String";
       }
@@ -594,6 +595,8 @@ class CppGenerator : public BaseGenerator {
         } else
           return "std::vector<" + type_name + ">";
       }
+      case BASE_TYPE_BYTES:
+        return "flatbuffers::Bytes";
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
         if (IsStruct(type)) {
@@ -1358,6 +1361,9 @@ class CppGenerator : public BaseGenerator {
     if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
       code_.SetValue("PARAM_TYPE", "const char *");
       code_.SetValue("PARAM_VALUE", "nullptr");
+    } else if (direct && field.value.type.base_type == BASE_TYPE_BYTES) {
+      code_.SetValue("PARAM_TYPE", "const flatbuffers::Bytes *");
+      code_.SetValue("PARAM_VALUE", "nullptr");
     } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
       const auto vtype = field.value.type.VectorType();
       std::string type;
@@ -1971,6 +1977,10 @@ class CppGenerator : public BaseGenerator {
             code_ +=
                 ",\n      {{FIELD_NAME}} ? "
                 "_fbb.CreateString({{FIELD_NAME}}) : 0\\";
+          } else if (field.value.type.base_type == BASE_TYPE_BYTES) {
+            code_ +=
+                ",\n      {{FIELD_NAME}} && !{{FIELD_NAME}}->empty() ? "
+                "_fbb.CreateBytes(*{{FIELD_NAME}}) : 0\\";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
             code_ += ",\n      {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
@@ -2101,6 +2111,11 @@ class CppGenerator : public BaseGenerator {
         code += "_o->" + union_field->name + ".type = _e;";
         break;
       }
+      case BASE_TYPE_BYTES: {
+        code += "_o->" + Name(field) + ".set(";
+        code += GenUnpackVal(field.value.type, "_e", false, field) + ");";
+        break;
+      }
       case BASE_TYPE_UNION: {
         // Generate code that sets the union value, of the form:
         //   _o->field.value = Union::Unpack(_e, field_type(), resolver);
@@ -2165,6 +2180,16 @@ class CppGenerator : public BaseGenerator {
       //   _fbb.CreateString(_o->field)
       case BASE_TYPE_STRING: {
         code += "_fbb.CreateString(" + value + ")";
+
+        // For optional fields, check to see if there actually is any data
+        // in _o->field before attempting to access it.
+        if (!field.required) { code = value + ".empty() ? 0 : " + code; }
+        break;
+      }
+      // Bytes are of the form:
+      //   _fbb.CreateBytes(_o->field);
+      case BASE_TYPE_BYTES: {
+        code += "_fbb.CreateBytes(" + value + ")";
 
         // For optional fields, check to see if there actually is any data
         // in _o->field before attempting to access it.

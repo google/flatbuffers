@@ -23,7 +23,8 @@ enum BaseType : byte {
     String,
     Vector,
     Obj,     // Used for tables & structs.
-    Union
+    Union,
+    Bytes
 }
 
 table Type {
