@@ -68,7 +68,6 @@ table Monster {
   test:Any (id: 8);
   test4:[Test] (id: 9);
   test5:[Test] (id: 31);
-  test6:[Test] (id: 32);
   testnestedflatbuffer:[ubyte] (id:13, nested_flatbuffer: "Monster");
   testempty:Stat (id:14);
   testbool:bool (id:15);
@@ -84,7 +83,7 @@ table Monster {
   testf2:float = 3 (id:26);
   testf3:float (id:27);
   flex:[ubyte] (id:30, flexbuffer);
-  vector_of_longs:[long] (id:43);
+  vector_of_longs:[long] (id:32);
   vector_of_doubles:[double] (id:33);
   parent_namespace_test:InParentNamespace (id:34);
   vector_of_referrables:[Referrable](id:35);
@@ -115,6 +114,10 @@ table TypeAliases {
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (streaming: "server", idempotent);
+}
+
+table UninitializedVectorTable {
+vecOfStructs:[Test];
 }
 
 root_type Monster;

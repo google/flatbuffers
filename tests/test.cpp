@@ -110,12 +110,6 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   //                                                              10, &inv_buf);
   // memcpy(inv_buf, inv_data, 10);
 
-  Test* buf = nullptr;
-  auto test6 = builder.CreateUninitializedVectorOfStructs<Test>(2, &buf);
-  TEST_NOTNULL(buf);
-  buf[0] = Test(10, 20);
-  buf[1] = Test(30, 40);
-
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
@@ -214,7 +208,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
                             testv, vecofstrings, vecoftables, 0,
                             nested_flatbuffer_vector, 0, false, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 3.14159f, 3.0f, 0.0f, vecofstrings2,
-                            vecofstructs, flex, testv2, test6);
+                            vecofstructs, flex, testv2);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -366,7 +360,6 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   const flatbuffers::Vector<const Test *> *tests_array[] = {
     monster->test4(),
     monster->test5(),
-    monster->test6(),
   };
   for (size_t i = 0; i < sizeof(tests_array) / sizeof(tests_array[0]); ++i) {
     auto tests = tests_array[i];
@@ -882,8 +875,7 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "{ id: 2, distance: 20 }, { id: 3, distance: 30 }, "
       "{ id: 4, distance: 40 } ], "
       "flex: [ 210, 4, 5, 2 ], "
-      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
-      "test6: [ { a: 10, b: 20 }, { a: 30, b: 40 } ] "
+      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ] "
       "}");
 }
 
@@ -1958,6 +1950,32 @@ void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(flatbuffers::EndianSwap(3.14f)), 3.14f);
 }
 
+void UninitializedVectorTest() {
+	flatbuffers::FlatBufferBuilder builder;
+
+	Test* buf = nullptr;
+	auto vecOfStructsOffset = builder.CreateUninitializedVectorOfStructs<Test>(2, &buf);
+	TEST_NOTNULL(buf);
+	buf[0] = Test(10, 20);
+	buf[1] = Test(30, 40);
+
+	builder.Finish(CreateUninitializedVectorTable(
+		builder, vecOfStructsOffset));
+
+
+	auto p = builder.GetBufferPointer();
+	auto uvt = flatbuffers::GetRoot<UninitializedVectorTable>(p);
+	TEST_NOTNULL(uvt);
+	auto vec = uvt->vecOfStructs();
+	TEST_NOTNULL(vec);
+	auto test_0 = vec->Get(0);
+	auto test_1 = vec->Get(1);
+	TEST_EQ(test_0->a(), 10);
+	TEST_EQ(test_0->b(), 20);
+	TEST_EQ(test_1->a(), 30);
+	TEST_EQ(test_1->b(), 40);
+}
+
 int main(int /*argc*/, const char * /*argv*/ []) {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -2028,6 +2046,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   JsonDefaultTest();
 
   FlexBuffersTest();
+  UninitializedVectorTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
