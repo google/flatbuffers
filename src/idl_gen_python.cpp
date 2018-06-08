@@ -40,7 +40,7 @@ static std::string TypeName(const FieldDef &field);
 // Hardcode spaces per indentation.
 const std::string Indent = "    ";
 
-const std::string keywords_[] = {
+static const char * const keywords_[] = {
   "False",
   "None",
   "True",
