@@ -31,11 +31,9 @@ matrix:
     - language: cpp
       os:
       - linux
-      - osx
 
       compiler:
         - gcc
-        #- clang
 
       env:
         matrix:
@@ -53,6 +51,16 @@ matrix:
       script:
       - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
       - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/testing -s build_type=$BUILD_TYPE; fi
+
+    - language: cpp
+      os: osx
+      osx_image: xcode9.3
+      env:
+        matrix:
+          - BUILD_TYPE=Debug
+          - BUILD_TYPE=Release
+      script:
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
 
     - language: android
       sudo: true
