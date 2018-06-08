@@ -39,11 +39,8 @@ matrix:
 
       env:
         matrix:
-          - BUILD_TYPE=Debug BIICODE=false
-          - BUILD_TYPE=Release BIICODE=false CONAN=true
-          # biicode .deb files no longer available.
-          # - BUILD_TYPE=Release BIICODE=true
-          # - BUILD_TYPE=Debug BIICODE=true
+          - BUILD_TYPE=Debug
+          - BUILD_TYPE=Release CONAN=true
 
       before_install:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
@@ -54,8 +51,7 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
-      - if [ "$BIICODE" == "false" ]; then cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test; fi
-      - if [ "$BIICODE" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then ./biicode/support/bii-travis.sh $BUILD_TYPE; fi
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
       - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/testing -s build_type=$BUILD_TYPE; fi
 
     - language: android
