@@ -1545,6 +1545,12 @@ class FlatBufferBuilder {
                                      reinterpret_cast<uint8_t **>(buf));
   }
 
+  template<typename T>
+  Offset<Vector<const T*>> CreateUninitializedVectorOfStructs(size_t len, T **buf) {
+	  return CreateUninitializedVector(len, sizeof(T),
+		  reinterpret_cast<uint8_t **>(buf));
+  }
+
   /// @brief Write a struct by itself, typically to be part of a union.
   template<typename T> Offset<const T *> CreateStruct(const T &structobj) {
     NotNested();

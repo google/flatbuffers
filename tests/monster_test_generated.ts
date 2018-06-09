@@ -1442,17 +1442,18 @@ test5Length():number {
 
 /**
  * @param {number} index
- * @returns {flatbuffers.Long}
+ * @param {MyGame.Example.Test=} obj
+ * @returns {MyGame.Example.Test}
  */
-vectorOfLongs(index: number):flatbuffers.Long|null {
+test6(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
   var offset = this.bb!.__offset(this.bb_pos, 68);
-  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 };
 
 /**
  * @returns {number}
  */
-vectorOfLongsLength():number {
+test6Length():number {
   var offset = this.bb!.__offset(this.bb_pos, 68);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
@@ -1648,10 +1649,27 @@ vectorOfNonOwningReferencesLength():number {
 };
 
 /**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+vectorOfLongs(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+vectorOfLongsLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(43);
+  builder.startObject(44);
 };
 
 /**
@@ -2075,31 +2093,18 @@ static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} vectorOfLongsOffset
+ * @param {flatbuffers.Offset} test6Offset
  */
-static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {Array.<flatbuffers.Long>} data
- * @returns {flatbuffers.Offset}
- */
-static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (var i = data.length - 1; i >= 0; i--) {
-    builder.addInt64(data[i]);
-  }
-  return builder.endVector();
+static addTest6(builder:flatbuffers.Builder, test6Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(32, test6Offset, 0);
 };
 
 /**
  * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
-static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
+static startTest6Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 2);
 };
 
 /**
@@ -2305,6 +2310,35 @@ static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data
  * @param {number} numElems
  */
 static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ */
+static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(43, vectorOfLongsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 };
 
