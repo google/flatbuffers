@@ -164,6 +164,13 @@
         "vf64" : { "type" : "array", "items" : { "type" : "number" } }
       },
       "additionalProperties" : false
+    },
+    "MyGame_Example_UninitializedVectorTable" : {
+      "type" : "object",
+      "properties" : {
+        "vecOfStructs" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } }
+      },
+      "additionalProperties" : false
     }
   },
   "$ref" : "#/definitions/MyGame_Example_Monster"
