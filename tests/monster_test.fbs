@@ -116,6 +116,10 @@ rpc_service MonsterStorage {
   Retrieve(Stat):Monster (streaming: "server", idempotent);
 }
 
+table UninitializedVectorTable {
+  vecOfStructs:[Test];
+}
+
 root_type Monster;
 
 file_identifier "MONS";
