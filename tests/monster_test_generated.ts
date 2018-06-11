@@ -2798,3 +2798,89 @@ static endTypeAliases(builder:flatbuffers.Builder):flatbuffers.Offset {
 
 }
 }
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class UninitializedVectorTable {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  /**
+   * @type {number}
+   */
+  bb_pos:number = 0;
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {UninitializedVectorTable}
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):UninitializedVectorTable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {UninitializedVectorTable=} obj
+ * @returns {UninitializedVectorTable}
+ */
+static getRootAsUninitializedVectorTable(bb:flatbuffers.ByteBuffer, obj?:UninitializedVectorTable):UninitializedVectorTable {
+  return (obj || new UninitializedVectorTable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {number} index
+ * @param {MyGame.Example.Test=} obj
+ * @returns {MyGame.Example.Test}
+ */
+vecOfStructs(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
+};
+
+/**
+ * @returns {number}
+ */
+vecOfStructsLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+static startUninitializedVectorTable(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfStructsOffset
+ */
+static addVecOfStructs(builder:flatbuffers.Builder, vecOfStructsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, vecOfStructsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+static startVecOfStructsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+static endUninitializedVectorTable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+}
+}
