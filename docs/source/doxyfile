@@ -755,6 +755,7 @@ INPUT = "FlatBuffers.md" \
         "GoUsage.md" \
         "JavaCsharpUsage.md" \
         "JavaScriptUsage.md" \
+        "TypeScriptUsage.md" \
         "PHPUsage.md" \
         "PythonUsage.md" \
         "Support.md" \
