@@ -210,7 +210,7 @@ class DartGenerator : public BaseGenerator {
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (value == null) return null;\n";
+    code += "    if (value == null) value = 0;\n";
 
     code += "    if (!values.containsKey(value)) {\n";
     code +=
