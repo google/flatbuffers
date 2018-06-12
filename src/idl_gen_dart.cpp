@@ -769,7 +769,7 @@ class DartGenerator : public BaseGenerator {
         }
         code += "\n        : null;\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += " = fbBuilder.writeString(_" + field.name + ");\n";
+        code += " = fbBuilder.writeString(_" + MakeCamel(field.name, false) + ");\n";
       } else {
         code += " = _" + MakeCamel(field.name, false) +
                 "?.getOrCreateOffset(fbBuilder);\n";
