@@ -273,8 +273,13 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   TEST_EQ(VectorLength(inventory), 10UL);  // Works even if inventory is null.
   TEST_NOTNULL(inventory);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  for (auto it = inventory->begin(); it != inventory->end(); ++it)
-    TEST_EQ(*it, inv_data[it - inventory->begin()]);
+  // Check compatibilty of iterators with STL.
+  std::vector<unsigned char> inv_vec(inventory->begin(), inventory->end());
+  for (auto it = inventory->begin(); it != inventory->end(); ++it) {
+    auto indx = it - inventory->begin();
+    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
+    TEST_EQ(*it, inv_data[indx]);
+  }
 
   TEST_EQ(monster->color(), Color_Blue);
 
@@ -1858,7 +1863,7 @@ void FlexBuffersTest() {
   TEST_EQ(tvec3[2].AsInt8(), 3);
   TEST_EQ(map["bool"].AsBool(), true);
   auto tvecb = map["bools"].AsTypedVector();
-  TEST_EQ(tvecb.ElementType(), flexbuffers::TYPE_BOOL);
+  TEST_EQ(tvecb.ElementType(), flexbuffers::FBT_BOOL);
   TEST_EQ(map["foo"].AsUInt8(), 100);
   TEST_EQ(map["unknown"].IsNull(), true);
   auto mymap = map["mymap"].AsMap();

@@ -15,8 +15,8 @@
  */
 
 #include <algorithm>
-#include <iostream>
 #include <list>
+#include <string>
 
 #include <math.h>
 
@@ -135,9 +135,8 @@ inline CheckedError atot(const char *s, Parser &parser, T *val) {
   int64_t i = StringToInt(s);
   const int64_t min = flatbuffers::numeric_limits<T>::min();
   const int64_t max = flatbuffers::numeric_limits<T>::max();
-  ECHECK(parser.CheckInRange(i, min, max));
-  *val = (T)i;
-  return NoError();
+  *val = (T)i;  // Assign this first to make ASAN happy.
+  return parser.CheckInRange(i, min, max);
 }
 template<>
 inline CheckedError atot<uint64_t>(const char *s, Parser &parser,
@@ -177,13 +176,16 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
   if (components.empty() || !max_components) { return name; }
-  std::stringstream stream;
+  std::string stream_str;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
-    if (i) { stream << "."; }
-    stream << components[i];
+    if (i) { stream_str += '.'; }
+    stream_str += std::string(components[i]);
   }
-  if (name.length()) stream << "." << name;
-  return stream.str();
+  if (name.length()) {
+    stream_str += '.';
+    stream_str += name;
+  }
+  return stream_str;
 }
 
 // Declare tokens we'll use. Single character tokens are represented by their

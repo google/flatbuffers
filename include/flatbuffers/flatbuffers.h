@@ -91,7 +91,7 @@ template<typename T> struct IndirectHelper<const T *> {
 template<typename T, typename IT> struct VectorIterator {
   typedef std::random_access_iterator_tag iterator_category;
   typedef IT value_type;
-  typedef uoffset_t difference_type;
+  typedef ptrdiff_t difference_type;
   typedef IT *pointer;
   typedef IT &reference;
 
@@ -121,7 +121,7 @@ template<typename T, typename IT> struct VectorIterator {
     return data_ != other.data_;
   }
 
-  ptrdiff_t operator-(const VectorIterator &other) const {
+  difference_type operator-(const VectorIterator &other) const {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
@@ -344,6 +344,14 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), Length()); }
 
+  // clang-format off
+  #ifdef FLATBUFFERS_HAS_STRING_VIEW
+  flatbuffers::string_view string_view() const {
+    return flatbuffers::string_view(c_str(), Length());
+  }
+  #endif // FLATBUFFERS_HAS_STRING_VIEW
+  // clang-format on
+
   bool operator<(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
   }
@@ -394,19 +402,38 @@ class Allocator {
 // DefaultAllocator uses new/delete to allocate memory regions
 class DefaultAllocator : public Allocator {
  public:
-  virtual uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
+  uint8_t *allocate(size_t size) FLATBUFFERS_OVERRIDE {
     return new uint8_t[size];
   }
 
-  virtual void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
+  void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
     delete[] p;
   }
-
-  static DefaultAllocator &instance() {
-    static DefaultAllocator inst;
-    return inst;
-  }
 };
+
+// These functions allow for a null allocator to mean use the default allocator,
+// as used by DetachedBuffer and vector_downward below.
+// This is to avoid having a statically or dynamically allocated default
+// allocator, or having to move it between the classes that may own it.
+inline uint8_t *Allocate(Allocator *allocator, size_t size) {
+  return allocator ? allocator->allocate(size)
+                   : DefaultAllocator().allocate(size);
+}
+
+inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
+  if (allocator) allocator->deallocate(p, size);
+  else DefaultAllocator().deallocate(p, size);
+}
+
+inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
+                                   size_t old_size, size_t new_size,
+                                   size_t in_use_back, size_t in_use_front) {
+  return allocator
+      ? allocator->reallocate_downward(old_p, old_size, new_size,
+                                       in_use_back, in_use_front)
+      : DefaultAllocator().reallocate_downward(old_p, old_size, new_size,
+                                               in_use_back, in_use_front);
+}
 
 // DetachedBuffer is a finished flatbuffer memory region, detached from its
 // builder. The original memory region and allocator are also stored so that
@@ -428,9 +455,7 @@ class DetachedBuffer {
         buf_(buf),
         reserved_(reserved),
         cur_(cur),
-        size_(sz) {
-    FLATBUFFERS_ASSERT(allocator_);
-  }
+        size_(sz) {}
 
   DetachedBuffer(DetachedBuffer &&other)
       : allocator_(other.allocator_),
@@ -499,12 +524,8 @@ class DetachedBuffer {
   size_t size_;
 
   inline void destroy() {
-    if (buf_) {
-      FLATBUFFERS_ASSERT(allocator_);
-      allocator_->deallocate(buf_, reserved_);
-    }
+    if (buf_) Deallocate(allocator_, buf_, reserved_);
     if (own_allocator_ && allocator_) { delete allocator_; }
-
     reset();
   }
 
@@ -530,29 +551,23 @@ class vector_downward {
                            Allocator *allocator,
                            bool own_allocator,
                            size_t buffer_minalign)
-      : allocator_(allocator ? allocator : &DefaultAllocator::instance()),
+      : allocator_(allocator),
         own_allocator_(own_allocator),
         initial_size_(initial_size),
         buffer_minalign_(buffer_minalign),
         reserved_(0),
         buf_(nullptr),
         cur_(nullptr),
-        scratch_(nullptr) {
-    FLATBUFFERS_ASSERT(allocator_);
-  }
+        scratch_(nullptr) {}
 
   ~vector_downward() {
-    if (buf_) {
-      FLATBUFFERS_ASSERT(allocator_);
-      allocator_->deallocate(buf_, reserved_);
-    }
+    if (buf_) Deallocate(allocator_, buf_, reserved_);
     if (own_allocator_ && allocator_) { delete allocator_; }
   }
 
   void reset() {
     if (buf_) {
-      FLATBUFFERS_ASSERT(allocator_);
-      allocator_->deallocate(buf_, reserved_);
+      Deallocate(allocator_, buf_, reserved_);
       buf_ = nullptr;
     }
     clear();
@@ -593,11 +608,13 @@ class vector_downward {
   }
 
   inline uint8_t *make_space(size_t len) {
-    cur_ -= ensure_space(len);
+    size_t space = ensure_space(len);
+    cur_ -= space;
     return cur_;
   }
 
-  Allocator &get_allocator() { return *allocator_; }
+  // Returns nullptr if using the DefaultAllocator.
+  Allocator *get_custom_allocator() { return allocator_; }
 
   uoffset_t size() const {
     return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
@@ -672,7 +689,6 @@ class vector_downward {
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
 
   void reallocate(size_t len) {
-    FLATBUFFERS_ASSERT(allocator_);
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();
@@ -680,10 +696,10 @@ class vector_downward {
                             old_reserved ? old_reserved / 2 : initial_size_);
     reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
     if (buf_) {
-      buf_ = allocator_->reallocate_downward(buf_, old_reserved, reserved_,
-                                             old_size, old_scratch_size);
+      buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_,
+                                old_size, old_scratch_size);
     } else {
-      buf_ = allocator_->allocate(reserved_);
+      buf_ = Allocate(allocator_, reserved_);
     }
     cur_ = buf_ + reserved_ - old_size;
     scratch_ = buf_ + old_scratch_size;
@@ -721,8 +737,8 @@ class FlatBufferBuilder {
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to `1024`.
-  /// @param[in] allocator An `Allocator` to use. Defaults to a new instance of
-  /// a `DefaultAllocator`.
+  /// @param[in] allocator An `Allocator` to use. If null will use
+  /// `DefaultAllocator`.
   /// @param[in] own_allocator Whether the builder/vector should own the
   /// allocator. Defaults to / `false`.
   /// @param[in] buffer_minalign Force the buffer to be aligned to the given
@@ -1076,6 +1092,17 @@ class FlatBufferBuilder {
   Offset<String> CreateString(const std::string &str) {
     return CreateString(str.c_str(), str.length());
   }
+
+  // clang-format off
+  #ifdef FLATBUFFERS_HAS_STRING_VIEW
+  /// @brief Store a string in the buffer, which can contain any binary data.
+  /// @param[in] str A const string_view to copy in to the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  Offset<String> CreateString(flatbuffers::string_view str) {
+    return CreateString(str.data(), str.size());
+  }
+  #endif // FLATBUFFERS_HAS_STRING_VIEW
+  // clang-format on
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
@@ -1513,6 +1540,7 @@ class FlatBufferBuilder {
   /// in the buffer.
   template<typename T>
   Offset<Vector<T>> CreateUninitializedVector(size_t len, T **buf) {
+    AssertScalarT<T>();
     return CreateUninitializedVector(len, sizeof(T),
                                      reinterpret_cast<uint8_t **>(buf));
   }
