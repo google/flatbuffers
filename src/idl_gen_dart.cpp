@@ -210,7 +210,7 @@ class DartGenerator : public BaseGenerator {
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (value == null) return null;\n";
+    code += "    if (value == null) value = 0;\n";
 
     code += "    if (!values.containsKey(value)) {\n";
     code +=
@@ -769,7 +769,7 @@ class DartGenerator : public BaseGenerator {
         }
         code += "\n        : null;\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += " = fbBuilder.writeString(_" + field.name + ");\n";
+        code += " = fbBuilder.writeString(_" + MakeCamel(field.name, false) + ");\n";
       } else {
         code += " = _" + MakeCamel(field.name, false) +
                 "?.getOrCreateOffset(fbBuilder);\n";
