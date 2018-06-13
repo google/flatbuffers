@@ -42,9 +42,6 @@ struct MonsterT;
 struct TypeAliases;
 struct TypeAliasesT;
 
-struct UninitializedVectorTable;
-struct UninitializedVectorTableT;
-
 }  // namespace Example
 
 inline const flatbuffers::TypeTable *InParentNamespaceTypeTable();
@@ -72,8 +69,6 @@ inline const flatbuffers::TypeTable *ReferrableTypeTable();
 inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 inline const flatbuffers::TypeTable *TypeAliasesTypeTable();
-
-inline const flatbuffers::TypeTable *UninitializedVectorTableTypeTable();
 
 enum Color {
   Color_Red = 1,
@@ -1748,74 +1743,6 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
 
 flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-struct UninitializedVectorTableT : public flatbuffers::NativeTable {
-  typedef UninitializedVectorTable TableType;
-  std::vector<Test> vecOfStructs;
-  UninitializedVectorTableT() {
-  }
-};
-
-struct UninitializedVectorTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef UninitializedVectorTableT NativeTableType;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return UninitializedVectorTableTypeTable();
-  }
-  enum {
-    VT_VECOFSTRUCTS = 4
-  };
-  const flatbuffers::Vector<const Test *> *vecOfStructs() const {
-    return GetPointer<const flatbuffers::Vector<const Test *> *>(VT_VECOFSTRUCTS);
-  }
-  flatbuffers::Vector<const Test *> *mutable_vecOfStructs() {
-    return GetPointer<flatbuffers::Vector<const Test *> *>(VT_VECOFSTRUCTS);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_VECOFSTRUCTS) &&
-           verifier.Verify(vecOfStructs()) &&
-           verifier.EndTable();
-  }
-  UninitializedVectorTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(UninitializedVectorTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<UninitializedVectorTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const UninitializedVectorTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct UninitializedVectorTableBuilder {
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_vecOfStructs(flatbuffers::Offset<flatbuffers::Vector<const Test *>> vecOfStructs) {
-    fbb_.AddOffset(UninitializedVectorTable::VT_VECOFSTRUCTS, vecOfStructs);
-  }
-  explicit UninitializedVectorTableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  UninitializedVectorTableBuilder &operator=(const UninitializedVectorTableBuilder &);
-  flatbuffers::Offset<UninitializedVectorTable> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<UninitializedVectorTable>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<UninitializedVectorTable> CreateUninitializedVectorTable(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const Test *>> vecOfStructs = 0) {
-  UninitializedVectorTableBuilder builder_(_fbb);
-  builder_.add_vecOfStructs(vecOfStructs);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<UninitializedVectorTable> CreateUninitializedVectorTableDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<Test> *vecOfStructs = nullptr) {
-  return MyGame::Example::CreateUninitializedVectorTable(
-      _fbb,
-      vecOfStructs ? _fbb.CreateVectorOfStructs<Test>(*vecOfStructs) : 0);
-}
-
-flatbuffers::Offset<UninitializedVectorTable> CreateUninitializedVectorTable(flatbuffers::FlatBufferBuilder &_fbb, const UninitializedVectorTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -2167,32 +2094,6 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBuffe
       _f64,
       _v8,
       _vf64);
-}
-
-inline UninitializedVectorTableT *UninitializedVectorTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new UninitializedVectorTableT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void UninitializedVectorTable::UnPackTo(UninitializedVectorTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = vecOfStructs(); if (_e) { _o->vecOfStructs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vecOfStructs[_i] = *_e->Get(_i); } } };
-}
-
-inline flatbuffers::Offset<UninitializedVectorTable> UninitializedVectorTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const UninitializedVectorTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateUninitializedVectorTable(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<UninitializedVectorTable> CreateUninitializedVectorTable(flatbuffers::FlatBufferBuilder &_fbb, const UninitializedVectorTableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const UninitializedVectorTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _vecOfStructs = _o->vecOfStructs.size() ? _fbb.CreateVectorOfStructs(_o->vecOfStructs) : 0;
-  return MyGame::Example::CreateUninitializedVectorTable(
-      _fbb,
-      _vecOfStructs);
 }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type) {
@@ -2618,22 +2519,6 @@ inline const flatbuffers::TypeTable *TypeAliasesTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const flatbuffers::TypeTable *UninitializedVectorTableTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_SEQUENCE, 1, 0 }
-  };
-  static const flatbuffers::TypeFunction type_refs[] = {
-    TestTypeTable
-  };
-  static const char * const names[] = {
-    "vecOfStructs"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

@@ -1959,14 +1959,16 @@ void UninitializedVectorTest() {
   buf[0] = Test(10, 20);
   buf[1] = Test(30, 40);
   
-  builder.Finish(CreateUninitializedVectorTable(
-    builder, vecOfStructsOffset));
-  
+  auto requiredName = builder.CreateString("myMonster");
+  auto monsBuilder = MonsterBuilder(builder);
+  monsBuilder.add_name(requiredName); // required field manadated for monster.
+  monsBuilder.add_test4(vecOfStructsOffset);
+  builder.Finish(monsBuilder.Finish());
   
   auto p = builder.GetBufferPointer();
-  auto uvt = flatbuffers::GetRoot<UninitializedVectorTable>(p);
+  auto uvt = flatbuffers::GetRoot<Monster>(p);
   TEST_NOTNULL(uvt);
-  auto vec = uvt->vecOfStructs();
+  auto vec = uvt->test4();
   TEST_NOTNULL(vec);
   auto test_0 = vec->Get(0);
   auto test_1 = vec->Get(1);
