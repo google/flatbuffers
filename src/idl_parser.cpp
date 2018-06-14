@@ -113,6 +113,11 @@ CheckedError Parser::Error(const std::string &msg) {
 
 inline CheckedError NoError() { return CheckedError(false); }
 
+CheckedError Parser::RecurseError() {
+  return Error("maximum parsing recursion of " + NumToString(kMaxParsingDepth) +
+               " reached");
+}
+
 inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
                                       int64_t limit) {
   const std::string cause = NumToString(val) + op + NumToString(limit);
@@ -583,7 +588,7 @@ CheckedError Parser::ParseType(Type &type) {
   } else if (token_ == '[') {
     NEXT();
     Type subtype;
-    ECHECK(ParseType(subtype));
+    ECHECK(Recurse([&]() { return ParseType(subtype); }));
     if (subtype.base_type == BASE_TYPE_VECTOR) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
@@ -975,7 +980,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       fieldn_outer, &struct_def,
       [](const std::string &name, size_t &fieldn,
          const StructDef *struct_def_inner, void *state) -> CheckedError {
-        Parser *parser = static_cast<Parser *>(state);
+        auto *parser = static_cast<Parser *>(state);
         if (name == "$schema") {
           ECHECK(parser->Expect(kTokenStringConstant));
           return NoError();
@@ -1006,8 +1011,10 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               ECHECK(parser->ParseNestedFlatbuffer(val, field, fieldn,
                                                    struct_def_inner));
             } else {
-              ECHECK(
-                  parser->ParseAnyValue(val, field, fieldn, struct_def_inner));
+              ECHECK(parser->Recurse([&]() {
+                  return parser->ParseAnyValue(val, field, fieldn,
+                                               struct_def_inner);
+              }));
             }
             // Hardcoded insertion-sort with error-check.
             // If fields are specified in order, then this loop exits
@@ -1152,7 +1159,9 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
         auto *parser = parser_and_type->first;
         Value val;
         val.type = parser_and_type->second;
-        ECHECK(parser->ParseAnyValue(val, nullptr, 0, nullptr));
+        ECHECK(parser->Recurse([&]() {
+                 return parser->ParseAnyValue(val, nullptr, 0, nullptr);
+        }));
         parser->field_stack_.push_back(std::make_pair(val, nullptr));
         return NoError();
       },
@@ -2130,7 +2139,9 @@ CheckedError Parser::SkipAnyJsonValue() {
           [](const std::string &, size_t &fieldn, const StructDef *,
              void *state) -> CheckedError {
             auto *parser = static_cast<Parser *>(state);
-            ECHECK(parser->SkipAnyJsonValue());
+            ECHECK(parser->Recurse([&]() {
+              return parser->SkipAnyJsonValue();
+            }));
             fieldn++;
             return NoError();
           },
@@ -2141,7 +2152,10 @@ CheckedError Parser::SkipAnyJsonValue() {
       return ParseVectorDelimiters(
           count,
           [](size_t &, void *state) -> CheckedError {
-            return static_cast<Parser *>(state)->SkipAnyJsonValue();
+            auto *parser = static_cast<Parser *>(state);
+            return parser->Recurse([&]() {
+              return parser->SkipAnyJsonValue();
+            });
           },
           this);
     }
