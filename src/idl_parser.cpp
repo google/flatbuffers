@@ -997,6 +997,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                            flexbuffers::BUILDER_FLAG_SHARE_ALL);
               ECHECK(parser->ParseFlexBufferValue(&builder));
               builder.Finish();
+              // Force alignment for nested flexbuffer
+              parser->builder_.ForceVectorAlignment(builder.GetSize(), sizeof(uint8_t),
+                                                    sizeof(largest_scalar_t));
               auto off = parser->builder_.CreateVector(builder.GetBuffer());
               val.constant = NumToString(off.o);
             } else if (field->nested_flatbuffer) {
@@ -1207,6 +1210,10 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
       ECHECK(Error(nested_parser.error_));
     }
+    // Force alignment for nested flatbuffer
+    builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
+                                  nested_parser.builder_.GetBufferMinAlignment());
+    
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
