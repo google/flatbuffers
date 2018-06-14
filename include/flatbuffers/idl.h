@@ -525,7 +525,8 @@ class Parser : public ParserState {
         opts(options),
         uses_flexbuffers_(false),
         source_(nullptr),
-        anonymous_counter(0) {
+        anonymous_counter(0),
+        recurse_protection_counter(0) {
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
     namespaces_.push_back(empty_namespace_);
@@ -704,6 +705,15 @@ class Parser : public ParserState {
   bool SupportsVectorOfUnions() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
+  enum { kMaxParsingDepth = 64 };
+  FLATBUFFERS_CHECKED_ERROR RecurseError();
+  template<typename F> CheckedError Recurse(F f) {
+    if (++recurse_protection_counter >= kMaxParsingDepth) return RecurseError();
+    auto ce = f();
+    recurse_protection_counter--;
+    return ce;
+  }
+
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
@@ -736,6 +746,7 @@ class Parser : public ParserState {
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 
   int anonymous_counter;
+  int recurse_protection_counter;
 };
 
 // Utility functions for multiple generators:
