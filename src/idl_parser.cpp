@@ -944,7 +944,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
     if ((!opts.strict_json || !fieldn) && Is(terminator)) break;
     std::string name;
     if (is_nested_vector) {
-      if (fieldn > struct_def->fields.vec.size()) {
+      if (fieldn >= struct_def->fields.vec.size()) {
         return Error("too many unnamed fields in nested array");
       }
       name = struct_def->fields.vec[fieldn]->name;
@@ -1213,7 +1213,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     // Force alignment for nested flatbuffer
     builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
                                   nested_parser.builder_.GetBufferMinAlignment());
-    
+
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
