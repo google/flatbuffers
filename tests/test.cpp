@@ -1953,17 +1953,17 @@ void EndianSwapTest() {
 void UninitializedVectorTest() {
   flatbuffers::FlatBufferBuilder builder;
   
-  Test* buf = nullptr;
-  auto vecOfStructsOffset = builder.CreateUninitializedVectorOfStructs<Test>(2, &buf);
+  Test *buf = nullptr;
+  auto vector_offset = builder.CreateUninitializedVectorOfStructs<Test>(2, &buf);
   TEST_NOTNULL(buf);
   buf[0] = Test(10, 20);
   buf[1] = Test(30, 40);
   
-  auto requiredName = builder.CreateString("myMonster");
-  auto monsBuilder = MonsterBuilder(builder);
-  monsBuilder.add_name(requiredName); // required field manadated for monster.
-  monsBuilder.add_test4(vecOfStructsOffset);
-  builder.Finish(monsBuilder.Finish());
+  auto required_name = builder.CreateString("myMonster");
+  auto monster_builder = MonsterBuilder(builder);
+  monster_builder.add_name(required_name); // required field mandated for monster.
+  monster_builder.add_test4(vector_offset);
+  builder.Finish(monster_builder.Finish());
   
   auto p = builder.GetBufferPointer();
   auto uvt = flatbuffers::GetRoot<Monster>(p);
