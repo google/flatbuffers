@@ -838,7 +838,8 @@ class FlatBufferBuilder {
 
   /// @brief In order to save space, fields that are set to their default value
   /// don't get serialized into the buffer.
-  /// @param[in] bool fd When set to `true`, always serializes default values.
+  /// @param[in] bool fd When set to `true`, always serializes default values that are set.
+  /// Optional fields which are not set explicitly, will still not be serialized.
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
   /// @brief By default vtables are deduped in order to save space.
