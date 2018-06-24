@@ -261,8 +261,9 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
 // Generate a text representation of a flatbuffer in JSON format.
 bool GenerateText(const Parser &parser, const void *flatbuffer,
                   std::string *_text) {
-  std::string &text = *_text;
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
+  if (!parser.root_struct_def_) return false;
+  std::string &text = *_text;
   text.reserve(1024);               // Reduce amount of inevitable reallocs.
   auto root = parser.opts.size_prefixed ?
       GetSizePrefixedRoot<Table>(flatbuffer) : GetRoot<Table>(flatbuffer);
