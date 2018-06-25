@@ -266,7 +266,7 @@ bool IsIdentifierStart(char c) {
 
 CheckedError Parser::Next() {
   doc_comment_.clear();
-  bool seen_newline = false;
+  bool seen_newline = cursor_ == source_;
   attribute_.clear();
   for (;;) {
     char c = *cursor_++;
@@ -410,7 +410,7 @@ CheckedError Parser::Next() {
           const char *start = ++cursor_;
           while (*cursor_ && *cursor_ != '\n' && *cursor_ != '\r') cursor_++;
           if (*start == '/') {  // documentation comment
-            if (cursor_ != source_ && !seen_newline)
+            if (!seen_newline)
               return Error(
                   "a documentation comment should be on a line on its own");
             doc_comment_.push_back(std::string(start + 1, cursor_));
