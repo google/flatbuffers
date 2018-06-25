@@ -262,49 +262,49 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
 <div class="language-cpp">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --cpp samples/monster.fbs
+  ./../flatc --cpp monster.fbs
 ~~~
 </div>
 <div class="language-java">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --java samples/monster.fbs
+  ./../flatc --java monster.fbs
 ~~~
 </div>
 <div class="language-csharp">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --csharp samples/monster.fbs
+  ./../flatc --csharp monster.fbs
 ~~~
 </div>
 <div class="language-go">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --go samples/monster.fbs
+  ./../flatc --go monster.fbs
 ~~~
 </div>
 <div class="language-python">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --python samples/monster.fbs
+  ./../flatc --python monster.fbs
 ~~~
 </div>
 <div class="language-javascript">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --js samples/monster.fbs
+  ./../flatc --js monster.fbs
 ~~~
 </div>
 <div class="language-typescript">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --ts samples/monster.fbs
+  ./../flatc --ts monster.fbs
 ~~~
 </div>
 <div class="language-php">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --php samples/monster.fbs
+  ./../flatc --php monster.fbs
 ~~~
 </div>
 <div class="language-c">
@@ -319,7 +319,7 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
 <div class="language-dart">
 ~~~{.sh}
   cd flatbuffers/sample
-  ./../flatc --dart samples/monster.fbs
+  ./../flatc --dart monster.fbs
 ~~~
 </div>
 
