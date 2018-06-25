@@ -2497,21 +2497,23 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
-    code_.SetValue("ARG_LIST", arg_list);
-    code_.SetValue("INIT_LIST", init_list);
-    code_ += "  {{STRUCT_NAME}}({{ARG_LIST}})";
-    code_ += "      : {{INIT_LIST}} {";
-    padding_id = 0;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (field.padding) {
-        std::string padding;
-        GenPadding(field, &padding, &padding_id, PaddingNoop);
-        code_ += padding;
+    if (!arg_list.empty()) {
+      code_.SetValue("ARG_LIST", arg_list);
+      code_.SetValue("INIT_LIST", init_list);
+      code_ += "  {{STRUCT_NAME}}({{ARG_LIST}})";
+      code_ += "      : {{INIT_LIST}} {";
+      padding_id = 0;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        if (field.padding) {
+          std::string padding;
+          GenPadding(field, &padding, &padding_id, PaddingNoop);
+          code_ += padding;
+        }
       }
+      code_ += "  }";
     }
-    code_ += "  }";
 
     // Generate accessor methods of the form:
     // type name() const { return flatbuffers::EndianScalar(name_); }
