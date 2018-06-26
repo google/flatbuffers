@@ -518,9 +518,19 @@ class DartGenerator : public BaseGenerator {
           code += ".vTableGet(_bc, _bcOffset, " +
                   NumToString(field.value.offset) + ", ";
           if (!field.value.constant.empty() && field.value.constant != "0") {
-            code += field.value.constant;
+            if (IsBool(field.value.type.base_type)) {
+              code += "true";
+            } else {
+              code += field.value.constant;
+            }
           } else {
-            code += "null";
+            if (IsBool(field.value.type.base_type)) {
+              code += "false";
+            } else if (IsScalar(field.value.type.base_type)) {
+              code += "0";
+            } else {
+              code += "null";
+            }
           }
           code += ")";
         }
