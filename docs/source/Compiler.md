@@ -136,5 +136,7 @@ Additional options:
 
 -   `--root-type T` : Select or override the default root_type.
 
+-   `--force-defaults` : Emit default values in binary output from JSON.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
