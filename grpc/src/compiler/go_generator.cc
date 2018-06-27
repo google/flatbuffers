@@ -110,7 +110,7 @@ void GenerateServerMethod(const grpc_generator::Method *method, grpc_generator::
 	vars["Method"] = exportName(method->name());
 	vars["Request"] = method->get_input_type_name();
 	vars["Response"] = (vars["CustomMethodIO"] == "") ? method->get_output_type_name() : vars["CustomMethodIO"];
-	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
+	vars["FullMethodName"] = "/" + vars["ServicePrefix"] + "." + vars["Service"] + "/" + vars["Method"];
 	vars["Handler"] = "_" + vars["Service"] + "_" + vars["Method"] + "_Handler";
 	if (method->NoStreaming()) {
 		printer->Print(vars, "func $Handler$(srv interface{}, ctx $context$.Context,\n\tdec func(interface{}) error, interceptor $grpc$.UnaryServerInterceptor) (interface{}, error) {\n");
@@ -223,7 +223,7 @@ void GenerateClientMethod(const grpc_generator::Method *method, grpc_generator::
 	vars["Method"] = exportName(method->name());
 	vars["Request"] = (vars["CustomMethodIO"] == "") ? method->get_input_type_name() : vars["CustomMethodIO"];
 	vars["Response"] = method->get_output_type_name();
-	vars["FullMethodName"] = "/" + vars["Package"] + "." + vars["Service"] + "/" + vars["Method"];
+	vars["FullMethodName"] = "/" + vars["ServicePrefix"] + "." + vars["Service"] + "/" + vars["Method"];
 	if (method->NoStreaming()) {
 		printer->Print(vars, "out := new($Response$)\n");
 		printer->Print(vars, "err := $grpc$.Invoke(ctx, \"$FullMethodName$\", in, out, c.cc, opts...)\n");
@@ -374,7 +374,7 @@ void GenerateService(const grpc_generator::Service *service, grpc_generator::Pri
 	//Service Descriptor
 	printer->Print(vars, "var $ServiceDesc$ = $grpc$.ServiceDesc{\n");
 	printer->Indent();
-	printer->Print(vars, "ServiceName: \"$Package$.$Service$\",\n");
+	printer->Print(vars, "ServiceName: \"$ServicePrefix$.$Service$\",\n");
 	printer->Print(vars, "HandlerType: (*$Service$Server)(nil),\n");
 	printer->Print(vars, "Methods: []$grpc$.MethodDesc{\n");
 	printer->Indent();
@@ -433,6 +433,7 @@ grpc::string GenerateServiceSource(grpc_generator::File *file,
 	auto printer = p.get();
 	std::map<grpc::string, grpc::string> vars;
 	vars["Package"] = parameters->package_name;
+	vars["ServicePrefix"] = parameters->service_prefix;
 	vars["grpc"] = "grpc";
 	vars["context"] = "context";
 	GenerateImports(file, printer, vars);
