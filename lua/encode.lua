@@ -1,14 +1,13 @@
 local m = {}
 
-local function replace_char3(pos, str
+local ba = require("binaryarray")
 
 function m.Get(flag, buf, head)
-   return flag:Unpack(buf, head) 
+   return flag:Unpack(buf, head)
 end
 
 function m.Write(flag, buf, head, n)
-    local packedData = flag:Pack(n)
-    
+    buf:Set(flag:Pack(n), head)
 end
 
 return m
