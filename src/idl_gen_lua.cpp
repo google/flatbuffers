@@ -132,8 +132,8 @@ class LuaGenerator : public BaseGenerator {
 	code += Indent + "return o\n";
 	code += EndFunc;
 
-    code += "function "+ NormalizedName(struct_def)+".GetRootAs" + NormalizedName(struct_def) + "(cls, buf, offset)\n";
-	code += Indent + "local n = flatbuffers.encode.Get(flatbuffers.N.UOffset, buf, offset)\n";
+    code += "function "+ NormalizedName(struct_def)+".GetRootAs" + NormalizedName(struct_def) + "(buf, offset)\n";
+	code += Indent + "local n = flatbuffers.encode.Get(flatbuffers.N.UOffsetT, buf, offset)\n";
     code += Indent + "local o = " + NormalizedName(struct_def) + ".New()\n";
 	code += Indent + "o:Init(buf, n + offset)\n";
     code += Indent + "return o\n";

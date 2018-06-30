@@ -62,3 +62,6 @@ local buf = builder:Output()
 
 -- print the buffer to console
 binaryArray.DumpHex(buf)
+
+local mon = monster.GetRootAsMonster(buf, 0)
+assert(mon:Mana() == 150)

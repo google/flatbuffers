@@ -5,7 +5,7 @@ local N = require("numTypes")
 local encode = require("encode")
 
 function m.New(buf, pos)
-    N.UOffset:EnforceNumber(pos)
+    N.UOffsetT:EnforceNumber(pos)
     local o = {
         bytes = buf,
         pos = pos
@@ -15,7 +15,7 @@ function m.New(buf, pos)
 end
 
 function mt:Offset(vtableOffset)
-    local vtable = self.pos - self:Get(N.SOffsetT, self.Pos)
+    local vtable = self.pos - self:Get(N.SOffsetT, self.pos)
     local vtableEnd = self:Get(N.VOffsetT, vtable)
     if vtableOffset < vtableEnd then
         return self:Get(N.VOffsetT, vtable + vtableOffset)
@@ -75,7 +75,7 @@ function mt:GetSlot(slot, d, validatorFlags)
     if off == 0 then
         return d
     end
-    return self:Get(validatorFlags, self.Pos + off)
+    return self:Get(validatorFlags, self.pos + off)
 end
 
 function mt:GetVOffsetTSlot(slot, d)

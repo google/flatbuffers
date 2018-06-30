@@ -48,7 +48,7 @@ function m.Pack(fmt, ...)
 end
 
 function m.Unpack(fmt, s, pos)
-    return string.unpack(fmt, s, pos)
+    return string.unpack(fmt, s, pos+1)
 end
 
 function m.DumpHex(buf)
