@@ -39,7 +39,8 @@ function mt:Grow(newsize)
 end
 
 function mt:Set(value, startPos, endPos)
-    self.bytes = self.bytes:sub(1,startPos) .. value .. self.bytes:sub(startPos + (endPos or #value), -1)
+    endPos = (endPos or startPos + #value)+1
+    self.bytes = self.bytes:sub(1,startPos) .. value .. self.bytes:sub(endPos)
 end
 
 function m.Pack(fmt, ...)

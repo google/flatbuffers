@@ -8,8 +8,8 @@ function type_mt:Pack(value)
     return ba.Pack(self.packFmt, value)
 end
 
-function type_mt:Unpack(s, pos)
-    return ba.Unpack(self.packFmt, s, pos)
+function type_mt:Unpack(buf, pos)
+    return ba.Unpack(self.packFmt, buf.bytes, pos)
 end
 
 function type_mt:ValidNumber(n)

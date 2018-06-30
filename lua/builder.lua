@@ -71,8 +71,8 @@ function mt:WriteVtable()
     local exisitingVTable
     -- trim offsets
     
-    local i = #self.vtables - 1
-    while i >= 0 do
+    local i = #self.vtables
+    while i >= 1 do
         
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
@@ -91,8 +91,8 @@ function mt:WriteVtable()
     end
     
     if not exisitingVTable then
-        i = #self.currentVTable - 1
-        while i >= 0 do
+        i = #self.currentVTable
+        while i >= 1 do
             local off = 0
             local a = self.currentVTable[i]
             if a and a ~= 0 then
@@ -175,14 +175,14 @@ end
 
 function mt:PrependSOffsetTRelative(off)
     self:Prep(N.SOffsetT.bytewidth, 0)
-    assert(off <= self:Offset(), "Offset arithmetic error")
+    assert(off <= self:Offset(), "Offset arithmetic error: ".. off .. " > ".. self:Offset())
     local off2 = self:Offset() - off + N.SOffsetT.bytewidth
     self:PlaceSOffsetT(off2)
 end
 
 function mt:PrependUOffsetTRelative(off)
     self:Prep(N.UOffsetT.bytewidth, 0)
-    assert(off <= self:Offset(), "Offset arithmetic error")
+    assert(off <= self:Offset(), "Offset arithmetic error: ".. off .. " > ".. self:Offset())
     local off2 = self:Offset() - off + N.UOffsetT.bytewidth
     self:PlaceUOffsetT(off2)
 end
@@ -214,7 +214,7 @@ function mt:CreateString(s)
     local l = #s
     self.head = self:Head() - l
     
-    self.bytes:Set(s, self:Head(), self:Head() + 1)
+    self.bytes:Set(s, self:Head(), self:Head() + l)
     
     return self:EndVector(#s)
 end
@@ -227,14 +227,15 @@ function mt:CreateByteVector(x)
     local l = #x
     self.head = self:Head() - l
     
-    self.bytes:Set(x, self:Head(), self:Head() + 1)
+    self.bytes:Set(x, self:Head(), self:Head() + l)
     
     return self:EndVector(#x)
 end
 
 function mt:Slot(slotnum)
     assert(self.nested)
-    self.currentVTable[slotnum] = self:Offset()
+    -- n.b. slot number is 0-based
+    self.currentVTable[slotnum+1] = self:Offset()
 end
 
 local function finish(self, rootTable, sizePrefix)
