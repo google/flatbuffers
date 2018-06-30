@@ -31,8 +31,11 @@ namespace lua {
 // Hardcode spaces per indentation.
 const std::string Indent = "    ";
 const std::string Comment = "-- ";
-const std::string EndFunc = "end\n\n";
-const std::string SelfData = "self._tab";
+const std::string End = "end\n";
+const std::string EndFunc = End+"\n";
+const std::string SelfData = "self.view";
+const std::string SelfDataPos = SelfData + ".pos";
+const std::string SelfDataBytes = SelfData + ".bytes";
 
 class LuaGenerator : public BaseGenerator {
  public:
@@ -71,7 +74,7 @@ class LuaGenerator : public BaseGenerator {
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
   std::string OffsetPrefix(const FieldDef &field) {
-    return "\n" + Indent + 
+    return Indent + 
           "local o = " + SelfData + ":Offset(" + NumToString(field.value.offset) + ")\n" +
           Indent + "if o ~= 0 then\n";
   }
@@ -123,10 +126,17 @@ class LuaGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
   
-    code += "function m.GetRootAs" + NormalizedName(struct_def) + "(cls, buf, offset)\n";
-	code += Indent + "local n = flatbuffers.encode.Get(N.UOffset, buf, offset)\n";
-    code += Indent + "local x = " + NormalizedName(struct_def) + ".New(buf, n + offset)\n";
-    code += Indent + "return x\n";
+	code += "function " + NormalizedName(struct_def) + ".New()\n";
+	code += Indent + "local o = {}\n";
+	code += Indent + "setmetatable(o,{__index = " + NormalizedMetaName(struct_def) + "})\n";
+	code += Indent + "return o\n";
+	code += EndFunc;
+
+    code += "function "+ NormalizedName(struct_def)+".GetRootAs" + NormalizedName(struct_def) + "(cls, buf, offset)\n";
+	code += Indent + "local n = flatbuffers.encode.Get(flatbuffers.N.UOffset, buf, offset)\n";
+    code += Indent + "local o = " + NormalizedName(struct_def) + ".New()\n";
+	code += Indent + "o:Init(buf, n + offset)\n";
+    code += Indent + "return o\n";
     code += EndFunc;
   }
 
@@ -136,8 +146,8 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += "Init(buf, pos):\n";
-    code += Indent + SelfData + " = flatbuffers.table.Table(buf, pos)\n";
+    code += "Init(buf, pos)\n";
+    code += Indent + SelfData + " = flatbuffers.view.New(buf, pos)\n";
     code += EndFunc;
   }
 
@@ -147,10 +157,10 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "Length()";
+    code += MakeCamel(NormalizedName(field)) + "Length()\n";
     code += OffsetPrefix(field);
     code += Indent + Indent + "return "+SelfData+":VectorLen(o)\n";
-	code += Indent + "end\n";
+	code += Indent + End;
     code += Indent + "return 0\n";
 	code += EndFunc;
   }
@@ -163,9 +173,10 @@ class LuaGenerator : public BaseGenerator {
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self): return " + getter;
-    code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
-    code += NumToString(field.value.offset) + "))\n";
+	code += "()\n";
+	code += Indent + "return " + getter;
+    code += SelfDataPos + NumToString(field.value.offset)+")\n";
+	code += EndFunc;
   }
 
   // Get the value of a table's scalar.
@@ -176,21 +187,23 @@ class LuaGenerator : public BaseGenerator {
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "():";
+    code += "()\n";
     code += OffsetPrefix(field);
-    getter += "o + self._tab.Pos)";
+    getter += "o + "+SelfDataPos+")";
     auto is_bool = field.value.type.base_type == BASE_TYPE_BOOL;
     if (is_bool) {
-      getter = "bool(" + getter + ")";
+      getter = "(" + getter + " ~= 0)";
     }
-    code += Indent + Indent + Indent + "return " + getter + "\n";
+    code += Indent + Indent + "return " + getter + "\n";
+	code += Indent + End;
     std::string default_value;
     if (is_bool) {
-      default_value = field.value.constant == "0" ? "False" : "True";
+      default_value = field.value.constant == "0" ? "false" : "true";
     } else {
       default_value = field.value.constant;
     }
-    code += Indent + Indent + "return " + default_value + "\n\n";
+    code += Indent + "return " + default_value + "\n";
+	code += EndFunc;
   }
 
   // Get a struct by initializing an existing struct.
@@ -201,10 +214,11 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self, obj):\n";
-    code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
-    code += NumToString(field.value.offset) + ")";
-    code += "\n" + Indent + Indent + "return obj\n\n";
+    code += ":(obj)\n";
+    code += Indent + "obj:Init("+SelfDataBytes+", "+SelfDataPos + ",";
+    code += NumToString(field.value.offset) + ")\n";
+    code += Indent + "return obj\n";
+	code += EndFunc;
   }
 
   // Get a struct by initializing an existing struct.
@@ -215,20 +229,18 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self):";
+    code += "()\n";
     code += OffsetPrefix(field);
     if (field.value.type.struct_def->fixed) {
-      code += Indent + Indent + Indent + "x = o + self._tab.Pos\n";
+      code += Indent + Indent + "local x = o + "+SelfDataPos+"\n";
     } else {
-      code += Indent + Indent + Indent;
-      code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
-    }
-    code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-    code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-    code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
-    code += Indent + Indent + Indent + "return obj\n";
-    code += Indent + Indent + "return None\n\n";
+      code += Indent + Indent + "local x = "+SelfData+":Indirect(o + "+SelfDataPos+")\n";
+    }	
+    code += Indent + Indent + "local obj = require('" + TypeName(field) + "').New()\n";
+    code += Indent + Indent + "obj:Init("+SelfDataBytes+", x)\n";
+    code += Indent + Indent + "return obj\n";
+	code += Indent + End;
+	code += EndFunc;
   }
 
   // Get the value of a string.
@@ -237,11 +249,12 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self):";
+    code += "()\n";
     code += OffsetPrefix(field);
-    code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
-    code += "o + self._tab.Pos)\n";
-    code += Indent + Indent + "return None\n\n";
+    code += Indent + Indent + "return " + GenGetter(field.value.type);
+    code += "o + "+ SelfDataPos+")\n";
+	code += Indent + End;
+	code += EndFunc;
   }
 
   // Get the value of a union from an object.
@@ -249,21 +262,22 @@ class LuaGenerator : public BaseGenerator {
                      std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "(self):";
+    code += MakeCamel(NormalizedName(field)) + "()\n";
     code += OffsetPrefix(field);
 
     // TODO(rw): this works and is not the good way to it:
-    bool is_native_table = TypeName(field) == "*flatbuffers.Table";
-    if (is_native_table) {
-      code += Indent + Indent + Indent + "from flatbuffers.table import Table\n";
-    } else {
-      code += Indent + Indent + Indent;
-      code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-    }
-    code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
-    code += Indent + Indent + Indent + GenGetter(field.value.type);
-    code += "obj, o)\n" + Indent + Indent + Indent + "return obj\n";
-    code += Indent + Indent + "return None\n\n";
+    //bool is_native_table = TypeName(field) == "*flatbuffers.Table";
+    //if (is_native_table) {
+    //  code += Indent + Indent + "from flatbuffers.table import Table\n";
+    //} else {
+    //  code += Indent + Indent +
+    //  code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+    //}
+    code += Indent + Indent + "local obj = flatbuffers.view.New(require('binaryarray').New(0), 0)\n";
+	code += Indent + Indent + GenGetter(field.value.type) + "obj, o)\n";
+    code += Indent + Indent + "return obj\n";
+	code += Indent + End;
+	code += EndFunc;
   }
 
   // Get the value of a vector's struct member.
@@ -275,20 +289,19 @@ class LuaGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self, j):" + OffsetPrefix(field);
-    code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
-    code += Indent + Indent + Indent;
-    code += "x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * ";
-    code += NumToString(InlineSize(vectortype)) + "\n";
+	code += "(j)\n";
+	code += OffsetPrefix(field);
+    code += Indent + Indent + "local x = "+SelfData+":Vector(o)\n";
+    code += Indent + Indent + "x = x + (j * ";
+    code += NumToString(InlineSize(vectortype)) + ")\n";
     if (!(vectortype.struct_def->fixed)) {
-      code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
+      code += Indent + Indent + "x = "+SelfData+":Indirect(x)\n";
     }
-    code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
-    code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
-    code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
-    code += Indent + Indent + Indent + "return obj\n";
-    code += Indent + Indent + "return None\n\n";
+    code += Indent + Indent + "local obj = require('" + TypeName(field) + "').New()\n";
+    code += Indent + Indent + "obj:Init("+SelfDataBytes+", x)\n";
+    code += Indent + Indent + "return obj\n";
+	code += Indent + End;
+	code += EndFunc;
   }
 
   // Get the value of a vector's non-struct member. Uses a named return
@@ -301,19 +314,20 @@ class LuaGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "(self, j):";
+    code += "(j)\n";
     code += OffsetPrefix(field);
-    code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
-    code += Indent + Indent + Indent;
+    code += Indent + Indent + "local a = "+SelfData+":Vector(o)\n";
+    code += Indent + Indent;
     code += "return " + GenGetter(field.value.type);
-    code += "a + flatbuffers.number_types.UOffsetTFlags.py_type(j * ";
+    code += "a + (j * ";
     code += NumToString(InlineSize(vectortype)) + "))\n";
+	code += Indent + End;
     if (vectortype.base_type == BASE_TYPE_STRING) {
-      code += Indent + Indent + "return \"\"\n";
+      code += Indent + "return ''\n";
     } else {
-      code += Indent + Indent + "return 0\n";
+      code += Indent + "return 0\n";
     }
-    code += "\n";
+	code += EndFunc;
   }
 
   // Returns a non-struct vector as a numpy array. Much faster
@@ -329,21 +343,21 @@ class LuaGenerator : public BaseGenerator {
     if (!(IsScalar(vectortype.base_type))) { return; }
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "AsNumpy(self):";
+    code += MakeCamel(NormalizedName(field)) + "AsNumpy()\n";
     code += OffsetPrefix(field);
 
     code += Indent + Indent + Indent;
     code += "return ";
-    code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
+    code += SelfData + ":GetVectorAsNumpy(flatbuffers.number_types.";
     code += MakeCamel(GenTypeGet(field.value.type));
     code += "Flags, o)\n";
-
+	code += Indent + End;
     if (vectortype.base_type == BASE_TYPE_STRING) {
-      code += Indent + Indent + "return \"\"\n";
+      code += Indent + "return ''\n";
     } else {
-      code += Indent + Indent + "return 0\n";
+      code += Indent + "return 0\n";
     }
-    code += "\n";
+	code += EndFunc;
   }
 
   // Begin the creator function signature.
@@ -351,8 +365,7 @@ class LuaGenerator : public BaseGenerator {
                         std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "\n";
-    code += "def Create" + NormalizedName(struct_def);
+    code += "function " + NormalizedName(struct_def) +".Create" + NormalizedName(struct_def);
     code += "(builder";
   }
 
@@ -380,7 +393,7 @@ class LuaGenerator : public BaseGenerator {
   // End the creator function signature.
   void EndBuilderArgs(std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "):\n";
+    code += ")\n";
   }
 
   // Recursively generate struct construction statements and instert manual
@@ -388,18 +401,18 @@ class LuaGenerator : public BaseGenerator {
   void StructBuilderBody(const StructDef &struct_def,
                          const char *nameprefix, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+    code += Indent + "builder:Prep(" + NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
         it != struct_def.fields.vec.rend(); ++it) {
       auto &field = **it;
       if (field.padding)
-        code += "    builder.Pad(" + NumToString(field.padding) + ")\n";
+        code += Indent + "builder:Pad(" + NumToString(field.padding) + ")\n";
       if (IsStruct(field.value.type)) {
         StructBuilderBody(*field.value.type.struct_def,
                           (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
       } else {
-        code += "    builder.Prepend" + GenMethod(field) + "(";
+        code += Indent + "builder:Prepend" + GenMethod(field) + "(";
         code += nameprefix + MakeCamel(NormalizedName(field), false) + ")\n";
       }
     }
@@ -407,18 +420,19 @@ class LuaGenerator : public BaseGenerator {
 
   void EndBuilderBody(std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "    return builder.Offset()\n";
+    code += Indent + "return builder:Offset()\n";
+	code += EndFunc;
   }
 
   // Get the value of a table's starting offset.
   void GetStartOfTable(const StructDef &struct_def,
                        std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Start";
-    code += "(builder): ";
-    code += "builder.StartObject(";
+    code += "function "+ NormalizedName(struct_def) + ".Start";
+    code += "(builder) ";
+    code += "builder:StartObject(";
     code += NumToString(struct_def.fields.vec.size());
-    code += ")\n";
+    code += ") end\n";
   }
 
   // Set the value of a table's field.
@@ -426,46 +440,47 @@ class LuaGenerator : public BaseGenerator {
                          const FieldDef &field, const size_t offset,
                          std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Add" + MakeCamel(NormalizedName(field));
+    code += "function " + NormalizedName(struct_def) + ".Add" + MakeCamel(NormalizedName(field));
     code += "(builder, ";
     code += MakeCamel(NormalizedName(field), false);
-    code += "): ";
-    code += "builder.Prepend";
+    code += ") ";
+    code += "builder:Prepend";
     code += GenMethod(field) + "Slot(";
     code += NumToString(offset) + ", ";
-    if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
-      code += "flatbuffers.number_types.UOffsetTFlags.py_type";
-      code += "(";
-      code += MakeCamel(NormalizedName(field), false) + ")";
-    } else {
+	// todo: i don't need to cast in Lua, but am I missing something?
+//    if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
+//      code += "flatbuffers.N.UOffsetTFlags.py_type";
+//      code += "(";
+//      code += MakeCamel(NormalizedName(field), false) + ")";
+//    } else {
       code += MakeCamel(NormalizedName(field), false);
-    }
+//    }
     code += ", " + field.value.constant;
-    code += ")\n";
+    code += ") end\n";
   }
 
   // Set the value of one of the members of a table's vector.
   void BuildVectorOfTable(const StructDef &struct_def,
                           const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Start";
+    code += "function " + NormalizedName(struct_def) + ".Start";
     code += MakeCamel(NormalizedName(field));
-    code += "Vector(builder, numElems): return builder.StartVector(";
+    code += "Vector(builder, numElems) return builder:StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
     code += NumToString(elem_size);
     code += ", numElems, " + NumToString(alignment);
-    code += ")\n";
+    code += ") end\n";
   }
 
   // Get the offset of the end of a table.
   void GetEndOffsetOnTable(const StructDef &struct_def,
                            std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "End";
-    code += "(builder): ";
-    code += "return builder.EndObject()\n";
+    code += "function " + NormalizedName(struct_def) + ".End";
+    code += "(builder) ";
+    code += "return builder:EndObject() end\n";
   }
 
   // Generate the receiver for function signatures.
@@ -691,13 +706,15 @@ class LuaGenerator : public BaseGenerator {
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (it != namespaces.begin()) namespace_dir += kPathSeparator;
       namespace_dir += *it;
-      std::string init_py_filename = namespace_dir + "/__init__.py";
-      SaveFile(init_py_filename.c_str(), "", false);
+      //std::string init_py_filename = namespace_dir + "/__init__.py";
+      //SaveFile(init_py_filename.c_str(), "", false);
     }
 
     std::string code = "";
     BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
-    code += classcode;
+    code += classcode;	
+	code += "\n";
+	code += "return " + NormalizedName(def) + Comment + " return the module";
     std::string filename =
         NamespaceDir(*def.defined_namespace) + NormalizedName(def) + ".lua";
     return SaveFile(filename.c_str(), code, false);

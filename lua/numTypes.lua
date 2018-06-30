@@ -140,17 +140,17 @@ local float64_mt =
 }
 
 -- register the base class
-setmetatable(bool_mt, type_mt)
-setmetatable(uint8_mt, type_mt)
-setmetatable(uint16_mt, type_mt)
-setmetatable(uint32_mt, type_mt)
-setmetatable(uint64_mt, type_mt)
-setmetatable(int8_mt, type_mt)
-setmetatable(int16_mt, type_mt)
-setmetatable(int32_mt, type_mt)
-setmetatable(int64_mt, type_mt)
-setmetatable(float32_mt, type_mt)
-setmetatable(float64_mt, type_mt)
+setmetatable(bool_mt, {__index = type_mt})
+setmetatable(uint8_mt, {__index = type_mt})
+setmetatable(uint16_mt, {__index = type_mt})
+setmetatable(uint32_mt, {__index = type_mt})
+setmetatable(uint64_mt, {__index = type_mt})
+setmetatable(int8_mt, {__index = type_mt})
+setmetatable(int16_mt, {__index = type_mt})
+setmetatable(int32_mt, {__index = type_mt})
+setmetatable(int64_mt, {__index = type_mt})
+setmetatable(float32_mt, {__index = type_mt})
+setmetatable(float64_mt, {__index = type_mt})
 
 m.Bool      = bool_mt
 m.Uint8     = uint8_mt
@@ -161,8 +161,8 @@ m.Int8      = int8_mt
 m.Int16     = int16_mt
 m.Int32     = int32_mt
 m.Int64     = int64_mt
-m.Float     = float32_mt
-m.Double    = float64_mt
+m.Float32   = float32_mt
+m.Float64   = float64_mt
 
 m.UOffsetT  = uint32_mt
 m.VOffsetT  = uint16_mt

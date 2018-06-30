@@ -30,7 +30,7 @@ local function vtableEqual(a, objectStart, b)
 end
 
 function m.New(initialSize)
-    assert(0 < initialSize and initialSize < MAX_BUFFER_SIZE)
+    assert(0 <= initialSize and initialSize < MAX_BUFFER_SIZE)
     local o = 
     {
         finished = false,
@@ -38,6 +38,7 @@ function m.New(initialSize)
         nested = false,
         head = initialSize,
         minalign = 1,
+        vtables = {}
     }
     setmetatable(o, {__index = mt})
     return o
@@ -72,6 +73,7 @@ function mt:WriteVtable()
     
     local i = #self.vtables - 1
     while i >= 0 do
+        
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
         local vt2Len = encode.Get(N.VOffsetT, self.bytes, vt2Start)
@@ -171,14 +173,14 @@ function mt:Prep(size, additionalBytes)
     self:Pad(alignsize)
 end
 
-function mt:PrependSOffsetTReleative(off)
+function mt:PrependSOffsetTRelative(off)
     self:Prep(N.SOffsetT.bytewidth, 0)
     assert(off <= self:Offset(), "Offset arithmetic error")
     local off2 = self:Offset() - off + N.SOffsetT.bytewidth
     self:PlaceSOffsetT(off2)
 end
 
-function mt:PrependUOffsetTReleative(off)
+function mt:PrependUOffsetTRelative(off)
     self:Prep(N.UOffsetT.bytewidth, 0)
     assert(off <= self:Offset(), "Offset arithmetic error")
     local off2 = self:Offset() - off + N.UOffsetT.bytewidth
@@ -285,8 +287,8 @@ function mt:PrependInt8Slot(...)    self:PrependSlot(N.Int8, ...) end
 function mt:PrependInt16Slot(...)   self:PrependSlot(N.Int16, ...) end
 function mt:PrependInt32Slot(...)   self:PrependSlot(N.Int32, ...) end
 function mt:PrependInt64Slot(...)   self:PrependSlot(N.Int64, ...) end
-function mt:PrependFloatSlot(...)   self:PrependSlot(N.Float, ...) end
-function mt:PrependDoubleSlot(...)  self:PrependSlot(N.Double, ...) end
+function mt:PrependFloat32Slot(...) self:PrependSlot(N.Float32, ...) end
+function mt:PrependFloat64Slot(...) self:PrependSlot(N.Float64, ...) end
 
 function mt:PrependUOffsetTRelativeSlot(o,x,d)
     if x~=d then
@@ -314,14 +316,14 @@ function mt:PrependInt8(x)      self:Prepend(N.Int8, x) end
 function mt:PrependInt16(x)     self:Prepend(N.Int16, x) end
 function mt:PrependInt32(x)     self:Prepend(N.Int32, x) end
 function mt:PrependInt64(x)     self:Prepend(N.Int64, x) end
-function mt:PrependFloat(x)     self:Prepend(N.Float, x) end
-function mt:PrependDouble(x)    self:Prepend(N.Double, x) end
+function mt:PrependFloat32(x)   self:Prepend(N.Float32, x) end
+function mt:PrependFloat64(x)   self:Prepend(N.Float64, x) end
 function mt:PrependVOffsetT(x)  self:Prepend(N.VOffsetT, x) end
 
 function mt:Place(x, flags)
     flags:EnforceNumber(x)
     self.head = self:Head() - flags.bytewidth
-    encode.Write(flags, self.bytes, self:Head(), x)
+    encode.Write(flags, self.bytes, self.head, x)
 end
 
 function mt:PlaceVOffsetT(x) self:Place(x, N.VOffsetT) end
