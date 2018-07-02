@@ -1,8 +1,8 @@
 local m = {}
 local mt = {}
 
-local N = require("numTypes")
-local encode = require("encode")
+local N = require("flatbuffers.numTypes")
+local encode = require("flatbuffers.encode")
 
 function m.New(buf, pos)
     N.UOffsetT:EnforceNumber(pos)

@@ -9,7 +9,7 @@ local function generateArray(size, default)
     for i=1,size do
         t[i] = string.char(default)
     end
-    return table.concat(t)
+    return table.concat(t), t
 end
 
 function mt:__len()
@@ -19,7 +19,7 @@ end
 function m.New(size)
     local o = {}
     setmetatable(o, {__index = mt, __len = mt.__len})
-    o.bytes = generateArray(size)
+    o.bytes, o.bytes2 = generateArray(size)
     return o
 end
 

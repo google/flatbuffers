@@ -13,6 +13,7 @@
 *.sln
 *.suo
 *.keystore
+**/.vs/**
 **/bin/**
 **/gen/**
 **/libs/**

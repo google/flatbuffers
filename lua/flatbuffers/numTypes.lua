@@ -1,6 +1,6 @@
 local m = {}
 
-local ba = require("binaryarray")
+local ba = require("flatbuffers.binaryarray")
 
 local type_mt =  {}
 

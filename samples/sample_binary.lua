@@ -5,7 +5,7 @@ package.path = string.format("./lua/?.lua;%s",package.path)
 -- require the library
 local flatbuffers = require("flatbuffers")
 
-local binaryArray = require("binaryarray") -- for hex dump utility
+local binaryArray = flatbuffers.binaryArray-- for hex dump utility
 
 -- require the files generated from the schema
 local weapon = require("MyGame.Sample.Weapon")

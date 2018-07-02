@@ -1,6 +1,6 @@
 local m = {}
 
-local ba = require("binaryarray")
+local ba = require("flatbuffers.binaryarray")
 
 function m.Get(flag, buf, head)
    return flag:Unpack(buf, head)

@@ -1,6 +1,7 @@
-local N = require("numTypes")
-local encode = require("encode")
-local ba = require("binaryarray")
+local N = require("flatbuffers.numTypes")
+local encode = require("flatbuffers.encode")
+local ba = require("flatbuffers.binaryarray")
+local compat = require("flatbuffers.compat")
 
 local m = {}
 
@@ -8,6 +9,8 @@ local mt = {}
 
 local MAX_BUFFER_SIZE = 0x80000000 -- 2 GB
 local VtableMetadataFields = 2
+
+local getAlignSize = compat.GetAlignSize
 
 local function vtableEqual(a, objectStart, b)
     N.UOffsetT:EnforceNumber(objectStart)
@@ -159,9 +162,7 @@ function mt:Prep(size, additionalBytes)
         self.minalign = size
     end
 
-    --todo: compat for 5.2
-    local alignsize = (~(#self.bytes-self:Head() + additionalBytes)) + 1
-    alignsize = alignsize & (size - 1)
+    local alignsize = getAlignSize(self, size, additionalBytes)
 
     while self:Head() < alignsize + size + additionalBytes do
         local oldBufSize = #self.bytes
