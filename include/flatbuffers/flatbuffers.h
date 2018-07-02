@@ -335,7 +335,7 @@ const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
 #endif
 
 // Convenient helper function to get the length of any vector, regardless
-// of wether it is null or not (the field is not set).
+// of whether it is null or not (the field is not set).
 template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->Length() : 0;
 }
@@ -356,6 +356,18 @@ struct String : public Vector<char> {
     return strcmp(c_str(), o.c_str()) < 0;
   }
 };
+
+// Convenience function to get std::string from a String returning an empty
+// string on null pointer.
+static inline std::string GetString(const String * str) {
+  return str ? str->str() : "";
+}
+
+// Convenience function to get char* from a String returning an empty string on
+// null pointer.
+static inline const char * GetCstring(const String * str) {
+  return str ? str->c_str() : "";
+}
 
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
