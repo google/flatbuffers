@@ -1,16 +1,23 @@
 local m = {}
 local mt = {}
 
+local mt_name = "flatbuffers.view.mt"
+
 local N = require("flatbuffers.numTypes")
 local encode = require("flatbuffers.encode")
+local binaryarray = require("flatbuffers.binaryarray")
 
 function m.New(buf, pos)
     N.UOffsetT:EnforceNumber(pos)
+    
+    -- need to convert from a string buffer into
+    -- a binary array
+
     local o = {
-        bytes = buf,
+        bytes = type(buf) == "string" and binaryarray.FromString(buf) or buf,
         pos = pos
     }
-    setmetatable(o, {__index = mt})
+    setmetatable(o, {__index = mt, __metatable = mt_name})
     return o
 end
 
@@ -25,7 +32,7 @@ end
 
 function mt:Indirect(off)
     N.UOffsetT:EnforceNumber(off)
-    return off + encode.Get(N.UOffsetTFlags, self.bytes, off)
+    return off + encode.Get(N.UOffsetT, self.bytes, off)
 end
 
 function mt:String(off)
@@ -39,7 +46,7 @@ end
 function mt:VectorLen(off)
     N.UOffsetT:EnforceNumber(off)
     off = off + self.pos
-    off = off + encode.Get(N.OffsetT, self.bytes, off)
+    off = off + encode.Get(N.UOffsetT, self.bytes, off)
     return encode.Get(N.UOffsetT, self.bytes, off)
 end
 
@@ -53,11 +60,11 @@ function mt:Vector(off)
 end
 
 function mt:Union(t2, off)
-    assert(getmetatable(t2) == mt)
+    assert(getmetatable(t2) == mt_name)
     N.UOffsetT:EnforceNumber(off)
     
     off = off + self.pos
-    t2.pos = off + self.Get(N.UOffsetT, off)
+    t2.pos = off + self:Get(N.UOffsetT, off)
     t2.bytes = self.bytes
 end
 

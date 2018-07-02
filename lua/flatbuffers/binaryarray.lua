@@ -23,24 +23,53 @@ function m.New(size)
     return o
 end
 
+function m.FromString(str)
+    local o = {}
+    setmetatable(o, {__index = mt, __len = mt.__len})
+    o.bytes = str
+    return o    
+end
+
 function mt:Slice(startPos, endPos)
-    endPos = endPos or #self
-    local r = self.bytes:sub(startPos, endPos)
+    -- n.b start/endPos are 0-based incoming, so need to convert
+    --     correctly. in python a slice includes start -> end - 1
+    local r = self.bytes:sub(startPos+1, endPos)
     return r
 end
 
 function mt:Grow(newsize)
     if #self.bytes == 0 then
         self.bytes = generateArray(newsize)
-    else
-        self.bytes = generateArray(#self.bytes) .. self.bytes
+    else        
+        self.bytes = generateArray(newsize - #self.bytes) .. self.bytes
     end
     assert(#self.bytes == newsize)
 end
 
 function mt:Set(value, startPos, endPos)
-    endPos = (endPos or startPos + #value)+1
-    self.bytes = self.bytes:sub(1,startPos) .. value .. self.bytes:sub(endPos)
+    -- n.b. startPos is 0-based as it assume C-like array indexing.
+    --      So to insert at startPos, we get the substring from
+    --      1 to startPos and then append the value to it.
+    --      The endPos is also 0-based, and if not provided,
+    --      we need to calculate it from the startPos and the len
+    --      of the inserted string. The second index is ommitted 
+    --      and assume the -1 value, which is the end of the string
+    local l = #value
+    if l <= 0 then
+        return -- no op
+    end
+    
+    local csize = #self.bytes
+    
+    endPos = (endPos or startPos + l)+1
+    
+    -- separated for debugging purposes
+    -- todo: combine and optimize if possible
+    local pre = self.bytes:sub(1,startPos)
+    local post = self.bytes:sub(endPos)
+    self.bytes = pre .. value .. post
+    
+    assert(#self.bytes == csize) -- todo: just for debugging
 end
 
 function m.Pack(fmt, ...)

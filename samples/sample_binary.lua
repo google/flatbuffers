@@ -61,7 +61,36 @@ builder:Finish(orc)
 local buf = builder:Output()
 
 -- print the buffer to console
-binaryArray.DumpHex(buf)
+--binaryArray.DumpHex(buf)
 
 local mon = monster.GetRootAsMonster(buf, 0)
 assert(mon:Mana() == 150)
+assert(mon:Hp() == 300)
+assert(mon:Name() == "Orc")
+assert(mon:Color() == color.Red)
+assert(mon:Pos():X() == 1.0)
+assert(mon:Pos():Y() == 2.0)
+assert(mon:Pos():Z() == 3.0)
+
+for i=1,mon:InventoryLength() do
+    assert(mon:Inventory(i) == i)
+end
+
+local expected = { 
+    {w = 'Sword', d = 3}, 
+    {w = 'Axe', d = 5}
+}
+
+for i=1,mon:WeaponsLength() do
+   assert(mon:Weapons(i):Name() == expected[i].w)
+   assert(mon:Weapons(i):Damage() == expected[i].d)
+end
+
+assert(mon:EquippedType() == equipment.Weapon)
+
+local unionWeapon = weapon.New()
+unionWeapon:Init(mon:Equipped().bytes,mon:Equipped().pos)
+assert(unionWeapon:Name() == "Axe")
+assert(unionWeapon:Damage() == 5)
+
+print("The Lua FlatBuffer example was successfully created and verified!")
