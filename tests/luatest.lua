@@ -5,7 +5,11 @@ package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 local function checkReadBuffer(buf, offset, sizePrefix)
     offset = offset or 0
     
-    if sizePrefix then       
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.FromString(buf)
+    end
+    
+    if sizePrefix then               
         local size = flatbuffers.N.Int32:Unpack(buf, offset)
         -- no longer matches python tests, but the latest 'monsterdata_test.mon'
         -- is 448 bytes, minus 4 to arrive at the 444
@@ -162,11 +166,23 @@ end
 local function benchmarkMakeMonster(count)
     local length = #(generateMonster())
     
+    --require("flatbuffers.profiler")
+    --profiler = newProfiler("call")
+    --profiler:start()
+    
     local s = os.clock()
     for i=1,count do
         generateMonster()
     end
     local e = os.clock()    
+    
+    --profiler:stop()
+
+    --local outfile = io.open( "profile.txt", "w+" )
+    --profiler:report( outfile, true)
+    --outfile:close()
+    
+    
     local dur = (e - s)
     local rate = count / (dur * 1000)
     local data = (length * count) / (1024 * 1024)
@@ -180,12 +196,13 @@ local function benchmarkReadBuffer(count)
     local f = assert(io.open('monsterdata_test.mon', 'rb'))
     local buf = f:read("*a")
     f:close()    
-    
+        
     local s = os.clock()
     for i=1,count do
         checkReadBuffer(buf)
     end
     local e = os.clock()
+        
     local dur = (e - s)
     local rate = count / (dur * 1000)
     local data = (#buf * count) / (1024 * 1024)
@@ -214,7 +231,13 @@ local tests =
     {
         f = benchmarkReadBuffer,
         d = "Benchmark reading monsters",
-        args = {{100}, {1000}}
+        args = {
+            {100}, 
+            {1000},
+            -- uncomment following to run 1 million to compare. 
+            -- Took ~141 seconds on my machine
+            --{1000000}, 
+        }
     }, 
 }
 

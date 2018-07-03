@@ -2,14 +2,17 @@ local m = {}
 
 local ba = require("flatbuffers.binaryarray")
 
+local bpack = ba.Pack
+local bunpack = ba.Unpack
+
 local type_mt =  {}
 
 function type_mt:Pack(value)
-    return ba.Pack(self.packFmt, value)
+    return bpack(self.packFmt, value)
 end
 
-function type_mt:Unpack(buf, pos)
-    return ba.Unpack(self.packFmt, buf, pos)
+function type_mt:Unpack(buf, pos)    
+    return bunpack(self.packFmt, buf, pos)
 end
 
 function type_mt:ValidNumber(n)
@@ -18,7 +21,17 @@ function type_mt:ValidNumber(n)
 end
 
 function type_mt:EnforceNumber(n)
-    assert(self:ValidNumber(n), "Number is not in the valid range")
+    -- duplicate code since the overhead of function calls 
+    -- for such a popular method is time consuming
+    if not self.min_value and not self.max_value then 
+        return 
+    end
+    
+    if self.min_value <= n and n <= self.max_value then 
+        return
+    end    
+    
+    error("Number is not in the valid range") 
 end
 
 function type_mt:ConvertType(n, otherType)

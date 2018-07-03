@@ -90,13 +90,16 @@ function mt:Set(value, startPos, endPos)
     self.data[startPos] = value    
 end
 
+-- locals for slightly faster access
+local sunpack = string.unpack
+local spack = string.pack
+
 function m.Pack(fmt, ...)
-    return string.pack(fmt, ...)
+    return spack(fmt, ...)
 end
 
 function m.Unpack(fmt, s, pos)
-    local str = type(s) == "string" and s or s.str
-    return string.unpack(fmt, str, pos+1)
+    return sunpack(fmt, s.str, pos + 1)
 end
 
 function m.DumpHex(buf)
