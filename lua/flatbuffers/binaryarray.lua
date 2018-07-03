@@ -2,48 +2,76 @@ local m = {}
 
 local mt = {}
 
-local function generateArray(size, default)
-    if size <= 0 then return "" end
-    default = default or 0x0
-    local t = {}
-    for i=1,size do
-        t[i] = string.char(default)
-    end
-    return table.concat(t), t
-end
-
 function mt:__len()
-    return string.len(self.bytes)
+    return self.size
 end
 
 function m.New(size)
-    local o = {}
+    local o = 
+    {
+        data = {},
+        size = size
+    }
     setmetatable(o, {__index = mt, __len = mt.__len})
-    o.bytes, o.bytes2 = generateArray(size)
     return o
 end
 
 function m.FromString(str)
-    local o = {}
+    local o = 
+    {
+        str = str,
+        size = #str
+    }
     setmetatable(o, {__index = mt, __len = mt.__len})
-    o.bytes = str
     return o    
 end
 
 function mt:Slice(startPos, endPos)
-    -- n.b start/endPos are 0-based incoming, so need to convert
-    --     correctly. in python a slice includes start -> end - 1
-    local r = self.bytes:sub(startPos+1, endPos)
-    return r
+    startPos = startPos or 0
+    endPos = endPos or self.size
+    local d = self.data
+    if d then      
+        
+        -- new table to store the slice components
+        local b = {}        
+        
+        -- starting with the startPos, put all
+        -- values into the new table to be concat later
+        -- updated the startPos based on the size of the
+        -- value
+        while startPos < endPos do
+            local v = d[startPos] or '/0'
+            table.insert(b, v)
+            startPos = startPos + #v
+        end
+
+        -- combine the table of strings into one string
+        return table.concat(b)   
+    else
+        -- n.b start/endPos are 0-based incoming, so need to convert
+        --     correctly. in python a slice includes start -> end - 1
+        return self.str:sub(startPos+1, endPos)
+    end
 end
 
 function mt:Grow(newsize)
-    if #self.bytes == 0 then
-        self.bytes = generateArray(newsize)
-    else        
-        self.bytes = generateArray(newsize - #self.bytes) .. self.bytes
+    -- the new table to store the data
+    local newT = {}
+    
+    -- the offset to be applied to existing entries
+    local offset = newsize - self.size
+    
+    -- loop over all the current entries and
+    -- add them to the new table at the correct
+    -- offset location
+    local d = self.data    
+    for i,data in pairs(d) do       
+        newT[i + offset] = data
     end
-    assert(#self.bytes == newsize)
+    
+    -- update this storage with the new table and size
+    self.data = newT    
+    self.size = newsize
 end
 
 function mt:Set(value, startPos, endPos)
@@ -59,19 +87,7 @@ function mt:Set(value, startPos, endPos)
         return -- no op
     end
     
-    local csize = #self.bytes
-    
-    endPos = (endPos or startPos + l)+1
-    
-    -- separated for debugging purposes
-    -- todo: combine and optimize if possible
-    local pre = self.bytes:sub(1,startPos)
-    local post = self.bytes:sub(endPos)
-    if post then
-        self.bytes = pre .. value .. post  
-    else 
-        self.bytes = pre .. value
-    end
+    self.data[startPos] = value    
 end
 
 function m.Pack(fmt, ...)
@@ -79,7 +95,9 @@ function m.Pack(fmt, ...)
 end
 
 function m.Unpack(fmt, s, pos)
-    return string.unpack(fmt, s, pos+1)
+    local str = type(s) == "string" and s or s.str
+    --return string.unpack(fmt, s.data[pos])
+    return string.unpack(fmt, str, pos+1)
 end
 
 function m.DumpHex(buf)

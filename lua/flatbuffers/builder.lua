@@ -47,9 +47,13 @@ function m.New(initialSize)
     return o
 end
 
-function mt:Output()
+function mt:Output(full)
     assert(self.finished, "Builder Not Finished")
-    return self.bytes:Slice(self:Head())
+    if full then
+        return self.bytes:Slice()
+    else
+        return self.bytes:Slice(self:Head())
+    end
 end
 
 function mt:StartObject(numFields)

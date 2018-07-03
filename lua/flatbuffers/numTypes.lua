@@ -9,8 +9,9 @@ function type_mt:Pack(value)
 end
 
 function type_mt:Unpack(buf, pos)
-    local s = type(buf) == "string" and buf or buf.bytes
-    return ba.Unpack(self.packFmt, s, pos)
+    return ba.Unpack(self.packFmt, buf, pos)
+    --local s = type(buf) == "string" and buf or buf.bytes
+    --return ba.Unpack(self.packFmt, s, pos)
 end
 
 function type_mt:ValidNumber(n)

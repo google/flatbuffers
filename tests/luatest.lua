@@ -144,7 +144,7 @@ local function generateMonster(sizePrefix)
     else
         b:Finish(mon)
     end
-    return b.bytes, b:Head()
+    return b:Output(true), b:Head()
 end
 
 local function sizePrefix(sizePrefix)
@@ -199,7 +199,7 @@ local tests =
 { 
     {   
         f = sizePrefix, 
-        d = "Test the wire data format",
+        d = "Test size prefix",
         args = {{true}, {false}}
     },
     {   
@@ -236,7 +236,7 @@ local result, err = xpcall(function()
     for _,test in ipairs(tests) do
         local allargs = test.args or {{}}
         for _,args in ipairs(allargs) do
-            local results, err = pcall(test.f, table.unpack(args))        
+            local results, err = xpcall(test.f,debug.traceback, table.unpack(args))        
             if results then
                 testsPassed = testsPassed + 1
             else
