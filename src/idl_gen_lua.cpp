@@ -220,8 +220,8 @@ namespace lua {
       std::string &code = *code_ptr;
       GenReceiver(struct_def, code_ptr);
       code += MakeCamel(NormalizedName(field));
-      code += ":(obj)\n";
-      code += Indent + "obj:Init(" + SelfDataBytes + ", " + SelfDataPos + ",";
+      code += "(obj)\n";
+      code += Indent + "obj:Init(" + SelfDataBytes + ", " + SelfDataPos + " + ";
       code += NumToString(field.value.offset) + ")\n";
       code += Indent + "return obj\n";
       code += EndFunc;
@@ -503,7 +503,7 @@ namespace lua {
     // Generate a struct field, conditioned on its child type(s).
     void GenStructAccessor(const StructDef &struct_def,
       const FieldDef &field, std::string *code_ptr) {
-      GenComment(field.doc_comment, code_ptr, nullptr, "# ");
+      GenComment(field.doc_comment, code_ptr, nullptr, Comment.c_str());
       if (IsScalar(field.value.type.base_type)) {
         if (struct_def.fixed) {
           GetScalarFieldOfStruct(struct_def, field, code_ptr);

@@ -3,9 +3,9 @@ local m = {}
 local getAlignSize
 if _VERSION == "Lua 5.3" then
     getAlignSize = function(self, size, additionalBytes)
-        local alignsize = (~(#self.bytes-self:Head() + additionalBytes)) + 1
-        return alignsize & (size - 1)
-    end
+            local alignsize = (~(#self.bytes-self:Head() + additionalBytes)) + 1
+            return alignsize & (size - 1)
+        end    
 else
     getAlignSize = function(self, size, additionalBytes)        
         local alignsize = bit32.bnot(#self.bytes-self:Head() + additionalBytes) + 1
