@@ -1,5 +1,4 @@
 local N = require("flatbuffers.numTypes")
-local encode = require("flatbuffers.encode")
 local ba = require("flatbuffers.binaryarray")
 local compat = require("flatbuffers.compat")
 
@@ -19,7 +18,7 @@ local function vtableEqual(a, objectStart, b)
     end
     
     for i, elem in ipairs(a) do
-        local x = encode.Get(N.VOffsetT, b, i * N.VOffsetT.bytewidth)
+        local x = N.VOffsetT:Unpack(b, i * N.VOffsetT.bytewidth)
         if x == 0 and elem == 0 then
             --no-op
         else
@@ -88,7 +87,7 @@ function mt:WriteVtable()
         
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
-        local vt2Len = encode.Get(N.VOffsetT, self.bytes, vt2Start)
+        local vt2len = N.VOffsetT:Unpack(self.bytes, vt2Start)
         
         local metadata = VtableMetadataFields * N.VOffsetT.bytewidth
         local vt2End = vt2Start + vt2Len
@@ -123,14 +122,13 @@ function mt:WriteVtable()
         self:PrependVOffsetT(vBytes)
         
         local objectStart = #self.bytes - objectOffset
-        encode.Write(N.SOffsetT, self.bytes, objectStart, self:Offset() - objectOffset)
+        self.bytes:Set(N.SOffsetT:Pack(self:Offset() - objectOffset),objectStart)        
         
         table.insert(self.vtables, self:Offset())
     else
         local objectStart = #self.bytes - objectOffset
         self.head = objectStart
-        
-        encode.Write(N.SOffsetT, self.bytes, self:Head(), exisitingVTable - objectOffset)
+        self.bytes:Set(N.SOffsetT:Pack(exisitingVTable - objectOffset),self:Head())
     end
     
     self.currentVTable = nil
@@ -334,7 +332,7 @@ function mt:PrependVOffsetT(x)  self:Prepend(N.VOffsetT, x) end
 function mt:Place(x, flags)
     flags:EnforceNumber(x)
     self.head = self:Head() - flags.bytewidth
-    encode.Write(flags, self.bytes, self.head, x)
+    self.bytes:Set(flags:Pack(x), self.head)   
 end
 
 function mt:PlaceVOffsetT(x) self:Place(x, N.VOffsetT) end

@@ -4,7 +4,6 @@ local mt = {}
 local mt_name = "flatbuffers.view.mt"
 
 local N = require("flatbuffers.numTypes")
-local encode = require("flatbuffers.encode")
 local binaryarray = require("flatbuffers.binaryarray")
 
 function m.New(buf, pos)
@@ -32,22 +31,22 @@ end
 
 function mt:Indirect(off)
     N.UOffsetT:EnforceNumber(off)
-    return off + encode.Get(N.UOffsetT, self.bytes, off)
+    return off + N.UOffsetT:Unpack(self.bytes, off)
 end
 
 function mt:String(off)
     N.UOffsetT:EnforceNumber(off)
-    off = off + encode.Get(N.UOffsetT, self.bytes, off)
+    off = off + N.UOffsetT:Unpack(self.bytes, off)
     local start = off + N.UOffsetT.bytewidth
-    local length = encode.Get(N.UOffsetT, self.bytes, off)
+    local length = N.UOffsetT:Unpack(self.bytes, off)
     return self.bytes:Slice(start, start+length)
 end
 
 function mt:VectorLen(off)
     N.UOffsetT:EnforceNumber(off)
     off = off + self.pos
-    off = off + encode.Get(N.UOffsetT, self.bytes, off)
-    return encode.Get(N.UOffsetT, self.bytes, off)
+    off = off + N.UOffsetT:Unpack(self.bytes, off)
+    return N.UOffsetT:Unpack(self.bytes, off)
 end
 
 function mt:Vector(off)
@@ -70,7 +69,7 @@ end
 
 function mt:Get(flags, off)
     N.UOffsetT:EnforceNumber(off)
-    return encode.Get(flags, self.bytes, off)
+    return flags:Unpack(self.bytes, off)
 end
 
 function mt:GetSlot(slot, d, validatorFlags)

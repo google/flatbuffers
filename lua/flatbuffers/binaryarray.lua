@@ -96,7 +96,6 @@ end
 
 function m.Unpack(fmt, s, pos)
     local str = type(s) == "string" and s or s.str
-    --return string.unpack(fmt, s.data[pos])
     return string.unpack(fmt, str, pos+1)
 end
 

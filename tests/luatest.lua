@@ -5,8 +5,8 @@ package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 local function checkReadBuffer(buf, offset, sizePrefix)
     offset = offset or 0
     
-    if sizePrefix then
-        local size = flatbuffers.encode.Get(flatbuffers.N.Int32, buf, offset)
+    if sizePrefix then       
+        local size = flatbuffers.N.Int32:Unpack(buf, offset)
         -- no longer matches python tests, but the latest 'monsterdata_test.mon'
         -- is 448 bytes, minus 4 to arrive at the 444
         assert(size == 444)

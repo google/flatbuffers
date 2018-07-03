@@ -138,7 +138,7 @@ namespace lua {
       std::string &code = *code_ptr;
 
       code += "function " + NormalizedName(struct_def) + ".GetRootAs" + NormalizedName(struct_def) + "(buf, offset)\n";
-      code += Indent + "local n = flatbuffers.encode.Get(flatbuffers.N.UOffsetT, buf, offset)\n";
+      code += Indent + "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
       code += Indent + "local o = " + NormalizedName(struct_def) + ".New()\n";
       code += Indent + "o:Init(buf, n + offset)\n";
       code += Indent + "return o\n";
