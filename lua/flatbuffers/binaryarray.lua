@@ -67,9 +67,11 @@ function mt:Set(value, startPos, endPos)
     -- todo: combine and optimize if possible
     local pre = self.bytes:sub(1,startPos)
     local post = self.bytes:sub(endPos)
-    self.bytes = pre .. value .. post
-    
-    assert(#self.bytes == csize) -- todo: just for debugging
+    if post then
+        self.bytes = pre .. value .. post  
+    else 
+        self.bytes = pre .. value
+    end
 end
 
 function m.Pack(fmt, ...)

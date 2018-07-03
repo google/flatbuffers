@@ -166,16 +166,34 @@ local function benchmarkMakeMonster(count)
     for i=1,count do
         generateMonster()
     end
-    local e = os.clock()
+    local e = os.clock()    
     local dur = (e - s)
-    local rate = count / dur
+    local rate = count / (dur * 1000)
     local data = (length * count) / (1024 * 1024)
     local dataRate = data / dur
     
-    print(string.format('built %d %d-byte flatbuffers in %.2fsec: %.2f/sec, %.2fMB/sec',
+    print(string.format('built %d %d-byte flatbuffers in %.2fsec: %.2f/msec, %.2fMB/sec',
         count, length, dur, rate, dataRate))
 end
 
+local function benchmarkReadBuffer(count)
+    local f = assert(io.open('monsterdata_test.mon', 'rb'))
+    local buf = f:read("*a")
+    f:close()    
+    
+    local s = os.clock()
+    for i=1,count do
+        checkReadBuffer(buf)
+    end
+    local e = os.clock()
+    local dur = (e - s)
+    local rate = count / (dur * 1000)
+    local data = (#buf * count) / (1024 * 1024)
+    local dataRate = data / dur
+    
+    print(string.format('traversed %d %d-byte flatbuffers in %.2fsec: %.2f/msec, %.2fMB/sec',
+        count, #buf, dur, rate, dataRate))
+end
     
 local tests = 
 { 
@@ -192,7 +210,12 @@ local tests =
         f = benchmarkMakeMonster,
         d = "Benchmark making monsters",
         args = {{100}, {1000}}
-    },                
+    },   
+    {
+        f = benchmarkReadBuffer,
+        d = "Benchmark reading monsters",
+        args = {{100}, {1000}}
+    }, 
 }
 
 local result, err = xpcall(function()
