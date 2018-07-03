@@ -78,6 +78,10 @@ class DartGenerator : public BaseGenerator {
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
               ";\n\n";
 
+      if (parser_.opts.include_dependence_headers) {
+        GenIncludeDependencies(&code, kv->first);
+      }
+
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
@@ -130,6 +134,19 @@ class DartGenerator : public BaseGenerator {
     // std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
     return ret;
   }
+
+  void GenIncludeDependencies(std::string* code, const std::string& the_namespace) {
+    for (auto it = parser_.included_files_.begin();
+         it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      *code += "import '" + GeneratedFileName("", basename + "_" + the_namespace) + "';\n";
+    }
+  }
+
   static std::string EscapeKeyword(const std::string &name) {
     for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
       if (name == keywords[i]) { return MakeCamel(name + "_", false); }
