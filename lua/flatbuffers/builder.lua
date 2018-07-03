@@ -72,9 +72,14 @@ function mt:WriteVtable()
     local objectOffset = self:Offset()
     
     local exisitingVTable
-    -- trim offsets
-    
     local i = #self.vtables
+    while i >= 1 do
+        if self.vtables[i] == 0 then
+            table.remove(self.vtables,i)
+        end
+        i = i - 1
+    end    
+   
     while i >= 1 do
         
         local vt2Offset = self.vtables[i]
