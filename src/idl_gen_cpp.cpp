@@ -1541,8 +1541,8 @@ class CppGenerator : public BaseGenerator {
     const bool is_string = (field.value.type.base_type == BASE_TYPE_STRING);
 
     code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
-    if (is_string)
-    { // use operator< of flatbuffers::String
+    if (is_string) {
+      // use operator< of flatbuffers::String
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
@@ -1563,8 +1563,9 @@ class CppGenerator : public BaseGenerator {
       // Returns {field<val: -1, field==val: 0, field>val: +1}.
       code_.SetValue("KEY_TYPE", type);
       code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
-      code_ += "    return static_cast<int>({{FIELD_NAME}}() > val) - "
-               "static_cast<int>({{FIELD_NAME}}() < val);";
+      code_ +=
+          "    return static_cast<int>({{FIELD_NAME}}() > val) - "
+          "static_cast<int>({{FIELD_NAME}}() < val);";
       code_ += "  }";
     }
   }
