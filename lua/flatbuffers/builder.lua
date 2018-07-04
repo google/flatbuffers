@@ -6,19 +6,35 @@ local m = {}
 
 local mt = {}
 
+-- get locals for faster access
+local VOffsetT  = N.VOffsetT
+local UOffsetT  = N.UOffsetT
+local SOffsetT  = N.SOffsetT
+local Bool      = N.Bool
+local Uint8     = N.Uint8
+local Uint16    = N.Uint16
+local Uint32    = N.Uint32
+local Uint64    = N.Uint64
+local Int8      = N.Int8
+local Int16     = N.Int16
+local Int32     = N.Int32
+local Int64     = N.Int64
+local Float32   = N.Float32
+local Float64   = N.Float64
+
 local MAX_BUFFER_SIZE = 0x80000000 -- 2 GB
 local VtableMetadataFields = 2
 
 local getAlignSize = compat.GetAlignSize
 
 local function vtableEqual(a, objectStart, b)
-    N.UOffsetT:EnforceNumber(objectStart)
-    if (#a * N.VOffsetT.bytewidth) ~= #b then
+    UOffsetT:EnforceNumber(objectStart)
+    if (#a * VOffsetT.bytewidth) ~= #b then
         return false
     end
     
     for i, elem in ipairs(a) do
-        local x = N.VOffsetT:Unpack(b, i * N.VOffsetT.bytewidth)
+        local x = VOffsetT:Unpack(b, i * VOffsetT.bytewidth)
         if x == 0 and elem == 0 then
             --no-op
         else
@@ -51,7 +67,7 @@ function mt:Output(full)
     if full then
         return self.bytes:Slice()
     else
-        return self.bytes:Slice(self:Head())
+        return self.bytes:Slice(self.head)
     end
 end
 
@@ -87,9 +103,9 @@ function mt:WriteVtable()
         
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
-        local vt2len = N.VOffsetT:Unpack(self.bytes, vt2Start)
+        local vt2len = VOffsetT:Unpack(self.bytes, vt2Start)
         
-        local metadata = VtableMetadataFields * N.VOffsetT.bytewidth
+        local metadata = VtableMetadataFields * VOffsetT.bytewidth
         local vt2End = vt2Start + vt2Len
         local vt2 = self.bytes:Slice(vt2Start+metadata,vt2End)
         
@@ -118,17 +134,17 @@ function mt:WriteVtable()
         self:PrependVOffsetT(objectSize)
         
         local vBytes = #self.currentVTable + VtableMetadataFields
-        vBytes = vBytes * N.VOffsetT.bytewidth
+        vBytes = vBytes * VOffsetT.bytewidth
         self:PrependVOffsetT(vBytes)
         
         local objectStart = #self.bytes - objectOffset
-        self.bytes:Set(N.SOffsetT:Pack(self:Offset() - objectOffset),objectStart)        
+        self.bytes:Set(SOffsetT:Pack(self:Offset() - objectOffset),objectStart)        
         
         table.insert(self.vtables, self:Offset())
     else
         local objectStart = #self.bytes - objectOffset
         self.head = objectStart
-        self.bytes:Set(N.SOffsetT:Pack(exisitingVTable - objectOffset),self:Head())
+        self.bytes:Set(SOffsetT:Pack(exisitingVTable - objectOffset),self.head)
     end
     
     self.currentVTable = nil
@@ -141,11 +157,14 @@ function mt:EndObject()
     return self:WriteVtable()
 end
 
-local function growByteBuffer(self)
+local function growByteBuffer(self, desiredSize)
     local s = #self.bytes
     assert(s < MAX_BUFFER_SIZE, "Flat Buffers cannot grow buffer beyond 2 gigabytes")
-        local newsize = math.min(s * 2, MAX_BUFFER_SIZE)
-    if newsize == 0 then newsize = 1 end
+    local newsize = s
+    repeat
+        newsize = math.min(newsize * 2, MAX_BUFFER_SIZE)
+        if newsize == 0 then newsize = 1 end
+    until newsize > desiredSize 
     
     self.bytes:Grow(newsize)
 end
@@ -155,12 +174,15 @@ function mt:Head()
 end
 
 function mt:Offset()
-   return #self.bytes - self:Head()
+   return #self.bytes - self.head
 end
 
-function mt:Pad(n)
-    for _=1,n do
-       self:Place(0, N.Uint8)
+function mt:Pad(n)    
+    if n > 0 then
+        -- pads are 8-bit, so skip the bytewidth lookup
+        local h = self.head - n  -- UInt8    
+        self.head = h
+        self.bytes:Pad(n, h)  
     end
 end
 
@@ -169,11 +191,16 @@ function mt:Prep(size, additionalBytes)
         self.minalign = size
     end
 
-    local alignsize = getAlignSize(self, size, additionalBytes)
+    local h = self.head
+    
+    local k = #self.bytes - h + additionalBytes
+    local alignsize = ((~k) + 1) & (size - 1) -- getAlignSize(k, size)
 
-    while self:Head() < alignsize + size + additionalBytes do
+    local desiredSize = alignsize + size + additionalBytes
+
+    while self.head < desiredSize do
         local oldBufSize = #self.bytes
-        growByteBuffer(self)
+        growByteBuffer(self, desiredSize)
         local updatedHead = self.head + #self.bytes - oldBufSize
         self.head = updatedHead
     end
@@ -182,23 +209,27 @@ function mt:Prep(size, additionalBytes)
 end
 
 function mt:PrependSOffsetTRelative(off)
-    self:Prep(N.SOffsetT.bytewidth, 0)
-    assert(off <= self:Offset(), "Offset arithmetic error: ".. off .. " > ".. self:Offset())
-    local off2 = self:Offset() - off + N.SOffsetT.bytewidth
-    self:PlaceSOffsetT(off2)
+    self:Prep(SOffsetT.bytewidth, 0)
+    assert(off <= self:Offset(), "Offset arithmetic error")
+    local off2 = self:Offset() - off + SOffsetT.bytewidth
+    self:Place(off2, SOffsetT)
 end
 
 function mt:PrependUOffsetTRelative(off)
-    self:Prep(N.UOffsetT.bytewidth, 0)
-    assert(off <= self:Offset(), "Offset arithmetic error: ".. off .. " > ".. self:Offset())
-    local off2 = self:Offset() - off + N.UOffsetT.bytewidth
-    self:PlaceUOffsetT(off2)
+    self:Prep(UOffsetT.bytewidth, 0)
+    local soffset = self:Offset()
+    if off <= soffset then    
+        local off2 = soffset - off + UOffsetT.bytewidth
+        self:Place(off2, UOffsetT)
+    else
+        error("Offset arithmetic error")
+    end
 end
 
 function mt:StartVector(elemSize, numElements, alignment)
     assert(not self.nested)
     self.nested = true
-    self:Prep(N.Uint32.bytewidth, elemSize * numElements)
+    self:Prep(Uint32.bytewidth, elemSize * numElements)
     self:Prep(alignment, elemSize * numElements)
     return self:Offset()
 end
@@ -206,7 +237,7 @@ end
 function mt:EndVector(vectorNumElements)
     assert(self.nested)
     self.nested = false
-    self:PlaceUOffsetT(vectorNumElements)
+    self:Place(vectorNumElements, UOffsetT)    
     return self:Offset()
 end
 
@@ -216,13 +247,13 @@ function mt:CreateString(s)
     
     assert(type(s) == "string")
     
-    self:Prep(N.UOffsetT.bytewidth, (#s + 1)*N.Uint8.bytewidth)
-    self:Place(0, N.Uint8)
+    self:Prep(UOffsetT.bytewidth, (#s + 1)*Uint8.bytewidth)
+    self:Place(0, Uint8)
     
     local l = #s
-    self.head = self:Head() - l
+    self.head = self.head - l
     
-    self.bytes:Set(s, self:Head(), self:Head() + l)
+    self.bytes:Set(s, self.head, self.head + l)
     
     return self:EndVector(#s)
 end
@@ -230,12 +261,12 @@ end
 function mt:CreateByteVector(x)
     assert(not self.nested)
     self.nested = true
-    self:Prep(N.UOffsetT.bytewidth, #x*N.Uint8.bytewidth)
+    self:Prep(UOffsetT.bytewidth, #x*Uint8.bytewidth)
     
     local l = #x
-    self.head = self:Head() - l
+    self.head = self.head - l
     
-    self.bytes:Set(x, self:Head(), self:Head() + l)
+    self.bytes:Set(x, self.head, self.head + l)
     
     return self:EndVector(#x)
 end
@@ -243,25 +274,25 @@ end
 function mt:Slot(slotnum)
     assert(self.nested)
     -- n.b. slot number is 0-based
-    self.currentVTable[slotnum+1] = self:Offset()
+    self.currentVTable[slotnum + 1] = self:Offset()
 end
 
 local function finish(self, rootTable, sizePrefix)
-    N.UOffsetT:EnforceNumber(rootTable)
-    local prepSize = N.UOffsetT.bytewidth
+    UOffsetT:EnforceNumber(rootTable)
+    local prepSize = UOffsetT.bytewidth
     if sizePrefix then
-        prepSize = prepSize + N.Int32.bytewidth
+        prepSize = prepSize + Int32.bytewidth
     end
     
     self:Prep(self.minalign, prepSize)
     self:PrependUOffsetTRelative(rootTable)
     if sizePrefix then
-        local size = #self.bytes - self:Head()
-        N.Int32:EnforceNumber(size)
+        local size = #self.bytes - self.head
+        Int32:EnforceNumber(size)
         self:PrependInt32(size)
     end
     self.finished = true
-    return self:Head()
+    return self.head
 end
 
 function mt:Finish(rootTable)
@@ -286,18 +317,18 @@ function mt:PrependSlot(flags, o, x, d)
     end
 end
 
-function mt:PrependBoolSlot(...)    self:PrependSlot(N.Bool, ...) end
-function mt:PrependByteSlot(...)    self:PrependSlot(N.Uint8, ...) end
-function mt:PrependUint8Slot(...)   self:PrependSlot(N.Uint8, ...) end
-function mt:PrependUint16Slot(...)  self:PrependSlot(N.Uint16, ...) end
-function mt:PrependUint32Slot(...)  self:PrependSlot(N.Uint32, ...) end
-function mt:PrependUint64Slot(...)  self:PrependSlot(N.Uint64, ...) end
-function mt:PrependInt8Slot(...)    self:PrependSlot(N.Int8, ...) end
-function mt:PrependInt16Slot(...)   self:PrependSlot(N.Int16, ...) end
-function mt:PrependInt32Slot(...)   self:PrependSlot(N.Int32, ...) end
-function mt:PrependInt64Slot(...)   self:PrependSlot(N.Int64, ...) end
-function mt:PrependFloat32Slot(...) self:PrependSlot(N.Float32, ...) end
-function mt:PrependFloat64Slot(...) self:PrependSlot(N.Float64, ...) end
+function mt:PrependBoolSlot(...)    self:PrependSlot(Bool, ...) end
+function mt:PrependByteSlot(...)    self:PrependSlot(Uint8, ...) end
+function mt:PrependUint8Slot(...)   self:PrependSlot(Uint8, ...) end
+function mt:PrependUint16Slot(...)  self:PrependSlot(Uint16, ...) end
+function mt:PrependUint32Slot(...)  self:PrependSlot(Uint32, ...) end
+function mt:PrependUint64Slot(...)  self:PrependSlot(Uint64, ...) end
+function mt:PrependInt8Slot(...)    self:PrependSlot(Int8, ...) end
+function mt:PrependInt16Slot(...)   self:PrependSlot(Int16, ...) end
+function mt:PrependInt32Slot(...)   self:PrependSlot(Int32, ...) end
+function mt:PrependInt64Slot(...)   self:PrependSlot(Int64, ...) end
+function mt:PrependFloat32Slot(...) self:PrependSlot(Float32, ...) end
+function mt:PrependFloat64Slot(...) self:PrependSlot(Float64, ...) end
 
 function mt:PrependUOffsetTRelativeSlot(o,x,d)
     if x~=d then
@@ -307,36 +338,33 @@ function mt:PrependUOffsetTRelativeSlot(o,x,d)
 end
 
 function mt:PrependStructSlot(v,x,d)
-    N.UOffsetT:EnforceNumber(d)
+    UOffsetT:EnforceNumber(d)
     if x~=d then
-        N.UOffsetT:EnforceNumber(x)
+        UOffsetT:EnforceNumber(x)
         assert(x == self:Offset(), "Tried to write a Struct at an Offset that is different from the current Offset of the Builder.")
         self:Slot(v)
     end
 end
 
-function mt:PrependBool(x)      self:Prepend(N.Bool, x) end
-function mt:PrependByte(x)      self:Prepend(N.Uint8, x) end
-function mt:PrependUint8(x)     self:Prepend(N.Uint8, x) end
-function mt:PrependUint16(x)    self:Prepend(N.Uint16, x) end
-function mt:PrependUint32(x)    self:Prepend(N.Uint32, x) end
-function mt:PrependUint64(x)    self:Prepend(N.Uint64, x) end
-function mt:PrependInt8(x)      self:Prepend(N.Int8, x) end
-function mt:PrependInt16(x)     self:Prepend(N.Int16, x) end
-function mt:PrependInt32(x)     self:Prepend(N.Int32, x) end
-function mt:PrependInt64(x)     self:Prepend(N.Int64, x) end
-function mt:PrependFloat32(x)   self:Prepend(N.Float32, x) end
-function mt:PrependFloat64(x)   self:Prepend(N.Float64, x) end
-function mt:PrependVOffsetT(x)  self:Prepend(N.VOffsetT, x) end
+function mt:PrependBool(x)      self:Prepend(Bool, x) end
+function mt:PrependByte(x)      self:Prepend(Uint8, x) end
+function mt:PrependUint8(x)     self:Prepend(Uint8, x) end
+function mt:PrependUint16(x)    self:Prepend(Uint16, x) end
+function mt:PrependUint32(x)    self:Prepend(Uint32, x) end
+function mt:PrependUint64(x)    self:Prepend(Uint64, x) end
+function mt:PrependInt8(x)      self:Prepend(Int8, x) end
+function mt:PrependInt16(x)     self:Prepend(Int16, x) end
+function mt:PrependInt32(x)     self:Prepend(Int32, x) end
+function mt:PrependInt64(x)     self:Prepend(Int64, x) end
+function mt:PrependFloat32(x)   self:Prepend(Float32, x) end
+function mt:PrependFloat64(x)   self:Prepend(Float64, x) end
+function mt:PrependVOffsetT(x)  self:Prepend(VOffsetT, x) end
 
 function mt:Place(x, flags)
-    flags:EnforceNumber(x)
-    self.head = self:Head() - flags.bytewidth
-    self.bytes:Set(flags:Pack(x), self.head)   
+    local d = flags:EnforceNumberAndPack(x)
+    local h = self.head - flags.bytewidth
+    self.head = h
+    self.bytes:Set(d, h)
 end
-
-function mt:PlaceVOffsetT(x) self:Place(x, N.VOffsetT) end
-function mt:PlaceSOffsetT(x) self:Place(x, N.SOffsetT) end
-function mt:PlaceUOffsetT(x) self:Place(x, N.UOffsetT) end
 
 return m

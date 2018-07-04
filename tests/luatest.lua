@@ -226,7 +226,10 @@ local tests =
     {
         f = benchmarkMakeMonster,
         d = "Benchmark making monsters",
-        args = {{100}, {1000}}
+        args = {
+            {100}, 
+            {1000}
+        }
     },   
     {
         f = benchmarkReadBuffer,

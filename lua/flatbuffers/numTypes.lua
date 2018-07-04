@@ -34,6 +34,10 @@ function type_mt:EnforceNumber(n)
     error("Number is not in the valid range") 
 end
 
+function type_mt:EnforceNumberAndPack(n)
+    return bpack(self.packFmt, n)    
+end
+
 function type_mt:ConvertType(n, otherType)
     assert(self.bytewidth == otherType.bytewidth, "Cannot convert between types of different widths")
     if self == otherType then
@@ -165,6 +169,7 @@ setmetatable(int64_mt, {__index = type_mt})
 setmetatable(float32_mt, {__index = type_mt})
 setmetatable(float64_mt, {__index = type_mt})
 
+
 m.Bool      = bool_mt
 m.Uint8     = uint8_mt
 m.Uint16    = uint16_mt
@@ -180,5 +185,14 @@ m.Float64   = float64_mt
 m.UOffsetT  = uint32_mt
 m.VOffsetT  = uint16_mt
 m.SOffsetT  = int32_mt
+
+function GenerateTypes(listOfTypes)
+    for _,t in pairs(listOfTypes) do
+        t.Pack = function(self, value) return bpack(self.packFmt, value) end
+        t.Unpack = function(self, buf, pos) return bunpack(self.packFmt, buf, pos) end
+    end
+end
+
+GenerateTypes(m)
 
 return m

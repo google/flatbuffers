@@ -74,19 +74,18 @@ function mt:Grow(newsize)
     self.size = newsize
 end
 
-function mt:Set(value, startPos, endPos)
-    -- n.b. startPos is 0-based as it assume C-like array indexing.
-    --      So to insert at startPos, we get the substring from
-    --      1 to startPos and then append the value to it.
-    --      The endPos is also 0-based, and if not provided,
-    --      we need to calculate it from the startPos and the len
-    --      of the inserted string. The second index is ommitted 
-    --      and assume the -1 value, which is the end of the string
-    local l = #value
-    if l <= 0 then
-        return -- no op
+-- memorization
+local pads = {}
+function mt:Pad(n, startPos)   
+    local s = pads[n] 
+    if not s then
+        s = string.rep('\0', n)
+        pads[n] = s
     end
-    
+    self.data[startPos] = s    
+end
+
+function mt:Set(value, startPos, endPos)    
     self.data[startPos] = value    
 end
 
