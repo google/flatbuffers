@@ -337,38 +337,7 @@ namespace lua {
       }
       code += EndFunc;
     }
-
-    // Returns a non-struct vector as a numpy array. Much faster
-    // than iterating over the vector element by element.
-    void GetVectorOfNonStructAsNumpy(const StructDef &struct_def,
-      const FieldDef &field,
-      std::string *code_ptr) {
-      std::string &code = *code_ptr;
-      auto vectortype = field.value.type.VectorType();
-
-      // Currently, we only support accessing as numpy array if
-      // the vector type is a scalar.
-      if (!(IsScalar(vectortype.base_type))) { return; }
-
-      GenReceiver(struct_def, code_ptr);
-      code += MakeCamel(NormalizedName(field)) + "AsNumpy()\n";
-      code += OffsetPrefix(field);
-
-      code += Indent + Indent + Indent;
-      code += "return ";
-      code += SelfData + ":GetVectorAsNumpy(flatbuffers.number_types.";
-      code += MakeCamel(GenTypeGet(field.value.type));
-      code += "Flags, o)\n";
-      code += Indent + End;
-      if (vectortype.base_type == BASE_TYPE_STRING) {
-        code += Indent + "return ''\n";
-      }
-      else {
-        code += Indent + "return 0\n";
-      }
-      code += EndFunc;
-    }
-
+    
     // Begin the creator function signature.
     void BeginBuilderArgs(const StructDef &struct_def,
       std::string *code_ptr) {
@@ -529,8 +498,7 @@ namespace lua {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           }
           else {
-            GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
-            GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
+            GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);            
           }
           break;
         }

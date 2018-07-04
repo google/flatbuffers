@@ -228,7 +228,8 @@ local tests =
         d = "Benchmark making monsters",
         args = {
             {100}, 
-            {1000}
+            {1000},
+            {10000},
         }
     },   
     {
@@ -237,6 +238,7 @@ local tests =
         args = {
             {100}, 
             {1000},
+            {10000},
             -- uncomment following to run 1 million to compare. 
             -- Took ~141 seconds on my machine
             --{1000000}, 
