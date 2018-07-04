@@ -1,4 +1,4 @@
-os.execute([[.\..\Debug\flatc.exe --lua -I include_test monster_test.fbs]])
+os.execute([[.\..\Release\flatc.exe --lua -I include_test monster_test.fbs]])
 
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 
@@ -55,7 +55,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     assert(invsum == 10)
     
     for i=1,5 do
-        assert(mon:VectorOfLongs(i) == math.pow(10, (i-1)*2))
+        assert(mon:VectorOfLongs(i) == 10^((i-1)*2))
     end
     
     local dbls = { -1.7976931348623157e+308, 0, 1.7976931348623157e+308}

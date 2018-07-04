@@ -60,7 +60,7 @@ local uint8_mt =
 {
     bytewidth = 1,
     min_value = 0,
-    max_value = math.pow(2,8)-1,
+    max_value = 2^8-1,
     lua_type = type(1),
     name = "uint8",
     packFmt = "<I1"
@@ -70,7 +70,7 @@ local uint16_mt =
 {
     bytewidth = 2,
     min_value = 0,
-    max_value = math.pow(2,16)-1,
+    max_value = 2^16-1,
     lua_type = type(1),
     name = "uint16",
     packFmt = "<I2"
@@ -80,7 +80,7 @@ local uint32_mt =
 {
     bytewidth = 4,
     min_value = 0,
-    max_value = math.pow(2,32)-1,
+    max_value = 2^32-1,
     lua_type = type(1),
     name = "uint32",
     packFmt = "<I4"
@@ -90,7 +90,7 @@ local uint64_mt =
 {
     bytewidth = 8,
     min_value = 0,
-    max_value = math.pow(2,64)-1,
+    max_value = 2^64-1,
     lua_type = type(1),
     name = "uint64",
     packFmt = "<I8"
@@ -99,8 +99,8 @@ local uint64_mt =
 local int8_mt = 
 {
     bytewidth = 1,
-    min_value = -math.pow(2,7),
-    max_value = math.pow(2,7)-1,
+    min_value = -2^7,
+    max_value = 2^7-1,
     lua_type = type(1),
     name = "int8",
     packFmt = "<i1"
@@ -109,8 +109,8 @@ local int8_mt =
 local int16_mt = 
 {
     bytewidth = 2,
-    min_value = -math.pow(2,15),
-    max_value = math.pow(2,15)-1,
+    min_value = -2^15,
+    max_value = 2^15-1,
     lua_type = type(1),
     name = "int16",
     packFmt = "<i2"
@@ -119,8 +119,8 @@ local int16_mt =
 local int32_mt = 
 {
     bytewidth = 4,
-    min_value = -math.pow(2,15),
-    max_value = math.pow(2,15)-1,
+    min_value = -2^15,
+    max_value = 2^15-1,
     lua_type = type(1),
     name = "int32",
     packFmt = "<i4"
@@ -129,8 +129,8 @@ local int32_mt =
 local int64_mt = 
 {
     bytewidth = 8,
-    min_value = -math.pow(2,63),
-    max_value = math.pow(2,63)-1,
+    min_value = -2^63,
+    max_value = 2^63-1,
     lua_type = type(1),
     name = "int64",
     packFmt = "<i8"
