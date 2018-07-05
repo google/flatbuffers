@@ -67,7 +67,7 @@ namespace lua {
         "until",
         "while"
       };
-      for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
+	  keywords_.insert(std::begin(keywords), std::end(keywords));
     }
 
     // Most field accessors need to retrieve and test the field offset first,
