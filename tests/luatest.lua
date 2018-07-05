@@ -1,5 +1,3 @@
-os.execute([[.\..\Release\flatc.exe --lua -I include_test monster_test.fbs]])
-
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 
 local function checkReadBuffer(buf, offset, sizePrefix)
