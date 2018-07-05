@@ -21,7 +21,7 @@ class TableInFirstNS {
   final int _bcOffset;
 
   namespace_a_namespace_b.TableInNestedNS get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 4, null);
-  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, null));
+  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
   namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 8, null);
 
   @override

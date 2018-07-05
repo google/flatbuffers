@@ -1535,6 +1535,41 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  // Generate CompareWithValue method for a key field.
+  void GenKeyFieldMethods(const FieldDef &field) {
+    FLATBUFFERS_ASSERT(field.key);
+    const bool is_string = (field.value.type.base_type == BASE_TYPE_STRING);
+
+    code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
+    if (is_string) {
+      // use operator< of flatbuffers::String
+      code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
+    } else {
+      code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
+    }
+    code_ += "  }";
+
+    if (is_string) {
+      code_ += "  int KeyCompareWithValue(const char *val) const {";
+      code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), val);";
+      code_ += "  }";
+    } else {
+      FLATBUFFERS_ASSERT(IsScalar(field.value.type.base_type));
+      auto type = GenTypeBasic(field.value.type, false);
+      if (parser_.opts.scoped_enums && field.value.type.enum_def &&
+          IsScalar(field.value.type.base_type)) {
+        type = GenTypeGet(field.value.type, " ", "const ", " *", true);
+      }
+      // Returns {field<val: -1, field==val: 0, field>val: +1}.
+      code_.SetValue("KEY_TYPE", type);
+      code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
+      code_ +=
+          "    return static_cast<int>({{FIELD_NAME}}() > val) - "
+          "static_cast<int>({{FIELD_NAME}}() < val);";
+      code_ += "  }";
+    }
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(const StructDef &struct_def) {
     if (parser_.opts.generate_object_based_api) { GenNativeTable(struct_def); }
@@ -1712,46 +1747,16 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
             " const {";
-        code_ += "    auto v = {{FIELD_NAME}}();";
-        code_ += "    return flexbuffers::GetRoot(v->Data(), v->size());";
+        // Both Data() and size() are const-methods, therefore call order doesn't matter.
+        code_ +=
+            "    return flexbuffers::GetRoot({{FIELD_NAME}}()->Data(), "
+            "{{FIELD_NAME}}()->size());";
         code_ += "  }";
       }
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) {
-        const bool is_string = (field.value.type.base_type == BASE_TYPE_STRING);
-
-        code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
-        if (is_string) {
-          code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
-        } else {
-          code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
-        }
-        code_ += "  }";
-
-        if (is_string) {
-          code_ += "  int KeyCompareWithValue(const char *val) const {";
-          code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), val);";
-          code_ += "  }";
-        } else {
-          auto type = GenTypeBasic(field.value.type, false);
-          if (parser_.opts.scoped_enums && field.value.type.enum_def &&
-              IsScalar(field.value.type.base_type)) {
-            type = GenTypeGet(field.value.type, " ", "const ", " *", true);
-          }
-
-          code_.SetValue("KEY_TYPE", type);
-          code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
-          code_ += "    const auto key = {{FIELD_NAME}}();";
-          code_ += "    if (key < val) {";
-          code_ += "      return -1;";
-          code_ += "    } else if (key > val) {";
-          code_ += "      return 1;";
-          code_ += "    } else {";
-          code_ += "      return 0;";
-          code_ += "    }";
-          code_ += "  }";
-        }
+        GenKeyFieldMethods(field);
       }
     }
 
@@ -2558,22 +2563,7 @@ class CppGenerator : public BaseGenerator {
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) {
-        code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
-        code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
-        code_ += "  }";
-        auto type = GenTypeBasic(field.value.type, false);
-        if (parser_.opts.scoped_enums && field.value.type.enum_def &&
-            IsScalar(field.value.type.base_type)) {
-          type = GenTypeGet(field.value.type, " ", "const ", " *", true);
-        }
-
-        code_.SetValue("KEY_TYPE", type);
-        code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
-        code_ += "    const auto key = {{FIELD_NAME}}();";
-        code_ +=
-            "    return static_cast<int>(key > val) - static_cast<int>(key < "
-            "val);";
-        code_ += "  }";
+        GenKeyFieldMethods(field);
       }
     }
     code_.SetValue("NATIVE_NAME", Name(struct_def));
