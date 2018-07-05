@@ -12,18 +12,15 @@ function InParentNamespace.New()
     setmetatable(o, {__index = InParentNamespace_mt})
     return o
 end
-
 function InParentNamespace.GetRootAsInParentNamespace(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = InParentNamespace.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function InParentNamespace_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function InParentNamespace.Start(builder) builder:StartObject(0) end
 function InParentNamespace.End(builder) return builder:EndObject() end
 

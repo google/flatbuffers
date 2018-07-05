@@ -12,25 +12,21 @@ function Stat.New()
     setmetatable(o, {__index = Stat_mt})
     return o
 end
-
 function Stat.GetRootAsStat(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Stat.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function Stat_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Stat_mt:Id()
     local o = self.view:Offset(4)
     if o ~= 0 then
         return self.view:String(o + self.view.pos)
     end
 end
-
 function Stat_mt:Val()
     local o = self.view:Offset(6)
     if o ~= 0 then
@@ -38,7 +34,6 @@ function Stat_mt:Val()
     end
     return 0
 end
-
 function Stat_mt:Count()
     local o = self.view:Offset(8)
     if o ~= 0 then
@@ -46,7 +41,6 @@ function Stat_mt:Count()
     end
     return 0
 end
-
 function Stat.Start(builder) builder:StartObject(3) end
 function Stat.AddId(builder, id) builder:PrependUOffsetTRelativeSlot(0, id, 0) end
 function Stat.AddVal(builder, val) builder:PrependInt64Slot(1, val, 0) end

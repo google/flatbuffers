@@ -12,36 +12,28 @@ function Vec3.New()
     setmetatable(o, {__index = Vec3_mt})
     return o
 end
-
 function Vec3_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Vec3_mt:X()
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + 0)
 end
-
 function Vec3_mt:Y()
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + 4)
 end
-
 function Vec3_mt:Z()
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + 8)
 end
-
 function Vec3_mt:Test1()
     return self.view:Get(flatbuffers.N.Float64, self.view.pos + 16)
 end
-
 function Vec3_mt:Test2()
     return self.view:Get(flatbuffers.N.Int8, self.view.pos + 24)
 end
-
 function Vec3_mt:Test3(obj)
     obj:Init(self.view.bytes, self.view.pos + 26)
     return obj
 end
-
 function Vec3.CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b)
     builder:Prep(16, 32)
     builder:Pad(2)
@@ -58,6 +50,5 @@ function Vec3.CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b)
     builder:PrependFloat32(x)
     return builder:Offset()
 end
-
 
 return Vec3 -- return the module

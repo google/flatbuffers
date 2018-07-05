@@ -1,4 +1,4 @@
-os.execute([[.\..\Debug\flatc.exe --lua -I include_test monster_test.fbs]])
+os.execute([[.\..\Release\flatc.exe --lua -I include_test monster_test.fbs]])
 
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 

@@ -12,25 +12,20 @@ function Ability.New()
     setmetatable(o, {__index = Ability_mt})
     return o
 end
-
 function Ability_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Ability_mt:Id()
     return self.view:Get(flatbuffers.N.Uint32, self.view.pos + 0)
 end
-
 function Ability_mt:Distance()
     return self.view:Get(flatbuffers.N.Uint32, self.view.pos + 4)
 end
-
 function Ability.CreateAbility(builder, id, distance)
     builder:Prep(4, 8)
     builder:PrependUint32(distance)
     builder:PrependUint32(id)
     return builder:Offset()
 end
-
 
 return Ability -- return the module

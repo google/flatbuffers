@@ -12,18 +12,15 @@ function Monster.New()
     setmetatable(o, {__index = Monster_mt})
     return o
 end
-
 function Monster.GetRootAsMonster(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Monster.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function Monster_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Monster.Start(builder) builder:StartObject(0) end
 function Monster.End(builder) return builder:EndObject() end
 

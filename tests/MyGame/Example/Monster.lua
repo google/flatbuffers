@@ -13,18 +13,15 @@ function Monster.New()
     setmetatable(o, {__index = Monster_mt})
     return o
 end
-
 function Monster.GetRootAsMonster(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Monster.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function Monster_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Monster_mt:Pos()
     local o = self.view:Offset(4)
     if o ~= 0 then
@@ -34,7 +31,6 @@ function Monster_mt:Pos()
         return obj
     end
 end
-
 function Monster_mt:Mana()
     local o = self.view:Offset(6)
     if o ~= 0 then
@@ -42,7 +38,6 @@ function Monster_mt:Mana()
     end
     return 150
 end
-
 function Monster_mt:Hp()
     local o = self.view:Offset(8)
     if o ~= 0 then
@@ -50,14 +45,12 @@ function Monster_mt:Hp()
     end
     return 100
 end
-
 function Monster_mt:Name()
     local o = self.view:Offset(10)
     if o ~= 0 then
         return self.view:String(o + self.view.pos)
     end
 end
-
 function Monster_mt:Inventory(j)
     local o = self.view:Offset(14)
     if o ~= 0 then
@@ -66,7 +59,6 @@ function Monster_mt:Inventory(j)
     end
     return 0
 end
-
 function Monster_mt:InventoryLength()
     local o = self.view:Offset(14)
     if o ~= 0 then
@@ -74,7 +66,6 @@ function Monster_mt:InventoryLength()
     end
     return 0
 end
-
 function Monster_mt:Color()
     local o = self.view:Offset(16)
     if o ~= 0 then
@@ -82,7 +73,6 @@ function Monster_mt:Color()
     end
     return 8
 end
-
 function Monster_mt:TestType()
     local o = self.view:Offset(18)
     if o ~= 0 then
@@ -90,7 +80,6 @@ function Monster_mt:TestType()
     end
     return 0
 end
-
 function Monster_mt:Test()
     local o = self.view:Offset(20)
     if o ~= 0 then
@@ -99,7 +88,6 @@ function Monster_mt:Test()
         return obj
     end
 end
-
 function Monster_mt:Test4(j)
     local o = self.view:Offset(22)
     if o ~= 0 then
@@ -110,7 +98,6 @@ function Monster_mt:Test4(j)
         return obj
     end
 end
-
 function Monster_mt:Test4Length()
     local o = self.view:Offset(22)
     if o ~= 0 then
@@ -118,7 +105,6 @@ function Monster_mt:Test4Length()
     end
     return 0
 end
-
 function Monster_mt:Testarrayofstring(j)
     local o = self.view:Offset(24)
     if o ~= 0 then
@@ -127,7 +113,6 @@ function Monster_mt:Testarrayofstring(j)
     end
     return ''
 end
-
 function Monster_mt:TestarrayofstringLength()
     local o = self.view:Offset(24)
     if o ~= 0 then
@@ -135,7 +120,6 @@ function Monster_mt:TestarrayofstringLength()
     end
     return 0
 end
-
 -- /// an example documentation comment: this will end up in the generated code
 -- /// multiline too
 function Monster_mt:Testarrayoftables(j)
@@ -149,7 +133,6 @@ function Monster_mt:Testarrayoftables(j)
         return obj
     end
 end
-
 function Monster_mt:TestarrayoftablesLength()
     local o = self.view:Offset(26)
     if o ~= 0 then
@@ -157,7 +140,6 @@ function Monster_mt:TestarrayoftablesLength()
     end
     return 0
 end
-
 function Monster_mt:Enemy()
     local o = self.view:Offset(28)
     if o ~= 0 then
@@ -167,7 +149,6 @@ function Monster_mt:Enemy()
         return obj
     end
 end
-
 function Monster_mt:Testnestedflatbuffer(j)
     local o = self.view:Offset(30)
     if o ~= 0 then
@@ -176,7 +157,6 @@ function Monster_mt:Testnestedflatbuffer(j)
     end
     return 0
 end
-
 function Monster_mt:TestnestedflatbufferLength()
     local o = self.view:Offset(30)
     if o ~= 0 then
@@ -184,7 +164,6 @@ function Monster_mt:TestnestedflatbufferLength()
     end
     return 0
 end
-
 function Monster_mt:Testempty()
     local o = self.view:Offset(32)
     if o ~= 0 then
@@ -194,7 +173,6 @@ function Monster_mt:Testempty()
         return obj
     end
 end
-
 function Monster_mt:Testbool()
     local o = self.view:Offset(34)
     if o ~= 0 then
@@ -202,7 +180,6 @@ function Monster_mt:Testbool()
     end
     return false
 end
-
 function Monster_mt:Testhashs32Fnv1()
     local o = self.view:Offset(36)
     if o ~= 0 then
@@ -210,7 +187,6 @@ function Monster_mt:Testhashs32Fnv1()
     end
     return 0
 end
-
 function Monster_mt:Testhashu32Fnv1()
     local o = self.view:Offset(38)
     if o ~= 0 then
@@ -218,7 +194,6 @@ function Monster_mt:Testhashu32Fnv1()
     end
     return 0
 end
-
 function Monster_mt:Testhashs64Fnv1()
     local o = self.view:Offset(40)
     if o ~= 0 then
@@ -226,7 +201,6 @@ function Monster_mt:Testhashs64Fnv1()
     end
     return 0
 end
-
 function Monster_mt:Testhashu64Fnv1()
     local o = self.view:Offset(42)
     if o ~= 0 then
@@ -234,7 +208,6 @@ function Monster_mt:Testhashu64Fnv1()
     end
     return 0
 end
-
 function Monster_mt:Testhashs32Fnv1a()
     local o = self.view:Offset(44)
     if o ~= 0 then
@@ -242,7 +215,6 @@ function Monster_mt:Testhashs32Fnv1a()
     end
     return 0
 end
-
 function Monster_mt:Testhashu32Fnv1a()
     local o = self.view:Offset(46)
     if o ~= 0 then
@@ -250,7 +222,6 @@ function Monster_mt:Testhashu32Fnv1a()
     end
     return 0
 end
-
 function Monster_mt:Testhashs64Fnv1a()
     local o = self.view:Offset(48)
     if o ~= 0 then
@@ -258,7 +229,6 @@ function Monster_mt:Testhashs64Fnv1a()
     end
     return 0
 end
-
 function Monster_mt:Testhashu64Fnv1a()
     local o = self.view:Offset(50)
     if o ~= 0 then
@@ -266,7 +236,6 @@ function Monster_mt:Testhashu64Fnv1a()
     end
     return 0
 end
-
 function Monster_mt:Testarrayofbools(j)
     local o = self.view:Offset(52)
     if o ~= 0 then
@@ -275,7 +244,6 @@ function Monster_mt:Testarrayofbools(j)
     end
     return 0
 end
-
 function Monster_mt:TestarrayofboolsLength()
     local o = self.view:Offset(52)
     if o ~= 0 then
@@ -283,7 +251,6 @@ function Monster_mt:TestarrayofboolsLength()
     end
     return 0
 end
-
 function Monster_mt:Testf()
     local o = self.view:Offset(54)
     if o ~= 0 then
@@ -291,7 +258,6 @@ function Monster_mt:Testf()
     end
     return 3.14159
 end
-
 function Monster_mt:Testf2()
     local o = self.view:Offset(56)
     if o ~= 0 then
@@ -299,7 +265,6 @@ function Monster_mt:Testf2()
     end
     return 3.0
 end
-
 function Monster_mt:Testf3()
     local o = self.view:Offset(58)
     if o ~= 0 then
@@ -307,7 +272,6 @@ function Monster_mt:Testf3()
     end
     return 0.0
 end
-
 function Monster_mt:Testarrayofstring2(j)
     local o = self.view:Offset(60)
     if o ~= 0 then
@@ -316,7 +280,6 @@ function Monster_mt:Testarrayofstring2(j)
     end
     return ''
 end
-
 function Monster_mt:Testarrayofstring2Length()
     local o = self.view:Offset(60)
     if o ~= 0 then
@@ -324,7 +287,6 @@ function Monster_mt:Testarrayofstring2Length()
     end
     return 0
 end
-
 function Monster_mt:Testarrayofsortedstruct(j)
     local o = self.view:Offset(62)
     if o ~= 0 then
@@ -335,7 +297,6 @@ function Monster_mt:Testarrayofsortedstruct(j)
         return obj
     end
 end
-
 function Monster_mt:TestarrayofsortedstructLength()
     local o = self.view:Offset(62)
     if o ~= 0 then
@@ -343,7 +304,6 @@ function Monster_mt:TestarrayofsortedstructLength()
     end
     return 0
 end
-
 function Monster_mt:Flex(j)
     local o = self.view:Offset(64)
     if o ~= 0 then
@@ -352,7 +312,6 @@ function Monster_mt:Flex(j)
     end
     return 0
 end
-
 function Monster_mt:FlexLength()
     local o = self.view:Offset(64)
     if o ~= 0 then
@@ -360,7 +319,6 @@ function Monster_mt:FlexLength()
     end
     return 0
 end
-
 function Monster_mt:Test5(j)
     local o = self.view:Offset(66)
     if o ~= 0 then
@@ -371,7 +329,6 @@ function Monster_mt:Test5(j)
         return obj
     end
 end
-
 function Monster_mt:Test5Length()
     local o = self.view:Offset(66)
     if o ~= 0 then
@@ -379,7 +336,6 @@ function Monster_mt:Test5Length()
     end
     return 0
 end
-
 function Monster_mt:VectorOfLongs(j)
     local o = self.view:Offset(68)
     if o ~= 0 then
@@ -388,7 +344,6 @@ function Monster_mt:VectorOfLongs(j)
     end
     return 0
 end
-
 function Monster_mt:VectorOfLongsLength()
     local o = self.view:Offset(68)
     if o ~= 0 then
@@ -396,7 +351,6 @@ function Monster_mt:VectorOfLongsLength()
     end
     return 0
 end
-
 function Monster_mt:VectorOfDoubles(j)
     local o = self.view:Offset(70)
     if o ~= 0 then
@@ -405,7 +359,6 @@ function Monster_mt:VectorOfDoubles(j)
     end
     return 0
 end
-
 function Monster_mt:VectorOfDoublesLength()
     local o = self.view:Offset(70)
     if o ~= 0 then
@@ -413,7 +366,6 @@ function Monster_mt:VectorOfDoublesLength()
     end
     return 0
 end
-
 function Monster_mt:ParentNamespaceTest()
     local o = self.view:Offset(72)
     if o ~= 0 then
@@ -423,7 +375,6 @@ function Monster_mt:ParentNamespaceTest()
         return obj
     end
 end
-
 function Monster_mt:VectorOfReferrables(j)
     local o = self.view:Offset(74)
     if o ~= 0 then
@@ -435,7 +386,6 @@ function Monster_mt:VectorOfReferrables(j)
         return obj
     end
 end
-
 function Monster_mt:VectorOfReferrablesLength()
     local o = self.view:Offset(74)
     if o ~= 0 then
@@ -443,7 +393,6 @@ function Monster_mt:VectorOfReferrablesLength()
     end
     return 0
 end
-
 function Monster_mt:SingleWeakReference()
     local o = self.view:Offset(76)
     if o ~= 0 then
@@ -451,7 +400,6 @@ function Monster_mt:SingleWeakReference()
     end
     return 0
 end
-
 function Monster_mt:VectorOfWeakReferences(j)
     local o = self.view:Offset(78)
     if o ~= 0 then
@@ -460,7 +408,6 @@ function Monster_mt:VectorOfWeakReferences(j)
     end
     return 0
 end
-
 function Monster_mt:VectorOfWeakReferencesLength()
     local o = self.view:Offset(78)
     if o ~= 0 then
@@ -468,7 +415,6 @@ function Monster_mt:VectorOfWeakReferencesLength()
     end
     return 0
 end
-
 function Monster_mt:VectorOfStrongReferrables(j)
     local o = self.view:Offset(80)
     if o ~= 0 then
@@ -480,7 +426,6 @@ function Monster_mt:VectorOfStrongReferrables(j)
         return obj
     end
 end
-
 function Monster_mt:VectorOfStrongReferrablesLength()
     local o = self.view:Offset(80)
     if o ~= 0 then
@@ -488,7 +433,6 @@ function Monster_mt:VectorOfStrongReferrablesLength()
     end
     return 0
 end
-
 function Monster_mt:CoOwningReference()
     local o = self.view:Offset(82)
     if o ~= 0 then
@@ -496,7 +440,6 @@ function Monster_mt:CoOwningReference()
     end
     return 0
 end
-
 function Monster_mt:VectorOfCoOwningReferences(j)
     local o = self.view:Offset(84)
     if o ~= 0 then
@@ -505,7 +448,6 @@ function Monster_mt:VectorOfCoOwningReferences(j)
     end
     return 0
 end
-
 function Monster_mt:VectorOfCoOwningReferencesLength()
     local o = self.view:Offset(84)
     if o ~= 0 then
@@ -513,7 +455,6 @@ function Monster_mt:VectorOfCoOwningReferencesLength()
     end
     return 0
 end
-
 function Monster_mt:NonOwningReference()
     local o = self.view:Offset(86)
     if o ~= 0 then
@@ -521,7 +462,6 @@ function Monster_mt:NonOwningReference()
     end
     return 0
 end
-
 function Monster_mt:VectorOfNonOwningReferences(j)
     local o = self.view:Offset(88)
     if o ~= 0 then
@@ -530,7 +470,6 @@ function Monster_mt:VectorOfNonOwningReferences(j)
     end
     return 0
 end
-
 function Monster_mt:VectorOfNonOwningReferencesLength()
     local o = self.view:Offset(88)
     if o ~= 0 then
@@ -538,7 +477,6 @@ function Monster_mt:VectorOfNonOwningReferencesLength()
     end
     return 0
 end
-
 function Monster.Start(builder) builder:StartObject(43) end
 function Monster.AddPos(builder, pos) builder:PrependStructSlot(0, pos, 0) end
 function Monster.AddMana(builder, mana) builder:PrependInt16Slot(1, mana, 150) end

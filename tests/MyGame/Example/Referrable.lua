@@ -12,18 +12,15 @@ function Referrable.New()
     setmetatable(o, {__index = Referrable_mt})
     return o
 end
-
 function Referrable.GetRootAsReferrable(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Referrable.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function Referrable_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function Referrable_mt:Id()
     local o = self.view:Offset(4)
     if o ~= 0 then
@@ -31,7 +28,6 @@ function Referrable_mt:Id()
     end
     return 0
 end
-
 function Referrable.Start(builder) builder:StartObject(1) end
 function Referrable.AddId(builder, id) builder:PrependUint64Slot(0, id, 0) end
 function Referrable.End(builder) return builder:EndObject() end

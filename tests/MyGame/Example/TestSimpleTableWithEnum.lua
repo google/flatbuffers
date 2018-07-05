@@ -12,18 +12,15 @@ function TestSimpleTableWithEnum.New()
     setmetatable(o, {__index = TestSimpleTableWithEnum_mt})
     return o
 end
-
 function TestSimpleTableWithEnum.GetRootAsTestSimpleTableWithEnum(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = TestSimpleTableWithEnum.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function TestSimpleTableWithEnum_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function TestSimpleTableWithEnum_mt:Color()
     local o = self.view:Offset(4)
     if o ~= 0 then
@@ -31,7 +28,6 @@ function TestSimpleTableWithEnum_mt:Color()
     end
     return 2
 end
-
 function TestSimpleTableWithEnum.Start(builder) builder:StartObject(1) end
 function TestSimpleTableWithEnum.AddColor(builder, color) builder:PrependInt8Slot(0, color, 2) end
 function TestSimpleTableWithEnum.End(builder) return builder:EndObject() end

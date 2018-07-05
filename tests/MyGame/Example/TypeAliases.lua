@@ -12,18 +12,15 @@ function TypeAliases.New()
     setmetatable(o, {__index = TypeAliases_mt})
     return o
 end
-
 function TypeAliases.GetRootAsTypeAliases(buf, offset)
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = TypeAliases.New()
     o:Init(buf, n + offset)
     return o
 end
-
 function TypeAliases_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-
 function TypeAliases_mt:I8()
     local o = self.view:Offset(4)
     if o ~= 0 then
@@ -31,7 +28,6 @@ function TypeAliases_mt:I8()
     end
     return 0
 end
-
 function TypeAliases_mt:U8()
     local o = self.view:Offset(6)
     if o ~= 0 then
@@ -39,7 +35,6 @@ function TypeAliases_mt:U8()
     end
     return 0
 end
-
 function TypeAliases_mt:I16()
     local o = self.view:Offset(8)
     if o ~= 0 then
@@ -47,7 +42,6 @@ function TypeAliases_mt:I16()
     end
     return 0
 end
-
 function TypeAliases_mt:U16()
     local o = self.view:Offset(10)
     if o ~= 0 then
@@ -55,7 +49,6 @@ function TypeAliases_mt:U16()
     end
     return 0
 end
-
 function TypeAliases_mt:I32()
     local o = self.view:Offset(12)
     if o ~= 0 then
@@ -63,7 +56,6 @@ function TypeAliases_mt:I32()
     end
     return 0
 end
-
 function TypeAliases_mt:U32()
     local o = self.view:Offset(14)
     if o ~= 0 then
@@ -71,7 +63,6 @@ function TypeAliases_mt:U32()
     end
     return 0
 end
-
 function TypeAliases_mt:I64()
     local o = self.view:Offset(16)
     if o ~= 0 then
@@ -79,7 +70,6 @@ function TypeAliases_mt:I64()
     end
     return 0
 end
-
 function TypeAliases_mt:U64()
     local o = self.view:Offset(18)
     if o ~= 0 then
@@ -87,7 +77,6 @@ function TypeAliases_mt:U64()
     end
     return 0
 end
-
 function TypeAliases_mt:F32()
     local o = self.view:Offset(20)
     if o ~= 0 then
@@ -95,7 +84,6 @@ function TypeAliases_mt:F32()
     end
     return 0.0
 end
-
 function TypeAliases_mt:F64()
     local o = self.view:Offset(22)
     if o ~= 0 then
@@ -103,7 +91,6 @@ function TypeAliases_mt:F64()
     end
     return 0.0
 end
-
 function TypeAliases_mt:V8(j)
     local o = self.view:Offset(24)
     if o ~= 0 then
@@ -112,7 +99,6 @@ function TypeAliases_mt:V8(j)
     end
     return 0
 end
-
 function TypeAliases_mt:V8Length()
     local o = self.view:Offset(24)
     if o ~= 0 then
@@ -120,7 +106,6 @@ function TypeAliases_mt:V8Length()
     end
     return 0
 end
-
 function TypeAliases_mt:Vf64(j)
     local o = self.view:Offset(26)
     if o ~= 0 then
@@ -129,7 +114,6 @@ function TypeAliases_mt:Vf64(j)
     end
     return 0
 end
-
 function TypeAliases_mt:Vf64Length()
     local o = self.view:Offset(26)
     if o ~= 0 then
@@ -137,7 +121,6 @@ function TypeAliases_mt:Vf64Length()
     end
     return 0
 end
-
 function TypeAliases.Start(builder) builder:StartObject(12) end
 function TypeAliases.AddI8(builder, i8) builder:PrependInt8Slot(0, i8, 0) end
 function TypeAliases.AddU8(builder, u8) builder:PrependUint8Slot(1, u8, 0) end
