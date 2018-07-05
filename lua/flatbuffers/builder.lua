@@ -35,9 +35,7 @@ local function vtableEqual(a, objectStart, b)
     
     for i, elem in ipairs(a) do
         local x = VOffsetT:Unpack(b, i * VOffsetT.bytewidth)
-        if x == 0 and elem == 0 then
-            --no-op
-        else
+        if x ~= 0 or elem ~= 0 then
             local y = objectStart - elem
             if x ~= y then
                 return false

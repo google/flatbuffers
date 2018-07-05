@@ -13,7 +13,7 @@ function m.New(buf, pos)
     -- a binary array
 
     local o = {
-        bytes = type(buf) == "string" and binaryarray.FromString(buf) or buf,
+        bytes = type(buf) == "string" and binaryarray.New(buf) or buf,
         pos = pos
     }
     setmetatable(o, {__index = mt, __metatable = mt_name})

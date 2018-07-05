@@ -29,13 +29,13 @@ namespace flatbuffers {
 namespace lua {
 
   // Hardcode spaces per indentation.
-  const std::string Indent = "    ";
-  const std::string Comment = "-- ";
-  const std::string End = "end\n";
-  const std::string EndFunc = End + "\n";
-  const std::string SelfData = "self.view";
-  const std::string SelfDataPos = SelfData + ".pos";
-  const std::string SelfDataBytes = SelfData + ".bytes";
+  const char * Indent = "    ";
+  const char * Comment = "-- ";
+  const char * End = "end\n";
+  const char * EndFunc = "end\n";
+  const char * SelfData = "self.view";
+  const char * SelfDataPos = "self.view.pos";
+  const char * SelfDataBytes = "self.view.bytes";
 
   class LuaGenerator : public BaseGenerator {
   public:
@@ -66,7 +66,6 @@ namespace lua {
         "true",
         "until",
         "while"
-        // todo: do i need to include the standard lib names (os, math, etc..?)
       };
       for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
     }
@@ -74,7 +73,7 @@ namespace lua {
     // Most field accessors need to retrieve and test the field offset first,
     // this is the prefix code for that.
     std::string OffsetPrefix(const FieldDef &field) {
-      return Indent +
+      return std::string(Indent) +
         "local o = " + SelfData + ":Offset(" + NumToString(field.value.offset) + ")\n" +
         Indent + "if o ~= 0 then\n";
     }
@@ -112,7 +111,7 @@ namespace lua {
     // A single enum member.
     void EnumMember(const EnumVal ev, std::string *code_ptr) {
       std::string &code = *code_ptr;
-      code += Indent + NormalizedName(ev) + " = " + NumToString(ev.value) + ",\n";
+      code += std::string(Indent) + NormalizedName(ev) + " = " + NumToString(ev.value) + ",\n";
     }
 
     // End enum code.
@@ -126,9 +125,9 @@ namespace lua {
       std::string &code = *code_ptr;
 
       code += "function " + NormalizedName(struct_def) + ".New()\n";
-      code += Indent + "local o = {}\n";
-      code += Indent + "setmetatable(o, {__index = " + NormalizedMetaName(struct_def) + "})\n";
-      code += Indent + "return o\n";
+      code += std::string(Indent) + "local o = {}\n";
+      code += std::string(Indent) + "setmetatable(o, {__index = " + NormalizedMetaName(struct_def) + "})\n";
+      code += std::string(Indent) + "return o\n";
       code += EndFunc;
     }
 
@@ -138,10 +137,10 @@ namespace lua {
       std::string &code = *code_ptr;
 
       code += "function " + NormalizedName(struct_def) + ".GetRootAs" + NormalizedName(struct_def) + "(buf, offset)\n";
-      code += Indent + "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
-      code += Indent + "local o = " + NormalizedName(struct_def) + ".New()\n";
-      code += Indent + "o:Init(buf, n + offset)\n";
-      code += Indent + "return o\n";
+      code += std::string(Indent) + "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
+      code += std::string(Indent) + "local o = " + NormalizedName(struct_def) + ".New()\n";
+      code += std::string(Indent) + "o:Init(buf, n + offset)\n";
+      code += std::string(Indent) + "return o\n";
       code += EndFunc;
     }
 
@@ -152,7 +151,7 @@ namespace lua {
 
       GenReceiver(struct_def, code_ptr);
       code += "Init(buf, pos)\n";
-      code += Indent + SelfData + " = flatbuffers.view.New(buf, pos)\n";
+      code += std::string(Indent) + SelfData + " = flatbuffers.view.New(buf, pos)\n";
       code += EndFunc;
     }
 
@@ -164,9 +163,9 @@ namespace lua {
       GenReceiver(struct_def, code_ptr);
       code += MakeCamel(NormalizedName(field)) + "Length()\n";
       code += OffsetPrefix(field);
-      code += Indent + Indent + "return " + SelfData + ":VectorLen(o)\n";
-      code += Indent + End;
-      code += Indent + "return 0\n";
+      code += std::string(Indent) + Indent + "return " + SelfData + ":VectorLen(o)\n";
+      code += std::string(Indent) + End;
+      code += std::string(Indent) + "return 0\n";
       code += EndFunc;
     }
 
@@ -179,8 +178,8 @@ namespace lua {
       GenReceiver(struct_def, code_ptr);
       code += MakeCamel(NormalizedName(field));
       code += "()\n";
-      code += Indent + "return " + getter;
-      code += SelfDataPos + " + " + NumToString(field.value.offset) + ")\n";
+      code += std::string(Indent) + "return " + getter;
+      code += std::string(SelfDataPos) + " + " + NumToString(field.value.offset) + ")\n";
       code += EndFunc;
     }
 
@@ -194,13 +193,13 @@ namespace lua {
       code += MakeCamel(NormalizedName(field));
       code += "()\n";
       code += OffsetPrefix(field);
-      getter += "o + " + SelfDataPos + ")";
+      getter += std::string("o + ") + SelfDataPos + ")";
       auto is_bool = field.value.type.base_type == BASE_TYPE_BOOL;
       if (is_bool) {
         getter = "(" + getter + " ~= 0)";
       }
-      code += Indent + Indent + "return " + getter + "\n";
-      code += Indent + End;
+      code += std::string(Indent) + Indent + "return " + getter + "\n";
+      code += std::string(Indent) + End;
       std::string default_value;
       if (is_bool) {
         default_value = field.value.constant == "0" ? "false" : "true";
@@ -208,7 +207,7 @@ namespace lua {
       else {
         default_value = field.value.constant;
       }
-      code += Indent + "return " + default_value + "\n";
+      code += std::string(Indent) + "return " + default_value + "\n";
       code += EndFunc;
     }
 
@@ -221,9 +220,9 @@ namespace lua {
       GenReceiver(struct_def, code_ptr);
       code += MakeCamel(NormalizedName(field));
       code += "(obj)\n";
-      code += Indent + "obj:Init(" + SelfDataBytes + ", " + SelfDataPos + " + ";
+      code += std::string(Indent) + "obj:Init(" + SelfDataBytes + ", " + SelfDataPos + " + ";
       code += NumToString(field.value.offset) + ")\n";
-      code += Indent + "return obj\n";
+      code += std::string(Indent) + "return obj\n";
       code += EndFunc;
     }
 
@@ -238,15 +237,15 @@ namespace lua {
       code += "()\n";
       code += OffsetPrefix(field);
       if (field.value.type.struct_def->fixed) {
-        code += Indent + Indent + "local x = o + " + SelfDataPos + "\n";
+        code += std::string(Indent) + Indent + "local x = o + " + SelfDataPos + "\n";
       }
       else {
-        code += Indent + Indent + "local x = " + SelfData + ":Indirect(o + " + SelfDataPos + ")\n";
+        code += std::string(Indent) + Indent + "local x = " + SelfData + ":Indirect(o + " + SelfDataPos + ")\n";
       }
-      code += Indent + Indent + "local obj = require('" + TypeNameWithNamespace(field) + "').New()\n";
-      code += Indent + Indent + "obj:Init(" + SelfDataBytes + ", x)\n";
-      code += Indent + Indent + "return obj\n";
-      code += Indent + End;
+      code += std::string(Indent) + Indent + "local obj = require('" + TypeNameWithNamespace(field) + "').New()\n";
+      code += std::string(Indent) + Indent + "obj:Init(" + SelfDataBytes + ", x)\n";
+      code += std::string(Indent) + Indent + "return obj\n";
+      code += std::string(Indent) + End;
       code += EndFunc;
     }
 
@@ -258,9 +257,9 @@ namespace lua {
       code += MakeCamel(NormalizedName(field));
       code += "()\n";
       code += OffsetPrefix(field);
-      code += Indent + Indent + "return " + GenGetter(field.value.type);
-      code += "o + " + SelfDataPos + ")\n";
-      code += Indent + End;
+      code += std::string(Indent) + Indent + "return " + GenGetter(field.value.type);
+      code += std::string("o + ") + SelfDataPos + ")\n";
+      code += std::string(Indent) + End;
       code += EndFunc;
     }
 
@@ -275,15 +274,15 @@ namespace lua {
       // TODO(rw): this works and is not the good way to it:
       //bool is_native_table = TypeName(field) == "*flatbuffers.Table";
       //if (is_native_table) {
-      //  code += Indent + Indent + "from flatbuffers.table import Table\n";
+      //  code += std::string(Indent) + Indent + "from flatbuffers.table import Table\n";
       //} else {
-      //  code += Indent + Indent +
+      //  code += std::string(Indent) + Indent +
       //  code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
       //}
-      code += Indent + Indent + "local obj = flatbuffers.view.New(require('flatbuffers.binaryarray').New(0), 0)\n";
-      code += Indent + Indent + GenGetter(field.value.type) + "obj, o)\n";
-      code += Indent + Indent + "return obj\n";
-      code += Indent + End;
+      code += std::string(Indent) + Indent + "local obj = flatbuffers.view.New(require('flatbuffers.binaryarray').New(0), 0)\n";
+      code += std::string(Indent) + Indent + GenGetter(field.value.type) + "obj, o)\n";
+      code += std::string(Indent) + Indent + "return obj\n";
+      code += std::string(Indent) + End;
       code += EndFunc;
     }
 
@@ -298,16 +297,16 @@ namespace lua {
       code += MakeCamel(NormalizedName(field));
       code += "(j)\n";
       code += OffsetPrefix(field);
-      code += Indent + Indent + "local x = " + SelfData + ":Vector(o)\n";
-      code += Indent + Indent + "x = x + ((j-1) * ";
+      code += std::string(Indent) + Indent + "local x = " + SelfData + ":Vector(o)\n";
+      code += std::string(Indent) + Indent + "x = x + ((j-1) * ";
       code += NumToString(InlineSize(vectortype)) + ")\n";
       if (!(vectortype.struct_def->fixed)) {
-        code += Indent + Indent + "x = " + SelfData + ":Indirect(x)\n";
+        code += std::string(Indent) + Indent + "x = " + SelfData + ":Indirect(x)\n";
       }
-      code += Indent + Indent + "local obj = require('" + TypeNameWithNamespace(field) + "').New()\n";
-      code += Indent + Indent + "obj:Init(" + SelfDataBytes + ", x)\n";
-      code += Indent + Indent + "return obj\n";
-      code += Indent + End;
+      code += std::string(Indent) + Indent + "local obj = require('" + TypeNameWithNamespace(field) + "').New()\n";
+      code += std::string(Indent) + Indent + "obj:Init(" + SelfDataBytes + ", x)\n";
+      code += std::string(Indent) + Indent + "return obj\n";
+      code += std::string(Indent) + End;
       code += EndFunc;
     }
 
@@ -323,17 +322,17 @@ namespace lua {
       code += MakeCamel(NormalizedName(field));
       code += "(j)\n";
       code += OffsetPrefix(field);
-      code += Indent + Indent + "local a = " + SelfData + ":Vector(o)\n";
-      code += Indent + Indent;
+      code += std::string(Indent) + Indent + "local a = " + SelfData + ":Vector(o)\n";
+      code += std::string(Indent) + Indent;
       code += "return " + GenGetter(field.value.type);
       code += "a + ((j-1) * ";
       code += NumToString(InlineSize(vectortype)) + "))\n";
-      code += Indent + End;
+      code += std::string(Indent) + End;
       if (vectortype.base_type == BASE_TYPE_STRING) {
-        code += Indent + "return ''\n";
+        code += std::string(Indent) + "return ''\n";
       }
       else {
-        code += Indent + "return 0\n";
+        code += std::string(Indent) + "return 0\n";
       }
       code += EndFunc;
     }
@@ -380,19 +379,19 @@ namespace lua {
     void StructBuilderBody(const StructDef &struct_def,
       const char *nameprefix, std::string *code_ptr) {
       std::string &code = *code_ptr;
-      code += Indent + "builder:Prep(" + NumToString(struct_def.minalign) + ", ";
+      code += std::string(Indent) + "builder:Prep(" + NumToString(struct_def.minalign) + ", ";
       code += NumToString(struct_def.bytesize) + ")\n";
       for (auto it = struct_def.fields.vec.rbegin();
         it != struct_def.fields.vec.rend(); ++it) {
         auto &field = **it;
         if (field.padding)
-          code += Indent + "builder:Pad(" + NumToString(field.padding) + ")\n";
+          code += std::string(Indent) + "builder:Pad(" + NumToString(field.padding) + ")\n";
         if (IsStruct(field.value.type)) {
           StructBuilderBody(*field.value.type.struct_def,
             (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
         }
         else {
-          code += Indent + "builder:Prepend" + GenMethod(field) + "(";
+          code += std::string(Indent) + "builder:Prepend" + GenMethod(field) + "(";
           code += nameprefix + MakeCamel(NormalizedName(field), false) + ")\n";
         }
       }
@@ -400,7 +399,7 @@ namespace lua {
 
     void EndBuilderBody(std::string *code_ptr) {
       std::string &code = *code_ptr;
-      code += Indent + "return builder:Offset()\n";
+      code += std::string(Indent) + "return builder:Offset()\n";
       code += EndFunc;
     }
 
@@ -472,7 +471,7 @@ namespace lua {
     // Generate a struct field, conditioned on its child type(s).
     void GenStructAccessor(const StructDef &struct_def,
       const FieldDef &field, std::string *code_ptr) {
-      GenComment(field.doc_comment, code_ptr, nullptr, Comment.c_str());
+      GenComment(field.doc_comment, code_ptr, nullptr, Comment);
       if (IsScalar(field.value.type.base_type)) {
         if (struct_def.fixed) {
           GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -535,7 +534,7 @@ namespace lua {
     void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
       if (struct_def.generated) return;
 
-      GenComment(struct_def.doc_comment, code_ptr, nullptr, Comment.c_str());
+      GenComment(struct_def.doc_comment, code_ptr, nullptr, Comment);
       BeginClass(struct_def, code_ptr);
 
       GenerateNewObjectPrototype(struct_def, code_ptr);
@@ -571,12 +570,12 @@ namespace lua {
     void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
       if (enum_def.generated) return;
 
-      GenComment(enum_def.doc_comment, code_ptr, nullptr, Comment.c_str());
+      GenComment(enum_def.doc_comment, code_ptr, nullptr, Comment);
       BeginEnum(NormalizedName(enum_def), code_ptr);
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
         ++it) {
         auto &ev = **it;
-        GenComment(ev.doc_comment, code_ptr, nullptr, Comment.c_str());
+        GenComment(ev.doc_comment, code_ptr, nullptr, Comment);
         EnumMember(ev, code_ptr);
       }
       EndEnum(code_ptr);
@@ -585,11 +584,11 @@ namespace lua {
     // Returns the function name that is able to read a value of the given type.
     std::string GenGetter(const Type &type) {
       switch (type.base_type) {
-      case BASE_TYPE_STRING: return SelfData + ":String(";
-      case BASE_TYPE_UNION: return  SelfData + ":Union(";
+      case BASE_TYPE_STRING: return std::string(SelfData) + ":String(";
+      case BASE_TYPE_UNION: return  std::string(SelfData) + ":Union(";
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default:
-        return SelfData + ":Get(flatbuffers.N." +
+        return std::string(SelfData) + ":Get(flatbuffers.N." +
           MakeCamel(GenTypeGet(type)) + ", ";
       }
     }
@@ -685,8 +684,8 @@ namespace lua {
     void BeginFile(const std::string name_space_name, const bool needs_imports,
       std::string *code_ptr) {
       std::string &code = *code_ptr;
-      code += Comment + FlatBuffersGeneratedWarning() + "\n\n";
-      code += Comment + "namespace: " + name_space_name + "\n\n";
+      code += std::string(Comment) + FlatBuffersGeneratedWarning() + "\n\n";
+      code += std::string(Comment) + "namespace: " + name_space_name + "\n\n";
       if (needs_imports) {
         code += "local flatbuffers = require('flatbuffers')\n\n";
       }

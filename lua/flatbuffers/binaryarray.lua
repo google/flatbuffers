@@ -1,39 +1,43 @@
-local m = {}
+local m = {} -- the module table
 
-local mt = {}
+local mt = {} -- the module metatable
 
+-- given a binary array, set a metamethod to return its length
+-- (e.g., #binaryArray, calls this)
 function mt:__len()
     return self.size
 end
 
-function m.New(size)
-    local o = 
-    {
-        data = {},
-        size = size
-    }
+-- Create a new binary array of an initial size
+function m.New(sizeOrString)
+    -- the array storage itself
+    local o = {}
+    
+    if type(sizeOrString) == "string" then
+        o.str = sizeOrString
+        o.size = #sizeOrString
+    elseif type(sizeOrString) == "number" then
+        o.data = {}
+        o.size = sizeOrString
+    else
+        error("Expect a integer size value or string to construct a binary array")
+    end
+    -- set the inheritance
     setmetatable(o, {__index = mt, __len = mt.__len})
     return o
 end
 
-function m.FromString(str)
-    local o = 
-    {
-        str = str,
-        size = #str
-    }
-    setmetatable(o, {__index = mt, __len = mt.__len})
-    return o    
-end
-
+-- Get a slice of the binary array from start to end position
 function mt:Slice(startPos, endPos)
     startPos = startPos or 0
     endPos = endPos or self.size
     local d = self.data
-    if d then      
+    if d then
+        -- if the self.data is defined, we are building the buffer
+        -- in a Lua table
         
         -- new table to store the slice components
-        local b = {}        
+        local b = {}
         
         -- starting with the startPos, put all
         -- values into the new table to be concat later
@@ -46,7 +50,8 @@ function mt:Slice(startPos, endPos)
         end
 
         -- combine the table of strings into one string
-        return table.concat(b)   
+        -- this is faster than doing a bunch of concats by themselves
+        return table.concat(b)
     else
         -- n.b start/endPos are 0-based incoming, so need to convert
         --     correctly. in python a slice includes start -> end - 1
@@ -54,6 +59,8 @@ function mt:Slice(startPos, endPos)
     end
 end
 
+-- Grow the binary array to a new size, placing the exisiting data
+-- at then end of the new array
 function mt:Grow(newsize)
     -- the new table to store the data
     local newT = {}
@@ -64,52 +71,53 @@ function mt:Grow(newsize)
     -- loop over all the current entries and
     -- add them to the new table at the correct
     -- offset location
-    local d = self.data    
-    for i,data in pairs(d) do       
+    local d = self.data
+    for i,data in pairs(d) do
         newT[i + offset] = data
     end
     
     -- update this storage with the new table and size
-    self.data = newT    
+    self.data = newT
     self.size = newsize
 end
 
--- memorization
+-- memorization for padding strings
 local pads = {}
-function mt:Pad(n, startPos)   
-    local s = pads[n] 
+
+-- pad the binary with n \0 bytes at the starting position
+function mt:Pad(n, startPos)
+    -- use memorization to avoid creating a bunch of strings
+    -- all the time
+    local s = pads[n]
     if not s then
         s = string.rep('\0', n)
         pads[n] = s
     end
-    self.data[startPos] = s    
+    
+    -- store the padding string at the start position in the
+    -- Lua table
+    self.data[startPos] = s
 end
 
-function mt:Set(value, startPos, endPos)    
-    self.data[startPos] = value    
+-- Sets the binary array value at the specified position
+function mt:Set(value, position)
+    self.data[position] = value
 end
 
 -- locals for slightly faster access
 local sunpack = string.unpack
 local spack = string.pack
 
+-- Pack the data into a binary representation
 function m.Pack(fmt, ...)
     return spack(fmt, ...)
 end
 
+-- Unpack the data from a binary representation in
+-- a Lua value
 function m.Unpack(fmt, s, pos)
     return sunpack(fmt, s.str, pos + 1)
 end
 
-function m.DumpHex(buf)
-    -- from: http://lua-users.org/wiki/HexDump
-    for byte=1, #buf, 16 do
-        local chunk = buf:sub(byte, byte+15)
-        io.write(string.format('%08X  ',byte-1))
-        chunk:gsub('.', function (c) io.write(string.format('%02X ',string.byte(c))) end)
-        io.write(string.rep(' ',3*(16-#chunk)))
-        io.write(' ',chunk:gsub('%c','.'),"\n") 
-    end
-end
-
+-- Return the binary array module
 return m

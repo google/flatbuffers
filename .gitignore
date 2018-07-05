@@ -12,6 +12,7 @@
 *.vcxproj.user
 *.sln
 *.suo
+*.opendb
 *.keystore
 **/.vs/**
 **/bin/**
@@ -26,6 +27,8 @@
 **/CMakeTestfile.cmake
 **/Debug/**
 **/Release/**
+**/RelWithDebInfo/**
+**/x64/ #build artifacts from VS
 build.xml
 local.properties
 project.properties
@@ -55,7 +58,6 @@ tests/monsterdata_javascript_wire.mon
 tests/unicode_test.mon
 tests/ts/
 tests/php/
-tests/MyGame/**/*.lua
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -86,7 +88,6 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
-samples/lua/
 js/flatbuffers.mjs
 /bazel-bin
 /bazel-flatbuffers

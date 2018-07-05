@@ -1,4 +1,4 @@
-os.execute([[.\..\Release\flatc.exe --lua -I include_test monster_test.fbs]])
+os.execute([[.\..\Debug\flatc.exe --lua -I include_test monster_test.fbs]])
 
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 
@@ -6,7 +6,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     offset = offset or 0
     
     if type(buf) == "string" then
-        buf = flatbuffers.binaryArray.FromString(buf)
+        buf = flatbuffers.binaryArray.New(buf)
     end
     
     if sizePrefix then               
