@@ -12,7 +12,9 @@
 *.vcxproj.user
 *.sln
 *.suo
+*.opendb
 *.keystore
+**/.vs/**
 **/bin/**
 **/gen/**
 **/libs/**
@@ -25,6 +27,8 @@
 **/CMakeTestfile.cmake
 **/Debug/**
 **/Release/**
+**/RelWithDebInfo/**
+**/x64/ #build artifacts from VS
 build.xml
 local.properties
 project.properties

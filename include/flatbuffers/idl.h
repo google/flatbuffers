@@ -408,6 +408,7 @@ struct IDLOptions {
     kTs = 1 << 9,
     kJsonSchema = 1 << 10,
     kDart = 1 << 11,
+    kLua = 1 << 12,
     kMAX
   };
 
@@ -813,6 +814,12 @@ extern bool GeneratePhp(const Parser &parser,
 extern bool GeneratePython(const Parser &parser,
                            const std::string &path,
                            const std::string &file_name);
+
+// Generate Lua files from the definitions in the Parser object.
+// See idl_gen_lua.cpp.
+extern bool GenerateLua(const Parser &parser,
+	                    const std::string &path,
+	                    const std::string &file_name);
 
 // Generate Json schema file
 // See idl_gen_json_schema.cpp.

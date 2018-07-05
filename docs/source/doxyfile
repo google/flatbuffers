@@ -758,6 +758,7 @@ INPUT = "FlatBuffers.md" \
         "TypeScriptUsage.md" \
         "PHPUsage.md" \
         "PythonUsage.md" \
+        "LuaUsage.md" \
         "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
