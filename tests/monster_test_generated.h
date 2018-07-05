@@ -341,8 +341,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
     return id() < o->id();
   }
   int KeyCompareWithValue(uint32_t val) const {
-    const auto key = id();
-    return static_cast<int>(key > val) - static_cast<int>(key < val);
+    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
   uint32_t distance() const {
     return flatbuffers::EndianScalar(distance_);
@@ -635,14 +634,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return id() < o->id();
   }
   int KeyCompareWithValue(uint64_t val) const {
-    const auto key = id();
-    if (key < val) {
-      return -1;
-    } else if (key > val) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -999,8 +991,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_FLEX);
   }
   flexbuffers::Reference flex_flexbuffer_root() const {
-    auto v = flex();
-    return flexbuffers::GetRoot(v->Data(), v->size());
+    return flexbuffers::GetRoot(flex()->Data(), flex()->size());
   }
   const flatbuffers::Vector<const Test *> *test5() const {
     return GetPointer<const flatbuffers::Vector<const Test *> *>(VT_TEST5);

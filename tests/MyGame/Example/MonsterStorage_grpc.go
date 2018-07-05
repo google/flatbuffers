@@ -30,14 +30,14 @@ func NewMonsterStorageClient(cc *grpc.ClientConn) MonsterStorageClient {
 func (c *monsterStorageClient) Store(ctx context.Context, in *flatbuffers.Builder, 
 	opts... grpc.CallOption) (* Stat, error) {
   out := new(Stat)
-  err := grpc.Invoke(ctx, "/Example.MonsterStorage/Store", in, out, c.cc, opts...)
+  err := grpc.Invoke(ctx, "/MyGame.Example.MonsterStorage/Store", in, out, c.cc, opts...)
   if err != nil { return nil, err }
   return out, nil
 }
 
 func (c *monsterStorageClient) Retrieve(ctx context.Context, in *flatbuffers.Builder, 
 	opts... grpc.CallOption) (MonsterStorage_RetrieveClient, error) {
-  stream, err := grpc.NewClientStream(ctx, &_MonsterStorage_serviceDesc.Streams[0], c.cc, "/Example.MonsterStorage/Retrieve", opts...)
+  stream, err := grpc.NewClientStream(ctx, &_MonsterStorage_serviceDesc.Streams[0], c.cc, "/MyGame.Example.MonsterStorage/Retrieve", opts...)
   if err != nil { return nil, err }
   x := &monsterStorageRetrieveClient{stream}
   if err := x.ClientStream.SendMsg(in); err != nil { return nil, err }
@@ -77,7 +77,7 @@ func _MonsterStorage_Store_Handler(srv interface{}, ctx context.Context,
   if interceptor == nil { return srv.(MonsterStorageServer).Store(ctx, in) }
   info := &grpc.UnaryServerInfo{
     Server: srv,
-    FullMethod: "/Example.MonsterStorage/Store",
+    FullMethod: "/MyGame.Example.MonsterStorage/Store",
   }
   
   handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -108,7 +108,7 @@ func (x *monsterStorageRetrieveServer) Send(m *flatbuffers.Builder) error {
 
 
 var _MonsterStorage_serviceDesc = grpc.ServiceDesc{
-  ServiceName: "Example.MonsterStorage",
+  ServiceName: "MyGame.Example.MonsterStorage",
   HandlerType: (*MonsterStorageServer)(nil),
   Methods: []grpc.MethodDesc{
     {
