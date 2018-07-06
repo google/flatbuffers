@@ -879,7 +879,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   void UInt(uint64_t u) { stack_.push_back(Value(u, FBT_UINT, WidthU(u))); }
   void UInt(const char *key, uint64_t u) {
     Key(key);
-    Int(u);
+    UInt(u);
   }
 
   void Float(float f) { stack_.push_back(Value(f)); }
@@ -1483,7 +1483,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   BitWidth force_min_bit_width_;
 
   struct KeyOffsetCompare {
-    KeyOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
+    explicit KeyOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
     bool operator()(size_t a, size_t b) const {
       auto stra =
           reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + a);
@@ -1496,7 +1496,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   typedef std::pair<size_t, size_t> StringOffset;
   struct StringOffsetCompare {
-    StringOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
+    explicit StringOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
     bool operator()(const StringOffset &a, const StringOffset &b) const {
       auto stra = reinterpret_cast<const char *>(
           flatbuffers::vector_data(*buf_) + a.first);
