@@ -1181,7 +1181,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   // Overloaded Add that tries to call the correct function above.
-  void Add() {Null();}
+  void Add() { Null(); }
   void Add(int64_t i) { Int(i); }
   void Add(uint64_t u) { UInt(u); }
   void Add(double d) { Double(d); }
