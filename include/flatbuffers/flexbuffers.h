@@ -1181,15 +1181,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   // Overloaded Add that tries to call the correct function above.
-  void Add(int8_t i) { Int(i); }
-  void Add(int16_t i) { Int(i); }
-  void Add(int32_t i) { Int(i); }
+  void Add() {Null();}
   void Add(int64_t i) { Int(i); }
-  void Add(uint8_t u) { UInt(u); }
-  void Add(uint16_t u) { UInt(u); }
-  void Add(uint32_t u) { UInt(u); }
   void Add(uint64_t u) { UInt(u); }
-  void Add(float f) { Float(f); }
   void Add(double d) { Double(d); }
   void Add(bool b) { Bool(b); }
   void Add(const char *str) { String(str); }
@@ -1198,6 +1192,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   template<typename T> void Add(const std::vector<T> &vec) { Vector(vec); }
 
+  // Following helper overload is not for writing Blob(const void*, size_t);
+  // For adding a Blob DO NOT USE Add.
   template<typename T> void Add(const char *key, const T &t) {
     Key(key);
     Add(t);
