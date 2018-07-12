@@ -1731,17 +1731,18 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   Verifier(const uint8_t *buf, size_t buf_len, uoffset_t _max_depth = 64,
            uoffset_t _max_tables = 1000000)
       : buf_(buf),
-        end_(buf + buf_len),
+        size_(buf_len),
         depth_(0),
         max_depth_(_max_depth),
         num_tables_(0),
         max_tables_(_max_tables)
   // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-        , upper_bound_(buf)
+        , upper_bound_(0)
     #endif
   // clang-format on
   {
+    assert(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
 
   // Central location where any verification failures register.
@@ -1752,28 +1753,37 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #endif
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       if (!ok)
-        upper_bound_ = buf_;
+        upper_bound_ = 0;
     #endif
     // clang-format on
     return ok;
   }
 
   // Verify any range within the buffer.
-  bool Verify(const void *elem, size_t elem_len) const {
+  bool Verify(uoffset_t elem, size_t elem_len) const {
     // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      auto upper_bound = reinterpret_cast<const uint8_t *>(elem) + elem_len;
+      auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound)
         upper_bound_ =  upper_bound;
     #endif
     // clang-format on
-    return Check(elem_len <= (size_t)(end_ - buf_) && elem >= buf_ &&
-                 elem <= end_ - elem_len);
+    return Check(elem_len < size_ && elem <= size_ - elem_len);
   }
 
   // Verify a range indicated by sizeof(T).
-  template<typename T> bool Verify(const void *elem) const {
+  template<typename T> bool Verify(uoffset_t elem) const {
     return Verify(elem, sizeof(T));
+  }
+
+  // Verify relative to a known-good base pointer.
+  bool Verify(const uint8_t *base, voffset_t elem_off, size_t elem_len) const {
+    return Verify(static_cast<uoffset_t>(base - buf_) + elem_off, elem_len);
+  }
+
+  template<typename T> bool Verify(const uint8_t *base, voffset_t elem_off)
+      const {
+    return Verify(static_cast<uoffset_t>(base - buf_) + elem_off, sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a table type.
@@ -1783,9 +1793,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify a pointer (may be NULL) of any vector type.
   template<typename T> bool Verify(const Vector<T> *vec) const {
-    const uint8_t *end;
     return !vec || VerifyVector(reinterpret_cast<const uint8_t *>(vec),
-                                sizeof(T), &end);
+                                sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
@@ -1795,18 +1804,19 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify a pointer (may be NULL) to string.
   bool Verify(const String *str) const {
-    const uint8_t *end;
+    uoffset_t end;
     return !str ||
            (VerifyVector(reinterpret_cast<const uint8_t *>(str), 1, &end) &&
             Verify(end, 1) &&      // Must have terminator
-            Check(*end == '\0'));  // Terminating byte must be 0.
+            Check(buf_[end] == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
   bool VerifyVector(const uint8_t *vec, size_t elem_size,
-                    const uint8_t **end) const {
+                    uoffset_t *end = nullptr) const {
+    auto veco = static_cast<uoffset_t>(vec - buf_);
     // Check we can read the size field.
-    if (!Verify<uoffset_t>(vec)) return false;
+    if (!Verify<uoffset_t>(veco)) return false;
     // Check the whole array. If this is a string, the byte past the array
     // must be 0.
     auto size = ReadScalar<uoffset_t>(vec);
@@ -1814,8 +1824,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
     auto byte_size = sizeof(size) + elem_size * size;
-    *end = vec + byte_size;
-    return Verify(vec, byte_size);
+    if (end) *end = veco + static_cast<uoffset_t>(byte_size);
+    return Verify(veco, byte_size);
   }
 
   // Special case for string contents, after the above has been called.
@@ -1838,41 +1848,66 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
+  bool VerifyTableStart(const uint8_t *table) {
+    // Check the vtable offset.
+    auto tableo = static_cast<uoffset_t>(table - buf_);
+    if (!Verify<soffset_t>(tableo)) return false;
+    auto vtableo = static_cast<uoffset_t>(static_cast<soffset_t>(tableo) -
+                                          ReadScalar<soffset_t>(table));
+    // Check the vtable size field, then check vtable fits in its entirety.
+    return VerifyComplexity() && Verify<voffset_t>(vtableo) &&
+           (ReadScalar<voffset_t>(buf_ + vtableo) &
+             (sizeof(voffset_t) - 1)) == 0 &&
+           Verify(vtableo, ReadScalar<voffset_t>(buf_ + vtableo));
+  }
+
   template<typename T>
-  bool VerifyBufferFromStart(const char *identifier, const uint8_t *start) {
+  bool VerifyBufferFromStart(const char *identifier, uoffset_t start) {
     if (identifier &&
-        (size_t(end_ - start) < 2 * sizeof(flatbuffers::uoffset_t) ||
-         !BufferHasIdentifier(start, identifier))) {
+        (size_ < 2 * sizeof(flatbuffers::uoffset_t) ||
+         !BufferHasIdentifier(buf_ + start, identifier))) {
       return false;
     }
 
     // Call T::Verify, which must be in the generated code for this type.
     auto o = VerifyOffset(start);
-    return o && reinterpret_cast<const T *>(start + o)->Verify(*this)
-#ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+    return o && reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
+    // clang-format off
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
            && GetComputedSize()
-#endif
+    #endif
         ;
+    // clang-format on
   }
 
   // Verify this whole buffer, starting with root type T.
   template<typename T> bool VerifyBuffer() { return VerifyBuffer<T>(nullptr); }
 
   template<typename T> bool VerifyBuffer(const char *identifier) {
-    return VerifyBufferFromStart<T>(identifier, buf_);
+    return VerifyBufferFromStart<T>(identifier, 0);
   }
 
   template<typename T> bool VerifySizePrefixedBuffer(const char *identifier) {
-    return Verify<uoffset_t>(buf_) &&
-           ReadScalar<uoffset_t>(buf_) == end_ - buf_ - sizeof(uoffset_t) &&
-           VerifyBufferFromStart<T>(identifier, buf_ + sizeof(uoffset_t));
+    return Verify<uoffset_t>(0U) &&
+           ReadScalar<uoffset_t>(buf_) == size_ - sizeof(uoffset_t) &&
+           VerifyBufferFromStart<T>(identifier, sizeof(uoffset_t));
   }
 
-  uoffset_t VerifyOffset(const uint8_t *start) const {
-    if (!Verify<uoffset_t>(start)) return false;
-    auto o = ReadScalar<uoffset_t>(start);
+  uoffset_t VerifyOffset(uoffset_t start) const {
+    if (!Verify<uoffset_t>(start)) return 0;
+    auto o = ReadScalar<uoffset_t>(buf_ + start);
+    // May not point to itself.
     Check(o != 0);
+    // Can't wrap around / buffers are max 2GB.
+    if (!Check(static_cast<soffset_t>(o) >= 0)) return 0;
+    // Must be inside the buffer to create a pointer from it (pointer outside
+    // buffer is UB).
+    if (!Verify(start + o, 1)) return 0;
     return o;
+  }
+
+  uoffset_t VerifyOffset(const uint8_t *base, voffset_t start) const {
+    return VerifyOffset(static_cast<uoffset_t>(base - buf_) + start);
   }
 
   // Called at the start of a table to increase counters measuring data
@@ -1895,24 +1930,24 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    uintptr_t size = upper_bound_ - buf_;
+    uintptr_t size = upper_bound_;
     // Align the size to uoffset_t
     size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
-    return (buf_  + size > end_) ?  0 : size;
+    return (size > size_) ?  0 : size;
   }
   #endif
   // clang-format on
 
  private:
   const uint8_t *buf_;
-  const uint8_t *end_;
+  size_t size_;
   uoffset_t depth_;
   uoffset_t max_depth_;
   uoffset_t num_tables_;
   uoffset_t max_tables_;
   // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-    mutable const uint8_t *upper_bound_;
+    mutable size_t upper_bound_;
   #endif
   // clang-format on
 };
@@ -2034,13 +2069,7 @@ class Table {
   // Verify the vtable of this table.
   // Call this once per table, followed by VerifyField once per field.
   bool VerifyTableStart(Verifier &verifier) const {
-    // Check the vtable offset.
-    if (!verifier.Verify<soffset_t>(data_)) return false;
-    auto vtable = GetVTable();
-    // Check the vtable size field, then check vtable fits in its entirety.
-    return verifier.VerifyComplexity() && verifier.Verify<voffset_t>(vtable) &&
-           (ReadScalar<voffset_t>(vtable) & (sizeof(voffset_t) - 1)) == 0 &&
-           verifier.Verify(vtable, ReadScalar<voffset_t>(vtable));
+    return verifier.VerifyTableStart(data_);
   }
 
   // Verify a particular field.
@@ -2050,7 +2079,7 @@ class Table {
     // VerifyTable().
     auto field_offset = GetOptionalFieldOffset(field);
     // Check the actual field.
-    return !field_offset || verifier.Verify<T>(data_ + field_offset);
+    return !field_offset || verifier.Verify<T>(data_, field_offset);
   }
 
   // VerifyField for required fields.
@@ -2058,19 +2087,19 @@ class Table {
   bool VerifyFieldRequired(const Verifier &verifier, voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
-           verifier.Verify<T>(data_ + field_offset);
+           verifier.Verify<T>(data_, field_offset);
   }
 
   // Versions for offsets.
   bool VerifyOffset(const Verifier &verifier, voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
-    return !field_offset || verifier.VerifyOffset(data_ + field_offset);
+    return !field_offset || verifier.VerifyOffset(data_, field_offset);
   }
 
   bool VerifyOffsetRequired(const Verifier &verifier, voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
-           verifier.VerifyOffset(data_ + field_offset);
+           verifier.VerifyOffset(data_, field_offset);
   }
 
  private:
