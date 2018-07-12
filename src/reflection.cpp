@@ -496,7 +496,7 @@ bool VerifyStruct(flatbuffers::Verifier &v,
   if (required && !offset) { return false; }
 
   return !offset ||
-         v.Verify(reinterpret_cast<const uint8_t *>(&parent_table) + offset,
+         v.Verify(reinterpret_cast<const uint8_t *>(&parent_table), offset,
                   obj.bytesize());
 }
 
@@ -505,10 +505,9 @@ bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
                            voffset_t field_offset,
                            const reflection::Object &obj, bool required) {
   auto p = parent_table.GetPointer<const uint8_t *>(field_offset);
-  const uint8_t *end;
   if (required && !p) { return false; }
 
-  return !p || v.VerifyVector(p, obj.bytesize(), &end);
+  return !p || v.VerifyVector(p, obj.bytesize());
 }
 
 // forward declare to resolve cyclic deps between VerifyObject and VerifyVector
