@@ -36,6 +36,7 @@ func GetUint8(buf []byte) (n uint8) {
 
 // GetUint16 decodes a little-endian uint16 from a byte slice.
 func GetUint16(buf []byte) (n uint16) {
+	_ = buf[1] // Force one bounds check. See: golang.org/issue/14808
 	n |= uint16(buf[0])
 	n |= uint16(buf[1]) << 8
 	return
@@ -43,6 +44,7 @@ func GetUint16(buf []byte) (n uint16) {
 
 // GetUint32 decodes a little-endian uint32 from a byte slice.
 func GetUint32(buf []byte) (n uint32) {
+	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
 	n |= uint32(buf[0])
 	n |= uint32(buf[1]) << 8
 	n |= uint32(buf[2]) << 16
@@ -52,6 +54,7 @@ func GetUint32(buf []byte) (n uint32) {
 
 // GetUint64 decodes a little-endian uint64 from a byte slice.
 func GetUint64(buf []byte) (n uint64) {
+	_ = buf[7] // Force one bounds check. See: golang.org/issue/14808
 	n |= uint64(buf[0])
 	n |= uint64(buf[1]) << 8
 	n |= uint64(buf[2]) << 16
@@ -71,6 +74,7 @@ func GetInt8(buf []byte) (n int8) {
 
 // GetInt16 decodes a little-endian int16 from a byte slice.
 func GetInt16(buf []byte) (n int16) {
+	_ = buf[1] // Force one bounds check. See: golang.org/issue/14808
 	n |= int16(buf[0])
 	n |= int16(buf[1]) << 8
 	return
@@ -78,6 +82,7 @@ func GetInt16(buf []byte) (n int16) {
 
 // GetInt32 decodes a little-endian int32 from a byte slice.
 func GetInt32(buf []byte) (n int32) {
+	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
 	n |= int32(buf[0])
 	n |= int32(buf[1]) << 8
 	n |= int32(buf[2]) << 16
@@ -87,6 +92,7 @@ func GetInt32(buf []byte) (n int32) {
 
 // GetInt64 decodes a little-endian int64 from a byte slice.
 func GetInt64(buf []byte) (n int64) {
+	_ = buf[7] // Force one bounds check. See: golang.org/issue/14808
 	n |= int64(buf[0])
 	n |= int64(buf[1]) << 8
 	n |= int64(buf[2]) << 16
@@ -145,12 +151,14 @@ func WriteUint8(buf []byte, n uint8) {
 
 // WriteUint16 encodes a little-endian uint16 into a byte slice.
 func WriteUint16(buf []byte, n uint16) {
+	_ = buf[1] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 }
 
 // WriteUint32 encodes a little-endian uint32 into a byte slice.
 func WriteUint32(buf []byte, n uint32) {
+	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 	buf[2] = byte(n >> 16)
@@ -159,6 +167,7 @@ func WriteUint32(buf []byte, n uint32) {
 
 // WriteUint64 encodes a little-endian uint64 into a byte slice.
 func WriteUint64(buf []byte, n uint64) {
+	_ = buf[7] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 	buf[2] = byte(n >> 16)
@@ -176,12 +185,14 @@ func WriteInt8(buf []byte, n int8) {
 
 // WriteInt16 encodes a little-endian int16 into a byte slice.
 func WriteInt16(buf []byte, n int16) {
+	_ = buf[1] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 }
 
 // WriteInt32 encodes a little-endian int32 into a byte slice.
 func WriteInt32(buf []byte, n int32) {
+	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 	buf[2] = byte(n >> 16)
@@ -190,6 +201,7 @@ func WriteInt32(buf []byte, n int32) {
 
 // WriteInt64 encodes a little-endian int64 into a byte slice.
 func WriteInt64(buf []byte, n int64) {
+	_ = buf[7] // Force one bounds check. See: golang.org/issue/14808
 	buf[0] = byte(n)
 	buf[1] = byte(n >> 8)
 	buf[2] = byte(n >> 16)
