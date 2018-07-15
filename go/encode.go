@@ -159,9 +159,14 @@ func WriteUint32(buf []byte, n uint32) {
 
 // WriteUint64 encodes a little-endian uint64 into a byte slice.
 func WriteUint64(buf []byte, n uint64) {
-	for i := uint(0); i < uint(SizeUint64); i++ {
-		buf[i] = byte(n >> (i * 8))
-	}
+	buf[0] = byte(n)
+	buf[1] = byte(n >> 8)
+	buf[2] = byte(n >> 16)
+	buf[3] = byte(n >> 24)
+	buf[4] = byte(n >> 32)
+	buf[5] = byte(n >> 40)
+	buf[6] = byte(n >> 48)
+	buf[7] = byte(n >> 56)
 }
 
 // WriteInt8 encodes a little-endian int8 into a byte slice.
@@ -185,9 +190,14 @@ func WriteInt32(buf []byte, n int32) {
 
 // WriteInt64 encodes a little-endian int64 into a byte slice.
 func WriteInt64(buf []byte, n int64) {
-	for i := uint(0); i < uint(SizeInt64); i++ {
-		buf[i] = byte(n >> (i * 8))
-	}
+	buf[0] = byte(n)
+	buf[1] = byte(n >> 8)
+	buf[2] = byte(n >> 16)
+	buf[3] = byte(n >> 24)
+	buf[4] = byte(n >> 32)
+	buf[5] = byte(n >> 40)
+	buf[6] = byte(n >> 48)
+	buf[7] = byte(n >> 56)
 }
 
 // WriteFloat32 encodes a little-endian float32 into a byte slice.
