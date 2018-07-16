@@ -138,5 +138,8 @@ Additional options:
 
 -   `--force-defaults` : Emit default values in binary output from JSON.
 
+-   `--force-empty` : When serializing from object API representation, force
+     strings and vectors to empty rather than null.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
