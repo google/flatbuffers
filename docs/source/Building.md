@@ -8,9 +8,9 @@ you to build project/make files for any platform. For details on `cmake`, see
 <https://www.cmake.org>. In brief, depending on your platform, use one of
 e.g.:
 
-    cmake -G "Unix Makefiles"
-    cmake -G "Visual Studio 10"
-    cmake -G "Xcode"
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    cmake -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release
+    cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release
 
 Then, build as normal for your platform. This should result in a `flatc`
 executable, essential for the next steps.
