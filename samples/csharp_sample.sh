@@ -42,7 +42,7 @@ fi
 echo Compiling and running the C# sample.
 
 # Compile and execute the sample.
-mcs SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
+csc SampleBinary.cs MyGame/Sample/*.cs ../net/FlatBuffers/*.cs
 mono SampleBinary.exe
 
 # Cleanup temporary files.
