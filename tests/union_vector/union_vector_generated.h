@@ -309,9 +309,9 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
            VerifyCharacter(verifier, main_character(), main_character_type()) &&
            VerifyOffset(verifier, VT_CHARACTERS_TYPE) &&
-           verifier.Verify(characters_type()) &&
+           verifier.VerifyVector(characters_type()) &&
            VerifyOffset(verifier, VT_CHARACTERS) &&
-           verifier.Verify(characters()) &&
+           verifier.VerifyVector(characters()) &&
            VerifyCharacterVector(verifier, characters(), characters_type()) &&
            verifier.EndTable();
   }
@@ -458,11 +458,11 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
     }
     case Character_Other: {
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);
-      return verifier.Verify(ptr);
+      return verifier.VerifyString(ptr);
     }
     case Character_Unused: {
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);
-      return verifier.Verify(ptr);
+      return verifier.VerifyString(ptr);
     }
     default: return false;
   }

@@ -1792,27 +1792,28 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify a pointer (may be NULL) of any vector type.
-  template<typename T> bool Verify(const Vector<T> *vec) const {
-    return !vec || VerifyVector(reinterpret_cast<const uint8_t *>(vec),
-                                sizeof(T));
+  template<typename T> bool VerifyVector(const Vector<T> *vec) const {
+    return !vec || VerifyVectorOrString(reinterpret_cast<const uint8_t *>(vec),
+                                        sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
-  template<typename T> bool Verify(const Vector<const T *> *vec) const {
-    return Verify(reinterpret_cast<const Vector<T> *>(vec));
+  template<typename T> bool VerifyVector(const Vector<const T *> *vec) const {
+    return VerifyVector(reinterpret_cast<const Vector<T> *>(vec));
   }
 
   // Verify a pointer (may be NULL) to string.
-  bool Verify(const String *str) const {
+  bool VerifyString(const String *str) const {
     uoffset_t end;
     return !str ||
-           (VerifyVector(reinterpret_cast<const uint8_t *>(str), 1, &end) &&
+           (VerifyVectorOrString(reinterpret_cast<const uint8_t *>(str),
+                                 1, &end) &&
             Verify(end, 1) &&      // Must have terminator
             Check(buf_[end] == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
-  bool VerifyVector(const uint8_t *vec, size_t elem_size,
+  bool VerifyVectorOrString(const uint8_t *vec, size_t elem_size,
                     uoffset_t *end = nullptr) const {
     auto veco = static_cast<uoffset_t>(vec - buf_);
     // Check we can read the size field.
@@ -1832,7 +1833,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyVectorOfStrings(const Vector<Offset<String>> *vec) const {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!Verify(vec->Get(i))) return false;
+        if (!VerifyString(vec->Get(i))) return false;
       }
     }
     return true;

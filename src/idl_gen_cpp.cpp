@@ -1116,7 +1116,7 @@ class CppGenerator : public BaseGenerator {
           }
         } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
           code_ += getptr;
-          code_ += "      return verifier.Verify(ptr);";
+          code_ += "      return verifier.VerifyString(ptr);";
         } else {
           FLATBUFFERS_ASSERT(false);
         }
@@ -1503,11 +1503,11 @@ class CppGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "{{PRE}}verifier.Verify({{NAME}}())\\";
+        code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
         break;
       }
       case BASE_TYPE_VECTOR: {
-        code_ += "{{PRE}}verifier.Verify({{NAME}}())\\";
+        code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
 
         switch (field.value.type.element) {
           case BASE_TYPE_STRING: {
