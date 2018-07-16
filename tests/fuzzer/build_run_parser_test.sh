@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-clang++ -fsanitize-coverage=edge -fsanitize=address -std=c++11 -stdlib=libstdc++ -I.. -I../../include flatbuffers_parser_fuzzer.cc ../../src/idl_parser.cpp ../../src/util.cpp libFuzzer.a -o fuzz_parser
+clang++ -fsanitize-coverage=edge -fsanitize=address -fsanitize=undefined \
+  -g -fno-omit-frame-pointer -std=c++11 -stdlib=libstdc++ \
+  -I.. -I../../include flatbuffers_parser_fuzzer.cc ../../src/idl_parser.cpp \
+  ../../src/util.cpp libFuzzer.a -o fuzz_parser
 mkdir -p parser_corpus
 cp ../*.json ../*.fbs parser_corpus
 ./fuzz_parser parser_corpus

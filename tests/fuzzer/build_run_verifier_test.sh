@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-clang++ -fsanitize-coverage=edge -fsanitize=address -std=c++11 -stdlib=libstdc++ -I.. -I../../include flatbuffers_verifier_fuzzer.cc libFuzzer.a -o fuzz_verifier
+clang++ -fsanitize-coverage=edge -fsanitize=address -fsanitize=undefined \
+  -g -fno-omit-frame-pointer -std=c++11 -stdlib=libstdc++ \
+  -I.. -I../../include flatbuffers_verifier_fuzzer.cc libFuzzer.a -o fuzz_verifier
 mkdir -p verifier_corpus
 cp ../*.mon verifier_corpus
 ./fuzz_verifier verifier_corpus

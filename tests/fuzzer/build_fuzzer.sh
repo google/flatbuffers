@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-git clone https://chromium.googlesource.com/chromium/llvm-project/llvm/lib/Fuzzer
-clang++ -c -g -O2 -std=c++11 Fuzzer/*.cpp -IFuzzer
+git clone https://chromium.googlesource.com/chromium/llvm-project/compiler-rt/lib/fuzzer
+clang++ -c -g -O2 -std=c++11 fuzzer/*.cpp -Ifuzzer
 ar ruv libFuzzer.a Fuzzer*.o
-rm -rf Fuzzer *.o
+rm -rf fuzzer *.o
