@@ -6,6 +6,7 @@ library namespace_c;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import 'namespace_test1_namespace_c_generated.dart';
 import './namespace_test2_namespace_a_generated.dart' as namespace_a;
 
 class TableInC {
