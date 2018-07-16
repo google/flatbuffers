@@ -2148,6 +2148,8 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GenCreateParam(const FieldDef &field) {
+    const IDLOptions &opts = parser_.opts;
+
     std::string value = "_o->";
     if (field.value.type.base_type == BASE_TYPE_UTYPE) {
       value += StripUnionType(Name(field));
@@ -2172,8 +2174,13 @@ class CppGenerator : public BaseGenerator {
         code += "_fbb.CreateString(" + value + ")";
 
         // For optional fields, check to see if there actually is any data
-        // in _o->field before attempting to access it.
-        if (!field.required) { code = value + ".empty() ? 0 : " + code; }
+        // in _o->field before attempting to access it. If there isn't,
+        // depending on set_empty_to_null either set it to 0 or an empty string.
+        if (!field.required) {
+          auto empty_value =
+              opts.set_empty_to_null ? "0" : "_fbb.CreateSharedString(\"\")";
+          code = value + ".empty() ? " + empty_value + " : " + code;
+        }
         break;
       }
       // Vector fields come in several flavours, of the forms:
@@ -2259,9 +2266,12 @@ class CppGenerator : public BaseGenerator {
           }
         }
 
-        // For optional fields, check to see if there actually is any data
-        // in _o->field before attempting to access it.
-        if (!field.required) { code = value + ".size() ? " + code + " : 0"; }
+        // If set_empty_to_null option is enabled, for optional fields, check to
+        // see if there actually is any data in _o->field before attempting to
+        // access it.
+        if (opts.set_empty_to_null && !field.required) {
+          code = value + ".size() ? " + code + " : 0";
+        }
         break;
       }
       case BASE_TYPE_UNION: {
