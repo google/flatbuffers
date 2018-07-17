@@ -1102,6 +1102,18 @@ class GeneralGenerator : public BaseGenerator {
             code += lang_.accessor_prefix + "__vector_as_arraysegment(";
             code += NumToString(field.value.offset);
             code += "); }\n";
+
+            // For direct blockcopying the data into a typed array
+            code += "  public ";
+            code += GenTypeBasic(field.value.type.VectorType());
+            code += "[] Get";
+            code += MakeCamel(field.name, lang_.first_camel_upper);
+            code += "Array() { return ";
+            code += lang_.accessor_prefix + "__vector_as_array<";
+            code += GenTypeBasic(field.value.type.VectorType());
+            code += ">(";
+            code += NumToString(field.value.offset);
+            code += "); }\n";
             break;
           default: break;
         }

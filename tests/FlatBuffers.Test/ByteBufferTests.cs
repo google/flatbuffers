@@ -344,5 +344,52 @@ namespace FlatBuffers.Test
             uut.Position = 1; uut = uut.Duplicate();
             Assert.AreEqual(0x0A, uut.Get(3));
         }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_To_Array_Float()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var fData = new float[len];
+            fData[0] = 1.0079F;
+            fData[1] = 4.0026F;
+            fData[2] = 6.941F;
+            fData[3] = 9.0122F;
+            fData[4] = 10.811F;
+            fData[5] = 12.0107F;
+            fData[6] = 14.0067F;
+            fData[7] = 15.9994F;
+            fData[8] = 18.9984F;
+
+            // Tranfer it to a byte array
+            var buffer = new byte[sizeof(float) * fData.Length];
+            Buffer.BlockCopy(fData, 0, buffer, 0, buffer.Length);
+
+            // Create the Byte Buffer from byte array
+            var uut = new ByteBuffer(buffer);
+
+            // Get the full array back out and ensure they are equivalent
+            var bbArray = uut.ToArray<float>(0, len);
+            Assert.ArrayEqual(fData, bbArray);
+
+            // Get a portion of the full array back out and ensure the
+            // subrange agrees
+            var bbArray2 = uut.ToArray<float>(4, len - 1);
+            Assert.AreEqual(bbArray2.Length, len - 1);
+            for(int i =1; i < len-1; i++)
+            {
+                Assert.AreEqual(fData[i], bbArray2[i - 1]);
+            }
+
+            // Get a sub portion of the full array back out and ensure the
+            // subrange agrees
+            var bbArray3 = uut.ToArray<float>(8, len - 4);
+            Assert.AreEqual(bbArray3.Length, len - 4);
+            for (int i = 2; i < len -4; i++)
+            {
+                Assert.AreEqual(fData[i], bbArray3[i - 2]);
+            }
+        }
     }
 }

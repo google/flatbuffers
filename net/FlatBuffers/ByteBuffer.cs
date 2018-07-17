@@ -31,6 +31,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FlatBuffers
@@ -91,19 +92,29 @@ namespace FlatBuffers
 
         public byte[] ToArray(int pos, int len)
         {
-            byte[] arr = new byte[len];
-            Buffer.BlockCopy(_buffer, pos, arr, 0, len);
+            return ToArray<byte>(pos, len);
+        }
+
+        // Get a portion of the buffer casted into an array of type T, given
+        // the buffer position and length.
+        public T[] ToArray<T>(int pos, int len)
+            where T: struct
+        {
+            AssertOffsetAndLength(pos, len);
+            T[] arr = new T[len];
+            Buffer.BlockCopy(_buffer, pos, arr, 0,
+                len * Marshal.SizeOf(default(T)));
             return arr;
         }
 
         public byte[] ToSizedArray()
         {
-            return ToArray(Position, Length - Position);
+            return ToArray<byte>(Position, Length - Position);
         }
 
         public byte[] ToFullArray()
         {
-            return ToArray(0, Length);
+            return ToArray<byte>(0, Length);
         }
 
         public ArraySegment<byte> ToArraySegment(int pos, int len)

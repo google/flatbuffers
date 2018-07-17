@@ -26,9 +26,11 @@ public struct Monster : IFlatbufferObject
   public bool MutateHp(short hp) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, hp); return true; } else { return false; } }
   public string Name { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
   public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(10); }
+  public byte[] GetNameArray() { return __p.__vector_as_array<byte>(10); }
   public byte Inventory(int j) { int o = __p.__offset(14); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __p.__offset(14); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetInventoryBytes() { return __p.__vector_as_arraysegment(14); }
+  public byte[] GetInventoryArray() { return __p.__vector_as_array<byte>(14); }
   public bool MutateInventory(int j, byte inventory) { int o = __p.__offset(14); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, inventory); return true; } else { return false; } }
   public Color Color { get { int o = __p.__offset(16); return o != 0 ? (Color)__p.bb.GetSbyte(o + __p.bb_pos) : Color.Blue; } }
   public bool MutateColor(Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)color); return true; } else { return false; } }
@@ -48,6 +50,7 @@ public struct Monster : IFlatbufferObject
   public byte Testnestedflatbuffer(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetTestnestedflatbufferBytes() { return __p.__vector_as_arraysegment(30); }
+  public byte[] GetTestnestedflatbufferArray() { return __p.__vector_as_array<byte>(30); }
   public Monster? GetTestnestedflatbufferAsMonster() { int o = __p.__offset(30); return o != 0 ? (Monster?)(new Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
   public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __p.__offset(30); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public Stat? Testempty { get { int o = __p.__offset(32); return o != 0 ? (Stat?)(new Stat()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
@@ -72,6 +75,7 @@ public struct Monster : IFlatbufferObject
   public bool Testarrayofbools(int j) { int o = __p.__offset(52); return o != 0 ? 0!=__p.bb.Get(__p.__vector(o) + j * 1) : false; }
   public int TestarrayofboolsLength { get { int o = __p.__offset(52); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetTestarrayofboolsBytes() { return __p.__vector_as_arraysegment(52); }
+  public bool[] GetTestarrayofboolsArray() { return __p.__vector_as_array<bool>(52); }
   public bool MutateTestarrayofbools(int j, bool testarrayofbools) { int o = __p.__offset(52); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)(testarrayofbools ? 1 : 0)); return true; } else { return false; } }
   public float Testf { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)3.14159f; } }
   public bool MutateTestf(float testf) { int o = __p.__offset(54); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, testf); return true; } else { return false; } }
@@ -86,16 +90,19 @@ public struct Monster : IFlatbufferObject
   public byte Flex(int j) { int o = __p.__offset(64); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int FlexLength { get { int o = __p.__offset(64); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetFlexBytes() { return __p.__vector_as_arraysegment(64); }
+  public byte[] GetFlexArray() { return __p.__vector_as_array<byte>(64); }
   public bool MutateFlex(int j, byte flex) { int o = __p.__offset(64); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, flex); return true; } else { return false; } }
   public Test? Test5(int j) { int o = __p.__offset(66); return o != 0 ? (Test?)(new Test()).__assign(__p.__vector(o) + j * 4, __p.bb) : null; }
   public int Test5Length { get { int o = __p.__offset(66); return o != 0 ? __p.__vector_len(o) : 0; } }
   public long VectorOfLongs(int j) { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
   public int VectorOfLongsLength { get { int o = __p.__offset(68); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetVectorOfLongsBytes() { return __p.__vector_as_arraysegment(68); }
+  public long[] GetVectorOfLongsArray() { return __p.__vector_as_array<long>(68); }
   public bool MutateVectorOfLongs(int j, long vector_of_longs) { int o = __p.__offset(68); if (o != 0) { __p.bb.PutLong(__p.__vector(o) + j * 8, vector_of_longs); return true; } else { return false; } }
   public double VectorOfDoubles(int j) { int o = __p.__offset(70); return o != 0 ? __p.bb.GetDouble(__p.__vector(o) + j * 8) : (double)0; }
   public int VectorOfDoublesLength { get { int o = __p.__offset(70); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetVectorOfDoublesBytes() { return __p.__vector_as_arraysegment(70); }
+  public double[] GetVectorOfDoublesArray() { return __p.__vector_as_array<double>(70); }
   public bool MutateVectorOfDoubles(int j, double vector_of_doubles) { int o = __p.__offset(70); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, vector_of_doubles); return true; } else { return false; } }
   public MyGame.InParentNamespace? ParentNamespaceTest { get { int o = __p.__offset(72); return o != 0 ? (MyGame.InParentNamespace?)(new MyGame.InParentNamespace()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public Referrable? VectorOfReferrables(int j) { int o = __p.__offset(74); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
@@ -106,6 +113,7 @@ public struct Monster : IFlatbufferObject
   public ulong VectorOfWeakReferences(int j) { int o = __p.__offset(78); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfWeakReferencesLength { get { int o = __p.__offset(78); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetVectorOfWeakReferencesBytes() { return __p.__vector_as_arraysegment(78); }
+  public ulong[] GetVectorOfWeakReferencesArray() { return __p.__vector_as_array<ulong>(78); }
   public bool MutateVectorOfWeakReferences(int j, ulong vector_of_weak_references) { int o = __p.__offset(78); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
   public Referrable? VectorOfStrongReferrables(int j) { int o = __p.__offset(80); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int VectorOfStrongReferrablesLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -115,12 +123,14 @@ public struct Monster : IFlatbufferObject
   public ulong VectorOfCoOwningReferences(int j) { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfCoOwningReferencesLength { get { int o = __p.__offset(84); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetVectorOfCoOwningReferencesBytes() { return __p.__vector_as_arraysegment(84); }
+  public ulong[] GetVectorOfCoOwningReferencesArray() { return __p.__vector_as_array<ulong>(84); }
   public bool MutateVectorOfCoOwningReferences(int j, ulong vector_of_co_owning_references) { int o = __p.__offset(84); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_co_owning_references); return true; } else { return false; } }
   public ulong NonOwningReference { get { int o = __p.__offset(86); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateNonOwningReference(ulong non_owning_reference) { int o = __p.__offset(86); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, non_owning_reference); return true; } else { return false; } }
   public ulong VectorOfNonOwningReferences(int j) { int o = __p.__offset(88); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfNonOwningReferencesLength { get { int o = __p.__offset(88); return o != 0 ? __p.__vector_len(o) : 0; } }
   public ArraySegment<byte>? GetVectorOfNonOwningReferencesBytes() { return __p.__vector_as_arraysegment(88); }
+  public ulong[] GetVectorOfNonOwningReferencesArray() { return __p.__vector_as_array<ulong>(88); }
   public bool MutateVectorOfNonOwningReferences(int j, ulong vector_of_non_owning_references) { int o = __p.__offset(88); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(43); }
