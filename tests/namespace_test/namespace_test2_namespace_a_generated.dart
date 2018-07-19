@@ -6,6 +6,7 @@ library namespace_a;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import 'namespace_test1_namespace_a_generated.dart';
 import './namespace_test2_namespace_c_generated.dart' as namespace_c;
 
 class TableInFirstNS {
@@ -21,7 +22,7 @@ class TableInFirstNS {
   final int _bcOffset;
 
   namespace_a_namespace_b.TableInNestedNS get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 4, null);
-  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, null));
+  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
   namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 8, null);
 
   @override

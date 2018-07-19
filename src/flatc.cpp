@@ -122,6 +122,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
     "  --root-type T      Select or override the default root_type\n"
+    "  --force-defaults   Emit default values in binary output from JSON\n"
+    "  --force-empty      When serializing from object API representation, "
+    "                     force strings and vectors to empty rather than null.\n"
     "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
     "schema). FILEs after the -- must be binary flatbuffer format files.\n"
     "Output files are named using the base file name of the input,\n"
@@ -277,6 +280,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--root-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.root_type = argv[argi];
+      } else if (arg == "--force-defaults") {
+        opts.force_defaults = true;
+      } else if (arg == "--force-empty") {
+        opts.set_empty_to_null = false;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

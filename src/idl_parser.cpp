@@ -113,6 +113,11 @@ CheckedError Parser::Error(const std::string &msg) {
 
 inline CheckedError NoError() { return CheckedError(false); }
 
+CheckedError Parser::RecurseError() {
+  return Error("maximum parsing recursion of " + NumToString(kMaxParsingDepth) +
+               " reached");
+}
+
 inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
                                       int64_t limit) {
   const std::string cause = NumToString(val) + op + NumToString(limit);
@@ -261,7 +266,7 @@ bool IsIdentifierStart(char c) {
 
 CheckedError Parser::Next() {
   doc_comment_.clear();
-  bool seen_newline = false;
+  bool seen_newline = cursor_ == source_;
   attribute_.clear();
   for (;;) {
     char c = *cursor_++;
@@ -405,7 +410,7 @@ CheckedError Parser::Next() {
           const char *start = ++cursor_;
           while (*cursor_ && *cursor_ != '\n' && *cursor_ != '\r') cursor_++;
           if (*start == '/') {  // documentation comment
-            if (cursor_ != source_ && !seen_newline)
+            if (!seen_newline)
               return Error(
                   "a documentation comment should be on a line on its own");
             doc_comment_.push_back(std::string(start + 1, cursor_));
@@ -583,7 +588,7 @@ CheckedError Parser::ParseType(Type &type) {
   } else if (token_ == '[') {
     NEXT();
     Type subtype;
-    ECHECK(ParseType(subtype));
+    ECHECK(Recurse([&]() { return ParseType(subtype); }));
     if (subtype.base_type == BASE_TYPE_VECTOR) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
@@ -664,11 +669,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    ECHECK(ParseSingleValue(&field->name, field->value));
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
+    ECHECK(ParseSingleValue(&field->name, field->value));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
@@ -944,7 +949,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
     if ((!opts.strict_json || !fieldn) && Is(terminator)) break;
     std::string name;
     if (is_nested_vector) {
-      if (fieldn > struct_def->fields.vec.size()) {
+      if (fieldn >= struct_def->fields.vec.size()) {
         return Error("too many unnamed fields in nested array");
       }
       name = struct_def->fields.vec[fieldn]->name;
@@ -975,7 +980,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       fieldn_outer, &struct_def,
       [](const std::string &name, size_t &fieldn,
          const StructDef *struct_def_inner, void *state) -> CheckedError {
-        Parser *parser = static_cast<Parser *>(state);
+        auto *parser = static_cast<Parser *>(state);
         if (name == "$schema") {
           ECHECK(parser->Expect(kTokenStringConstant));
           return NoError();
@@ -997,14 +1002,19 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                            flexbuffers::BUILDER_FLAG_SHARE_ALL);
               ECHECK(parser->ParseFlexBufferValue(&builder));
               builder.Finish();
+              // Force alignment for nested flexbuffer
+              parser->builder_.ForceVectorAlignment(builder.GetSize(), sizeof(uint8_t),
+                                                    sizeof(largest_scalar_t));
               auto off = parser->builder_.CreateVector(builder.GetBuffer());
               val.constant = NumToString(off.o);
             } else if (field->nested_flatbuffer) {
               ECHECK(parser->ParseNestedFlatbuffer(val, field, fieldn,
                                                    struct_def_inner));
             } else {
-              ECHECK(
-                  parser->ParseAnyValue(val, field, fieldn, struct_def_inner));
+              ECHECK(parser->Recurse([&]() {
+                  return parser->ParseAnyValue(val, field, fieldn,
+                                               struct_def_inner);
+              }));
             }
             // Hardcoded insertion-sort with error-check.
             // If fields are specified in order, then this loop exits
@@ -1149,7 +1159,9 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
         auto *parser = parser_and_type->first;
         Value val;
         val.type = parser_and_type->second;
-        ECHECK(parser->ParseAnyValue(val, nullptr, 0, nullptr));
+        ECHECK(parser->Recurse([&]() {
+                 return parser->ParseAnyValue(val, nullptr, 0, nullptr);
+        }));
         parser->field_stack_.push_back(std::make_pair(val, nullptr));
         return NoError();
       },
@@ -1207,6 +1219,10 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
       ECHECK(Error(nested_parser.error_));
     }
+    // Force alignment for nested flatbuffer
+    builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
+                                  nested_parser.builder_.GetBufferMinAlignment());
+
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
@@ -2123,7 +2139,9 @@ CheckedError Parser::SkipAnyJsonValue() {
           [](const std::string &, size_t &fieldn, const StructDef *,
              void *state) -> CheckedError {
             auto *parser = static_cast<Parser *>(state);
-            ECHECK(parser->SkipAnyJsonValue());
+            ECHECK(parser->Recurse([&]() {
+              return parser->SkipAnyJsonValue();
+            }));
             fieldn++;
             return NoError();
           },
@@ -2134,7 +2152,10 @@ CheckedError Parser::SkipAnyJsonValue() {
       return ParseVectorDelimiters(
           count,
           [](size_t &, void *state) -> CheckedError {
-            return static_cast<Parser *>(state)->SkipAnyJsonValue();
+            auto *parser = static_cast<Parser *>(state);
+            return parser->Recurse([&]() {
+              return parser->SkipAnyJsonValue();
+            });
           },
           this);
     }

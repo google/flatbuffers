@@ -496,7 +496,7 @@ bool VerifyStruct(flatbuffers::Verifier &v,
   if (required && !offset) { return false; }
 
   return !offset ||
-         v.Verify(reinterpret_cast<const uint8_t *>(&parent_table) + offset,
+         v.Verify(reinterpret_cast<const uint8_t *>(&parent_table), offset,
                   obj.bytesize());
 }
 
@@ -505,10 +505,9 @@ bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
                            voffset_t field_offset,
                            const reflection::Object &obj, bool required) {
   auto p = parent_table.GetPointer<const uint8_t *>(field_offset);
-  const uint8_t *end;
   if (required && !p) { return false; }
 
-  return !p || v.VerifyVector(p, obj.bytesize(), &end);
+  return !p || v.VerifyVectorOrString(p, obj.bytesize());
 }
 
 // forward declare to resolve cyclic deps between VerifyObject and VerifyVector
@@ -525,29 +524,29 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
   switch (vec_field.type()->element()) {
     case reflection::None: FLATBUFFERS_ASSERT(false); break;
     case reflection::UType:
-      return v.Verify(flatbuffers::GetFieldV<uint8_t>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<uint8_t>(table, vec_field));
     case reflection::Bool:
     case reflection::Byte:
     case reflection::UByte:
-      return v.Verify(flatbuffers::GetFieldV<int8_t>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<int8_t>(table, vec_field));
     case reflection::Short:
     case reflection::UShort:
-      return v.Verify(flatbuffers::GetFieldV<int16_t>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<int16_t>(table, vec_field));
     case reflection::Int:
     case reflection::UInt:
-      return v.Verify(flatbuffers::GetFieldV<int32_t>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<int32_t>(table, vec_field));
     case reflection::Long:
     case reflection::ULong:
-      return v.Verify(flatbuffers::GetFieldV<int64_t>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<int64_t>(table, vec_field));
     case reflection::Float:
-      return v.Verify(flatbuffers::GetFieldV<float>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<float>(table, vec_field));
     case reflection::Double:
-      return v.Verify(flatbuffers::GetFieldV<double>(table, vec_field));
+      return v.VerifyVector(flatbuffers::GetFieldV<double>(table, vec_field));
     case reflection::String: {
-      auto vecString =
+      auto vec_string =
           flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::String>>(
               table, vec_field);
-      if (v.Verify(vecString) && v.VerifyVectorOfStrings(vecString)) {
+      if (v.VerifyVector(vec_string) && v.VerifyVectorOfStrings(vec_string)) {
         return true;
       } else {
         return false;
@@ -565,7 +564,7 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
         auto vec =
             flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::Table>>(
                 table, vec_field);
-        if (!v.Verify(vec)) return false;
+        if (!v.VerifyVector(vec)) return false;
         if (vec) {
           for (uoffset_t j = 0; j < vec->size(); j++) {
             if (!VerifyObject(v, schema, *obj, vec->Get(j), true)) {
@@ -627,7 +626,7 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
         break;
       case reflection::String:
         if (!table->VerifyField<uoffset_t>(v, field_def->offset()) ||
-            !v.Verify(flatbuffers::GetFieldS(*table, *field_def))) {
+            !v.VerifyString(flatbuffers::GetFieldS(*table, *field_def))) {
           return false;
         }
         break;

@@ -78,6 +78,10 @@ class DartGenerator : public BaseGenerator {
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
               ";\n\n";
 
+      if (parser_.opts.include_dependence_headers) {
+        GenIncludeDependencies(&code, kv->first);
+      }
+
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
@@ -130,6 +134,19 @@ class DartGenerator : public BaseGenerator {
     // std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
     return ret;
   }
+
+  void GenIncludeDependencies(std::string* code, const std::string& the_namespace) {
+    for (auto it = parser_.included_files_.begin();
+         it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      *code += "import '" + GeneratedFileName("", basename + "_" + the_namespace) + "';\n";
+    }
+  }
+
   static std::string EscapeKeyword(const std::string &name) {
     for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
       if (name == keywords[i]) { return MakeCamel(name + "_", false); }
@@ -210,7 +227,7 @@ class DartGenerator : public BaseGenerator {
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (value == null) return null;\n";
+    code += "    if (value == null) value = 0;\n";
 
     code += "    if (!values.containsKey(value)) {\n";
     code +=
@@ -518,9 +535,19 @@ class DartGenerator : public BaseGenerator {
           code += ".vTableGet(_bc, _bcOffset, " +
                   NumToString(field.value.offset) + ", ";
           if (!field.value.constant.empty() && field.value.constant != "0") {
-            code += field.value.constant;
+            if (IsBool(field.value.type.base_type)) {
+              code += "true";
+            } else {
+              code += field.value.constant;
+            }
           } else {
-            code += "null";
+            if (IsBool(field.value.type.base_type)) {
+              code += "false";
+            } else if (IsScalar(field.value.type.base_type)) {
+              code += "0";
+            } else {
+              code += "null";
+            }
           }
           code += ")";
         }
@@ -769,7 +796,7 @@ class DartGenerator : public BaseGenerator {
         }
         code += "\n        : null;\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += " = fbBuilder.writeString(_" + field.name + ");\n";
+        code += " = fbBuilder.writeString(_" + MakeCamel(field.name, false) + ");\n";
       } else {
         code += " = _" + MakeCamel(field.name, false) +
                 "?.getOrCreateOffset(fbBuilder);\n";

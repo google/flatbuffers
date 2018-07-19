@@ -12,7 +12,7 @@ class EnumInNestedNS {
   const EnumInNestedNS._(this.value);
 
   factory EnumInNestedNS.fromValue(int value) {
-    if (value == null) return null;
+    if (value == null) value = 0;
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum EnumInNestedNS');
     }
@@ -59,7 +59,7 @@ class TableInNestedNS {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  int get foo => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, null);
+  int get foo => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0);
 
   @override
   String toString() {
