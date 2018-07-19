@@ -15,6 +15,7 @@ option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
        OFF)
+option(FLATBUFFERS_LIBCXX_WITH_CLANG "Force libc++ when using Clang" ON)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -139,14 +140,16 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
-  if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-    set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  endif()
-  if(NOT ("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD" OR
-          "${CMAKE_SYSTEM_NAME}" MATCHES "Linux"))
-    set(CMAKE_EXE_LINKER_FLAGS
-        "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
+  if(FLATBUFFERS_LIBCXX_WITH_CLANG)
+    if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+      set(CMAKE_CXX_FLAGS
+          "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    endif()
+    if(NOT ("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD" OR
+            "${CMAKE_SYSTEM_NAME}" MATCHES "Linux"))
+      set(CMAKE_EXE_LINKER_FLAGS
+          "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
+    endif()
   endif()
 
   # Certain platforms such as ARM do not use signed chars by default
