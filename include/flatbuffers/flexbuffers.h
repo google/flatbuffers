@@ -1417,6 +1417,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   Value CreateVector(size_t start, size_t vec_len, size_t step, bool typed,
                      bool fixed, const Value *keys = nullptr) {
+    FLATBUFFERS_ASSERT(!fixed || typed); // typed=false, fixed=true combination is not supported.
     // Figure out smallest bit width we can store this vector with.
     auto bit_width = (std::max)(force_min_bit_width_, WidthU(vec_len));
     auto prefix_elems = 1;
