@@ -1443,7 +1443,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     }
     // If you get this assert, your fixed types are not one of:
     // Int / UInt / Float / Key.
-    FLATBUFFERS_ASSERT(IsTypedVectorElementType(vector_type));
+    FLATBUFFERS_ASSERT(!fixed || IsTypedVectorElementType(vector_type));
     auto byte_width = Align(bit_width);
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {
