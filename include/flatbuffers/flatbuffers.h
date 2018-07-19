@@ -1206,6 +1206,11 @@ class FlatBufferBuilder {
   void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
     PreAlign(len * elemsize, alignment);
   }
+  
+  // Similar to ForceVectorAlignment but for String fields.
+  void ForceStringAlignment(size_t len, size_t alignment) {
+    PreAlign((len + 1) * sizeof(char), alignment);
+  }
 
   /// @endcond
 
