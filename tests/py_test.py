@@ -478,6 +478,38 @@ class TestByteLayout(unittest.TestCase):
         # 1-byte pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
+    def test_create_numpy_vector(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -3], dtype=np.int8)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256-3, 0   # vector value + padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256-3, 0   # vector value + padding
+            ])
+
+        except ImportError:
+            # If numpy does not exist, trying to get vector as numpy
+            # array should raise NumpyRequiredForThisFeature. The way
+            # assertRaises has been implemented prevents us from
+            # asserting this error is raised outside of a test case.
+            pass
+
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
