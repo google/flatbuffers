@@ -143,7 +143,7 @@ namespace FlatBuffers
         public static int ArraySize<T>(T[] x)
         {
             return SizeOf<T>() * x.Length;
-        }    
+        }
 
         // Get a portion of the buffer casted into an array of type T, given
         // the buffer position and length.
