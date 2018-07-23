@@ -32,7 +32,7 @@ local function vtableEqual(a, objectStart, b)
     if (#a * VOffsetT.bytewidth) ~= #b then
         return false
     end
-    
+
     for i, elem in ipairs(a) do
         local x = VOffsetT:Unpack(b, i * VOffsetT.bytewidth)
         if x ~= 0 or elem ~= 0 then
@@ -47,7 +47,7 @@ end
 
 function m.New(initialSize)
     assert(0 <= initialSize and initialSize < MAX_BUFFER_SIZE)
-    local o = 
+    local o =
     {
         finished = false,
         bytes = ba.New(initialSize),
@@ -71,23 +71,22 @@ end
 
 function mt:StartObject(numFields)
     assert(not self.nested)
-    
+
     local vtable = {}
 
     for _=1,numFields do
         table.insert(vtable, 0)
     end
-            
+
     self.currentVTable = vtable
     self.objectEnd = self:Offset()
-    self.minalign = 1
     self.nested = true
 end
 
 function mt:WriteVtable()
     self:PrependSOffsetTRelative(0)
     local objectOffset = self:Offset()
-    
+
     local exisitingVTable
     local i = #self.vtables
     while i >= 1 do
@@ -95,26 +94,26 @@ function mt:WriteVtable()
             table.remove(self.vtables,i)
         end
         i = i - 1
-    end    
-   
+    end
+
     while i >= 1 do
-        
+
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
         local vt2len = VOffsetT:Unpack(self.bytes, vt2Start)
-        
+
         local metadata = VtableMetadataFields * VOffsetT.bytewidth
         local vt2End = vt2Start + vt2Len
         local vt2 = self.bytes:Slice(vt2Start+metadata,vt2End)
-        
+
         if vtableEqual(self.currentVTable, objectOffset, vt2) then
             exisitingVTable = vt2Offset
             break
         end
-        
+
         i = i - 1
     end
-    
+
     if not exisitingVTable then
         i = #self.currentVTable
         while i >= 1 do
@@ -124,27 +123,27 @@ function mt:WriteVtable()
                 off = objectOffset - a
             end
             self:PrependVOffsetT(off)
-            
+
             i = i - 1
         end
-        
+
         local objectSize = objectOffset - self.objectEnd
         self:PrependVOffsetT(objectSize)
-        
+
         local vBytes = #self.currentVTable + VtableMetadataFields
         vBytes = vBytes * VOffsetT.bytewidth
         self:PrependVOffsetT(vBytes)
-        
+
         local objectStart = #self.bytes - objectOffset
-        self.bytes:Set(SOffsetT:Pack(self:Offset() - objectOffset),objectStart)        
-        
+        self.bytes:Set(SOffsetT:Pack(self:Offset() - objectOffset),objectStart)
+
         table.insert(self.vtables, self:Offset())
     else
         local objectStart = #self.bytes - objectOffset
         self.head = objectStart
         self.bytes:Set(SOffsetT:Pack(exisitingVTable - objectOffset),self.head)
     end
-    
+
     self.currentVTable = nil
     return objectOffset
 end
@@ -162,8 +161,8 @@ local function growByteBuffer(self, desiredSize)
     repeat
         newsize = math.min(newsize * 2, MAX_BUFFER_SIZE)
         if newsize == 0 then newsize = 1 end
-    until newsize > desiredSize 
-    
+    until newsize > desiredSize
+
     self.bytes:Grow(newsize)
 end
 
@@ -175,12 +174,12 @@ function mt:Offset()
    return #self.bytes - self.head
 end
 
-function mt:Pad(n)    
+function mt:Pad(n)
     if n > 0 then
         -- pads are 8-bit, so skip the bytewidth lookup
-        local h = self.head - n  -- UInt8    
+        local h = self.head - n  -- UInt8
         self.head = h
-        self.bytes:Pad(n, h)  
+        self.bytes:Pad(n, h)
     end
 end
 
@@ -190,7 +189,7 @@ function mt:Prep(size, additionalBytes)
     end
 
     local h = self.head
-    
+
     local k = #self.bytes - h + additionalBytes
     local alignsize = ((~k) + 1) & (size - 1) -- getAlignSize(k, size)
 
@@ -202,7 +201,7 @@ function mt:Prep(size, additionalBytes)
         local updatedHead = self.head + #self.bytes - oldBufSize
         self.head = updatedHead
     end
-    
+
     self:Pad(alignsize)
 end
 
@@ -216,7 +215,7 @@ end
 function mt:PrependUOffsetTRelative(off)
     self:Prep(UOffsetT.bytewidth, 0)
     local soffset = self:Offset()
-    if off <= soffset then    
+    if off <= soffset then
         local off2 = soffset - off + UOffsetT.bytewidth
         self:Place(off2, UOffsetT)
     else
@@ -235,24 +234,24 @@ end
 function mt:EndVector(vectorNumElements)
     assert(self.nested)
     self.nested = false
-    self:Place(vectorNumElements, UOffsetT)    
+    self:Place(vectorNumElements, UOffsetT)
     return self:Offset()
 end
 
 function mt:CreateString(s)
     assert(not self.nested)
     self.nested = true
-    
+
     assert(type(s) == "string")
-    
+
     self:Prep(UOffsetT.bytewidth, (#s + 1)*Uint8.bytewidth)
     self:Place(0, Uint8)
-    
+
     local l = #s
     self.head = self.head - l
-    
+
     self.bytes:Set(s, self.head, self.head + l)
-    
+
     return self:EndVector(#s)
 end
 
@@ -260,12 +259,12 @@ function mt:CreateByteVector(x)
     assert(not self.nested)
     self.nested = true
     self:Prep(UOffsetT.bytewidth, #x*Uint8.bytewidth)
-    
+
     local l = #x
     self.head = self.head - l
-    
+
     self.bytes:Set(x, self.head, self.head + l)
-    
+
     return self:EndVector(#x)
 end
 
@@ -281,7 +280,7 @@ local function finish(self, rootTable, sizePrefix)
     if sizePrefix then
         prepSize = prepSize + Int32.bytewidth
     end
-    
+
     self:Prep(self.minalign, prepSize)
     self:PrependUOffsetTRelative(rootTable)
     if sizePrefix then
