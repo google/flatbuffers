@@ -43,6 +43,7 @@ filegroup(
         "include/flatbuffers/flexbuffers.h",
         "include/flatbuffers/hash.h",
         "include/flatbuffers/idl.h",
+        "include/flatbuffers/minireflect.h",
         "include/flatbuffers/reflection.h",
         "include/flatbuffers/reflection_generated.h",
         "include/flatbuffers/stl_emulation.h",
