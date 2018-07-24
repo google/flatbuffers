@@ -1336,10 +1336,8 @@ class GeneralGenerator : public BaseGenerator {
               code += ".Value";
             code += "); return ";
             code += "builder." + FunctionStart('E') + "ndVector(); }\n";
-
             // For C#, include a block copy method signature.
-            if (lang_.language == IDLOptions::kCSharp)
-            {
+            if (lang_.language == IDLOptions::kCSharp) {
               code += "  public static " + GenVectorOffsetType() + " ";
               code += FunctionStart('C') + "reate";
               code += MakeCamel(field.name);
