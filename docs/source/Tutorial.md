@@ -32,6 +32,7 @@ Please select your desired language for our quest:
   <input type="radio" name="language" value="c">C</input>
   <input type="radio" name="language" value="dart">Dart</input>
   <input type="radio" name="language" value="lua">Lua</input>
+  <input type="radio" name="language" value="lobster">Lobster</input>
 </form>
 \endhtmlonly
 
@@ -138,7 +139,10 @@ For your chosen language, please cross-reference with:
 [example.dart](https://github.com/google/flatbuffers/blob/master/dart/example/example.dart)
 </div>
 <div class="language-lua">
-[sample_binary.lua](https://github.com/google/flatbuffers/blob/master/dart/example/sample_binary.lua)
+[sample_binary.lua](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.lua)
+</div>
+<div class="language-lobster">
+[sample_binary.lobster](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.lobster)
 </div>
 
 
@@ -333,6 +337,12 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
   ./../flatc --lua monster.fbs
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.sh}
+  cd flatbuffers/sample
+  ./../flatc --lobster monster.fbs
+~~~
+</div>
 
 For a more complete guide to using the `flatc` compiler, please read the
 [Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler)
@@ -463,6 +473,12 @@ The first step is to import/include the library, generated files, etc.
   local weapon = require("MyGame.Sample.Weapon")
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  include from "../lobster/"  // Where to find flatbuffers.lobster
+  include "monster_generated.lobster"
+~~~
+</div>
 
 Now we are ready to start building some buffers. In order to start, we need
 to create an instance of the `FlatBufferBuilder`, which will contain the buffer
@@ -546,6 +562,12 @@ which will grow automatically if needed:
 ~~~{.lua}
   -- get access to the builder, providing an array of size 1024
   local builder = flatbuffers.Builder(1024)
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  -- get access to the builder
+  let builder = flatbuffers_builder {}
 ~~~
 </div>
 
@@ -753,6 +775,19 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
     local axe = weapon.End(builder)
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  let weapon_names = [ "Sword", "Axe" ]
+  let weapon_damages = [ 3, 5 ]
+
+  weapon_offsets := map(weapon_names) name, i:
+      let ns = builder.CreateString(name)
+      builder.MyGame_Sample_WeaponStart()
+      builder.MyGame_Sample_WeaponAddName(ns)
+      builder.MyGame_Sample_WeaponAddDamage(weapon_damages[i])
+      builder.MyGame_Sample_WeaponEnd()
+~~~
+</div>
 
 Now let's create our monster, the `orc`. For this `orc`, lets make him
 `red` with rage, positioned at `(1.0, 2.0, 3.0)`, and give him
@@ -915,6 +950,15 @@ traversal. This is generally easy to do on any tree structures.
     local inv = builder:EndVector(10)
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  // Name of the monster.
+  let name = builder.CreateString("Orc")
+
+  // Inventory.
+  let inv = builder.MyGame_Sample_MonsterCreateInventoryVector(map(10): _)
+~~~
+</div>
 
 We serialized two built-in data types (`string` and `vector`) and captured
 their return values. These values are offsets into the serialized data,
@@ -1037,6 +1081,11 @@ offsets.
     local weapons = builder:EndVector(2)
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  let weapons = builder.MyGame_Sample_MonsterCreateWeaponsVector(weapon_offsets)
+~~~
+</div>
 
 <div class="language-cpp">
 <br>
@@ -1144,6 +1193,14 @@ for the `path` field above:
     vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
     vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
     local path = builder:EndVector(2)
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  builder.MyGame_Sample_MonsterStartPathVector(2)
+  builder.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0)
+  builder.MyGame_Sample_CreateVec3(4.0, 5.0, 6.0)
+  let path = builder.EndVector(2)
 ~~~
 </div>
 
@@ -1366,6 +1423,21 @@ can serialize the monster itself:
     local orc = monster.End(builder)
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  builder.MyGame_Sample_MonsterStart()
+  builder.MyGame_Sample_MonsterAddPos(builder.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0))
+  builder.MyGame_Sample_MonsterAddHp(300)
+  builder.MyGame_Sample_MonsterAddName(name)
+  builder.MyGame_Sample_MonsterAddInventory(inv)
+  builder.MyGame_Sample_MonsterAddColor(MyGame_Sample_Color_Red)
+  builder.MyGame_Sample_MonsterAddWeapons(weapons)
+  builder.MyGame_Sample_MonsterAddEquippedType(MyGame_Sample_Equipment_Weapon)
+  builder.MyGame_Sample_MonsterAddEquipped(weapon_offsets[1])
+  builder.MyGame_Sample_MonsterAddPath(path)
+  let orc = builder.MyGame_Sample_MonsterEnd()
+~~~
+</div>
 
 Note how we create `Vec3` struct in-line in the table. Unlike tables, structs
 are simple combinations of scalars that are always stored inline, just like
@@ -1514,6 +1586,12 @@ Here is a repetition these lines, to help highlight them more clearly:
     monster.AddEquipped(builder, axe) -- Union data
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  builder.MyGame_Sample_MonsterAddEquippedType(MyGame_Sample_Equipment_Weapon)
+  builder.MyGame_Sample_MonsterAddEquipped(axe)
+~~~
+</div>
 
 After you have created your buffer, you will have the offset to the root of the
 data in the `orc` variable, so you can finish the buffer by calling the
@@ -1591,7 +1669,12 @@ appropriate `finish` method.
     builder:Finish(orc)
 ~~~
 </div>
-
+<div class="language-lobster">
+~~~{.lobster}
+  // Call `Finish()` to instruct the builder that this monster is complete.
+  builder.Finish(orc)
+~~~
+</div>
 
 The buffer is now ready to be stored somewhere, sent over the network, be
 compressed, or whatever you'd like to do with it. You can access the buffer
@@ -1695,6 +1778,12 @@ like so:
     local bufAsString = builder:Output()
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  // This must be called after `Finish()`.
+  let buf = builder.SizedCopy() // Of type `string`.
+~~~
+</div>
 
 
 Now you can write the bytes to a file, send them over the network..
@@ -1706,7 +1795,7 @@ which will lead to hard to find problems when you read the buffer.
 
 Now that we have successfully created an `Orc` FlatBuffer, the monster data can
 be saved, sent over a network, etc. Let's now adventure into the inverse, and
-deserialize a FlatBuffer.
+access a FlatBuffer.
 
 This section requires the same import/include, namespace, etc. requirements as
 before:
@@ -1820,6 +1909,12 @@ import './monster_my_game.sample_generated.dart' as myGame;
   local monster = require("MyGame.Sample.Monster")
   local vec3 = require("MyGame.Sample.Vec3")
   local weapon = require("MyGame.Sample.Weapon")
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  include from "../lobster/"  // Where to find flatbuffers.lobster
+  include "monster_generated.lobster"
 ~~~
 </div>
 
@@ -1941,6 +2036,14 @@ myGame.Monster monster = new myGame.Monster(data);
     local mon = monster.GetRootAsMonster(buf, 0)
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  buf = /* the data you just read, in a string */
+
+  // Get an accessor to the root object inside the buffer.
+  let monster = MyGame_Sample_GetRootAsMonster(buf)
+~~~
+</div>
 
 If you look in the generated files from the schema compiler, you will see it generated
 accessors for all non-`deprecated` fields. For example:
@@ -2024,6 +2127,13 @@ accessors for all non-`deprecated` fields. For example:
   local hp = mon:Hp()
   local mana = mon:Mana()
   local name = mon:Name()
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  let hp = monster.hp
+  let mana = monster.mana
+  let name = monster.name
 ~~~
 </div>
 
@@ -2127,7 +2237,14 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
   local z = pos:Z()
 ~~~
 </div>
-
+<div class="language-lobster">
+~~~{.lobster}
+  let pos = monster.pos
+  let x = pos.x
+  let y = pos.y
+  let z = pos.z
+~~~
+</div>
 
 `x`, `y`, and `z` will contain `1.0`, `2.0`, and `3.0`, respectively.
 
@@ -2204,6 +2321,12 @@ FlatBuffers `vector`.
 ~~~{.lua}
   local invLength = mon:InventoryLength()
   local thirdItem = mon:Inventory(3) -- Lua is 1-based
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  let inv_len = monster.inventory_length
+  let third_item = monster.inventory(2)
 ~~~
 </div>
 
@@ -2292,6 +2415,13 @@ except your need to handle the result as a FlatBuffer `table`:
   local weaponsLength = mon:WeaponsLength()
   local secondWeaponName = mon:Weapon(2):Name()
   local secondWeaponDamage = mon:Weapon(2):Damage()
+~~~
+</div>
+<div class="language-lobster">
+~~~{.lobster}
+  let weapons_length = monster.weapons_length
+  let second_weapon_name = monster.weapons(1).name
+  let second_weapon_damage = monster.weapons(1).damage
 ~~~
 </div>
 
@@ -2442,6 +2572,19 @@ We can access the type to dynamically cast the data as needed (since the
   end
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  union_type = monster.equipped_type
+
+  if union_type == MyGame_Sample_Equipment_Weapon:
+      // `monster.equipped_as_Weapon` returns a FlatBuffer handle much like normal table fields,
+      // but this is only valid to call if we already know it is the correct type.
+      let union_weapon = monster.equipped_as_Weapon
+
+      let weapon_name = union_weapon.name     // "Axe"
+      let weapon_damage = union_weapon.damage // 5
+~~~
+</div>
 
 ## Mutating FlatBuffers
 
@@ -2527,6 +2670,11 @@ mutators like so:
   <API for mutating FlatBuffers is not yet available in Lua.>
 ~~~
 </div>
+<div class="language-lobster">
+~~~{.lobster}
+  <API for mutating FlatBuffers is not yet available in Lobster.>
+~~~
+</div>
 
 We use the somewhat verbose term `mutate` instead of `set` to indicate that this
 is a special use case, not to be confused with the default way of constructing
@@ -2601,6 +2749,11 @@ printers that you can compile and use at runtime. The `flatc` compiler (not
 flatbuffer conversion from a given schema. There are no current plans
 for `flatcc` to support this.*
 </div>
+<div class="language-lobster">
+*Note: If you're working in Lobster, you can also parse JSON at runtime. See the
+[Use in Lobster](@ref flatbuffers_guide_use_lobster) section of the Programmer's
+Guide for more information.*
+</div>
 
 ## Advanced Features for Each Language
 
@@ -2642,6 +2795,8 @@ For your chosen language, see:
 <div class="language-lua">
 [Use in Lua](@ref flatbuffers_guide_use_lua)
 </div>
-
+<div class="language-lobster">
+[Use in Lobster](@ref flatbuffers_guide_use_lobster)
+</div>
 
 <br>

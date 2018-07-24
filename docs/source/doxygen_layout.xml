@@ -43,6 +43,8 @@
           title="Use in Dart"/>
       <tab type="user" url="@ref flatbuffers_guide_use_lua"
           title="Use in Lua"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_lobster"
+          title="Use in Lobster"/>
       <tab type="user" url="@ref flexbuffers"
           title="Schema-less version"/>
       <tab type="usergroup" url="" title="gRPC">

@@ -31,11 +31,17 @@ For any schema input files, one or more generators can be specified:
 
 -   `--js`, `-s`: Generate JavaScript code.
 
+-   `--ts`: Generate TypeScript code.
+
 -   `--php`: Generate PHP code.
 
 -   `--grpc`: Generate RPC stub code for GRPC.
 
 -   `--dart`: Generate Dart code.
+
+-   `--lua`: Generate Lua code.
+
+-   `--lobster`: Generate Lobster code.
 
 For any data input files:
 
