@@ -759,6 +759,7 @@ INPUT = "FlatBuffers.md" \
         "PHPUsage.md" \
         "PythonUsage.md" \
         "LuaUsage.md" \
+        "LobsterUsage.md" \
         "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
