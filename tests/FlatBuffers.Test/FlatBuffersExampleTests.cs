@@ -221,6 +221,16 @@ namespace FlatBuffers.Test
             }
             Assert.AreEqual(10, invsum);
 
+            // Get the inventory as an array and subtract the
+            // sum to get it back to 0
+            var inventoryArray = monster.GetInventoryArray();
+            Assert.AreEqual(5, inventoryArray.Length);
+            foreach(var inv in inventoryArray)
+            {
+                invsum -= inv;
+            }
+            Assert.AreEqual(0, invsum);
+
             var test0 = monster.Test4(0).Value;
             var test1 = monster.Test4(1).Value;
             Assert.AreEqual(2, monster.Test4Length);
