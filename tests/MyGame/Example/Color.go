@@ -2,13 +2,14 @@
 
 package Example
 
+type Color = int8
 const (
-	ColorRed = 1
-	ColorGreen = 2
-	ColorBlue = 8
+	ColorRed Color = 1
+	ColorGreen Color = 2
+	ColorBlue Color = 8
 )
 
-var EnumNamesColor = map[int]string{
+var EnumNamesColor = map[Color]string{
 	ColorRed:"Red",
 	ColorGreen:"Green",
 	ColorBlue:"Blue",

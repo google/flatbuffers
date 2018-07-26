@@ -2,14 +2,15 @@
 
 package Example
 
+type Any = byte
 const (
-	AnyNONE = 0
-	AnyMonster = 1
-	AnyTestSimpleTableWithEnum = 2
-	AnyMyGame_Example2_Monster = 3
+	AnyNONE Any = 0
+	AnyMonster Any = 1
+	AnyTestSimpleTableWithEnum Any = 2
+	AnyMyGame_Example2_Monster Any = 3
 )
 
-var EnumNamesAny = map[int]string{
+var EnumNamesAny = map[Any]string{
 	AnyNONE:"NONE",
 	AnyMonster:"Monster",
 	AnyTestSimpleTableWithEnum:"TestSimpleTableWithEnum",
