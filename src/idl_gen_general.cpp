@@ -1102,6 +1102,18 @@ class GeneralGenerator : public BaseGenerator {
             code += lang_.accessor_prefix + "__vector_as_arraysegment(";
             code += NumToString(field.value.offset);
             code += "); }\n";
+
+            // For direct blockcopying the data into a typed array
+            code += "  public ";
+            code += GenTypeBasic(field.value.type.VectorType());
+            code += "[] Get";
+            code += MakeCamel(field.name, lang_.first_camel_upper);
+            code += "Array() { return ";
+            code += lang_.accessor_prefix + "__vector_as_array<";
+            code += GenTypeBasic(field.value.type.VectorType());
+            code += ">(";
+            code += NumToString(field.value.offset);
+            code += "); }\n";
             break;
           default: break;
         }
@@ -1324,6 +1336,19 @@ class GeneralGenerator : public BaseGenerator {
               code += ".Value";
             code += "); return ";
             code += "builder." + FunctionStart('E') + "ndVector(); }\n";
+            // For C#, include a block copy method signature.
+            if (lang_.language == IDLOptions::kCSharp) {
+              code += "  public static " + GenVectorOffsetType() + " ";
+              code += FunctionStart('C') + "reate";
+              code += MakeCamel(field.name);
+              code += "VectorBlock(FlatBufferBuilder builder, ";
+              code += GenTypeBasic(vector_type) + "[] data) ";
+              code += "{ builder." + FunctionStart('S') + "tartVector(";
+              code += NumToString(elem_size);
+              code += ", data." + FunctionStart('L') + "ength, ";
+              code += NumToString(alignment);
+              code += "); builder.Add(data); return builder.EndVector(); }\n";
+            }
           }
           // Generate a method to start a vector, data to be added manually
           // after.

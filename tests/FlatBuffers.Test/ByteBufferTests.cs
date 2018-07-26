@@ -100,7 +100,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(0x0A, buffer[3]);
         }
 
- #if !BYTEBUFFER_NO_BOUNDS_CHECK
+#if !BYTEBUFFER_NO_BOUNDS_CHECK
         [FlatBuffersTestMethod]
         public void ByteBuffer_PutIntCannotPutAtOffsetPastLength()
         {
@@ -178,7 +178,7 @@ namespace FlatBuffers.Test
         public void ByteBuffer_GetByteChecksOffset()
         {
             var uut = new ByteBuffer(1);
-            Assert.Throws<ArgumentOutOfRangeException>(()=>uut.Get(1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => uut.Get(1));
         }
 #endif
 
@@ -343,6 +343,270 @@ namespace FlatBuffers.Test
             // Advance by one more byte
             uut.Position = 1; uut = uut.Duplicate();
             Assert.AreEqual(0x0A, uut.Get(3));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_To_Array_Float()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var fData = new float[len];
+            fData[0] = 1.0079F;
+            fData[1] = 4.0026F;
+            fData[2] = 6.941F;
+            fData[3] = 9.0122F;
+            fData[4] = 10.811F;
+            fData[5] = 12.0107F;
+            fData[6] = 14.0067F;
+            fData[7] = 15.9994F;
+            fData[8] = 18.9984F;
+
+            // Tranfer it to a byte array
+            var buffer = new byte[sizeof(float) * fData.Length];
+            Buffer.BlockCopy(fData, 0, buffer, 0, buffer.Length);
+
+            // Create the Byte Buffer from byte array
+            var uut = new ByteBuffer(buffer);
+
+            // Get the full array back out and ensure they are equivalent
+            var bbArray = uut.ToArray<float>(0, len);
+            Assert.ArrayEqual(fData, bbArray);
+
+            // Get a portion of the full array back out and ensure the
+            // subrange agrees
+            var bbArray2 = uut.ToArray<float>(4, len - 1);
+            Assert.AreEqual(bbArray2.Length, len - 1);
+            for (int i = 1; i < len - 1; i++)
+            {
+                Assert.AreEqual(fData[i], bbArray2[i - 1]);
+            }
+
+            // Get a sub portion of the full array back out and ensure the
+            // subrange agrees
+            var bbArray3 = uut.ToArray<float>(8, len - 4);
+            Assert.AreEqual(bbArray3.Length, len - 4);
+            for (int i = 2; i < len - 4; i++)
+            {
+                Assert.AreEqual(fData[i], bbArray3[i - 2]);
+            }
+        }
+
+        public void ByteBuffer_Put_Array_Helper<T>(T[] data, int typeSize)
+            where T : struct
+        {
+            // Create the Byte Buffer
+            var uut = new ByteBuffer(1024);
+
+            // Put the data into the buffer and make sure the offset is
+            // calculated correctly
+            int nOffset = uut.Put(1024, data);
+            Assert.AreEqual(1024 - typeSize * data.Length, nOffset);
+
+            // Get the full array back out and ensure they are equivalent
+            var bbArray = uut.ToArray<T>(nOffset, data.Length);
+            Assert.ArrayEqual(data, bbArray);
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Float()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new float[len];
+            data[0] = 1.0079F;
+            data[1] = 4.0026F;
+            data[2] = 6.941F;
+            data[3] = 9.0122F;
+            data[4] = 10.811F;
+            data[5] = 12.0107F;
+            data[6] = 14.0067F;
+            data[7] = 15.9994F;
+            data[8] = 18.9984F;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(float));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Double()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new double[len];
+            data[0] = 1.0079;
+            data[1] = 4.0026;
+            data[2] = 6.941;
+            data[3] = 9.0122;
+            data[4] = 10.811;
+            data[5] = 12.0107;
+            data[6] = 14.0067;
+            data[7] = 15.9994;
+            data[8] = 18.9984;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(double));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Int()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new int[len];
+            data[0] = 1;
+            data[1] = 4;
+            data[2] = 6;
+            data[3] = 9;
+            data[4] = 10;
+            data[5] = 12;
+            data[6] = 14;
+            data[7] = 15;
+            data[8] = 18;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(int));
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_UInt()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new uint[len];
+            data[0] = 1;
+            data[1] = 4;
+            data[2] = 6;
+            data[3] = 9;
+            data[4] = 10;
+            data[5] = 12;
+            data[6] = 14;
+            data[7] = 15;
+            data[8] = 18;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(uint));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Bool()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new bool[len];
+            data[0] = true;
+            data[1] = true;
+            data[2] = false;
+            data[3] = true;
+            data[4] = false;
+            data[5] = true;
+            data[6] = true;
+            data[7] = true;
+            data[8] = false;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(bool));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Long()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new long[len];
+            data[0] = 1;
+            data[1] = 4;
+            data[2] = 6;
+            data[3] = 9;
+            data[4] = 10;
+            data[5] = 12;
+            data[6] = 14;
+            data[7] = 15;
+            data[8] = 18;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(long));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Byte()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new byte[len];
+            data[0] = 1;
+            data[1] = 4;
+            data[2] = 6;
+            data[3] = 9;
+            data[4] = 10;
+            data[5] = 12;
+            data[6] = 14;
+            data[7] = 15;
+            data[8] = 18;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(byte));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_SByte()
+        {
+            const int len = 9;
+
+            // Construct the data array
+            var data = new sbyte[len];
+            data[0] = 1;
+            data[1] = 4;
+            data[2] = 6;
+            data[3] = 9;
+            data[4] = 10;
+            data[5] = 12;
+            data[6] = 14;
+            data[7] = 15;
+            data[8] = 18;
+
+            ByteBuffer_Put_Array_Helper(data, sizeof(sbyte));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Null_Throws()
+        {
+            // Create the Byte Buffer
+            var uut = new ByteBuffer(1024);
+
+            // create a null array and try to put it into the buffer
+            float[] data = null;
+            Assert.Throws<ArgumentNullException>(() => uut.Put(1024, data));
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_Empty_Throws()
+        {
+            // Create the Byte Buffer
+            var uut = new ByteBuffer(1024);
+
+            // create an array of length == 0, and try to put it into the buffer
+            float[] data = new float[0];
+            Assert.Throws<ArgumentException>(() => uut.Put(1024, data));
+        }
+
+        private struct dummyStruct
+        {
+            int a;
+            float b;
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Put_Array_IncorrectType_Throws()
+        {
+            // Create the Byte Buffer
+            var uut = new ByteBuffer(1024);
+
+            // Create an array of dummy structures that shouldn't be
+            // able to be put into the buffer
+            var data = new dummyStruct[10];
+            Assert.Throws<ArgumentException>(() => uut.Put(1024, data));
         }
     }
 }
