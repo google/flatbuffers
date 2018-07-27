@@ -283,13 +283,25 @@ inline void IterateFlatBuffer(const uint8_t *buffer,
 
 struct ToStringVisitor : public IterationVisitor {
   std::string s;
-  void StartSequence() { s += "{ "; }
-  void EndSequence() { s += " }"; }
+  std::string d;
+  ToStringVisitor(std::string delimiter): d(delimiter) {}
+
+  void StartSequence() {
+    s += "{";
+    s += d;
+  }
+  void EndSequence() {
+    s += d;
+    s += "}";
+  }
   void Field(size_t /*field_idx*/, size_t set_idx, ElementaryType /*type*/,
              bool /*is_vector*/, const TypeTable * /*type_table*/,
              const char *name, const uint8_t *val) {
     if (!val) return;
-    if (set_idx) s += ", ";
+    if (set_idx) {
+      s += ",";
+      s += d;
+    }
     if (name) {
       s += name;
       s += ": ";
@@ -326,8 +338,9 @@ struct ToStringVisitor : public IterationVisitor {
 };
 
 inline std::string FlatBufferToString(const uint8_t *buffer,
-                                      const TypeTable *type_table) {
-  ToStringVisitor tostring_visitor;
+                                      const TypeTable *type_table,
+                                      bool multi_line = false) {
+  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ");
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);
   return tostring_visitor.s;
 }
