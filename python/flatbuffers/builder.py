@@ -461,7 +461,7 @@ class Builder(object):
         if x.dtype.str[0] == "<":
             x_lend = x
         else:
-            x_lend = x.byteswap()
+            x_lend = x.byteswap(inplace=False)
 
         # Calculate total length
         l = UOffsetTFlags.py_type(x_lend.itemsize * x_lend.size)
