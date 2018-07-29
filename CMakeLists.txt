@@ -258,6 +258,18 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   target_link_libraries(grpctest grpc++_unsecure grpc_unsecure gpr pthread dl)
 endif()
 
+# If the CMake version supports it, attach header directory information
+# to the targets for when we are part of a parent build (via add_subdirectory()).
+if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.0.2")
+  if(TARGET flatbuffers)
+    target_include_directories(
+      flatbuffers SYSTEM INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+      $<INSTALL_INTERFACE:include>
+    )
+  endif()
+endif()
+
 include(CMake/Version.cmake)
 
 if(FLATBUFFERS_INSTALL)
