@@ -452,7 +452,7 @@ class Builder(object):
         if not isinstance(x, np.ndarray):
             raise TypeError("non-numpy-ndarray passed to CreateNumpyVector")
 
-        if x.data.ndim > 1:
+        if x.ndim > 1:
             raise TypeError("multidimensional-ndarray passed to CreateNumpyVector")
 
         self.StartVector(x.itemsize, x.size, x.dtype.alignment)
