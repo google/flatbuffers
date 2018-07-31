@@ -30,6 +30,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -91,19 +92,78 @@ namespace FlatBuffers
 
         public byte[] ToArray(int pos, int len)
         {
-            byte[] arr = new byte[len];
-            Buffer.BlockCopy(_buffer, pos, arr, 0, len);
+            return ToArray<byte>(pos, len);
+        }
+
+        /// <summary>
+        /// A lookup of type sizes. Used instead of Marshal.SizeOf() which has additional
+        /// overhead, but also is compatible with generic functions for simplified code.
+        /// </summary>
+        private static Dictionary<Type, int> genericSizes = new Dictionary<Type, int>()
+        {
+            { typeof(bool),     sizeof(bool) },
+            { typeof(float),    sizeof(float) },
+            { typeof(double),   sizeof(double) },
+            { typeof(sbyte),    sizeof(sbyte) },
+            { typeof(byte),     sizeof(byte) },
+            { typeof(short),    sizeof(short) },
+            { typeof(ushort),   sizeof(ushort) },
+            { typeof(int),      sizeof(int) },
+            { typeof(uint),     sizeof(uint) },
+            { typeof(ulong),    sizeof(ulong) },
+            { typeof(long),     sizeof(long) },
+        };
+
+        /// <summary>
+        /// Get the wire-size (in bytes) of a type supported by flatbuffers.
+        /// </summary>
+        /// <param name="t">The type to get the wire size of</param>
+        /// <returns></returns>
+        public static int SizeOf<T>()
+        {
+            return genericSizes[typeof(T)];
+        }
+
+        /// <summary>
+        /// Checks if the Type provided is supported as scalar value
+        /// </summary>
+        /// <typeparam name="T">The Type to check</typeparam>
+        /// <returns>True if the type is a scalar type that is supported, falsed otherwise</returns>
+        public static bool IsSupportedType<T>()
+        {
+            return genericSizes.ContainsKey(typeof(T));
+        }
+
+        /// <summary>
+        /// Get the wire-size (in bytes) of an typed array
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
+        /// <param name="x">The array to get the size of</param>
+        /// <returns>The number of bytes the array takes on wire</returns>
+        public static int ArraySize<T>(T[] x)
+        {
+            return SizeOf<T>() * x.Length;
+        }
+
+        // Get a portion of the buffer casted into an array of type T, given
+        // the buffer position and length.
+        public T[] ToArray<T>(int pos, int len)
+            where T: struct
+        {
+            AssertOffsetAndLength(pos, len);
+            T[] arr = new T[len];
+            Buffer.BlockCopy(_buffer, pos, arr, 0, ArraySize(arr));
             return arr;
         }
 
         public byte[] ToSizedArray()
         {
-            return ToArray(Position, Length - Position);
+            return ToArray<byte>(Position, Length - Position);
         }
 
         public byte[] ToFullArray()
         {
-            return ToArray(0, Length);
+            return ToArray<byte>(0, Length);
         }
 
         public ArraySegment<byte> ToArraySegment(int pos, int len)
@@ -367,6 +427,56 @@ namespace FlatBuffers
             Buffer.BlockCopy(doublehelper, 0, ulonghelper, 0, sizeof(double));
             WriteLittleEndian(offset, sizeof(double), ulonghelper[0]);
         }
+
+        /// <summary>
+        /// Copies an array of type T into this buffer, ending at the given
+        /// offset into this buffer. The starting offset is calculated based on the length
+        /// of the array and is the value returned.
+        /// </summary>
+        /// <typeparam name="T">The type of the input data (must be a struct)</typeparam>
+        /// <param name="offset">The offset into this buffer where the copy will end</param>
+        /// <param name="x">The array to copy data from</param>
+        /// <returns>The 'start' location of this buffer now, after the copy completed</returns>
+        public int Put<T>(int offset, T[] x)
+            where T : struct
+        {
+            if(x == null)
+            {
+                throw new ArgumentNullException("Cannot put a null array");
+            }
+
+            if(x.Length == 0)
+            {
+                throw new ArgumentException("Cannot put an empty array");
+            }
+
+            if(!IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot put an array of type "
+                    + typeof(T) + " into this buffer");
+            }
+
+            if (BitConverter.IsLittleEndian)
+            {
+                int numBytes = ByteBuffer.ArraySize(x);
+                offset -= numBytes;
+                AssertOffsetAndLength(offset, numBytes);
+                // if we are LE, just do a block copy
+                Buffer.BlockCopy(x, 0, _buffer, offset, numBytes);
+            }
+            else
+            {
+                throw new NotImplementedException("Big Endian Support not implemented yet " +
+                    "for putting typed arrays");
+                // if we are BE, we have to swap each element by itself
+                //for(int i = x.Length - 1; i >= 0; i--)
+                //{
+                //  todo: low priority, but need to genericize the Put<T>() functions
+                //}
+            }
+            return offset;
+        }
+
 
 #endif // UNSAFE_BYTEBUFFER
 

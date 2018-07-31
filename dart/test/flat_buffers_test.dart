@@ -160,7 +160,7 @@ class BuilderTest {
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
     // First 4 bytes are an offset to the table data.
-    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    int tableDataLoc = byteData.getUint32(0, Endian.little);
     // Next 4 bytes are the file identifier.
     expect(byteData.getUint8(4), 65); // 'a'
     expect(byteData.getUint8(5), 122); // 'z'
@@ -168,13 +168,13 @@ class BuilderTest {
     expect(byteData.getUint8(7), 255); // 'ÿ'
     // First 4 bytes of the table data are a backwards offset to the vtable.
     int vTableLoc = tableDataLoc -
-        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+        byteData.getInt32(tableDataLoc, Endian.little);
     // First 2 bytes of the vtable are the size of the vtable in bytes, which
     // should be 4.
-    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 4);
+    expect(byteData.getUint16(vTableLoc, Endian.little), 4);
     // Next 2 bytes are the size of the object in bytes (including the vtable
     // pointer), which should be 4.
-    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 4);
+    expect(byteData.getUint16(vTableLoc + 2, Endian.little), 4);
   }
 
   void test_low() {
@@ -229,22 +229,22 @@ class BuilderTest {
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
     // First 4 bytes are an offset to the table data.
-    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    int tableDataLoc = byteData.getUint32(0, Endian.little);
     // First 4 bytes of the table data are a backwards offset to the vtable.
     int vTableLoc = tableDataLoc -
-        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+        byteData.getInt32(tableDataLoc, Endian.little);
     // First 2 bytes of the vtable are the size of the vtable in bytes, which
     // should be 10.
-    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 10);
+    expect(byteData.getUint16(vTableLoc, Endian.little), 10);
     // Next 2 bytes are the size of the object in bytes (including the vtable
     // pointer), which should be 16.
-    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 16);
+    expect(byteData.getUint16(vTableLoc + 2, Endian.little), 16);
     // Remaining 6 bytes are the offsets within the object where the ints are
     // located.
     for (int i = 0; i < 3; i++) {
       int offset =
-          byteData.getUint16(vTableLoc + 4 + 2 * i, Endianness.LITTLE_ENDIAN);
-      expect(byteData.getInt32(tableDataLoc + offset, Endianness.LITTLE_ENDIAN),
+          byteData.getUint16(vTableLoc + 4 + 2 * i, Endian.little);
+      expect(byteData.getInt32(tableDataLoc + offset, Endian.little),
           10 + 10 * i);
     }
   }

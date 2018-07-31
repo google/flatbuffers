@@ -82,7 +82,6 @@ func (b *Builder) StartObject(numfields int) {
 	}
 
 	b.objectEnd = b.Offset()
-	b.minalign = 1
 }
 
 // WriteVtable serializes the vtable for the current object, if applicable.

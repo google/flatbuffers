@@ -160,7 +160,6 @@ class Builder(object):
         # use 32-bit offsets so that arithmetic doesn't overflow.
         self.current_vtable = [0 for _ in range_func(numfields)]
         self.objectEnd = self.Offset()
-        self.minalign = 1
         self.nested = True
 
     def WriteVtable(self):
