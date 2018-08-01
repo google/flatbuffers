@@ -15,6 +15,7 @@
 from . import encode
 from . import number_types as N
 
+FILEIDENTIFIER_LENGTH = 4
 
 class Table(object):
     """Table wraps a byte slice and provides read access to its data.
@@ -28,6 +29,17 @@ class Table(object):
 
         self.Bytes = buf
         self.Pos = pos
+
+    @staticmethod
+    def HasFileIdentifier(buf, fid):
+        if len(fid) != FILEIDENTIFIER_LENGTH:
+            raise Exception('fid must be 4 chars')
+
+        for i in range(0,FILEIDENTIFIER_LENGTH):
+            byte = buf[ N.Uint8Flags.bytewidth*FILEIDENTIFIER_LENGTH+i]
+            if (byte!=fid[i]):
+                return False
+        return True
 
     def Offset(self, vtableOffset):
         """Offset provides access into the Table's vtable.

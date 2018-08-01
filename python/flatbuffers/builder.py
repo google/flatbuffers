@@ -22,7 +22,7 @@ from . import compat
 from .compat import range_func
 from .compat import memoryview_type
 
-
+FILEIDENTIFIER_LENGTH = 4
 ## @file
 ## @addtogroup flatbuffers_python_api
 ## @{
@@ -160,6 +160,7 @@ class Builder(object):
         # use 32-bit offsets so that arithmetic doesn't overflow.
         self.current_vtable = [0 for _ in range_func(numfields)]
         self.objectEnd = self.Offset()
+        self.minalign = 1
         self.nested = True
 
     def WriteVtable(self):
@@ -497,6 +498,19 @@ class Builder(object):
         self.finished = True
         return self.Head()
 
+    def FinishWithFileIdentifier(self, rootTable, fid):
+        if (fid is None or len(fid) != FILEIDENTIFIER_LENGTH):
+            raise Exception('fid must be 4 chars')
+
+        flags = N.Uint8Flags
+        prepSize = N.Uint8Flags.bytewidth*len(fid)
+        self.Prep(self.minalign, prepSize+len(fid))
+        for i in range(len(fid)-1, -1, -1):
+            self.head = self.head - flags.bytewidth
+            encode.Write(flags.packer_type, self.Bytes, self.Head(), fid[i])
+        return self.Finish(rootTable)
+
+
     def Finish(self, rootTable):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         return self.__Finish(rootTable, False)
@@ -540,11 +554,9 @@ class Builder(object):
 
     def PrependInt64Slot(self, *args): self.PrependSlot(N.Int64Flags, *args)
 
-    def PrependFloat32Slot(self, *args): self.PrependSlot(N.Float32Flags,
-                                                          *args)
+    def PrependFloat32Slot(self, *args): self.PrependSlot(N.Float32Flags, *args)
 
-    def PrependFloat64Slot(self, *args): self.PrependSlot(N.Float64Flags,
-                                                          *args)
+    def PrependFloat64Slot(self, *args): self.PrependSlot(N.Float64Flags, *args)
 
     def PrependUOffsetTRelativeSlot(self, o, x, d):
         """
