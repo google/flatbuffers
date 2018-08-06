@@ -65,8 +65,6 @@ class LogHelper {
 // Abort the program after logging the mesage.
 #define GRPC_CODEGEN_FAIL GRPC_CODEGEN_CHECK(false)
 
-using namespace std;
-
 namespace grpc_java_generator {
 struct Parameters {
   //        //Defines the custom parameter types for methods
