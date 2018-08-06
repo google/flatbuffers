@@ -45,9 +45,11 @@ class FlatbuffersConan(ConanFile):
         """
         self.copy(pattern="LICENSE.txt", dst="licenses")
         self.copy(pattern="flathash*", dst="bin", src="bin")
+        self.copy(pattern="flatc*", dst="bin", src="bin")
 
     def package_info(self):
         """Collect built libraries names and solve flatc path.
         """
         self.cpp_info.libs = tools.collect_libs(self)
         self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
+        self.user_info.flatc = os.path.join(self.package_folder, "bin", "flatc")
