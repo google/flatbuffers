@@ -638,7 +638,7 @@ class DartGenerator : public BaseGenerator {
         code += GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field);
       }
-      code += " " + field.name;
+      code += " " + MakeCamel(field.name, false);
       if (it != struct_def.fields.vec.end() - 1) { code += ", "; }
     }
     code += ") {\n";
@@ -654,10 +654,10 @@ class DartGenerator : public BaseGenerator {
       }
 
       if (IsStruct(field.value.type)) {
-        code += "    " + field.name + "();\n";
+        code += "    " + MakeCamel(field.name, false) + "();\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
-        code += field.name;
+        code += MakeCamel(field.name, false);
         if (field.value.type.enum_def) { code += "?.value"; }
         code += ");\n";
       }
@@ -840,11 +840,11 @@ class DartGenerator : public BaseGenerator {
       if (IsStruct(field.value.type)) {
         code += "    ";
         if (prependUnderscore) { code += "_"; }
-        code += field.name + ".finish(fbBuilder);\n";
+        code += MakeCamel(field.name, false) + ".finish(fbBuilder);\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         if (prependUnderscore) { code += "_"; }
-        code += field.name;
+        code += MakeCamel(field.name, false);
         if (field.value.type.enum_def) { code += "?.value"; }
         code += ");\n";
       }
