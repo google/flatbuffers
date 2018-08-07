@@ -12,6 +12,8 @@ exports_files([
     "LICENSE",
 ])
 
+load(":build_defs.bzl", "flatbuffer_cc_library")
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
@@ -159,4 +161,23 @@ cc_test(
         ":tests/unicode_test.json",
     ],
     includes = ["include/"],
+)
+
+# Test bzl rules
+
+flatbuffer_cc_library(
+    name = "monster_test_cc_fbs",
+    srcs = ["tests/monster_test.fbs"],
+    include_paths = ["tests/include_test"],
+    includes = [
+        "tests/include_test/include_test1.fbs",
+        "tests/include_test/sub/include_test2.fbs",
+    ],
+)
+
+cc_test(
+    name = "monster_bzl_rules_test",
+    testonly = 1,
+    srcs = ["tests/test_bzl_rules.cpp"],
+    deps = [":monster_test_cc_fbs"],
 )
