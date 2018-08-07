@@ -10,6 +10,8 @@ exports_files([
     "LICENSE",
 ])
 
+load(":build_defs.bzl", "flatbuffer_cc_library")
+
 FLATBUFFERS_COPTS = [
     "-Wno-implicit-fallthrough",
     "-linclude",
@@ -109,6 +111,18 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "runtime_cc",
+    hdrs = [
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
+    ],
+    includes = ["include"],
+    linkstatic = 1,
+)
+
 # Test binary.
 cc_test(
     name = "flatbuffers_test",
@@ -146,4 +160,23 @@ cc_test(
         ":tests/union_vector/union_vector.fbs",
     ],
     includes = ["include/"],
+)
+
+# Test bzl rules
+
+flatbuffer_cc_library(
+    name = "monster_test_cc_fbs",
+    srcs = ["tests/monster_test.fbs"],
+    include_paths = ["tests/include_test"],
+    includes = [
+        "tests/include_test/include_test1.fbs",
+        "tests/include_test/sub/include_test2.fbs",
+    ],
+)
+
+cc_test(
+    name = "monster_bzl_rules_test",
+    testonly = 1,
+    srcs = ["tests/test_bzl_rules.cpp"],
+    deps = [":monster_test_cc_fbs"],
 )
