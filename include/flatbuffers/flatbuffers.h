@@ -1038,14 +1038,7 @@ class FlatBufferBuilder {
 
   // This checks a required field has been set in a given table that has
   // just been constructed.
-  template<typename T> void Required(Offset<T> table, voffset_t field) {
-    auto table_ptr = buf_.data_at(table.o);
-    auto vtable_ptr = table_ptr - ReadScalar<soffset_t>(table_ptr);
-    bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
-    // If this fails, the caller will show what field needs to be set.
-    FLATBUFFERS_ASSERT(ok);
-    (void)ok;
-  }
+  template<typename T> void Required(Offset<T> table, voffset_t field);
 
   uoffset_t StartStruct(size_t alignment) {
     Align(alignment);
@@ -1206,7 +1199,7 @@ class FlatBufferBuilder {
   void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
     PreAlign(len * elemsize, alignment);
   }
-  
+
   // Similar to ForceVectorAlignment but for String fields.
   void ForceStringAlignment(size_t len, size_t alignment) {
     PreAlign((len + 1) * sizeof(char), alignment);
@@ -2116,6 +2109,15 @@ class Table {
 
   uint8_t data_[1];
 };
+
+template<typename T> void FlatBufferBuilder::Required(Offset<T> table,
+                                                      voffset_t field) {
+  auto table_ptr = reinterpret_cast<const Table *>(buf_.data_at(table.o));
+  bool ok = table_ptr->GetOptionalFieldOffset(field) != 0;
+  // If this fails, the caller will show what field needs to be set.
+  FLATBUFFERS_ASSERT(ok);
+  (void)ok;
+}
 
 /// @brief This can compute the start of a FlatBuffer from a root pointer, i.e.
 /// it is the opposite transformation of GetRoot().

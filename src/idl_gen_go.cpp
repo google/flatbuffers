@@ -86,6 +86,18 @@ static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
   code += "\n}\n\n";
 }
 
+// Construct the name of the type alias for this enum.
+std::string GetEnumTypeName(const EnumDef &enum_def) {
+  return GoIdentity(enum_def.name);
+}
+
+// Create a type for the enum values.
+static void GenEnumType(const EnumDef &enum_def, std::string *code_ptr) {
+  std::string &code = *code_ptr;
+  code += "type " + GetEnumTypeName(enum_def) + " = ";
+  code += GenTypeBasic(enum_def.underlying_type) + "\n";
+}
+
 // Begin enum code with a class declaration.
 static void BeginEnum(std::string *code_ptr) {
   std::string &code = *code_ptr;
@@ -99,6 +111,8 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
   code += "\t";
   code += enum_def.name;
   code += ev.name;
+  code += " ";
+  code += GetEnumTypeName(enum_def);
   code += " = ";
   code += NumToString(ev.value) + "\n";
 }
@@ -114,7 +128,7 @@ static void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "var EnumNames";
   code += enum_def.name;
-  code += " = map[int]string{\n";
+  code += " = map[" + GetEnumTypeName(enum_def) + "]string{\n";
 }
 
 // A single enum name member.
@@ -636,6 +650,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
+  GenEnumType(enum_def, code_ptr);
   BeginEnum(code_ptr);
   for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
        ++it) {
