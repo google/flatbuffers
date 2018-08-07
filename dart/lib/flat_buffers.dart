@@ -662,7 +662,7 @@ class Builder {
     // TODO(scheglov) optimize for ASCII strings
     List<int> bytes = utf8.encode(value);
     int length = bytes.length;
-    _prepare(4, 1, additionalBytes: length);
+    _prepare(4, 1, additionalBytes: length + 1);
     final int result = _tail;
     _setUint32AtTail(_buf, _tail, length);
     int offset = _buf.lengthInBytes - _tail + 4;
