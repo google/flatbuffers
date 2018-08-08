@@ -899,6 +899,42 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.mon = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Bytes,
                                                                    b.Head())
 
+    def test_finish_with_file_id(self):
+        b = flatbuffers.Builder(0)
+        MyGame.Example.Monster.MonsterStart(b)
+        gen_mon = MyGame.Example.Monster.MonsterEnd(b)
+        b.FinishWithFileIdentifier(gen_mon, 'MSTR'.encode())
+        buf = b.Output()
+        fid = 'MSTR'.encode()
+        self.assertTrue(buf[ N.Uint8Flags.bytewidth*4+0]==fid[0])
+        self.assertTrue(buf[ N.Uint8Flags.bytewidth*4+1]==fid[1])
+        self.assertTrue(buf[ N.Uint8Flags.bytewidth*4+2]==fid[2])
+        self.assertTrue(buf[ N.Uint8Flags.bytewidth*4+3]==fid[3])
+
+        b = flatbuffers.Builder(0)
+        MyGame.Example.Monster.MonsterStart(b)
+        gen_mon = MyGame.Example.Monster.MonsterEnd(b)
+        with self.assertRaises(Exception) as msg:
+            b.FinishWithFileIdentifier(gen_mon, 'MONSTER'.encode())
+        self.assertTrue('fid must be 4 chars' in str(msg.exception))
+
+
+    def test_has_file_id(self):
+        b = flatbuffers.Builder(0)
+        MyGame.Example.Monster.MonsterStart(b)
+        gen_mon = MyGame.Example.Monster.MonsterEnd(b)
+        b.FinishWithFileIdentifier(gen_mon, 'MSTR'.encode())
+        buf = b.Output()
+        fid = 'MSTR'.encode()
+        self.assertTrue(flatbuffers.Table.HasFileIdentifier(buf, fid))
+        with self.assertRaises(Exception) as msg:
+                flatbuffers.Table.HasFileIdentifier(buf, 'AnY'.encode())
+        self.assertTrue('fid must be 4 chars' in str(msg.exception))
+        with self.assertRaises(Exception) as msg:
+                flatbuffers.Table.HasFileIdentifier(buf, 'AnYANY'.encode())
+        self.assertTrue('fid must be 4 chars' in str(msg.exception))
+
+
     def test_default_monster_pos(self):
         self.assertTrue(self.mon.Pos() is None)
 
