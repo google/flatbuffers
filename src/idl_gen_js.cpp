@@ -56,7 +56,7 @@ const JsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
   if (lang == IDLOptions::kJs) {
     return js_language_parameters[0];
   } else {
-    assert(lang == IDLOptions::kTs);
+    FLATBUFFERS_ASSERT(lang == IDLOptions::kTs);
     return js_language_parameters[1];
   }
 }
@@ -105,7 +105,10 @@ class JsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
         !parser_.opts.skip_js_exports) {
-      code += "// Exports for Node.js and RequireJS\n";
+      if( parser_.opts.use_ES6_js_export_format )
+          code += "// Exports for ECMAScript6 Modules\n";
+      else
+          code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
@@ -225,6 +228,8 @@ class JsGenerator : public BaseGenerator {
           code += "var ";
           if (parser_.opts.use_goog_js_export_format) {
             exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
+          } else if( parser_.opts.use_ES6_js_export_format){
+            exports += "export {" + *it + "};\n";
           } else {
             exports += "this." + *it + " = " + *it + ";\n";
           }
@@ -329,6 +334,8 @@ class JsGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kTs) {
       if (!ns.empty()) { code += "export namespace " + ns + "{\n"; }
       code += "export enum " + enum_def.name + "{\n";
+    } else if (parser_.opts.use_ES6_js_export_format) {
+      exports += "export {" + enum_def.name + "};\n";
     } else {
       if (enum_def.defined_namespace->components.empty()) {
         code += "var ";
@@ -515,7 +522,7 @@ class JsGenerator : public BaseGenerator {
                                   const std::string &file) {
     const auto basename =
         flatbuffers::StripPath(flatbuffers::StripExtension(file));
-    if (basename == file_name_) { return typeName; }
+    if (basename == file_name_ || parser_.opts.generate_all) { return typeName; }
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
@@ -611,6 +618,8 @@ class JsGenerator : public BaseGenerator {
         if (parser_.opts.use_goog_js_export_format) {
           exports += "goog.exportSymbol('" + struct_def.name + "', " +
                      struct_def.name + ");\n";
+        } else if (parser_.opts.use_ES6_js_export_format) {
+          exports += "export {" + struct_def.name + "};\n";
         } else {
           exports +=
               "this." + struct_def.name + " = " + struct_def.name + ";\n";
@@ -791,7 +800,7 @@ class JsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ") : null;\n";
             }
 
-            if (lang_.language == IDLOptions::kTs) {
+            if (lang_.language == IDLOptions::kTs && !parser_.opts.generate_all) {
               imported_files.insert(field.value.type.struct_def->file);
             }
 
@@ -839,7 +848,10 @@ class JsGenerator : public BaseGenerator {
                 vectortypename = GenPrefixedTypeName(
                     vectortypename, vectortype.struct_def->file);
                 code += prefix + ", obj?:" + vectortypename;
-                imported_files.insert(vectortype.struct_def->file);
+
+                if (!parser_.opts.generate_all) {
+                    imported_files.insert(vectortype.struct_def->file);
+                }
               } else if (vectortype.base_type == BASE_TYPE_STRING) {
                 code += prefix + "):string\n";
                 code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
@@ -919,7 +931,7 @@ class JsGenerator : public BaseGenerator {
                     " : null;\n";
             break;
 
-          default: assert(0);
+          default: FLATBUFFERS_ASSERT(0);
         }
       }
       code += "};\n\n";
@@ -1246,7 +1258,7 @@ bool GenerateJS(const Parser &parser, const std::string &path,
 
 std::string JSMakeRule(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
-  assert(parser.opts.lang <= IDLOptions::kMAX);
+  FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetJsLangParams(parser.opts.lang);
 
   std::string filebase =
