@@ -899,7 +899,7 @@ class JsGenerator : public BaseGenerator {
                 code += "/** " +
                         GenTypeAnnotation(
                             kType, WrapInNameSpace(*field.value.type.enum_def),
-                            "") +
+                            "", false) +
                         " */ (" + field.value.constant + ")";
               } else {
                 code += "0";
@@ -1071,7 +1071,7 @@ class JsGenerator : public BaseGenerator {
     } else {
       // Generate a method to start building a new object
       GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
-                                                "builder"));
+                                                "builder", false));
 
       if (lang_.language == IDLOptions::kTs) {
         code += "static start" + struct_def.name;
@@ -1173,7 +1173,7 @@ class JsGenerator : public BaseGenerator {
           GenDocComment(
               code_ptr,
               GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                  GenTypeAnnotation(kParam, "number", "numElems"));
+                  GenTypeAnnotation(kParam, "number", "numElems", false));
 
           if (lang_.language == IDLOptions::kTs) {
             code += "static start" + MakeCamel(field.name);
