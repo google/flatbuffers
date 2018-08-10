@@ -991,7 +991,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
         const auto &ev = **it;
-        code_ += "    case {{ENUM_NAME}}_" + Name(ev) + ": return \"" +
+        code_ += "    case " + GetEnumValUse(enum_def, ev) + ": return \"" +
                  Name(ev) + "\";";
       }
 
