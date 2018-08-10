@@ -105,10 +105,10 @@ class JsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
         !parser_.opts.skip_js_exports) {
-      if( parser_.opts.use_ES6_js_export_format )
-          code += "// Exports for ECMAScript6 Modules\n";
-      else
-          code += "// Exports for Node.js and RequireJS\n";
+        if( parser_.opts.use_ES6_js_export_format )
+            code += "// Exports for ECMAScript6 Modules\n";
+        else
+            code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
@@ -334,14 +334,14 @@ class JsGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kTs) {
       if (!ns.empty()) { code += "export namespace " + ns + "{\n"; }
       code += "export enum " + enum_def.name + "{\n";
-    } else if (parser_.opts.use_ES6_js_export_format) {
-      exports += "export {" + enum_def.name + "};\n";
     } else {
       if (enum_def.defined_namespace->components.empty()) {
         code += "var ";
         if (parser_.opts.use_goog_js_export_format) {
           exports += "goog.exportSymbol('" + enum_def.name + "', " +
                      enum_def.name + ");\n";
+        } else if (parser_.opts.use_ES6_js_export_format) {
+          exports += "export {" + enum_def.name + "};\n";
         } else {
           exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
         }
