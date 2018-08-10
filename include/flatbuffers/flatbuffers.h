@@ -2298,9 +2298,9 @@ typedef const TypeTable *(*TypeFunction)();
 
 struct TypeTable {
   SequenceType st;
-  size_t num_elems;  // of each of the arrays below.
-  const TypeCode *type_codes;
-  const TypeFunction *type_refs;
+  size_t num_elems;  // of type_codes, values, names (but not type_refs).
+  const TypeCode *type_codes;  // num_elems count
+  const TypeFunction *type_refs;  // less than num_elems entries (see TypeCode).
   const int32_t *values;  // Only set for non-consecutive enum/union or structs.
   const char * const *names;     // Only set if compiled with --reflect-names.
 };
