@@ -17,19 +17,13 @@ export enum Character{
  * @constructor
  */
 export class Attacker {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {Attacker}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns Attacker
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
   this.bb_pos = i;
@@ -38,16 +32,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {Attacker=} obj
- * @returns {Attacker}
+ * @param flatbuffers.ByteBuffer bb
+ * @param Attacker= obj
+ * @returns Attacker
  */
 static getRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
   return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 swordAttackDamage():number {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -55,8 +49,8 @@ swordAttackDamage():number {
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_sword_attack_damage(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -70,23 +64,23 @@ mutate_sword_attack_damage(value:number):boolean {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
+ * @param flatbuffers.Builder builder
  */
 static startAttacker(builder:flatbuffers.Builder) {
   builder.startObject(1);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} swordAttackDamage
+ * @param flatbuffers.Builder builder
+ * @param number swordAttackDamage
  */
 static addSwordAttackDamage(builder:flatbuffers.Builder, swordAttackDamage:number) {
   builder.addFieldInt32(0, swordAttackDamage, 0);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
  */
 static endAttacker(builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
@@ -98,19 +92,13 @@ static endAttacker(builder:flatbuffers.Builder):flatbuffers.Offset {
  * @constructor
  */
 export class Rapunzel {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {Rapunzel}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns Rapunzel
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
   this.bb_pos = i;
@@ -119,15 +107,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 hairLength():number {
   return this.bb!.readInt32(this.bb_pos);
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_hair_length(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 0);
@@ -141,9 +129,9 @@ mutate_hair_length(value:number):boolean {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} hair_length
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @param number hair_length
+ * @returns flatbuffers.Offset
  */
 static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuffers.Offset {
   builder.prep(4, 4);
@@ -156,19 +144,13 @@ static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuff
  * @constructor
  */
 export class BookReader {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {BookReader}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns BookReader
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
   this.bb_pos = i;
@@ -177,15 +159,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 booksRead():number {
   return this.bb!.readInt32(this.bb_pos);
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_books_read(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 0);
@@ -199,9 +181,9 @@ mutate_books_read(value:number):boolean {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} books_read
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @param number books_read
+ * @returns flatbuffers.Offset
  */
 static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuffers.Offset {
   builder.prep(4, 4);
@@ -214,19 +196,13 @@ static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuf
  * @constructor
  */
 export class Movie {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {Movie}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns Movie
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
   this.bb_pos = i;
@@ -235,33 +211,33 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {Movie=} obj
- * @returns {Movie}
+ * @param flatbuffers.ByteBuffer bb
+ * @param Movie= obj
+ * @returns Movie
  */
 static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
   return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {boolean}
+ * @param flatbuffers.ByteBuffer bb
+ * @returns boolean
  */
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('MOVI');
 };
 
 /**
- * @returns {Character}
+ * @returns Character
  */
 mainCharacterType():Character {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /** @type {Character} */ (this.bb!.readUint8(this.bb_pos + offset)) : Character.NONE;
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : Character.NONE;
 };
 
 /**
- * @param {Character} value
- * @returns {boolean}
+ * @param Character value
+ * @returns boolean
  */
 mutate_main_character_type(value:Character):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -275,8 +251,8 @@ mutate_main_character_type(value:Character):boolean {
 };
 
 /**
- * @param {flatbuffers.Table} obj
- * @returns {?flatbuffers.Table}
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
  */
 mainCharacter<T extends flatbuffers.Table>(obj:T):T|null {
   var offset = this.bb!.__offset(this.bb_pos, 6);
@@ -284,16 +260,16 @@ mainCharacter<T extends flatbuffers.Table>(obj:T):T|null {
 };
 
 /**
- * @param {number} index
- * @returns {Character}
+ * @param number index
+ * @returns Character
  */
 charactersType(index: number):Character|null {
   var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? /** @type {Character} */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /** @type {Character} */ (0);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 charactersTypeLength():number {
   var offset = this.bb!.__offset(this.bb_pos, 8);
@@ -301,7 +277,7 @@ charactersTypeLength():number {
 };
 
 /**
- * @returns {Uint8Array}
+ * @returns Uint8Array
  */
 charactersTypeArray():Uint8Array|null {
   var offset = this.bb!.__offset(this.bb_pos, 8);
@@ -309,9 +285,9 @@ charactersTypeArray():Uint8Array|null {
 };
 
 /**
- * @param {number} index
- * @param {flatbuffers.Table=} obj
- * @returns {?flatbuffers.Table}
+ * @param number index
+ * @param flatbuffers.Table= obj
+ * @returns ?flatbuffers.Table
  */
 characters<T extends flatbuffers.Table>(index: number, obj:T):T|null {
   var offset = this.bb!.__offset(this.bb_pos, 10);
@@ -319,7 +295,7 @@ characters<T extends flatbuffers.Table>(index: number, obj:T):T|null {
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 charactersLength():number {
   var offset = this.bb!.__offset(this.bb_pos, 10);
@@ -327,40 +303,40 @@ charactersLength():number {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
+ * @param flatbuffers.Builder builder
  */
 static startMovie(builder:flatbuffers.Builder) {
   builder.startObject(4);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {Character} mainCharacterType
+ * @param flatbuffers.Builder builder
+ * @param Character mainCharacterType
  */
 static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character) {
   builder.addFieldInt8(0, mainCharacterType, Character.NONE);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} mainCharacterOffset
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset mainCharacterOffset
  */
 static addMainCharacter(builder:flatbuffers.Builder, mainCharacterOffset:flatbuffers.Offset) {
   builder.addFieldOffset(1, mainCharacterOffset, 0);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} charactersTypeOffset
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset charactersTypeOffset
  */
 static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatbuffers.Offset) {
   builder.addFieldOffset(2, charactersTypeOffset, 0);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {Array.<Character>} data
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @param Array.<Character> data
+ * @returns flatbuffers.Offset
  */
 static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
@@ -371,25 +347,25 @@ static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[])
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} numElems
+ * @param flatbuffers.Builder builder
+ * @param number numElems
  */
 static startCharactersTypeVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} charactersOffset
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset charactersOffset
  */
 static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.Offset) {
   builder.addFieldOffset(3, charactersOffset, 0);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {Array.<flatbuffers.Offset>} data
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
  */
 static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
@@ -400,16 +376,16 @@ static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offs
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} numElems
+ * @param flatbuffers.Builder builder
+ * @param number numElems
  */
 static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
  */
 static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
@@ -417,8 +393,8 @@ static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} offset
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset offset
  */
 static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MOVI');

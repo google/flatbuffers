@@ -2,13 +2,14 @@
 
 package NamespaceB
 
+type EnumInNestedNS = int8
 const (
-	EnumInNestedNSA = 0
-	EnumInNestedNSB = 1
-	EnumInNestedNSC = 2
+	EnumInNestedNSA EnumInNestedNS = 0
+	EnumInNestedNSB EnumInNestedNS = 1
+	EnumInNestedNSC EnumInNestedNS = 2
 )
 
-var EnumNamesEnumInNestedNS = map[int]string{
+var EnumNamesEnumInNestedNS = map[EnumInNestedNS]string{
 	EnumInNestedNSA:"A",
 	EnumInNestedNSB:"B",
 	EnumInNestedNSC:"C",
