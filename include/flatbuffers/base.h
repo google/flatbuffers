@@ -13,6 +13,12 @@
 #define FLATBUFFERS_ASSERT assert
 #endif
 
+// Limits maximum depth of nested objects. 
+// Prevents stack overflow while parse flatbuffers or json.
+#if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
+#define FLATBUFFERS_MAX_PARSING_DEPTH 64
+#endif
+
 #ifndef ARDUINO
 #include <cstdint>
 #endif
@@ -50,6 +56,11 @@
 #endif
 
 #include "flatbuffers/stl_emulation.h"
+
+// Note the __clang__ check is needed, because clang presents itself as an older GNUC compiler (4.2).
+// Clang 3.3 and later implement all of the ISO C++ 2011 standard.
+// Clang 3.4 and later implement all of the ISO C++ 2014 standard. 
+// http://clang.llvm.org/cxx_status.html
 
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
@@ -110,7 +121,8 @@
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407)) || \
+    defined(__clang__)
   #define FLATBUFFERS_FINAL_CLASS final
   #define FLATBUFFERS_OVERRIDE override
 #else
@@ -119,7 +131,8 @@
 #endif
 
 #if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406)) || \
+    (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
 #else
   #define FLATBUFFERS_CONSTEXPR
@@ -133,7 +146,8 @@
 #endif
 
 #if defined(__GXX_EXPERIMENTAL_CXX0X__) && __GNUC__ * 10 + __GNUC_MINOR__ >= 46 || \
-    defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026
+    defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026 || \
+    defined(__clang__)
   #define FLATBUFFERS_NOEXCEPT noexcept
 #else
   #define FLATBUFFERS_NOEXCEPT
@@ -142,7 +156,8 @@
 // NOTE: the FLATBUFFERS_DELETE_FUNC macro may change the access mode to
 // private, so be sure to put it at the end or reset access mode explicitly.
 #if (!defined(_MSC_VER) || _MSC_FULL_VER >= 180020827) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404)) || \
+    defined(__clang__)
   #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
 #else
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
@@ -174,6 +189,16 @@
     #endif
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
+
+#ifndef FLATBUFFERS_HAS_EXTRA_FLOAT
+  // 1) nan/inf strings as argument of strtod;
+  // 2) hex-float  as argument of  strtod/strtof.
+  #if (defined(_MSC_VER) && _MSC_VER >= 1900) || \
+      (defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 409)) || \
+      (defined(__clang__))
+    #define FLATBUFFERS_HAS_EXTRA_FLOAT 1
+  #endif
+#endif
 
 /// @endcond
 

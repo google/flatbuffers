@@ -477,15 +477,37 @@ struct IDLOptions {
 
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
-  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+  ParserState()
+      : cursor_(nullptr),
+        line_start_(nullptr),
+        line_(0),
+        token_(-1),
+        attr_is_escaped_str_(false) {}
 
  protected:
   const char *cursor_;
+  const char *line_start_;
   int line_;  // the current line being parsed
   int token_;
 
+  bool attr_is_escaped_str_; // mark escaped string
   std::string attribute_;
   std::vector<std::string> doc_comment_;
+
+  void MarkNewLine() {
+    line_start_ = cursor_;
+    line_ += 1;
+  }
+
+  void ResetState(const char *source) {
+    cursor_ = source;
+    line_ = 0;
+    MarkNewLine();
+  }
+
+  int CursorPosition() const {
+    return static_cast<int>(cursor_ - line_start_);
+  }
 };
 
 // A way to make error propagation less error prone by requiring values to be
@@ -620,7 +642,8 @@ class Parser : public ParserState {
   bool ParseFlexBuffer(const char *source, const char *source_filename,
                        flexbuffers::Builder *builder);
 
-  FLATBUFFERS_CHECKED_ERROR CheckInRange(int64_t val, int64_t min, int64_t max);
+  FLATBUFFERS_CHECKED_ERROR InvalidNumber(const char *number,
+                                          const std::string &msg);
 
   StructDef *LookupStruct(const std::string &id) const;
 
@@ -687,7 +710,7 @@ class Parser : public ParserState {
                                           BaseType req, bool *destmatch);
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR TokenError();
-  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e);
+  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e, bool check_now);
   FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
@@ -727,10 +750,11 @@ class Parser : public ParserState {
   bool SupportsVectorOfUnions() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
-  enum { kMaxParsingDepth = 64 };
+  enum { kMaxParsingDepth = FLATBUFFERS_MAX_PARSING_DEPTH };
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f) {
-    if (++recurse_protection_counter >= kMaxParsingDepth) return RecurseError();
+    if ((1+recurse_protection_counter) > kMaxParsingDepth) return RecurseError();
+    recurse_protection_counter++;
     auto ce = f();
     recurse_protection_counter--;
     return ce;

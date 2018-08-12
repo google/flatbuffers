@@ -158,6 +158,7 @@ template<> inline std::string NumToString<float>(float t) {
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
 inline std::string IntToStringHex(int i, int xdigits) {
+  FLATBUFFERS_ASSERT(i >= 0); // what is expected if (i < 0)?
   // clang-format off
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
@@ -170,28 +171,164 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-// Portable implementation of strtoll().
-inline int64_t StringToInt(const char *str, char **endptr = nullptr,
-                           int base = 10) {
-  // clang-format off
-  #ifdef _MSC_VER
-    return _strtoi64(str, endptr, base);
-  #else
-    return strtoll(str, endptr, base);
-  #endif
-  // clang-format on
+// Adaptor for strtoull()/strtoll().
+// Flatbuffers accepts numbers with any count of leading zeros (-009 is -9),
+// while strtoll with base=0 interprets first leading zero as octal prefix.
+// In future, it is possible to add prefixed 0b0101.
+// The strtoll returns overflow state using errno code (thread-local var).
+// 1) By request it checks errno code (out of range).
+// To request errno check: if (endptr && *endptr == str) is true.
+// 2) If base <= 0, function try to detect base of number by prefix.
+//
+// Return value (like strtoull and strtoll, but reject partial result):
+// - If successful, an integer value corresponding to the str is returned.
+// - If full string conversion can't be performed, ​0​ is returned.
+// - If the converted value falls out of range of corresponding return type, a
+// range error occurs. In this case value MAX(T)/MIN(T) is returned.
+// If errno check is requested then the endptr will
+// point to the start of input string (*endptr=str).
+template<typename T>
+inline T StringToInteger64Impl(const char *const str, const char **endptr,
+                               int base) {
+  static_assert(
+      std::is_same<T, int64_t>::value || std::is_same<T, uint64_t>::value,
+      "Type T must be either int64_t or uint64_t");
+  FLATBUFFERS_ASSERT(str && endptr);  // endptr must be not null
+  if (base <= 0) {
+    auto s = str;
+    while (*s && !isdigit(static_cast<unsigned char>(*s))) s++;
+    if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+      return StringToInteger64Impl<T>(str, endptr, 16);
+    // if a prefix not match, try base=10
+    return StringToInteger64Impl<T>(str, endptr, 10);
+  } else {
+    const auto check_errno = (*endptr == str);
+    if (check_errno) errno = 0;  // clear thread-local errno
+    // calculate result
+    T result;
+      // clang-format off
+    #if defined(_MSC_VER)
+      #pragma warning(push)
+      #pragma warning(disable: 4127) // C4127: expression is constant
+    #endif
+    if (std::is_same<T, int64_t>::value) {
+    #if defined(_MSC_VER)
+      #pragma warning(pop)
+    #endif
+      #ifdef _MSC_VER
+      result = _strtoi64(str, const_cast<char**>(endptr), base);
+      #else
+      result = strtoll(str, const_cast<char**>(endptr), base);
+      #endif
+      // clang-format on
+    } else {  // T is uint64_t
+      // clang-format off
+      #ifdef _MSC_VER
+      result = _strtoui64(str, const_cast<char**>(endptr), base);
+      #else
+      result = strtoull(str, const_cast<char**>(endptr), base);
+      #endif
+      // clang-format on
+
+      // The strtoull accepts negative numbers:
+      // If the minus sign was part of the input sequence, the numeric value
+      // calculated from the sequence of digits is negated as if by unary minus
+      // in the result type, which applies unsigned integer wraparound rules.
+      // Fix this behaviour (except -0).
+      if ((**endptr == '\0') && (0 != result)) {
+        auto s = str;
+        while (*s && !isdigit(static_cast<unsigned char>(*s))) s++;
+        s = (s > str) ? (s - 1) : s;  // step back to one symbol
+        if (*s == '-') {
+          // For unsigned types return max to distinguish from
+          // "no conversion can be performed" when 0 is returned.
+          result = flatbuffers::numeric_limits<T>::max();
+          // point to the start of string, like errno
+          *endptr = str;
+        }
+      }
+    }
+    // check for overflow
+    if (check_errno && errno) *endptr = str;
+    // erase partial result, but save an overflow
+    if ((*endptr != str) && (**endptr != '\0')) result = 0;
+    return result;
+  }
 }
 
-// Portable implementation of strtoull().
-inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
+// Convert a string to an instance of T.
+// Return value (matched with StringToInteger64Impl and strtod):
+// - If successful, a numeric value corresponding to the str is returned.
+// - If full string conversion can't be performed, ​0​ is returned.
+// - If the converted value falls out of range of corresponding return type, a
+// range error occurs. In this case value MAX(T)/MIN(T) is returned.
+template<typename T> inline bool StringToNumber(const char *s, T *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  const char *end = nullptr;
+  const int64_t i = StringToInteger64Impl<int64_t>(s, &end, -1);
+  *val = static_cast<T>(i);
+  const auto done = (s != end) && (*end == '\0');
+  if (done) {
+    const int64_t max = flatbuffers::numeric_limits<T>::max();
+    const int64_t min = flatbuffers::numeric_limits<T>::lowest();
+    if (i > max) {
+      *val = static_cast<T>(max);
+      return false;
+    }
+    if (i < min) {
+      // For unsigned types return max to distinguish from
+      // "no conversion can be performed" when 0 is returned.
+      *val = static_cast<T>(std::is_signed<T>::value ? min : max);
+      return false;
+    }
+  }
+  return done;
+}
+template<> inline bool StringToNumber<int64_t>(const char *s, int64_t *val) {
+  const char *end = s;  // request errno checking
+  *val = StringToInteger64Impl<int64_t>(s, &end, -1);
+  return (s != end) && (*end == '\0');
+}
+template<> inline bool StringToNumber<uint64_t>(const char *s, uint64_t *val) {
+  const char *end = s;  // request errno checking
+  *val = StringToInteger64Impl<uint64_t>(s, &end, -1);
+  return (s != end) && (*end == '\0');
+}
+
+// Due to dependencies from C-locale all locale-dependent functions are moved
+// the idl_parser.cpp. This minimize errors related to scope of
+// FLATBUFFERS_FORCE_LOCALE_INDEPENDENT definition.
+float strtof_impl(const char *str, char **str_end);
+double strtod_impl(const char *str, char **str_end);
+
+template<> inline bool StringToNumber<double>(const char *s, double *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  char *end = nullptr;
+  *val = strtod_impl(s, &end);
+  auto done = (s != end) && (*end == '\0');
+  if (!done) *val = 0;  // erase partial result
+  return done;
+}
+
+template<> inline bool StringToNumber<float>(const char *s, float *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  char *end = nullptr;
+  *val = strtof_impl(s, &end);
+  auto done = (s != end) && (*end == '\0');
+  if (!done) *val = 0;  // erase partial result
+  return done;
+}
+
+inline int64_t StringToInt(const char *str, const char **endptr = nullptr,
+                           int base = 10) {
+  const char *ep = nullptr;
+  return StringToInteger64Impl<int64_t>(str, endptr ? endptr : &ep, base);
+}
+
+inline uint64_t StringToUInt(const char *str, const char **endptr = nullptr,
                              int base = 10) {
-  // clang-format off
-  #ifdef _MSC_VER
-    return _strtoui64(str, endptr, base);
-  #else
-    return strtoull(str, endptr, base);
-  #endif
-  // clang-format on
+  const char *ep = nullptr;
+  return StringToInteger64Impl<uint64_t>(str, endptr ? endptr : &ep, base);
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,

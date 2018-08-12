@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cmath>
+#if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
+#include <clocale>
+#endif
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -1181,7 +1185,6 @@ void TestError(const char *src, const char *error_substr,
 void ErrorTest() {
   // In order they appear in idl_parser.cpp
   TestError("table X { Y:byte; } root_type X; { Y: 999 }", "does not fit");
-  TestError(".0", "floating point");
   TestError("\"\0", "illegal");
   TestError("\"\\q", "escape code");
   TestError("table ///", "documentation");
@@ -1219,25 +1222,42 @@ void ErrorTest() {
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("{}", "no root");
-  TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "one json");
+  TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "end of file");
+  TestError("table X { Y:byte; } root_type X; { Y:1 } table Y{ Z:int }",
+            "end of file");
   TestError("root_type X;", "unknown root");
   TestError("struct X { Y:int; } root_type X;", "a table");
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
   TestError("table X { Y:[int]; YLength:int; }", "clash");
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
+  // float to integer conversion is forbidden
+  TestError("table X { Y:int; } root_type X; { Y:1.0 }", "float");
+  TestError("table X { Y:bool; } root_type X; { Y:1.0 }", "float");
 }
 
 template<typename T> T TestValue(const char *json, const char *type_name) {
   flatbuffers::Parser parser;
-
+  parser.builder_.ForceDefaults(true);  // return defaults
+  auto check_default = json ? false : true;
+  if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
-  TEST_EQ(parser.Parse(std::string("table X { Y:" + std::string(type_name) +
-                                   "; } root_type X;")
-                           .c_str()),
-          true);
+  std::string schema =
+      "table X { Y:" + std::string(type_name) + "; } root_type X;";
+  TEST_EQ(parser.Parse(schema.c_str()), true);
 
-  TEST_EQ(parser.Parse(json), true);
+  auto done = parser.Parse(check_default ? "{}" : json);
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(done, true);
+
+  // Check with print.
+  std::string print_back;
+  parser.opts.indent_step = -1;
+  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
+          true);
+  // restore value from its default
+  if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
+
   auto root = flatbuffers::GetRoot<flatbuffers::Table>(
       parser.builder_.GetBufferPointer());
   return root->GetField<T>(flatbuffers::FieldIndexToOffset(0), 0);
@@ -1251,17 +1271,44 @@ void ValueTest() {
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"),
                        (float)3.14159),
           true);
+  // number in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\"0.0314159e+2\" }", "float"),
+    (float)3.14159),
+    true);
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }", "float"), -1),
           true);
 
+  // int embedded to string
+  TEST_EQ(TestValue<int>("{ Y:\"-876\" }", "int=-123"), -876);
+  TEST_EQ(TestValue<int>("{ Y:\"876\" }", "int=-123"), 876);
+
   // Test negative hex constant.
-  TEST_EQ(TestValue<int>("{ Y:-0x80 }", "int"), -128);
+  TEST_EQ(TestValue<int>("{ Y:-0x8ea0 }", "int=-0x8ea0"), -36512);
+  TEST_EQ(TestValue<int>(nullptr, "int=-0x8ea0"), -36512);
+
+  // positive hex constant
+  TEST_EQ(TestValue<int>("{ Y:0x1abcdef }", "int=0x1"), 0x1abcdef);
+  // with optional '+' sign
+  TEST_EQ(TestValue<int>("{ Y:+0x1abcdef }", "int=+0x1"), 0x1abcdef);
+  // hex in string
+  TEST_EQ(TestValue<int>("{ Y:\"0x1abcdef\" }", "int=+0x1"), 0x1abcdef);
 
   // Make sure we do unsigned 64bit correctly.
   TEST_EQ(TestValue<uint64_t>("{ Y:12335089644688340133 }", "ulong"),
           12335089644688340133ULL);
+
+  // bool in string
+  TEST_EQ(TestValue<bool>("{ Y:\"false\" }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ Y:\"true\" }", "bool=\"true\""), true);
+  TEST_EQ(TestValue<bool>("{ Y:'false' }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ Y:'true' }", "bool=\"true\""), true);
+
+  // check comments before and after json object
+  TEST_EQ(TestValue<int>("/*before*/ { Y:1 } /*after*/", "int"), 1);
+  TEST_EQ(TestValue<int>("//before \n { Y:1 } //after", "int"), 1);
+
 }
 
 void NestedListTest() {
@@ -1310,6 +1357,47 @@ void IntegerOutOfRangeTest() {
             "constant does not fit");
   TestError("table T { F:uint; } root_type T; { F:-1 }",
             "constant does not fit");
+  // Check fixed width aliases
+  TestError("table X { Y:uint8; } root_type X; { Y: -1 }", "does not fit");
+  TestError("table X { Y:uint8; } root_type X; { Y: 256 }", "does not fit");
+  TestError("table X { Y:uint16; } root_type X; { Y: -1 }", "does not fit");
+  TestError("table X { Y:uint16; } root_type X; { Y: 65536 }", "does not fit");
+  TestError("table X { Y:uint32; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint32; } root_type X; { Y: 4294967296 }",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint64; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: 18446744073709551616 }",
+            "does not fit");
+
+  TestError("table X { Y:int8; } root_type X; { Y: -129 }", "does not fit");
+  TestError("table X { Y:int8; } root_type X; { Y: 128 }", "does not fit");
+  TestError("table X { Y:int16; } root_type X; { Y: -32769 }", "does not fit");
+  TestError("table X { Y:int16; } root_type X; { Y: 32768 }", "does not fit");
+  TestError("table X { Y:int32; } root_type X; { Y: -2147483649 }", "");
+  TestError("table X { Y:int32; } root_type X; { Y: 2147483648 }",
+            "does not fit");
+  TestError("table X { Y:int64; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:int64; } root_type X; { Y: 9223372036854775808 }",
+            "does not fit");
+  // check out-of-int64 as int8
+  TestError("table X { Y:int8; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:int8; } root_type X; { Y: 9223372036854775808 }",
+            "does not fit");
+
+  // Check default values
+  TestError("table X { Y:int64=-9223372036854775809; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:int64= 9223372036854775808; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint64=-9223372036854775809; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:uint64= 18446744073709551616; } root_type X; {}",
+            "does not fit");
 }
 
 void IntegerBoundaryTest() {
@@ -1332,6 +1420,191 @@ void IntegerBoundaryTest() {
   TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }", "ulong"),
           18446744073709551615U);
   TEST_EQ(TestValue<uint64_t>("{ Y:0 }", "ulong"), 0);
+  TEST_EQ(TestValue<uint64_t>("{ Y: 18446744073709551615 }", "uint64"),
+          18446744073709551615ULL);
+  // check that the default works
+  TEST_EQ(TestValue<uint64_t>(nullptr, "uint64 = 18446744073709551615"),
+          18446744073709551615ULL);
+}
+
+void ValidFloatTest() {
+  const auto infinityf = flatbuffers::numeric_limits<float>::infinity();
+  const auto infinityd = flatbuffers::numeric_limits<double>::infinity();
+  // check rounding to infinity
+  TEST_EQ(TestValue<float>("{ Y:+3.4029e+38 }", "float"), +infinityf);
+  TEST_EQ(TestValue<float>("{ Y:-3.4029e+38 }", "float"), -infinityf);
+  TEST_EQ(TestValue<double>("{ Y:+1.7977e+308 }", "double"), +infinityd);
+  TEST_EQ(TestValue<double>("{ Y:-1.7977e+308 }", "double"), -infinityd);
+
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"),
+                       (float)3.14159),
+          true);
+  // float in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\" 0.0314159e+2  \" }", "float"),
+                       (float)3.14159),
+          true);
+
+  TEST_EQ(TestValue<float>("{ Y:1 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:+1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:-1. }", "float"), -1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e+0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e-0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:0.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ Y:.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ Y:-.125 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ Y:+.125 }", "float"), +0.125f);
+
+  #if defined(FLATBUFFERS_HAS_EXTRA_FLOAT) && (FLATBUFFERS_HAS_EXTRA_FLOAT)
+  // Old MSVC versions may have problem with this check.
+  // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
+  TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
+    6929495644600920);
+  // check nan's
+  TEST_EQ(std::isnan(TestValue<double>("{ Y:nan }", "double")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:+nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:-nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=-nan")), true);
+  // check inf
+  TEST_EQ(TestValue<float>("{ Y:inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:\"inf\" }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:+inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:-inf }", "float"), -infinityf);
+  TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinityf);
+  TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinityf);
+  TestValue<double>(
+      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[double]");
+  TestValue<float>(
+      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[float]");
+
+  // Test binary format of float point.
+  // https://en.cppreference.com/w/cpp/language/floating_literal
+  // 0x11.12p-1 = (1*16^1 + 2*16^0 + 3*16^-1 + 4*16^-2) * 2^-1 =
+  TEST_EQ(TestValue<double>("{ Y:0x12.34p-1 }", "double"), 9.1015625);
+  // hex fraction 1.2 (decimal 1.125) scaled by 2^3, that is 9.0
+  TEST_EQ(TestValue<float>("{ Y:-0x0.2p0 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ Y:-0x.2p1 }", "float"), -0.25f);
+  TEST_EQ(TestValue<float>("{ Y:0x1.2p3 }", "float"), 9.0f);
+  TEST_EQ(TestValue<float>("{ Y:0x10.1p0 }", "float"), 16.0625f);
+  TEST_EQ(TestValue<double>("{ Y:0x1.2p3 }", "double"), 9.0);
+  TEST_EQ(TestValue<double>("{ Y:0x10.1p0 }", "double"), 16.0625);
+  TEST_EQ(TestValue<double>("{ Y:0xC.68p+2 }", "double"), 49.625);
+  TestValue<double>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[double]");
+  TestValue<float>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[float]");
+
+#else   // FLATBUFFERS_HAS_EXTRA_FLOAT
+  TEST_OUTPUT_LINE("FLATBUFFERS_HAS_EXTRA_FLOAT tests skipped");
+#endif  // FLATBUFFERS_HAS_EXTRA_FLOAT
+}
+
+void InvalidFloatTest() {
+  auto invalid_msg = "invalid number";
+  auto comma_msg = "expecting: ,";
+  TestError("table T { F:float; } root_type T; { F:1,0 }", "");
+  TestError("table T { F:float; } root_type T; { F:. }", "");
+  TestError("table T { F:float; } root_type T; { F:- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:.e }", "");
+  TestError("table T { F:float; } root_type T; { F:-e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-.e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+.e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-e1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+e1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e- }", invalid_msg);
+  // exponent pP is mandatory for hex-float
+  TestError("table T { F:float; } root_type T; { F:0x0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-0x. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x. }", invalid_msg);
+  // eE not exponent in hex-float!
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0pa1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e-0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0ep+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0ep- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2.e3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e0.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e3. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e3.0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+-1.0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e+-1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"1.0e+-1\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.e0e }", comma_msg);
+  TestError("table T { F:float; } root_type T; { F:0x1.p0e }", comma_msg);
+  TestError("table T { F:float; } root_type T; { F:\" 0x10 \" }", invalid_msg);
+  // floats in string
+  TestError("table T { F:float; } root_type T; { F:\"1,2.\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"1.2e3.\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0x1.p0e\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0x1.0\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\" 0x1.0\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"+ 0\" }", invalid_msg);
+  // disable escapes for "number-in-string"
+  TestError("table T { F:float; } root_type T; { F:\"\\f1.2e3.\" }", "escape");
+  TestError("table T { F:float; } root_type T; { F:\"\\t1.2e3.\" }", "escape");
+  TestError("table T { F:float; } root_type T; { F:\"\\n1.2e3.\" }", "escape");
+  TestError("table T { F:float; } root_type T; { F:\"\\r1.2e3.\" }", "escape");
+  TestError("table T { F:float; } root_type T; { F:\"4\\x005\" }", "escape");
+  TestError("table T { F:float; } root_type T; { F:\"\'12\'\" }", invalid_msg);
+  // null is not a number constant!
+  TestError("table T { F:float; } root_type T; { F:\"null\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:null }", invalid_msg);
+}
+
+template<typename T>
+void NumericUtilsTestInteger(const char *lower, const char *upper) {
+  T x;
+  TEST_EQ(flatbuffers::StringToNumber("1q", &x), false);
+  TEST_EQ(x, 0);
+  TEST_EQ(flatbuffers::StringToNumber(upper, &x), false);
+  TEST_EQ(x, flatbuffers::numeric_limits<T>::max());
+  TEST_EQ(flatbuffers::StringToNumber(lower, &x), false);
+  auto expval = std::is_unsigned<T>::value
+                    ? flatbuffers::numeric_limits<T>::max()
+                    : flatbuffers::numeric_limits<T>::lowest();
+  TEST_EQ(x, expval);
+}
+
+template<typename T>
+void NumericUtilsTestFloat(const char *lower, const char *upper) {
+  T f;
+  TEST_EQ(flatbuffers::StringToNumber("1q", &f), false);
+  TEST_EQ(f, 0);
+  TEST_EQ(flatbuffers::StringToNumber(upper, &f), true);
+  TEST_EQ(f, +flatbuffers::numeric_limits<T>::infinity());
+  TEST_EQ(flatbuffers::StringToNumber(lower, &f), true);
+  TEST_EQ(f, -flatbuffers::numeric_limits<T>::infinity());
+}
+
+void NumericUtilsTest() {
+  NumericUtilsTestInteger<uint64_t>("-1", "18446744073709551616");
+  NumericUtilsTestInteger<uint8_t>("-1", "256");
+  NumericUtilsTestInteger<int64_t>("-9223372036854775809",
+                                   "9223372036854775808");
+  NumericUtilsTestInteger<int8_t>("-129", "128");
+  NumericUtilsTestFloat<float>("-3.4029e+38", "+3.4029e+38");
+  NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
 }
 
 void UnicodeTest() {
@@ -1545,6 +1818,15 @@ void InvalidUTF8Test() {
       // U+10400 "encoded" as U+D801 U+DC00
       "{ F:\"\xED\xA0\x81\xED\xB0\x80\"}",
       "illegal UTF-8 sequence");
+
+  // Check independence of identifier from locale.
+  std::string locale_ident;
+  locale_ident += "table T { F";
+  locale_ident += static_cast<char>(-32); // unsigned 0xE0
+  locale_ident += " :string; }";
+  locale_ident += "root_type T;";
+  locale_ident += "{}";
+  TestError(locale_ident.c_str(), "");
 }
 
 void UnknownFieldsTest() {
@@ -2015,6 +2297,13 @@ int FlatBufferTests() {
     );
   #endif
 
+  // If request testing under specific C-locale.
+  #if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
+  // Assume that FLATBUFFERS_FORCE_LOCALE_INDEPENDENT is string with locale for test.
+  TEST_OUTPUT_LINE("Set global C-locale to: %s", FLATBUFFERS_FORCE_LOCALE_INDEPENDENT);
+  TEST_NOTNULL(std::setlocale(LC_ALL, FLATBUFFERS_FORCE_LOCALE_INDEPENDENT));
+  #endif
+
   // Run our various test suites:
 
   std::string rawbuf;
@@ -2072,17 +2361,21 @@ int FlatBufferTests() {
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
-
   JsonDefaultTest();
-
   FlexBuffersTest();
   UninitializedVectorTest();
   EqualOperatorTest();
+  NumericUtilsTest();
+  ValidFloatTest();
+  InvalidFloatTest();
 
   return 0;
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {
+  // Disable stdout buffering to prevent information lost on assertion.
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
 
   FlatBufferTests();
   FlatBufferBuilderTest();

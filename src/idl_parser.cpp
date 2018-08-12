@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,11 +94,13 @@ std::string MakeCamel(const std::string &in, bool first) {
 void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
-  #ifdef _WIN32
-    error_ += "(" + NumToString(line_) + ")";  // MSVC alike
-  #else
+  #ifdef _WIN32 // MSVC alike
+    error_ += "(" + NumToString(line_) + ", " +
+              NumToString(static_cast<int>(cursor_ - line_start_)) + ")";
+  #else // gcc alike
     if (file_being_parsed_.length()) error_ += ":";
-    error_ += NumToString(line_) + ":0";  // gcc alike
+    error_ += NumToString(line_) + ": " +
+              NumToString(static_cast<int>(cursor_ - line_start_));
   #endif
   // clang-format on
   error_ += ": " + msg;
@@ -118,57 +120,22 @@ CheckedError Parser::RecurseError() {
                " reached");
 }
 
-inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
-                                      int64_t limit) {
-  const std::string cause = NumToString(val) + op + NumToString(limit);
-  return "constant does not fit (" + cause + ")";
+CheckedError Parser::InvalidNumber(const char *number, const std::string &msg) {
+  return Error("invalid number: \"" + std::string(number) + "\"" + msg);
 }
-
-// Ensure that integer values we parse fit inside the declared integer type.
-CheckedError Parser::CheckInRange(int64_t val, int64_t min, int64_t max) {
-  if (val < min)
-    return Error(OutOfRangeErrorMsg(val, " < ", min));
-  else if (val > max)
-    return Error(OutOfRangeErrorMsg(val, " > ", max));
-  else
-    return NoError();
-}
-
 // atot: templated version of atoi/atof: convert a string to an instance of T.
 template<typename T>
 inline CheckedError atot(const char *s, Parser &parser, T *val) {
-  int64_t i = StringToInt(s);
-  const int64_t min = flatbuffers::numeric_limits<T>::min();
-  const int64_t max = flatbuffers::numeric_limits<T>::max();
-  *val = (T)i;  // Assign this first to make ASAN happy.
-  return parser.CheckInRange(i, min, max);
-}
-template<>
-inline CheckedError atot<uint64_t>(const char *s, Parser &parser,
-                                   uint64_t *val) {
-  (void)parser;
-  *val = StringToUInt(s);
-  return NoError();
-}
-template<>
-inline CheckedError atot<bool>(const char *s, Parser &parser, bool *val) {
-  (void)parser;
-  *val = 0 != atoi(s);
-  return NoError();
-}
-template<>
-inline CheckedError atot<float>(const char *s, Parser &parser, float *val) {
-  (void)parser;
-  *val = static_cast<float>(strtod(s, nullptr));
-  return NoError();
-}
-template<>
-inline CheckedError atot<double>(const char *s, Parser &parser, double *val) {
-  (void)parser;
-  *val = strtod(s, nullptr);
-  return NoError();
-}
+  auto done = StringToNumber(s, val);
+  if (done) return NoError();
 
+  return parser.InvalidNumber(
+      s, (0 == *val)
+             ? ""
+             : (", constant does not fit [" +
+                NumToString(flatbuffers::numeric_limits<T>::lowest()) + "; " +
+                NumToString(flatbuffers::numeric_limits<T>::max()) + "]"));
+}
 template<>
 inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
                                        Offset<void> *val) {
@@ -260,13 +227,21 @@ CheckedError Parser::SkipByteOrderMark() {
   return NoError();
 }
 
-bool IsIdentifierStart(char c) {
-  return isalpha(static_cast<unsigned char>(c)) || c == '_';
+inline bool IsIdentifierStart(char c) {
+  // isalpha depends from the current C-locale.
+  return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_');
+}
+
+// Local short to check is a decimal or hexadecimal digit.
+static inline bool is_dechex(char c, bool hex = false) {
+  return !!(hex ? isxdigit(static_cast<unsigned char>(c))
+                : isdigit(static_cast<unsigned char>(c)));
 }
 
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = cursor_ == source_;
+  attr_is_escaped_str_ = false;
   attribute_.clear();
   for (;;) {
     char c = *cursor_++;
@@ -280,7 +255,7 @@ CheckedError Parser::Next() {
       case '\r':
       case '\t': break;
       case '\n':
-        line_++;
+        MarkNewLine();
         seen_newline = true;
         break;
       case '{':
@@ -293,10 +268,6 @@ CheckedError Parser::Next() {
       case ':':
       case ';':
       case '=': return NoError();
-      case '.':
-        if (!isdigit(static_cast<unsigned char>(*cursor_)))
-          return NoError();
-        return Error("floating point constant can\'t start with \".\"");
       case '\"':
       case '\'': {
         int unicode_high_surrogate = -1;
@@ -305,6 +276,7 @@ CheckedError Parser::Next() {
           if (*cursor_ < ' ' && static_cast<signed char>(*cursor_) >= 0)
             return Error("illegal character in string constant");
           if (*cursor_ == '\\') {
+            attr_is_escaped_str_ = true;  // string has escape sequence
             cursor_++;
             if (unicode_high_surrogate != -1 && *cursor_ != 'u') {
               return Error(
@@ -420,7 +392,7 @@ CheckedError Parser::Next() {
           cursor_++;
           // TODO: make nested.
           while (*cursor_ != '*' || cursor_[1] != '/') {
-            if (*cursor_ == '\n') line_++;
+            if (*cursor_ == '\n') MarkNewLine();
             if (!*cursor_) return Error("end of file in comment");
             cursor_++;
           }
@@ -429,51 +401,74 @@ CheckedError Parser::Next() {
         }
         // fall thru
       default:
-        if (IsIdentifierStart(c)) {
+        const auto has_sign = (c == '+') || (c == '-');
+        // '-'/'+' and following identifier - can be a predefined constant like:
+        // NAN, INF, PI, etc.
+        if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
-          while (isalnum(static_cast<unsigned char>(*cursor_)) || *cursor_ == '_')
+          while (IsIdentifierStart(*cursor_) ||
+                 isdigit(static_cast<unsigned char>(*cursor_)))
             cursor_++;
           attribute_.append(start, cursor_);
-          token_ = kTokenIdentifier;
+          token_ = has_sign ? kTokenStringConstant : kTokenIdentifier;
           return NoError();
-        } else if (isdigit(static_cast<unsigned char>(c)) || c == '-') {
-          const char *start = cursor_ - 1;
-          if (c == '-' && *cursor_ == '0' &&
-              (cursor_[1] == 'x' || cursor_[1] == 'X')) {
-            ++start;
-            ++cursor_;
-            attribute_.append(&c, &c + 1);
-            c = '0';
+        }
+
+        const auto dot = (c == '.');
+        if (dot && !is_dechex(*cursor_)) return NoError();
+        // Parser accepts hexadecimal-ﬂoating-literal (see C++ 5.13.4).
+        if (dot || has_sign || is_dechex(c)) {
+          auto is_float = dot;
+          const auto start = cursor_ - 1;
+          auto start_digits = is_dechex(c) ? start : cursor_;
+          if ((dot || has_sign) && is_dechex(*cursor_)) {
+            start_digits = cursor_;  // see digit in cursor_ position
+            c = *cursor_++;
           }
-          if (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X')) {
+          // hex-float can't starts from dot
+          auto use_hex =
+              !dot && (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X'));
+          if (use_hex) {
             cursor_++;
-            while (isxdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
-            attribute_.append(start + 2, cursor_);
-            attribute_ = NumToString(static_cast<int64_t>(
-                StringToUInt(attribute_.c_str(), nullptr, 16)));
-            token_ = kTokenIntegerConstant;
-            return NoError();
+            start_digits = cursor_;  // '0x' is prefix only
           }
-          while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
-          if (*cursor_ == '.' || *cursor_ == 'e' || *cursor_ == 'E') {
+          while (is_dechex(*cursor_, use_hex)) cursor_++;
             if (*cursor_ == '.') {
+            if (dot) {
+              // raise the double-dot error
+              start_digits = cursor_;
+            } else {
               cursor_++;
-              while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
+              is_float = true;
+              while (is_dechex(*cursor_, use_hex)) cursor_++;
             }
-            // See if this float has a scientific notation suffix. Both JSON
-            // and C++ (through strtod() we use) have the same format:
-            if (*cursor_ == 'e' || *cursor_ == 'E') {
-              cursor_++;
-              if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
-              while (isdigit(static_cast<unsigned char>(*cursor_))) cursor_++;
-            }
-            token_ = kTokenFloatConstant;
-          } else {
-            token_ = kTokenIntegerConstant;
           }
-          attribute_.append(start, cursor_);
-          return NoError();
+          if (cursor_ > start_digits) {
+            // The exponent suffix of hexadecimal float-point number is mandatory.
+            if (is_float && use_hex) start_digits = cursor_;
+            if ((*cursor_ == 'e' || *cursor_ == 'E') ||
+                (use_hex && (*cursor_ == 'p' || *cursor_ == 'P'))) {
+              cursor_++;
+              is_float = true;
+              if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
+              start_digits = cursor_;  // the exponent-part has to have digits
+              while (is_dechex(*cursor_)) cursor_++;
+            }
+          }
+          // If see the dot after the number, treat it as part of number.
+          if (*cursor_ == '.') {
+            cursor_++;               // consume this dot
+            start_digits = cursor_;  // raise the double-dot error
+          }
+          // Finalize
+          if ((cursor_ > start_digits)) {
+            attribute_.append(start, cursor_);
+            token_ = is_float ? kTokenFloatConstant : kTokenIntegerConstant;
+            return NoError();
+          } else {
+            return Error("invalid number: " + std::string(start, cursor_));
+          }
         }
         std::string ch;
         ch = c;
@@ -673,7 +668,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
-    ECHECK(ParseSingleValue(&field->name, field->value));
+    ECHECK(ParseSingleValue(&field->name, field->value, true));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
@@ -683,9 +678,17 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     return Error("default value of " + field->value.constant + " for field " +
                  name + " is not part of enum " + type.enum_def->name);
   }
+  // Append .0 if the value has not it (skip hex and scientific floats).
+  // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
-    if (!strpbrk(field->value.constant.c_str(), ".eE"))
+    auto &text = field->value.constant;
+    FLATBUFFERS_ASSERT(false == text.empty());
+    // 1) A float constants (nan, inf, pi, etc) end with non-digit.
+    // 2) A hex-float doesn't require .0 at the end.
+    if (!!isdigit(static_cast<unsigned char>(text.back())) &&
+        (std::string::npos == field->value.constant.find_first_of(".eExX"))) {
       field->value.constant += ".0";
+    }
   }
 
   if (type.enum_def && IsScalar(type.base_type) && !struct_def.fixed &&
@@ -914,11 +917,13 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
         ECHECK(ParseHash(val, field));
       } else {
-        ECHECK(ParseSingleValue(field ? &field->name : nullptr, val));
+        ECHECK(ParseSingleValue(field ? &field->name : nullptr, val, false));
       }
       break;
     }
-    default: ECHECK(ParseSingleValue(field ? &field->name : nullptr, val)); break;
+    default:
+      ECHECK(ParseSingleValue(field ? &field->name : nullptr, val, false));
+      break;
   }
   return NoError();
 }
@@ -993,7 +998,8 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
             ECHECK(parser->SkipAnyJsonValue());
           }
         } else {
-          if (parser->IsIdent("null")) {
+          if (parser->IsIdent("null") &&
+              !IsScalar(field->value.type.base_type)) {
             ECHECK(parser->Next());  // Ignore this field.
           } else {
             Value val = field->value;
@@ -1251,7 +1257,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       attributes->Add(name, e);
       if (Is(':')) {
         NEXT();
-        ECHECK(ParseSingleValue(&name, *e));
+        ECHECK(ParseSingleValue(&name, *e, true));
       }
       if (Is(')')) {
         NEXT();
@@ -1263,23 +1269,40 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(const std::string *name, int dtoken, bool check, Value &e,
-                                   BaseType req, bool *destmatch) {
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
+                                   bool check, Value &e, BaseType req,
+                                   bool *destmatch) {
   bool match = dtoken == token_;
   if (match) {
+    FLATBUFFERS_ASSERT(*destmatch == false);
     *destmatch = true;
     e.constant = attribute_;
+    // Check token match
     if (!check) {
       if (e.type.base_type == BASE_TYPE_NONE) {
         e.type.base_type = req;
       } else {
-        return Error(std::string("type mismatch: expecting: ") +
-                     kTypeNames[e.type.base_type] +
-                     ", found: " + kTypeNames[req] +
-                     ", name: " + (name ? *name : "") +
-                     ", value: " + e.constant);
+        return Error(
+            std::string("type mismatch: expecting: ") +
+            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
+            ", name: " + (name ? *name : "") + ", value: " + e.constant);
       }
     }
+    // The exponent suffix of hexadecimal float-point number is mandatory.
+    // A hex-integer constant is forbidden as an initializer of float number.
+    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+      const auto &s = e.constant;
+      const auto k = s.find_first_of("0123456789.");
+      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+          (s.at(k) == '0' && (s.at(k + 1) == 'x' || s.at(k + 1) == 'X')) &&
+          (std::string::npos == s.find_first_of("pP", k + 2))) {
+        return Error(
+            "invalid number, the exponent suffix of hexadecimal "
+            "floating-point literals is mandatory: \"" +
+            s + "\"");
+      }
+    }
+
     NEXT();
   }
   return NoError();
@@ -1374,20 +1397,29 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
-CheckedError Parser::ParseSingleValue(const std::string *name, Value &e) {
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
+                                      bool check_now) {
   // First see if this could be a conversion function:
   if (token_ == kTokenIdentifier && *cursor_ == '(') {
-    auto functionname = attribute_;
+    // todo: Extract processing of conversion functions to ParseFunction.
+    const auto functionname = attribute_;
+    if (!IsFloat(e.type.base_type)) {
+      return Error(functionname + ": type of argument mismatch, expecting: " +
+                   kTypeNames[BASE_TYPE_DOUBLE] +
+                   ", found: " + kTypeNames[e.type.base_type] +
+                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
+    }
     NEXT();
     EXPECT('(');
-    ECHECK(ParseSingleValue(name, e));
+    ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
     EXPECT(')');
+    // calculate with double precision
+    double x, y = 0.0;
+    ECHECK(atot(e.constant.c_str(), *this, &x));
+    auto func_match = false;
     // clang-format off
     #define FLATBUFFERS_FN_DOUBLE(name, op) \
-      if (functionname == name) { \
-        auto x = strtod(e.constant.c_str(), nullptr); \
-        e.constant = NumToString(op); \
-      }
+      if (!func_match && functionname == name) { y = op; func_match = true; }
     FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
     FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
     FLATBUFFERS_FN_DOUBLE("sin", sin(x));
@@ -1399,47 +1431,107 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e) {
     // TODO(wvo): add more useful conversion functions here.
     #undef FLATBUFFERS_FN_DOUBLE
     // clang-format on
-    // Then check if this could be a string/identifier enum value:
-  } else if (e.type.base_type != BASE_TYPE_STRING &&
-             e.type.base_type != BASE_TYPE_BOOL &&
-             e.type.base_type != BASE_TYPE_NONE &&
-             (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
-    if (IsIdentifierStart(attribute_[0])) {  // Enum value.
+    if (true != func_match)
+      return Error(std::string("Unknown conversion function: ") + functionname +
+                   ", field name: " + (name ? *name : "") +
+                   ", value: " + e.constant);
+    e.constant = NumToString(y);
+    return NoError();
+  }
+
+  auto match = false;
+  // clang-format off
+  // ((void)0,force) - use comma operator to suppress warning C4127 (MSVC 2010)
+  #define TRY_ECHECK(force, dtoken, check, req) \
+    if (!match && ((check) || ((void)0,force))) \
+      ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+  // clang-format on
+
+  if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {
+    const auto kTokenStringOrIdent = token_;
+    // The string type is a most probable type, check it first.
+    TRY_ECHECK(false, kTokenStringConstant,
+               e.type.base_type == BASE_TYPE_STRING, BASE_TYPE_STRING);
+
+    // If current token isn't a string, check escapes inside string.
+    if (attr_is_escaped_str_) {
+      return Error(
+          std::string("type mismatch or invalid value, escaped characters are "
+                      "forbidden for non-string data type: ") +
+          kTypeNames[e.type.base_type] + ", name: " + (name ? *name : "") +
+          ", value: " + attribute_);
+    }
+
+    // A boolean as true/false. Boolean as Integer check below.
+    if (!match && IsBool(e.type.base_type)) {
+      auto is_true = attribute_ == "true";
+      if (is_true || attribute_ == "false") {
+        attribute_ = is_true ? "1" : "0";
+        // accepts both kTokenStringConstant and kTokenIdentifier
+        TRY_ECHECK(false, kTokenStringOrIdent, IsBool(e.type.base_type),
+                   BASE_TYPE_BOOL);
+      }
+    }
+    // Check if this could be a string/identifier enum value.
+    // Enum can have only true integer base type.
+    if (!match && IsInteger(e.type.base_type) && !IsBool(e.type.base_type) &&
+        IsIdentifierStart(*attribute_.c_str())) {
       int64_t val;
       ECHECK(ParseEnumFromString(e.type, &val));
       e.constant = NumToString(val);
       NEXT();
-    } else {  // Numeric constant in string.
-      if (IsInteger(e.type.base_type)) {
-        char *end;
-        e.constant = NumToString(StringToInt(attribute_.c_str(), &end));
-        if (*end) return Error("invalid integer: " + attribute_);
-      } else if (IsFloat(e.type.base_type)) {
-        char *end;
-        e.constant = NumToString(strtod(attribute_.c_str(), &end));
-        if (*end) return Error("invalid float: " + attribute_);
-      } else {
-        FLATBUFFERS_ASSERT(0);  // Shouldn't happen, we covered all types.
-        e.constant = "0";
-      }
-      NEXT();
+      match = true;
     }
+    // float/integer number in string
+    if ((token_ == kTokenStringConstant) && IsScalar(e.type.base_type)) {
+      // remove trailing whitespaces from attribute_
+      auto last = attribute_.find_last_not_of(' ');
+      if (std::string::npos != last)  // has non-whitespace
+        attribute_.resize(last + 1);
+    }
+    // Float numbers or nan, inf, pi, etc.
+    TRY_ECHECK(false, kTokenStringOrIdent, IsFloat(e.type.base_type),
+               BASE_TYPE_FLOAT);
+    // An integer constant in string.
+    TRY_ECHECK(false, kTokenStringOrIdent, IsInteger(e.type.base_type),
+               BASE_TYPE_INT);
+    // Unknown tokens will be interpreted as string type.
+    TRY_ECHECK(true, kTokenStringConstant, e.type.base_type == BASE_TYPE_STRING,
+               BASE_TYPE_STRING);
   } else {
-    bool match = false;
-    ECHECK(TryTypedValue(name, kTokenIntegerConstant, IsScalar(e.type.base_type), e,
-                         BASE_TYPE_INT, &match));
-    ECHECK(TryTypedValue(name, kTokenFloatConstant, IsFloat(e.type.base_type), e,
-                         BASE_TYPE_FLOAT, &match));
-    ECHECK(TryTypedValue(name, kTokenStringConstant,
-                         e.type.base_type == BASE_TYPE_STRING, e,
-                         BASE_TYPE_STRING, &match));
-    auto istrue = IsIdent("true");
-    if (istrue || IsIdent("false")) {
-      attribute_ = NumToString(istrue);
-      ECHECK(TryTypedValue(name, kTokenIdentifier, IsBool(e.type.base_type), e,
-                           BASE_TYPE_BOOL, &match));
+    // Try a float number.
+    TRY_ECHECK(false, kTokenFloatConstant, IsFloat(e.type.base_type),
+               BASE_TYPE_FLOAT);
+    // Integer token can init any scalar (integer of float).
+    TRY_ECHECK(true, kTokenIntegerConstant, IsScalar(e.type.base_type),
+               BASE_TYPE_INT);
+  }
+  #undef TRY_ECHECK
+
+  if (!match) return TokenError();
+
+  // The check_now flag must be true when parse a fbs-schema.
+  // This flag forces to check default scalar values or metadata of field.
+  // For JSON parser the flag should be false.
+  // If it is set for JSON each value will be checked twice (see ParseTable).
+  if (check_now && IsScalar(e.type.base_type)) {
+    // "re-pack" an integer scalar to remove any ambiguities like leading zeros
+    // which can be treated as octal-literal (idl_gen_cpp/GenDefaultConstant).
+    const auto repack = IsInteger(e.type.base_type);
+    switch (e.type.base_type) {
+    // clang-format off
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            case BASE_TYPE_ ## ENUM: {\
+                CTYPE val; \
+                ECHECK(atot(e.constant.c_str(), *this, &val)); \
+                if(repack) e.constant = NumToString(val); \
+              break; }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+    #undef FLATBUFFERS_TD
+    default: break;
+    // clang-format on
     }
-    if (!match) return TokenError();
   }
   return NoError();
 }
@@ -1564,7 +1656,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       }
       if (Is('=')) {
         NEXT();
-        ev.value = StringToInt(attribute_.c_str());
+        ECHECK(atot(attribute_.c_str(), *this, &ev.value));
         EXPECT(kTokenIntegerConstant);
         if (!opts.proto_mode && prevsize &&
             enum_def->vals.vec[prevsize - 1]->value >= ev.value)
@@ -2253,14 +2345,17 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  return !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  auto r = !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  return r;
 }
 
 CheckedError Parser::StartParseFile(const char *source,
                                     const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";
-  source_ = cursor_ = source;
-  line_ = 1;
+  source_ = source;
+  ResetState(source_);
   error_.clear();
   ECHECK(SkipByteOrderMark());
   NEXT();
@@ -2447,6 +2542,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
                                                  ? file_identifier_.c_str()
                                                  : nullptr);
       }
+      // Check that JSON file doesn't contain more objects or IDL directives.
+      // Comments after JSON are allowed.
+      EXPECT(kTokenEof);
     } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (IsIdent("union")) {
@@ -2602,7 +2700,9 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   return reflection::CreateField(
       *builder, builder->CreateString(name), value.type.Serialize(builder), id,
       value.offset,
+      // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
+      // result may be platform-dependent if underlying is float (not double)
       IsFloat(value.type.base_type) ? strtod(value.constant.c_str(), nullptr)
                                     : 0.0,
       deprecated, required, key, SerializeAttributes(builder, parser),
@@ -2755,6 +2855,97 @@ std::string Parser::ConformTo(const Parser &base) {
     }
   }
   return "";
+}
+
+// Locate all code related to LOCALE_INDEPENDENT in one compilation unit.
+// Is it better to return this code to the util.h?
+#if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
+// Static RAII holder of default C-locale
+class UtilDefaultLocale final {
+ public:
+  // clang-format off
+  #ifdef _MSC_VER
+  typedef _locale_t locale_type;
+  #else
+  typedef locale_t locale_type;
+  #endif
+  // clang-format on
+  static locale_type get() { return instance_.locale_; }
+
+ private:
+  static UtilDefaultLocale instance_;
+  locale_type locale_;
+
+  // clang-format offx
+  #ifdef _MSC_VER
+  UtilDefaultLocale() : locale_(_create_locale(LC_ALL, "C")) {}
+  ~UtilDefaultLocale() { _free_locale(locale_); }
+  #else
+  UtilDefaultLocale() : locale_(newlocale(LC_ALL, "C", (locale_t)0)) {}
+  ~UtilDefaultLocale() { freelocale(locale_); }
+  #endif
+  // clang-format onx
+};
+// allocate locate at startup of application
+UtilDefaultLocale UtilDefaultLocale::instance_;
+
+#endif
+
+double strtod_impl(const char *str, char **str_end){
+  // Result of strtod (printf, etc) depends from current C-locale.
+  // Most of locales use the dot '.' as decimal delimiter, but some use ','
+  // instead.
+  // User should predefine macro FLATBUFFERS_FORCE_LOCALE_INDEPENDENT to enable
+  // strtod_l/strtof_l usage.
+  // 1) _strtod_l is available in MSVC since VS2005
+  // 2) #if (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 2))
+
+  // clang-format off
+  #if !defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
+    return strtod(str, str_end);
+  #else
+    #ifdef _MSC_VER
+      return _strtod_l(str, str_end, UtilDefaultLocale::get());
+    #else
+      return strtod_l(str, str_end, UtilDefaultLocale::get());
+    #endif
+  #endif
+  // clang-format on
+}
+
+float strtof_impl(const char *str, char **str_end)
+{
+// Use "strtof" for float and strtod for double to avoid double=>float rounding
+// problems (see https://en.cppreference.com/w/cpp/numeric/fenv/feround) or
+// problems with std::numeric_limits<float>::is_iec559==false.
+// Example:
+//  for (int mode : { FE_DOWNWARD, FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD }){
+//    const char *s = "-4e38";
+//    std::fesetround(mode);
+//    std::cout << strtof(s, nullptr) << "; " << strtod(s, nullptr) << "; "
+//              << static_cast<float>(strtod(s, nullptr)) << "\n";
+//  }
+// Gives:
+//  -inf; -4e+38; -inf
+//  -inf; -4e+38; -inf
+//  -inf; -4e+38; -3.40282e+38
+//  -inf; -4e+38; -3.40282e+38
+
+  // clang-format off
+  #if !defined(FLATBUFFERS_HAS_EXTRA_FLOAT)
+    return static_cast<float>(strtod_impl(str, str_end));
+  #else
+    #if !defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
+      return strtof(str, str_end);
+    #else
+      #ifdef _MSC_VER
+        return _strtof_l(str, str_end, UtilDefaultLocale::get());
+      #else
+        return strtof_l(str, str_end, UtilDefaultLocale::get());
+      #endif
+    #endif
+  #endif
+  // clang-format on
 }
 
 }  // namespace flatbuffers

@@ -80,6 +80,27 @@ target_link_libraries(own_project_target PRIVATE flatbuffers)
 When build your project the `flatbuffers` library will be compiled and linked 
 to a target as part of your project.
 
+#### Enforce locale-independent mode
+If an application use non ascii-based [locale](@ref flatbuffers_locale_cpp) 
+to enforce locale-independent mode of Flatbuffers library add this directive:
+```cmake
+set(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT "")
+```
+or
+```cmake
+set(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT "<test-locale>")
+```
+to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
+
+#### Override the depth limit of nested objects
+To override the limit value of the built-in depth recursion 
+[limiter](@ref flatbuffers_guide_use_cpp) add this directive:
+```cmake
+set(FLATBUFFERS_MAX_PARSING_DEPTH 16)
+```
+to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
+
+
 #### For Google Play apps
 
 For applications on Google Play that integrate this library, usage is tracked.
