@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 
 if os.getenv("APPVEYOR_REPO_TAG") != "true":

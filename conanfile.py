@@ -30,10 +30,14 @@ class FlatbuffersConan(ConanFile):
         shutil.move(os.path.join("conan", "CMakeLists.txt"), "CMakeLists.txt")
 
     def config_options(self):
+        """Remove fPIC option on Windows platform
+        """
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
 
     def configure_cmake(self):
+        """Create CMake instance and execute configure step
+        """
         cmake = CMake(self)
         cmake.definitions["FLATBUFFERS_BUILD_TESTS"] = False
         cmake.definitions["FLATBUFFERS_BUILD_SHAREDLIB"] = self.options.shared
@@ -54,6 +58,14 @@ class FlatbuffersConan(ConanFile):
         cmake.install()
         self.copy(pattern="LICENSE.txt", dst="licenses")
         self.copy(pattern="flathash*", dst="bin", src="bin")
+        self.copy(pattern="flatc*", dst="bin", src="bin")
+        if self.settings.os == "Windows" and self.options.shared:
+            if self.settings.compiler == "Visual Studio":
+                shutil.move(os.path.join(self.package_folder, "lib", "%s.dll" % self.name),
+                            os.path.join(self.package_folder, "bin", "%s.dll" % self.name))
+            elif self.settings.compiler == "gcc":
+                shutil.move(os.path.join(self.package_folder, "lib", "lib%s.dll" % self.name),
+                            os.path.join(self.package_folder, "bin", "lib%s.dll" % self.name))
 
     def package_info(self):
         """Collect built libraries names and solve flatc path.

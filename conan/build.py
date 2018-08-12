@@ -1,4 +1,6 @@
-from bincrafters import build_template_default
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from cpt.packager import ConanMultiPackager
 import os
 
 def set_appveyor_environment():
@@ -12,10 +14,16 @@ def set_appveyor_environment():
         os.environ["CONAN_BUILD_TYPES"] = os.getenv("Configuration").replace('"', '')
 
 if __name__ == "__main__":
-    os.environ["CONAN_UPLOAD"] = os.getenv("CONAN_UPLOAD", "https://api.bintray.com/conan/aardappel/flatbuffers")
-    os.environ["CONAN_STABLE_BRANCH_PATTERN"] = r"v\d+\.\d+\.\d+"
-    test_folder = "-tf %s" % os.path.join("conan", "test_package")
+    username = os.getenv("CONAN_USERNAME", "aardappel")
+    upload = os.getenv("CONAN_UPLOAD", "https://api.bintray.com/conan/aardappel/flatbuffers")
+    stable_branch_pattern = os.getenv("CONAN_STABLE_BRANCH_PATTERN", r"v\d+\.\d+\.\d+.*")
+    test_folder = os.getenv("CPT_TEST_FOLDER", os.path.join("conan", "test_package"))
+    upload_only_when_stable = os.getenv("CONAN_UPLOAD_ONLY_WHEN_STABLE", True)
     set_appveyor_environment()
 
-    builder = build_template_default.get_builder(args=test_folder, pure_c=False)
+    builder = ConanMultiPackager(username=username, upload=upload,
+                                 stable_branch_pattern=stable_branch_pattern,
+                                 upload_only_when_stable=upload_only_when_stable,
+                                 test_folder=test_folder)
+    builder.add_common_builds(pure_c=False)
     builder.run()

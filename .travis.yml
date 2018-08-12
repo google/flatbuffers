@@ -73,7 +73,7 @@ matrix:
 
       script:
       - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/testing -s build_type=$BUILD_TYPE; fi
+      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . aardappel/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
@@ -84,6 +84,37 @@ matrix:
           - BUILD_TYPE=Release
       script:
       - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
+
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=lasote/conangcc8
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=lasote/conanclang39
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=lasote/conanclang40
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=lasote/conanclang50
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=lasote/conanclang60
+    - <<: *conan-osx
+      osx_image: xcode7.3
+      env: CONAN_APPLE_CLANG_VERSIONS=7.3
+    - <<: *conan-osx
+      osx_image: xcode8.3
+      env: CONAN_APPLE_CLANG_VERSIONS=8.1
+    - <<: *conan-osx
+      osx_image: xcode9
+      env: CONAN_APPLE_CLANG_VERSIONS=9.0
+    - <<: *conan-osx
+      osx_image: xcode9.3beta
+      env: CONAN_APPLE_CLANG_VERSIONS=9.1
 
     #- language: android
     #  sudo: true
