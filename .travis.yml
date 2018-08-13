@@ -113,7 +113,7 @@ matrix:
       osx_image: xcode9
       env: CONAN_APPLE_CLANG_VERSIONS=9.0
     - <<: *conan-osx
-      osx_image: xcode9.3beta
+      osx_image: xcode9.3
       env: CONAN_APPLE_CLANG_VERSIONS=9.1
 
     #- language: android
