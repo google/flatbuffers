@@ -69,7 +69,7 @@ a `char *` array, which you pass to `GetMonster()`.
     int length = infile.tellg();
     infile.seekg(0,std::ios::beg);
     char *data = new char[length];
-    infile.read(data, sizeof(data));
+    infile.read(data, length);
     infile.close();
 
     auto monster = GetMonster(data);
@@ -83,7 +83,7 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     std::cout << "hp : " << monster->hp() << std::endl;            // `80`
     std::cout << "mana : " << monster->mana() << std::endl;        // default value of `150`
-    std::cout << "name : " << monster->name() << std::endl;        // "MyMonster"
+    std::cout << "name : " << monster->name()->c_str() << std::endl;        // "MyMonster"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Note: That we never stored a `mana` value, so it will return the default.*
