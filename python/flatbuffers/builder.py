@@ -22,7 +22,7 @@ from . import compat
 from .compat import range_func
 from .compat import memoryview_type
 
-FILEIDENTIFIER_LENGTH = 4
+
 ## @file
 ## @addtogroup flatbuffers_python_api
 ## @{
@@ -554,9 +554,11 @@ class Builder(object):
 
     def PrependInt64Slot(self, *args): self.PrependSlot(N.Int64Flags, *args)
 
-    def PrependFloat32Slot(self, *args): self.PrependSlot(N.Float32Flags, *args)
+    def PrependFloat32Slot(self, *args): self.PrependSlot(N.Float32Flags,
+                                                          *args)
 
-    def PrependFloat64Slot(self, *args): self.PrependSlot(N.Float64Flags, *args)
+    def PrependFloat64Slot(self, *args): self.PrependSlot(N.Float64Flags,
+                                                          *args)
 
     def PrependUOffsetTRelativeSlot(self, o, x, d):
         """

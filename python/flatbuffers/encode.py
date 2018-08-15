@@ -16,7 +16,7 @@ from . import number_types as N
 from . import packer
 from .compat import memoryview_type
 from .compat import import_numpy, NumpyRequiredForThisFeature
-
+FILEIDENTIFIER_LENGTH = 4
 np = import_numpy()
 
 def Get(packer_type, buf, head):
