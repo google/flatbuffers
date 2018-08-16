@@ -8,7 +8,7 @@ namespace MyGame.Example
 using global::System;
 using global::FlatBuffers;
 
-public partial struct TestSimpleTableWithEnum : IFlatbufferObject
+internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
