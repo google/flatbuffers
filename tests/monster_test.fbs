@@ -20,7 +20,7 @@ union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
 struct Test { a:short; b:byte; }
 
-table TestSimpleTableWithEnum (csharp_partial) {
+table TestSimpleTableWithEnum (csharp_partial, private) {
   color: Color = Green;
 }
 

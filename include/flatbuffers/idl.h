@@ -564,6 +564,7 @@ class Parser : public ParserState {
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
+    known_attributes_["private"] = true;
   }
 
   ~Parser() {
