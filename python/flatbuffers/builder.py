@@ -499,7 +499,7 @@ class Builder(object):
         return self.Head()
 
     def FinishWithFileIdentifier(self, rootTable, fid):
-        if (fid is None or len(fid) != FILEIDENTIFIER_LENGTH):
+        if (fid is None or len(fid) != encode.FILEIDENTIFIER_LENGTH):
             raise Exception('fid must be 4 chars')
 
         flags = N.Uint8Flags
