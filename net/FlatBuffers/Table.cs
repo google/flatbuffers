@@ -78,6 +78,23 @@ namespace FlatBuffers
             return offset + bb.GetInt(offset) + sizeof(int);  // data starts after the length
         }
 
+#if ENABLE_SPAN_T
+        // Get the data of a vector whoses offset is stored at "offset" in this object as an
+        // Spant&lt;byte&gt;. If the vector is not present in the ByteBuffer,
+        // then an empty span will be returned.
+        public Span<byte> __vector_as_span(int offset)
+        {
+            var o = this.__offset(offset);
+            if (0 == o)
+            {
+                return new Span<byte>();
+            }
+
+            var pos = this.__vector(o);
+            var len = this.__vector_len(o);
+            return bb.ToSpan(pos, len);
+        }
+#else
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // ArraySegment&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then a null value will be returned.
@@ -93,6 +110,7 @@ namespace FlatBuffers
             var len = this.__vector_len(o);
             return bb.ToArraySegment(pos, len);
         }
+#endif
 
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // T[]. If the vector is not present in the ByteBuffer, then a null value will be
