@@ -179,18 +179,6 @@ namespace FlatBuffers
             _bb.PutFloat(_space -= sizeof(float), x);
         }
 
-        /// <summary>
-        /// Puts an array of type T into this builder at the 
-        /// current offset
-        /// </summary>
-        /// <typeparam name="T">The type of the input data </typeparam>
-        /// <param name="x">The array to copy data from</param>
-        public void Put<T>(T[] x)
-            where T : struct
-        {
-            _space = _bb.Put(_space, x);
-        }
-
         public void PutDouble(double x)
         {
             _bb.PutDouble(_space -= sizeof(double), x);
@@ -256,37 +244,6 @@ namespace FlatBuffers
         /// </summary>
         /// <param name="x">The `float` to add to the buffer.</param>
         public void AddFloat(float x) { Prep(sizeof(float), 0); PutFloat(x); }
-
-        /// <summary>
-        /// Add an array of type T to the buffer (aligns the data and grows if necessary).
-        /// </summary>
-        /// <typeparam name="T">The type of the input data</typeparam>
-        /// <param name="x">The array to copy data from</param>
-        public void Add<T>(T[] x)
-            where T : struct
-        {
-            if (x == null)
-            {
-                throw new ArgumentNullException("Cannot add a null array");
-            }
-
-            if( x.Length == 0)
-            {
-                // don't do anything if the array is empty
-                return;
-            }
-
-            if(!ByteBuffer.IsSupportedType<T>())
-            {
-                throw new ArgumentException("Cannot add this Type array to the builder");
-            }
-
-            int size = ByteBuffer.SizeOf<T>();
-            // Need to prep on size (for data alignment) and then we pass the
-            // rest of the length (minus 1) as additional bytes
-            Prep(size, size * (x.Length - 1));
-            Put(x);
-        }
 
         /// <summary>
         /// Add a `double` to the buffer (aligns the data and grows if necessary).
