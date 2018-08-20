@@ -1,3 +1,5 @@
+licenses(["notice"])
+
 package(
     default_visibility = ["//visibility:public"],
     features = [
@@ -9,11 +11,6 @@ package(
 exports_files([
     "LICENSE",
 ])
-
-FLATBUFFERS_COPTS = [
-    "-Wno-implicit-fallthrough",
-    "-linclude",
-]
 
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
@@ -28,7 +25,6 @@ cc_library(
         "src/util.cpp",
     ],
     hdrs = [":public_headers"],
-    copts = FLATBUFFERS_COPTS,
     includes = ["include/"],
     linkstatic = 1,
 )
@@ -66,7 +62,6 @@ cc_library(
         "include/flatbuffers/flatc.h",
         ":public_headers",
     ],
-    copts = FLATBUFFERS_COPTS,
     includes = [
         "grpc/",
         "include/",
@@ -94,11 +89,11 @@ cc_binary(
         "src/idl_gen_js.cpp",
         "src/idl_gen_json_schema.cpp",
         "src/idl_gen_lua.cpp",
+        "src/idl_gen_lobster.cpp",
         "src/idl_gen_php.cpp",
         "src/idl_gen_python.cpp",
         "src/idl_gen_text.cpp",
     ],
-    copts = FLATBUFFERS_COPTS,
     includes = [
         "grpc/",
         "include/",
@@ -129,7 +124,7 @@ cc_test(
         "tests/union_vector/union_vector_generated.h",
         ":public_headers",
     ],
-    copts = FLATBUFFERS_COPTS + [
+    copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
     ],
     data = [

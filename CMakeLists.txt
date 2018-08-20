@@ -52,6 +52,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_js.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
+  src/idl_gen_lobster.cpp
   src/idl_gen_lua.cpp
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
@@ -179,7 +180,10 @@ include_directories(include)
 include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
-add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  # CMake > 2.8.11: Attach header directory for when build via add_subdirectory().
+  target_include_directories(flatbuffers INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)

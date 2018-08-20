@@ -44,30 +44,30 @@ class BufferContext {
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
   double _getFloat64(int offset) =>
-      _buffer.getFloat64(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getFloat64(offset, Endian.little);
 
   double _getFloat32(int offset) =>
-      _buffer.getFloat32(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getFloat32(offset, Endian.little);
 
   int _getInt64(int offset) =>
-      _buffer.getInt64(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getInt64(offset, Endian.little);
 
   int _getInt32(int offset) =>
-      _buffer.getInt32(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getInt32(offset, Endian.little);
 
   int _getInt16(int offset) =>
-      _buffer.getInt16(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getInt16(offset, Endian.little);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
   int _getUint64(int offset) =>
-      _buffer.getUint64(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getUint64(offset, Endian.little);
 
   int _getUint32(int offset) =>
-      _buffer.getUint32(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getUint32(offset, Endian.little);
 
   int _getUint16(int offset) =>
-      _buffer.getUint16(offset, Endianness.LITTLE_ENDIAN);
+      _buffer.getUint16(offset, Endian.little);
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
@@ -306,7 +306,7 @@ class Builder {
       for (int i = _vTables.length - 1; i >= 0; i--) {
         final int vt2Offset = _vTables[i];
         final int vt2Start = _buf.lengthInBytes - vt2Offset;
-        final int vt2Size = _buf.getUint16(vt2Start, Endianness.LITTLE_ENDIAN);
+        final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
         if (_currentVTable._vTableSize == vt2Size &&
             _currentVTable._offsetsMatch(vt2Start, _buf)) {
@@ -660,9 +660,9 @@ class Builder {
 
   int _writeString(String value) {
     // TODO(scheglov) optimize for ASCII strings
-    List<int> bytes = UTF8.encode(value);
+    List<int> bytes = utf8.encode(value);
     int length = bytes.length;
-    _prepare(4, 1, additionalBytes: length);
+    _prepare(4, 1, additionalBytes: length + 1);
     final int result = _tail;
     _setUint32AtTail(_buf, _tail, length);
     int offset = _buf.lengthInBytes - _tail + 4;
@@ -733,35 +733,35 @@ class Builder {
   }
 
   static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
-    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setFloat32AtTail(ByteData _buf, int tail, double x) {
-    _buf.setFloat32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setFloat32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setUint64AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setUint64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setInt64AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setInt64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setInt16AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt16(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setInt16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setUint16AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint16(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setUint16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setInt8AtTail(ByteData _buf, int tail, int x) {
@@ -943,7 +943,7 @@ class StringReader extends Reader<String> {
     if (_isLatin(bytes)) {
       return new String.fromCharCodes(bytes);
     }
-    return UTF8.decode(bytes);
+    return utf8.decode(bytes);
   }
 
   static bool _isLatin(Uint8List bytes) {
@@ -1207,7 +1207,7 @@ class _VTable {
     for (int i = 0; i < fieldOffsets.length; i++) {
       if (fieldOffsets[i] !=
           buf.getUint16(
-              vt2Start + _metadataLength + (2 * i), Endianness.LITTLE_ENDIAN)) {
+              vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
       }
     }
@@ -1227,14 +1227,14 @@ class _VTable {
   /// and have at least [numOfUint16] 16-bit words available.
   void output(ByteData buf, int bufOffset) {
     // VTable size.
-    buf.setUint16(bufOffset, numOfUint16 * 2, Endianness.LITTLE_ENDIAN);
+    buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
     // Table size.
-    buf.setUint16(bufOffset, tableSize, Endianness.LITTLE_ENDIAN);
+    buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
     for (int fieldOffset in fieldOffsets) {
-      buf.setUint16(bufOffset, fieldOffset, Endianness.LITTLE_ENDIAN);
+      buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
   }
