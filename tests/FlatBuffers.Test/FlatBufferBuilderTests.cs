@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+using System;
+
 namespace FlatBuffers.Test
 {
     [FlatBuffersTestClass]
@@ -242,6 +244,109 @@ namespace FlatBuffers.Test
             var fbb = CreateBuffer(false);
             var storedOffset = fbb.Offset;
             fbb.AddDouble(0, 0, 0);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_Array_Float()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+
+            const int len = 9;
+
+            // Construct the data array
+            var data = new float[len];
+            data[0] = 1.0079F;
+            data[1] = 4.0026F;
+            data[2] = 6.941F;
+            data[3] = 9.0122F;
+            data[4] = 10.811F;
+            data[5] = 12.0107F;
+            data[6] = 14.0067F;
+            data[7] = 15.9994F;
+            data[8] = 18.9984F;
+
+            fbb.Add(data);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset + sizeof(float) * data.Length);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_Array_Bool()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+
+            const int len = 9;
+
+            // Construct the data array
+            var data = new bool[len];
+            data[0] = true;
+            data[1] = true;
+            data[2] = false;
+            data[3] = true;
+            data[4] = false;
+            data[5] = true;
+            data[6] = true;
+            data[7] = true;
+            data[8] = false;
+
+            fbb.Add(data);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset + sizeof(bool) * data.Length);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_Array_Double()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+
+            const int len = 9;
+
+            // Construct the data array
+            var data = new double[len];
+            data[0] = 1.0079;
+            data[1] = 4.0026;
+            data[2] = 6.941;
+            data[3] = 9.0122;
+            data[4] = 10.811;
+            data[5] = 12.0107;
+            data[6] = 14.0067;
+            data[7] = 15.9994;
+            data[8] = 18.9984;
+
+            fbb.Add(data);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset + sizeof(double) * data.Length);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_Array_Null_Throws()
+        {
+            var fbb = CreateBuffer(false);
+
+            // Construct the data array
+            float[] data = null;
+
+            Assert.Throws<ArgumentNullException>(() => fbb.Add(data));
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_Array_Empty_Noop()
+        {
+            var fbb = CreateBuffer(false);
+
+            var storedOffset = fbb.Offset;
+
+            // Construct an empty data array
+            float[] data = new float[0];
+            fbb.Add(data);
+
+            // Make sure the offset didn't change since nothing
+            // was really added
             var endOffset = fbb.Offset;
             Assert.AreEqual(endOffset, storedOffset);
         }
