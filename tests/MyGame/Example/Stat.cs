@@ -19,7 +19,6 @@ public struct Stat : IFlatbufferObject
 
   public string Id { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
   public ArraySegment<byte>? GetIdBytes() { return __p.__vector_as_arraysegment(4); }
-  public byte[] GetIdArray() { return __p.__vector_as_array<byte>(4); }
   public long Val { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public bool MutateVal(long val) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutLong(o + __p.bb_pos, val); return true; } else { return false; } }
   public ushort Count { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
