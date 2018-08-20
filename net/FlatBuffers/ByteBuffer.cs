@@ -428,6 +428,8 @@ namespace FlatBuffers
             WriteLittleEndian(offset, sizeof(double), ulonghelper[0]);
         }
 
+#endif // UNSAFE_BYTEBUFFER
+
         /// <summary>
         /// Copies an array of type T into this buffer, ending at the given
         /// offset into this buffer. The starting offset is calculated based on the length
@@ -478,7 +480,7 @@ namespace FlatBuffers
         }
 
 
-#endif // UNSAFE_BYTEBUFFER
+
 
         public sbyte GetSbyte(int index)
         {
