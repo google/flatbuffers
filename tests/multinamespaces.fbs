@@ -1,0 +1,14 @@
+
+// Tests services with parameters defined inside different namespaces:
+namespace b;
+table B { }
+
+namespace a;
+table A { b:b.B; }
+
+rpc_service ServiceAB {
+  MethodAA(A): A;
+  MethodAB(A): b.B;
+  MethodBA(b.B): A;
+  MethodBB(b.B): b.B;
+}

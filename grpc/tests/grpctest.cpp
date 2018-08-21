@@ -20,6 +20,8 @@
 
 #include "monster_test.grpc.fb.h"
 #include "monster_test_generated.h"
+#include "multinamespaces.grpc.fb.h"
+#include "multinamespaces_generated.h"
 
 using namespace MyGame::Example;
 int builder_tests();

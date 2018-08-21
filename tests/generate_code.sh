@@ -19,6 +19,7 @@
 ../flatc --cpp --js --ts --php --gen-mutable --reflect-names --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
 ../flatc -b --schema --bfbs-comments -I include_test monster_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
+../flatc --cpp --grpc --gen-mutable --reflect-names --gen-object-api --no-includes --cpp-ptr-type flatbuffers::unique_ptr multinamespaces.fbs
 cd ../samples
 ../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 cd ../reflection

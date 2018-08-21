@@ -33,13 +33,47 @@
 
 namespace flatbuffers {
 
+namespace {
+
+class GRPCGenerator : public flatbuffers::BaseGenerator {
+ public:
+  enum Language { kLanguageGo, kLanguageCpp, kLanguageJava };
+
+  GRPCGenerator(const Parser &parser, const std::string &path,
+                const std::string &file_name, Language language)
+      : flatbuffers::BaseGenerator(parser, path, file_name, "",
+                                   ((language == kLanguageCpp) ? "::" : ".")),
+        language_(language) {}
+
+  virtual ~GRPCGenerator() {}
+
+  const Namespace *CurrentNameSpace() const {
+    return parser_.current_namespace_;
+  }
+
+  using flatbuffers::BaseGenerator::WrapInNameSpace;
+
+  const Parser &GetParser() const { return parser_; }
+
+  const std::string &GetPath() const { return path_; }
+
+  const std::string &GetFileName() const { return file_name_; }
+
+  Language GetLanguage() const { return language_; }
+
+ private:
+  Language language_;
+};
+}  // namespace
+
 class FlatBufMethod : public grpc_generator::Method {
  public:
   enum Streaming {
     kNone, kClient, kServer, kBiDi
   };
 
-  FlatBufMethod(const RPCCall *method) : method_(method) {
+  FlatBufMethod(const GRPCGenerator &generator, const RPCCall *method)
+      : generator_(generator), method_(method) {
     streaming_ = kNone;
     auto val = method_->attributes.Lookup("streaming");
     if (val) {
@@ -60,7 +94,7 @@ class FlatBufMethod : public grpc_generator::Method {
   std::string name() const { return method_->name; }
 
   std::string GRPCType(const StructDef &sd) const {
-    return "flatbuffers::grpc::Message<" + sd.name + ">";
+    return "flatbuffers::grpc::Message<" + generator_.WrapInNameSpace(sd) + ">";
   }
 
   std::string get_input_type_name() const { return (*method_->request).name; }
@@ -93,13 +127,15 @@ class FlatBufMethod : public grpc_generator::Method {
   bool BidiStreaming() const { return streaming_ == kBiDi; }
 
  private:
+  const GRPCGenerator &generator_;
   const RPCCall *method_;
   Streaming streaming_;
 };
 
 class FlatBufService : public grpc_generator::Service {
  public:
-  FlatBufService(const ServiceDef *service) : service_(service) {}
+  FlatBufService(const GRPCGenerator &generator, const ServiceDef *service)
+      : generator_(generator), service_(service) {}
 
   grpc::string GetLeadingComments(const grpc::string) const { return ""; }
 
@@ -117,10 +153,11 @@ class FlatBufService : public grpc_generator::Service {
 
   std::unique_ptr<const grpc_generator::Method> method(int i) const {
     return std::unique_ptr<const grpc_generator::Method>(
-        new FlatBufMethod(service_->calls.vec[i]));
+        new FlatBufMethod(generator_, service_->calls.vec[i]));
   };
 
  private:
+  const GRPCGenerator &generator_;
   const ServiceDef *service_;
 };
 
@@ -182,13 +219,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
 
 class FlatBufFile : public grpc_generator::File {
  public:
-  enum Language {
-    kLanguageGo, kLanguageCpp, kLanguageJava
-  };
-
-  FlatBufFile(const Parser &parser, const std::string &file_name,
-              Language language)
-      : parser_(parser), file_name_(file_name), language_(language) {}
+  FlatBufFile(const GRPCGenerator &generator) : generator_(generator) {}
 
   FlatBufFile &operator=(const FlatBufFile &);
 
@@ -200,10 +231,10 @@ class FlatBufFile : public grpc_generator::File {
     return std::vector<grpc::string>();
   }
 
-  std::string filename() const { return file_name_; }
+  std::string filename() const { return generator_.GetFileName(); }
 
   std::string filename_without_ext() const {
-    return StripExtension(file_name_);
+    return StripExtension(generator_.GetFileName());
   }
 
   std::string message_header_ext() const { return "_generated.h"; }
@@ -211,22 +242,22 @@ class FlatBufFile : public grpc_generator::File {
   std::string service_header_ext() const { return ".grpc.fb.h"; }
 
   std::string package() const {
-    return parser_.current_namespace_->GetFullyQualifiedName("");
+    return generator_.GetParser().current_namespace_->GetFullyQualifiedName("");
   }
 
   std::vector<std::string> package_parts() const {
-    return parser_.current_namespace_->components;
+    return generator_.GetParser().current_namespace_->components;
   }
 
   std::string additional_headers() const {
-    switch (language_) {
-      case kLanguageCpp: {
+    switch (generator_.GetLanguage()) {
+      case GRPCGenerator::kLanguageCpp: {
         return "#include \"flatbuffers/grpc.h\"\n";
       }
-      case kLanguageGo: {
+      case GRPCGenerator::kLanguageGo: {
         return "import \"github.com/google/flatbuffers/go\"";
       }
-      case kLanguageJava: {
+      case GRPCGenerator::kLanguageJava: {
         return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
       }
     }
@@ -234,12 +265,12 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   int service_count() const {
-    return static_cast<int>(parser_.services_.vec.size());
+    return static_cast<int>(generator_.GetParser().services_.vec.size());
   };
 
   std::unique_ptr<const grpc_generator::Service> service(int i) const {
     return std::unique_ptr<const grpc_generator::Service>(
-        new FlatBufService(parser_.services_.vec[i]));
+        new FlatBufService(generator_, generator_.GetParser().services_.vec[i]));
   }
 
   std::unique_ptr<grpc_generator::Printer> CreatePrinter(
@@ -248,29 +279,25 @@ class FlatBufFile : public grpc_generator::File {
   }
 
  private:
-  const Parser &parser_;
-  const std::string &file_name_;
-  const Language language_;
+  const GRPCGenerator &generator_;
 };
 
-class GoGRPCGenerator : public flatbuffers::BaseGenerator {
+class GoGRPCGenerator : public GRPCGenerator {
  public:
   GoGRPCGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "" /*Unused*/),
-        parser_(parser),
-        path_(path),
-        file_name_(file_name) {}
+      : GRPCGenerator(parser, path, file_name, kLanguageGo) {}
 
   bool generate() {
-    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageGo);
+    FlatBufFile file(*this);
     grpc_go_generator::Parameters p;
     p.custom_method_io_type = "flatbuffers.Builder";
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
-      const Definition *def = parser_.services_.vec[i];
+      const Definition *def = GetParser().services_.vec[i];
       p.package_name = LastNamespacePart(*(def->defined_namespace));
-      p.service_prefix = def->defined_namespace->GetFullyQualifiedName(""); // file.package();
+      p.service_prefix =
+          def->defined_namespace->GetFullyQualifiedName("");  // file.package();
       std::string output =
           grpc_go_generator::GenerateServiceSource(&file, service.get(), &p);
       std::string filename =
@@ -279,10 +306,6 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
     }
     return true;
   }
-
- protected:
-  const Parser &parser_;
-  const std::string &path_, &file_name_;
 };
 
 bool GenerateGoGRPC(const Parser &parser, const std::string &path,
@@ -296,6 +319,38 @@ bool GenerateGoGRPC(const Parser &parser, const std::string &path,
   return GoGRPCGenerator(parser, path, file_name).generate();
 }
 
+class CppGRPCGenerator : public GRPCGenerator {
+ public:
+  CppGRPCGenerator(const Parser &parser, const std::string &path,
+                   const std::string &file_name)
+      : GRPCGenerator(parser, path, file_name, kLanguageCpp) {}
+
+  bool generate() {
+    grpc_cpp_generator::Parameters generator_parameters;
+    // TODO(wvo): make the other parameters in this struct configurable.
+    generator_parameters.use_system_headers = true;
+
+    FlatBufFile fbfile(*this);
+
+    std::string header_code =
+        grpc_cpp_generator::GetHeaderPrologue(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetHeaderIncludes(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetHeaderServices(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetHeaderEpilogue(&fbfile, generator_parameters);
+
+    std::string source_code =
+        grpc_cpp_generator::GetSourcePrologue(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetSourceIncludes(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
+        grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
+
+    return flatbuffers::SaveFile((GetPath() + GetFileName() + ".grpc.fb.h").c_str(),
+                                 header_code, false) &&
+           flatbuffers::SaveFile((GetPath() + GetFileName() + ".grpc.fb.cc").c_str(),
+                                 source_code, false);
+  }
+};
+
 bool GenerateCppGRPC(const Parser &parser, const std::string &path,
                      const std::string &file_name) {
   int nservices = 0;
@@ -305,42 +360,21 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
   }
   if (!nservices) return true;
 
-  grpc_cpp_generator::Parameters generator_parameters;
-  // TODO(wvo): make the other parameters in this struct configurable.
-  generator_parameters.use_system_headers = true;
-
-  FlatBufFile fbfile(parser, file_name, FlatBufFile::kLanguageCpp);
-
-  std::string header_code =
-      grpc_cpp_generator::GetHeaderPrologue(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetHeaderIncludes(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetHeaderServices(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetHeaderEpilogue(&fbfile, generator_parameters);
-
-  std::string source_code =
-      grpc_cpp_generator::GetSourcePrologue(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetSourceIncludes(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
-          grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
-
-  return flatbuffers::SaveFile((path + file_name + ".grpc.fb.h").c_str(),
-                               header_code, false) &&
-      flatbuffers::SaveFile((path + file_name + ".grpc.fb.cc").c_str(),
-                            source_code, false);
+  return CppGRPCGenerator(parser, path, file_name).generate();
 }
 
-class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
+class JavaGRPCGenerator : public GRPCGenerator {
  public:
   JavaGRPCGenerator(const Parser &parser, const std::string &path,
                     const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "." /*separator*/) {}
+      : GRPCGenerator(parser, path, file_name, kLanguageJava) {}
 
   bool generate() {
-    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
+    FlatBufFile file(*this);
     grpc_java_generator::Parameters p;
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
-      const Definition *def = parser_.services_.vec[i];
+      const Definition *def = GetParser().services_.vec[i];
       p.package_name =
           def->defined_namespace->GetFullyQualifiedName("");  // file.package();
       std::string output =
