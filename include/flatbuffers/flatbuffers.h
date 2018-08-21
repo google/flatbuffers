@@ -600,6 +600,21 @@ class vector_downward {
   }
 
   // Relinquish the pointer to the caller.
+  uint8_t *release_raw(size_t &size, size_t &offset) {
+    uint8_t *buf = buf_;
+    size = reserved_;
+    offset = static_cast<size_t>(cur_ - buf_);
+
+    if (own_allocator_ && allocator_) { delete allocator_; }
+
+    allocator_ = nullptr;
+    own_allocator_ = false;
+    buf_ = nullptr;
+    clear();
+    return buf;
+  }
+
+  // Relinquish the pointer to the caller.
   DetachedBuffer release() {
     DetachedBuffer fb(allocator_, own_allocator_, buf_, reserved_, cur_,
                       size());
@@ -825,6 +840,19 @@ class FlatBufferBuilder {
   DetachedBuffer Release() {
     Finished();
     return buf_.release();
+  }
+
+  /// @brief Get the released pointer to the serialized buffer.
+  /// @param The size of the memory block containing 
+  /// the serialized `FlatBuffer`.
+  /// @param The offset from the released pointer where the finished 
+  /// `FlatBuffer` starts.
+  /// @return A raw pointer to the start of the memory block containing 
+  /// the serialized `FlatBuffer`. 
+  /// @remark If the allocator is owned, it get deleted during this call.
+  uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
+    Finished();
+    return buf_.release_raw(size, offset);
   }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
