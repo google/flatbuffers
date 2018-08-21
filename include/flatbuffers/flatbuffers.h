@@ -849,7 +849,7 @@ class FlatBufferBuilder {
   /// `FlatBuffer` starts.
   /// @return A raw pointer to the start of the memory block containing 
   /// the serialized `FlatBuffer`. 
-  /// @remark If the allocator is owned, it get deleted during this call.
+  /// @remark If the allocator is owned, it gets deleted during this call.
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
     return buf_.release_raw(size, offset);
