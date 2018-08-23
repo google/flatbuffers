@@ -596,15 +596,13 @@ class vector_downward {
     scratch_ = buf_;
   }
 
-  void clear_allocator()
-  {
+  void clear_allocator() {
     if (own_allocator_ && allocator_) { delete allocator_; }
     allocator_ = nullptr;
     own_allocator_ = false;
   }
 
-  void clear_buffer()
-  {
+  void clear_buffer() {
     if (buf_) Deallocate(allocator_, buf_, reserved_);
     buf_ = nullptr;
   }
