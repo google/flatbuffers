@@ -93,6 +93,9 @@ def CheckReadBuffer(buf, offset, sizePrefix = False):
         buf, offset = util.RemoveSizePrefix(buf, offset)
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
+    # verify the file identifier
+    asserter(MyGame.GetFileIdentifier() == 'MONS')
+
     asserter(monster.Hp() == 80)
     asserter(monster.Mana() == 150)
     asserter(monster.Name() == b'MyMonster')
