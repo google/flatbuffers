@@ -683,6 +683,19 @@ class PythonGenerator : public BaseGenerator {
     return true;
   }
 
+  std::string genFileIdentifier(const std::string namespace_dir) {
+      std::string code = "";
+      BeginFile(namespace_dir, false, &code);
+      code += "def GetFileIdentifier():";
+      code += "\n";
+      code += "    return ";
+      code += "\"";
+      code += parser_.file_identifier_;
+      code += "\"";
+      code += "\n";
+      return code;
+  }
+
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string name_space_name, const bool needs_imports,
                  std::string *code_ptr) {
@@ -702,9 +715,16 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
       if (it != namespaces.begin()) namespace_dir += kPathSeparator;
       namespace_dir += *it;
-      std::string init_py_filename = namespace_dir + "/__init__.py";
-      SaveFile(init_py_filename.c_str(), "", false);
+      if (it + 1 == namespaces.end()) {
+          std::string code = "";
+          if (namespaces.size() == 1) {
+            code = genFileIdentifier(LastNamespacePart(*def.defined_namespace));
+          }
+        std::string init_py_filename = namespace_dir + "/__init__.py";
+        SaveFile(init_py_filename.c_str(), code, false);
+      }
     }
+
 
     std::string code = "";
     BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);

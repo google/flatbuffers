@@ -43,7 +43,7 @@ fooTable(obj?:NS9459827973991502386.NamespaceA.NamespaceB.TableInNestedNS):NS945
  */
 fooEnum():NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS {
   var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS.A;
+  return offset ? /** @type {NamespaceA.NamespaceB.EnumInNestedNS} */ (this.bb!.readInt8(this.bb_pos + offset)) : NS9459827973991502386.NamespaceA.NamespaceB.EnumInNestedNS.A;
 };
 
 /**

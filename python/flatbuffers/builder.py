@@ -78,6 +78,7 @@ class BuilderNotFinishedError(RuntimeError):
 # VtableMetadataFields is the count of metadata fields in each vtable.
 VtableMetadataFields = 2
 ## @endcond
+FileIdentifierLength = 4
 
 class Builder(object):
     """ A Builder is used to construct one or more FlatBuffers.
@@ -482,31 +483,40 @@ class Builder(object):
         self.current_vtable[slotnum] = self.Offset()
     ## @endcond
 
-    def __Finish(self, rootTable, sizePrefix):
+    def __Finish(self, rootTable, fileIdentifier, sizePrefix):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
         prepSize = N.UOffsetTFlags.bytewidth
         if sizePrefix:
             prepSize += N.Int32Flags.bytewidth
+        if fileIdentifier:
+            prepSize += FileIdentifierLength
         self.Prep(self.minalign, prepSize)
+
+        if fileIdentifier:
+            b = bytes(fileIdentifier, encoding='utf-8')
+            for i in reversed(b):
+                self.PrependByte(i)
+
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
             N.enforce_number(size, N.Int32Flags)
             self.PrependInt32(size)
+
         self.finished = True
         return self.Head()
 
-    def Finish(self, rootTable):
+    def Finish(self, rootTable, fileIdentifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        return self.__Finish(rootTable, False)
+        return self.__Finish(rootTable, fileIdentifier, False)
 
-    def FinishSizePrefixed(self, rootTable):
+    def FinishSizePrefixed(self, rootTable, fileIdentifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
         with the size prefixed.
         """
-        return self.__Finish(rootTable, True)
+        return self.__Finish(rootTable, fileIdentifier, True)
 
     ## @cond FLATBUFFERS_INTERNAL
     def Prepend(self, flags, off):
