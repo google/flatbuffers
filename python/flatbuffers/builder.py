@@ -494,7 +494,7 @@ class Builder(object):
         self.Prep(self.minalign, prepSize)
 
         if fileIdentifier:
-            b = bytes(fileIdentifier, encoding='utf-8')
+            b = list(map(ord, fileIdentifier))
             for i in reversed(b):
                 self.PrependByte(i)
 

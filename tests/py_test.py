@@ -883,9 +883,9 @@ def make_monster_from_generated_code(sizePrefix = False):
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     if sizePrefix:
-        b.FinishSizePrefixed(mon)
+        b.FinishSizePrefixed(mon, MyGame.GetFileIdentifier())
     else:
-        b.Finish(mon)
+        b.Finish(mon, MyGame.GetFileIdentifier())
 
     return b.Bytes, b.Head()
 
