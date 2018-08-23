@@ -573,15 +573,12 @@ class vector_downward {
         scratch_(nullptr) {}
 
   ~vector_downward() {
-    if (buf_) Deallocate(allocator_, buf_, reserved_);
-    if (own_allocator_ && allocator_) { delete allocator_; }
+    clear_buffer();
+    clear_allocator();
   }
 
   void reset() {
-    if (buf_) {
-      Deallocate(allocator_, buf_, reserved_);
-      buf_ = nullptr;
-    }
+    clear_buffer();
     clear();
   }
 
@@ -599,17 +596,27 @@ class vector_downward {
     scratch_ = buf_;
   }
 
+  void clear_allocator()
+  {
+    if (own_allocator_ && allocator_) { delete allocator_; }
+    allocator_ = nullptr;
+    own_allocator_ = false;
+  }
+
+  void clear_buffer()
+  {
+    if (buf_) Deallocate(allocator_, buf_, reserved_);
+    buf_ = nullptr;
+  }
+
   // Relinquish the pointer to the caller.
   uint8_t *release_raw(size_t &size, size_t &offset) {
     uint8_t *buf = buf_;
     size = reserved_;
     offset = static_cast<size_t>(cur_ - buf_);
 
-    if (own_allocator_ && allocator_) { delete allocator_; }
-
-    allocator_ = nullptr;
-    own_allocator_ = false;
     buf_ = nullptr;
+    clear_allocator();
     clear();
     return buf;
   }
