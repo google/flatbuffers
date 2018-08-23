@@ -611,7 +611,7 @@ class vector_downward {
 
   // Relinquish the pointer to the caller.
   uint8_t *release_raw(size_t &size, size_t &offset) {
-    uint8_t *buf = buf_;
+    auto *buf = buf_;
     size = reserved_;
     offset = static_cast<size_t>(cur_ - buf_);
 
