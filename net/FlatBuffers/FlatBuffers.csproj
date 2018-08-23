@@ -10,4 +10,7 @@
     <PackageLicenseUrl>https://github.com/google/flatbuffers/blob/master/LICENSE.txt</PackageLicenseUrl>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.1" />
+  </ItemGroup>
 </Project>

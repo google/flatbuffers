@@ -63,6 +63,17 @@ namespace FlatBuffers
         }
 
         /// <summary>
+        /// Create a FlatBufferBuilder backed by the pased in ByteBuffer
+        /// </summary>
+        /// <param name="buffer">The ByteBuffer to write to</param>
+        public FlatBufferBuilder(ByteBuffer buffer)
+        {
+            _bb = buffer;
+            _space = buffer.Length;
+            buffer.Reset();
+        }
+
+        /// <summary>
         /// Reset the FlatBufferBuilder by purging all data that it holds.
         /// </summary>
         public void Clear()
@@ -191,6 +202,20 @@ namespace FlatBuffers
             _space = _bb.Put(_space, x);
         }
 
+#if ENABLE_SPAN_T
+        /// <summary>
+        /// Puts a span of type T into this builder at the 
+        /// current offset
+        /// </summary>
+        /// <typeparam name="T">The type of the input data </typeparam>
+        /// <param name="x">The span to copy data from</param>
+        public void Put<T>(Span<T> x)
+            where T : struct
+        {
+            _space = _bb.Put(_space, x);
+        }
+#endif
+
         public void PutDouble(double x)
         {
             _bb.PutDouble(_space -= sizeof(double), x);
@@ -287,6 +312,28 @@ namespace FlatBuffers
             Prep(size, size * (x.Length - 1));
             Put(x);
         }
+
+#if ENABLE_SPAN_T
+        /// <summary>
+        /// Add a span of type T to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <typeparam name="T">The type of the input data</typeparam>
+        /// <param name="x">The span to copy data from</param>
+        public void Add<T>(Span<T> x)
+            where T : struct
+        {
+            if (!ByteBuffer.IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot add this Type array to the builder");
+            }
+
+            int size = ByteBuffer.SizeOf<T>();
+            // Need to prep on size (for data alignment) and then we pass the
+            // rest of the length (minus 1) as additional bytes
+            Prep(size, size * (x.Length - 1));
+            Put(x);
+        }
+#endif
 
         /// <summary>
         /// Add a `double` to the buffer (aligns the data and grows if necessary).
@@ -511,6 +558,27 @@ namespace FlatBuffers
             return new StringOffset(EndVector().Value);
         }
 
+
+#if ENABLE_SPAN_T
+        /// <summary>
+        /// Creates a string in the buffer from a Span containing
+        /// a UTF8 string.
+        /// </summary>
+        /// <param name="chars">the UTF8 string to add to the buffer</param>
+        /// <returns>
+        /// The offset in the buffer where the encoded string starts.
+        /// </returns>
+        public StringOffset CreateUTF8String(Span<byte> chars)
+        {
+            NotNested();
+            AddByte(0);
+            var utf8StringLen = chars.Length;
+            StartVector(1, utf8StringLen, 1);
+            _space = _bb.Put(_space, chars);
+            return new StringOffset(EndVector().Value);
+        }
+#endif
+
         /// @cond FLATBUFFERS_INTERNAL
         // Structs are stored inline, so nothing additional is being added.
         // `d` is always 0.
@@ -568,7 +636,7 @@ namespace FlatBuffers
                     break;
                 }
 
-            endLoop: { }
+                endLoop: { }
             }
 
             if (existingVtable != 0) {

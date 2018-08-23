@@ -19,7 +19,12 @@ public struct Movie : IFlatbufferObject
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharactersTypeBytes() { return __p.__vector_as_span(8); }
+#else
   public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8); }
+#endif
+  public Character[] GetCharactersTypeArray() { return __p.__vector_as_array<Character>(8); }
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 
@@ -41,9 +46,11 @@ public struct Movie : IFlatbufferObject
   public static void AddMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.AddOffset(1, mainCharacterOffset, 0); }
   public static void AddCharactersType(FlatBufferBuilder builder, VectorOffset charactersTypeOffset) { builder.AddOffset(2, charactersTypeOffset.Value, 0); }
   public static VectorOffset CreateCharactersTypeVector(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCharactersTypeVectorBlock(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersTypeVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddCharacters(FlatBufferBuilder builder, VectorOffset charactersOffset) { builder.AddOffset(3, charactersOffset.Value, 0); }
   public static VectorOffset CreateCharactersVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCharactersVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<Movie> EndMovie(FlatBufferBuilder builder) {
     int o = builder.EndObject();
