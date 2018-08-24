@@ -494,9 +494,8 @@ class Builder(object):
         self.Prep(self.minalign, prepSize)
 
         if fileIdentifier:
-            b = list(map(ord, fileIdentifier))
-            for i in reversed(b):
-                self.PrependByte(i)
+            for i in reversed(fileIdentifier):
+                self.PrependByte(ord(i))
 
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:

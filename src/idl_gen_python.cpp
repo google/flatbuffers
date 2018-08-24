@@ -686,13 +686,9 @@ class PythonGenerator : public BaseGenerator {
   std::string genFileIdentifier(const std::string namespace_dir) {
       std::string code = "";
       BeginFile(namespace_dir, false, &code);
-      code += "def GetFileIdentifier():";
-      code += "\n";
-      code += "    return ";
-      code += "\"";
+      code += "def GetFileIdentifier():\n    return \"";
       code += parser_.file_identifier_;
-      code += "\"";
-      code += "\n";
+      code += "\"\n";
       return code;
   }
 
