@@ -573,15 +573,12 @@ class vector_downward {
         scratch_(nullptr) {}
 
   ~vector_downward() {
-    if (buf_) Deallocate(allocator_, buf_, reserved_);
-    if (own_allocator_ && allocator_) { delete allocator_; }
+    clear_buffer();
+    clear_allocator();
   }
 
   void reset() {
-    if (buf_) {
-      Deallocate(allocator_, buf_, reserved_);
-      buf_ = nullptr;
-    }
+    clear_buffer();
     clear();
   }
 
@@ -597,6 +594,29 @@ class vector_downward {
 
   void clear_scratch() {
     scratch_ = buf_;
+  }
+
+  void clear_allocator() {
+    if (own_allocator_ && allocator_) { delete allocator_; }
+    allocator_ = nullptr;
+    own_allocator_ = false;
+  }
+
+  void clear_buffer() {
+    if (buf_) Deallocate(allocator_, buf_, reserved_);
+    buf_ = nullptr;
+  }
+
+  // Relinquish the pointer to the caller.
+  uint8_t *release_raw(size_t &allocated_bytes, size_t &offset) {
+    auto *buf = buf_;
+    allocated_bytes = reserved_;
+    offset = static_cast<size_t>(cur_ - buf_);
+
+    buf_ = nullptr;
+    clear_allocator();
+    clear();
+    return buf;
   }
 
   // Relinquish the pointer to the caller.
@@ -825,6 +845,19 @@ class FlatBufferBuilder {
   DetachedBuffer Release() {
     Finished();
     return buf_.release();
+  }
+
+  /// @brief Get the released pointer to the serialized buffer.
+  /// @param The size of the memory block containing 
+  /// the serialized `FlatBuffer`.
+  /// @param The offset from the released pointer where the finished 
+  /// `FlatBuffer` starts.
+  /// @return A raw pointer to the start of the memory block containing 
+  /// the serialized `FlatBuffer`. 
+  /// @remark If the allocator is owned, it gets deleted during this call.
+  uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
+    Finished();
+    return buf_.release_raw(size, offset);
   }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
