@@ -367,9 +367,9 @@ class Reference {
   bool IsNumeric() const { return IsIntOrUint() || IsFloat(); }
   bool IsString() const { return type_ == FBT_STRING; }
   bool IsKey() const { return type_ == FBT_KEY; }
-  bool IsTypedVectorElementType() const { return flexbuffers::IsTypedVectorElementType(type_); }
   bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
   bool IsTypedVector() const { return flexbuffers::IsTypedVector(type_); }
+  bool IsTypedVectorElementType() const { return flexbuffers::IsTypedVectorElementType(type_); }
   bool IsFixedTypedVector() const { return flexbuffers::IsFixedTypedVector(type_); }
   bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
   bool IsMap() const { return type_ == FBT_MAP; }
