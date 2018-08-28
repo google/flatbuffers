@@ -452,6 +452,9 @@ class Builder(object):
         if not isinstance(x, np.ndarray):
             raise TypeError("non-numpy-ndarray passed to CreateNumpyVector")
 
+        if x.dtype.kind not in ['b', 'i', 'u', 'f']:
+            raise TypeError("numpy-ndarray holds elements of unsupported datatype")
+
         if x.ndim > 1:
             raise TypeError("multidimensional-ndarray passed to CreateNumpyVector")
 
