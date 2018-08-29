@@ -16,6 +16,7 @@
 *.keystore
 **/.vs/**
 **/bin/**
+!tests/rust_usage_test/bin/**
 **/gen/**
 **/libs/**
 **/obj/**
