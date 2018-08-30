@@ -572,6 +572,32 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
+  vector_downward(vector_downward &&other)
+    : allocator_(other.allocator_),
+      own_allocator_(other.own_allocator_),
+      initial_size_(other.initial_size_),
+      buffer_minalign_(other.buffer_minalign_),
+      reserved_(other.reserved_),
+      buf_(other.buf_),
+      cur_(other.cur_),
+      scratch_(other.scratch_) {
+    other.allocator_ = nullptr;
+    other.own_allocator_ = false;
+    // No change in other.initial_size_
+    // No change in other.buffer_minalign_
+    other.reserved_ = 0;
+    other.buf_ = nullptr;
+    other.cur_ = nullptr;
+    other.scratch_ = nullptr;
+  }
+
+  vector_downward &operator=(vector_downward &&other) {
+    // Move construct a temporary and swap idiom
+    vector_downward temp(std::move(other));
+    swap(temp);
+    return *this;
+  }
+
   ~vector_downward() {
     clear_buffer();
     clear_allocator();
@@ -706,6 +732,24 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
   void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
+  void swap(vector_downward &other) {
+    using std::swap;
+    swap(allocator_, other.allocator_);
+    swap(own_allocator_, other.own_allocator_);
+    swap(initial_size_, other.initial_size_);
+    swap(buffer_minalign_, other.buffer_minalign_);
+    swap(reserved_, other.reserved_);
+    swap(buf_, other.buf_);
+    swap(cur_, other.cur_);
+    swap(scratch_, other.scratch_);
+  }
+
+  void swap_allocator(vector_downward &other) {
+    using std::swap;
+    swap(allocator_, other.allocator_);
+    swap(own_allocator_, other.own_allocator_);
+  }
+
  private:
   // You shouldn't really be copying instances of this class.
   FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
@@ -792,6 +836,44 @@ class FlatBufferBuilder {
         dedup_vtables_(true),
         string_pool(nullptr) {
     EndianCheck();
+  }
+
+  /// @brief Move constructor for FlatBufferBuilder.
+  FlatBufferBuilder(FlatBufferBuilder &&other)
+    : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
+      num_field_loc(0),
+      max_voffset_(0),
+      nested(false),
+      finished(false),
+      minalign_(1),
+      force_defaults_(false),
+      dedup_vtables_(true),
+      string_pool(nullptr) {
+    EndianCheck();
+    // Default construct and swap idiom.
+    // Lack of delegating constructors in vs2010 makes it more verbose than needed.
+    Swap(other);
+  }
+
+  /// @brief Move assignment operator for FlatBufferBuilder.
+  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) {
+    // Move construct a temporary and swap idiom
+    FlatBufferBuilder temp(std::move(other));
+    Swap(temp);
+    return *this;
+  }
+
+  void Swap(FlatBufferBuilder &other) {
+    using std::swap;
+    buf_.swap(other.buf_);
+    swap(num_field_loc, other.num_field_loc);
+    swap(max_voffset_, other.max_voffset_);
+    swap(nested, other.nested);
+    swap(finished, other.finished);
+    swap(minalign_, other.minalign_);
+    swap(force_defaults_, other.force_defaults_);
+    swap(dedup_vtables_, other.dedup_vtables_);
+    swap(string_pool, other.string_pool);
   }
 
   ~FlatBufferBuilder() {
