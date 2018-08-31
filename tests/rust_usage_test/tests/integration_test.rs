@@ -49,7 +49,11 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
         let inventory = builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..]);
         let test4 = builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
                                                    my_game::example::Test::new(30, 40)]);
+
+        // can't inline creation of this Vec3 because we refer to it by reference, so it must live
+        // long enough to be used by MonsterArgs.
         let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
+
         let args = my_game::example::MonsterArgs{
             hp: 80,
             mana: 150,
