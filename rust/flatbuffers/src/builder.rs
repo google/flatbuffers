@@ -136,7 +136,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// the default, then this is a no-op.
     #[inline]
     pub fn push_slot<X: Push + PartialEq>(&mut self, slotoff: VOffsetT, x: X, default: X) {
-        self.assert_nested("push_slot must be called after start_table");
+        self.assert_nested("push_slot");
         if x == default {
             return;
         }
@@ -147,7 +147,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// store a reference to it in the in-progress vtable.
     #[inline]
     pub fn push_slot_always<X: Push>(&mut self, slotoff: VOffsetT, x: X) {
-        self.assert_nested("push_slot_always must be called after start_table");
+        self.assert_nested("push_slot_always");
         let off = self.push(x);
         self.track_field(slotoff, off.value());
     }
@@ -177,7 +177,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Asserts that the builder is in a nested state.
     #[inline]
     pub fn end_table(&mut self, off: WIPOffset<TableUnfinishedWIPOffset>) -> WIPOffset<TableFinishedWIPOffset> {
-        self.assert_nested("end_table must be called after a call to start_table");
+        self.assert_nested("end_table");
 
         let o = self.write_vtable(off);
 
@@ -210,7 +210,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Asserts that the builder is in a nested state.
     #[inline]
     pub fn end_vector<T: 'fbb>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
-        self.assert_nested("end_vector must be called after a call to start_vector");
+        self.assert_nested("end_vector");
         self.nested = false;
         let o = self.push::<UOffsetT>(num_elems as UOffsetT);
         WIPOffset::new(o.value())
@@ -350,7 +350,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Write the VTable, if needed.
     // TODO(rw): simplify this function
     fn write_vtable(&mut self, table_tail_revloc: WIPOffset<TableUnfinishedWIPOffset>) -> WIPOffset<VTableWIPOffset> {
-        self.assert_nested("write_vtable must be called after a call to start_table");
+        self.assert_nested("write_vtable");
 
         // Write the vtable offset, which is the start of any Table.
         // We fill its value later.
@@ -580,10 +580,10 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.head
     }
     #[inline]
-    fn assert_nested(&self, msg: &'static str) {
+    fn assert_nested(&self, fn_name: &'static str) {
         // we don't assert that self.field_locs.len() >0 because the vtable
         // could be empty (e.g. for empty tables, or for all-default values).
-        debug_assert!(self.nested, msg);
+        debug_assert!(self.nested, format!("incorrect FlatBufferBuilder usage: {} must be called while in a nested state", fn_name));
     }
     #[inline]
     fn assert_not_nested(&self, msg: &'static str) {
