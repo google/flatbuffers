@@ -15,6 +15,7 @@
  */
 
 use std::marker::PhantomData;
+use std::mem::size_of;
 use std::ops::Deref;
 
 use endian_scalar::{emplace_scalar, read_scalar, read_scalar_at};
@@ -27,26 +28,26 @@ pub const FILE_IDENTIFIER_LENGTH: usize = 4;
 
 pub const VTABLE_METADATA_FIELDS: usize = 2;
 
-pub const SIZE_U8: usize = 1;
-pub const SIZE_I8: usize = 1;
+pub const SIZE_U8: usize = size_of::<u8>();
+pub const SIZE_I8: usize = size_of::<i8>();
 
-pub const SIZE_U16: usize = 2;
-pub const SIZE_I16: usize = 2;
+pub const SIZE_U16: usize = size_of::<u16>();
+pub const SIZE_I16: usize = size_of::<i16>();
 
-pub const SIZE_U32: usize = 4;
-pub const SIZE_I32: usize = 4;
+pub const SIZE_U32: usize = size_of::<u32>();
+pub const SIZE_I32: usize = size_of::<i32>();
 
-pub const SIZE_U64: usize = 8;
-pub const SIZE_I64: usize = 8;
+pub const SIZE_U64: usize = size_of::<u64>();
+pub const SIZE_I64: usize = size_of::<i64>();
 
-pub const SIZE_F32: usize = 4;
-pub const SIZE_F64: usize = 8;
+pub const SIZE_F32: usize = size_of::<f32>();
+pub const SIZE_F64: usize = size_of::<f64>();
 
 pub const SIZE_SOFFSET: usize = SIZE_I32;
 pub const SIZE_UOFFSET: usize = SIZE_U32;
 pub const SIZE_VOFFSET: usize = SIZE_I16;
 
-pub const SIZE_SIZEPREFIX: usize = SIZE_U32;
+pub const SIZE_SIZEPREFIX: usize = SIZE_UOFFSET;
 
 /// SOffsetT is an i32 that is used by tables to reference their vtables.
 pub type SOffsetT = i32;
