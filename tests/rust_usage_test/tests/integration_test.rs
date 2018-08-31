@@ -41,6 +41,43 @@ impl LCG {
     }
 }
 
+// test helper macro to return an error if two expressions are not equal
+macro_rules! check_eq {
+    ($field_call:expr, $want:expr) => (
+        if $field_call == $want {
+            Ok(())
+        } else {
+            Err(stringify!($field_call))
+        }
+    )
+}
+
+#[test]
+fn macro_check_eq() {
+    assert!(check_eq!(1, 1).is_ok());
+    assert!(check_eq!(1, 2).is_err());
+}
+
+// test helper macro to return an error if two expressions are equal
+macro_rules! check_is_some {
+    ($field_call:expr) => (
+        if $field_call.is_some() {
+            Ok(())
+        } else {
+            Err(stringify!($field_call))
+        }
+    )
+}
+
+#[test]
+fn macro_check_is_some() {
+    let some: Option<usize> = Some(0);
+    let none: Option<usize> = None;
+    assert!(check_is_some!(some).is_ok());
+    assert!(check_is_some!(none).is_err());
+}
+
+
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let mon = {
         let s0 = builder.create_string("test1");
@@ -73,6 +110,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     };
     my_game::example::finish_monster_buffer(builder, mon);
 }
+
 fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let nested_union_mon = {
         let name = builder.create_string("Fred");
@@ -105,109 +143,62 @@ fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBu
 }
 
 fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_required: bool, size_prefixed: bool) -> Result<(), &'static str> {
+
     if identifier_required {
         let correct = if size_prefixed {
             my_game::example::monster_size_prefixed_buffer_has_identifier(bytes)
         } else {
             my_game::example::monster_buffer_has_identifier(bytes)
         };
-        if !correct {
-            return Err("incorrect buffer identifier");
-        }
+        check_eq!(correct, true)?;
     }
-    let monster1 = if size_prefixed {
+
+    let m = if size_prefixed {
         my_game::example::get_size_prefixed_root_as_monster(bytes)
     } else {
         my_game::example::get_root_as_monster(bytes)
     };
-    for m in vec![monster1] {
-        if m.hp() != 80 { assert_eq!(80, m.hp()); return Err("bad m.hp"); }
-        if m.mana() != 150 { return Err("bad m.mana"); }
-        match m.name() {
-            Some("MyMonster") => { }
-            _ => { return Err("bad m.name"); }
-        }
-        let pos = match m.pos() {
-            None => { return Err("bad m.pos"); }
-            Some(x) => { x }
-        };
-        if pos.x() != 1.0f32 { return Err("bad pos.x"); }
-        if pos.y() != 2.0f32 { return Err("bad pos.y"); }
-        if pos.z() != 3.0f32 { return Err("bad pos.z"); }
-        if pos.test1() != 3.0f64 { return Err("bad pos.test1"); }
-        if pos.test2() != my_game::example::Color::Green { return Err("bad pos.test2"); }
 
-        let pos_test3 = pos.test3();
-        if pos_test3.a() != 5i16 { return Err("bad pos_test3.a"); }
-        if pos_test3.b() != 6i8 { return Err("bad pos_test3.b"); }
+    check_eq!(m.hp(), 80)?;
+    check_eq!(m.mana(), 150)?;
+    check_eq!(m.name(), Some("MyMonster"))?;
+    check_is_some!(m.name())?;
 
-        match m.enemy() {
-            None => {
-                println!("missing m.enemy, most language ports do not generate this yet");
-            }
-            Some(e) => {
-                match e.name() {
-                    Some("Fred") => { /* woot */ }
-                    _ => { println!("missing m.enemy.name, most language ports do not generate this yet") }
-                }
-            }
-        }
+    let pos = m.pos().unwrap();
+    check_eq!(pos.x(), 1.0f32)?;
+    check_eq!(pos.y(), 2.0f32)?;
+    check_eq!(pos.z(), 3.0f32)?;
+    check_eq!(pos.test1(), 3.0f64)?;
+    check_eq!(pos.test2(), my_game::example::Color::Green)?;
 
-        if m.test_type() != my_game::example::Any::Monster { return Err("bad m.test_type"); }
+    let pos_test3 = pos.test3();
+    check_eq!(pos_test3.a(), 5i16)?;
+    check_eq!(pos_test3.b(), 6i8)?;
 
-        let table2 = match m.test() {
-            None => { return Err("bad m.test"); }
-            Some(x) => { x }
-        };
+    check_eq!(m.test_type(), my_game::example::Any::Monster)?;
+    check_is_some!(m.test())?;
+    let table2 = m.test().unwrap();
+    let monster2 = my_game::example::Monster::init_from_table(table2);
 
-        let monster2 = my_game::example::Monster::init_from_table(table2);
+    check_eq!(monster2.name(), Some("Fred"))?;
 
-        match monster2.name() {
-            Some("Fred") => { }
-            _ => { return Err("bad monster2.name"); }
-        }
+    check_is_some!(m.inventory())?;
+    let inv = m.inventory().unwrap();
+    check_eq!(inv.len(), 5)?;
+    check_eq!(inv.iter().sum::<u8>(), 10u8)?;
 
-        let inv: &[u8] = match m.inventory() {
-            None => { return Err("bad m.inventory"); }
-            Some(x) => { x }
-        };
-        if inv.len() != 5 {  return Err("bad m.inventory len"); }
-        let invsum: u8 = inv.iter().sum();
-        if invsum != 10 { return Err("bad m.inventory sum"); }
+    check_is_some!(m.test4())?;
+    let test4 = m.test4().unwrap();
+    check_eq!(test4.len(), 2)?;
+    check_eq!(test4[0].a() as i32 + test4[0].b() as i32 +
+              test4[1].a() as i32 + test4[1].b() as i32, 100)?;
 
-        {
-            let test4 = match m.test4() {
-                None => { return Err("bad m.test4"); }
-                Some(x) => { x }
-            };
-            if test4.len() != 2 { return Err("bad m.test4 len"); }
+    check_is_some!(m.testarrayofstring())?;
+    let testarrayofstring = m.testarrayofstring().unwrap();
+    check_eq!(testarrayofstring.len(), 2)?;
+    check_eq!(testarrayofstring.get(0), "test1")?;
+    check_eq!(testarrayofstring.get(1), "test2")?;
 
-            let x = test4[0];
-            let y = test4[1];
-            let xy_sum = x.a() as i32 + x.b() as i32 + y.a() as i32 + y.b() as i32;
-            if xy_sum != 100 { return Err("bad m.test4 item sum"); }
-        }
-
-        {
-            match m.testarrayoftables() {
-                None => { println!("not all monster examples have testarrayoftables, skipping"); }
-                Some(x) => {
-                    println!("foo: {:?}", x.get(0).name());
-                    if x.get(0).name() != Some("Barney") { return Err("bad testarrayoftables.get(0).name()") }
-                    if x.get(1).name() != Some("Frodo") { return Err("bad testarrayoftables.get(1).name()") }
-                    if x.get(2).name() != Some("Wilma") { return Err("bad testarrayoftables.get(2).name()") }
-                }
-            }
-        }
-
-        let testarrayofstring = match m.testarrayofstring() {
-            None => { return Err("bad m.testarrayofstring"); }
-            Some(x) => { x }
-        };
-        if testarrayofstring.len() != 2 { return Err("bad monster.testarrayofstring len"); }
-        if testarrayofstring.get(0) != "test1" { return Err("bad monster.testarrayofstring.get(0)"); }
-        if testarrayofstring.get(1) != "test2" { return Err("bad monster.testarrayofstring.get(1)"); }
-    }
     Ok(())
 }
 
