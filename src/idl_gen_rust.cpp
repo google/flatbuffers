@@ -168,6 +168,12 @@ class RustGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", "::"),
         cur_name_space_(nullptr) {
     const char *keywords[] = {
+      // list taken from:
+      // https://doc.rust-lang.org/book/second-edition/appendix-01-keywords.html
+      //
+      // we write keywords one per line so that we can easily compare them with
+      // changes to that webpage in the future.
+
       // currently-used keywords
       "as",
       "break",
