@@ -463,12 +463,11 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         None
     }
 
+    // Only call this when you know it is safe to double the size of the buffer.
+    #[inline]
     fn grow_owned_buf(&mut self) {
         let old_len = self.owned_buf.len();
         let new_len = max(1, old_len * 2);
-
-        assert!(new_len <= FLATBUFFERS_MAX_BUFFER_SIZE,
-                "cannot grow buffer beyond 2 gigabytes");
 
         let starting_active_size = self.used_space();
 
@@ -496,6 +495,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             unsafe { write_bytes(ptr, 0, middle); }
         }
     }
+
     // with or without a size prefix changes how we load the data, so finish*
     // functions are split along those lines.
     fn finish_with_opts<T>(&mut self,
@@ -565,14 +565,15 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.head -= want;
         self.head
     }
+
+    #[inline]
     fn ensure_capacity(&mut self, want: usize) -> usize {
         if self.unused_ready_space() >= want {
             return want;
         }
-        assert!(
-            want <= FLATBUFFERS_MAX_BUFFER_SIZE,
-            "cannot grow buffer beyond 2 gigabytes"
-        );
+        assert!(want <= FLATBUFFERS_MAX_BUFFER_SIZE,
+                "cannot grow buffer beyond 2 gigabytes");
+
         while self.unused_ready_space() < want {
             self.grow_owned_buf();
         }
