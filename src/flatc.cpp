@@ -107,6 +107,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --proto            Input is a .proto, translate to .fbs.\n"
     "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
+    "  --no_suffix_async_cpp  Generate GRPC interfaces for the specified languages\n"
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
@@ -284,6 +285,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
         opts.set_empty_to_null = false;
+      } else if (arg == "--no_suffix_async_cpp") {
+        opts.no_suffix_async_cpp = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

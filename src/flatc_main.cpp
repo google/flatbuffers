@@ -17,6 +17,8 @@
 #include "flatbuffers/flatc.h"
 
 static const char *g_program_name = nullptr;
+int g_argc = 0;
+const char **g_argv = nullptr;
 
 static void Warn(const flatbuffers::FlatCompiler *flatc,
                  const std::string &warn, bool show_exe_name) {
@@ -35,6 +37,8 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
 
 int main(int argc, const char *argv[]) {
   g_program_name = argv[0];
+  g_argc = argc;
+  g_argv = argv;
 
   const flatbuffers::FlatCompiler::Generator generators[] = {
     { flatbuffers::GenerateBinary, "-b", "--binary", "binary", false, nullptr,

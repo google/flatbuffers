@@ -38,6 +38,9 @@
 
 #include <sstream>
 
+extern "C" int g_argc;
+extern "C" const char **g_argv;
+
 namespace grpc_cpp_generator {
 namespace {
 
@@ -74,6 +77,21 @@ grpc::string FilenameIdentifier(const grpc::string &filename) {
   }
   return result;
 }
+
+grpc::string async_request_method_name(const grpc_generator::Method *method) {
+  static int no_suffix_async_cpp_idx = 0;
+
+  if (no_suffix_async_cpp_idx == 0) {
+    int index = 1;
+    for (; index < g_argc && strcmp(g_argv[index], "--no_suffix_async_cpp") != 0; index++)
+      ;
+    // Store the index. If not found, set index to -1 to avoid repeated searches.
+    no_suffix_async_cpp_idx = (index == g_argc)? -1 : index;
+  }
+
+  return (no_suffix_async_cpp_idx > 0)? "Request" : "Request" + method->name();
+}
+
 }  // namespace
 
 template <class T, size_t N>
@@ -622,6 +640,7 @@ void PrintHeaderServerMethodSync(grpc_generator::Printer *printer,
 void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
                                   const grpc_generator::Method *method,
                                   std::map<grpc::string, grpc::string> *vars) {
+  (*vars)["RequestMethod"] = async_request_method_name(method);
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -653,7 +672,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "}\n");
     printer->Print(
         *vars,
-        "void Request$Method$("
+        "void $RequestMethod$("
         "::grpc::ServerContext* context, $Request$* request, "
         "::grpc::ServerAsyncResponseWriter< $Response$>* response, "
         "::grpc::CompletionQueue* new_call_cq, "
@@ -675,7 +694,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "}\n");
     printer->Print(
         *vars,
-        "void Request$Method$("
+        "void $RequestMethod$("
         "::grpc::ServerContext* context, "
         "::grpc::ServerAsyncReader< $Response$, $Request$>* reader, "
         "::grpc::CompletionQueue* new_call_cq, "
@@ -697,7 +716,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "}\n");
     printer->Print(
         *vars,
-        "void Request$Method$("
+        "void $RequestMethod$("
         "::grpc::ServerContext* context, $Request$* request, "
         "::grpc::ServerAsyncWriter< $Response$>* writer, "
         "::grpc::CompletionQueue* new_call_cq, "
@@ -720,7 +739,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "}\n");
     printer->Print(
         *vars,
-        "void Request$Method$("
+        "void $RequestMethod$("
         "::grpc::ServerContext* context, "
         "::grpc::ServerAsyncReaderWriter< $Response$, $Request$>* stream, "
         "::grpc::CompletionQueue* new_call_cq, "

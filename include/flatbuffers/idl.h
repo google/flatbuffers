@@ -373,6 +373,7 @@ struct IDLOptions {
   bool skip_unexpected_fields_in_json;
   bool generate_name_strings;
   bool generate_object_based_api;
+  bool no_suffix_async_cpp;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool gen_nullable;
