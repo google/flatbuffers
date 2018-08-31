@@ -2538,6 +2538,19 @@ mod byte_layouts {
     }
 }
 
+// this is not technically a test, but we want to always keep this generated
+// file up-to-date, and the simplest way to do that is to make sure that when
+// tests are run, the file is generated.
+#[test]
+fn write_example_wire_data_to_file() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_generated_code(b);
+
+    use ::std::io::Write;
+    let mut f = std::fs::File::create("../monsterdata_rust_wire.mon").unwrap();
+    f.write_all(b.finished_data()).unwrap();
+}
+
 fn load_file(filename: &str) -> Vec<u8> {
     use std::io::Read;
     let mut f = std::fs::File::open(filename).expect("file does not exist");
