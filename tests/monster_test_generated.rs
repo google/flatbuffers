@@ -1110,35 +1110,35 @@ impl<'a> Monster<'a> {
   pub fn vector_of_non_owning_references(&'a self) -> Option<flatbuffers::Vector<'a, u64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, None)
   }
-#[inline]
-#[allow(non_snake_case)]
-pub fn test_as_monster(&'a self) -> Option<Monster> {
-  if self.test_type() == Any::Monster {
-    self.test().map(|u| Monster::init_from_table(u))
-  } else {
-    None
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn test_as_monster(&'a self) -> Option<Monster> {
+    if self.test_type() == Any::Monster {
+      self.test().map(|u| Monster::init_from_table(u))
+    } else {
+      None
+    }
   }
-}
 
-#[inline]
-#[allow(non_snake_case)]
-pub fn test_as_test_simple_table_with_enum(&'a self) -> Option<TestSimpleTableWithEnum> {
-  if self.test_type() == Any::TestSimpleTableWithEnum {
-    self.test().map(|u| TestSimpleTableWithEnum::init_from_table(u))
-  } else {
-    None
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn test_as_test_simple_table_with_enum(&'a self) -> Option<TestSimpleTableWithEnum> {
+    if self.test_type() == Any::TestSimpleTableWithEnum {
+      self.test().map(|u| TestSimpleTableWithEnum::init_from_table(u))
+    } else {
+      None
+    }
   }
-}
 
-#[inline]
-#[allow(non_snake_case)]
-pub fn test_as_my_game___example_2___monster(&'a self) -> Option<super::example_2::Monster> {
-  if self.test_type() == Any::MyGame_Example2_Monster {
-    self.test().map(|u| super::example_2::Monster::init_from_table(u))
-  } else {
-    None
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn test_as_my_game___example_2___monster(&'a self) -> Option<super::example_2::Monster> {
+    if self.test_type() == Any::MyGame_Example2_Monster {
+      self.test().map(|u| super::example_2::Monster::init_from_table(u))
+    } else {
+      None
+    }
   }
-}
 
 }
 

@@ -230,7 +230,7 @@ class RustGenerator : public BaseGenerator {
       "virtual",
       "yield",
 
-      // other terms we should not use
+      // other rust terms we should not use
       "std",
       "usize",
       "isize",
@@ -246,6 +246,22 @@ class RustGenerator : public BaseGenerator {
       "i128",
       "f32",
       "f64",
+
+      // these are terms the code generator can implement on types.
+      //
+      // in rust, the trait resolution rules (as described at
+      // https://github.com/rust-lang/rust/issues/26007) mean that, as long
+      // as we impl table accessors as inherent methods, we'll never create
+      // conflicts with these keywords. however, that's a fairly nuanced
+      // implementation detail, and how we implement methods could change in
+      // the future. as a result, we proactively block these out as reserved
+      // words.
+      "follow",
+      "push",
+      "size",
+      "alignment",
+      "to_little_endian",
+      "from_little_endian",
       nullptr };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
@@ -1268,17 +1284,17 @@ class RustGenerator : public BaseGenerator {
         code_.SetValue("U_ELEMENT_TABLE_TYPE", table_init_type);
         code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(ev)));
 
-        code_ += "#[inline]";
-        code_ += "#[allow(non_snake_case)]";
-        code_ += "pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&'a self) -> "
+        code_ += "  #[inline]";
+        code_ += "  #[allow(non_snake_case)]";
+        code_ += "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&'a self) -> "
                  "Option<{{U_ELEMENT_TABLE_TYPE}}> {";
-        code_ += "  if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
-        code_ += "    self.{{FIELD_NAME}}().map(|u| "
+        code_ += "    if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
+        code_ += "      self.{{FIELD_NAME}}().map(|u| "
                  "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
-        code_ += "  } else {";
-        code_ += "    None";
+        code_ += "    } else {";
+        code_ += "      None";
+        code_ += "    }";
         code_ += "  }";
-        code_ += "}";
         code_ += "";
       }
     }
