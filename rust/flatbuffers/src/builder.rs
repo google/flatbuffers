@@ -64,8 +64,11 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ///
     /// The maximum valid value is `FLATBUFFERS_MAX_BUFFER_SIZE`.
     pub fn new_with_capacity(size: usize) -> Self {
+        // we need to check the size here because we create the backing buffer
+        // directly, bypassing the typical way of using grow_owned_buf:
         assert!(size <= FLATBUFFERS_MAX_BUFFER_SIZE,
                 "cannot initialize buffer bigger than 2 gigabytes");
+
         FlatBufferBuilder {
             owned_buf: vec![0u8; size],
             head: size,
