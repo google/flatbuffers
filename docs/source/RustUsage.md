@@ -144,6 +144,7 @@ data from the network that can potentially have been modified by an
 attacker, this is undesirable.
 
 The C++ port provides a buffer verifier, but, at this time, Rust does not.
+Rust may provide this in a future version.
 
 ## Threading
 
