@@ -18,23 +18,23 @@ In general:
 
 NOTE: this table is a start, it needs to be extended.
 
-Feature                        | C++    | Java   | C#     | Go     | Python | JS        | TS        | C       | PHP | Dart    | Lobster | Rust
------------------------------- | ------ | ------ | ------ | ------ | ------ | --------- | --------- | ------  | --- | ------- | ------- | ----
-Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | WiP | Yes     | Yes     | Yes
-JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | Yes     | No
-Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No      | No      | No
-Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No      | No      | No
-Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No
-Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes
-Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | No      | No      | Yes
-Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?       | Great   | Superb
-Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | Yes       | VS2010  | ?   | Yes     | Yes     | Yes
-Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes
-Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes
-Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ?
-Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ?
-Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?         | ?       | ?   | ?       | No      | ?
-Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | evanw/ev* | kr*       | mik*    | ch* | dnfield | aard*   | rw
+Feature                        | C++    | Java   | C#     | Go     | Python | JS        | TS        | C       | PHP | Dart    | Lobster | Rust | Julia |
+------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | --------- | ------  | --- | ------- | ------- | ---- | ---- |
+Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | WiP | Yes     | Yes     | Yes | Yes |
+JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | Yes     | No | No |
+Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No      | No      | No | No |
+Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No      | No      | No | No |
+Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No | No |
+Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes | Yes |
+Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | No      | No      | Yes | Yes |
+Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?       | Great   | Superb | ? |
+Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | Yes       | VS2010  | ?   | Yes     | Yes     | Yes | Yes |
+Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes | Yes |
+Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes | Yes |
+Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ? | ? |
+Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ? | ? |
+Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?         | ?       | ?   | ?       | No      | ? | ? |
+Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | evanw/ev* | kr*       | mik*    | ch* | dnfield | aard*   | rw | jq*/rk* |
 
   * aard = aardappel (previously: gwvo)
   * ev = evolutional
@@ -42,5 +42,7 @@ Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | ev
   * mik = mikkelfj
   * ch = chobie
   * kr = krojew
+  * jq = quinnj
+  * rk = rkat
 
 <br>

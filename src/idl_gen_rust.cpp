@@ -510,7 +510,7 @@ class RustGenerator : public BaseGenerator {
     // clang-format off
     static const char * const ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE) \
+                           RTYPE, JLTYPE) \
             #RTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -532,7 +532,7 @@ class RustGenerator : public BaseGenerator {
     static const char *ctypename[] = {
     // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE) \
+                           RTYPE, JLTYPE) \
             #RTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD

@@ -30,7 +30,7 @@ const double kPi = 3.14159265358979323846;
 const char *const kTypeNames[] = {
 // clang-format off
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -41,7 +41,7 @@ const char *const kTypeNames[] = {
 const char kTypeSizes[] = {
 // clang-format off
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
       sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -192,7 +192,7 @@ static std::string TokenToString(int t) {
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -1077,7 +1077,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         switch (field_value.type.base_type) {
           // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -1094,7 +1094,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -1166,7 +1166,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
     switch (val.type.base_type) {
       // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
@@ -1506,7 +1506,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     switch (e.type.base_type) {
     // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
             case BASE_TYPE_ ## ENUM: {\
                 CTYPE val; \
                 ECHECK(atot(e.constant.c_str(), *this, &val)); \
@@ -1665,7 +1665,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
       switch (enum_def->underlying_type.base_type) {
         // clang-format off
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-                               PTYPE, RTYPE)                              \
+                               PTYPE, RTYPE, JLTYPE)                      \
           case BASE_TYPE_##ENUM: {                                        \
             int64_t min_value = static_cast<int64_t>(                     \
               flatbuffers::numeric_limits<CTYPE>::lowest());              \
@@ -1749,7 +1749,8 @@ bool Parser::SupportsVectorOfUnions() const {
   return opts.lang_to_generate != 0 &&
          (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kJs |
                                     IDLOptions::kTs | IDLOptions::kPhp |
-                                    IDLOptions::kJava | IDLOptions::kCSharp)) == 0;
+                                    IDLOptions::kJava | IDLOptions::kCSharp |
+                                    IDLOptions::kJulia)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {

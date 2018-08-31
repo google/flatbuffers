@@ -146,6 +146,8 @@ sections provide a more in-depth usage guide.
     own programs.
 -   How to [use the generated Rust code](@ref flatbuffers_guide_use_rust) in your
     own programs.
+-   How to [use the generated Julia code](@ref flatbuffers_guide_use_julia) in your
+    own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of
     using FlatBuffers.
