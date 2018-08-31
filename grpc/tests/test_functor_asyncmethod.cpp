@@ -29,7 +29,14 @@ void call_nested(AsyncService &async) {
 }
 
 int nested_async_methods() {
-  MyGame::Example::MonsterStorage::AsyncService async;
+  using namespace MyGame::Example;
+  MonsterStorage::AsyncService async;
   call_nested(async);
+
+  if (cause_segfault) {
+    async.MonsterStorage::WithAsyncMethod_Store<MonsterStorage::WithAsyncMethod_Retrieve<MonsterStorage::Service>>::Request(0, 0, 0, 0, 0, 0);
+    async.MonsterStorage::WithAsyncMethod_Retrieve<MonsterStorage::Service>::Request(0, 0, 0, 0, 0, 0);
+  }
+
   return 0;
 }
