@@ -347,11 +347,6 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.field_locs.push(fl);
     }
 
-    #[inline]
-    fn fill(&mut self, zero_pad_bytes: usize) {
-        self.make_space(zero_pad_bytes);
-    }
-
     /// Write the VTable, if needed.
     // TODO(rw): simplify this function
     fn write_vtable(&mut self, table_tail_revloc: WIPOffset<TableUnfinishedWIPOffset>) -> WIPOffset<VTableWIPOffset> {
@@ -408,7 +403,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             None => { field_index_to_field_offset(0) as usize }
             Some(mv) => { mv as usize + SIZE_VOFFSET }
         };
-        self.fill(vtable_len);
+        self.make_space(vtable_len);
         let table_object_size = object_vtable_revloc.value() - table_tail_revloc.value();
         debug_assert!(table_object_size < 0x10000); // Vtable use 16bit offsets.
 
@@ -464,6 +459,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
         object_vtable_revloc
     }
+
     fn grow_owned_buf(&mut self) {
         let old_len = self.owned_buf.len();
         let new_len = max(1, old_len * 2);
@@ -540,20 +536,27 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.finished = true;
     }
 
+    #[inline]
     fn align(&mut self, len: usize, alignment: usize) {
         self.track_min_align(alignment);
         let s = self.used_space() as usize;
-        self.fill(padding_bytes(s + len, alignment));
+        self.make_space(padding_bytes(s + len, alignment));
     }
+
+    #[inline]
     fn track_min_align(&mut self, alignment: usize) {
         self.min_align = max(self.min_align, alignment);
     }
+
+    #[inline]
     fn push_bytes_unprefixed(&mut self, x: &[u8]) -> UOffsetT {
         let n = self.make_space(x.len());
         &mut self.owned_buf[n..n + x.len()].copy_from_slice(x);
 
         n as UOffsetT
     }
+
+    #[inline]
     fn make_space(&mut self, want: usize) -> usize {
         self.ensure_capacity(want);
         self.head -= want;
