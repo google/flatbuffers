@@ -45,6 +45,8 @@ For any schema input files, one or more generators can be specified:
 
 -   `--rust`, `-r` : Generate Rust code.
 
+-   `--julia`: Generate Julia code.
+
 For any data input files:
 
 -   `--binary`, `-b` : If data is contained in this file, generate a

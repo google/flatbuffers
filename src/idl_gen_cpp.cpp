@@ -494,7 +494,7 @@ class CppGenerator : public BaseGenerator {
     static const char * const ctypename[] = {
     // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE) \
+                           RTYPE, JLTYPE) \
             #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
