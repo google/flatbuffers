@@ -993,7 +993,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        const std::string default_value = GetDefaultScalarValue(field);
+        const auto default_value = GetDefaultScalarValue(field);
         return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" + \
                default_value + ")).unwrap()";
       }
@@ -1013,9 +1013,9 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        const std::string underlying_typname = GetTypeBasic(type);
-        const std::string typname = WrapInNameSpace(*type.enum_def);
-        const std::string default_value = GetDefaultScalarValue(field);
+        const auto underlying_typname = GetTypeBasic(type);
+        const auto typname = WrapInNameSpace(*type.enum_def);
+        const auto default_value = GetDefaultScalarValue(field);
         return "self._tab.get::<" + typname + ">(" + offset_name + \
                ", Some(" + default_value + ")).unwrap()";
       }
@@ -1187,7 +1187,7 @@ class RustGenerator : public BaseGenerator {
     //   pub fn name(&'a self) -> user_facing_type {
     //     self._tab.get::<internal_type>(offset, defaultval).unwrap()
     //   }
-    const std::string offset_prefix = Name(struct_def);
+    const auto offset_prefix = Name(struct_def);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
