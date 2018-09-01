@@ -83,9 +83,6 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
         let s0 = builder.create_string("test1");
         let s1 = builder.create_string("test2");
         let fred_name = builder.create_string("Fred");
-        let inventory = builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..]);
-        let test4 = builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
-                                                   my_game::example::Test::new(30, 40)]);
 
         // can't inline creation of this Vec3 because we refer to it by reference, so it must live
         // long enough to be used by MonsterArgs.
@@ -101,8 +98,9 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
                 name: Some(fred_name),
                 ..Default::default()
             }).as_union_value()),
-            inventory: Some(inventory),
-            test4: Some(test4),
+            inventory: Some(builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..])),
+            test4: Some(builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
+                                                       my_game::example::Test::new(30, 40)])),
             testarrayofstring: Some(builder.create_vector(&[s0, s1])),
             ..Default::default()
         };

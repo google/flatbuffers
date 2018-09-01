@@ -223,7 +223,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ///
     /// The wire format represents this as a zero-terminated byte vector.
     #[inline]
-    pub fn create_string(&mut self, s: &str) -> WIPOffset<&'fbb str> {
+    pub fn create_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested("create_string can not be called when a table or vector is under construction");
         self.push(ZeroTerminatedByteSlice::new(s.as_bytes()));
         WIPOffset::new(self.used_space() as UOffsetT)
@@ -244,7 +244,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// always safe, on any platform: bool, u8, i8, and any
     /// FlatBuffers-generated struct.
     #[inline]
-    pub fn create_vector_direct<T: SafeSliceAccess + Push + Sized>(&mut self, data: &[T]) -> WIPOffset<Vector<'fbb, T>> {
+    pub fn create_vector_direct<'a: 'b, 'b, T: SafeSliceAccess + Push + Sized + 'b>(&'a mut self, data: &'b [T]) -> WIPOffset<Vector<'fbb, T>> {
         self.assert_not_nested("create_vector_direct can not be called when a table or vector is under construction");
         self.push(data);
         WIPOffset::new(self.used_space() as UOffsetT)
@@ -273,7 +273,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed-sensitive users may wish to reduce memory usage by creating the
     /// vector manually: use `create_vector`, `push`, and `end_vector`.
     #[inline]
-    pub fn create_vector<'a, T: Push + Copy + 'fbb>(&'a mut self, items: &'a [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
+    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elemsize = size_of::<T>();
         self.start_vector(elemsize, items.len());
         // TODO(rw): precompute the space needed and call `make_space` only once
