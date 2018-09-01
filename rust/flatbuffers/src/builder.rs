@@ -277,17 +277,11 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// vector manually: use `create_vector`, `push`, and `end_vector`.
     #[inline]
     pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b, B: Borrow<T>>(&'a mut self, items: &'b [B]) -> WIPOffset<Vector<'fbb, T::Output>> {
-        if items.len() > 0 {
-            // all items must be the same type and not have variable size
-            //let total_elem_size: usize = items.iter().map(|x| x.size()).sum();
-            //debug_assert_eq!(items.iter().map(|x| x.size()).max(), items.iter().map(|x| x.size()).min());
-            //let elem_size: usize = items[0].size();
-            let elem_size = size_of::<T>();
-            self.start_vector(elem_size, items.len());
-            // TODO(rw): precompute the space needed and call `make_space` only once
-            for i in (0..items.len()).rev() {
-                self.push(*items[i].borrow());
-            }
+        let elem_size = size_of::<T>();
+        self.start_vector(elem_size, items.len());
+        // TODO(rw): precompute the space needed and call `make_space` only once
+        for i in (0..items.len()).rev() {
+            self.push(*items[i].borrow());
         }
         WIPOffset::new(self.end_vector::<T::Output>(items.len()).value())
     }

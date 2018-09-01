@@ -39,27 +39,6 @@ pub trait Push: Sized {
     }
 }
 
-impl<'b> Push for &'b str {
-    type Output = Vector<'b, u8>;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let l = self.len();
-        emplace_scalar::<UOffsetT>(&mut dst[..SIZE_UOFFSET], l as UOffsetT);
-        dst[SIZE_UOFFSET..SIZE_UOFFSET+l].copy_from_slice(self.as_bytes());
-    }
-
-    #[inline]
-    fn size(&self) -> usize {
-        SIZE_UOFFSET + self.len() + 1
-    }
-
-    #[inline]
-    fn alignment(&self) -> usize {
-        SIZE_UOFFSET
-    }
-}
-
 /// Push-able wrapper for slices of types that implement SafeSliceAccess.
 impl<'a, T: SafeSliceAccess + Sized> Push for &'a [T] {
     type Output = Vector<'a, u8>;

@@ -488,7 +488,7 @@ mod roundtrip_generated_code {
     #[test]
     fn vector_of_bool_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        let v = b.create_vector::<bool>(&[false, true, false, true][..]);
+        let v = b.create_vector(&[false, true, false, true][..]);
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
@@ -498,7 +498,7 @@ mod roundtrip_generated_code {
     #[test]
     fn vector_of_f64_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        let v = b.create_vector::<f64>(&[3.14159265359][..]);
+        let v = b.create_vector(&[3.14159265359f64][..]);
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
@@ -509,7 +509,7 @@ mod roundtrip_generated_code {
     #[test]
     fn vector_of_struct_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        let v = b.create_vector::<my_game::example::Test>(&[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
+        let v = b.create_vector(&[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
@@ -807,7 +807,7 @@ mod roundtrip_vectors {
 
         #[test]
         fn fuzz() {
-            quickcheck::QuickCheck::new().max_tests(20).quickcheck(prop as fn(Vec<_>));
+            quickcheck::QuickCheck::new().max_tests(100).quickcheck(prop as fn(Vec<_>));
         }
     }
 
@@ -833,7 +833,7 @@ mod roundtrip_vectors {
                 b2.create_vector(xs);
                 assert_eq!(b1.unfinished_data(), b2.unfinished_data());
             }
-            quickcheck::QuickCheck::new().max_tests(20).quickcheck(prop as fn(Vec<_>));
+            quickcheck::QuickCheck::new().max_tests(100).quickcheck(prop as fn(Vec<_>));
         }
     }
 }
@@ -1812,13 +1812,6 @@ mod push_impls {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         b.push(my_game::example::Test::new(10, 20));
         check(&b, &[10, 0, 20, 0]);
-    }
-
-    #[test]
-    fn push_string() {
-        let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.push("foo");
-        check(&b, &[3, 0, 0, 0, 102, 111, 111, 0]);
     }
 
     #[test]
