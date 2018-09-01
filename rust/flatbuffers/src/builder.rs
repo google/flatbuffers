@@ -16,6 +16,7 @@
 
 extern crate smallvec;
 
+use std::borrow::Borrow;
 use std::cmp::max;
 use std::marker::PhantomData;
 use std::mem::size_of;
@@ -23,7 +24,7 @@ use std::ptr::write_bytes;
 
 use endian_scalar::{read_scalar, emplace_scalar};
 use primitives::*;
-use push::{Push, ZeroTerminatedByteSlice};
+use push::Push;
 use table::Table;
 use vtable::{VTable, field_index_to_field_offset};
 use vtable_writer::VTableWriter;
@@ -225,15 +226,17 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn create_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested("create_string can not be called when a table or vector is under construction");
-        self.push(ZeroTerminatedByteSlice::new(s.as_bytes()));
-        WIPOffset::new(self.used_space() as UOffsetT)
+        WIPOffset::new(self.create_byte_string(s.as_bytes()).value())
     }
 
     /// Create a zero-terminated byte vector.
     #[inline]
     pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
         self.assert_not_nested("create_byte_string can not be called when a table or vector is under construction");
-        self.push(ZeroTerminatedByteSlice::new(data));
+        self.align(SIZE_UOFFSET + data.len() + 1, SIZE_UOFFSET);
+        self.push(0u8);
+        self.push_bytes_unprefixed(data);
+        self.push(data.len() as UOffsetT);
         WIPOffset::new(self.used_space() as UOffsetT)
     }
 
@@ -273,12 +276,18 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed-sensitive users may wish to reduce memory usage by creating the
     /// vector manually: use `create_vector`, `push`, and `end_vector`.
     #[inline]
-    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
-        let elemsize = size_of::<T>();
-        self.start_vector(elemsize, items.len());
-        // TODO(rw): precompute the space needed and call `make_space` only once
-        for i in (0..items.len()).rev() {
-            self.push(items[i]);
+    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b, B: Borrow<T>>(&'a mut self, items: &'b [B]) -> WIPOffset<Vector<'fbb, T::Output>> {
+        if items.len() > 0 {
+            // all items must be the same type and not have variable size
+            //let total_elem_size: usize = items.iter().map(|x| x.size()).sum();
+            //debug_assert_eq!(items.iter().map(|x| x.size()).max(), items.iter().map(|x| x.size()).min());
+            //let elem_size: usize = items[0].size();
+            let elem_size = size_of::<T>();
+            self.start_vector(elem_size, items.len());
+            // TODO(rw): precompute the space needed and call `make_space` only once
+            for i in (0..items.len()).rev() {
+                self.push(*items[i].borrow());
+            }
         }
         WIPOffset::new(self.end_vector::<T::Output>(items.len()).value())
     }

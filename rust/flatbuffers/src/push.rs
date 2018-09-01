@@ -88,44 +88,6 @@ impl<'a, T: SafeSliceAccess + Sized> Push for &'a [T] {
     }
 }
 
-
-/// Push-able wrapper for byte slices that need a zero-terminator written
-/// after them.
-pub struct ZeroTerminatedByteSlice<'a>(&'a [u8]);
-
-impl<'a> ZeroTerminatedByteSlice<'a> {
-    #[inline]
-    pub fn new(buf: &'a [u8]) -> Self {
-        ZeroTerminatedByteSlice { 0: buf }
-    }
-
-    #[inline]
-    pub fn data(&'a self) -> &'a [u8] {
-        self.0
-    }
-}
-
-impl<'a> Push for ZeroTerminatedByteSlice<'a> {
-    type Output = Vector<'a, u8>;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let l = self.data().len();
-        emplace_scalar::<UOffsetT>(&mut dst[..SIZE_UOFFSET], l as UOffsetT);
-        dst[SIZE_UOFFSET..SIZE_UOFFSET+l].copy_from_slice(self.data());
-    }
-
-    #[inline]
-    fn size(&self) -> usize {
-        SIZE_UOFFSET + self.0.len() + 1
-    }
-
-    #[inline]
-    fn alignment(&self) -> usize {
-        SIZE_UOFFSET
-    }
-}
-
 /// Macro to implement Push for EndianScalar types.
 macro_rules! impl_push_for_endian_scalar {
     ($ty:ident) => (
