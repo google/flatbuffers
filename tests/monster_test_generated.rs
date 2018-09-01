@@ -53,6 +53,7 @@ pub struct InParentNamespaceArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for InParentNamespaceArgs<'a> {
+    #[inline]
     fn default() -> Self {
         InParentNamespaceArgs {
             _phantom: PhantomData,
@@ -64,6 +65,7 @@ pub struct InParentNamespaceBuilder<'a: 'b, 'b> {
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
 impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> InParentNamespaceBuilder<'a, 'b> {
     let start = _fbb.start_table();
     InParentNamespaceBuilder {
@@ -71,6 +73,7 @@ impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<InParentNamespace<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -129,6 +132,7 @@ pub struct MonsterArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for MonsterArgs<'a> {
+    #[inline]
     fn default() -> Self {
         MonsterArgs {
             _phantom: PhantomData,
@@ -140,6 +144,7 @@ pub struct MonsterBuilder<'a: 'b, 'b> {
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
 impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -147,6 +152,7 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<Monster<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -585,6 +591,7 @@ pub struct TestSimpleTableWithEnumArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TestSimpleTableWithEnumArgs<'a> {
+    #[inline]
     fn default() -> Self {
         TestSimpleTableWithEnumArgs {
             color: Color::Green,
@@ -601,6 +608,7 @@ impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
   pub fn add_color(&mut self, color: Color) {
     self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TestSimpleTableWithEnumBuilder<'a, 'b> {
     let start = _fbb.start_table();
     TestSimpleTableWithEnumBuilder {
@@ -608,6 +616,7 @@ impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -677,6 +686,7 @@ pub struct StatArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for StatArgs<'a> {
+    #[inline]
     fn default() -> Self {
         StatArgs {
             id: None,
@@ -703,6 +713,7 @@ impl<'a: 'b, 'b> StatBuilder<'a, 'b> {
   pub fn add_count(&mut self, count: u16) {
     self.fbb_.push_slot::<u16>(Stat::VT_COUNT, count, 0);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> StatBuilder<'a, 'b> {
     let start = _fbb.start_table();
     StatBuilder {
@@ -710,6 +721,7 @@ impl<'a: 'b, 'b> StatBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<Stat<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -773,6 +785,7 @@ pub struct ReferrableArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for ReferrableArgs<'a> {
+    #[inline]
     fn default() -> Self {
         ReferrableArgs {
             id: 0,
@@ -789,6 +802,7 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
   pub fn add_id(&mut self, id: u64) {
     self.fbb_.push_slot::<u64>(Referrable::VT_ID, id, 0);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> ReferrableBuilder<'a, 'b> {
     let start = _fbb.start_table();
     ReferrableBuilder {
@@ -796,6 +810,7 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<Referrable<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -1188,6 +1203,7 @@ pub struct MonsterArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for MonsterArgs<'a> {
+    #[inline]
     fn default() -> Self {
         MonsterArgs {
             pos: None,
@@ -1409,6 +1425,7 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   pub fn add_vector_of_non_owning_references(&mut self, vector_of_non_owning_references: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u64>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, vector_of_non_owning_references);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1416,6 +1433,7 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<Monster<'a>> {
     let o = self.fbb_.end_table(self.start_);
     self.fbb_.required(o, Monster::VT_NAME,"name");
@@ -1549,6 +1567,7 @@ pub struct TypeAliasesArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TypeAliasesArgs<'a> {
+    #[inline]
     fn default() -> Self {
         TypeAliasesArgs {
             i8_: 0,
@@ -1620,6 +1639,7 @@ impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
   pub fn add_vf64(&mut self, vf64: flatbuffers::WIPOffset<flatbuffers::Vector<'b , f64>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(TypeAliases::VT_VF64, vf64);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TypeAliasesBuilder<'a, 'b> {
     let start = _fbb.start_table();
     TypeAliasesBuilder {
@@ -1627,6 +1647,7 @@ impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<TypeAliases<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())

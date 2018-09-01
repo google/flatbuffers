@@ -1318,6 +1318,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate an impl of Default for the *Args type:
     code_ += "impl<'a> Default for {{STRUCT_NAME}}Args<'a> {";
+    code_ += "    #[inline]";
     code_ += "    fn default() -> Self {";
     code_ += "        {{STRUCT_NAME}}Args {";
     for (auto it = struct_def.fields.vec.begin();
@@ -1385,6 +1386,7 @@ class RustGenerator : public BaseGenerator {
     }
 
     // Struct initializer (all fields required);
+    code_ += "  #[inline]";
     code_ +=
         "  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> "
         "{{STRUCT_NAME}}Builder<'a, 'b> {";
@@ -1397,6 +1399,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
 
     // finish() function.
+    code_ += "  #[inline]";
     code_ += "  pub fn finish(self) -> "
              "flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>> {";
     code_ += "    let o = self.fbb_.end_table(self.start_);";

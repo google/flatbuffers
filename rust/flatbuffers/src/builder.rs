@@ -125,11 +125,12 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// This function uses traits to provide a unified API for writing
     /// scalars, tables, vectors, and WIPOffsets.
     #[inline]
-    pub fn push<X: Push>(&mut self, x: X) -> WIPOffset<X::Output> {
-        self.align(x.size(), x.alignment());
-        self.make_space(x.size());
+    pub fn push<P: Push>(&mut self, x: P) -> WIPOffset<P::Output> {
+        let sz = x.size();
+        self.align(sz, sz);
+        self.make_space(sz);
         {
-            let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(x.size());
+            let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
             x.push(dst, rest);
         }
         WIPOffset::new(self.used_space() as UOffsetT)
@@ -251,14 +252,12 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.assert_not_nested("create_vector_direct can not be called when a table or vector is under construction");
         let elem_size = size_of::<T>();
         self.align(SIZE_UOFFSET + items.len() * elem_size, max(elem_size, SIZE_UOFFSET));
-        self.make_space(SIZE_UOFFSET + items.len() * elem_size);
 
         let bytes = unsafe {
             let ptr = items.as_ptr() as *const T as *const u8;
             from_raw_parts(ptr, items.len() * elem_size)
         };
-
-        self.owned_buf[self.head..self.head+bytes.len()].copy_from_slice(bytes);
+        self.push_bytes_unprefixed(bytes);
         self.push(items.len() as UOffsetT);
 
         WIPOffset::new(self.used_space() as UOffsetT)
