@@ -17,8 +17,14 @@
 #include "flatbuffers/flatc.h"
 
 static const char *g_program_name = nullptr;
+
+#ifdef __GNUC__
+int g_argc = 0;
+const char **g_argv = nullptr;
+#else
 extern "C" int g_argc = 0;
 extern "C" const char **g_argv = nullptr;
+#endif
 
 static void Warn(const flatbuffers::FlatCompiler *flatc,
                  const std::string &warn, bool show_exe_name) {
