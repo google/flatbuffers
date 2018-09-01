@@ -14,24 +14,42 @@
  * limitations under the License.
  */
 
-use std::mem::size_of;
+use std::cmp::max;
+use std::mem::{align_of, size_of};
 
 use endian_scalar::emplace_scalar;
 
-/// Trait to abstract over functionality needed to write values. Used in
-/// FlatBufferBuilder and implemented for generated types.
+/// Trait to abstract over functionality needed to write values (either owned
+/// or referenced). Used in FlatBufferBuilder and implemented for generated
+/// types.
 pub trait Push: Sized {
     type Output;
     fn push(&self, dst: &mut [u8], _rest: &[u8]);
-
     #[inline]
-    fn size(&self) -> usize {
-        size_of::<Self>()
+    fn size() -> usize {
+        size_of::<Self::Output>()
     }
-
     #[inline]
-    fn alignment(&self) -> usize {
-        self.size()
+    fn alignment() -> PushAlignment {
+        PushAlignment::new(align_of::<Self::Output>())
+    }
+}
+
+/// Ensure Push alignment calculations are typesafe (because this helps reduce
+/// implementation issues when using FlatBufferBuilder::align).
+pub struct PushAlignment(usize);
+impl PushAlignment {
+    #[inline]
+    pub fn new(x: usize) -> Self {
+        PushAlignment { 0: x }
+    }
+    #[inline]
+    pub fn value(&self) -> usize {
+        self.0
+    }
+    #[inline]
+    pub fn max_of(&self, o: usize) -> Self {
+        PushAlignment::new(max(self.0, o))
     }
 }
 
@@ -45,6 +63,7 @@ macro_rules! impl_push_for_endian_scalar {
             fn push(&self, dst: &mut [u8], _rest: &[u8]) {
                 emplace_scalar::<$ty>(dst, *self);
             }
+
         }
     )
 }

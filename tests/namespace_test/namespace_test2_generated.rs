@@ -75,6 +75,7 @@ pub struct TableInFirstNSArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TableInFirstNSArgs<'a> {
+    #[inline]
     fn default() -> Self {
         TableInFirstNSArgs {
             foo_table: None,
@@ -101,6 +102,7 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
   pub fn add_foo_struct(&mut self, foo_struct: &'b  namespace_b::StructInNestedNS) {
     self.fbb_.push_slot_always::<&namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, foo_struct);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TableInFirstNSBuilder<'a, 'b> {
     let start = _fbb.start_table();
     TableInFirstNSBuilder {
@@ -108,6 +110,7 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<TableInFirstNS<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -163,6 +166,7 @@ pub struct SecondTableInAArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for SecondTableInAArgs<'a> {
+    #[inline]
     fn default() -> Self {
         SecondTableInAArgs {
             refer_to_c: None,
@@ -179,6 +183,7 @@ impl<'a: 'b, 'b> SecondTableInABuilder<'a, 'b> {
   pub fn add_refer_to_c(&mut self, refer_to_c: flatbuffers::WIPOffset<super::namespace_c::TableInC<'b >>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, refer_to_c);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> SecondTableInABuilder<'a, 'b> {
     let start = _fbb.start_table();
     SecondTableInABuilder {
@@ -186,6 +191,7 @@ impl<'a: 'b, 'b> SecondTableInABuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<SecondTableInA<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
@@ -261,6 +267,7 @@ pub struct TableInCArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TableInCArgs<'a> {
+    #[inline]
     fn default() -> Self {
         TableInCArgs {
             refer_to_a1: None,
@@ -282,6 +289,7 @@ impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
   pub fn add_refer_to_a2(&mut self, refer_to_a2: flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'b >>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, refer_to_a2);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TableInCBuilder<'a, 'b> {
     let start = _fbb.start_table();
     TableInCBuilder {
@@ -289,6 +297,7 @@ impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<TableInC<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())

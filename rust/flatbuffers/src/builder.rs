@@ -18,13 +18,12 @@ extern crate smallvec;
 
 use std::cmp::max;
 use std::marker::PhantomData;
-use std::mem::size_of;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
 
 use endian_scalar::{read_scalar, emplace_scalar};
 use primitives::*;
-use push::Push;
+use push::{Push, PushAlignment};
 use table::Table;
 use vtable::{VTable, field_index_to_field_offset};
 use vtable_writer::VTableWriter;
@@ -126,8 +125,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// scalars, tables, vectors, and WIPOffsets.
     #[inline]
     pub fn push<P: Push>(&mut self, x: P) -> WIPOffset<P::Output> {
-        let sz = x.size();
-        self.align(sz, sz);
+        let sz = P::size();
+        self.align(sz, P::alignment());
         self.make_space(sz);
         {
             let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
@@ -200,11 +199,10 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed optimizing users who choose to create vectors manually using this
     /// function will want to use `push` to add values.
     #[inline]
-    pub fn start_vector(&mut self, len: usize, elem_size: usize) {
+    pub fn start_vector<T: Push>(&mut self, num_items: usize) {
         self.assert_not_nested("start_vector can not be called when a table or vector is under construction");
         self.nested = true;
-        self.align(len * elem_size, SIZE_UOFFSET);
-        self.align(len * elem_size, elem_size); // Just in case elemsize > uoffset_t.
+        self.align(num_items * T::size(), T::alignment().max_of(SIZE_UOFFSET));
     }
 
     /// End a Vector write.
@@ -234,7 +232,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
         self.assert_not_nested("create_byte_string can not be called when a table or vector is under construction");
-        self.align(SIZE_UOFFSET + data.len() + 1, SIZE_UOFFSET);
+        self.align(SIZE_UOFFSET + data.len() + 1, PushAlignment::new(SIZE_UOFFSET));
         self.push(0u8);
         self.push_bytes_unprefixed(data);
         self.push(data.len() as UOffsetT);
@@ -250,8 +248,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn create_vector_direct<'a: 'b, 'b, T: SafeSliceAccess + Push + Sized + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T>> {
         self.assert_not_nested("create_vector_direct can not be called when a table or vector is under construction");
-        let elem_size = size_of::<T>();
-        self.align(SIZE_UOFFSET + items.len() * elem_size, max(elem_size, SIZE_UOFFSET));
+        let elem_size = T::size();
+        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
 
         let bytes = unsafe {
             let ptr = items.as_ptr() as *const T as *const u8;
@@ -287,8 +285,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// vector manually: use `create_vector`, `push`, and `end_vector`.
     #[inline]
     pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
-        let elem_size = size_of::<T>();
-        self.align(items.len() * elem_size, max(SIZE_SOFFSET, elem_size));
+        let elem_size = T::size();
+        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
         for i in (0..items.len()).rev() {
             self.push(items[i]);
         }
@@ -536,7 +534,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         };
 
         {
-            let ma = self.min_align;
+            let ma = PushAlignment::new(self.min_align);
             self.align(to_align, ma);
         }
 
@@ -555,10 +553,10 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     }
 
     #[inline]
-    fn align(&mut self, len: usize, alignment: usize) {
-        self.track_min_align(alignment);
+    fn align(&mut self, len: usize, alignment: PushAlignment) {
+        self.track_min_align(alignment.value());
         let s = self.used_space() as usize;
-        self.make_space(padding_bytes(s + len, alignment));
+        self.make_space(padding_bytes(s + len, alignment.value()));
     }
 
     #[inline]

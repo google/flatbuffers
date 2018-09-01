@@ -516,6 +516,18 @@ mod roundtrip_generated_code {
             test4: Some(v), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
     }
+    #[test]
+    fn vector_of_struct_store_with_type_inference() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        let v = b.create_vector(&[my_game::example::Test::new(127, -128),
+                                  my_game::example::Test::new(3, 123),
+                                  my_game::example::Test::new(100, 101)]);
+        let name = b.create_string("foo");
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{
+            name: Some(name),
+            test4: Some(v), ..Default::default()});
+        assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123), my_game::example::Test::new(100, 101)][..]);
+    }
     // TODO(rw) this passes, but I don't want to change the monster test schema right now
     // #[test]
     // fn vector_of_enum_store() {
@@ -561,12 +573,27 @@ mod generated_code_alignment_and_padding {
     use super::my_game;
 
     #[test]
-    fn vec3_is_padded_to_mod_16() {
-        assert_eq!(::std::mem::size_of::<my_game::example::Vec3>() % 16, 0);
+    fn struct_test_is_4_bytes() {
+        assert_eq!(4, ::std::mem::size_of::<my_game::example::Test>());
     }
 
     #[test]
-    fn vec3_is_aligned_to_mod_16() {
+    fn struct_test_is_aligned_to_2() {
+        assert_eq!(2, ::std::mem::align_of::<my_game::example::Test>());
+    }
+
+    #[test]
+    fn struct_vec3_is_32_bytes() {
+        assert_eq!(32, ::std::mem::size_of::<my_game::example::Vec3>());
+    }
+
+    #[test]
+    fn struct_vec3_is_aligned_to_16() {
+        assert_eq!(16, ::std::mem::align_of::<my_game::example::Vec3>());
+    }
+
+    #[test]
+    fn struct_vec3_is_written_with_correct_alignment_in_table() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let name = b.create_string("foo");
@@ -586,7 +613,45 @@ mod generated_code_alignment_and_padding {
         let vec3_ptr = vec3 as *const my_game::example::Vec3 as usize;
 
         assert!(vec3_ptr > start_ptr);
-        assert_eq!((vec3_ptr - start_ptr) % 16, 0);
+        let aln = ::std::mem::align_of::<my_game::example::Vec3>();
+        assert_eq!((vec3_ptr - start_ptr) % aln, 0);
+    }
+
+    #[test]
+    fn struct_ability_is_8_bytes() {
+        assert_eq!(8, ::std::mem::size_of::<my_game::example::Ability>());
+    }
+
+    #[test]
+    fn struct_ability_is_aligned_to_4() {
+        assert_eq!(4, ::std::mem::align_of::<my_game::example::Ability>());
+    }
+
+    #[test]
+    fn struct_ability_is_written_with_correct_alignment_in_table_vector() {
+        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        {
+            let name = b.create_string("foo");
+            let v = b.create_vector(&[my_game::example::Ability::new(1, 2),
+                                      my_game::example::Ability::new(3, 4),
+                                      my_game::example::Ability::new(5, 6)]);
+            let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
+                name: Some(name),
+                testarrayofsortedstruct: Some(v),
+                ..Default::default()});
+            my_game::example::finish_monster_buffer(b, mon);
+        }
+        let buf = b.finished_data();
+        let mon = my_game::example::get_root_as_monster(buf);
+        let abilities = mon.testarrayofsortedstruct().unwrap();
+
+        let start_ptr = buf.as_ptr() as usize;
+        for a in abilities.iter() {
+            let a_ptr = a as *const my_game::example::Ability as usize;
+            assert!(a_ptr > start_ptr);
+            let aln = ::std::mem::align_of::<my_game::example::Ability>();
+            assert_eq!((a_ptr - start_ptr) % aln, 0);
+        }
     }
 }
 
@@ -651,7 +716,7 @@ mod roundtrip_vectors {
             use flatbuffers::Follow;
 
             let mut b = flatbuffers::FlatBufferBuilder::new();
-            b.start_vector(xs.len(), ::std::mem::size_of::<T>());
+            b.start_vector::<T>(xs.len());
             for i in (0..xs.len()).rev() {
                 b.push::<T>(xs[i]);
             }
@@ -758,7 +823,7 @@ mod roundtrip_vectors {
                 offsets.push(b.create_string(s.as_str()));
             }
 
-            b.start_vector(flatbuffers::SIZE_UOFFSET, xs.len());
+            b.start_vector::<flatbuffers::WIPOffset<&str>>(xs.len());
             for &i in offsets.iter() {
                 b.push(i);
             }
@@ -1815,11 +1880,38 @@ mod push_impls {
     }
 
     #[test]
-    fn push_u8_slice_with_offset_with_alignment() {
+    fn push_u8_vector_with_offset_with_alignment() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let off = b.create_vector(&[1u8, 2, 3, 4, 5, 6, 7, 8, 9][..]);
         b.push(off);
         check(&b, &[/* loc */ 4, 0, 0, 0, /* len */ 9, 0, 0, 0, /* val */ 1, 2, 3, 4, 5, 6, 7, 8, 9, /* padding */ 0, 0, 0]);
+    }
+
+    #[test]
+    fn push_u8_u16_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(2u16);
+        check(&b, &[2, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_u32_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(2u32);
+        check(&b, &[2, 0, 0, 0, 0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_u64_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(2u64);
+        check(&b, &[2, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 1]);
     }
 }
 
@@ -2226,15 +2318,9 @@ mod byte_layouts {
             type Output = foo;
             fn push<'a>(&'a self, dst: &'a mut [u8], _rest: &'a [u8]) {
                 let src = unsafe {
-                    ::std::slice::from_raw_parts(*self as *const foo as *const u8, self.size())
+                    ::std::slice::from_raw_parts(*self as *const foo as *const u8, ::std::mem::size_of::<foo>())
                 };
                 dst.copy_from_slice(src);
-            }
-            fn size(&self) -> usize {
-                ::std::mem::size_of::<foo>()
-            }
-            fn alignment(&self) -> usize {
-                self.size()
             }
         }
 

@@ -1438,11 +1438,13 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("KEY_TYPE", type);
     }
 
+    code_ += "  #[inline]";
     code_ += "  pub fn key_compare_less_than(&self, o: &{{STRUCT_NAME}}) -> "
              " bool {";
     code_ += "    self.{{FIELD_NAME}}() < o.{{FIELD_NAME}}()";
     code_ += "  }";
     code_ += "";
+    code_ += "  #[inline]";
     code_ += "  pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
              " ::std::cmp::Ordering {";
     code_ += "    let key = self.{{FIELD_NAME}}();";
@@ -1567,7 +1569,7 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ += "// struct {{STRUCT_NAME}}, aligned to {{ALIGN}}";
-    code_ += "#[repr(C, packed)]";
+    code_ += "#[repr(C, align({{ALIGN}}))]";
 
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
@@ -1615,11 +1617,11 @@ class RustGenerator : public BaseGenerator {
     code_ += "    type Output = {{STRUCT_NAME}};";
     code_ += "    #[inline]";
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ += "        (&self).push(dst, _rest)";
-    code_ += "    }";
-    code_ += "    #[inline]";
-    code_ += "    fn size(&self) -> usize {";
-    code_ += "        ::std::mem::size_of::<{{STRUCT_NAME}}>()";
+    code_ += "        let src = unsafe {";
+    code_ += "            ::std::slice::from_raw_parts("
+             "self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
+    code_ += "        };";
+    code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
     code_ += "}";
     code_ += "impl<'b> flatbuffers::Push for &'b {{STRUCT_NAME}} {";
@@ -1629,13 +1631,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ += "            ::std::slice::from_raw_parts("
-             "*self as *const {{STRUCT_NAME}} as *const u8, self.size())";
+             "*self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
-    code_ += "    }";
-    code_ += "    #[inline]";
-    code_ += "    fn size(&self) -> usize {";
-    code_ += "        ::std::mem::size_of::<{{STRUCT_NAME}}>()";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -1792,5 +1790,6 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(rw): Generated code should refer to namespaces in included files in a
 //           way that makes them referrable.
 // TODO(rw): Generated code should indent according to nesting level.
+// TODO(rw): Generated code should generate endian-safe Debug impls.
 // TODO(rw): Generated code could use a Rust-only enum type to access unions,
 //           instead of making the user use _type() to manually switch.

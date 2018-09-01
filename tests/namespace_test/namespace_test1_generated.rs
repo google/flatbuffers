@@ -63,6 +63,10 @@ impl flatbuffers::Push for EnumInNestedNS {
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<EnumInNestedNS>(dst, *self);
     }
+    #[inline]
+    fn size() -> usize {
+        ::std::mem::size_of::<EnumInNestedNS>()
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -111,10 +115,13 @@ impl<'b> flatbuffers::Push for StructInNestedNS {
     type Output = StructInNestedNS;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        (&self).push(dst, _rest)
+        let src = unsafe {
+            ::std::slice::from_raw_parts(self as *const StructInNestedNS as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
     }
     #[inline]
-    fn size(&self) -> usize {
+    fn size() -> usize {
         ::std::mem::size_of::<StructInNestedNS>()
     }
 }
@@ -124,12 +131,12 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         let src = unsafe {
-            ::std::slice::from_raw_parts(*self as *const StructInNestedNS as *const u8, self.size())
+            ::std::slice::from_raw_parts(*self as *const StructInNestedNS as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
     }
     #[inline]
-    fn size(&self) -> usize {
+    fn size() -> usize {
         ::std::mem::size_of::<StructInNestedNS>()
     }
 }
@@ -200,6 +207,7 @@ pub struct TableInNestedNSArgs<'a> {
     pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TableInNestedNSArgs<'a> {
+    #[inline]
     fn default() -> Self {
         TableInNestedNSArgs {
             foo: 0,
@@ -216,6 +224,7 @@ impl<'a: 'b, 'b> TableInNestedNSBuilder<'a, 'b> {
   pub fn add_foo(&mut self, foo: i32) {
     self.fbb_.push_slot::<i32>(TableInNestedNS::VT_FOO, foo, 0);
   }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TableInNestedNSBuilder<'a, 'b> {
     let start = _fbb.start_table();
     TableInNestedNSBuilder {
@@ -223,6 +232,7 @@ impl<'a: 'b, 'b> TableInNestedNSBuilder<'a, 'b> {
       start_: start,
     }
   }
+  #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<TableInNestedNS<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
