@@ -16,11 +16,11 @@
 
 extern crate smallvec;
 
-use std::borrow::Borrow;
 use std::cmp::max;
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::ptr::write_bytes;
+use std::slice::from_raw_parts;
 
 use endian_scalar::{read_scalar, emplace_scalar};
 use primitives::*;
@@ -247,9 +247,20 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// always safe, on any platform: bool, u8, i8, and any
     /// FlatBuffers-generated struct.
     #[inline]
-    pub fn create_vector_direct<'a: 'b, 'b, T: SafeSliceAccess + Push + Sized + 'b>(&'a mut self, data: &'b [T]) -> WIPOffset<Vector<'fbb, T>> {
+    pub fn create_vector_direct<'a: 'b, 'b, T: SafeSliceAccess + Push + Sized + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T>> {
         self.assert_not_nested("create_vector_direct can not be called when a table or vector is under construction");
-        self.push(data);
+        let elem_size = size_of::<T>();
+        self.align(SIZE_UOFFSET + items.len() * elem_size, max(elem_size, SIZE_UOFFSET));
+        self.make_space(SIZE_UOFFSET + items.len() * elem_size);
+
+        let bytes = unsafe {
+            let ptr = items.as_ptr() as *const T as *const u8;
+            from_raw_parts(ptr, items.len() * elem_size)
+        };
+
+        self.owned_buf[self.head..self.head+bytes.len()].copy_from_slice(bytes);
+        self.push(items.len() as UOffsetT);
+
         WIPOffset::new(self.used_space() as UOffsetT)
     }
 
@@ -276,14 +287,13 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed-sensitive users may wish to reduce memory usage by creating the
     /// vector manually: use `create_vector`, `push`, and `end_vector`.
     #[inline]
-    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b, B: Borrow<T>>(&'a mut self, items: &'b [B]) -> WIPOffset<Vector<'fbb, T::Output>> {
+    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = size_of::<T>();
-        self.start_vector(elem_size, items.len());
-        // TODO(rw): precompute the space needed and call `make_space` only once
+        self.align(items.len() * elem_size, max(SIZE_SOFFSET, elem_size));
         for i in (0..items.len()).rev() {
-            self.push(*items[i].borrow());
+            self.push(items[i]);
         }
-        WIPOffset::new(self.end_vector::<T::Output>(items.len()).value())
+        WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
     }
 
     /// Get the byte slice for the data that has been written, regardless of

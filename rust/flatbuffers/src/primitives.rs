@@ -112,12 +112,12 @@ impl<'a, T: 'a> WIPOffset<T> {
 
     /// Return a wrapped value that brings its meaning as a union WIPOffset
     /// into the type system.
-    #[inline]
+    #[inline(always)]
     pub fn as_union_value(&self) -> WIPOffset<UnionWIPOffset> {
         WIPOffset::new(self.0)
     }
     /// Get the underlying value.
-    #[inline]
+    #[inline(always)]
     pub fn value(&self) -> UOffsetT {
         self.0
     }
@@ -126,7 +126,7 @@ impl<'a, T: 'a> WIPOffset<T> {
 impl<T> Push for WIPOffset<T> {
     type Output = ForwardsUOffset<T>;
 
-    #[inline]
+    #[inline(always)]
     fn push(&self, dst: &mut [u8], rest: &[u8]) {
         let n = (SIZE_UOFFSET + rest.len() - self.value() as usize) as UOffsetT;
         emplace_scalar::<UOffsetT>(dst, n);
@@ -136,7 +136,7 @@ impl<T> Push for WIPOffset<T> {
 impl<T> Push for ForwardsUOffset<T> {
     type Output = Self;
 
-    #[inline]
+    #[inline(always)]
     fn push(&self, dst: &mut [u8], rest: &[u8]) {
         self.value().push(dst, rest);
     }
