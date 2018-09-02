@@ -887,12 +887,12 @@ mod roundtrip_vectors {
                 let xs = &vec[..];
 
                 let mut b1 = flatbuffers::FlatBufferBuilder::new();
-                b1.start_vector(flatbuffers::SIZE_U8, xs.len());
+                b1.start_vector::<u8>(xs.len());
 
                 for i in (0..xs.len()).rev() {
                     b1.push(xs[i]);
                 }
-                b1.end_vector::<&u8>(xs.len());
+                b1.end_vector::<u8>(xs.len());
 
                 let mut b2 = flatbuffers::FlatBufferBuilder::new();
                 b2.create_vector(xs);
@@ -1127,7 +1127,7 @@ mod roundtrip_table {
             let mut b = flatbuffers::FlatBufferBuilder::new();
             let mut offs = vec![];
             for vec in &vecs {
-                b.start_vector(vec.len(), ::std::mem::size_of::<T>());
+                b.start_vector::<T>(vec.len());
 
                 let xs = &vec[..];
                 for i in (0..xs.len()).rev() {
@@ -2036,7 +2036,7 @@ mod byte_layouts {
     fn layout_02_1xbyte_vector() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         check(&b, &[]);
-        b.start_vector(flatbuffers::SIZE_U8, 1);
+        b.start_vector::<u8>(1);
         check(&b, &[0, 0, 0]); // align to 4bytes
         b.push(1u8);
         check(&b, &[1, 0, 0, 0]);
@@ -2047,20 +2047,20 @@ mod byte_layouts {
     #[test]
     fn layout_03_2xbyte_vector() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(flatbuffers::SIZE_U8, 2);
+        b.start_vector::<u8>(2);
         check(&b, &[0, 0]); // align to 4bytes
         b.push(1u8);
         check(&b, &[1, 0, 0]);
         b.push(2u8);
         check(&b, &[2, 1, 0, 0]);
-        b.end_vector::<&u8>(2);
+        b.end_vector::<u8>(2);
         check(&b, &[2, 0, 0, 0, 2, 1, 0, 0]); // padding
     }
 
     #[test]
     fn layout_03b_11xbyte_vector_matches_builder_size() {
         let mut b = flatbuffers::FlatBufferBuilder::new_with_capacity(12);
-        b.start_vector(flatbuffers::SIZE_U8, 8);
+        b.start_vector::<u8>(8);
 
         let mut gold = vec![0u8; 0];
         check(&b, &gold[..]);
@@ -2070,31 +2070,31 @@ mod byte_layouts {
             gold.insert(0, i);
             check(&b, &gold[..]);
         }
-        b.end_vector::<&u8>(8);
+        b.end_vector::<u8>(8);
         let want = vec![8u8, 0, 0, 0,  8, 7, 6, 5, 4, 3, 2, 1];
         check(&b, &want[..]);
     }
     #[test]
     fn layout_04_1xuint16_vector() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(flatbuffers::SIZE_U16, 1);
+        b.start_vector::<u16>(1);
         check(&b, &[0, 0]); // align to 4bytes
         b.push(1u16);
         check(&b, &[1, 0, 0, 0]);
-        b.end_vector::<&u16>(1);
+        b.end_vector::<u16>(1);
         check(&b, &[1, 0, 0, 0, 1, 0, 0, 0]); // padding
     }
 
     #[test]
     fn layout_05_2xuint16_vector() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        let _off = b.start_vector(flatbuffers::SIZE_U16, 2);
+        let _off = b.start_vector::<u16>(2);
         check(&b, &[]); // align to 4bytes
         b.push(0xABCDu16);
         check(&b, &[0xCD, 0xAB]);
         b.push(0xDCBAu16);
         check(&b, &[0xBA, 0xDC, 0xCD, 0xAB]);
-        b.end_vector::<&u16>(2);
+        b.end_vector::<u16>(2);
         check(&b, &[2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB]);
     }
 
@@ -2240,8 +2240,8 @@ mod byte_layouts {
     #[test]
     fn layout_12b_vtable_with_empty_vector() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(flatbuffers::SIZE_U8, 0);
-        let vecend = b.end_vector::<&u8>(0);
+        b.start_vector::<u8>(0);
+        let vecend = b.end_vector::<u8>(0);
         let off = b.start_table();
         b.push_slot_always(fi2fo(0), vecend);
         b.end_table(off);
@@ -2258,8 +2258,8 @@ mod byte_layouts {
     #[test]
     fn layout_12c_vtable_with_empty_vector_of_byte_and_some_scalars() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(flatbuffers::SIZE_U8, 0);
-        let vecend = b.end_vector::<&u8>(0);
+        b.start_vector::<u8>(0);
+        let vecend = b.end_vector::<u8>(0);
         let off = b.start_table();
         b.push_slot::<i16>(fi2fo(0), 55i16, 0);
         b.push_slot_always::<flatbuffers::WIPOffset<_>>(fi2fo(1), vecend);
@@ -2279,10 +2279,10 @@ mod byte_layouts {
     #[test]
     fn layout_13_vtable_with_1_int16_and_2_vector_of_i16() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(flatbuffers::SIZE_I16, 2);
+        b.start_vector::<i16>(2);
         b.push(0x1234i16);
         b.push(0x5678i16);
-        let vecend = b.end_vector::<&i16>(2);
+        let vecend = b.end_vector::<i16>(2);
         let off = b.start_table();
         b.push_slot_always(fi2fo(1), vecend);
         b.push_slot(fi2fo(0), 55i16, 0);
@@ -2343,21 +2343,15 @@ mod byte_layouts {
               0, 0, 0, 0, // padding
         ]);
     }
-    // test 15: vtable with 1 vector of 2 struct of 2 int8
     #[test]
-    fn layout_15_vtable_with_1_vector_of_2_struct_2_int8() {
-        #[allow(dead_code)]
-        struct FooStruct {
-            a: i8,
-            b: i8,
-        }
+    fn layout_15_vtable_with_1_vector_of_4_int8() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        b.start_vector(::std::mem::size_of::<FooStruct>(), 2);
+        b.start_vector::<i8>(4);
         b.push(33i8);
         b.push(44i8);
         b.push(55i8);
         b.push(66i8);
-        let vecend = b.end_vector::<&FooStruct>(2);
+        let vecend = b.end_vector::<i8>(4);
         let off = b.start_table();
         b.push_slot_always(fi2fo(0), vecend);
         b.end_table(off);
@@ -2368,7 +2362,7 @@ mod byte_layouts {
               6, 0, 0, 0, // offset for start of vtable (int32)
               4, 0, 0, 0, // vector start offset
 
-              2, 0, 0, 0, // vector length
+              4, 0, 0, 0, // vector length
               66, // vector value 1,1
               55, // vector value 1,0
               44, // vector value 0,1
