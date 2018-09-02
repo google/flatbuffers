@@ -212,7 +212,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ///
     /// Asserts that the builder is in a nested state.
     #[inline]
-    pub fn end_vector<T: 'fbb>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
+    pub fn end_vector<T: Push>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
         self.assert_nested("end_vector");
         self.nested = false;
         let o = self.push::<UOffsetT>(num_elems as UOffsetT);
@@ -232,7 +232,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
         self.assert_not_nested("create_byte_string can not be called when a table or vector is under construction");
-        self.align(SIZE_UOFFSET + data.len() + 1, PushAlignment::new(SIZE_UOFFSET));
+        self.align(data.len() + 1, PushAlignment::new(SIZE_UOFFSET));
         self.push(0u8);
         self.push_bytes_unprefixed(data);
         self.push(data.len() as UOffsetT);
@@ -251,9 +251,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         let elem_size = T::size();
         self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
 
-        let bytes = unsafe {
+        let bytes = {
             let ptr = items.as_ptr() as *const T as *const u8;
-            from_raw_parts(ptr, items.len() * elem_size)
+            unsafe { from_raw_parts(ptr, items.len() * elem_size) }
         };
         self.push_bytes_unprefixed(bytes);
         self.push(items.len() as UOffsetT);

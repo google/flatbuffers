@@ -2040,7 +2040,7 @@ mod byte_layouts {
         check(&b, &[0, 0, 0]); // align to 4bytes
         b.push(1u8);
         check(&b, &[1, 0, 0, 0]);
-        b.end_vector::<&u8>(1);
+        b.end_vector::<u8>(1);
         check(&b, &[1, 0, 0, 0, 1, 0, 0, 0]); // padding
     }
 
