@@ -6,7 +6,6 @@ pub mod namespace_a {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -17,7 +16,6 @@ pub enum TableInFirstNSOffset {}
 
 pub struct TableInFirstNS<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
@@ -26,7 +24,6 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -36,13 +33,12 @@ impl<'a> TableInFirstNS<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInFirstNS {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInFirstNSArgs<'args>) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
+        args: &'args TableInFirstNSArgs) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
       let mut builder = TableInFirstNSBuilder::new(_fbb);
       if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
       if let Some(x) = args.foo_table { builder.add_foo_table(x); }
@@ -68,20 +64,18 @@ impl<'a> TableInFirstNS<'a> {
   }
 }
 
-pub struct TableInFirstNSArgs<'a> {
+pub struct TableInFirstNSArgs {
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a >>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
     pub foo_struct: Option<&'a  namespace_b::StructInNestedNS>,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for TableInFirstNSArgs<'a> {
+impl<'a> Default for TableInFirstNSArgs {
     #[inline]
     fn default() -> Self {
         TableInFirstNSArgs {
             foo_table: None,
             foo_enum: namespace_b::EnumInNestedNS::A,
             foo_struct: None,
-            _phantom: PhantomData,
         }
     }
 }
@@ -122,7 +116,6 @@ pub enum SecondTableInAOffset {}
 
 pub struct SecondTableInA<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
@@ -131,7 +124,6 @@ impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -141,13 +133,12 @@ impl<'a> SecondTableInA<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         SecondTableInA {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args SecondTableInAArgs<'args>) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
+        args: &'args SecondTableInAArgs) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
       let mut builder = SecondTableInABuilder::new(_fbb);
       if let Some(x) = args.refer_to_c { builder.add_refer_to_c(x); }
       builder.finish()
@@ -161,16 +152,14 @@ impl<'a> SecondTableInA<'a> {
   }
 }
 
-pub struct SecondTableInAArgs<'a> {
+pub struct SecondTableInAArgs {
     pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a >>>,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for SecondTableInAArgs<'a> {
+impl<'a> Default for SecondTableInAArgs {
     #[inline]
     fn default() -> Self {
         SecondTableInAArgs {
             refer_to_c: None,
-            _phantom: PhantomData,
         }
     }
 }
@@ -205,7 +194,6 @@ pub mod namespace_c {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -216,7 +204,6 @@ pub enum TableInCOffset {}
 
 pub struct TableInC<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
@@ -225,7 +212,6 @@ impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -235,13 +221,12 @@ impl<'a> TableInC<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInC {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInCArgs<'args>) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
+        args: &'args TableInCArgs) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
       let mut builder = TableInCBuilder::new(_fbb);
       if let Some(x) = args.refer_to_a2 { builder.add_refer_to_a2(x); }
       if let Some(x) = args.refer_to_a1 { builder.add_refer_to_a1(x); }
@@ -261,18 +246,16 @@ impl<'a> TableInC<'a> {
   }
 }
 
-pub struct TableInCArgs<'a> {
+pub struct TableInCArgs {
     pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a >>>,
     pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a >>>,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for TableInCArgs<'a> {
+impl<'a> Default for TableInCArgs {
     #[inline]
     fn default() -> Self {
         TableInCArgs {
             refer_to_a1: None,
             refer_to_a2: None,
-            _phantom: PhantomData,
         }
     }
 }

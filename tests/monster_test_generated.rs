@@ -6,7 +6,6 @@ pub mod my_game {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -80,7 +79,6 @@ pub mod example_2 {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -156,7 +154,6 @@ pub mod example {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;

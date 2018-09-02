@@ -6,7 +6,6 @@ pub mod namespace_a {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -16,7 +15,6 @@ pub mod namespace_b {
   #![allow(unused_imports)]
 
   use std::mem;
-  use std::marker::PhantomData;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
@@ -63,10 +61,6 @@ impl flatbuffers::Push for EnumInNestedNS {
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<EnumInNestedNS>(dst, *self);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<EnumInNestedNS>()
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -89,7 +83,7 @@ pub fn enum_name_enum_in_nested_n_s(e: EnumInNestedNS) -> &'static str {
 }
 
 // struct StructInNestedNS, aligned to 4
-#[repr(C, packed)]
+#[repr(C, align(4))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct StructInNestedNS {
   a_: i32,
@@ -120,10 +114,6 @@ impl<'b> flatbuffers::Push for StructInNestedNS {
         };
         dst.copy_from_slice(src);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<StructInNestedNS>()
-    }
 }
 impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     type Output = StructInNestedNS;
@@ -134,10 +124,6 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
             ::std::slice::from_raw_parts(*self as *const StructInNestedNS as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
-    }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<StructInNestedNS>()
     }
 }
 
@@ -163,7 +149,6 @@ pub enum TableInNestedNSOffset {}
 
 pub struct TableInNestedNS<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
@@ -172,7 +157,6 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -182,13 +166,12 @@ impl<'a> TableInNestedNS<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInNestedNS {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInNestedNSArgs<'args>) -> flatbuffers::WIPOffset<TableInNestedNS<'bldr>> {
+        args: &'args TableInNestedNSArgs) -> flatbuffers::WIPOffset<TableInNestedNS<'bldr>> {
       let mut builder = TableInNestedNSBuilder::new(_fbb);
       builder.add_foo(args.foo);
       builder.finish()
@@ -202,16 +185,14 @@ impl<'a> TableInNestedNS<'a> {
   }
 }
 
-pub struct TableInNestedNSArgs<'a> {
+pub struct TableInNestedNSArgs {
     pub foo: i32,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for TableInNestedNSArgs<'a> {
+impl<'a> Default for TableInNestedNSArgs {
     #[inline]
     fn default() -> Self {
         TableInNestedNSArgs {
             foo: 0,
-            _phantom: PhantomData,
         }
     }
 }
