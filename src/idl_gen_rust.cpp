@@ -1621,7 +1621,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[inline]";
     code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "    <&'a {{STRUCT_NAME}}>::follow(buf, loc)";
-    code_ += "    //flatbuffers::follow_cast_ref::<{{STRUCT_NAME}}>(buf, loc)";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for &'a {{STRUCT_NAME}} {";

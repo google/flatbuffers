@@ -306,7 +306,6 @@ impl<'a> flatbuffers::Follow<'a> for Test {
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a Test>::follow(buf, loc)
-    //flatbuffers::follow_cast_ref::<Test>(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Test {
@@ -376,7 +375,6 @@ impl<'a> flatbuffers::Follow<'a> for Vec3 {
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a Vec3>::follow(buf, loc)
-    //flatbuffers::follow_cast_ref::<Vec3>(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Vec3 {
@@ -457,7 +455,6 @@ impl<'a> flatbuffers::Follow<'a> for Ability {
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a Ability>::follow(buf, loc)
-    //flatbuffers::follow_cast_ref::<Ability>(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Ability {

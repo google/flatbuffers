@@ -95,7 +95,6 @@ impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a StructInNestedNS>::follow(buf, loc)
-    //flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a StructInNestedNS {
