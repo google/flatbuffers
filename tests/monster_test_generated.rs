@@ -17,7 +17,6 @@ pub enum InParentNamespaceOffset {}
 
 pub struct InParentNamespace<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
@@ -26,7 +25,6 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -36,27 +34,24 @@ impl<'a> InParentNamespace<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         InParentNamespace {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        _args: &'args InParentNamespaceArgs<'args>) -> flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
+        _args: &'args InParentNamespaceArgs) -> flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
       let mut builder = InParentNamespaceBuilder::new(_fbb);
       builder.finish()
     }
 
 }
 
-pub struct InParentNamespaceArgs<'a> {
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
+pub struct InParentNamespaceArgs {
 }
-impl<'a> Default for InParentNamespaceArgs<'a> {
+impl<'a> Default for InParentNamespaceArgs {
     #[inline]
     fn default() -> Self {
         InParentNamespaceArgs {
-            _phantom: PhantomData,
         }
     }
 }
@@ -96,7 +91,6 @@ pub enum MonsterOffset {}
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
@@ -105,7 +99,6 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -115,27 +108,24 @@ impl<'a> Monster<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        _args: &'args MonsterArgs<'args>) -> flatbuffers::WIPOffset<Monster<'bldr>> {
+        _args: &'args MonsterArgs) -> flatbuffers::WIPOffset<Monster<'bldr>> {
       let mut builder = MonsterBuilder::new(_fbb);
       builder.finish()
     }
 
 }
 
-pub struct MonsterArgs<'a> {
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
+pub struct MonsterArgs {
 }
-impl<'a> Default for MonsterArgs<'a> {
+impl<'a> Default for MonsterArgs {
     #[inline]
     fn default() -> Self {
         MonsterArgs {
-            _phantom: PhantomData,
         }
     }
 }
@@ -213,10 +203,6 @@ impl flatbuffers::Push for Color {
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<Color>(dst, *self);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Color>()
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -285,10 +271,6 @@ impl flatbuffers::Push for Any {
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<Any>(dst, *self);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Any>()
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -314,7 +296,7 @@ pub fn enum_name_any(e: Any) -> &'static str {
 
 pub struct AnyUnionTableOffset {}
 // struct Test, aligned to 2
-#[repr(C, packed)]
+#[repr(C, align(2))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Test {
   a_: i16,
@@ -346,10 +328,6 @@ impl<'b> flatbuffers::Push for Test {
         };
         dst.copy_from_slice(src);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Test>()
-    }
 }
 impl<'b> flatbuffers::Push for &'b Test {
     type Output = Test;
@@ -360,10 +338,6 @@ impl<'b> flatbuffers::Push for &'b Test {
             ::std::slice::from_raw_parts(*self as *const Test as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
-    }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Test>()
     }
 }
 
@@ -386,7 +360,7 @@ impl Test {
 }
 
 // struct Vec3, aligned to 16
-#[repr(C, packed)]
+#[repr(C, align(16))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
   x_: f32,
@@ -424,10 +398,6 @@ impl<'b> flatbuffers::Push for Vec3 {
         };
         dst.copy_from_slice(src);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Vec3>()
-    }
 }
 impl<'b> flatbuffers::Push for &'b Vec3 {
     type Output = Vec3;
@@ -438,10 +408,6 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
             ::std::slice::from_raw_parts(*self as *const Vec3 as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
-    }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Vec3>()
     }
 }
 
@@ -482,7 +448,7 @@ impl Vec3 {
 }
 
 // struct Ability, aligned to 4
-#[repr(C, packed)]
+#[repr(C, align(4))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Ability {
   id_: u32,
@@ -513,10 +479,6 @@ impl<'b> flatbuffers::Push for Ability {
         };
         dst.copy_from_slice(src);
     }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Ability>()
-    }
 }
 impl<'b> flatbuffers::Push for &'b Ability {
     type Output = Ability;
@@ -527,10 +489,6 @@ impl<'b> flatbuffers::Push for &'b Ability {
             ::std::slice::from_raw_parts(*self as *const Ability as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
-    }
-    #[inline]
-    fn size() -> usize {
-        ::std::mem::size_of::<Ability>()
     }
 }
 
@@ -546,10 +504,12 @@ impl Ability {
   pub fn id<'a>(&'a self) -> u32 {
     self.id_.from_little_endian()
   }
+  #[inline]
   pub fn key_compare_less_than(&self, o: &Ability) ->  bool {
     self.id() < o.id()
   }
 
+  #[inline]
   pub fn key_compare_with_value(&self, val: u32) ->  ::std::cmp::Ordering {
     let key = self.id();
     key.cmp(&val)
@@ -564,7 +524,6 @@ pub enum TestSimpleTableWithEnumOffset {}
 
 pub struct TestSimpleTableWithEnum<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
@@ -573,7 +532,6 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -583,13 +541,12 @@ impl<'a> TestSimpleTableWithEnum<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TestSimpleTableWithEnum {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TestSimpleTableWithEnumArgs<'args>) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
+        args: &'args TestSimpleTableWithEnumArgs) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
       let mut builder = TestSimpleTableWithEnumBuilder::new(_fbb);
       builder.add_color(args.color);
       builder.finish()
@@ -603,16 +560,14 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   }
 }
 
-pub struct TestSimpleTableWithEnumArgs<'a> {
+pub struct TestSimpleTableWithEnumArgs {
     pub color: Color,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for TestSimpleTableWithEnumArgs<'a> {
+impl<'a> Default for TestSimpleTableWithEnumArgs {
     #[inline]
     fn default() -> Self {
         TestSimpleTableWithEnumArgs {
             color: Color::Green,
-            _phantom: PhantomData,
         }
     }
 }
@@ -645,7 +600,6 @@ pub enum StatOffset {}
 
 pub struct Stat<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
@@ -654,7 +608,6 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -664,7 +617,6 @@ impl<'a> Stat<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Stat {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
@@ -700,7 +652,6 @@ pub struct StatArgs<'a> {
     pub id: Option<flatbuffers::WIPOffset<&'a  str>>,
     pub val: i64,
     pub count: u16,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for StatArgs<'a> {
     #[inline]
@@ -709,7 +660,6 @@ impl<'a> Default for StatArgs<'a> {
             id: None,
             val: 0,
             count: 0,
-            _phantom: PhantomData,
         }
     }
 }
@@ -750,7 +700,6 @@ pub enum ReferrableOffset {}
 
 pub struct Referrable<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
@@ -759,7 +708,6 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -769,13 +717,12 @@ impl<'a> Referrable<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Referrable {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args ReferrableArgs<'args>) -> flatbuffers::WIPOffset<Referrable<'bldr>> {
+        args: &'args ReferrableArgs) -> flatbuffers::WIPOffset<Referrable<'bldr>> {
       let mut builder = ReferrableBuilder::new(_fbb);
       builder.add_id(args.id);
       builder.finish()
@@ -787,26 +734,26 @@ impl<'a> Referrable<'a> {
   pub fn id(&'a self) -> u64 {
     self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()
   }
+  #[inline]
   pub fn key_compare_less_than(&self, o: &Referrable) ->  bool {
     self.id() < o.id()
   }
 
+  #[inline]
   pub fn key_compare_with_value(&self, val: u64) ->  ::std::cmp::Ordering {
     let key = self.id();
     key.cmp(&val)
   }
 }
 
-pub struct ReferrableArgs<'a> {
+pub struct ReferrableArgs {
     pub id: u64,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
-impl<'a> Default for ReferrableArgs<'a> {
+impl<'a> Default for ReferrableArgs {
     #[inline]
     fn default() -> Self {
         ReferrableArgs {
             id: 0,
-            _phantom: PhantomData,
         }
     }
 }
@@ -840,7 +787,6 @@ pub enum MonsterOffset {}
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
@@ -849,7 +795,6 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -859,7 +804,6 @@ impl<'a> Monster<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
@@ -971,10 +915,12 @@ impl<'a> Monster<'a> {
   pub fn name(&'a self) -> Option<&'a str> {
     self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)
   }
+  #[inline]
   pub fn key_compare_less_than(&self, o: &Monster) ->  bool {
     self.name() < o.name()
   }
 
+  #[inline]
   pub fn key_compare_with_value(&self, val: Option<&str>) ->  ::std::cmp::Ordering {
     let key = self.name();
     key.cmp(&val)
@@ -1217,7 +1163,6 @@ pub struct MonsterArgs<'a> {
     pub vector_of_co_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
     pub non_owning_reference: u64,
     pub vector_of_non_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1265,7 +1210,6 @@ impl<'a> Default for MonsterArgs<'a> {
             vector_of_co_owning_references: None,
             non_owning_reference: 0,
             vector_of_non_owning_references: None,
-            _phantom: PhantomData,
         }
     }
 }
@@ -1463,7 +1407,6 @@ pub enum TypeAliasesOffset {}
 
 pub struct TypeAliases<'a> {
   pub _tab: flatbuffers::Table<'a>,
-  _phantom: PhantomData<&'a ()>,
 }
 
 impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
@@ -1472,7 +1415,6 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
             _tab: flatbuffers::Table { buf: buf, loc: loc },
-            _phantom: PhantomData,
         }
     }
 }
@@ -1482,7 +1424,6 @@ impl<'a> TypeAliases<'a> {
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TypeAliases {
             _tab: table,
-            _phantom: PhantomData,
         }
     }
     #[allow(unused_mut)]
@@ -1581,7 +1522,6 @@ pub struct TypeAliasesArgs<'a> {
     pub f64_: f64,
     pub v8: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  i8>>>,
     pub vf64: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  f64>>>,
-    pub _phantom: PhantomData<&'a ()>, // pub for default trait
 }
 impl<'a> Default for TypeAliasesArgs<'a> {
     #[inline]
@@ -1599,7 +1539,6 @@ impl<'a> Default for TypeAliasesArgs<'a> {
             f64_: 0.0,
             v8: None,
             vf64: None,
-            _phantom: PhantomData,
         }
     }
 }

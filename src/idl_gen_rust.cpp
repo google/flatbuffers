@@ -356,6 +356,25 @@ class RustGenerator : public BaseGenerator {
     }
   }
 
+  // Determine if a table args rust type needs a lifetime template parameter.
+  bool TableBuilderArgsNeedsLifetime(const StructDef &struct_def) const {
+    FLATBUFFERS_ASSERT(!struct_def.fixed);
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        continue;
+      }
+
+      if (TypeNeedsLifetimeParameter(field.value.type)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Determine if a Type needs to be copied (for endian safety) when used in a
   // Struct.
   bool StructMemberAccessNeedsCopy(const Type &type) const {
@@ -1116,7 +1135,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "pub struct {{STRUCT_NAME}}<'a> {";
     code_ += "  pub _tab: flatbuffers::Table<'a>,";
-    code_ += "  _phantom: PhantomData<&'a ()>,";
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_NAME}}<'a> {";
@@ -1125,7 +1143,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "        Self {";
     code_ += "            _tab: flatbuffers::Table { buf: buf, loc: loc },";
-    code_ += "            _phantom: PhantomData,";
     code_ += "        }";
     code_ += "    }";
     code_ += "}";
@@ -1136,7 +1153,6 @@ class RustGenerator : public BaseGenerator {
              "Self {";
     code_ += "        {{STRUCT_NAME}} {";
     code_ += "            _tab: table,";
-    code_ += "            _phantom: PhantomData,";
     code_ += "        }";
     code_ += "    }";
 
@@ -1144,12 +1160,14 @@ class RustGenerator : public BaseGenerator {
     // to create a table in one function call.
     code_.SetValue("MAYBE_US",
         struct_def.fields.vec.size() == 0 ? "_" : "");
+    code_.SetValue("MAYBE_LT",
+        TableBuilderArgsNeedsLifetime(struct_def) ? "<'args>" : "");
     code_ += "    #[allow(unused_mut)]";
     code_ += "    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(";
     code_ += "        _fbb: "
              "&'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,";
-    code_ += "        {{MAYBE_US}}args: &'args {{STRUCT_NAME}}Args<'args>) -> "
-             "flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>> {";
+    code_ += "        {{MAYBE_US}}args: &'args {{STRUCT_NAME}}Args{{MAYBE_LT}})"
+             " -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>> {";
 
     code_ += "      let mut builder = {{STRUCT_NAME}}Builder::new(_fbb);";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
@@ -1303,7 +1321,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate an args struct:
-    code_ += "pub struct {{STRUCT_NAME}}Args<'a> {";
+    code_.SetValue("MAYBE_LT",
+        TableBuilderArgsNeedsLifetime(struct_def) ? "<'a>" : "");
+    code_ += "pub struct {{STRUCT_NAME}}Args{{MAYBE_LT}} {";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -1313,11 +1333,10 @@ class RustGenerator : public BaseGenerator {
         code_ += "    pub {{PARAM_NAME}}: {{PARAM_TYPE}},";
       }
     }
-    code_ += "    pub _phantom: PhantomData<&'a ()>, // pub for default trait";
     code_ += "}";
 
     // Generate an impl of Default for the *Args type:
-    code_ += "impl<'a> Default for {{STRUCT_NAME}}Args<'a> {";
+    code_ += "impl<'a> Default for {{STRUCT_NAME}}Args{{MAYBE_LT}} {";
     code_ += "    #[inline]";
     code_ += "    fn default() -> Self {";
     code_ += "        {{STRUCT_NAME}}Args {";
@@ -1331,7 +1350,6 @@ class RustGenerator : public BaseGenerator {
         code_ += "            {{PARAM_NAME}}: {{PARAM_VALUE}},{{REQ}}";
       }
     }
-    code_ += "            _phantom: PhantomData,";
     code_ += "        }";
     code_ += "    }";
     code_ += "}";
@@ -1751,7 +1769,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "  #![allow(unused_imports)]";
       code_ += "";
       code_ += "  use std::mem;";
-      code_ += "  use std::marker::PhantomData;";
       code_ += "  use std::cmp::Ordering;";
       code_ += "";
       code_ += "  extern crate flatbuffers;";
