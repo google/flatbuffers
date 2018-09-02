@@ -33,4 +33,6 @@ pub use table::{Table, buffer_has_identifier, get_root, get_size_prefixed_root};
 pub use vector::{SafeSliceAccess, Vector, follow_cast_ref};
 pub use vtable::field_index_to_field_offset;
 
+// TODO(rw): Unify `create_vector` and `create_vector_direct` by using
+//           `Into<Vector<...>>`.
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.
