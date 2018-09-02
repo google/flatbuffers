@@ -573,6 +573,26 @@ mod generated_code_alignment_and_padding {
     use super::my_game;
 
     #[test]
+    fn enum_color_is_1_byte() {
+        assert_eq!(1, ::std::mem::size_of::<my_game::example::Color>());
+    }
+
+    #[test]
+    fn enum_color_is_aligned_to_1() {
+        assert_eq!(1, ::std::mem::align_of::<my_game::example::Color>());
+    }
+
+    #[test]
+    fn union_any_is_1_byte() {
+        assert_eq!(1, ::std::mem::size_of::<my_game::example::Any>());
+    }
+
+    #[test]
+    fn union_any_is_aligned_to_1() {
+        assert_eq!(1, ::std::mem::align_of::<my_game::example::Any>());
+    }
+
+    #[test]
     fn struct_test_is_4_bytes() {
         assert_eq!(4, ::std::mem::size_of::<my_game::example::Test>());
     }
