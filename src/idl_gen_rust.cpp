@@ -247,12 +247,12 @@ class RustGenerator : public BaseGenerator {
       "f32",
       "f64",
 
-      // these are terms the code generator can implement on types.
+      // These are terms the code generator can implement on types.
       //
-      // in rust, the trait resolution rules (as described at
+      // In Rust, the trait resolution rules (as described at
       // https://github.com/rust-lang/rust/issues/26007) mean that, as long
       // as we impl table accessors as inherent methods, we'll never create
-      // conflicts with these keywords. however, that's a fairly nuanced
+      // conflicts with these keywords. However, that's a fairly nuanced
       // implementation detail, and how we implement methods could change in
       // the future. as a result, we proactively block these out as reserved
       // words.
