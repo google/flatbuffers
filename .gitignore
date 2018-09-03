@@ -16,6 +16,7 @@
 *.keystore
 **/.vs/**
 **/bin/**
+!tests/rust_usage_test/bin/**
 **/gen/**
 **/libs/**
 **/obj/**
@@ -56,6 +57,7 @@ tests/monsterdata_java_wire_sp.mon
 tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
 tests/monsterdata_lobster_wire.mon
+tests/monsterdata_rust_wire.mon
 tests/unicode_test.mon
 tests/ts/
 tests/php/

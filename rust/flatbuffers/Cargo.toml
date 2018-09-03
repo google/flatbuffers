@@ -1,0 +1,7 @@
+[package]
+name = "flatbuffers"
+version = "0.1.0"
+authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
+
+[dependencies]
+smallvec = "0.6"

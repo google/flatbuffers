@@ -54,6 +54,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_python.cpp
   src/idl_gen_lobster.cpp
   src/idl_gen_lua.cpp
+  src/idl_gen_rust.cpp
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
