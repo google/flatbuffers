@@ -264,7 +264,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Create a vector of strings.
     ///
     /// Speed-sensitive users may wish to reduce memory usage by creating the
-    /// vector manually: use `create_vector`, `push`, and `end_vector`.
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
     #[inline]
     pub fn create_vector_of_strings<'a, 'b>(&'a mut self, xs: &'b [&'b str]) -> WIPOffset<Vector<'fbb, ForwardsUOffset<&'fbb str>>> {
         self.assert_not_nested("create_vector_of_strings can not be called when a table or vector is under construction");
@@ -282,7 +282,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Create a vector of Push-able objects.
     ///
     /// Speed-sensitive users may wish to reduce memory usage by creating the
-    /// vector manually: use `create_vector`, `push`, and `end_vector`.
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
     #[inline]
     pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(&'a mut self, items: &'b [T]) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
