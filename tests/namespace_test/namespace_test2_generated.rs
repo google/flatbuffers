@@ -42,7 +42,7 @@ impl<'a> TableInFirstNS<'a> {
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInFirstNSArgs) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
+        args: &'args TableInFirstNSArgs<'args>) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
       let mut builder = TableInFirstNSBuilder::new(_fbb);
       if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
       if let Some(x) = args.foo_table { builder.add_foo_table(x); }
@@ -68,12 +68,12 @@ impl<'a> TableInFirstNS<'a> {
   }
 }
 
-pub struct TableInFirstNSArgs {
+pub struct TableInFirstNSArgs<'a> {
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a >>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
     pub foo_struct: Option<&'a  namespace_b::StructInNestedNS>,
 }
-impl<'a> Default for TableInFirstNSArgs {
+impl<'a> Default for TableInFirstNSArgs<'a> {
     #[inline]
     fn default() -> Self {
         TableInFirstNSArgs {
@@ -142,7 +142,7 @@ impl<'a> SecondTableInA<'a> {
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args SecondTableInAArgs) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
+        args: &'args SecondTableInAArgs<'args>) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
       let mut builder = SecondTableInABuilder::new(_fbb);
       if let Some(x) = args.refer_to_c { builder.add_refer_to_c(x); }
       builder.finish()
@@ -156,10 +156,10 @@ impl<'a> SecondTableInA<'a> {
   }
 }
 
-pub struct SecondTableInAArgs {
+pub struct SecondTableInAArgs<'a> {
     pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a >>>,
 }
-impl<'a> Default for SecondTableInAArgs {
+impl<'a> Default for SecondTableInAArgs<'a> {
     #[inline]
     fn default() -> Self {
         SecondTableInAArgs {
@@ -230,7 +230,7 @@ impl<'a> TableInC<'a> {
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInCArgs) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
+        args: &'args TableInCArgs<'args>) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
       let mut builder = TableInCBuilder::new(_fbb);
       if let Some(x) = args.refer_to_a2 { builder.add_refer_to_a2(x); }
       if let Some(x) = args.refer_to_a1 { builder.add_refer_to_a1(x); }
@@ -250,11 +250,11 @@ impl<'a> TableInC<'a> {
   }
 }
 
-pub struct TableInCArgs {
+pub struct TableInCArgs<'a> {
     pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a >>>,
     pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a >>>,
 }
-impl<'a> Default for TableInCArgs {
+impl<'a> Default for TableInCArgs<'a> {
     #[inline]
     fn default() -> Self {
         TableInCArgs {
