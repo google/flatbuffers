@@ -271,6 +271,9 @@ class RustGenerator : public BaseGenerator {
   bool generate() {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code_ += "#![allow(dead_code)]";
+    code_ += "#![allow(unused_imports)]";
+    code_ += "extern crate flatbuffers;\n";
 
     assert(!cur_name_space_);
 
