@@ -30,7 +30,8 @@ pub mod namespace_b {
 pub enum EnumInNestedNS {
   A = 0,
   B = 1,
-  C = 2
+  C = 2,
+
 }
 
 const ENUM_MIN_ENUM_IN_NESTED_N_S: i8 = 0;
