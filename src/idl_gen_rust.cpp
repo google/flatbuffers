@@ -351,7 +351,6 @@ class RustGenerator : public BaseGenerator {
       case ftInteger:
       case ftFloat:
       case ftBool:
-      case ftTable:
       case ftEnumKey:
       case ftUnionKey:
       case ftStruct: { return false; }
