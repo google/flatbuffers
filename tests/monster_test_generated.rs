@@ -169,7 +169,8 @@ pub mod example {
 pub enum Color {
   Red = 1,
   Green = 2,
-  Blue = 8
+  Blue = 8,
+
 }
 
 const ENUM_MIN_COLOR: i8 = 1;
@@ -237,7 +238,8 @@ pub enum Any {
   NONE = 0,
   Monster = 1,
   TestSimpleTableWithEnum = 2,
-  MyGame_Example2_Monster = 3
+  MyGame_Example2_Monster = 3,
+
 }
 
 const ENUM_MIN_ANY: u8 = 0;
