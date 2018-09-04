@@ -555,7 +555,6 @@ class RustGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", Name(enum_def));
     code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
-    code_.SetValue("SEP", "");
 
     GenComment(enum_def.doc_comment);
     code_ += "#[allow(non_camel_case_types)]";
@@ -572,8 +571,7 @@ class RustGenerator : public BaseGenerator {
       GenComment(ev.doc_comment, "  ");
       code_.SetValue("KEY", Name(ev));
       code_.SetValue("VALUE", NumToString(ev.value));
-      code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-      code_.SetValue("SEP", ",\n");
+      code_ += "  {{KEY}} = {{VALUE}},";
 
       minv = !minv || minv->value > ev.value ? &ev : minv;
       maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
