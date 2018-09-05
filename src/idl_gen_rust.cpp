@@ -352,8 +352,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool:
       case ftEnumKey:
-      case ftUnionKey:
-      case ftStruct: { return false; }
+      case ftUnionKey: { return false; }
       default: { return true; }
     }
   }
