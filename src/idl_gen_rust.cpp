@@ -345,14 +345,16 @@ class RustGenerator : public BaseGenerator {
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
-  // Determine if a Type needs a lifetime template parameter when used in Rust.
-  bool TypeNeedsLifetimeParameter(const Type &type) const {
+  // Determine if a Type needs a lifetime template parameter when used in the
+  // Rust builder args.
+  bool TableBuilderTypeNeedsLifetime(const Type &type) const {
     switch (GetFullType(type)) {
       case ftInteger:
       case ftFloat:
       case ftBool:
       case ftEnumKey:
-      case ftUnionKey: { return false; }
+      case ftUnionKey:
+      case ftUnionValue: { return false; }
       default: { return true; }
     }
   }
@@ -368,7 +370,7 @@ class RustGenerator : public BaseGenerator {
         continue;
       }
 
-      if (TypeNeedsLifetimeParameter(field.value.type)) {
+      if (TableBuilderTypeNeedsLifetime(field.value.type)) {
         return true;
       }
     }
