@@ -152,6 +152,18 @@ public class FlatBufferBuilder {
          * @return Returns the new `ByteBuffer` that was allocated.
          */
         ByteBuffer newByteBuffer(int capacity);
+
+        /**
+         * Release a ByteBuffer. Current {@link FlatBufferBuilder}
+         * released any reference to it, so it is safe to dispose the buffer
+         * or return it to a pool.
+         * It is not guaranteed that the buffer has been created
+         * with {@link #newByteBuffer(int) }.
+         *
+         * @param bb the buffer to release
+         */
+        default void releaseByteBuffer(ByteBuffer bb) {
+        }
     }
 
     /**
@@ -241,7 +253,11 @@ public class FlatBufferBuilder {
         // Reallocate the buffer if needed.
         while (space < align_size + size + additional_bytes) {
             int old_buf_size = bb.capacity();
-            bb = growByteBuffer(bb, bb_factory);
+            ByteBuffer old = bb;
+            bb = growByteBuffer(old, bb_factory);
+            if (old != bb) {
+                bb_factory.releaseByteBuffer(old);
+            }
             space += bb.capacity() - old_buf_size;
         }
         pad(align_size);
