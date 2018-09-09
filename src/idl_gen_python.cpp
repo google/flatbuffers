@@ -704,20 +704,23 @@ class PythonGenerator : public BaseGenerator {
   // Save out the generated code for a Python Table type.
   bool SaveType(const Definition &def, const std::string &classcode,
                 bool needs_imports) {
+    static std::set<std::string> init_file_set;
     if (!classcode.length()) return true;
 
     std::string namespace_dir = path_;
     auto &namespaces = def.defined_namespace->components;
     for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-      if (it != namespaces.begin()) namespace_dir += kPathSeparator;
+      if (it != namespaces.begin())
+          namespace_dir += kPathSeparator;
       namespace_dir += *it;
-      if (it + 1 == namespaces.end()) {
+      if (init_file_set.find(namespace_dir) == init_file_set.end()) {
           std::string code = "";
-          if (namespaces.size() == 1) {
-            code = genFileIdentifier(LastNamespacePart(*def.defined_namespace));
+          if (it == namespaces.begin()) {
+            code = genFileIdentifier(*it);
           }
         std::string init_py_filename = namespace_dir + "/__init__.py";
-        SaveFile(init_py_filename.c_str(), code, false);
+        if (SaveFile(init_py_filename.c_str(), code, false))
+            init_file_set.insert(namespace_dir);
       }
     }
 
