@@ -92,11 +92,7 @@ std::string MakeCamel(const std::string &in, bool first) {
 }
 
 void Parser::Message(const std::string &msg) {
-#ifndef FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
-#else // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
-  error_ = file_being_parsed_.length() ? file_being_parsed_ : "";
-#endif // FLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
   // clang-format off
   #ifdef _WIN32
     error_ += "(" + NumToString(line_) + ")";  // MSVC alike

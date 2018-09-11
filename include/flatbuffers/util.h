@@ -321,7 +321,7 @@ inline void EnsureDirExists(const std::string &filepath) {
 // Returns the input path if the absolute path couldn't be resolved.
 inline std::string AbsolutePath(const std::string &filepath) {
   // clang-format off
-  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+  #if defined(FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION) || defined(FLATBUFFERS_NO_FILE_SUPPORT)
     return filepath;
   #else
     #ifdef _WIN32
