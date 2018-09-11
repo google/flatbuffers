@@ -36,7 +36,7 @@ std::string MakeSnakeCase(const std::string &in) {
     if (islower(in[i])) {
       s += static_cast<char>(in[i]);
     } else {
-      if (i > 0) {
+      if (i > 0 && in[i] != '_') {
         s += '_';
       }
       s += static_cast<char>(tolower(in[i]));
