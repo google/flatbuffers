@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 set -ex
 #
 # Copyright 2018 Google Inc. All rights reserved.
@@ -16,7 +16,7 @@ set -ex
 # limitations under the License.
 
 cd ./rust_usage_test
-cargo test $1
+cargo test -- --quiet
 TEST_RESULT=$?
 if [[ $TEST_RESULT  == 0 ]]; then
     echo "OK: Rust tests passed."
