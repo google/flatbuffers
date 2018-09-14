@@ -36,10 +36,12 @@ std::string MakeSnakeCase(const std::string &in) {
     if (islower(in[i])) {
       s += static_cast<char>(in[i]);
     } else {
-      if (i > 0 && in[i] != '_') {
+      if (i == 0 ) {
+        s += static_cast<char>(tolower(in[i]));
+      else if (in[i] != '_') {
         s += '_';
+        s += static_cast<char>(tolower(in[i]));
       }
-      s += static_cast<char>(tolower(in[i]));
     }
   }
   return s;
@@ -1765,14 +1767,14 @@ class RustGenerator : public BaseGenerator {
     // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j) {
       code_ += "pub mod " + MakeSnakeCase(ns->components[j]) + " {";
-      code_ += "  #![allow(dead_code)]";
-      code_ += "  #![allow(unused_imports)]";
+      code_ += "#![allow(dead_code)]";
+      code_ += "#![allow(unused_imports)]";
       code_ += "";
-      code_ += "  use std::mem;";
-      code_ += "  use std::cmp::Ordering;";
+      code_ += "use std::mem;";
+      code_ += "use std::cmp::Ordering;";
       code_ += "";
-      code_ += "  extern crate flatbuffers;";
-      code_ += "  use self::flatbuffers::EndianScalar;";
+      code_ += "extern crate flatbuffers;";
+      code_ += "use self::flatbuffers::EndianScalar;";
     }
     if (new_size != common_prefix_size) { code_ += ""; }
 
