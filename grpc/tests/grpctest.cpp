@@ -22,6 +22,7 @@
 #include "monster_test_generated.h"
 
 using namespace MyGame::Example;
+int builder_tests();
 
 // The callback implementation of our server, that derives from the generated
 // code. It implements all rpcs specified in the FlatBuffers schema.
@@ -92,7 +93,7 @@ void RunServer() {
   server_instance->Wait();
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+int grpc_server_test() {
   // Launch server.
   std::thread server_thread(RunServer);
 
@@ -163,3 +164,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   return 0;
 }
+
+int main(int /*argc*/, const char * /*argv*/ []) {
+  return builder_tests() + grpc_server_test();
+}
+

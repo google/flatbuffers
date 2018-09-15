@@ -572,16 +572,39 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
+  vector_downward(vector_downward &&other)
+    : allocator_(other.allocator_),
+      own_allocator_(other.own_allocator_),
+      initial_size_(other.initial_size_),
+      buffer_minalign_(other.buffer_minalign_),
+      reserved_(other.reserved_),
+      buf_(other.buf_),
+      cur_(other.cur_),
+      scratch_(other.scratch_) {
+    other.allocator_ = nullptr;
+    other.own_allocator_ = false;
+    // No change in other.initial_size_
+    // No change in other.buffer_minalign_
+    other.reserved_ = 0;
+    other.buf_ = nullptr;
+    other.cur_ = nullptr;
+    other.scratch_ = nullptr;
+  }
+
+  vector_downward &operator=(vector_downward &&other) {
+    // Move construct a temporary and swap idiom
+    vector_downward temp(std::move(other));
+    swap(temp);
+    return *this;
+  }
+
   ~vector_downward() {
-    if (buf_) Deallocate(allocator_, buf_, reserved_);
-    if (own_allocator_ && allocator_) { delete allocator_; }
+    clear_buffer();
+    clear_allocator();
   }
 
   void reset() {
-    if (buf_) {
-      Deallocate(allocator_, buf_, reserved_);
-      buf_ = nullptr;
-    }
+    clear_buffer();
     clear();
   }
 
@@ -597,6 +620,29 @@ class vector_downward {
 
   void clear_scratch() {
     scratch_ = buf_;
+  }
+
+  void clear_allocator() {
+    if (own_allocator_ && allocator_) { delete allocator_; }
+    allocator_ = nullptr;
+    own_allocator_ = false;
+  }
+
+  void clear_buffer() {
+    if (buf_) Deallocate(allocator_, buf_, reserved_);
+    buf_ = nullptr;
+  }
+
+  // Relinquish the pointer to the caller.
+  uint8_t *release_raw(size_t &allocated_bytes, size_t &offset) {
+    auto *buf = buf_;
+    allocated_bytes = reserved_;
+    offset = static_cast<size_t>(cur_ - buf_);
+
+    buf_ = nullptr;
+    clear_allocator();
+    clear();
+    return buf;
   }
 
   // Relinquish the pointer to the caller.
@@ -686,6 +732,24 @@ class vector_downward {
   void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
   void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
+  void swap(vector_downward &other) {
+    using std::swap;
+    swap(allocator_, other.allocator_);
+    swap(own_allocator_, other.own_allocator_);
+    swap(initial_size_, other.initial_size_);
+    swap(buffer_minalign_, other.buffer_minalign_);
+    swap(reserved_, other.reserved_);
+    swap(buf_, other.buf_);
+    swap(cur_, other.cur_);
+    swap(scratch_, other.scratch_);
+  }
+
+  void swap_allocator(vector_downward &other) {
+    using std::swap;
+    swap(allocator_, other.allocator_);
+    swap(own_allocator_, other.own_allocator_);
+  }
+
  private:
   // You shouldn't really be copying instances of this class.
   FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
@@ -774,6 +838,44 @@ class FlatBufferBuilder {
     EndianCheck();
   }
 
+  /// @brief Move constructor for FlatBufferBuilder.
+  FlatBufferBuilder(FlatBufferBuilder &&other)
+    : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
+      num_field_loc(0),
+      max_voffset_(0),
+      nested(false),
+      finished(false),
+      minalign_(1),
+      force_defaults_(false),
+      dedup_vtables_(true),
+      string_pool(nullptr) {
+    EndianCheck();
+    // Default construct and swap idiom.
+    // Lack of delegating constructors in vs2010 makes it more verbose than needed.
+    Swap(other);
+  }
+
+  /// @brief Move assignment operator for FlatBufferBuilder.
+  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) {
+    // Move construct a temporary and swap idiom
+    FlatBufferBuilder temp(std::move(other));
+    Swap(temp);
+    return *this;
+  }
+
+  void Swap(FlatBufferBuilder &other) {
+    using std::swap;
+    buf_.swap(other.buf_);
+    swap(num_field_loc, other.num_field_loc);
+    swap(max_voffset_, other.max_voffset_);
+    swap(nested, other.nested);
+    swap(finished, other.finished);
+    swap(minalign_, other.minalign_);
+    swap(force_defaults_, other.force_defaults_);
+    swap(dedup_vtables_, other.dedup_vtables_);
+    swap(string_pool, other.string_pool);
+  }
+
   ~FlatBufferBuilder() {
     if (string_pool) delete string_pool;
   }
@@ -825,6 +927,19 @@ class FlatBufferBuilder {
   DetachedBuffer Release() {
     Finished();
     return buf_.release();
+  }
+
+  /// @brief Get the released pointer to the serialized buffer.
+  /// @param The size of the memory block containing 
+  /// the serialized `FlatBuffer`.
+  /// @param The offset from the released pointer where the finished 
+  /// `FlatBuffer` starts.
+  /// @return A raw pointer to the start of the memory block containing 
+  /// the serialized `FlatBuffer`. 
+  /// @remark If the allocator is owned, it gets deleted during this call.
+  uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
+    Finished();
+    return buf_.release_raw(size, offset);
   }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
