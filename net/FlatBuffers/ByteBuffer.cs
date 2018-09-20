@@ -116,7 +116,10 @@ namespace FlatBuffers
         }
 
 #if !ENABLE_SPAN_T
-        public override byte[] ByteArray => _buffer;
+        public override byte[] ByteArray
+        {
+            get { return _buffer; }
+        }
 #endif
 
 #if UNSAFE_BYTEBUFFER
