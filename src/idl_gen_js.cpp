@@ -507,8 +507,7 @@ class JsGenerator : public BaseGenerator {
   }
 
   static std::string GenFileNamespacePrefix(const std::string &file) {
-    return "NS" + std::to_string(static_cast<unsigned long long>(
-                      std::hash<std::string>()(file)));
+    return "NS" + std::to_string(HashFnv1a<uint64_t>(file.c_str()));
   }
 
   static std::string GenPrefixedImport(const std::string &full_file_name,
