@@ -27,7 +27,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.ReleaseMessage<Monster>());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
     }
   }
 
@@ -44,7 +44,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.Release());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
     }
   }
 
@@ -60,7 +60,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       size_t size, offset;
       grpc_slice slice;
       const uint8_t *buf = b1.ReleaseRaw(size, offset, slice);
-      TEST_ASSERT(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
       grpc_slice_unref(slice);
     }
   }
@@ -79,13 +79,13 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.Release());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
 
       // bring b1 back to life.
       flatbuffers::grpc::MessageBuilder b2;
       b1 = std::move(b2);
-      TEST_EQ(b1.GetSize(), 0);
-      TEST_EQ(b2.GetSize(), 0);
+      TEST_EQ_FUNC(b1.GetSize(), 0);
+      TEST_EQ_FUNC(b2.GetSize(), 0);
     }
   }
 
@@ -101,13 +101,13 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.ReleaseMessage<Monster>());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
 
       // bring b1 back to life.
       flatbuffers::grpc::MessageBuilder b2;
       b1 = std::move(b2);
-      TEST_EQ(b1.GetSize(), 0);
-      TEST_EQ(b2.GetSize(), 0);
+      TEST_EQ_FUNC(b1.GetSize(), 0);
+      TEST_EQ_FUNC(b2.GetSize(), 0);
     }
   }
 
@@ -123,13 +123,13 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder> {
       size_t size, offset;
       grpc_slice slice = grpc_empty_slice();
       const uint8_t *buf = b1.ReleaseRaw(size, offset, slice);
-      TEST_ASSERT(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
       grpc_slice_unref(slice);
 
       flatbuffers::grpc::MessageBuilder b2;
       b1 = std::move(b2); 
-      TEST_EQ(b1.GetSize(), 0);
-      TEST_EQ(b2.GetSize(), 0);
+      TEST_EQ_FUNC(b1.GetSize(), 0);
+      TEST_EQ_FUNC(b2.GetSize(), 0);
     }
   }
 
@@ -149,13 +149,13 @@ void slice_allocator_tests() {
     size_t size = 2048;
     flatbuffers::grpc::SliceAllocator sa1;
     uint8_t *buf = sa1.allocate(size);
-    TEST_ASSERT(buf != 0);
+    TEST_ASSERT_FUNC(buf != 0);
     buf[0] = 100;
     buf[size-1] = 200;
     flatbuffers::grpc::SliceAllocator sa2(std::move(sa1));
     // buf should be deleted after move-construct
-    TEST_EQ(buf[0], 100);
-    TEST_EQ(buf[size-1], 200);
+    TEST_EQ_FUNC(buf[0], 100);
+    TEST_EQ_FUNC(buf[size-1], 200);
     // buf is freed here
   }
 
@@ -166,7 +166,7 @@ void slice_allocator_tests() {
     sa1 = std::move(sa2);
     // sa1 deletes previously allocated memory in move-assign.
     // So buf is no longer usable here.
-    TEST_ASSERT(buf != 0);
+    TEST_ASSERT_FUNC(buf != 0);
   }
 }
 

@@ -18,21 +18,28 @@
 extern int testing_fails;
 
 void TestFail(const char *expval, const char *val, const char *exp,
-              const char *file, int line);
+              const char *file, int line, const char *func = 0);
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
                const char *file, int line);
 
 template<typename T, typename U>
-void TestEq(T expval, U val, const char *exp, const char *file, int line) {
+void TestEq(T expval, U val, const char *exp, const char *file, int line, const char *func = 0) {
   if (U(expval) != val) {
     TestFail(flatbuffers::NumToString(expval).c_str(),
-             flatbuffers::NumToString(val).c_str(), exp, file, line);
+             flatbuffers::NumToString(val).c_str(), exp, file, line, func);
   }
 }
 
 #define TEST_EQ(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__)
 #define TEST_ASSERT(exp) TestEq(exp, true, #exp, __FILE__, __LINE__)
+#ifdef WIN32
+  #define TEST_ASSERT_FUNC(exp) TestEq(exp, true, #exp, __FILE__, __LINE__, __FUNCTION__)
+  #define TEST_EQ_FUNC(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__, __FUNCTION__)
+#else
+  #define TEST_ASSERT_FUNC(exp) TestEq(exp, true, #exp, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+  #define TEST_EQ_FUNC(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#endif
 #define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
 #define TEST_EQ_STR(exp, val) TestEqStr(exp, val, #exp, __FILE__, __LINE__)
 

@@ -39,8 +39,8 @@ struct BuilderTests {
     size_t b1_size = b1.GetSize();
     Builder b2(std::move(b1));
     size_t b2_size = b2.GetSize();
-    TEST_EQ(b1_size, 0);
-    TEST_EQ(b1_size, b2_size);
+    TEST_EQ_FUNC(b1_size, 0);
+    TEST_EQ_FUNC(b1_size, b2_size);
   }
 
   static void nonempty_builder_movector_test() {
@@ -48,8 +48,8 @@ struct BuilderTests {
     populate1(b1);
     size_t b1_size = b1.GetSize();
     Builder b2(std::move(b1));
-    TEST_EQ(b1_size, b2.GetSize());
-    TEST_EQ(b1.GetSize(), 0);
+    TEST_EQ_FUNC(b1_size, b2.GetSize());
+    TEST_EQ_FUNC(b1.GetSize(), 0);
   }
 
   static void builder_movector_before_finish_test() {
@@ -57,8 +57,8 @@ struct BuilderTests {
     auto root_offset1 = populate1(b1);
     Builder b2(std::move(b1));
     b2.Finish(root_offset1);
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
-    TEST_EQ(b1.GetSize(), 0);
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize(), 0);
   }
 
   static void builder_movector_after_finish_test() {
@@ -67,9 +67,9 @@ struct BuilderTests {
     b1.Finish(root_offset1);
     auto b1_size = b1.GetSize();
     Builder b2(std::move(b1));
-    TEST_EQ(b2.GetSize(), b1_size);
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
-    TEST_EQ(b1.GetSize(), 0);
+    TEST_EQ_FUNC(b2.GetSize(), b1_size);
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize(), 0);
   }
 
   static void builder_move_assign_before_finish_test() {
@@ -79,8 +79,8 @@ struct BuilderTests {
     populate2(b2);
     b2 = std::move(b1);
     b2.Finish(root_offset1);
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
-    TEST_EQ(b1.GetSize(), 0);
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize(), 0);
   }
 
   static void builder_move_assign_after_finish_test() {
@@ -92,9 +92,9 @@ struct BuilderTests {
     auto root_offset2 = populate2(b2);
     b2.Finish(root_offset2);
     b2 = std::move(b1);
-    TEST_EQ(b2.GetSize(), b1_size);
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
-    TEST_EQ(b1.GetSize(), 0);
+    TEST_EQ_FUNC(b2.GetSize(), b1_size);
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize(), 0);
   }
 
   static void builder_swap_before_finish_test() {
@@ -107,10 +107,10 @@ struct BuilderTests {
     b1.Swap(b2);
     b1.Finish(root_offset2);
     b2.Finish(root_offset1);
-    TEST_EQ(b1.GetSize() > size2, true);
-    TEST_EQ(b2.GetSize() > size1, true);
-    TEST_ASSERT(release_n_verify(b1, m2_name, m2_color));
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize() > size2, true);
+    TEST_EQ_FUNC(b2.GetSize() > size1, true);
+    TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
   }
 
   static void builder_swap_after_finish_test() {
@@ -123,10 +123,10 @@ struct BuilderTests {
     b2.Finish(root_offset2);
     auto size2 = b2.GetSize();
     b1.Swap(b2);
-    TEST_EQ(b1.GetSize(), size2);
-    TEST_EQ(b2.GetSize(), size1);
-    TEST_ASSERT(release_n_verify(b1, m2_name, m2_color));
-    TEST_ASSERT(release_n_verify(b2, m1_name, m1_color));
+    TEST_EQ_FUNC(b1.GetSize(), size2);
+    TEST_EQ_FUNC(b2.GetSize(), size1);
+    TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
+    TEST_ASSERT_FUNC(release_n_verify(b2, m1_name, m1_color));
   }
 
   static void builder_move_assign_after_release_test() {
@@ -143,9 +143,9 @@ struct BuilderTests {
     auto b2_size = b2.GetSize();
     // Move into a released builder.
     b1 = std::move(b2);
-    TEST_EQ(b1.GetSize(), b2_size);
-    TEST_ASSERT(release_n_verify(b1, m2_name, m2_color));
-    TEST_EQ(b2.GetSize(), 0);
+    TEST_EQ_FUNC(b1.GetSize(), b2_size);
+    TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
+    TEST_EQ_FUNC(b2.GetSize(), 0);
   }
 
   static void builder_move_assign_after_releaseraw_test() {
@@ -154,7 +154,7 @@ struct BuilderTests {
     b1.Finish(root_offset1);
     size_t size, offset;
     uint8_t *buf = release_raw_base(b1, size, offset);
-    TEST_ASSERT(verify(buf, offset, m1_name, m1_color));
+    TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
     free_raw(b1, buf);
     Builder b2;
     auto root_offset2 = populate2(b2);
@@ -162,9 +162,9 @@ struct BuilderTests {
     auto b2_size = b2.GetSize();
     // Move into a released builder.
     b1 = std::move(b2);
-    TEST_EQ(b1.GetSize(), b2_size);
-    TEST_ASSERT(release_n_verify(b1, m2_name, m2_color));
-    TEST_EQ(b2.GetSize(), 0);
+    TEST_EQ_FUNC(b1.GetSize(), b2_size);
+    TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
+    TEST_EQ_FUNC(b2.GetSize(), 0);
   }
 
   static void all_tests() {
@@ -205,7 +205,7 @@ struct BuilderReuseTests {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.Release());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
     }
   }
 
@@ -220,7 +220,7 @@ struct BuilderReuseTests {
       b1.Finish(root_offset1);
       size_t size, offset;
       uint8_t *buf = release_raw_base(b1, size, offset);
-      TEST_ASSERT(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
       free_raw(b1, buf);
     }
   }
@@ -236,10 +236,10 @@ struct BuilderReuseTests {
       auto root_offset1 = populate1(b1);
       b1.Finish(root_offset1);
       buffers.push_back(b1.Release());
-      TEST_ASSERT(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
       Builder b2;
       b1 = std::move(b2);
-      TEST_EQ(b2.GetSize(), 0);
+      TEST_EQ_FUNC(b2.GetSize(), 0);
     }
   }
 
@@ -254,11 +254,11 @@ struct BuilderReuseTests {
       b1.Finish(root_offset1);
       size_t size, offset;
       uint8_t *buf = release_raw_base(b1, size, offset);
-      TEST_ASSERT(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
       free_raw(b1, buf);
       Builder b2;
       b1 = std::move(b2);
-      TEST_EQ(b2.GetSize(), 0);
+      TEST_EQ_FUNC(b2.GetSize(), 0);
     }
   }
 
