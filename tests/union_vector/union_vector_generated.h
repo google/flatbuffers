@@ -8,16 +8,17 @@
 
 struct Attacker;
 struct AttackerT;
-bool operator==(const AttackerT &lhs, const AttackerT &rhs);
 
 struct Rapunzel;
-bool operator==(const Rapunzel &lhs, const Rapunzel &rhs);
 
 struct BookReader;
-bool operator==(const BookReader &lhs, const BookReader &rhs);
 
 struct Movie;
 struct MovieT;
+
+bool operator==(const AttackerT &lhs, const AttackerT &rhs);
+bool operator==(const Rapunzel &lhs, const Rapunzel &rhs);
+bool operator==(const BookReader &lhs, const BookReader &rhs);
 bool operator==(const MovieT &lhs, const MovieT &rhs);
 
 inline const flatbuffers::TypeTable *AttackerTypeTable();
@@ -146,6 +147,9 @@ struct CharacterUnion {
 inline bool operator==(const CharacterUnion &lhs, const CharacterUnion &rhs) {
   if (lhs.type != rhs.type) return false;
   switch (lhs.type) {
+    case Character_NONE: {
+      return true;
+    }
     case Character_MuLan: {
       return *(reinterpret_cast<const AttackerT *>(lhs.value)) ==
              *(reinterpret_cast<const AttackerT *>(rhs.value));
@@ -171,7 +175,7 @@ inline bool operator==(const CharacterUnion &lhs, const CharacterUnion &rhs) {
              *(reinterpret_cast<const std::string *>(rhs.value));
     }
     default: {
-      return true;
+      return false;
     }
   }
 }

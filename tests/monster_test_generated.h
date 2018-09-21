@@ -11,45 +11,54 @@ namespace MyGame {
 
 struct InParentNamespace;
 struct InParentNamespaceT;
-bool operator==(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
 
 namespace Example2 {
 
 struct Monster;
 struct MonsterT;
-bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 
 }  // namespace Example2
 
 namespace Example {
 
 struct Test;
-bool operator==(const Test &lhs, const Test &rhs);
 
 struct TestSimpleTableWithEnum;
 struct TestSimpleTableWithEnumT;
-bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs);
 
 struct Vec3;
-bool operator==(const Vec3 &lhs, const Vec3 &rhs);
 
 struct Ability;
-bool operator==(const Ability &lhs, const Ability &rhs);
 
 struct Stat;
 struct StatT;
-bool operator==(const StatT &lhs, const StatT &rhs);
 
 struct Referrable;
 struct ReferrableT;
-bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
 
 struct Monster;
 struct MonsterT;
-bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 
 struct TypeAliases;
 struct TypeAliasesT;
+
+}  // namespace Example
+
+bool operator==(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
+namespace Example2 {
+
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+}  // namespace Example2
+
+namespace Example {
+
+bool operator==(const Test &lhs, const Test &rhs);
+bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs);
+bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator==(const Ability &lhs, const Ability &rhs);
+bool operator==(const StatT &lhs, const StatT &rhs);
+bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
 
 }  // namespace Example
@@ -229,6 +238,9 @@ struct AnyUnion {
 inline bool operator==(const AnyUnion &lhs, const AnyUnion &rhs) {
   if (lhs.type != rhs.type) return false;
   switch (lhs.type) {
+    case Any_NONE: {
+      return true;
+    }
     case Any_Monster: {
       return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
              *(reinterpret_cast<const MonsterT *>(rhs.value));
@@ -242,7 +254,7 @@ inline bool operator==(const AnyUnion &lhs, const AnyUnion &rhs) {
              *(reinterpret_cast<const MyGame::Example2::MonsterT *>(rhs.value));
     }
     default: {
-      return true;
+      return false;
     }
   }
 }

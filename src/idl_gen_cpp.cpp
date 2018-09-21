@@ -231,13 +231,25 @@ class CppGenerator : public BaseGenerator {
           if (!struct_def.fixed) {
             code_ += "struct " + nativeName + ";";
           }
-          if (parser_.opts.gen_compare) {
-            code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
-          }
         }
         code_ += "";
       }
     }
+
+    // Generate forward declarations for all equal operators
+    if (parser_.opts.generate_object_based_api && parser_.opts.gen_compare) {
+      for (auto it = parser_.structs_.vec.begin();
+          it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          auto nativeName = NativeName(Name(struct_def), &struct_def, parser_.opts);
+          code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
+        }
+      }
+      code_ += "";
+    }
+
     // Generate preablmle code for mini reflection.
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
@@ -1101,8 +1113,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "};";
       code_ += "";
 
-      if (parser_.opts.gen_compare)
-      {
+      if (parser_.opts.gen_compare) {
         code_ += "";
         code_ += "inline bool operator==(const {{NAME}}Union &lhs, const {{NAME}}Union &rhs) {";
         code_ += "  if (lhs.type != rhs.type) return false;";
@@ -1111,20 +1122,24 @@ class CppGenerator : public BaseGenerator {
         for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
           const auto &ev = **it;
-          if (!ev.value) { continue; }
-
-          const auto native_type =
-              NativeName(GetUnionElement(ev, true, true, true),
-                        ev.union_type.struct_def, parser_.opts);
-          code_.SetValue("NATIVE_TYPE", native_type);
           code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
-          code_ += "    case {{NATIVE_ID}}: {";
-          code_ += "      return *(reinterpret_cast<const {{NATIVE_TYPE}} *>(lhs.value)) ==";
-          code_ += "             *(reinterpret_cast<const {{NATIVE_TYPE}} *>(rhs.value));";
-          code_ += "    }";
+          if (ev.value) {
+            const auto native_type =
+                NativeName(GetUnionElement(ev, true, true, true),
+                          ev.union_type.struct_def, parser_.opts);
+            code_.SetValue("NATIVE_TYPE", native_type);
+            code_ += "    case {{NATIVE_ID}}: {";
+            code_ += "      return *(reinterpret_cast<const {{NATIVE_TYPE}} *>(lhs.value)) ==";
+            code_ += "             *(reinterpret_cast<const {{NATIVE_TYPE}} *>(rhs.value));";
+            code_ += "    }";
+          } else {
+            code_ += "    case {{NATIVE_ID}}: {";
+            code_ += "      return true;";  // "NONE" enum value.
+            code_ += "    }";
+          }
         }
         code_ += "    default: {";
-        code_ += "      return true;";
+        code_ += "      return false;";
         code_ += "    }";
         code_ += "  }";
         code_ += "}";

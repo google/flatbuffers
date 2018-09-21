@@ -10,14 +10,15 @@ namespace MyGame {
 namespace Sample {
 
 struct Vec3;
-bool operator==(const Vec3 &lhs, const Vec3 &rhs);
 
 struct Monster;
 struct MonsterT;
-bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 
 struct Weapon;
 struct WeaponT;
+
+bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const WeaponT &lhs, const WeaponT &rhs);
 
 inline const flatbuffers::TypeTable *Vec3TypeTable();
@@ -140,12 +141,15 @@ struct EquipmentUnion {
 inline bool operator==(const EquipmentUnion &lhs, const EquipmentUnion &rhs) {
   if (lhs.type != rhs.type) return false;
   switch (lhs.type) {
+    case Equipment_NONE: {
+      return true;
+    }
     case Equipment_Weapon: {
       return *(reinterpret_cast<const WeaponT *>(lhs.value)) ==
              *(reinterpret_cast<const WeaponT *>(rhs.value));
     }
     default: {
-      return true;
+      return false;
     }
   }
 }
