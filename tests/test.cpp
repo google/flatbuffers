@@ -555,20 +555,26 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
-// Check stringify of an default enum value to json
-void JsonDefaultTest() {
+// Load FlatBuffer schema (.fbs) from disk and parse it
+void LoadAndParseTestSchema(flatbuffers::Parser *parser) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
                                 false, &schemafile), true);
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
   auto include_test_path =
       flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
 
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_EQ(parser->Parse(schemafile.c_str(), include_directories), true);
+}
+
+// Check stringify of an default enum value to json
+void JsonDefaultTest() {
+  flatbuffers::Parser parser;
+  LoadAndParseTestSchema(&parser);
+
   // create incomplete monster and store to json
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
@@ -584,6 +590,32 @@ void JsonDefaultTest() {
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
   // default value of the "testf" field is 3.14159
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
+}
+
+// Check stringify of a table with ubyte array fields to json with
+// output_ubyte_array_fields_in_json set to false
+void JsonOutputUbyteArrayFieldsTest() {
+  flatbuffers::Parser parser;
+  LoadAndParseTestSchema(&parser);
+
+  // create monster with ubyte array and non-ubyte array fields set
+  parser.opts.output_ubyte_array_fields_in_json = false;
+  flatbuffers::FlatBufferBuilder builder;
+  std::string name = "output_ubyte_array_fields";
+  auto name_offset = builder.CreateString(name);
+  std::vector<uint8_t> inventory{1, 2, 3};
+  auto inventory_offset = builder.CreateVector(inventory);
+  MonsterBuilder monster(builder);
+  monster.add_name(name_offset);
+  monster.add_inventory(inventory_offset);
+  FinishMonsterBuffer(builder, monster.Finish());
+  std::string jsongen;
+  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  // check that the name field exists and has the correct value
+  TEST_EQ(std::string::npos != jsongen.find("name: \"" + name + "\""), true);
+  // check that the inventory field does not exist in the json text
+  TEST_EQ(std::string::npos, jsongen.find("inventory:"));
 }
 
 // example of parsing text straight into a buffer, and generating
@@ -2059,6 +2091,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   EndianSwapTest();
 
   JsonDefaultTest();
+  JsonOutputUbyteArrayFieldsTest();
 
   FlexBuffersTest();
   UninitializedVectorTest();
