@@ -226,14 +226,30 @@ class CppGenerator : public BaseGenerator {
       if (!struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace);
         code_ += "struct " + Name(struct_def) + ";";
-        if (parser_.opts.generate_object_based_api && !struct_def.fixed) {
-          code_ += "struct " +
-                   NativeName(Name(struct_def), &struct_def, parser_.opts) +
-                   ";";
+        if (parser_.opts.generate_object_based_api) {
+          auto nativeName = NativeName(Name(struct_def), &struct_def, parser_.opts);
+          if (!struct_def.fixed) {
+            code_ += "struct " + nativeName + ";";
+          }
         }
         code_ += "";
       }
     }
+
+    // Generate forward declarations for all equal operators
+    if (parser_.opts.generate_object_based_api && parser_.opts.gen_compare) {
+      for (auto it = parser_.structs_.vec.begin();
+          it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.generated) {
+          SetNameSpace(struct_def.defined_namespace);
+          auto nativeName = NativeName(Name(struct_def), &struct_def, parser_.opts);
+          code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
+        }
+      }
+      code_ += "";
+    }
+
     // Generate preablmle code for mini reflection.
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
@@ -1096,6 +1112,38 @@ class CppGenerator : public BaseGenerator {
       }
       code_ += "};";
       code_ += "";
+
+      if (parser_.opts.gen_compare) {
+        code_ += "";
+        code_ += "inline bool operator==(const {{NAME}}Union &lhs, const {{NAME}}Union &rhs) {";
+        code_ += "  if (lhs.type != rhs.type) return false;";
+        code_ += "  switch (lhs.type) {";
+
+        for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+           ++it) {
+          const auto &ev = **it;
+          code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
+          if (ev.value) {
+            const auto native_type =
+                NativeName(GetUnionElement(ev, true, true, true),
+                          ev.union_type.struct_def, parser_.opts);
+            code_.SetValue("NATIVE_TYPE", native_type);
+            code_ += "    case {{NATIVE_ID}}: {";
+            code_ += "      return *(reinterpret_cast<const {{NATIVE_TYPE}} *>(lhs.value)) ==";
+            code_ += "             *(reinterpret_cast<const {{NATIVE_TYPE}} *>(rhs.value));";
+            code_ += "    }";
+          } else {
+            code_ += "    case {{NATIVE_ID}}: {";
+            code_ += "      return true;";  // "NONE" enum value.
+            code_ += "    }";
+          }
+        }
+        code_ += "    default: {";
+        code_ += "      return false;";
+        code_ += "    }";
+        code_ += "  }";
+        code_ += "}";
+      }
     }
 
     if (enum_def.is_union) {
@@ -1456,6 +1504,44 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
+  void GenCompareOperator(const StructDef &struct_def, std::string accessSuffix = "") {
+    std::string compare_op;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (!field.deprecated &&  // Deprecated fields won't be accessible.
+        field.value.type.base_type != BASE_TYPE_UTYPE &&
+        (field.value.type.base_type != BASE_TYPE_VECTOR ||
+         field.value.type.element != BASE_TYPE_UTYPE)) {
+        if (!compare_op.empty()) {
+          compare_op += " &&\n      ";
+        }
+        auto accessor = Name(field) + accessSuffix;
+        compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
+      }
+    }
+
+    std::string cmp_lhs;
+    std::string cmp_rhs;
+    if (compare_op.empty()) {
+      cmp_lhs = "";
+      cmp_rhs = "";
+      compare_op = "  return true;";
+    } else {
+      cmp_lhs = "lhs";
+      cmp_rhs = "rhs";
+      compare_op = "  return\n      " + compare_op + ";";
+    }
+    
+    code_.SetValue("CMP_OP", compare_op);
+    code_.SetValue("CMP_LHS", cmp_lhs);
+    code_.SetValue("CMP_RHS", cmp_rhs);
+    code_ += "";
+    code_ += "inline bool operator==(const {{NATIVE_NAME}} &{{CMP_LHS}}, const {{NATIVE_NAME}} &{{CMP_RHS}}) {";
+    code_ += "{{CMP_OP}}";
+    code_ += "}";
+  }
+
   void GenOperatorNewDelete(const StructDef &struct_def) {
     if (auto native_custom_alloc =
             struct_def.attributes.Lookup("native_custom_alloc")) {
@@ -1488,6 +1574,7 @@ class CppGenerator : public BaseGenerator {
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
     code_ += "};";
+    if (parser_.opts.gen_compare) GenCompareOperator(struct_def);
     code_ += "";
   }
 
@@ -2600,6 +2687,7 @@ class CppGenerator : public BaseGenerator {
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
     code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
+    if (parser_.opts.gen_compare) GenCompareOperator(struct_def, "()");
     code_ += "";
   }
 

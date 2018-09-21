@@ -1978,6 +1978,25 @@ void UninitializedVectorTest() {
   TEST_EQ(test_1->b(), 40);
 }
 
+void EqualOperatorTest() {
+  MonsterT a;
+  MonsterT b;
+  TEST_EQ(b == a, true);
+
+  b.mana = 33;
+  TEST_EQ(b == a, false);
+  b.mana = 150;
+  TEST_EQ(b == a, true);
+
+  b.inventory.push_back(3);
+  TEST_EQ(b == a, false);
+  b.inventory.clear();
+  TEST_EQ(b == a, true);
+
+  b.test.type = Any_Monster;
+  TEST_EQ(b == a, false);
+}
+
 // For testing any binaries, e.g. from fuzzing.
 void LoadVerifyBinaryTest() {
   std::string binary;
@@ -2062,6 +2081,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   FlexBuffersTest();
   UninitializedVectorTest();
+  EqualOperatorTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

@@ -96,6 +96,8 @@ Additional options:
     at the cost of efficiency (object allocation). Recommended only to be used
     if other options are insufficient.
 
+-   `--gen-compare` :  Generate operator== for object-based API types.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
 -   `--gen-all`: Generate not just code for the current schema files, but

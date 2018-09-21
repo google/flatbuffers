@@ -17,6 +17,10 @@ struct MonsterT;
 struct Weapon;
 struct WeaponT;
 
+bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+bool operator==(const WeaponT &lhs, const WeaponT &rhs);
+
 inline const flatbuffers::TypeTable *Vec3TypeTable();
 
 inline const flatbuffers::TypeTable *MonsterTypeTable();
@@ -133,6 +137,22 @@ struct EquipmentUnion {
   }
 };
 
+
+inline bool operator==(const EquipmentUnion &lhs, const EquipmentUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case Equipment_NONE: {
+      return true;
+    }
+    case Equipment_Weapon: {
+      return *(reinterpret_cast<const WeaponT *>(lhs.value)) ==
+             *(reinterpret_cast<const WeaponT *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
 bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *obj, Equipment type);
 bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -172,6 +192,13 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vec3, 12);
 
+inline bool operator==(const Vec3 &lhs, const Vec3 &rhs) {
+  return
+      (lhs.x() == rhs.x()) &&
+      (lhs.y() == rhs.y()) &&
+      (lhs.z() == rhs.z());
+}
+
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
   flatbuffers::unique_ptr<Vec3> pos;
@@ -188,6 +215,18 @@ struct MonsterT : public flatbuffers::NativeTable {
         color(Color_Blue) {
   }
 };
+
+inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
+  return
+      (lhs.pos == rhs.pos) &&
+      (lhs.mana == rhs.mana) &&
+      (lhs.hp == rhs.hp) &&
+      (lhs.name == rhs.name) &&
+      (lhs.inventory == rhs.inventory) &&
+      (lhs.color == rhs.color) &&
+      (lhs.weapons == rhs.weapons) &&
+      (lhs.equipped == rhs.equipped);
+}
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
@@ -390,6 +429,12 @@ struct WeaponT : public flatbuffers::NativeTable {
       : damage(0) {
   }
 };
+
+inline bool operator==(const WeaponT &lhs, const WeaponT &rhs) {
+  return
+      (lhs.name == rhs.name) &&
+      (lhs.damage == rhs.damage);
+}
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;

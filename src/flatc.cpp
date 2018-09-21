@@ -88,6 +88,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-onefile      Generate single output file for C# and Go.\n"
     "  --gen-name-strings Generate type name functions for C++.\n"
     "  --gen-object-api   Generate an additional object-based API.\n"
+    "  --gen-compare      Generate operator== for object-based API types.\n"
     "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
     "  --cpp-str-type T   Set object API string type (default std::string)\n"
     "                     T::c_str() and T::length() must be supported\n"
@@ -222,6 +223,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.generate_name_strings = true;
       } else if (arg == "--gen-object-api") {
         opts.generate_object_based_api = true;
+      } else if (arg == "--gen-compare") {
+        opts.gen_compare = true;
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];
