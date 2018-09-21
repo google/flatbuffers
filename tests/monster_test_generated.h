@@ -44,6 +44,25 @@ struct TypeAliasesT;
 
 }  // namespace Example
 
+bool operator==(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
+namespace Example2 {
+
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+}  // namespace Example2
+
+namespace Example {
+
+bool operator==(const Test &lhs, const Test &rhs);
+bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs);
+bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator==(const Ability &lhs, const Ability &rhs);
+bool operator==(const StatT &lhs, const StatT &rhs);
+bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
+bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
+
+}  // namespace Example
+
 inline const flatbuffers::TypeTable *InParentNamespaceTypeTable();
 
 namespace Example2 {
@@ -215,6 +234,30 @@ struct AnyUnion {
   }
 };
 
+
+inline bool operator==(const AnyUnion &lhs, const AnyUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case Any_NONE: {
+      return true;
+    }
+    case Any_Monster: {
+      return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MonsterT *>(rhs.value));
+    }
+    case Any_TestSimpleTableWithEnum: {
+      return *(reinterpret_cast<const TestSimpleTableWithEnumT *>(lhs.value)) ==
+             *(reinterpret_cast<const TestSimpleTableWithEnumT *>(rhs.value));
+    }
+    case Any_MyGame_Example2_Monster: {
+      return *(reinterpret_cast<const MyGame::Example2::MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MyGame::Example2::MonsterT *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
 bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type);
 bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -248,6 +291,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Test, 4);
+
+inline bool operator==(const Test &lhs, const Test &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.b() == rhs.b());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -318,6 +367,16 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vec3, 32);
 
+inline bool operator==(const Vec3 &lhs, const Vec3 &rhs) {
+  return
+      (lhs.x() == rhs.x()) &&
+      (lhs.y() == rhs.y()) &&
+      (lhs.z() == rhs.z()) &&
+      (lhs.test1() == rhs.test1()) &&
+      (lhs.test2() == rhs.test2()) &&
+      (lhs.test3() == rhs.test3());
+}
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
   uint32_t id_;
@@ -352,6 +411,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Ability, 8);
 
+inline bool operator==(const Ability &lhs, const Ability &rhs) {
+  return
+      (lhs.id() == rhs.id()) &&
+      (lhs.distance() == rhs.distance());
+}
+
 }  // namespace Example
 
 struct InParentNamespaceT : public flatbuffers::NativeTable {
@@ -359,6 +424,10 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
   InParentNamespaceT() {
   }
 };
+
+inline bool operator==(const InParentNamespaceT &, const InParentNamespaceT &) {
+  return true;
+}
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
@@ -404,6 +473,10 @@ struct MonsterT : public flatbuffers::NativeTable {
   MonsterT() {
   }
 };
+
+inline bool operator==(const MonsterT &, const MonsterT &) {
+  return true;
+}
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
@@ -453,6 +526,11 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
       : color(Color_Green) {
   }
 };
+
+inline bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
+  return
+      (lhs.color == rhs.color);
+}
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
@@ -516,6 +594,13 @@ struct StatT : public flatbuffers::NativeTable {
         count(0) {
   }
 };
+
+inline bool operator==(const StatT &lhs, const StatT &rhs) {
+  return
+      (lhs.id == rhs.id) &&
+      (lhs.val == rhs.val) &&
+      (lhs.count == rhs.count);
+}
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
@@ -615,6 +700,11 @@ struct ReferrableT : public flatbuffers::NativeTable {
       : id(0) {
   }
 };
+
+inline bool operator==(const ReferrableT &lhs, const ReferrableT &rhs) {
+  return
+      (lhs.id == rhs.id);
+}
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
@@ -738,6 +828,51 @@ struct MonsterT : public flatbuffers::NativeTable {
         non_owning_reference(nullptr) {
   }
 };
+
+inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
+  return
+      (lhs.pos == rhs.pos) &&
+      (lhs.mana == rhs.mana) &&
+      (lhs.hp == rhs.hp) &&
+      (lhs.name == rhs.name) &&
+      (lhs.inventory == rhs.inventory) &&
+      (lhs.color == rhs.color) &&
+      (lhs.test == rhs.test) &&
+      (lhs.test4 == rhs.test4) &&
+      (lhs.testarrayofstring == rhs.testarrayofstring) &&
+      (lhs.testarrayoftables == rhs.testarrayoftables) &&
+      (lhs.enemy == rhs.enemy) &&
+      (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
+      (lhs.testempty == rhs.testempty) &&
+      (lhs.testbool == rhs.testbool) &&
+      (lhs.testhashs32_fnv1 == rhs.testhashs32_fnv1) &&
+      (lhs.testhashu32_fnv1 == rhs.testhashu32_fnv1) &&
+      (lhs.testhashs64_fnv1 == rhs.testhashs64_fnv1) &&
+      (lhs.testhashu64_fnv1 == rhs.testhashu64_fnv1) &&
+      (lhs.testhashs32_fnv1a == rhs.testhashs32_fnv1a) &&
+      (lhs.testhashu32_fnv1a == rhs.testhashu32_fnv1a) &&
+      (lhs.testhashs64_fnv1a == rhs.testhashs64_fnv1a) &&
+      (lhs.testhashu64_fnv1a == rhs.testhashu64_fnv1a) &&
+      (lhs.testarrayofbools == rhs.testarrayofbools) &&
+      (lhs.testf == rhs.testf) &&
+      (lhs.testf2 == rhs.testf2) &&
+      (lhs.testf3 == rhs.testf3) &&
+      (lhs.testarrayofstring2 == rhs.testarrayofstring2) &&
+      (lhs.testarrayofsortedstruct == rhs.testarrayofsortedstruct) &&
+      (lhs.flex == rhs.flex) &&
+      (lhs.test5 == rhs.test5) &&
+      (lhs.vector_of_longs == rhs.vector_of_longs) &&
+      (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
+      (lhs.parent_namespace_test == rhs.parent_namespace_test) &&
+      (lhs.vector_of_referrables == rhs.vector_of_referrables) &&
+      (lhs.single_weak_reference == rhs.single_weak_reference) &&
+      (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&
+      (lhs.vector_of_strong_referrables == rhs.vector_of_strong_referrables) &&
+      (lhs.co_owning_reference == rhs.co_owning_reference) &&
+      (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
+      (lhs.non_owning_reference == rhs.non_owning_reference) &&
+      (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references);
+}
 
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1506,6 +1641,22 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
         f64(0.0) {
   }
 };
+
+inline bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
+  return
+      (lhs.i8 == rhs.i8) &&
+      (lhs.u8 == rhs.u8) &&
+      (lhs.i16 == rhs.i16) &&
+      (lhs.u16 == rhs.u16) &&
+      (lhs.i32 == rhs.i32) &&
+      (lhs.u32 == rhs.u32) &&
+      (lhs.i64 == rhs.i64) &&
+      (lhs.u64 == rhs.u64) &&
+      (lhs.f32 == rhs.f32) &&
+      (lhs.f64 == rhs.f64) &&
+      (lhs.v8 == rhs.v8) &&
+      (lhs.vf64 == rhs.vf64);
+}
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;

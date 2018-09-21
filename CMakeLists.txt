@@ -223,7 +223,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   add_custom_command(
     OUTPUT ${GEN_HEADER}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-            --gen-object-api -o "${SRC_FBS_DIR}"
+            --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
             --reflect-names
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
