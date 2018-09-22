@@ -659,7 +659,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8, 12 };
+  static const int64_t values[] = { 0, 4, 8, 12 };
   static const char * const names[] = {
     "x",
     "y",

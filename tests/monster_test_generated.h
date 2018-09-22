@@ -2207,7 +2207,7 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
   static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
   };
-  static const int32_t values[] = { 1, 2, 8 };
+  static const int64_t values[] = { 1, 2, 8 };
   static const char * const names[] = {
     "Red",
     "Green",
@@ -2270,7 +2270,7 @@ inline const flatbuffers::TypeTable *TestTypeTable() {
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_CHAR, 0, -1 }
   };
-  static const int32_t values[] = { 0, 2, 4 };
+  static const int64_t values[] = { 0, 2, 4 };
   static const char * const names[] = {
     "a",
     "b"
@@ -2310,7 +2310,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     ColorTypeTable,
     TestTypeTable
   };
-  static const int32_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
+  static const int64_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
   static const char * const names[] = {
     "x",
     "y",
@@ -2330,7 +2330,7 @@ inline const flatbuffers::TypeTable *AbilityTypeTable() {
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8 };
+  static const int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "id",
     "distance"
