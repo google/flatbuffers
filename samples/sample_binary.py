@@ -30,14 +30,13 @@ import monster_generated
 # Example of how to use FlatBuffers to create and read binary buffers.
 
 def main():
-    builder = flatbuffers.Builder(1024)
+    builder = flatbuffers.Builder(0)
 
     # Create some weapons for our Monster ('Sword' and 'Axe').
     weapon_one = builder.CreateString('Sword')
     weapon_two = builder.CreateString('Axe')
 
     weapon_builder = monster_generated.WeaponBuilder(builder)
-
     weapon_builder.add_name(weapon_one)
     weapon_builder.add_damage(3)
     sword = weapon_builder.finish()
@@ -63,7 +62,7 @@ def main():
     weapons = monster_generated.MonsterBuilder.end_weapons(builder, 2)
 
     monster_builder = monster_generated.MonsterBuilder(builder)
-    monster_builder.add_pos(1.0, 2.0, 3.0)
+    monster_builder.add_pos(monster_generated.Vec3.create(1.0, 2.0, 3.0))
     monster_builder.add_hp(300)
     monster_builder.add_name(name)
     monster_builder.add_inventory(inv)

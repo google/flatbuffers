@@ -104,18 +104,24 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenScalarFieldOfStruct(const FieldDef &field) {
-    code_ += "        return \\";
-    code_ += GenGetter(field.value.type) + "self._tab.Pos + \\";
-    code_ += NumToString(field.value.offset) + ")";
+    code_ += "        number_type = flatbuffers.number_types." +
+             MakeCamel(GenTypeGet(field.value.type)) + "Flags";
+    code_ += "        result = flatbuffers.encode.Get\\";
+    code_ += "(number_type.packer_type, self._buf, " +
+             NumToString(field.value.offset) + ")";
+    code_ += "        return number_type.py_type(result)";
+  }
+
+  std::string GetDefaultValue(const flatbuffers::FieldDef &field) {
+    if (field.value.type.base_type == BASE_TYPE_BOOL) {
+      return field.value.constant == "0" ? "False" : "True";
+    } else {
+      return field.value.constant;
+    }
   }
 
   void GenScalarFieldOfTable(const FieldDef &field) {
-    std::string default_value;
-    if (field.value.type.base_type == BASE_TYPE_BOOL) {
-      default_value = field.value.constant == "0" ? "False" : "True";
-    } else {
-      default_value = field.value.constant;
-    }
+    std::string default_value = GetDefaultValue(field);
 
     GenOffsetPrefix(field, default_value);
     code_ += "        return \\";
@@ -141,9 +147,8 @@ class PythonGenerator : public BaseGenerator {
   void GenStructFieldOfStruct(const FieldDef &field) {
     code_.SetValue("FIELD_TYPE", TypeName(field));
 
-    code_ +=
-        "        return {{FIELD_TYPE}}(self._tab.Bytes, self._tab.Pos + \\";
-    code_ += NumToString(field.value.offset) + ")";
+    code_ += "        return {{FIELD_TYPE}}(self._buf, " +
+             NumToString(field.value.offset) + ")";
   }
 
   // Get a struct by initializing a struct of the expected type.
@@ -225,7 +230,7 @@ class PythonGenerator : public BaseGenerator {
 
     code_ += "        item_offset_in_vector = index * " +
              NumToString(InlineSize(vectortype));
-    code_ += "        vector_offset = self._tab.Vector(o)";
+    code_ += "        vector_offset = self._tab.Vector(offset)";
     code_ +=
         "        item_offset_in_buf = vector_offset + item_offset_in_vector";
     code_ +=
@@ -295,10 +300,9 @@ class PythonGenerator : public BaseGenerator {
     code_ +=
         "        flatbuffers.number_types.enforce_number(value, number_type)";
     code_ +=
-        "        offset = self._tab.Pos + " + NumToString(field.value.offset);
-    code_ +=
         "        flatbuffers.encode.Write(number_type.packer_type, "
-        "self._tab.Bytes, offset, value)";
+        "self._buf, " +
+        NumToString(field.value.offset) + ", value)";
     code_ += "";
   }
 
@@ -587,7 +591,8 @@ class PythonGenerator : public BaseGenerator {
     code_ +=
         "        relative_table_offset = "
         "flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)";
-    code_ += "        return {{STRUCT_NAME}}(buf, relative_table_offset)";
+    code_ +=
+        "        return {{STRUCT_NAME}}(buf, offset + relative_table_offset)";
     code_ += "";
 
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
@@ -694,17 +699,19 @@ class PythonGenerator : public BaseGenerator {
       code_.SetValue("FIELD_TYPE", TypeName(field));
       code_.SetValue("SLOT", NumToString(it - struct_def.fields.vec.begin()));
 
+      code_ += "    def add_{{FIELD_NAME}}(self, {{FIELD_NAME}}):";
       if (IsStruct(field.value.type)) {
-        code_ += "    def add_{{FIELD_NAME}}(self, *args, **kwargs):";
         code_ +=
-            "        added_value = {{FIELD_TYPE}}.create(self._builder, *args, "
-            "**kwargs)";
+            "        self._builder.Prep({{FIELD_TYPE}}.MIN_ALIGN, "
+            "{{FIELD_TYPE}}.BYTE_SIZE)";
+        code_ += "        self._builder.Pad({{FIELD_TYPE}}.BYTE_SIZE)";
+        code_ +=
+            "        {{FIELD_NAME}}.copy_into(self._builder.Bytes, "
+            "self._builder.Head())";
         code_ +=
             "        self._builder.PrependStructSlot({{SLOT}}, "
-            "added_value._tab.Pos, 0)";
-        code_ += "        return added_value";
+            "self._builder.Offset(), 0)";
       } else {
-        code_ += "    def add_{{FIELD_NAME}}(self, {{FIELD_NAME}}):";
         code_ += "        self._builder.Prepend\\";
         if (is_scalar) {
           code_ += MakeCamel(GenTypeBasic(field.value.type)) + "\\";
@@ -792,40 +799,52 @@ class PythonGenerator : public BaseGenerator {
     code_ += "class {{STRUCT_NAME}}(object):";
     GenComment(struct_def.doc_comment, "    ");
 
-    // Generate GetFullyQualifiedName
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
+    code_ += "    BYTE_SIZE = " + NumToString(struct_def.bytesize);
+    code_ += "    MIN_ALIGN = " + NumToString(struct_def.minalign);
+    code_ += "";
+
+    // Generate constructor.
     code_ += "    def __init__(self, buf, offset):";
-    code_ += "        self._tab = flatbuffers.table.Table(buf, offset)";
+    code_ += "        self._buf = buf[offset:offset + self.BYTE_SIZE]";
     code_ += "";
 
     // Generate a creator that takes all fields as arguments.
     code_ += "    @classmethod";
-    code_ += "    def create(cls, builder\\";
+    code_ += "    def create(cls\\";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
+
+      std::string default_value;
       if (IsScalar(field.value.type.base_type)) {
-        code_ += ", " + Name(field) + "=0\\";
+        default_value = GetDefaultValue(field);
+      } else {
+        default_value = "None";
       }
+
+      code_ += ", " + Name(field) + "=" + default_value + "\\";
     }
     code_ += "):";
 
-    code_ += "        builder.Prep(" + NumToString(struct_def.minalign) + ", " +
-             NumToString(struct_def.bytesize) + ")";
-    code_ += "        builder.Pad(" + NumToString(struct_def.bytesize) + ")";
-    code_ += "        value = cls(builder.Bytes, builder.Offset())";
+    code_ += "        value = cls(bytearray(cls.BYTE_SIZE), 0)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
       if (IsScalar(field.value.type.base_type)) {
         code_ += "        value." + Name(field) + " = " + Name(field);
+      } else {
+        code_ += "        if " + Name(field) + " is not None:";
+        code_ += "            " + Name(field) +
+                 ".copy_into(value._buf, value._offset + " +
+                 NumToString(field.value.offset) + ")";
       }
     }
     code_ += "        return value";
     code_ += "";
 
-    // Generate accessor methods.
+    // Generate accessor properties.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -834,6 +853,10 @@ class PythonGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type)) { GenScalarFieldSetter(field); }
     }
 
+    // Generate copy_into function.
+    code_ += "    def copy_into(self, buf, offset):";
+    code_ += "        buf[offset:offset + len(self._buf)] = self._buf";
+    code_ += "";
     code_ += "";
   }
 
