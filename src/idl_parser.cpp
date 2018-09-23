@@ -1812,6 +1812,15 @@ void Parser::MarkGenerated() {
 
 CheckedError Parser::ParseNamespace() {
   NEXT();
+
+  if (opts.lang_to_generate & IDLOptions::Language::kPython &&
+      std::any_of(namespaces_.begin(), namespaces_.end(),
+                  [](Namespace *ns) { return !ns->components.empty(); })) {
+    return Error(
+        "Python generator does not support multiple namespaces in a "
+        "single file");
+  }
+
   auto ns = new Namespace();
   namespaces_.push_back(ns);  // Store it here to not leak upon error.
   if (token_ != ';') {
