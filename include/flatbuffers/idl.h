@@ -417,6 +417,7 @@ struct IDLOptions {
     kLua = 1 << 12,
     kLobster = 1 << 13,
     kRust = 1 << 14,
+    kPythonOld = 1 << 15,
     kMAX
   };
 
@@ -830,6 +831,12 @@ extern bool GeneratePython(const Parser &parser,
                            const std::string &path,
                            const std::string &file_name);
 
+// Generate Python files from the definitions in the Parser object in the old python format.
+// See idl_gen_python_old.cpp.
+extern bool GeneratePythonOld(const Parser &parser,
+                              const std::string &path,
+                              const std::string &file_name);
+
 // Generate Lobster files from the definitions in the Parser object.
 // See idl_gen_lobster.cpp.
 extern bool GenerateLobster(const Parser &parser,
@@ -879,6 +886,12 @@ extern std::string JSMakeRule(const Parser &parser,
 extern std::string CPPMakeRule(const Parser &parser,
                                const std::string &path,
                                const std::string &file_name);
+
+// Generate a make rule for the generated Python file.
+// See idl_gen_python.cpp.
+extern std::string PythonMakeRule(const Parser &parser, const std::string &path,
+                                  const std::string &file_name);
+
 
 // Generate a make rule for the generated Dart code
 // see idl_gen_dart.cpp
