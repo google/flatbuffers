@@ -606,9 +606,6 @@ class PythonGenerator : public BaseGenerator {
         continue;
       }
 
-      const bool is_struct = IsStruct(field.value.type);
-      const bool is_scalar = IsScalar(field.value.type.base_type);
-
       code_.SetValue("FIELD_NAME", Name(field));
       GenField(field, false);
     }
@@ -644,7 +641,7 @@ class PythonGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
 
-      if (field.value.type.base_type != BASE_TYPE_STRING ||
+      if (field.value.type.base_type != BASE_TYPE_STRING &&
           field.value.type.base_type != BASE_TYPE_VECTOR) {
         continue;
       }
@@ -680,16 +677,12 @@ class PythonGenerator : public BaseGenerator {
              NumToString(struct_def.fields.vec.size()) + ")";
     code_ += "";
 
-    bool has_string_or_vector_fields = false;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
       if (field.deprecated) { continue; }
 
       const bool is_scalar = IsScalar(field.value.type.base_type);
-      const bool is_string = field.value.type.base_type == BASE_TYPE_STRING;
-      const bool is_vector = field.value.type.base_type == BASE_TYPE_VECTOR;
-      if (is_string || is_vector) { has_string_or_vector_fields = true; }
 
       std::string offset = GenFieldOffsetName(field);
       std::string name = Name(field);
