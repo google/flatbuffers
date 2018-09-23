@@ -772,6 +772,7 @@ class Parser : public ParserState {
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
+extern std::string MakeUnderscoreSeparated(const std::string &in, bool upper);
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.

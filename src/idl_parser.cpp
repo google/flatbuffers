@@ -91,6 +91,24 @@ std::string MakeCamel(const std::string &in, bool first) {
   return s;
 }
 
+// Convert camelCaseIndentifier in to an underscore_based.
+// Also transform to uppercases if upper is true.
+std::string MakeUnderscoreSeparated(const std::string &in, bool upper) {
+  std::string s;
+
+  // Avoid prefixing result with "_".
+  bool last_capital = true;
+  for (size_t i = 0; i < in.length(); i++) {
+    if (isupper(in[i]) && !last_capital) { s += "_"; }
+
+    if (upper)
+      s += static_cast<char>(toupper(in[i]));
+    else
+      s += static_cast<char>(tolower(in[i]));
+  }
+  return s;
+}
+
 void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
