@@ -33,6 +33,7 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
+#include "test_assert.h"
 
 // clang-format off
 #ifndef FLATBUFFERS_CPP98_STL
@@ -43,44 +44,7 @@
 
 using namespace MyGame::Example;
 
-#ifdef __ANDROID__
-  #include <android/log.h>
-  #define TEST_OUTPUT_LINE(...) \
-    __android_log_print(ANDROID_LOG_INFO, "FlatBuffers", __VA_ARGS__)
-  #define FLATBUFFERS_NO_FILE_TESTS
-#else
-  #define TEST_OUTPUT_LINE(...) \
-    { printf(__VA_ARGS__); printf("\n"); }
-#endif
-// clang-format on
-
-int testing_fails = 0;
-
-void TestFail(const char *expval, const char *val, const char *exp,
-              const char *file, int line) {
-  TEST_OUTPUT_LINE("VALUE: \"%s\"", expval);
-  TEST_OUTPUT_LINE("EXPECTED: \"%s\"", val);
-  TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s", file, line, exp);
-  assert(0);
-  testing_fails++;
-}
-
-void TestEqStr(const char *expval, const char *val, const char *exp,
-               const char *file, int line) {
-  if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line); }
-}
-
-template<typename T, typename U>
-void TestEq(T expval, U val, const char *exp, const char *file, int line) {
-  if (U(expval) != val) {
-    TestFail(flatbuffers::NumToString(expval).c_str(),
-             flatbuffers::NumToString(val).c_str(), exp, file, line);
-  }
-}
-
-#define TEST_EQ(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__)
-#define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
-#define TEST_EQ_STR(exp, val) TestEqStr(exp, val, #exp, __FILE__, __LINE__)
+void FlatBufferBuilderTest();
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
@@ -2041,7 +2005,7 @@ void LoadVerifyBinaryTest() {
   }
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+int FlatBufferTests() {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
       defined(_MSC_VER) && defined(_DEBUG)
@@ -2114,6 +2078,14 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   FlexBuffersTest();
   UninitializedVectorTest();
   EqualOperatorTest();
+
+  return 0;
+}
+
+int main(int /*argc*/, const char * /*argv*/ []) {
+
+  FlatBufferTests();
+  FlatBufferBuilderTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");
