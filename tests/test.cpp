@@ -1727,6 +1727,38 @@ void UnionVectorTest() {
       "characters_type: [ Belle, MuLan, BookFan, Other, Unused ], "
       "characters: [ { books_read: 7 }, { sword_attack_damage: 5 }, "
       "{ books_read: 2 }, \"Other\", \"Unused\" ] }");
+
+
+  flatbuffers::ToStringVisitor visitor("\n", true, "  ");
+  IterateFlatBuffer(fbb.GetBufferPointer(), MovieTypeTable(), &visitor);
+  TEST_EQ_STR(
+      visitor.s.c_str(),
+      "{\n"
+      "  \"main_character_type\": \"Rapunzel\",\n"
+      "  \"main_character\": {\n"
+      "    \"hair_length\": 6\n"
+      "  },\n"
+      "  \"characters_type\": [\n"
+      "    \"Belle\",\n"
+      "    \"MuLan\",\n"
+      "    \"BookFan\",\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ],\n"
+      "  \"characters\": [\n"
+      "    {\n"
+      "      \"books_read\": 7\n"
+      "    },\n"
+      "    {\n"
+      "      \"sword_attack_damage\": 5\n"
+      "    },\n"
+      "    {\n"
+      "      \"books_read\": 2\n"
+      "    },\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ]\n"
+      "}");
 }
 
 void ConformTest() {
