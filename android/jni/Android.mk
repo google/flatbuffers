@@ -47,6 +47,10 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := FlatBufferTest
 LOCAL_SRC_FILES := android/jni/main.cpp \
                    tests/test.cpp \
+                   tests/test_assert.h \
+                   tests/test_builder.h \
+                   tests/test_assert.cpp \
+                   tests/test_builder.cpp \
                    src/idl_gen_fbs.cpp \
                    src/idl_gen_general.cpp
 LOCAL_LDLIBS := -llog -landroid -latomic

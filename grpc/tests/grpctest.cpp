@@ -20,9 +20,10 @@
 
 #include "monster_test.grpc.fb.h"
 #include "monster_test_generated.h"
+#include "test_assert.h"
 
 using namespace MyGame::Example;
-int builder_tests();
+void message_builder_tests();
 
 // The callback implementation of our server, that derives from the generated
 // code. It implements all rpcs specified in the FlatBuffers schema.
@@ -166,6 +167,15 @@ int grpc_server_test() {
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {
-  return builder_tests() + grpc_server_test();
+  message_builder_tests();
+  grpc_server_test();
+
+  if (!testing_fails) {
+    TEST_OUTPUT_LINE("ALL TESTS PASSED");
+    return 0;
+  } else {
+    TEST_OUTPUT_LINE("%d FAILED TESTS", testing_fails);
+    return 1;
+  }
 }
 

@@ -89,13 +89,15 @@ class SliceAllocator : public Allocator {
   SliceAllocator &operator=(const SliceAllocator &other) = delete;
 
   SliceAllocator(SliceAllocator &&other)
-    : slice_(other.slice_) {
-    other.slice_ = grpc_empty_slice();
+    : slice_(grpc_empty_slice()) {
+    // default-construct and swap idiom
+    swap(other);
   }
 
   SliceAllocator &operator=(SliceAllocator &&other) {
-    slice_ = other.slice_;
-    other.slice_ = grpc_empty_slice();
+    // move-construct and swap idiom
+    SliceAllocator temp(std::move(other));
+    swap(temp);
     return *this;
   }
 
@@ -188,6 +190,16 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     // allocator is its own member (SliceAllocatorMember). The allocator passed to
     // FlatBufferBuilder::vector_downward must point to this member.
     buf_.swap_allocator(other.buf_);
+  }
+
+  // Releases the ownership of the buffer pointer.
+  // Returns the size, offset, and the original grpc_slice that
+  // allocated the buffer. Also see grpc_slice_unref().
+  uint8_t *ReleaseRaw(size_t &size, size_t &offset, grpc_slice &slice) {
+    uint8_t *buf = FlatBufferBuilder::ReleaseRaw(size, offset);
+    slice = slice_allocator_.slice_;
+    slice_allocator_.slice_ = grpc_empty_slice();
+    return buf;
   }
 
   ~MessageBuilder() {}

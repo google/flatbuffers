@@ -581,10 +581,10 @@ class vector_downward {
       buf_(other.buf_),
       cur_(other.cur_),
       scratch_(other.scratch_) {
-    other.allocator_ = nullptr;
-    other.own_allocator_ = false;
+    // No change in other.allocator_
     // No change in other.initial_size_
     // No change in other.buffer_minalign_
+    other.own_allocator_ = false;
     other.reserved_ = 0;
     other.buf_ = nullptr;
     other.cur_ = nullptr;
@@ -639,18 +639,22 @@ class vector_downward {
     allocated_bytes = reserved_;
     offset = static_cast<size_t>(cur_ - buf_);
 
+    // release_raw only relinquishes the buffer ownership.
+    // Does not deallocate or reset the allocator. Destructor will do that.
     buf_ = nullptr;
-    clear_allocator();
     clear();
     return buf;
   }
 
   // Relinquish the pointer to the caller.
   DetachedBuffer release() {
+    // allocator ownership (if any) is transferred to DetachedBuffer.
     DetachedBuffer fb(allocator_, own_allocator_, buf_, reserved_, cur_,
                       size());
-    allocator_ = nullptr;
-    own_allocator_ = false;
+    if (own_allocator_) {
+      allocator_ = nullptr;
+      own_allocator_ = false;
+    }
     buf_ = nullptr;
     clear();
     return fb;
