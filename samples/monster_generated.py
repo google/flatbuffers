@@ -217,6 +217,15 @@ class Monster(object):
 
     @staticmethod
     def create(fbb, mana, hp, name, inventory, color, weapons, equipped_type, equipped):
+        if name and not isinstance(name, flatbuffers.number_types.UOffsetTFlags.py_type):
+            name = fbb.CreateString(name)
+        if inventory and not isinstance(inventory, flatbuffers.number_types.UOffsetTFlags.py_type):
+            inventory = fbb.CreateByteVector(inventory)
+        if weapons and not isinstance(weapons, flatbuffers.number_types.UOffsetTFlags.py_type):
+            fbb.StartVector(4, len(weapons), 4)
+            for elem in weapons:
+                fbb.PrependUOffsetTRelative(elem)
+            weapons = fbb.EndVector(len(weapons))
         builder = MonsterBuilder(fbb)
         builder.add_equipped(equipped)
         builder.add_weapons(weapons)
@@ -314,6 +323,8 @@ class Weapon(object):
 
     @staticmethod
     def create(fbb, name, damage):
+        if name and not isinstance(name, flatbuffers.number_types.UOffsetTFlags.py_type):
+            name = fbb.CreateString(name)
         builder = WeaponBuilder(fbb)
         builder.add_name(name)
         builder.add_damage(damage)

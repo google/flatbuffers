@@ -404,7 +404,10 @@ class PythonGenerator : public BaseGenerator {
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
     if (dc.size() == 0) { return; }
 
-    CommentConfig config{ DOCSTRING_TOKEN, "", DOCSTRING_TOKEN };
+    CommentConfig config;
+    config.first_line = DOCSTRING_TOKEN;
+    config.content_line_prefix = "";
+    config.last_line = DOCSTRING_TOKEN;
 
     std::string text;
 
@@ -635,8 +638,6 @@ class PythonGenerator : public BaseGenerator {
     }
     code_ += "):";
 
-    code_ += "        builder = {{STRUCT_NAME}}Builder(fbb)";
-
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -648,6 +649,8 @@ class PythonGenerator : public BaseGenerator {
 
       GenDirectBuilder(field);
     }
+
+    code_ += "        builder = {{STRUCT_NAME}}Builder(fbb)";
 
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
@@ -746,34 +749,37 @@ class PythonGenerator : public BaseGenerator {
     code_.SetValue("FIELD_NAME", Name(field));
 
     code_ +=
-        "    if {{FIELD_NAME}} and not isinstance({{FIELD_NAME}}, "
+        "        if {{FIELD_NAME}} and not isinstance({{FIELD_NAME}}, "
         "flatbuffers.number_types.UOffsetTFlags.py_type):";
 
     if (field.value.type.base_type == BASE_TYPE_STRING) {
-      code_ += "        {{FIELD_NAME}} = fbb.CreateString({{FIELD_NAME}})";
+      code_ += "            {{FIELD_NAME}} = fbb.CreateString({{FIELD_NAME}})";
     } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       auto vectortype = field.value.type.VectorType();
-      code_ += "        {{FIELD_NAME}} = \\";
 
       switch (vectortype.base_type) {
         case BASE_TYPE_CHAR:
         case BASE_TYPE_UCHAR:
-          code_ += "fbb.CreateByteVector({{FIELD_NAME}})";
+          code_ +=
+              "            {{FIELD_NAME}} = "
+              "fbb.CreateByteVector({{FIELD_NAME}})";
           break;
         default:
-          code_ += "fbb.StartVector(\\";
+          code_ += "            fbb.StartVector(\\";
           code_ += NumToString(InlineSize(vectortype)) + ", \\";
           code_ += "len({{FIELD_NAME}}), \\";
           code_ += NumToString(InlineAlignment(vectortype)) + ")";
 
-          code_ += "        for elem in {{FIELD_NAME}}:";
-          code_ += "            fbb.Prepend\\";
+          code_ += "            for elem in {{FIELD_NAME}}:";
+          code_ += "                fbb.Prepend\\";
           if (IsScalar(vectortype.base_type)) {
             code_ += MakeCamel(GenTypeBasic(field.value.type)) + "\\";
           } else {
             code_ += "UOffsetTRelative\\";
           }
           code_ += "(elem)";
+          code_ +=
+              "            {{FIELD_NAME}} = fbb.EndVector(len({{FIELD_NAME}}))";
       }
     }
   }
