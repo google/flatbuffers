@@ -1813,7 +1813,7 @@ void Parser::MarkGenerated() {
 CheckedError Parser::ParseNamespace() {
   NEXT();
 
-  if (opts.lang_to_generate & IDLOptions::Language::kPython &&
+  if ((opts.lang_to_generate & IDLOptions::kPython) &&
       std::any_of(namespaces_.begin(), namespaces_.end(),
                   [](Namespace *ns) { return !ns->components.empty(); })) {
     return Error(
