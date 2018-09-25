@@ -934,12 +934,12 @@ class FlatBufferBuilder {
   }
 
   /// @brief Get the released pointer to the serialized buffer.
-  /// @param The size of the memory block containing 
+  /// @param The size of the memory block containing
   /// the serialized `FlatBuffer`.
-  /// @param The offset from the released pointer where the finished 
+  /// @param The offset from the released pointer where the finished
   /// `FlatBuffer` starts.
-  /// @return A raw pointer to the start of the memory block containing 
-  /// the serialized `FlatBuffer`. 
+  /// @return A raw pointer to the start of the memory block containing
+  /// the serialized `FlatBuffer`.
   /// @remark If the allocator is owned, it gets deleted during this call.
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
@@ -2482,9 +2482,6 @@ volatile __attribute__((weak)) const char *flatbuffer_version_string =
 /// @endcond
 }  // namespace flatbuffers
 
-#if defined(_MSC_VER)
-  #pragma warning(pop)
-#endif
 // clang-format on
 
 #endif  // FLATBUFFERS_H_
