@@ -159,8 +159,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
 
     check_eq!(m.hp(), 80)?;
     check_eq!(m.mana(), 150)?;
-    check_eq!(m.name(), Some("MyMonster"))?;
-    check_is_some!(m.name())?;
+    check_eq!(m.name(), "MyMonster")?;
 
     let pos = m.pos().unwrap();
     check_eq!(pos.x(), 1.0f32)?;
@@ -178,7 +177,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     let table2 = m.test().unwrap();
     let monster2 = my_game::example::Monster::init_from_table(table2);
 
-    check_eq!(monster2.name(), Some("Fred"))?;
+    check_eq!(monster2.name(), "Fred")?;
 
     check_is_some!(m.inventory())?;
     let inv = m.inventory().unwrap();
@@ -266,7 +265,7 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foobar");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
-        assert_eq!(m.name(), Some("foobar"));
+        assert_eq!(m.name(), "foobar");
     }
     #[test]
     fn struct_store() {
@@ -325,11 +324,11 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
+        assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
-                   Some("foo"));
-        assert_eq!(mon.test_as_monster().unwrap().name(), Some("foo"));
+                   "foo");
+        assert_eq!(mon.test_as_monster().unwrap().name(), "foo");
         assert_eq!(mon.test_as_test_simple_table_with_enum(), None);
         assert_eq!(mon.test_as_my_game___example_2___monster(), None);
     }
@@ -361,8 +360,8 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
-        assert_eq!(mon.enemy().unwrap().name(), Some("foo"));
+        assert_eq!(mon.name(), "bar");
+        assert_eq!(mon.enemy().unwrap().name(), "foo");
     }
     #[test]
     fn table_full_namespace_default() {
@@ -391,7 +390,7 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
+        assert_eq!(mon.name(), "bar");
         assert_eq!(mon.testempty().unwrap().id(), Some("foo"));
     }
     #[test]
@@ -434,13 +433,13 @@ mod roundtrip_generated_code {
 
         let m2_a = my_game::example::get_root_as_monster(m.testnestedflatbuffer().unwrap());
         assert_eq!(m2_a.hp(), 123);
-        assert_eq!(m2_a.name(), Some("foobar"));
+        assert_eq!(m2_a.name(), "foobar");
 
         assert!(m.testnestedflatbuffer_nested_flatbuffer().is_some());
         let m2_b = m.testnestedflatbuffer_nested_flatbuffer().unwrap();
 
         assert_eq!(m2_b.hp(), 123);
-        assert_eq!(m2_b.name(), Some("foobar"));
+        assert_eq!(m2_b.name(), "foobar");
     }
     #[test]
     fn nested_flatbuffer_default() {
@@ -561,9 +560,9 @@ mod roundtrip_generated_code {
             testarrayoftables: Some(v), ..Default::default()});
         assert_eq!(m.testarrayoftables().unwrap().len(), 2);
         assert_eq!(m.testarrayoftables().unwrap().get(0).hp(), 55);
-        assert_eq!(m.testarrayoftables().unwrap().get(0).name(), Some("foo"));
+        assert_eq!(m.testarrayoftables().unwrap().get(0).name(), "foo");
         assert_eq!(m.testarrayoftables().unwrap().get(1).hp(), 100);
-        assert_eq!(m.testarrayoftables().unwrap().get(1).name(), Some("bar"));
+        assert_eq!(m.testarrayoftables().unwrap().get(1).name(), "bar");
     }
 }
 
@@ -947,7 +946,7 @@ mod framing_format {
         let m = flatbuffers::get_size_prefixed_root::<my_game::example::Monster>(buf);
         assert_eq!(m.mana(), 200);
         assert_eq!(m.hp(), 300);
-        assert_eq!(m.name(), Some("bob"));
+        assert_eq!(m.name(), "bob");
     }
 }
 
@@ -1459,13 +1458,11 @@ mod generated_key_comparisons {
         let a = my_game::example::get_root_as_monster(buf);
 
         // preconditions
-        assert_eq!(a.name(), Some("MyMonster"));
+        assert_eq!(a.name(), "MyMonster");
 
-        assert_eq!(a.key_compare_with_value(None), ::std::cmp::Ordering::Greater);
-
-        assert_eq!(a.key_compare_with_value(Some("AAA")), ::std::cmp::Ordering::Greater);
-        assert_eq!(a.key_compare_with_value(Some("MyMonster")), ::std::cmp::Ordering::Equal);
-        assert_eq!(a.key_compare_with_value(Some("ZZZ")), ::std::cmp::Ordering::Less);
+        assert_eq!(a.key_compare_with_value("AAA"), ::std::cmp::Ordering::Greater);
+        assert_eq!(a.key_compare_with_value("MyMonster"), ::std::cmp::Ordering::Equal);
+        assert_eq!(a.key_compare_with_value("ZZZ"), ::std::cmp::Ordering::Less);
     }
 
     #[test]
@@ -1478,8 +1475,8 @@ mod generated_key_comparisons {
         let b = a.test_as_monster().unwrap();
 
         // preconditions
-        assert_eq!(a.name(), Some("MyMonster"));
-        assert_eq!(b.name(), Some("Fred"));
+        assert_eq!(a.name(), "MyMonster");
+        assert_eq!(b.name(), "Fred");
 
         assert_eq!(a.key_compare_less_than(&a), false);
         assert_eq!(a.key_compare_less_than(&b), false);
