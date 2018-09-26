@@ -33,13 +33,19 @@ static std::string GeneratedFileName(const std::string &path,
 std::string MakeSnakeCase(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
-    if (islower(in[i])) {
-      s += static_cast<char>(in[i]);
-    } else {
-      if (i > 0) {
+    if (i == 0) {
+      s += static_cast<char>(tolower(in[0]));
+    } else if (in[i] == '_') {
+      s += '_';
+    } else if (!islower(in[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(in[i - 1])) {
         s += '_';
       }
       s += static_cast<char>(tolower(in[i]));
+    } else {
+      s += in[i];
     }
   }
   return s;

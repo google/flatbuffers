@@ -1110,7 +1110,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_my_game___example_2___monster(&'a self) -> Option<super::example_2::Monster> {
+  pub fn test_as_my_game_example_2_monster(&'a self) -> Option<super::example_2::Monster> {
     if self.test_type() == Any::MyGame_Example2_Monster {
       self.test().map(|u| super::example_2::Monster::init_from_table(u))
     } else {
