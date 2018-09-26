@@ -536,6 +536,22 @@ class Reference {
         if (i < v.size() - 1) s += ", ";
       }
       s += " ]";
+    } else if (flexbuffers::IsTypedVector(GetType())) {
+      s += "[ ";
+      auto v = AsTypedVector();
+      for (size_t i = 0; i < v.size(); i++) {
+        v[i].ToString(true, keys_quoted, s);
+        if (i < v.size() - 1) s += ", ";
+      }
+      s += " ]";
+    } else if (flexbuffers::IsFixedTypedVector(GetType())) {
+      s += "[ ";
+      auto v = AsFixedTypedVector();
+      for (size_t i = 0; i < v.size(); i++) {
+        v[i].ToString(true, keys_quoted, s);
+        if (i < v.size() - 1) s += ", ";
+      }
+      s += " ]";
     } else {
       s += "(?)";
     }
