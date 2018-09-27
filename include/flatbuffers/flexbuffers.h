@@ -368,6 +368,9 @@ class Reference {
   bool IsString() const { return type_ == FBT_STRING; }
   bool IsKey() const { return type_ == FBT_KEY; }
   bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
+  bool IsTypedVector() const { return flexbuffers::IsTypedVector(type_); }
+  bool IsFixedTypedVector() const { return flexbuffers::IsFixedTypedVector(type_); }
+  bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
   bool IsMap() const { return type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
 
@@ -562,7 +565,7 @@ class Reference {
   }
 
   TypedVector AsTypedVector() const {
-    if (IsTypedVector(type_)) {
+    if (IsTypedVector()) {
       return TypedVector(Indirect(), byte_width_,
                          ToTypedVectorElementType(type_));
     } else {
@@ -571,7 +574,7 @@ class Reference {
   }
 
   FixedTypedVector AsFixedTypedVector() const {
-    if (IsFixedTypedVector(type_)) {
+    if (IsFixedTypedVector()) {
       uint8_t len = 0;
       auto vtype = ToFixedTypedVectorElementType(type_, &len);
       return FixedTypedVector(Indirect(), byte_width_, vtype, len);
