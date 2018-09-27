@@ -912,8 +912,8 @@ impl<'a> Monster<'a> {
     self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()
   }
   #[inline]
-  pub fn name(&'a self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)
+  pub fn name(&'a self) -> &'a str {
+    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None).unwrap()
   }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Monster) ->  bool {
@@ -921,7 +921,7 @@ impl<'a> Monster<'a> {
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: Option<&str>) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: & str) ->  ::std::cmp::Ordering {
     let key = self.name();
     key.cmp(&val)
   }
