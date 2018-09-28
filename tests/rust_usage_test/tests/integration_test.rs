@@ -236,6 +236,37 @@ mod generated_constants {
 }
 
 #[cfg(test)]
+mod lifetime_correctness {
+    extern crate flatbuffers;
+
+    use std::mem;
+
+    use super::my_game;
+    use super::load_file;
+
+    #[test]
+    fn table_get_field_from_static_buffer_1() {
+        let buf = load_file("../monsterdata_test.mon");
+        // create 'static slice
+        let slice: &[u8] = &buf;
+        let slice: &'static [u8] = unsafe { mem::transmute(slice) };
+        // make sure values retrieved from the 'static buffer are themselves 'static
+        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster(slice);
+        // this line should compile:
+        let name: Option<&'static str> = monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None);
+        assert_eq!(name, Some("MyMonster"));
+    }
+
+    #[test]
+    fn table_get_field_from_static_buffer_2() {
+        static DATA: [u8; 4] = [0, 0, 0, 0]; // some binary data
+        let table: flatbuffers::Table<'static> = flatbuffers::Table::new(&DATA, 0);
+        // this line should compile:
+        table.get::<&'static str>(0, None);
+    }
+}
+
+#[cfg(test)]
 mod roundtrip_generated_code {
     extern crate flatbuffers;
 
