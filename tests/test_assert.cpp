@@ -7,6 +7,7 @@ void TestFail(const char *expval, const char *val, const char *exp,
   TEST_OUTPUT_LINE("VALUE: \"%s\"", expval);
   TEST_OUTPUT_LINE("EXPECTED: \"%s\"", val);
   TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s in %s", file, line, exp, func? func : "");
+  assert(0);
   testing_fails++;
 }
 
