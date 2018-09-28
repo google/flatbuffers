@@ -504,35 +504,4 @@ It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` defin
 This definition can be helpful for testing purposes or embedded applications.
 For details see [build](@ref flatbuffers_guide_building) of CMake-based projects.
 
-## Dependence from C-locale {#flatbuffers_locale_cpp}
-Flatbuffers [grammar](@ref flatbuffers grammar) is based on ASCII
-character set for reserved words, identifiers and alpha-numeric literals.
-String constants can use utf-8 symbols inside string.
-
-Internal implementation of Flatbuffers depends from C/C++ functions, 
-which in turn depend  on global defined C-locale, `strtod()` for example.
-The Standard C locale is a global resource: there is only one locale for the 
-entire application.
-
-By default, it is assumed that Flatbuffers library compiled and used for 
-applications with C-locales which are compatible with ASCII character set.
-It is assumed that following conditions are true:
-
-- `LC_NUMERIC` use dot `.` symbol as decimal separator. It is used to 
-  separate the integer part from the fractional part of a float number. 
-
-If an end-user application may use C-locale which is incompatible with these 
-conditions you should activate locale-independent mode while compile Flatbuffers 
-library. By default this mode is inactive and activated with global scope define 
-`FLATBUFFERS_FORCE_LOCALE_INDEPENDENT`.
-This define activate locale-independent code and test routines for this mode.
-Test routines expect that `FLATBUFFERS_FORCE_LOCALE_INDEPENDENT` is string with 
-a locale name to test it, for example `"ru_RU.CP1251"`.
-If the locale-independent mode is activated then functions with ability 
-to specify a locale will be used rather than common functions which based on the 
-global or per-thread locale.
-For example, instead of `strtod` will be used `strtod_l` function:
-  - `strtod_l` is available in stdlib++ 2.2 or higher.
-  - `_strtod_l` is available in MSVC since VS2005.
-
 <br>

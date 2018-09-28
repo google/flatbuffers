@@ -158,7 +158,7 @@ template<> inline std::string NumToString<float>(float t) {
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
 inline std::string IntToStringHex(int i, int xdigits) {
-  FLATBUFFERS_ASSERT(i >= 0); // what is expected if (i < 0)?
+  FLATBUFFERS_ASSERT(i >= 0);
   // clang-format off
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
@@ -171,48 +171,9 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-#ifdef FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-// Static RAII holder of default C-locale
-class UtilDefaultLocale FLATBUFFERS_FINAL_CLASS {
- public:
-  // clang-format off
-  #ifdef _MSC_VER
-  typedef _locale_t locale_type;
-  #else
-  typedef locale_t locale_type;
-  #endif
-  // clang-format on
-  static locale_type get() { return instance_.locale_; }
-
- private:
-  UtilDefaultLocale();
-  ~UtilDefaultLocale();
-
-  const locale_type locale_;
-  static UtilDefaultLocale instance_;
-};
-#endif // !FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-
 static inline double strtod_impl(const char *str, char **str_end){
   // Result of strtod (printf, etc) depends from current C-locale.
-  // Most of locales use the dot '.' as decimal delimiter, but some use ','
-  // instead.
-  // User should predefine macro FLATBUFFERS_FORCE_LOCALE_INDEPENDENT to enable
-  // strtod_l/strtof_l usage.
-  // 1) _strtod_l is available in MSVC since VS2005
-  // 2) #if (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 2))
-
-  // clang-format off
-  #ifdef FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-    #ifdef _MSC_VER
-      return _strtod_l(str, str_end, UtilDefaultLocale::get());
-    #else
-      return strtod_l(str, str_end, UtilDefaultLocale::get());
-    #endif
-  #else
-    return strtod(str, str_end);
-  #endif // !FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-  // clang-format on
+  return strtod(str, str_end);
 }
 
 static inline float strtof_impl(const char *str, char **str_end)
@@ -235,15 +196,7 @@ static inline float strtof_impl(const char *str, char **str_end)
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_NEW_STRTOD
-    #ifdef FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-      #ifdef _MSC_VER
-        return _strtof_l(str, str_end, UtilDefaultLocale::get());
-      #else
-        return strtof_l(str, str_end, UtilDefaultLocale::get());
-      #endif
-    #else
-      return strtof(str, str_end);
-    #endif // !FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
+    return strtof(str, str_end);
   #else
     return static_cast<float>(strtod_impl(str, str_end));
   #endif // !FLATBUFFERS_HAS_NEW_STRTOD

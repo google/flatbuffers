@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -237,8 +237,6 @@ static inline bool is_dechex(char c, bool hex = false) {
                 : isdigit(static_cast<unsigned char>(c)));
 }
 
-static inline bool is_trivial_ascii(char c) { return (' ' <= c) && (c <= '~'); }
-
 CheckedError Parser::Next() {
   doc_comment_.clear();
   bool seen_newline = cursor_ == source_;
@@ -365,8 +363,9 @@ CheckedError Parser::Next() {
               return Error(
                   "illegal Unicode sequence (unpaired high surrogate)");
             }
-            if (!is_trivial_ascii(*cursor_))
+            if ((*cursor_ < ' ') || (*cursor_ > '~'))  // only printable
               attr_is_trivial_ascii_string_ = false;
+
             attribute_ += *cursor_++;
           }
         }
@@ -1436,10 +1435,11 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // TODO(wvo): add more useful conversion functions here.
     #undef FLATBUFFERS_FN_DOUBLE
     // clang-format on
-    if (true != func_match)
+    if (true != func_match) {
       return Error(std::string("Unknown conversion function: ") + functionname +
                    ", field name: " + (name ? *name : "") +
                    ", value: " + e.constant);
+    }
     e.constant = NumToString(y);
     return NoError();
   }

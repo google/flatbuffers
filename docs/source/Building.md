@@ -85,16 +85,6 @@ To override [the depth limit of recursion](@ref flatbuffers_guide_use_cpp),
 add this directive:
 ```cmake
 set(FLATBUFFERS_MAX_PARSING_DEPTH 16)
-
-#### Enforce locale-independent mode
-If an end-user application may use non ascii-based [locale](@ref flatbuffers_locale_cpp) 
-add this directive to enforce locale-independent mode of Flatbuffers library:
-```cmake
-set(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT "")
-```
-or
-```cmake
-set(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT "<test-locale>")
 ```
 to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
 

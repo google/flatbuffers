@@ -18,22 +18,6 @@
 
 namespace flatbuffers {
 
-#if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
-// allocate locate at startup of application
-UtilDefaultLocale UtilDefaultLocale::instance_;
-// clang-format off
-#ifdef _MSC_VER
-UtilDefaultLocale::UtilDefaultLocale() 
-    : locale_(_create_locale(LC_ALL, "C")) {}
-UtilDefaultLocale::~UtilDefaultLocale() { _free_locale(locale_); }
-#else
-UtilDefaultLocale::UtilDefaultLocale()
-    : locale_(newlocale(LC_ALL, "C", (locale_t)0)) {}
-UtilDefaultLocale::~UtilDefaultLocale() { freelocale(locale_); }
-#endif
-// clang-format on
-#endif  // !FLATBUFFERS_FORCE_LOCALE_INDEPENDENT
-
 bool FileExistsRaw(const char *name) {
   std::ifstream ifs(name);
   return ifs.good();

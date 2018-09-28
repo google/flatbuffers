@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 #include <cmath>
-#if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
-#include <clocale>
-#endif
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -26,6 +22,7 @@
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
+  #include <random>
   #include "flatbuffers/stl_emulation.h"
   namespace std {
     using flatbuffers::unique_ptr;
@@ -38,11 +35,6 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "test_assert.h"
-
-// clang-format off
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <random>
-#endif
 
 #include "flatbuffers/flexbuffers.h"
 
@@ -1456,6 +1448,8 @@ void ValidFloatTest() {
   TEST_EQ(TestValue<float>("{ Y:.125 }", "float"), 0.125f);
   TEST_EQ(TestValue<float>("{ Y:-.125 }", "float"), -0.125f);
   TEST_EQ(TestValue<float>("{ Y:+.125 }", "float"), +0.125f);
+  TEST_EQ(TestValue<float>("{ Y:5 }", "float"), 5.0f);
+  TEST_EQ(TestValue<float>("{ Y:\"5\" }", "float"), 5.0f);
 
   #if defined(FLATBUFFERS_HAS_NEW_STRTOD)
   // Old MSVC versions may have problem with this check.
@@ -2295,13 +2289,6 @@ int FlatBufferTests() {
       // For more thorough checking:
       //| _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF
     );
-  #endif
-
-  // If request testing under specific C-locale.
-  #if defined(FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
-  // Assume that FLATBUFFERS_FORCE_LOCALE_INDEPENDENT is string with locale for test.
-  TEST_OUTPUT_LINE("Set global C-locale to: %s", FLATBUFFERS_FORCE_LOCALE_INDEPENDENT);
-  TEST_NOTNULL(std::setlocale(LC_ALL, FLATBUFFERS_FORCE_LOCALE_INDEPENDENT));
   #endif
 
   // Run our various test suites:

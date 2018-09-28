@@ -29,15 +29,6 @@ if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 endif()
 
-if(DEFINED FLATBUFFERS_FORCE_LOCALE_INDEPENDENT)
-  # Enable locale independent code and define locale for tests.
-  # -DFLATBUFFERS_FORCE_LOCALE_INDEPENDENT="" - enable, but test with default locale
-  # -DFLATBUFFERS_FORCE_LOCALE_INDEPENDENT="ru_RU.CP1251" - enable and test with ru_RU.CP1251
-  # Locale was installed before (Ubuntu):>sudo locale-gen ru_RU.CP1251
-  add_definitions(-DFLATBUFFERS_FORCE_LOCALE_INDEPENDENT=\"${FLATBUFFERS_FORCE_LOCALE_INDEPENDENT}\")
-  message(STATUS "FLATBUFFERS_FORCE_LOCALE_INDEPENDENTo: ${FLATBUFFERS_FORCE_LOCALE_INDEPENDENT}")
-endif()
-
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/code_generators.h
   include/flatbuffers/base.h

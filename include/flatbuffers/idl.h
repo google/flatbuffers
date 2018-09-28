@@ -484,7 +484,10 @@ struct IDLOptions {
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
   ParserState()
-      : cursor_(nullptr), line_start_(nullptr), line_(0), token_(-1),
+      : cursor_(nullptr),
+        line_start_(nullptr),
+        line_(0),
+        token_(-1),
         attr_is_trivial_ascii_string_(true) {}
 
  protected:
@@ -509,7 +512,7 @@ struct ParserState {
   int line_;  // the current line being parsed
   int token_;
 
-  // Flag: text in attribute_ is true ASCII string without escapes
+  // Flag: text in attribute_ is true ASCII string without escape
   // sequences. Only printable ASCII (without [\t\r\n]).
   // Used for number-in-string (and base64 string in future).
   bool attr_is_trivial_ascii_string_;
