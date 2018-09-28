@@ -30,12 +30,12 @@ impl<'a> Table<'a> {
         Table { buf: buf, loc: loc }
     }
     #[inline]
-    pub fn vtable(&'a self) -> VTable<'a> {
+    pub fn vtable(&self) -> VTable<'a> {
         <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc)
     }
     #[inline]
     pub fn get<T: Follow<'a> + 'a>(
-        &'a self,
+        &self,
         slot_byte_loc: VOffsetT,
         default: Option<T::Inner>,
     ) -> Option<T::Inner> {
