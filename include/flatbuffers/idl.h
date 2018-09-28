@@ -484,7 +484,8 @@ struct IDLOptions {
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
   ParserState()
-      : cursor_(nullptr), line_start_(nullptr), line_(0), token_(-1) {}
+      : cursor_(nullptr), line_start_(nullptr), line_(0), token_(-1),
+        attr_is_trivial_ascii_string_(true) {}
 
  protected:
   void ResetState(const char *source) {
@@ -508,6 +509,10 @@ struct ParserState {
   int line_;  // the current line being parsed
   int token_;
 
+  // Flag: text in attribute_ is true ASCII string without escapes
+  // sequences. Only printable ASCII (without [\t\r\n]).
+  // Used for number-in-string (and base64 string in future).
+  bool attr_is_trivial_ascii_string_;
   std::string attribute_;
   std::vector<std::string> doc_comment_;
 };
@@ -644,7 +649,8 @@ class Parser : public ParserState {
   bool ParseFlexBuffer(const char *source, const char *source_filename,
                        flexbuffers::Builder *builder);
 
-  FLATBUFFERS_CHECKED_ERROR CheckInRange(int64_t val, int64_t min, int64_t max);
+  FLATBUFFERS_CHECKED_ERROR InvalidNumber(const char *number,
+                                          const std::string &msg);
 
   StructDef *LookupStruct(const std::string &id) const;
 
@@ -711,7 +717,7 @@ class Parser : public ParserState {
                                           BaseType req, bool *destmatch);
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR TokenError();
-  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e);
+  FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e, bool check_now);
   FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,

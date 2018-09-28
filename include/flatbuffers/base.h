@@ -180,6 +180,17 @@
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
 
+#ifndef FLATBUFFERS_HAS_NEW_STRTOD
+  // Modern (C++11) strtod and strtof functions are available for use.
+  // 1) nan/inf strings as argument of strtod;
+  // 2) hex-float  as argument of  strtod/strtof.
+  #if (defined(_MSC_VER) && _MSC_VER >= 1900) || \
+      (defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 409)) || \
+      (defined(__clang__))
+    #define FLATBUFFERS_HAS_NEW_STRTOD 1
+  #endif
+#endif // !FLATBUFFERS_HAS_NEW_STRTOD
+
 /// @endcond
 
 /// @file
