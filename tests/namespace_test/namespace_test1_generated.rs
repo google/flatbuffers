@@ -184,7 +184,7 @@ impl<'a> TableInNestedNS<'a> {
     pub const VT_FOO: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn foo(&'a self) -> i32 {
+  pub fn foo(&self) -> i32 {
     self._tab.get::<i32>(TableInNestedNS::VT_FOO, Some(0)).unwrap()
   }
 }

@@ -263,6 +263,23 @@ mod lifetime_correctness {
         // this line should compile:
         table.get::<&'static str>(0, None);
     }
+
+    #[test]
+    fn table_object_self_lifetime_in_closure() {
+        // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
+        let buf = load_file("../monsterdata_test.mon");
+        let monster = my_game::example::get_root_as_monster(&buf);
+        let enemy: Option<my_game::example::Monster> = monster.enemy();
+        // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
+        let enemy_of_my_enemy = enemy.map(|e| {
+            // enemy (the Option) is consumed, and the enum's value is taken as a temporary (e) at the start of the closure
+            let name = e.name();
+            // ... the temporary dies here, so for this to compile name's lifetime must not be tied to the temporary
+            name
+            // If this test fails the error would be "`e` dropped here while still borrowed"
+        });
+        assert_eq!(enemy_of_my_enemy, Some("Fred"));
+    }
 }
 
 #[cfg(test)]
