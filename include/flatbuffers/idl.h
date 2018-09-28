@@ -34,6 +34,12 @@
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
 
+// Limits maximum depth of nested objects. 
+// Prevents stack overflow while parse flatbuffers or json.
+#if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
+#  define FLATBUFFERS_MAX_PARSING_DEPTH 64
+#endif
+
 namespace flatbuffers {
 
 // The order of these matters for Is*() functions below.
@@ -727,10 +733,11 @@ class Parser : public ParserState {
   bool SupportsVectorOfUnions() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
-  enum { kMaxParsingDepth = 64 };
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f) {
-    if (++recurse_protection_counter >= kMaxParsingDepth) return RecurseError();
+    if ((1 + recurse_protection_counter) > (FLATBUFFERS_MAX_PARSING_DEPTH))
+      return RecurseError();
+    recurse_protection_counter++;
     auto ce = f();
     recurse_protection_counter--;
     return ce;

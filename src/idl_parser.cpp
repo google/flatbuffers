@@ -114,8 +114,8 @@ CheckedError Parser::Error(const std::string &msg) {
 inline CheckedError NoError() { return CheckedError(false); }
 
 CheckedError Parser::RecurseError() {
-  return Error("maximum parsing recursion of " + NumToString(kMaxParsingDepth) +
-               " reached");
+  return Error("maximum parsing recursion of " +
+               NumToString(FLATBUFFERS_MAX_PARSING_DEPTH) + " reached");
 }
 
 inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
@@ -2253,7 +2253,10 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  return !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  auto r = !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  return r;
 }
 
 CheckedError Parser::StartParseFile(const char *source,
