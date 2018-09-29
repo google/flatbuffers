@@ -55,15 +55,15 @@ impl<'a> TableInFirstNS<'a> {
     pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 8;
 
   #[inline]
-  pub fn foo_table(&'a self) -> Option<namespace_b::TableInNestedNS<'a>> {
+  pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
-  pub fn foo_enum(&'a self) -> namespace_b::EnumInNestedNS {
+  pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
     self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()
   }
   #[inline]
-  pub fn foo_struct(&'a self) -> Option<&'a namespace_b::StructInNestedNS> {
+  pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
     self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)
   }
 }
@@ -151,7 +151,7 @@ impl<'a> SecondTableInA<'a> {
     pub const VT_REFER_TO_C: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn refer_to_c(&'a self) -> Option<super::namespace_c::TableInC<'a>> {
+  pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC<'a>>>(SecondTableInA::VT_REFER_TO_C, None)
   }
 }
@@ -241,11 +241,11 @@ impl<'a> TableInC<'a> {
     pub const VT_REFER_TO_A2: flatbuffers::VOffsetT = 6;
 
   #[inline]
-  pub fn refer_to_a1(&'a self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
+  pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS<'a>>>(TableInC::VT_REFER_TO_A1, None)
   }
   #[inline]
-  pub fn refer_to_a2(&'a self) -> Option<super::namespace_a::SecondTableInA<'a>> {
+  pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA<'a>>>(TableInC::VT_REFER_TO_A2, None)
   }
 }
