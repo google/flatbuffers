@@ -1263,7 +1263,7 @@ class RustGenerator : public BaseGenerator {
 
       GenComment(field.doc_comment, "  ");
       code_ += "  #[inline]";
-      code_ += "  pub fn {{FIELD_NAME}}(&'a self) -> {{RETURN_TYPE}} {";
+      code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
       code_ += "    {{FUNC_BODY}}";
       code_ += "  }";
 
