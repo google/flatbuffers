@@ -1299,7 +1299,8 @@ class CppGenerator : public BaseGenerator {
           for (auto fit = ev.union_type.struct_def->fields.vec.begin();
                fit != ev.union_type.struct_def->fields.vec.end(); ++fit) {
             const auto &field = **fit;
-            if (!field.deprecated && field.value.type.struct_def) {
+            if (!field.deprecated && field.value.type.struct_def &&
+                !field.native_inline) {
               copyable = false;
               break;
             }
