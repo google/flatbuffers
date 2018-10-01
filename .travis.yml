@@ -72,7 +72,9 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
+      - bash grpc/build_grpc.sh
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DFLATBUFFERS_BUILD_GRPCTEST=ON -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf . && make
+      - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib make test ARGS=-V
       - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
@@ -83,7 +85,10 @@ matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
       script:
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
+      - bash grpc/build_grpc.sh
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DFLATBUFFERS_BUILD_GRPCTEST=ON -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf . && make
+      - ./flattests
+      - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ./grpctest
 
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
