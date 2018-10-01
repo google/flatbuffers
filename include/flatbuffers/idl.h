@@ -477,10 +477,28 @@ struct IDLOptions {
 
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
-  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+  ParserState()
+      : cursor_(nullptr), line_start_(nullptr), line_(0), token_(-1) {}
 
  protected:
+  void ResetState(const char *source) {
+    cursor_ = source;
+    line_ = 0;
+    MarkNewLine();
+  }
+
+  void MarkNewLine() {
+    line_start_ = cursor_;
+    line_ += 1;
+  }
+
+  int64_t CursorPosition() const {
+    FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
+    return static_cast<int64_t>(cursor_ - line_start_);
+  }
+
   const char *cursor_;
+  const char *line_start_;
   int line_;  // the current line being parsed
   int token_;
 
