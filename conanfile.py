@@ -10,7 +10,7 @@ from conans import ConanFile, CMake, tools
 
 class FlatbuffersConan(ConanFile):
     name = "flatbuffers"
-    version = "1.9.0"
+    version = "1.10.0"
     license = "Apache-2.0"
     url = "https://github.com/google/flatbuffers"
     homepage = "http://google.github.io/flatbuffers/"
