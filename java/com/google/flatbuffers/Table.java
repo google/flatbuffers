@@ -292,6 +292,18 @@ public class Table {
     }
     return len_1 - len_2;
   }
+
+  /**
+   * Resets the internal state with a null {@code ByteBuffer} and a zero position.
+   *
+   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
+   * again to a {@code ByteBuffer}.
+   */
+  public void __reset() {
+    bb = null;
+    bb_pos = 0;
+  }
 }
 
 /// @endcond
