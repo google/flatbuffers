@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.google.flatbuffers</groupId>
         <artifactId>flatbuffers-parent</artifactId>
-        <version>1.9.0</version>
+        <version>1.10.0</version>
     </parent>
     <artifactId>grpc-test</artifactId>
     <description>Example/Test project demonstrating usage of flatbuffers with GRPC-Java instead of protobufs
