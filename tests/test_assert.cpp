@@ -22,12 +22,14 @@ void TestEqStr(const char *expval, const char *val, const char *exp,
   if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line); }
 }
 
+#ifdef _MSC_VER
 // Without this hook function the message box not suppressed.
 int msvc_no_dialog_box_on_assert(int rpt_type, char *msg, int *ret_val) {
   (void)ret_val;
   TEST_OUTPUT_LINE("TEST ASSERTED: %d: %s", rpt_type, msg);
   return 1;
 }
+#endif
 
 void InitTestEngine() {
   testing_fails = 0;
