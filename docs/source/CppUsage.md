@@ -240,7 +240,9 @@ influence this either globally (using the `--cpp-ptr-type` argument to
 `flatc`) or per field (using the `cpp_ptr_type` attribute) to by any smart
 pointer type (`my_ptr<T>`), or by specifying `naked` as the type to get `T *`
 pointers. Unlike the smart pointers, naked pointers do not manage memory for
-you, so you'll have to manage their lifecycles manually.
+you, so you'll have to manage their lifecycles manually.  To reference the
+pointer type specified by the `--cpp-ptr-type` argument to `flatc` from a
+flatbuffer field set the `cpp_ptr_type` attribute to `default_ptr_type`.
 
 
 # Using different string type.
