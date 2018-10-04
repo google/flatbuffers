@@ -80,6 +80,14 @@ target_link_libraries(own_project_target PRIVATE flatbuffers)
 When build your project the `flatbuffers` library will be compiled and linked 
 to a target as part of your project.
 
+#### Override default depth limit of nested objects
+To override [the depth limit of recursion](@ref flatbuffers_guide_use_cpp), 
+add this directive:
+```cmake
+set(FLATBUFFERS_MAX_PARSING_DEPTH 16)
+```
+to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
+
 #### For Google Play apps
 
 For applications on Google Play that integrate this library, usage is tracked.

@@ -23,6 +23,12 @@ if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     set(FLATBUFFERS_BUILD_TESTS OFF)
 endif()
 
+if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
+  # Override the default recursion depth limit.
+  add_definitions(-DFLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
+  message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
+endif()
+
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/code_generators.h
   include/flatbuffers/base.h

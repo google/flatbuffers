@@ -495,4 +495,13 @@ needed to use unions.
 
 To use scalars, simply wrap them in a struct.
 
+## Depth limit of nested objects and stack-overflow control
+The parser of Flatbuffers schema or json-files is kind of recursive parser.
+To avoid stack-overflow problem the parser has a built-in limiter of recursion depth.
+Number of nested declarations in a schema or number of nested json-objects is limited. 
+By default, this depth limit set to `64`.
+It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` definition.
+This definition can be helpful for testing purposes or embedded applications.
+For details see [build](@ref flatbuffers_guide_building) of CMake-based projects.
+
 <br>
