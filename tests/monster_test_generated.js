@@ -28,19 +28,19 @@ MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
  * @enum
  */
 MyGame.Example.Color = {
-  Red: 1,
-  Green: 2,
-  Blue: 8
+  Red: 1, 1: 'Red',
+  Green: 2, 2: 'Green',
+  Blue: 8, 8: 'Blue'
 };
 
 /**
  * @enum
  */
 MyGame.Example.Any = {
-  NONE: 0,
-  Monster: 1,
-  TestSimpleTableWithEnum: 2,
-  MyGame_Example2_Monster: 3
+  NONE: 0, 0: 'NONE',
+  Monster: 1, 1: 'Monster',
+  TestSimpleTableWithEnum: 2, 2: 'TestSimpleTableWithEnum',
+  MyGame_Example2_Monster: 3, 3: 'MyGame_Example2_Monster'
 };
 
 /**
