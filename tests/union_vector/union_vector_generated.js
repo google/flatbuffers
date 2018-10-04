@@ -4,13 +4,13 @@
  * @enum
  */
 var Character = {
-  NONE: 0,
-  MuLan: 1,
-  Rapunzel: 2,
-  Belle: 3,
-  BookFan: 4,
-  Other: 5,
-  Unused: 6
+  NONE: 0, 0: 'NONE',
+  MuLan: 1, 1: 'MuLan',
+  Rapunzel: 2, 2: 'Rapunzel',
+  Belle: 3, 3: 'Belle',
+  BookFan: 4, 4: 'BookFan',
+  Other: 5, 5: 'Other',
+  Unused: 6, 6: 'Unused'
 };
 
 /**
