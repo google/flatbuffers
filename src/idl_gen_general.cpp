@@ -207,6 +207,10 @@ class GeneralGenerator : public BaseGenerator {
     }
 
     std::string namespace_name = FullNamespace(".", ns);
+    if (lang_.language == IDLOptions::kJava) {
+      transform(namespace_name.begin(), namespace_name.end(), namespace_name.begin(), ::tolower);
+    }
+
     if (!namespace_name.empty()) {
       code += lang_.namespace_ident + namespace_name + lang_.namespace_begin;
       code += "\n\n";
