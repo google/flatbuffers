@@ -1594,7 +1594,8 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     }
     // Specify the integer type underlying this enum.
     ECHECK(ParseType(enum_def->underlying_type));
-    if (!IsInteger(enum_def->underlying_type.base_type))
+    if (!IsInteger(enum_def->underlying_type.base_type) ||
+        IsBool(enum_def->underlying_type.base_type))
       return Error("underlying enum type must be integral");
     // Make this type refer back to the enum it was derived from.
     enum_def->underlying_type.enum_def = enum_def;
@@ -1620,10 +1621,8 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         }
       }
       auto prevsize = enum_def->vals.vec.size();
-      auto value = !enum_def->vals.vec.empty()
-          ? enum_def->vals.vec.back()->value + 1
-          : 0;
-      auto &ev = *new EnumVal(value_name, value);
+      auto prevvalue = prevsize > 0 ? enum_def->vals.vec.back()->value : 0;
+      auto &ev = *new EnumVal(value_name, 0);
       if (enum_def->vals.Add(value_name, &ev))
         return Error("enum value already exists: " + value_name);
       ev.doc_comment = value_comment;
@@ -1646,11 +1645,37 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         if (!opts.proto_mode && prevsize &&
             enum_def->vals.vec[prevsize - 1]->value >= ev.value)
           return Error("enum values must be specified in ascending order");
+      } else if (prevsize == 0) {
+        // already set to zero
+      } else if (prevvalue != flatbuffers::numeric_limits<int64_t>::max()) {
+        ev.value = prevvalue + 1;
+      } else {
+        return Error("enum value overflows");
       }
-      if (is_union) {
-        if (ev.value < 0 || ev.value >= 256)
-          return Error("union enum value must fit in a ubyte");
+
+      // Check that value fits into the underlying type.
+      switch (enum_def->underlying_type.base_type) {
+        // clang-format off
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
+                               PTYPE, RTYPE)                              \
+          case BASE_TYPE_##ENUM: {                                        \
+            int64_t min_value = static_cast<int64_t>(                     \
+              flatbuffers::numeric_limits<CTYPE>::lowest());              \
+            int64_t max_value = static_cast<int64_t>(                     \
+              flatbuffers::numeric_limits<CTYPE>::max());                 \
+            if (ev.value < min_value || ev.value > max_value) {           \
+              return Error(                                               \
+                "enum value does not fit [" +  NumToString(min_value) +   \
+                "; " + NumToString(max_value) + "]");                     \
+            }                                                             \
+            break;                                                        \
+          }
+        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+        #undef FLATBUFFERS_TD
+        default: break;
+        // clang-format on
       }
+
       if (opts.proto_mode && Is('[')) {
         NEXT();
         // ignore attributes on enums.
