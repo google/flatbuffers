@@ -5,6 +5,7 @@
   "files": ["js/flatbuffers.js", "js/flatbuffers.mjs"],
   "main": "js/flatbuffers",
   "module": "js/flatbuffers.mjs",
+  "types": "js/flatbuffers.d.ts",
   "directories": {
     "doc": "docs",
     "test": "tests"
