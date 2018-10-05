@@ -207,14 +207,18 @@ class GeneralGenerator : public BaseGenerator {
     }
 
     std::string namespace_name = FullNamespace(".", ns);
-    if (lang_.language == IDLOptions::kJava) {
-      for (auto p = namespace_name.begin(); p != namespace_name.end(); ++p) {
-        *p = std::tolower(*p);
+    if (lang_.language == IDLOptions::kJava && namespace_name.length() > 1) {
+      std::string result(1, tolower(namespace_name[0]));
+      for (auto p = namespace_name.begin() + 1; p != namespace_name.end(); ++p) {
+        if (islower(*(p - 1)) && *(p - 1) != '-' && isupper(*p)) {
+          result += "-";
+        }
+        result += std::tolower(*p);
       }
+      namespace_name = result;
     }
 
     if (!namespace_name.empty()) {
-      printf("namespace: %s\n", (lang_.namespace_ident + namespace_name + lang_.namespace_begin).c_str() );
       code += lang_.namespace_ident + namespace_name + lang_.namespace_begin;
       code += "\n\n";
     }
