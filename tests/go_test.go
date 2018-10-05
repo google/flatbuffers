@@ -156,6 +156,10 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("name", "MyMonster", got))
 		}
 
+		if got := monster.Color(); example.ColorBlue != got {
+			fail(FailString("color", example.ColorBlue, got))
+		}
+
 		// initialize a Vec3 from Pos()
 		vec := new(example.Vec3)
 		vec = monster.Pos(vec)

@@ -26,7 +26,7 @@ func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *TestSimpleTableWithEnum) Color() int8 {
+func (rcv *TestSimpleTableWithEnum) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -34,7 +34,7 @@ func (rcv *TestSimpleTableWithEnum) Color() int8 {
 	return 2
 }
 
-func (rcv *TestSimpleTableWithEnum) MutateColor(n int8) bool {
+func (rcv *TestSimpleTableWithEnum) MutateColor(n Color) bool {
 	return rcv._tab.MutateInt8Slot(4, n)
 }
 
