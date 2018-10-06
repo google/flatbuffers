@@ -226,9 +226,17 @@ CheckedError Parser::SkipByteOrderMark() {
   return NoError();
 }
 
-inline bool IsIdentifierStart(char c) {
+// Check that signed value is bounded: x in [a, b]
+static inline bool char_in_range(signed char x, signed char a, signed char b) {
+  // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
+  FLATBUFFERS_ASSERT(a <= b);
+  return (static_cast<unsigned char>(x - a) <=
+          static_cast<unsigned char>(b - a));
+}
+
+static inline bool IsIdentifierStart(char c) {
   // isalpha depends from the current C-locale.
-  return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_');
+  return char_in_range(c, 'a', 'z') || char_in_range(c, 'A', 'Z') || (c == '_');
 }
 
 // Local short to check is a decimal or hexadecimal digit.
@@ -363,8 +371,8 @@ CheckedError Parser::Next() {
               return Error(
                   "illegal Unicode sequence (unpaired high surrogate)");
             }
-            if ((*cursor_ < ' ') || (*cursor_ > '~'))  // only printable
-              attr_is_trivial_ascii_string_ = false;
+            // reset if non-printable
+            attr_is_trivial_ascii_string_ &= char_in_range(*cursor_, ' ', '~');
 
             attribute_ += *cursor_++;
           }
@@ -474,9 +482,10 @@ CheckedError Parser::Next() {
             return Error("invalid number: " + std::string(start, cursor_));
           }
         }
+
         std::string ch;
         ch = c;
-        if (c < ' ' || c > '~') ch = "code: " + NumToString(c);
+        if (false == char_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
         return Error("illegal character: " + ch);
     }
   }
