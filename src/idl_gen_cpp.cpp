@@ -990,6 +990,10 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
 
+      code_ += "  if (e < " + GetEnumValUse(enum_def, *enum_def.vals.vec.front()) +
+               " || e > " + GetEnumValUse(enum_def, *enum_def.vals.vec.back()) +
+               ") return \"\";";
+
       code_ += "  const size_t index = static_cast<int>(e)\\";
       if (enum_def.vals.vec.front()->value) {
         auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
