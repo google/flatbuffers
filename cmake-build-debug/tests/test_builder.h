@@ -54,9 +54,6 @@ void builder_move_assign_after_releaseraw_test(flatbuffers::grpc::MessageBuilder
 
 template <class DestBuilder, class SrcBuilder = DestBuilder>
 struct BuilderTests {
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   static void empty_builder_movector_test() {
     SrcBuilder src;
     size_t src_size = src.GetSize();
@@ -120,9 +117,9 @@ struct BuilderTests {
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
-  static void builder_swap_before_finish_test() {
+  static void builder_swap_before_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(std::is_same<DestBuilder, SrcBuilder>::value) {
+    if(run) {
       SrcBuilder src;
       auto root_offset1 = populate1(src);
       auto size1 = src.GetSize();
@@ -139,9 +136,9 @@ struct BuilderTests {
     }
   }
 
-  static void builder_swap_after_finish_test() {
+  static void builder_swap_after_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(std::is_same<DestBuilder, SrcBuilder>::value) {
+    if(run) {
       SrcBuilder src;
       auto root_offset1 = populate1(src);
       src.Finish(root_offset1);
@@ -176,27 +173,18 @@ struct BuilderTests {
     TEST_ASSERT_FUNC(release_n_verify(dst, m2_name, m2_color));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
-  // clang-format off
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   static void all_tests() {
-    // clang-format off
-    #if !defined(FLATBUFFERS_CPP98_STL)
-    // clang-format on
     empty_builder_movector_test();
     nonempty_builder_movector_test();
     builder_movector_before_finish_test();
     builder_movector_after_finish_test();
     builder_move_assign_before_finish_test();
     builder_move_assign_after_finish_test();
-    builder_move_assign_after_release_test();
-    builder_move_assign_after_releaseraw_test(DestBuilder());
-    // clang-format off
-    #endif   // !defined(FLATBUFFERS_CPP98_STL)
-    // clang-format on
     builder_swap_before_finish_test();
     builder_swap_after_finish_test();
+    builder_move_assign_after_release_test();
+    builder_move_assign_after_releaseraw_test(DestBuilder());
   }
 };
 
@@ -244,9 +232,6 @@ struct BuilderReuseTests {
     }
   }
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   static void builder_reusable_after_release_and_move_assign_test(TestSelector selector) {
     if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) {
       return;
@@ -283,21 +268,12 @@ struct BuilderReuseTests {
       TEST_EQ_FUNC(src.GetSize(), 0);
     }
   }
-  // clang-format off
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   static void run_tests(TestSelector selector) {
     builder_reusable_after_release_test(selector);
     builder_reusable_after_releaseraw_test(selector);
-    // clang-format off
-    #if !defined(FLATBUFFERS_CPP98_STL)
-    // clang-format on
     builder_reusable_after_release_and_move_assign_test(selector);
     builder_reusable_after_releaseraw_and_move_assign_test(selector);
-    // clang-format off
-    #endif  // !defined(FLATBUFFERS_CPP98_STL)
-    // clang-format on
   }
 };
 

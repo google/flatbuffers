@@ -164,7 +164,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
   explicit MessageBuilder(uoffset_t initial_size = 1024)
-      : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
+    : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
@@ -173,6 +173,29 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     : FlatBufferBuilder(1024, &slice_allocator_, false) {
     // Default construct and swap idiom.
     Swap(other);
+  }
+
+  /// Create a MessageBuilder from a FlatBufferBuilder.
+  MessageBuilder(FlatBufferBuilder &&src)
+    : FlatBufferBuilder(1024, &slice_allocator_, false) {
+    src.Swap(*this);
+    src.SwapBufAllocator(*this);
+    if (buf_.capacity()) {
+      uint8_t *buf = buf_.scratch_data();       // pointer to memory
+      size_t capacity = buf_.capacity();        // size of memory
+      slice_allocator_.slice_ = grpc_slice_new(buf, capacity, &DefaultAllocator::dealloc);
+    }
+    else {
+      slice_allocator_.slice_ = grpc_empty_slice();
+    }
+  }
+
+  /// Move-assign a FlatBufferBuilder to a MessageBuilder.
+  MessageBuilder &operator=(FlatBufferBuilder &&src) {
+    // Move construct a temporary and swap
+    MessageBuilder temp(std::move(src));
+    Swap(temp);
+    return *this;
   }
 
   MessageBuilder &operator=(MessageBuilder &&other) {
