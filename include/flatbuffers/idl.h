@@ -34,6 +34,12 @@
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
 
+// Limits maximum depth of nested objects.
+// Prevents stack overflow while parse flatbuffers or json.
+#if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
+#  define FLATBUFFERS_MAX_PARSING_DEPTH 64
+#endif
+
 namespace flatbuffers {
 
 // The order of these matters for Is*() functions below.
@@ -477,10 +483,28 @@ struct IDLOptions {
 
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
-  ParserState() : cursor_(nullptr), line_(1), token_(-1) {}
+  ParserState()
+      : cursor_(nullptr), line_start_(nullptr), line_(0), token_(-1) {}
 
  protected:
+  void ResetState(const char *source) {
+    cursor_ = source;
+    line_ = 0;
+    MarkNewLine();
+  }
+
+  void MarkNewLine() {
+    line_start_ = cursor_;
+    line_ += 1;
+  }
+
+  int64_t CursorPosition() const {
+    FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
+    return static_cast<int64_t>(cursor_ - line_start_);
+  }
+
   const char *cursor_;
+  const char *line_start_;
   int line_;  // the current line being parsed
   int token_;
 
@@ -727,10 +751,11 @@ class Parser : public ParserState {
   bool SupportsVectorOfUnions() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
-  enum { kMaxParsingDepth = 64 };
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f) {
-    if (++recurse_protection_counter >= kMaxParsingDepth) return RecurseError();
+    if (recurse_protection_counter >= (FLATBUFFERS_MAX_PARSING_DEPTH))
+      return RecurseError();
+    recurse_protection_counter++;
     auto ce = f();
     recurse_protection_counter--;
     return ce;

@@ -555,7 +555,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
     pub const VT_COLOR: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn color(&'a self) -> Color {
+  pub fn color(&self) -> Color {
     self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
   }
 }
@@ -635,15 +635,15 @@ impl<'a> Stat<'a> {
     pub const VT_COUNT: flatbuffers::VOffsetT = 8;
 
   #[inline]
-  pub fn id(&'a self) -> Option<&'a str> {
+  pub fn id(&self) -> Option<&'a str> {
     self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)
   }
   #[inline]
-  pub fn val(&'a self) -> i64 {
+  pub fn val(&self) -> i64 {
     self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()
   }
   #[inline]
-  pub fn count(&'a self) -> u16 {
+  pub fn count(&self) -> u16 {
     self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
   }
 }
@@ -731,7 +731,7 @@ impl<'a> Referrable<'a> {
     pub const VT_ID: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn id(&'a self) -> u64 {
+  pub fn id(&self) -> u64 {
     self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()
   }
   #[inline]
@@ -900,20 +900,20 @@ impl<'a> Monster<'a> {
     pub const VT_VECTOR_OF_NON_OWNING_REFERENCES: flatbuffers::VOffsetT = 88;
 
   #[inline]
-  pub fn pos(&'a self) -> Option<&'a Vec3> {
+  pub fn pos(&self) -> Option<&'a Vec3> {
     self._tab.get::<Vec3>(Monster::VT_POS, None)
   }
   #[inline]
-  pub fn mana(&'a self) -> i16 {
+  pub fn mana(&self) -> i16 {
     self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()
   }
   #[inline]
-  pub fn hp(&'a self) -> i16 {
+  pub fn hp(&self) -> i16 {
     self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()
   }
   #[inline]
-  pub fn name(&'a self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)
+  pub fn name(&self) -> &'a str {
+    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None).unwrap()
   }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Monster) ->  bool {
@@ -921,46 +921,46 @@ impl<'a> Monster<'a> {
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: Option<&str>) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: & str) ->  ::std::cmp::Ordering {
     let key = self.name();
     key.cmp(&val)
   }
   #[inline]
-  pub fn inventory(&'a self) -> Option<&'a [u8]> {
+  pub fn inventory(&self) -> Option<&'a [u8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice())
   }
   #[inline]
-  pub fn color(&'a self) -> Color {
+  pub fn color(&self) -> Color {
     self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
   }
   #[inline]
-  pub fn test_type(&'a self) -> Any {
+  pub fn test_type(&self) -> Any {
     self._tab.get::<Any>(Monster::VT_TEST_TYPE, Some(Any::NONE)).unwrap()
   }
   #[inline]
-  pub fn test(&'a self) -> Option<flatbuffers::Table<'a>> {
+  pub fn test(&self) -> Option<flatbuffers::Table<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_TEST, None)
   }
   #[inline]
-  pub fn test4(&'a self) -> Option<&'a [Test]> {
+  pub fn test4(&self) -> Option<&'a [Test]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice() )
   }
   #[inline]
-  pub fn testarrayofstring(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
+  pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING, None)
   }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
   #[inline]
-  pub fn testarrayoftables(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>> {
+  pub fn testarrayoftables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>>>(Monster::VT_TESTARRAYOFTABLES, None)
   }
   #[inline]
-  pub fn enemy(&'a self) -> Option<Monster<'a>> {
+  pub fn enemy(&self) -> Option<Monster<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<Monster<'a>>>(Monster::VT_ENEMY, None)
   }
   #[inline]
-  pub fn testnestedflatbuffer(&'a self) -> Option<&'a [u8]> {
+  pub fn testnestedflatbuffer(&self) -> Option<&'a [u8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
   }
   pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) ->  Option<Monster<'a>> {
@@ -973,119 +973,119 @@ impl<'a> Monster<'a> {
      }
   }
   #[inline]
-  pub fn testempty(&'a self) -> Option<Stat<'a>> {
+  pub fn testempty(&self) -> Option<Stat<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<Stat<'a>>>(Monster::VT_TESTEMPTY, None)
   }
   #[inline]
-  pub fn testbool(&'a self) -> bool {
+  pub fn testbool(&self) -> bool {
     self._tab.get::<bool>(Monster::VT_TESTBOOL, Some(false)).unwrap()
   }
   #[inline]
-  pub fn testhashs32_fnv1(&'a self) -> i32 {
+  pub fn testhashs32_fnv1(&self) -> i32 {
     self._tab.get::<i32>(Monster::VT_TESTHASHS32_FNV1, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashu32_fnv1(&'a self) -> u32 {
+  pub fn testhashu32_fnv1(&self) -> u32 {
     self._tab.get::<u32>(Monster::VT_TESTHASHU32_FNV1, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashs64_fnv1(&'a self) -> i64 {
+  pub fn testhashs64_fnv1(&self) -> i64 {
     self._tab.get::<i64>(Monster::VT_TESTHASHS64_FNV1, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashu64_fnv1(&'a self) -> u64 {
+  pub fn testhashu64_fnv1(&self) -> u64 {
     self._tab.get::<u64>(Monster::VT_TESTHASHU64_FNV1, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashs32_fnv1a(&'a self) -> i32 {
+  pub fn testhashs32_fnv1a(&self) -> i32 {
     self._tab.get::<i32>(Monster::VT_TESTHASHS32_FNV1A, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashu32_fnv1a(&'a self) -> u32 {
+  pub fn testhashu32_fnv1a(&self) -> u32 {
     self._tab.get::<u32>(Monster::VT_TESTHASHU32_FNV1A, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashs64_fnv1a(&'a self) -> i64 {
+  pub fn testhashs64_fnv1a(&self) -> i64 {
     self._tab.get::<i64>(Monster::VT_TESTHASHS64_FNV1A, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testhashu64_fnv1a(&'a self) -> u64 {
+  pub fn testhashu64_fnv1a(&self) -> u64 {
     self._tab.get::<u64>(Monster::VT_TESTHASHU64_FNV1A, Some(0)).unwrap()
   }
   #[inline]
-  pub fn testarrayofbools(&'a self) -> Option<&'a [bool]> {
+  pub fn testarrayofbools(&self) -> Option<&'a [bool]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(Monster::VT_TESTARRAYOFBOOLS, None).map(|v| v.safe_slice())
   }
   #[inline]
-  pub fn testf(&'a self) -> f32 {
+  pub fn testf(&self) -> f32 {
     self._tab.get::<f32>(Monster::VT_TESTF, Some(3.14159)).unwrap()
   }
   #[inline]
-  pub fn testf2(&'a self) -> f32 {
+  pub fn testf2(&self) -> f32 {
     self._tab.get::<f32>(Monster::VT_TESTF2, Some(3.0)).unwrap()
   }
   #[inline]
-  pub fn testf3(&'a self) -> f32 {
+  pub fn testf3(&self) -> f32 {
     self._tab.get::<f32>(Monster::VT_TESTF3, Some(0.0)).unwrap()
   }
   #[inline]
-  pub fn testarrayofstring2(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
+  pub fn testarrayofstring2(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING2, None)
   }
   #[inline]
-  pub fn testarrayofsortedstruct(&'a self) -> Option<&'a [Ability]> {
+  pub fn testarrayofsortedstruct(&self) -> Option<&'a [Ability]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None).map(|v| v.safe_slice() )
   }
   #[inline]
-  pub fn flex(&'a self) -> Option<&'a [u8]> {
+  pub fn flex(&self) -> Option<&'a [u8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_FLEX, None).map(|v| v.safe_slice())
   }
   #[inline]
-  pub fn test5(&'a self) -> Option<&'a [Test]> {
+  pub fn test5(&self) -> Option<&'a [Test]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_TEST5, None).map(|v| v.safe_slice() )
   }
   #[inline]
-  pub fn vector_of_longs(&'a self) -> Option<flatbuffers::Vector<'a, i64>> {
+  pub fn vector_of_longs(&self) -> Option<flatbuffers::Vector<'a, i64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i64>>>(Monster::VT_VECTOR_OF_LONGS, None)
   }
   #[inline]
-  pub fn vector_of_doubles(&'a self) -> Option<flatbuffers::Vector<'a, f64>> {
+  pub fn vector_of_doubles(&self) -> Option<flatbuffers::Vector<'a, f64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(Monster::VT_VECTOR_OF_DOUBLES, None)
   }
   #[inline]
-  pub fn parent_namespace_test(&'a self) -> Option<super::InParentNamespace<'a>> {
+  pub fn parent_namespace_test(&self) -> Option<super::InParentNamespace<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<super::InParentNamespace<'a>>>(Monster::VT_PARENT_NAMESPACE_TEST, None)
   }
   #[inline]
-  pub fn vector_of_referrables(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+  pub fn vector_of_referrables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)
   }
   #[inline]
-  pub fn single_weak_reference(&'a self) -> u64 {
+  pub fn single_weak_reference(&self) -> u64 {
     self._tab.get::<u64>(Monster::VT_SINGLE_WEAK_REFERENCE, Some(0)).unwrap()
   }
   #[inline]
-  pub fn vector_of_weak_references(&'a self) -> Option<flatbuffers::Vector<'a, u64>> {
+  pub fn vector_of_weak_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_WEAK_REFERENCES, None)
   }
   #[inline]
-  pub fn vector_of_strong_referrables(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+  pub fn vector_of_strong_referrables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)
   }
   #[inline]
-  pub fn co_owning_reference(&'a self) -> u64 {
+  pub fn co_owning_reference(&self) -> u64 {
     self._tab.get::<u64>(Monster::VT_CO_OWNING_REFERENCE, Some(0)).unwrap()
   }
   #[inline]
-  pub fn vector_of_co_owning_references(&'a self) -> Option<flatbuffers::Vector<'a, u64>> {
+  pub fn vector_of_co_owning_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_CO_OWNING_REFERENCES, None)
   }
   #[inline]
-  pub fn non_owning_reference(&'a self) -> u64 {
+  pub fn non_owning_reference(&self) -> u64 {
     self._tab.get::<u64>(Monster::VT_NON_OWNING_REFERENCE, Some(0)).unwrap()
   }
   #[inline]
-  pub fn vector_of_non_owning_references(&'a self) -> Option<flatbuffers::Vector<'a, u64>> {
+  pub fn vector_of_non_owning_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, None)
   }
   #[inline]
@@ -1110,7 +1110,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_my_game___example_2___monster(&'a self) -> Option<super::example_2::Monster> {
+  pub fn test_as_my_game_example_2_monster(&'a self) -> Option<super::example_2::Monster> {
     if self.test_type() == Any::MyGame_Example2_Monster {
       self.test().map(|u| super::example_2::Monster::init_from_table(u))
     } else {
@@ -1460,51 +1460,51 @@ impl<'a> TypeAliases<'a> {
     pub const VT_VF64: flatbuffers::VOffsetT = 26;
 
   #[inline]
-  pub fn i8_(&'a self) -> i8 {
+  pub fn i8_(&self) -> i8 {
     self._tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn u8_(&'a self) -> u8 {
+  pub fn u8_(&self) -> u8 {
     self._tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn i16_(&'a self) -> i16 {
+  pub fn i16_(&self) -> i16 {
     self._tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn u16_(&'a self) -> u16 {
+  pub fn u16_(&self) -> u16 {
     self._tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn i32_(&'a self) -> i32 {
+  pub fn i32_(&self) -> i32 {
     self._tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn u32_(&'a self) -> u32 {
+  pub fn u32_(&self) -> u32 {
     self._tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn i64_(&'a self) -> i64 {
+  pub fn i64_(&self) -> i64 {
     self._tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn u64_(&'a self) -> u64 {
+  pub fn u64_(&self) -> u64 {
     self._tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()
   }
   #[inline]
-  pub fn f32_(&'a self) -> f32 {
+  pub fn f32_(&self) -> f32 {
     self._tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()
   }
   #[inline]
-  pub fn f64_(&'a self) -> f64 {
+  pub fn f64_(&self) -> f64 {
     self._tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()
   }
   #[inline]
-  pub fn v8(&'a self) -> Option<&'a [i8]> {
+  pub fn v8(&self) -> Option<&'a [i8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None).map(|v| v.safe_slice())
   }
   #[inline]
-  pub fn vf64(&'a self) -> Option<flatbuffers::Vector<'a, f64>> {
+  pub fn vf64(&self) -> Option<flatbuffers::Vector<'a, f64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(TypeAliases::VT_VF64, None)
   }
 }

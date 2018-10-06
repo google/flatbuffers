@@ -94,11 +94,12 @@ std::string MakeCamel(const std::string &in, bool first) {
 void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
-  #ifdef _WIN32
-    error_ += "(" + NumToString(line_) + ")";  // MSVC alike
-  #else
+  #ifdef _WIN32  // MSVC alike
+    error_ +=
+        "(" + NumToString(line_) + ", " + NumToString(CursorPosition()) + ")";
+  #else  // gcc alike
     if (file_being_parsed_.length()) error_ += ":";
-    error_ += NumToString(line_) + ":0";  // gcc alike
+    error_ += NumToString(line_) + ": " + NumToString(CursorPosition());
   #endif
   // clang-format on
   error_ += ": " + msg;
@@ -114,8 +115,8 @@ CheckedError Parser::Error(const std::string &msg) {
 inline CheckedError NoError() { return CheckedError(false); }
 
 CheckedError Parser::RecurseError() {
-  return Error("maximum parsing recursion of " + NumToString(kMaxParsingDepth) +
-               " reached");
+  return Error("maximum parsing recursion of " +
+               NumToString(FLATBUFFERS_MAX_PARSING_DEPTH) + " reached");
 }
 
 inline std::string OutOfRangeErrorMsg(int64_t val, const std::string &op,
@@ -280,7 +281,7 @@ CheckedError Parser::Next() {
       case '\r':
       case '\t': break;
       case '\n':
-        line_++;
+        MarkNewLine();
         seen_newline = true;
         break;
       case '{':
@@ -420,7 +421,7 @@ CheckedError Parser::Next() {
           cursor_++;
           // TODO: make nested.
           while (*cursor_ != '*' || cursor_[1] != '/') {
-            if (*cursor_ == '\n') line_++;
+            if (*cursor_ == '\n') MarkNewLine();
             if (!*cursor_) return Error("end of file in comment");
             cursor_++;
           }
@@ -2253,14 +2254,17 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  return !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  auto r = !ParseRoot(source, include_paths, source_filename).Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  return r;
 }
 
 CheckedError Parser::StartParseFile(const char *source,
                                     const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";
-  source_ = cursor_ = source;
-  line_ = 1;
+  source_ = source;
+  ResetState(source_);
   error_.clear();
   ECHECK(SkipByteOrderMark());
   NEXT();

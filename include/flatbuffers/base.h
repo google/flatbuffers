@@ -51,6 +51,12 @@
 
 #include "flatbuffers/stl_emulation.h"
 
+// Note the __clang__ check is needed, because clang presents itself
+// as an older GNUC compiler (4.2).
+// Clang 3.3 and later implement all of the ISO C++ 2011 standard.
+// Clang 3.4 and later implement all of the ISO C++ 2014 standard.
+// http://clang.llvm.org/cxx_status.html
+
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
@@ -104,13 +110,14 @@
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 1
-#define FLATBUFFERS_VERSION_MINOR 9
+#define FLATBUFFERS_VERSION_MINOR 10
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407)) || \
+    defined(__clang__)
   #define FLATBUFFERS_FINAL_CLASS final
   #define FLATBUFFERS_OVERRIDE override
 #else
@@ -119,7 +126,8 @@
 #endif
 
 #if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406)) || \
+    (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
 #else
   #define FLATBUFFERS_CONSTEXPR
@@ -132,8 +140,9 @@
   #define FLATBUFFERS_CONSTEXPR_CPP14
 #endif
 
-#if defined(__GXX_EXPERIMENTAL_CXX0X__) && __GNUC__ * 10 + __GNUC_MINOR__ >= 46 || \
-    defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 190023026
+#if (defined(__GXX_EXPERIMENTAL_CXX0X__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 406)) || \
+    (defined(_MSC_FULL_VER) && (_MSC_FULL_VER >= 190023026)) || \
+    defined(__clang__)
   #define FLATBUFFERS_NOEXCEPT noexcept
 #else
   #define FLATBUFFERS_NOEXCEPT
@@ -142,15 +151,11 @@
 // NOTE: the FLATBUFFERS_DELETE_FUNC macro may change the access mode to
 // private, so be sure to put it at the end or reset access mode explicitly.
 #if (!defined(_MSC_VER) || _MSC_FULL_VER >= 180020827) && \
-    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404))
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404)) || \
+    defined(__clang__)
   #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
 #else
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
-#endif
-
-#if defined(_MSC_VER)
-  #pragma warning(push)
-  #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif
 
 #ifndef FLATBUFFERS_HAS_STRING_VIEW
@@ -201,6 +206,11 @@ typedef uintmax_t largest_scalar_t;
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
+#if defined(_MSC_VER)
+  #pragma warning(push)
+  #pragma warning(disable: 4127) // C4127: conditional expression is constant
+#endif
+
 template<typename T> T EndianSwap(T t) {
   #if defined(_MSC_VER)
     #define FLATBUFFERS_BYTESWAP16 _byteswap_ushort
@@ -238,6 +248,10 @@ template<typename T> T EndianSwap(T t) {
     FLATBUFFERS_ASSERT(0);
   }
 }
+
+#if defined(_MSC_VER)
+  #pragma warning(pop)
+#endif
 
 
 template<typename T> T EndianScalar(T t) {

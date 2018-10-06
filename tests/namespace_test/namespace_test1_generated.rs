@@ -34,8 +34,8 @@ pub enum EnumInNestedNS {
 
 }
 
-const ENUM_MIN_ENUM_IN_NESTED_N_S: i8 = 0;
-const ENUM_MAX_ENUM_IN_NESTED_N_S: i8 = 2;
+const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
+const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
@@ -69,22 +69,22 @@ impl flatbuffers::Push for EnumInNestedNS {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ENUM_IN_NESTED_N_S:[EnumInNestedNS; 3] = [
+const ENUM_VALUES_ENUM_IN_NESTED_NS:[EnumInNestedNS; 3] = [
   EnumInNestedNS::A,
   EnumInNestedNS::B,
   EnumInNestedNS::C
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ENUM_IN_NESTED_N_S:[&'static str; 3] = [
+const ENUM_NAMES_ENUM_IN_NESTED_NS:[&'static str; 3] = [
     "A",
     "B",
     "C"
 ];
 
-pub fn enum_name_enum_in_nested_n_s(e: EnumInNestedNS) -> &'static str {
+pub fn enum_name_enum_in_nested_ns(e: EnumInNestedNS) -> &'static str {
   let index: usize = e as usize;
-  ENUM_NAMES_ENUM_IN_NESTED_N_S[index]
+  ENUM_NAMES_ENUM_IN_NESTED_NS[index]
 }
 
 // struct StructInNestedNS, aligned to 4
@@ -184,7 +184,7 @@ impl<'a> TableInNestedNS<'a> {
     pub const VT_FOO: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn foo(&'a self) -> i32 {
+  pub fn foo(&self) -> i32 {
     self._tab.get::<i32>(TableInNestedNS::VT_FOO, Some(0)).unwrap()
   }
 }

@@ -159,8 +159,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
 
     check_eq!(m.hp(), 80)?;
     check_eq!(m.mana(), 150)?;
-    check_eq!(m.name(), Some("MyMonster"))?;
-    check_is_some!(m.name())?;
+    check_eq!(m.name(), "MyMonster")?;
 
     let pos = m.pos().unwrap();
     check_eq!(pos.x(), 1.0f32)?;
@@ -178,7 +177,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     let table2 = m.test().unwrap();
     let monster2 = my_game::example::Monster::init_from_table(table2);
 
-    check_eq!(monster2.name(), Some("Fred"))?;
+    check_eq!(monster2.name(), "Fred")?;
 
     check_is_some!(m.inventory())?;
     let inv = m.inventory().unwrap();
@@ -236,6 +235,54 @@ mod generated_constants {
 }
 
 #[cfg(test)]
+mod lifetime_correctness {
+    extern crate flatbuffers;
+
+    use std::mem;
+
+    use super::my_game;
+    use super::load_file;
+
+    #[test]
+    fn table_get_field_from_static_buffer_1() {
+        let buf = load_file("../monsterdata_test.mon");
+        // create 'static slice
+        let slice: &[u8] = &buf;
+        let slice: &'static [u8] = unsafe { mem::transmute(slice) };
+        // make sure values retrieved from the 'static buffer are themselves 'static
+        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster(slice);
+        // this line should compile:
+        let name: Option<&'static str> = monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None);
+        assert_eq!(name, Some("MyMonster"));
+    }
+
+    #[test]
+    fn table_get_field_from_static_buffer_2() {
+        static DATA: [u8; 4] = [0, 0, 0, 0]; // some binary data
+        let table: flatbuffers::Table<'static> = flatbuffers::Table::new(&DATA, 0);
+        // this line should compile:
+        table.get::<&'static str>(0, None);
+    }
+
+    #[test]
+    fn table_object_self_lifetime_in_closure() {
+        // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
+        let buf = load_file("../monsterdata_test.mon");
+        let monster = my_game::example::get_root_as_monster(&buf);
+        let enemy: Option<my_game::example::Monster> = monster.enemy();
+        // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
+        let enemy_of_my_enemy = enemy.map(|e| {
+            // enemy (the Option) is consumed, and the enum's value is taken as a temporary (e) at the start of the closure
+            let name = e.name();
+            // ... the temporary dies here, so for this to compile name's lifetime must not be tied to the temporary
+            name
+            // If this test fails the error would be "`e` dropped here while still borrowed"
+        });
+        assert_eq!(enemy_of_my_enemy, Some("Fred"));
+    }
+}
+
+#[cfg(test)]
 mod roundtrip_generated_code {
     extern crate flatbuffers;
 
@@ -266,7 +313,7 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foobar");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
-        assert_eq!(m.name(), Some("foobar"));
+        assert_eq!(m.name(), "foobar");
     }
     #[test]
     fn struct_store() {
@@ -325,13 +372,13 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
+        assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
-                   Some("foo"));
-        assert_eq!(mon.test_as_monster().unwrap().name(), Some("foo"));
+                   "foo");
+        assert_eq!(mon.test_as_monster().unwrap().name(), "foo");
         assert_eq!(mon.test_as_test_simple_table_with_enum(), None);
-        assert_eq!(mon.test_as_my_game___example_2___monster(), None);
+        assert_eq!(mon.test_as_my_game_example_2_monster(), None);
     }
     #[test]
     fn union_default() {
@@ -361,8 +408,8 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
-        assert_eq!(mon.enemy().unwrap().name(), Some("foo"));
+        assert_eq!(mon.name(), "bar");
+        assert_eq!(mon.enemy().unwrap().name(), "foo");
     }
     #[test]
     fn table_full_namespace_default() {
@@ -391,7 +438,7 @@ mod roundtrip_generated_code {
         }
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
-        assert_eq!(mon.name(), Some("bar"));
+        assert_eq!(mon.name(), "bar");
         assert_eq!(mon.testempty().unwrap().id(), Some("foo"));
     }
     #[test]
@@ -434,13 +481,13 @@ mod roundtrip_generated_code {
 
         let m2_a = my_game::example::get_root_as_monster(m.testnestedflatbuffer().unwrap());
         assert_eq!(m2_a.hp(), 123);
-        assert_eq!(m2_a.name(), Some("foobar"));
+        assert_eq!(m2_a.name(), "foobar");
 
         assert!(m.testnestedflatbuffer_nested_flatbuffer().is_some());
         let m2_b = m.testnestedflatbuffer_nested_flatbuffer().unwrap();
 
         assert_eq!(m2_b.hp(), 123);
-        assert_eq!(m2_b.name(), Some("foobar"));
+        assert_eq!(m2_b.name(), "foobar");
     }
     #[test]
     fn nested_flatbuffer_default() {
@@ -561,9 +608,9 @@ mod roundtrip_generated_code {
             testarrayoftables: Some(v), ..Default::default()});
         assert_eq!(m.testarrayoftables().unwrap().len(), 2);
         assert_eq!(m.testarrayoftables().unwrap().get(0).hp(), 55);
-        assert_eq!(m.testarrayoftables().unwrap().get(0).name(), Some("foo"));
+        assert_eq!(m.testarrayoftables().unwrap().get(0).name(), "foo");
         assert_eq!(m.testarrayoftables().unwrap().get(1).hp(), 100);
-        assert_eq!(m.testarrayoftables().unwrap().get(1).name(), Some("bar"));
+        assert_eq!(m.testarrayoftables().unwrap().get(1).name(), "bar");
     }
 }
 
@@ -947,7 +994,7 @@ mod framing_format {
         let m = flatbuffers::get_size_prefixed_root::<my_game::example::Monster>(buf);
         assert_eq!(m.mana(), 200);
         assert_eq!(m.hp(), 300);
-        assert_eq!(m.name(), Some("bob"));
+        assert_eq!(m.name(), "bob");
     }
 }
 
@@ -1459,13 +1506,11 @@ mod generated_key_comparisons {
         let a = my_game::example::get_root_as_monster(buf);
 
         // preconditions
-        assert_eq!(a.name(), Some("MyMonster"));
+        assert_eq!(a.name(), "MyMonster");
 
-        assert_eq!(a.key_compare_with_value(None), ::std::cmp::Ordering::Greater);
-
-        assert_eq!(a.key_compare_with_value(Some("AAA")), ::std::cmp::Ordering::Greater);
-        assert_eq!(a.key_compare_with_value(Some("MyMonster")), ::std::cmp::Ordering::Equal);
-        assert_eq!(a.key_compare_with_value(Some("ZZZ")), ::std::cmp::Ordering::Less);
+        assert_eq!(a.key_compare_with_value("AAA"), ::std::cmp::Ordering::Greater);
+        assert_eq!(a.key_compare_with_value("MyMonster"), ::std::cmp::Ordering::Equal);
+        assert_eq!(a.key_compare_with_value("ZZZ"), ::std::cmp::Ordering::Less);
     }
 
     #[test]
@@ -1478,8 +1523,8 @@ mod generated_key_comparisons {
         let b = a.test_as_monster().unwrap();
 
         // preconditions
-        assert_eq!(a.name(), Some("MyMonster"));
-        assert_eq!(b.name(), Some("Fred"));
+        assert_eq!(a.name(), "MyMonster");
+        assert_eq!(b.name(), "Fred");
 
         assert_eq!(a.key_compare_less_than(&a), false);
         assert_eq!(a.key_compare_less_than(&b), false);
