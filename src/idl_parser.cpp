@@ -204,8 +204,9 @@ std::string Parser::TokenToStringId(int t) const {
 
 // Parses exactly nibbles worth of hex digits into a number, or error.
 CheckedError Parser::ParseHexNum(int nibbles, uint64_t *val) {
+  FLATBUFFERS_ASSERT(nibbles > 0);
   for (int i = 0; i < nibbles; i++)
-    if (!isxdigit(static_cast<unsigned char>(cursor_[i])))
+    if (!is_xdigit(cursor_[i]))
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
@@ -226,23 +227,8 @@ CheckedError Parser::SkipByteOrderMark() {
   return NoError();
 }
 
-// Check that signed value is bounded: x in [a, b]
-static inline bool char_in_range(signed char x, signed char a, signed char b) {
-  // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
-  FLATBUFFERS_ASSERT(a <= b);
-  return (static_cast<unsigned char>(x - a) <=
-          static_cast<unsigned char>(b - a));
-}
-
 static inline bool IsIdentifierStart(char c) {
-  // isalpha depends from the current C-locale.
-  return char_in_range(c, 'a', 'z') || char_in_range(c, 'A', 'Z') || (c == '_');
-}
-
-// Local short to check is a decimal or hexadecimal digit.
-static inline bool is_dechex(char c, bool hex = false) {
-  return !!(hex ? isxdigit(static_cast<unsigned char>(c))
-                : isdigit(static_cast<unsigned char>(c)));
+  return is_alpha(c) || (c == '_');
 }
 
 CheckedError Parser::Next() {
@@ -372,7 +358,7 @@ CheckedError Parser::Next() {
                   "illegal Unicode sequence (unpaired high surrogate)");
             }
             // reset if non-printable
-            attr_is_trivial_ascii_string_ &= char_in_range(*cursor_, ' ', '~');
+            attr_is_trivial_ascii_string_ &= check_in_range(*cursor_, ' ', '~');
 
             attribute_ += *cursor_++;
           }
@@ -418,54 +404,56 @@ CheckedError Parser::Next() {
         if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
-          while (IsIdentifierStart(*cursor_) ||
-                 isdigit(static_cast<unsigned char>(*cursor_)))
-            cursor_++;
+          while (IsIdentifierStart(*cursor_) || is_digit(*cursor_)) cursor_++;
           attribute_.append(start, cursor_);
           token_ = has_sign ? kTokenStringConstant : kTokenIdentifier;
           return NoError();
         }
 
         const auto dot = (c == '.');
-        if (dot && !is_dechex(*cursor_)) return NoError();
+        if (dot && !is_digit(*cursor_)) return NoError();
         // Parser accepts hexadecimal-ﬂoating-literal (see C++ 5.13.4).
-        if (dot || has_sign || is_dechex(c)) {
-          auto is_float = dot;
+        if (dot || has_sign || is_digit(c)) {
           const auto start = cursor_ - 1;
-          auto start_digits = is_dechex(c) ? start : cursor_;
-          if ((dot || has_sign) && is_dechex(*cursor_)) {
+          auto start_digits = is_digit(c) ? start : cursor_;
+          if ((dot || has_sign) && is_digit(*cursor_)) {
             start_digits = cursor_;  // see digit in cursor_ position
             c = *cursor_++;
           }
           // hex-float can't starts from dot
-          auto use_hex =
-              !dot && (c == '0' && (*cursor_ == 'x' || *cursor_ == 'X'));
+          const auto use_hex =
+              !dot && (c == '0' && is_alpha_char(*cursor_, 'X'));
           if (use_hex) {
             cursor_++;
             start_digits = cursor_;  // '0x' is prefix only
           }
-          while (is_dechex(*cursor_, use_hex)) cursor_++;
-          if (*cursor_ == '.') {
-            if (dot) {
-              // raise the double-dot error
-              start_digits = cursor_;
+
+          auto is_float = dot;
+          for (auto pass = true; pass;) {
+            pass = false;  // reset
+            if (use_hex) {
+              while (is_xdigit(*cursor_)) cursor_++;
             } else {
-              cursor_++;
+              while (is_digit(*cursor_)) cursor_++;
+            }
+            if (*cursor_ == '.') {
+              pass = (false == is_float);  // read fractional part
               is_float = true;
-              while (is_dechex(*cursor_, use_hex)) cursor_++;
+              if (pass) cursor_++;
+              if (!pass) start_digits = cursor_;
             }
           }
+
           if (cursor_ > start_digits) {
-            // The exponent suffix of hexadecimal float-point number is
-            // mandatory.
+            // The exponent suffix of hexadecimal float number is mandatory.
             if (is_float && use_hex) start_digits = cursor_;
-            if ((*cursor_ == 'e' || *cursor_ == 'E') ||
-                (use_hex && (*cursor_ == 'p' || *cursor_ == 'P'))) {
+            if (is_alpha_char(*cursor_, 'E') ||
+                (use_hex && is_alpha_char(*cursor_, 'P'))) {
               cursor_++;
               is_float = true;
               if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
               start_digits = cursor_;  // the exponent-part has to have digits
-              while (is_dechex(*cursor_)) cursor_++;
+              while (is_digit(*cursor_)) cursor_++;
             }
           }
           // If see the dot after the number, treat it as part of number.
@@ -485,7 +473,7 @@ CheckedError Parser::Next() {
 
         std::string ch;
         ch = c;
-        if (false == char_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
+        if (false == check_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
         return Error("illegal character: " + ch);
     }
   }
@@ -698,7 +686,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     FLATBUFFERS_ASSERT(false == text.empty());
     // 1) A float constants (nan, inf, pi, etc) end with non-digit.
     // 2) A hex-float doesn't require .0 at the end.
-    if (!!isdigit(static_cast<unsigned char>(text.back())) &&
+    if (is_digit(text.back()) &&
         (std::string::npos == field->value.constant.find_first_of(".eExX"))) {
       field->value.constant += ".0";
     }
@@ -1307,7 +1295,7 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
       const auto &s = e.constant;
       const auto k = s.find_first_of("0123456789.");
       if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s.at(k) == '0' && (s.at(k + 1) == 'x' || s.at(k + 1) == 'X')) &&
+          (s.at(k) == '0' && is_alpha_char(s.at(k + 1), 'X')) &&
           (std::string::npos == s.find_first_of("pP", k + 2))) {
         return Error(
             "invalid number, the exponent suffix of hexadecimal "
