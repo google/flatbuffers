@@ -161,7 +161,7 @@ inline const flatbuffers::TypeTable *StructInNestedNSTypeTable() {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8 };
+  static const int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "a",
     "b"

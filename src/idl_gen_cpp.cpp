@@ -863,7 +863,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  };";
     }
     if (!vs.empty()) {
-      code_ += "  static const int32_t values[] = { {{VALUES}} };";
+      code_ += "  static const int64_t values[] = { {{VALUES}} };";
     }
     auto has_names =
         num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;

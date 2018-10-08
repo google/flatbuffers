@@ -88,27 +88,27 @@ inline size_t InlineSize(ElementaryType type, const TypeTable *type_table) {
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION: return 4;
-        case ST_STRUCT: return type_table->values[type_table->num_elems];
+        case ST_STRUCT: return static_cast<size_t>(type_table->values[type_table->num_elems]);
         default: FLATBUFFERS_ASSERT(false); return 1;
       }
     default: FLATBUFFERS_ASSERT(false); return 1;
   }
 }
 
-inline int32_t LookupEnum(int32_t enum_val, const int32_t *values,
+inline int64_t LookupEnum(int64_t enum_val, const int64_t *values,
                           size_t num_values) {
   if (!values) return enum_val;
   for (size_t i = 0; i < num_values; i++) {
-    if (enum_val == values[i]) return static_cast<int32_t>(i);
+    if (enum_val == values[i]) return static_cast<int64_t>(i);
   }
   return -1;  // Unknown enum value.
 }
 
 template<typename T> const char *EnumName(T tval, const TypeTable *type_table) {
   if (!type_table || !type_table->names) return nullptr;
-  auto i = LookupEnum(static_cast<int32_t>(tval), type_table->values,
+  auto i = LookupEnum(static_cast<int64_t>(tval), type_table->values,
                       type_table->num_elems);
-  if (i >= 0 && i < static_cast<int32_t>(type_table->num_elems)) {
+  if (i >= 0 && i < static_cast<int64_t>(type_table->num_elems)) {
     return type_table->names[i];
   }
   return nullptr;

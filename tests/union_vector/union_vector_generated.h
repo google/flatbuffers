@@ -718,7 +718,7 @@ inline const flatbuffers::TypeTable *RapunzelTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "hair_length"
   };
@@ -732,7 +732,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "books_read"
   };
