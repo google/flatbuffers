@@ -8,6 +8,7 @@ import java.util.*;
 import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
+@javax.annotation.Generated(value="flatc")
 /**
  * an example documentation comment: monster object
  */

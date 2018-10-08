@@ -8,6 +8,7 @@ import java.util.*;
 import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
+@javax.annotation.Generated(value="flatc")
 public final class TypeAliases extends Table {
   public static TypeAliases getRootAsTypeAliases(ByteBuffer _bb) { return getRootAsTypeAliases(_bb, new TypeAliases()); }
   public static TypeAliases getRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
