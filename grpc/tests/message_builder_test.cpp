@@ -190,46 +190,112 @@ void slice_allocator_tests() {
   }
 }
 
-void builder_move_ctor_conversion_before_finish_test() {
-  for (int i = 0;i < 5; ++i) {
-    flatbuffers::FlatBufferBuilder fbb;
-    auto offset = populate1(fbb);
+/// This function does not populate exactly the first half of the table. But it could.
+void populate_first_half(MyGame::Example::MonsterBuilder &wrapper, flatbuffers::Offset<flatbuffers::String> name_offset) {
+  wrapper.add_name(name_offset);
+  wrapper.add_color(m1_color);
+}
+
+/// This function does not populate exactly the second half of the table. But it could.
+void populate_second_half(MyGame::Example::MonsterBuilder &wrapper) {
+  wrapper.add_hp(77);
+  wrapper.add_mana(88);
+  Vec3 vec3;
+  wrapper.add_pos(&vec3);
+}
+
+/// This function is a hack to update the FlatBufferBuilder reference (fbb_) in the MonsterBuilder object.
+/// This function will break if fbb_ is not the first member in MonsterBuilder. In that case, some offset must be added.
+/// This function is used exclusively for testing correctness of move operations between FlatBufferBuilders.
+/// If MonsterBuilder had a fbb_ pointer, this hack would be unnecessary. That involves a code-generator change though.
+void test_only_hack_update_fbb_reference(MyGame::Example::MonsterBuilder &monsterBuilder,
+                                         flatbuffers::grpc::MessageBuilder &mb) {
+  *reinterpret_cast<flatbuffers::FlatBufferBuilder **>(&monsterBuilder) = &mb;
+}
+
+/// This test validates correctness of move conversion of FlatBufferBuilder to a MessageBuilder DURING
+/// a table construction. Half of the table is constructed using FlatBufferBuilder and the other half
+/// of the table is constructed using a MessageBuilder.
+void builder_move_ctor_conversion_before_finish_half_n_half_table_test() {
+  for (size_t initial_size = 4 ; initial_size <= 2048; initial_size *= 2) {
+    flatbuffers::FlatBufferBuilder fbb(initial_size);
+    auto name_offset = fbb.CreateString(m1_name);
+    MyGame::Example::MonsterBuilder monsterBuilder(fbb);     // starts a table in FlatBufferBuilder
+    populate_first_half(monsterBuilder, name_offset);
     flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
-    mb.Finish(offset);
+    test_only_hack_update_fbb_reference(monsterBuilder, mb); // hack
+    populate_second_half(monsterBuilder);
+    mb.Finish(monsterBuilder.Finish());                      // ends the table in MessageBuilder
     TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
 
+/// This test populates a COMPLETE inner table before move conversion and later populates more members in the outer table.
+void builder_move_ctor_conversion_before_finish_test() {
+  for (size_t initial_size = 4 ; initial_size <= 2048; initial_size *= 2) {
+    flatbuffers::FlatBufferBuilder fbb(initial_size);
+    auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
+    flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
+    auto monster_offset = CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name), 0, m1_color, Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
+    mb.Finish(monster_offset);
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_EQ_FUNC(fbb.GetSize(), 0);
+  }
+}
+
+/// This test validates correctness of move conversion of FlatBufferBuilder to a MessageBuilder DURING
+/// a table construction. Half of the table is constructed using FlatBufferBuilder and the other half
+/// of the table is constructed using a MessageBuilder.
+void builder_move_assign_conversion_before_finish_half_n_half_table_test() {
+  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::grpc::MessageBuilder mb;
+
+  for (int i = 0;i < 5; ++i) {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto name_offset = fbb.CreateString(m1_name);
+    MyGame::Example::MonsterBuilder monsterBuilder(fbb);     // starts a table in FlatBufferBuilder
+    populate_first_half(monsterBuilder, name_offset);
+    mb = std::move(fbb);
+    test_only_hack_update_fbb_reference(monsterBuilder, mb); // hack
+    populate_second_half(monsterBuilder);
+    mb.Finish(monsterBuilder.Finish());                      // ends the table in MessageBuilder
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_EQ_FUNC(fbb.GetSize(), 0);
+  }
+}
+
+/// This test populates a COMPLETE inner table before move conversion and later populates more members in the outer table.
 void builder_move_assign_conversion_before_finish_test() {
   flatbuffers::FlatBufferBuilder fbb;
   flatbuffers::grpc::MessageBuilder mb;
 
   for (int i = 0;i < 5; ++i) {
-    auto offset = populate1(fbb);
+    auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
     mb = std::move(fbb);
-    mb.Finish(offset);
+    auto monster_offset = CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name), 0, m1_color, Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
+    mb.Finish(monster_offset);
     TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
 
+/// This test populates data, finishes the buffer, and does move conversion after.
 void builder_move_ctor_conversion_after_finish_test() {
   flatbuffers::FlatBufferBuilder fbb;
-  auto offset = populate1(fbb);
-  fbb.Finish(offset);
+  fbb.Finish(populate1(fbb));
   flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
   TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
   TEST_EQ_FUNC(fbb.GetSize(), 0);
 }
 
+/// This test populates data, finishes the buffer, and does move conversion after.
 void builder_move_assign_conversion_after_finish_test() {
   flatbuffers::FlatBufferBuilder fbb;
   flatbuffers::grpc::MessageBuilder mb;
 
   for (int i = 0;i < 5; ++i) {
-    auto offset = populate1(fbb);
-    fbb.Finish(offset);
+    fbb.Finish(populate1(fbb));
     mb = std::move(fbb);
     TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
@@ -242,9 +308,14 @@ void message_builder_tests() {
 
   slice_allocator_tests();
 
+#ifndef __APPLE__
+  builder_move_ctor_conversion_before_finish_half_n_half_table_test();
+  builder_move_assign_conversion_before_finish_half_n_half_table_test();
+#endif // __APPLE__
   builder_move_ctor_conversion_before_finish_test();
-  builder_move_ctor_conversion_after_finish_test();
   builder_move_assign_conversion_before_finish_test();
+
+  builder_move_ctor_conversion_after_finish_test();
   builder_move_assign_conversion_after_finish_test();
 
   BuilderTests<MessageBuilder, MessageBuilder>::all_tests();

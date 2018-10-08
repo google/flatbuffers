@@ -120,9 +120,9 @@ struct BuilderTests {
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
-  static void builder_swap_before_finish_test() {
+  static void builder_swap_before_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(std::is_same<DestBuilder, SrcBuilder>::value) {
+    if(run) {
       SrcBuilder src;
       auto root_offset1 = populate1(src);
       auto size1 = src.GetSize();
@@ -139,9 +139,9 @@ struct BuilderTests {
     }
   }
 
-  static void builder_swap_after_finish_test() {
+  static void builder_swap_after_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(std::is_same<DestBuilder, SrcBuilder>::value) {
+    if(run) {
       SrcBuilder src;
       auto root_offset1 = populate1(src);
       src.Finish(root_offset1);

@@ -176,7 +176,8 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   }
 
   /// Create a MessageBuilder from a FlatBufferBuilder.
-  MessageBuilder(FlatBufferBuilder &&src)
+  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is supported.
+  explicit MessageBuilder(FlatBufferBuilder &&src)
     : FlatBufferBuilder(1024, &slice_allocator_, false) {
     src.Swap(*this);
     src.SwapBufAllocator(*this);
@@ -191,6 +192,7 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   }
 
   /// Move-assign a FlatBufferBuilder to a MessageBuilder.
+  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is supported.
   MessageBuilder &operator=(FlatBufferBuilder &&src) {
     // Move construct a temporary and swap
     MessageBuilder temp(std::move(src));
