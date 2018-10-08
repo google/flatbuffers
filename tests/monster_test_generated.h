@@ -122,6 +122,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
+  if (e < Color_Red || e > Color_Blue) return "";
   const size_t index = static_cast<int>(e) - static_cast<int>(Color_Red);
   return EnumNamesColor()[index];
 }
@@ -157,6 +158,7 @@ inline const char * const *EnumNamesAny() {
 }
 
 inline const char *EnumNameAny(Any e) {
+  if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesAny()[index];
 }

@@ -45,6 +45,7 @@ inline const char * const *EnumNamesEnumInNestedNS() {
 }
 
 inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
+  if (e < EnumInNestedNS_A || e > EnumInNestedNS_C) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesEnumInNestedNS()[index];
 }

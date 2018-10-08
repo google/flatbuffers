@@ -1285,6 +1285,14 @@ void EnumStringsTest() {
           true);
 }
 
+void EnumNamesTest() {
+  TEST_EQ_STR("Red", EnumNameColor(Color_Red));
+  TEST_EQ_STR("Green", EnumNameColor(Color_Green));
+  TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(-1)));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(1000)));
+}
+
 void IntegerOutOfRangeTest() {
   TestError("table T { F:byte; } root_type T; { F:128 }",
             "constant does not fit");
@@ -2058,6 +2066,7 @@ int FlatBufferTests() {
   ErrorTest();
   ValueTest();
   EnumStringsTest();
+  EnumNamesTest();
   IntegerOutOfRangeTest();
   IntegerBoundaryTest();
   UnicodeTest();
