@@ -675,7 +675,7 @@ static std::string GenGetter(const Type &type) {
     case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
     case BASE_TYPE_UNION: return "rcv._tab.Union";
     case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
-    default: return "rcv._tab.Get" + MakeCamel(GenTypeGet(type));
+    default: return "rcv._tab.Get" + MakeCamel(GenTypeBasic(type));
   }
 }
 
@@ -711,6 +711,9 @@ static std::string GenTypePointer(const Type &type) {
 }
 
 static std::string GenTypeGet(const Type &type) {
+  if (type.enum_def != nullptr && !type.enum_def->is_union) {
+    return GetEnumTypeName(*type.enum_def);
+  }
   return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
 }
 

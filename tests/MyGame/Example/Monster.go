@@ -97,7 +97,7 @@ func (rcv *Monster) InventoryBytes() []byte {
 	return nil
 }
 
-func (rcv *Monster) Color() int8 {
+func (rcv *Monster) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -105,7 +105,7 @@ func (rcv *Monster) Color() int8 {
 	return 8
 }
 
-func (rcv *Monster) MutateColor(n int8) bool {
+func (rcv *Monster) MutateColor(n Color) bool {
 	return rcv._tab.MutateInt8Slot(16, n)
 }
 
