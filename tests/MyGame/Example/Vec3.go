@@ -47,10 +47,10 @@ func (rcv *Vec3) MutateTest1(n float64) bool {
 	return rcv._tab.MutateFloat64(rcv._tab.Pos+flatbuffers.UOffsetT(16), n)
 }
 
-func (rcv *Vec3) Test2() int8 {
+func (rcv *Vec3) Test2() Color {
 	return rcv._tab.GetInt8(rcv._tab.Pos + flatbuffers.UOffsetT(24))
 }
-func (rcv *Vec3) MutateTest2(n int8) bool {
+func (rcv *Vec3) MutateTest2(n Color) bool {
 	return rcv._tab.MutateInt8(rcv._tab.Pos+flatbuffers.UOffsetT(24), n)
 }
 
