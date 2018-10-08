@@ -1601,6 +1601,20 @@ void NumericUtilsTest() {
   NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
 }
 
+void IsAsciiUtilsTest() {
+  char c = -128;
+  for (int cnt = 0; cnt < 256; cnt++) {
+    auto alpha = (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'));
+    auto dec = (('0' <= c) && (c <= '9'));
+    auto hex = (('a' <= c) && (c <= 'f')) || (('A' <= c) && (c <= 'F'));
+    TEST_EQ(flatbuffers::is_alpha(c), alpha);
+    TEST_EQ(flatbuffers::is_alnum(c), alpha || dec);
+    TEST_EQ(flatbuffers::is_digit(c), dec);
+    TEST_EQ(flatbuffers::is_xdigit(c), dec || hex);
+    c += 1;
+  }
+}
+
 void UnicodeTest() {
   flatbuffers::Parser parser;
   // Without setting allow_non_utf8 = true, we treat \x sequences as byte
@@ -2353,9 +2367,9 @@ int FlatBufferTests() {
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();
+  IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
-
   return 0;
 }
 

@@ -421,8 +421,7 @@ CheckedError Parser::Next() {
             c = *cursor_++;
           }
           // hex-float can't starts from dot
-          const auto use_hex =
-              !dot && (c == '0' && is_alpha_char(*cursor_, 'X'));
+          auto use_hex = !dot && (c == '0') && is_alpha_char(*cursor_, 'X');
           if (use_hex) {
             cursor_++;
             start_digits = cursor_;  // '0x' is prefix only

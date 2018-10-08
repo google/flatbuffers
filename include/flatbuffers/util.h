@@ -52,7 +52,8 @@ namespace flatbuffers {
 
 // @locale-independent functions for ASCII characters set.
 
-// Check that integer scalar is in closed range: (a <= x <= b).
+// Check that integer scalar is in closed range: (a <= x <= b)
+// using one compare (conditional branch) operator.
 template<typename T> static inline bool check_in_range(T x, T a, T b) {
   // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
   static_assert(std::is_integral<T>::value, "Integral required.");
@@ -61,20 +62,18 @@ template<typename T> static inline bool check_in_range(T x, T a, T b) {
   return (static_cast<U>(x - a) <= static_cast<U>(b - a));
 }
 
-// Check (case-insensitive) that `c` is alphabetic in closed range [a, b].
-static inline bool is_alpha_range(char c, char a, char b) {
-  FLATBUFFERS_ASSERT((('a' <= a) && (a <= 'z')) || (('A' <= a) && (a <= 'Z')));
-  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
-  return check_in_range(c & 0xDF, a & 0xDF, b & 0xDF);
-}
-
-// Check (case-insensitive) that `c` == `x`.
-static inline bool is_alpha_char(char c, char x) {
-  return is_alpha_range(c, x, x);
-}
-
 // Case-insensitive isalpha
-static inline bool is_alpha(char c) { return is_alpha_range(c, 'A', 'Z'); }
+static inline bool is_alpha(char c) {
+  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
+  return check_in_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
+}
+
+// Check (case-insensitive) that `c` is equal to alpha.
+static inline bool is_alpha_char(char c, char alpha) {
+  FLATBUFFERS_ASSERT(is_alpha(alpha));
+  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
+  return ((c & 0xDF) == (alpha & 0xDF));
+}
 
 // https://en.cppreference.com/w/cpp/string/byte/isxdigit
 // isdigit and isxdigit are the only standard narrow character classification
@@ -84,12 +83,13 @@ static inline bool is_alpha(char c) { return is_alpha_range(c, 'A', 'Z'); }
 static inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
 
 static inline bool is_xdigit(char c) {
-  // Is look-up table better?
-  return check_in_range(c, '0', '9') || is_alpha_range(c, 'A', 'F');
+  // Replace by look-up table.
+  return is_digit(c) | check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum
 static inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
+
 // @end-locale-independent functions for ASCII character set
 
 #ifdef FLATBUFFERS_PREFER_PRINTF
