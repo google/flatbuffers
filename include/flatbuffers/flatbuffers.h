@@ -104,10 +104,14 @@ template<typename T, typename IT> struct VectorIterator {
     return *this;
   }
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
   VectorIterator &operator=(VectorIterator &&other) {
     data_ = other.data_;
     return *this;
   }
+  #endif  // !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
   bool operator==(const VectorIterator &other) const {
     return data_ == other.data_;
@@ -469,6 +473,9 @@ class DetachedBuffer {
         cur_(cur),
         size_(sz) {}
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
   DetachedBuffer(DetachedBuffer &&other)
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
@@ -478,7 +485,13 @@ class DetachedBuffer {
         size_(other.size_) {
     other.reset();
   }
+  // clang-format off
+  #endif  // !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
   DetachedBuffer &operator=(DetachedBuffer &&other) {
     destroy();
 
@@ -493,6 +506,9 @@ class DetachedBuffer {
 
     return *this;
   }
+  // clang-format off
+  #endif  // !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
   ~DetachedBuffer() { destroy(); }
 
@@ -522,10 +538,16 @@ class DetachedBuffer {
   #endif
   // clang-format on
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
   // These may change access mode, leave these at end of public section
   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
   FLATBUFFERS_DELETE_FUNC(
       DetachedBuffer &operator=(const DetachedBuffer &other))
+  // clang-format off
+  #endif  // !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
  protected:
   Allocator *allocator_;
@@ -572,7 +594,13 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
   vector_downward(vector_downward &&other)
+  #else
+  vector_downward(vector_downward &other)
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
     : allocator_(other.allocator_),
       own_allocator_(other.own_allocator_),
       initial_size_(other.initial_size_),
@@ -591,12 +619,18 @@ class vector_downward {
     other.scratch_ = nullptr;
   }
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
   vector_downward &operator=(vector_downward &&other) {
     // Move construct a temporary and swap idiom
     vector_downward temp(std::move(other));
     swap(temp);
     return *this;
   }
+  // clang-format off
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
   ~vector_downward() {
     clear_buffer();
@@ -842,8 +876,13 @@ class FlatBufferBuilder {
     EndianCheck();
   }
 
+  // clang-format off
   /// @brief Move constructor for FlatBufferBuilder.
+  #if !defined(FLATBUFFERS_CPP98_STL)
   FlatBufferBuilder(FlatBufferBuilder &&other)
+  #else
+  FlatBufferBuilder(FlatBufferBuilder &other)
+  #endif  // #if !defined(FLATBUFFERS_CPP98_STL)
     : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
       num_field_loc(0),
       max_voffset_(0),
@@ -858,7 +897,11 @@ class FlatBufferBuilder {
     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
     Swap(other);
   }
+  // clang-format on
 
+  // clang-format off
+  #if !defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
   /// @brief Move assignment operator for FlatBufferBuilder.
   FlatBufferBuilder &operator=(FlatBufferBuilder &&other) {
     // Move construct a temporary and swap idiom
@@ -866,6 +909,9 @@ class FlatBufferBuilder {
     Swap(temp);
     return *this;
   }
+  // clang-format off
+  #endif  // defined(FLATBUFFERS_CPP98_STL)
+  // clang-format on
 
   void Swap(FlatBufferBuilder &other) {
     using std::swap;

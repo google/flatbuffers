@@ -802,9 +802,9 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_referrables;
   ReferrableT *single_weak_reference;
   std::vector<ReferrableT *> vector_of_weak_references;
-  std::vector<std::unique_ptr<ReferrableT>> vector_of_strong_referrables;
+  std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_strong_referrables;
   ReferrableT *co_owning_reference;
-  std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references;
+  std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references;
   ReferrableT *non_owning_reference;
   std::vector<ReferrableT *> vector_of_non_owning_references;
   MonsterT()
@@ -2072,10 +2072,10 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), s
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; };
   { auto _e = vector_of_weak_references(); if (_e) { _o->vector_of_weak_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_weak_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_weak_references[_i] = nullptr; } } };
-  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = std::unique_ptr<ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } };
+  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = flatbuffers::unique_ptr<ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } };
   { auto _e = co_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->co_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->co_owning_reference = nullptr; };
-  { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, std::unique_ptr
+  { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, default_ptr_type
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_co_owning_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i)));/* else do nothing */; } } };
   { auto _e = non_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->non_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->non_owning_reference = nullptr; };

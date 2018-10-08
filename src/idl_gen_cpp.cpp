@@ -578,7 +578,8 @@ class CppGenerator : public BaseGenerator {
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
     if (ptr_type != "naked") {
-      return ptr_type + "<" + type + ">";
+      return (ptr_type != "default_ptr_type" ? ptr_type :
+              parser_.opts.cpp_object_api_pointer_type) + "<" + type + ">";
     } else if (is_constructor) {
       return "";
     } else {
