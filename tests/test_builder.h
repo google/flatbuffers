@@ -14,6 +14,16 @@ class MessageBuilder;
 }
 }
 
+template <class T, class U>
+struct is_same {
+  static const bool value = false;
+};
+
+template <class T>
+struct is_same<T, T> {
+  static const bool value = true;
+};
+
 extern const std::string m1_name;
 extern const Color m1_color;
 extern const std::string m2_name;
@@ -33,6 +43,9 @@ bool verify(const uint8_t *buf, size_t offset, const std::string &expected_name,
 bool release_n_verify(flatbuffers::FlatBufferBuilder &fbb, const std::string &expected_name, Color color);
 bool release_n_verify(flatbuffers::grpc::MessageBuilder &mbb, const std::string &expected_name, Color color);
 
+// clang-format off
+#if !defined(FLATBUFFERS_CPP98_STL)
+// clang-format on
 template <class Builder>
 void builder_move_assign_after_releaseraw_test(Builder b1) {
   auto root_offset1 = populate1(b1);
@@ -49,6 +62,9 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
   TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
   TEST_EQ_FUNC(src.GetSize(), 0);
 }
+// clang-format off
+#endif  // !defined(FLATBUFFERS_CPP98_STL)
+// clang-format on
 
 void builder_move_assign_after_releaseraw_test(flatbuffers::grpc::MessageBuilder b1);
 
@@ -120,44 +136,6 @@ struct BuilderTests {
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
-  static void builder_swap_before_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
-    /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(run) {
-      SrcBuilder src;
-      auto root_offset1 = populate1(src);
-      auto size1 = src.GetSize();
-      DestBuilder dst;
-      auto root_offset2 = populate2(dst);
-      auto size2 = dst.GetSize();
-      src.Swap(dst);
-      src.Finish(root_offset2);
-      dst.Finish(root_offset1);
-      TEST_EQ_FUNC(src.GetSize() > size2, true);
-      TEST_EQ_FUNC(dst.GetSize() > size1, true);
-      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
-      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
-    }
-  }
-
-  static void builder_swap_after_finish_test(bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
-    /// Swap is allowed only when lhs and rhs are the same concrete type.
-    if(run) {
-      SrcBuilder src;
-      auto root_offset1 = populate1(src);
-      src.Finish(root_offset1);
-      auto size1 = src.GetSize();
-      DestBuilder dst;
-      auto root_offset2 = populate2(dst);
-      dst.Finish(root_offset2);
-      auto size2 = dst.GetSize();
-      src.Swap(dst);
-      TEST_EQ_FUNC(src.GetSize(), size2);
-      TEST_EQ_FUNC(dst.GetSize(), size1);
-      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
-      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
-    }
-  }
-
   static void builder_move_assign_after_release_test() {
     DestBuilder dst;
     auto root_offset1 = populate1(dst);
@@ -179,6 +157,44 @@ struct BuilderTests {
   // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
+
+  static void builder_swap_before_finish_test(bool run = is_same<DestBuilder, SrcBuilder>::value) {
+    /// Swap is allowed only when lhs and rhs are the same concrete type.
+    if(run) {
+      SrcBuilder src;
+      auto root_offset1 = populate1(src);
+      auto size1 = src.GetSize();
+      DestBuilder dst;
+      auto root_offset2 = populate2(dst);
+      auto size2 = dst.GetSize();
+      src.Swap(dst);
+      src.Finish(root_offset2);
+      dst.Finish(root_offset1);
+      TEST_EQ_FUNC(src.GetSize() > size2, true);
+      TEST_EQ_FUNC(dst.GetSize() > size1, true);
+      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
+      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    }
+  }
+
+  static void builder_swap_after_finish_test(bool run = is_same<DestBuilder, SrcBuilder>::value) {
+    /// Swap is allowed only when lhs and rhs are the same concrete type.
+    if(run) {
+      SrcBuilder src;
+      auto root_offset1 = populate1(src);
+      src.Finish(root_offset1);
+      auto size1 = src.GetSize();
+      DestBuilder dst;
+      auto root_offset2 = populate2(dst);
+      dst.Finish(root_offset2);
+      auto size2 = dst.GetSize();
+      src.Swap(dst);
+      TEST_EQ_FUNC(src.GetSize(), size2);
+      TEST_EQ_FUNC(dst.GetSize(), size1);
+      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
+      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    }
+  }
 
   static void all_tests() {
     // clang-format off
