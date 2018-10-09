@@ -50,11 +50,14 @@
 
 namespace flatbuffers {
 
+// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
+template<typename T> inline const T &Identity(const T &t) { return t; }
+
 // @locale-independent functions for ASCII characters set.
 
 // Check that integer scalar is in closed range: (a <= x <= b)
 // using one compare (conditional branch) operator.
-template<typename T> static inline bool check_in_range(T x, T a, T b) {
+template<typename T> inline bool check_in_range(T x, T a, T b) {
   // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
   static_assert(std::is_integral<T>::value, "Integral required.");
   FLATBUFFERS_ASSERT(a <= b);  // static_assert only if 'a' & 'b' templated
@@ -213,28 +216,27 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-static inline double strtod_impl(const char *str, char **str_end){
+static inline double strtod_impl(const char *str, char **str_end) {
   // Result of strtod (printf, etc) depends from current C-locale.
   return strtod(str, str_end);
 }
 
-static inline float strtof_impl(const char *str, char **str_end)
-{
-// Use "strtof" for float and strtod for double to avoid double=>float rounding
-// problems (see https://en.cppreference.com/w/cpp/numeric/fenv/feround) or
-// problems with std::numeric_limits<float>::is_iec559==false.
-// Example:
-//  for (int mode : { FE_DOWNWARD, FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD }){
-//    const char *s = "-4e38";
-//    std::fesetround(mode);
-//    std::cout << strtof(s, nullptr) << "; " << strtod(s, nullptr) << "; "
-//              << static_cast<float>(strtod(s, nullptr)) << "\n";
-//  }
-// Gives:
-//  -inf; -4e+38; -inf
-//  -inf; -4e+38; -inf
-//  -inf; -4e+38; -3.40282e+38
-//  -inf; -4e+38; -3.40282e+38
+static inline float strtof_impl(const char *str, char **str_end) {
+  // Use "strtof" for float and strtod for double to avoid double=>float
+  // rounding problems (see
+  // https://en.cppreference.com/w/cpp/numeric/fenv/feround) or problems with
+  // std::numeric_limits<float>::is_iec559==false. Example:
+  //  for (int mode : { FE_DOWNWARD, FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD }){
+  //    const char *s = "-4e38";
+  //    std::fesetround(mode);
+  //    std::cout << strtof(s, nullptr) << "; " << strtod(s, nullptr) << "; "
+  //              << static_cast<float>(strtod(s, nullptr)) << "\n";
+  //  }
+  // Gives:
+  //  -inf; -4e+38; -inf
+  //  -inf; -4e+38; -inf
+  //  -inf; -4e+38; -3.40282e+38
+  //  -inf; -4e+38; -3.40282e+38
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_NEW_STRTOD
@@ -275,15 +277,9 @@ inline T StringToInteger64Impl(const char *const str, const char **endptr,
     if (check_errno) errno = 0;  // clear thread-local errno
     // calculate result
     T result;
+
+    if (Identity(std::is_same<T, int64_t>::value)) {
       // clang-format off
-    #if defined(_MSC_VER)
-      #pragma warning(push)
-      #pragma warning(disable: 4127) // C4127: expression is constant
-    #endif
-    if (std::is_same<T, int64_t>::value) {
-    #if defined(_MSC_VER)
-      #pragma warning(pop)
-    #endif
       #ifdef _MSC_VER
       result = _strtoi64(str, const_cast<char**>(endptr), base);
       #else
