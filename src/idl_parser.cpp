@@ -410,60 +410,52 @@ CheckedError Parser::Next() {
           return NoError();
         }
 
-        const auto dot = (c == '.');
-        if (dot && !is_digit(*cursor_)) return NoError();
+        auto dot_lvl = (c == '.') ? 0 : 1;  // dot_lvl==0 <=> exactly one '.' seen
+        if (!dot_lvl && !is_digit(*cursor_)) return NoError(); // enum?
         // Parser accepts hexadecimal-ﬂoating-literal (see C++ 5.13.4).
-        if (dot || has_sign || is_digit(c)) {
+        if (is_digit(c) || has_sign || !dot_lvl) {
           const auto start = cursor_ - 1;
-          auto start_digits = is_digit(c) ? start : cursor_;
-          if ((dot || has_sign) && is_digit(*cursor_)) {
-            start_digits = cursor_;  // see digit in cursor_ position
+          auto start_digits = !is_digit(c) ? cursor_ : cursor_ - 1;
+          if (!is_digit(c) && is_digit(*cursor_)){
+            start_digits = cursor_; // see digit in cursor_ position
             c = *cursor_++;
           }
-          // hex-float can't starts from dot
-          auto use_hex = !dot && (c == '0') && is_alpha_char(*cursor_, 'X');
+          // hex-float can't begind with '.'
+          auto use_hex = dot_lvl && (c == '0') && is_alpha_char(*cursor_, 'X');
           if (use_hex) {
             cursor_++;
             start_digits = cursor_;  // '0x' is prefix only
           }
-
-          auto is_float = dot;
-          for (auto pass = true; pass;) {
-            pass = false;  // reset
+          // Read an integer number or mantisa of float-point number.
+          do {
             if (use_hex) {
               while (is_xdigit(*cursor_)) cursor_++;
             } else {
               while (is_digit(*cursor_)) cursor_++;
             }
-            if (*cursor_ == '.') {
-              pass = (false == is_float);  // read fractional part
-              is_float = true;
-              if (pass) cursor_++;
-              if (!pass) start_digits = cursor_;
-            }
-          }
-
-          if (cursor_ > start_digits) {
+          } while ((*cursor_ == '.') && (++cursor_) && (--dot_lvl >= 0));
+          // Exponent of float-point number.
+          if ((dot_lvl >= 0) && (cursor_ > start_digits)) {
             // The exponent suffix of hexadecimal float number is mandatory.
-            if (is_float && use_hex) start_digits = cursor_;
-            if (is_alpha_char(*cursor_, 'E') ||
-                (use_hex && is_alpha_char(*cursor_, 'P'))) {
+            if (use_hex && !dot_lvl) start_digits = cursor_;
+            if ((use_hex && is_alpha_char(*cursor_, 'P')) ||
+                is_alpha_char(*cursor_, 'E')) {
+              dot_lvl = 0;  // Emulate dot to signal about float-point number.
               cursor_++;
-              is_float = true;
               if (*cursor_ == '+' || *cursor_ == '-') cursor_++;
               start_digits = cursor_;  // the exponent-part has to have digits
+              // Exponent is decimal integer number
               while (is_digit(*cursor_)) cursor_++;
+              if (*cursor_ == '.') {
+                cursor_++;  // If see a dot treat it as part of invalid number.
+                dot_lvl = -1;  // Fall thru to Error().
+              }
             }
           }
-          // If see the dot after the number, treat it as part of number.
-          if (*cursor_ == '.') {
-            cursor_++;               // consume this dot
-            start_digits = cursor_;  // raise the double-dot error
-          }
-          // Finalize
-          if ((cursor_ > start_digits)) {
+          // Finalize.
+          if ((dot_lvl >= 0) && (cursor_ > start_digits)) {
             attribute_.append(start, cursor_);
-            token_ = is_float ? kTokenFloatConstant : kTokenIntegerConstant;
+            token_ = dot_lvl ? kTokenIntegerConstant : kTokenFloatConstant;
             return NoError();
           } else {
             return Error("invalid number: " + std::string(start, cursor_));
