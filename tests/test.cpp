@@ -22,7 +22,6 @@
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
-  #include <random>
   #include "flatbuffers/stl_emulation.h"
   namespace std {
     using flatbuffers::unique_ptr;
@@ -1574,7 +1573,7 @@ void NumericUtilsTestInteger(const char *lower, const char *upper) {
   TEST_EQ(flatbuffers::StringToNumber(upper, &x), false);
   TEST_EQ(x, flatbuffers::numeric_limits<T>::max());
   TEST_EQ(flatbuffers::StringToNumber(lower, &x), false);
-  auto expval = std::is_unsigned<T>::value
+  auto expval = flatbuffers::is_unsigned<T>::value
                     ? flatbuffers::numeric_limits<T>::max()
                     : flatbuffers::numeric_limits<T>::lowest();
   TEST_EQ(x, expval);

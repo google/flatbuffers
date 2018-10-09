@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include <assert.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <fstream>
@@ -51,7 +51,9 @@
 namespace flatbuffers {
 
 // Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
-template<typename T> inline const T &Identity(const T &t) { return t; }
+template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(const T &t) {
+  return !!t;
+}
 
 // @locale-independent functions for ASCII characters set.
 
@@ -59,9 +61,8 @@ template<typename T> inline const T &Identity(const T &t) { return t; }
 // using one compare (conditional branch) operator.
 template<typename T> inline bool check_in_range(T x, T a, T b) {
   // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
-  static_assert(std::is_integral<T>::value, "Integral required.");
   FLATBUFFERS_ASSERT(a <= b);  // static_assert only if 'a' & 'b' templated
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename flatbuffers::make_unsigned<T>::type U;
   return (static_cast<U>(x - a) <= static_cast<U>(b - a));
 }
 
@@ -262,9 +263,9 @@ static inline float strtof_impl(const char *str, char **str_end) {
 template<typename T>
 inline T StringToInteger64Impl(const char *const str, const char **endptr,
                                const int base, const bool check_errno = true) {
-  static_assert(
-      std::is_same<T, int64_t>::value || std::is_same<T, uint64_t>::value,
-      "Type T must be either int64_t or uint64_t");
+  static_assert(flatbuffers::is_same<T, int64_t>::value ||
+                flatbuffers::is_same<T, uint64_t>::value,
+                "Type T must be either int64_t or uint64_t");
   FLATBUFFERS_ASSERT(str && endptr);  // endptr must be not null
   if (base <= 0) {
     auto s = str;
@@ -277,21 +278,20 @@ inline T StringToInteger64Impl(const char *const str, const char **endptr,
     if (check_errno) errno = 0;  // clear thread-local errno
     // calculate result
     T result;
-
-    if (Identity(std::is_same<T, int64_t>::value)) {
+    if (IsConstTrue(flatbuffers::is_same<T, int64_t>::value)) {
       // clang-format off
       #ifdef _MSC_VER
-      result = _strtoi64(str, const_cast<char**>(endptr), base);
+        result = _strtoi64(str, const_cast<char**>(endptr), base);
       #else
-      result = strtoll(str, const_cast<char**>(endptr), base);
+        result = strtoll(str, const_cast<char**>(endptr), base);
       #endif
       // clang-format on
     } else {  // T is uint64_t
       // clang-format off
       #ifdef _MSC_VER
-      result = _strtoui64(str, const_cast<char**>(endptr), base);
+        result = _strtoui64(str, const_cast<char**>(endptr), base);
       #else
-      result = strtoull(str, const_cast<char**>(endptr), base);
+        result = strtoull(str, const_cast<char**>(endptr), base);
       #endif
       // clang-format on
 
@@ -344,7 +344,7 @@ template<typename T> inline bool StringToNumber(const char *s, T *val) {
     if (i < min) {
       // For unsigned types return max to distinguish from
       // "no conversion can be performed" when 0 is returned.
-      *val = static_cast<T>(std::is_signed<T>::value ? min : max);
+      *val = static_cast<T>(flatbuffers::is_unsigned<T>::value ? max : min);
       return false;
     }
   }

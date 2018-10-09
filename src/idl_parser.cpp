@@ -422,10 +422,7 @@ CheckedError Parser::Next() {
           }
           // hex-float can't begind with '.'
           auto use_hex = dot_lvl && (c == '0') && is_alpha_char(*cursor_, 'X');
-          if (use_hex) {
-            cursor_++;
-            start_digits = cursor_;  // '0x' is prefix only
-          }
+          if (use_hex) start_digits = ++cursor_;  // '0x' is the prefix, skip it
           // Read an integer number or mantisa of float-point number.
           do {
             if (use_hex) {
@@ -461,7 +458,6 @@ CheckedError Parser::Next() {
             return Error("invalid number: " + std::string(start, cursor_));
           }
         }
-
         std::string ch;
         ch = c;
         if (false == check_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
@@ -675,10 +671,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (IsFloat(type.base_type)) {
     auto &text = field->value.constant;
     FLATBUFFERS_ASSERT(false == text.empty());
-    // 1) A float constants (nan, inf, pi, etc) end with non-digit.
-    // 2) A hex-float doesn't require .0 at the end.
-    if (is_digit(text.back()) &&
-        (std::string::npos == field->value.constant.find_first_of(".eExX"))) {
+    auto s = text.c_str();
+    while(*s == ' ') s++;
+    if (*s == '-' || *s == '+') s++;
+    // 1) A float constants (nan, inf, pi, etc) is a kind of identifier.
+    // 2) A float number needn't ".0" at the end if it has exponent.
+    if ((false == IsIdentifierStart(*s)) &&
+        (std::string::npos == field->value.constant.find_first_of(".eEpP"))) {
       field->value.constant += ".0";
     }
   }
