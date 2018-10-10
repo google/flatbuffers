@@ -152,6 +152,7 @@ struct Type {
   Type VectorType() const { return Type(element, struct_def, enum_def); }
 
   Offset<reflection::Type> Serialize(FlatBufferBuilder *builder) const;
+  bool Deserialize(const reflection::Type* type, const Parser& parser);
 
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
@@ -234,6 +235,8 @@ struct Definition {
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
   SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool DeserializeAttributes(const Vector<Offset<reflection::KeyValue>> *attrs,
+                             Parser &parser);
 
   std::string name;
   std::string file;
@@ -260,6 +263,7 @@ struct FieldDef : public Definition {
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
+  bool Deserialize(const reflection::Field* field, Parser& parser);
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -290,6 +294,7 @@ struct StructDef : public Definition {
 
   Offset<reflection::Object> Serialize(FlatBufferBuilder *builder,
                                        const Parser &parser) const;
+  bool Deserialize(const reflection::Object* object, Parser& parser);
 
   SymbolTable<FieldDef> fields;
 
@@ -317,8 +322,10 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
+  EnumVal() {}
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool Deserialize(const reflection::EnumVal* val, const Parser& parser);
 
   std::string name;
   std::vector<std::string> doc_comment;
@@ -339,6 +346,7 @@ struct EnumDef : public Definition {
   }
 
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool Deserialize(const reflection::Enum* _enum, Parser& parser);
 
   SymbolTable<EnumVal> vals;
   bool is_union;
@@ -355,12 +363,14 @@ inline bool EqualByName(const Type &a, const Type &b) {
 
 struct RPCCall : public Definition {
   Offset<reflection::RPCCall> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool Deserialize(const reflection::RPCCall *call, Parser& parser);
 
   StructDef *request, *response;
 };
 
 struct ServiceDef : public Definition {
   Offset<reflection::Service> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool Deserialize(const reflection::Service* service, Parser& parser);
 
   SymbolTable<RPCCall> calls;
 };
@@ -643,6 +653,10 @@ class Parser : public ParserState {
   // See reflection/reflection.fbs
   void Serialize();
 
+  // Fills internal structure as if the schema passed had been loaded by parsing
+  // with Parse except that included filenames will not be populated.
+  bool Deserialize(const reflection::Schema* schema);
+
   // Checks that the schema represented by this parser is a safe evolution
   // of the schema provided. Returns non-empty error on any problems.
   std::string ConformTo(const Parser &base);
@@ -742,6 +756,8 @@ class Parser : public ParserState {
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f);
+
+  Type* DeserializeType(const reflection::Type* type);
 
  public:
   SymbolTable<Type> types_;
