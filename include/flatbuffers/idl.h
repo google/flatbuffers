@@ -372,6 +372,7 @@ struct IDLOptions {
   bool use_goog_js_export_format;
   bool use_ES6_js_export_format;
   bool output_default_scalars_in_json;
+  bool output_ubyte_array_fields_in_json;
   int indent_step;
   bool output_enum_identifiers;
   bool prefixed_enums;
@@ -447,6 +448,7 @@ struct IDLOptions {
         use_goog_js_export_format(false),
         use_ES6_js_export_format(false),
         output_default_scalars_in_json(false),
+        output_ubyte_array_fields_in_json(true),
         indent_step(2),
         output_enum_identifiers(true),
         prefixed_enums(true),

@@ -208,7 +208,10 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
     auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
     auto output_anyway = opts.output_default_scalars_in_json &&
                          IsScalar(fd.value.type.base_type) && !fd.deprecated;
-    if (is_present || output_anyway) {
+    auto skip_field = !opts.output_ubyte_array_fields_in_json &&
+                      fd.value.type.base_type == BASE_TYPE_VECTOR &&
+                      fd.value.type.element == BASE_TYPE_UCHAR;
+    if ((is_present || output_anyway) && !skip_field) {
       if (fieldout++) {
         if (!opts.protobuf_ascii_alike) text += ",";
       }
