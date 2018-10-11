@@ -1166,15 +1166,34 @@ void FuzzTest2() {
 }
 
 // Test that parser errors are actually generated.
-void TestError(const char *src, const char *error_substr,
-               bool strict_json = false) {
+void TestError_(const char *src, const char *error_substr, bool strict_json,
+                const char *file, int line, const char *func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
-  TEST_EQ(parser.Parse(src), false);  // Must signal error
-  // Must be the error we're expecting
-  TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
+  if (parser.Parse(src)) {
+    TestFail("true", "false",
+             ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
+             func);
+  } else if (!strstr(parser.error_.c_str(), error_substr)) {
+    TestFail(parser.error_.c_str(), error_substr,
+             ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
+             func);
+  }
 }
+
+void TestError_(const char *src, const char *error_substr, const char *file,
+                int line, const char *func) {
+  TestError_(src, error_substr, false, file, line, func);
+}
+
+#ifdef WIN32
+#  define TestError(src, ...) \
+    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
+#else
+#  define TestError(src, ...) \
+    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#endif
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
