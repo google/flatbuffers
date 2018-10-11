@@ -385,6 +385,31 @@ When parsing JSON, it recognizes the following escape codes in strings:
 It also generates these escape codes back again when generating JSON from a
 binary representation.
 
+When parsing numbers, the parser is more flexible than JSON.
+A format of numeric literals is more close to the C/C++.
+According to the [grammar](@ref flatbuffers_grammar), it accepts the following 
+numerical literals:
+
+-   An integer literal can have any number of leading zero `0` digits.
+    Unlike C/C++, the parser ignores a leading zero, not interpreting it as the 
+    beginning of the octal number.
+    The numbers `[081, -00094]` are equal to `[81, -94]`  decimal integers.
+-   The parser accepts unsigned and signed hexadecimal integer numbers.
+    For example: `[0x123, +0x45, -0x67]` are equal to `[291, 69, -103]` decimals.
+-   The format of float-point numbers is fully compatible with C/C++ format.
+    If a modern C++ compiler is used the parser accepts hexadecimal and special 
+    float-point literals as well:
+    `[-1.0, 2., .3e0, 3.e4, 0x21.34p-5, -inf, nan]`.
+    The exponent suffix of hexadecimal float-point number is mandatory.
+    
+    Extended float-point support was tested with:
+    - x64 Windows: `MSVC2015` and higher.
+    - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
+
+-   For compatibility with a JSON lint tool all numeric literals of scalar 
+    fields can be wrapped to quoted string:
+    `"1", "2.0", "0x48A", "0x0C.0Ep-1", "-inf", "true"`.
+
 ## Guidelines
 
 ### Efficiency

@@ -145,7 +145,7 @@ class CppGenerator : public BaseGenerator {
     std::string guard = file_name_;
     // Remove any non-alpha-numeric characters that may appear in a filename.
     struct IsAlnum {
-      bool operator()(char c) const { return !isalnum(c); }
+      bool operator()(char c) const { return !is_alnum(c); }
     };
     guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
                 guard.end());
