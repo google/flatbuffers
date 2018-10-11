@@ -1433,10 +1433,9 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
 
   auto match = false;
   // clang-format off
-  // ((void)0,force) - use comma operator to suppress warning C4127 (MSVC 2010)
-  #define TRY_ECHECK(force, dtoken, check, req) \
-    if (!match && ((check) || ((void)0,force))) \
-      ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+  #define TRY_ECHECK(force, dtoken, check, req)    \
+    if (!match && ((check) || IsConstTrue(force))) \
+    ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
   // clang-format on
 
   if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {
