@@ -124,7 +124,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --reflect-names    Add minimal type/name reflection.\n"
     "  --root-type T      Select or override the default root_type\n"
     "  --force-defaults   Emit default values in binary output from JSON\n"
-    "  --force-empty      When serializing from object API representation, "
+    "  --force-empty      When serializing from object API representation,\n"
     "                     force strings and vectors to empty rather than null.\n"
     "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
     "schema). FILEs after the -- must be binary flatbuffer format files.\n"
