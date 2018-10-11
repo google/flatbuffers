@@ -143,6 +143,7 @@ cc_test(
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
         ":tests/union_vector/union_vector.fbs",
+        ":tests/unicode_test.json",
     ],
     includes = ["include/"],
 )
