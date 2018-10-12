@@ -1905,7 +1905,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #endif
   // clang-format on
   {
-    assert(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
 
   // Central location where any verification failures register.

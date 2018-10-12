@@ -1,11 +1,18 @@
+#include "test_assert.h"
+
+#ifdef NDEBUG
+#undef NDEBUG // enable assert in release
+#endif
+
+// Reload <assert.h> with canceled NDEBUG.
+#include <assert.h>
+
 #ifdef _MSC_VER
-#  include <assert.h>
 #  include <crtdbg.h>
 #endif
 
-#include "test_assert.h"
-
 int testing_fails = 0;
+static TestFailHook global_fail_hook = nullptr;
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func) {
@@ -14,7 +21,12 @@ void TestFail(const char *expval, const char *val, const char *exp,
   TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s in %s", file, line, exp,
                    func ? func : "");
   testing_fails++;
-  assert(0);  // assert on first failure under debug
+
+  // hook can cancel assert if return true
+  auto terminate = !global_fail_hook ||
+                   !(*global_fail_hook)(expval, val, exp, file, line, func);
+
+  assert(terminate);  // assert on first failure under debug
 }
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
@@ -31,7 +43,7 @@ int msvc_no_dialog_box_on_assert(int rpt_type, char *msg, int *ret_val) {
 }
 #endif
 
-void InitTestEngine() {
+void InitTestEngine(TestFailHook hook) {
   testing_fails = 0;
   // Disable stdout buffering to prevent information lost on assertion or core
   // dump.
@@ -49,4 +61,6 @@ void InitTestEngine() {
     _CrtSetReportHook(msvc_no_dialog_box_on_assert);
   #endif
   // clang-format on
+
+  global_fail_hook = hook;
 }

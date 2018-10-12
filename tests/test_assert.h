@@ -15,10 +15,15 @@
 #endif
 // clang-format on
 
+// Should returns true if need to skip termination due to TestFail.
+typedef bool (*TestFailHook)(const char *expval, const char *val,
+                             const char *exp, const char *file, int line,
+                             const char *func);
+
 extern int testing_fails;
 
 // Prepare test engine (MSVC assertion setup, etc)
-void InitTestEngine();
+void InitTestEngine(TestFailHook hook = nullptr);
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func = 0);

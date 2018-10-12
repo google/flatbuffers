@@ -3,14 +3,72 @@
 // found in the LICENSE file.
 #include <stddef.h>
 #include <stdint.h>
+#include <clocale>
 #include <string>
 
 #include "flatbuffers/idl.h"
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  flatbuffers::Parser parser;
-  // Guarantee 0-termination.
-  std::string s(reinterpret_cast<const char *>(data), size);
-  parser.Parse(s.c_str());
+static constexpr uint8_t flags_strict_json = 0x01;
+static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x02;
+static constexpr uint8_t flags_allow_non_utf8 = 0x04;
+// static constexpr uint8_t flags_flag_3 = 0x08;
+// static constexpr uint8_t flags_flag_4 = 0x10;
+// static constexpr uint8_t flags_flag_5 = 0x20;
+// static constexpr uint8_t flags_flag_6 = 0x40;
+// static constexpr uint8_t flags_flag_7 = 0x80;
+
+// See readme.md and CMakeLists.txt for details.
+#ifdef FUZZ_TEST_LOCALE
+static constexpr const char *test_locale = (FUZZ_TEST_LOCALE);
+#else
+static constexpr const char *test_locale = nullptr;
+#endif
+
+#ifdef FUZZ_TEST_PARSE_REPETITION
+static constexpr int test_rep_number = (FUZZ_TEST_PARSE_REPETITION) > 0
+                                           ? (FUZZ_TEST_PARSE_REPETITION)
+                                           : 1;
+#else
+static constexpr int test_rep_number = 2;
+#endif
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+  // Reserve one byte for Parser flags.
+  if (size < 1) return 0;
+  // REMEMBER: the first character in crash dump is not part of input!
+  // Extract single byte for fuzzing flags value.
+  const uint8_t flags = data[0];
+  data += 1;  // move to next
+  size -= 1;
+
+  const std::string original(reinterpret_cast<const char *>(data), size);
+  auto input = std::string(original.c_str());  // until '\0'
+  if (input.empty()) return 0;
+
+  flatbuffers::IDLOptions opts;
+  opts.strict_json = (flags & flags_strict_json);
+  opts.skip_unexpected_fields_in_json =
+      (flags & flags_skip_unexpected_fields_in_json);
+  opts.allow_non_utf8 = (flags & flags_allow_non_utf8);
+
+  flatbuffers::Parser parser(opts);
+
+  // Guarantee 0-termination in the input.
+  auto parse_input = input.c_str();
+
+  for (auto cnt = 0; cnt < test_rep_number; cnt++) {
+    auto use_locale = !!test_locale && (cnt % 2);
+    // Set new locale.
+    if (use_locale) {
+      FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, test_locale));
+    }
+
+    // Check Parser.
+    parser.Parse(parse_input);
+
+    // Restore locale.
+    if (use_locale) { FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, "C")); }
+  }
+
   return 0;
 }
