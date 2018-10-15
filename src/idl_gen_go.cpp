@@ -52,6 +52,7 @@ static const char * const g_golang_keywords[] = {
 
 static std::string GenGetter(const Type &type);
 static std::string GenMethod(const FieldDef &field);
+static std::string GenConstant(const FieldDef &field);
 static void GenStructBuilder(const StructDef &struct_def,
                              std::string *code_ptr);
 static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
@@ -245,7 +246,7 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
   code += "() " + TypeName(field) + " ";
   code += OffsetPrefix(field) + "\t\treturn " + getter;
   code += "(o + rcv._tab.Pos)\n\t}\n";
-  code += "\treturn " + field.value.constant + "\n";
+  code += "\treturn " + GenConstant(field) + "\n";
   code += "}\n\n";
 }
 
@@ -361,6 +362,8 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
   code += "\t}\n";
   if (vectortype.base_type == BASE_TYPE_STRING) {
     code += "\treturn nil\n";
+  } else if (vectortype.base_type == BASE_TYPE_BOOL) {
+    code += "\treturn false\n";
   } else {
     code += "\treturn 0\n";
   }
@@ -471,7 +474,7 @@ static void BuildFieldOfTable(const StructDef &struct_def,
   } else {
     code += GoIdentity(field.name);
   }
-  code += ", " + field.value.constant;
+  code += ", " + GenConstant(field);
   code += ")\n}\n";
 }
 
@@ -719,6 +722,13 @@ static std::string GenTypeGet(const Type &type) {
 
 static std::string TypeName(const FieldDef &field) {
   return GenTypeGet(field.value.type);
+}
+
+static std::string GenConstant(const FieldDef &field) {
+  switch (field.value.type.base_type) {
+    case BASE_TYPE_BOOL: return field.value.constant == "0" ? "false" : "true";;
+    default: return field.value.constant;
+  }
 }
 
 // Create a struct with a builder and the struct's arguments.

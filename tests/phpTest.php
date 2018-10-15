@@ -67,7 +67,7 @@ function main()
     \MyGame\Example\Monster::AddTest4($fbb, $test4);
     \MyGame\Example\Monster::AddTestarrayofstring($fbb, $testArrayOfString);
     \MyGame\Example\Monster::AddEnemy($fbb, $enemy);
-    \MyGame\Example\Monster::AddTestbool($fbb, false);
+    \MyGame\Example\Monster::AddTestbool($fbb, true);
     $mon = \MyGame\Example\Monster::EndMonster($fbb);
 
     \MyGame\Example\Monster::FinishMonsterBuffer($fbb, $mon);
@@ -142,7 +142,7 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
     $fred = $monster->getEnemy();
     $assert->Equal('Fred', $fred->getName());
 
-    $assert->strictEqual($monster->GetTestbool(), false);
+    $assert->strictEqual($monster->GetTestbool(), true);
 }
 
 //function testUnicode(Assert $assert) {

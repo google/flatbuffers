@@ -160,6 +160,10 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("color", example.ColorBlue, got))
 		}
 
+		if got := monster.Testbool(); true != got {
+			fail(FailString("testbool", true, got))
+		}
+
 		// initialize a Vec3 from Pos()
 		vec := new(example.Vec3)
 		vec = monster.Pos(vec)
@@ -317,6 +321,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	testForOriginalValues := []testcase{
 		testcase{"Hp", func() bool { return monster.Hp() == 80 }},
 		testcase{"Mana", func() bool { return monster.Mana() == 150 }},
+		testcase{"Testbool", func() bool { return monster.Testbool() == true }},
 		testcase{"Pos.X'", func() bool { return monster.Pos(nil).X() == float32(1.0) }},
 		testcase{"Pos.Y'", func() bool { return monster.Pos(nil).Y() == float32(2.0) }},
 		testcase{"Pos.Z'", func() bool { return monster.Pos(nil).Z() == float32(3.0) }},
@@ -329,6 +334,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	testMutability := []testcase{
 		testcase{"Hp", func() bool { return monster.MutateHp(70) }},
 		testcase{"Mana", func() bool { return !monster.MutateMana(140) }},
+		testcase{"Testbool", func() bool { return monster.MutateTestbool(false) }},
 		testcase{"Pos.X", func() bool { return monster.Pos(nil).MutateX(10.0) }},
 		testcase{"Pos.Y", func() bool { return monster.Pos(nil).MutateY(20.0) }},
 		testcase{"Pos.Z", func() bool { return monster.Pos(nil).MutateZ(30.0) }},
@@ -341,6 +347,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	testForMutatedValues := []testcase{
 		testcase{"Hp", func() bool { return monster.Hp() == 70 }},
 		testcase{"Mana", func() bool { return monster.Mana() == 150 }},
+		testcase{"Testbool", func() bool { return monster.Testbool() == false }},
 		testcase{"Pos.X'", func() bool { return monster.Pos(nil).X() == float32(10.0) }},
 		testcase{"Pos.Y'", func() bool { return monster.Pos(nil).Y() == float32(20.0) }},
 		testcase{"Pos.Z'", func() bool { return monster.Pos(nil).Z() == float32(30.0) }},
@@ -392,6 +399,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	// any unnecessary changes to the buffer.
 	monster = example.GetRootAsMonster(buf, offset)
 	monster.MutateHp(80)
+	monster.MutateTestbool(true)
 	monster.Pos(nil).MutateX(1.0)
 	monster.Pos(nil).MutateY(2.0)
 	monster.Pos(nil).MutateZ(3.0)
@@ -1158,6 +1166,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 
 	example.MonsterAddHp(b, 80)
 	example.MonsterAddName(b, str)
+	example.MonsterAddTestbool(b, true)
 	example.MonsterAddInventory(b, inv)
 	example.MonsterAddTestType(b, 1)
 	example.MonsterAddTest(b, mon2)
