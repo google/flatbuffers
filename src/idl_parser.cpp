@@ -119,6 +119,15 @@ CheckedError Parser::RecurseError() {
                NumToString(FLATBUFFERS_MAX_PARSING_DEPTH) + " reached");
 }
 
+template<typename F> CheckedError Parser::Recurse(F f) {
+  if (recurse_protection_counter >= (FLATBUFFERS_MAX_PARSING_DEPTH))
+    return RecurseError();
+  recurse_protection_counter++;
+  auto ce = f();
+  recurse_protection_counter--;
+  return ce;
+}
+
 CheckedError Parser::InvalidNumber(const char *number, const std::string &msg) {
   return Error("invalid number: \"" + std::string(number) + "\"" + msg);
 }
@@ -927,10 +936,10 @@ void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
   builder_.AddStructOffset(val.offset, builder_.GetSize());
 }
 
+template <typename F>
 CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
                                           const StructDef *struct_def,
-                                          ParseTableDelimitersBody body,
-                                          void *state) {
+                                          F body) {
   // We allow tables both as JSON object{ .. } with field names
   // or vector[..] with all fields in order
   char terminator = '}';
@@ -958,7 +967,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
       }
       if (!opts.protobuf_ascii_alike || !(Is('{') || Is('['))) EXPECT(':');
     }
-    ECHECK(body(name, fieldn, struct_def, state));
+    ECHECK(body(name, fieldn, struct_def));
     if (Is(terminator)) break;
     ECHECK(ParseComma());
   }
@@ -974,66 +983,60 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
       fieldn_outer, &struct_def,
-      [](const std::string &name, size_t &fieldn,
-         const StructDef *struct_def_inner, void *state) -> CheckedError {
-        auto *parser = static_cast<Parser *>(state);
+      [&](const std::string &name, size_t &fieldn,
+          const StructDef *struct_def_inner) -> CheckedError {
         if (name == "$schema") {
-          ECHECK(parser->Expect(kTokenStringConstant));
+          ECHECK(Expect(kTokenStringConstant));
           return NoError();
         }
         auto field = struct_def_inner->fields.Lookup(name);
         if (!field) {
-          if (!parser->opts.skip_unexpected_fields_in_json) {
-            return parser->Error("unknown field: " + name);
+          if (!opts.skip_unexpected_fields_in_json) {
+            return Error("unknown field: " + name);
           } else {
-            ECHECK(parser->SkipAnyJsonValue());
+            ECHECK(SkipAnyJsonValue());
           }
         } else {
-          if (parser->IsIdent("null") &&
-              !IsScalar(field->value.type.base_type)) {
-            ECHECK(parser->Next());  // Ignore this field.
+          if (IsIdent("null") && !IsScalar(field->value.type.base_type)) {
+            ECHECK(Next());  // Ignore this field.
           } else {
             Value val = field->value;
             if (field->flexbuffer) {
               flexbuffers::Builder builder(1024,
                                            flexbuffers::BUILDER_FLAG_SHARE_ALL);
-              ECHECK(parser->ParseFlexBufferValue(&builder));
+              ECHECK(ParseFlexBufferValue(&builder));
               builder.Finish();
               // Force alignment for nested flexbuffer
-              parser->builder_.ForceVectorAlignment(builder.GetSize(), sizeof(uint8_t),
-                                                    sizeof(largest_scalar_t));
-              auto off = parser->builder_.CreateVector(builder.GetBuffer());
+              builder_.ForceVectorAlignment(builder.GetSize(), sizeof(uint8_t),
+                                            sizeof(largest_scalar_t));
+              auto off = builder_.CreateVector(builder.GetBuffer());
               val.constant = NumToString(off.o);
             } else if (field->nested_flatbuffer) {
-              ECHECK(parser->ParseNestedFlatbuffer(val, field, fieldn,
-                                                   struct_def_inner));
+              ECHECK(
+                  ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
             } else {
-              ECHECK(parser->Recurse([&]() {
-                  return parser->ParseAnyValue(val, field, fieldn,
-                                               struct_def_inner);
+              ECHECK(Recurse([&]() {
+                return ParseAnyValue(val, field, fieldn, struct_def_inner);
               }));
             }
             // Hardcoded insertion-sort with error-check.
             // If fields are specified in order, then this loop exits
             // immediately.
-            auto elem = parser->field_stack_.rbegin();
-            for (; elem != parser->field_stack_.rbegin() + fieldn; ++elem) {
+            auto elem = field_stack_.rbegin();
+            for (; elem != field_stack_.rbegin() + fieldn; ++elem) {
               auto existing_field = elem->second;
               if (existing_field == field)
-                return parser->Error("field set more than once: " +
-                                     field->name);
+                return Error("field set more than once: " + field->name);
               if (existing_field->value.offset < field->value.offset) break;
             }
             // Note: elem points to before the insertion point, thus .base()
             // points to the correct spot.
-            parser->field_stack_.insert(elem.base(),
-                                        std::make_pair(val, field));
+            field_stack_.insert(elem.base(), std::make_pair(val, field));
             fieldn++;
           }
         }
         return NoError();
-      },
-      this);
+      });
   ECHECK(err);
 
   // Check if all required fields are parsed.
@@ -1130,13 +1133,12 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   return NoError();
 }
 
-CheckedError Parser::ParseVectorDelimiters(size_t &count,
-                                           ParseVectorDelimitersBody body,
-                                           void *state) {
+template <typename F>
+CheckedError Parser::ParseVectorDelimiters(size_t &count, F body) {
   EXPECT('[');
   for (;;) {
     if ((!opts.strict_json || !count) && Is(']')) break;
-    ECHECK(body(count, state));
+    ECHECK(body(count));
     count++;
     if (Is(']')) break;
     ECHECK(ParseComma());
@@ -1147,22 +1149,13 @@ CheckedError Parser::ParseVectorDelimiters(size_t &count,
 
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue) {
   size_t count = 0;
-  std::pair<Parser *, const Type &> parser_and_type_state(this, type);
-  auto err = ParseVectorDelimiters(
-      count,
-      [](size_t &, void *state) -> CheckedError {
-        auto *parser_and_type =
-            static_cast<std::pair<Parser *, const Type &> *>(state);
-        auto *parser = parser_and_type->first;
-        Value val;
-        val.type = parser_and_type->second;
-        ECHECK(parser->Recurse([&]() {
-                 return parser->ParseAnyValue(val, nullptr, 0, nullptr);
-        }));
-        parser->field_stack_.push_back(std::make_pair(val, nullptr));
-        return NoError();
-      },
-      &parser_and_type_state);
+  auto err = ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
+    Value val;
+    val.type = type;
+    ECHECK(Recurse([&]() { return ParseAnyValue(val, nullptr, 0, nullptr); }));
+    field_stack_.push_back(std::make_pair(val, nullptr));
+    return NoError();
+  });
   ECHECK(err);
 
   builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
@@ -2220,28 +2213,18 @@ CheckedError Parser::SkipAnyJsonValue() {
       size_t fieldn_outer = 0;
       return ParseTableDelimiters(
           fieldn_outer, nullptr,
-          [](const std::string &, size_t &fieldn, const StructDef *,
-             void *state) -> CheckedError {
-            auto *parser = static_cast<Parser *>(state);
-            ECHECK(parser->Recurse([&]() {
-              return parser->SkipAnyJsonValue();
-            }));
+          [&](const std::string &, size_t &fieldn,
+              const StructDef *) -> CheckedError {
+            ECHECK(Recurse([&]() { return SkipAnyJsonValue(); }));
             fieldn++;
             return NoError();
-          },
-          this);
+          });
     }
     case '[': {
       size_t count = 0;
-      return ParseVectorDelimiters(
-          count,
-          [](size_t &, void *state) -> CheckedError {
-            auto *parser = static_cast<Parser *>(state);
-            return parser->Recurse([&]() {
-              return parser->SkipAnyJsonValue();
-            });
-          },
-          this);
+      return ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
+        return Recurse([&]() { return SkipAnyJsonValue(); });
+      });
     }
     case kTokenStringConstant:
     case kTokenIntegerConstant:
@@ -2258,25 +2241,17 @@ CheckedError Parser::SkipAnyJsonValue() {
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
   switch (token_) {
     case '{': {
-      std::pair<Parser *, flexbuffers::Builder *> parser_and_builder_state(
-          this, builder);
       auto start = builder->StartMap();
       size_t fieldn_outer = 0;
-      auto err = ParseTableDelimiters(
-          fieldn_outer, nullptr,
-          [](const std::string &name, size_t &fieldn, const StructDef *,
-             void *state) -> CheckedError {
-            auto *parser_and_builder =
-                static_cast<std::pair<Parser *, flexbuffers::Builder *> *>(
-                    state);
-            auto *parser = parser_and_builder->first;
-            auto *current_builder = parser_and_builder->second;
-            current_builder->Key(name);
-            ECHECK(parser->ParseFlexBufferValue(current_builder));
-            fieldn++;
-            return NoError();
-          },
-          &parser_and_builder_state);
+      auto err =
+          ParseTableDelimiters(fieldn_outer, nullptr,
+                               [&](const std::string &name, size_t &fieldn,
+                                   const StructDef *) -> CheckedError {
+                                 builder->Key(name);
+                                 ECHECK(ParseFlexBufferValue(builder));
+                                 fieldn++;
+                                 return NoError();
+                               });
       ECHECK(err);
       builder->EndMap(start);
       break;
@@ -2284,18 +2259,9 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
     case '[': {
       auto start = builder->StartVector();
       size_t count = 0;
-      std::pair<Parser *, flexbuffers::Builder *> parser_and_builder_state(
-          this, builder);
-      ECHECK(ParseVectorDelimiters(
-          count,
-          [](size_t &, void *state) -> CheckedError {
-            auto *parser_and_builder =
-                static_cast<std::pair<Parser *, flexbuffers::Builder *> *>(
-                    state);
-            return parser_and_builder->first->ParseFlexBufferValue(
-                parser_and_builder->second);
-          },
-          &parser_and_builder_state));
+      ECHECK(ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
+        return ParseFlexBufferValue(builder);
+      }));
       builder->EndVector(start, false, false);
       break;
     }

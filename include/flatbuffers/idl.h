@@ -682,35 +682,15 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def);
-  // clang-format off
-  #if defined(FLATBUFFERS_CPP98_STL)
-    typedef CheckedError (*ParseTableDelimitersBody)(
-        const std::string &name, size_t &fieldn, const StructDef *struct_def,
-        void *state);
-  #else
-    typedef std::function<CheckedError(const std::string&, size_t&,
-                                       const StructDef*, void*)>
-            ParseTableDelimitersBody;
-  #endif  // defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
+  template<typename F>
   FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
                                                  const StructDef *struct_def,
-                                                 ParseTableDelimitersBody body,
-                                                 void *state);
+                                                 F body);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
-  // clang-format off
-  #if defined(FLATBUFFERS_CPP98_STL)
-    typedef CheckedError (*ParseVectorDelimitersBody)(size_t &count,
-                                                      void *state);
-  #else
-    typedef std::function<CheckedError(size_t&, void*)>
-            ParseVectorDelimitersBody;
-  #endif  // defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
-  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(
-      size_t &count, ParseVectorDelimitersBody body, void *state);
+  template<typename F>
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t &count, F body);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                                   size_t fieldn,
@@ -761,14 +741,7 @@ class Parser : public ParserState {
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
-  template<typename F> CheckedError Recurse(F f) {
-    if (recurse_protection_counter >= (FLATBUFFERS_MAX_PARSING_DEPTH))
-      return RecurseError();
-    recurse_protection_counter++;
-    auto ce = f();
-    recurse_protection_counter--;
-    return ce;
-  }
+  template<typename F> CheckedError Recurse(F f);
 
  public:
   SymbolTable<Type> types_;
