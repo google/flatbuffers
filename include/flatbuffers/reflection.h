@@ -228,7 +228,7 @@ inline std::string GetAnyVectorElemS(const VectorOfAny *vec,
 template<typename T>
 T *GetAnyVectorElemPointer(const VectorOfAny *vec, size_t i) {
   auto elem_ptr = vec->Data() + sizeof(uoffset_t) * i;
-  return (T *)(elem_ptr + ReadScalar<uoffset_t>(elem_ptr));
+  return reinterpret_cast<T*>(elem_ptr + ReadScalar<uoffset_t>(elem_ptr));
 }
 
 // Get the inline-address of a vector element. Useful for Structs (pass Struct
@@ -239,20 +239,19 @@ T *GetAnyVectorElemPointer(const VectorOfAny *vec, size_t i) {
 template<typename T>
 T *GetAnyVectorElemAddressOf(const VectorOfAny *vec, size_t i,
                              size_t elem_size) {
-  // C-cast to allow const conversion.
-  return (T *)(vec->Data() + elem_size * i);
+  return reinterpret_cast<T *>(vec->Data() + elem_size * i);
 }
 
 // Similarly, for elements of tables.
 template<typename T>
 T *GetAnyFieldAddressOf(const Table &table, const reflection::Field &field) {
-  return (T *)table.GetAddressOf(field.offset());
+  return reinterpret_cast<T *>(table.GetAddressOf(field.offset()));
 }
 
 // Similarly, for elements of structs.
 template<typename T>
 T *GetAnyFieldAddressOf(const Struct &st, const reflection::Field &field) {
-  return (T *)st.GetAddressOf(field.offset());
+  return reinterpret_cast<T *>(st.GetAddressOf(field.offset()));
 }
 
 // ------------------------- SETTERS -------------------------

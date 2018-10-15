@@ -395,7 +395,7 @@ static void StructBuilderArgs(const StructDef &struct_def,
                         (nameprefix + (field.name + "_")).c_str(), code_ptr);
     } else {
       std::string &code = *code_ptr;
-      code += (std::string) ", " + nameprefix;
+      code += std::string(", ") + nameprefix;
       code += GoIdentity(field.name);
       code += " " + GenTypeBasic(field.value.type);
     }

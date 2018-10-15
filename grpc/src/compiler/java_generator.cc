@@ -72,13 +72,14 @@ void GenerateImports(grpc_generator::File* file,
 //   - remove embedded underscores & capitalize the following letter
 static string MixedLower(const string& word) {
   string w;
-  w += (string::value_type)tolower(word[0]);
+  w += static_cast<string::value_type>(tolower(word[0]));
   bool after_underscore = false;
   for (size_t i = 1; i < word.length(); ++i) {
     if (word[i] == '_') {
       after_underscore = true;
     } else {
-      w += after_underscore ? (string::value_type)toupper(word[i]) : word[i];
+      w += after_underscore ? static_cast<string::value_type>(toupper(word[i]))
+                            : word[i];
       after_underscore = false;
     }
   }
@@ -92,7 +93,7 @@ static string MixedLower(const string& word) {
 static string ToAllUpperCase(const string& word) {
   string w;
   for (size_t i = 0; i < word.length(); ++i) {
-    w += (string::value_type)toupper(word[i]);
+    w += static_cast<string::value_type>(toupper(word[i]));
     if ((i < word.length() - 1) && islower(word[i]) && isupper(word[i + 1])) {
       w += '_';
     }
@@ -345,8 +346,8 @@ static void PrintMethodFields(Printer* p, VARS& vars,
 
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
-    vars["arg_in_id"] = to_string((long)2 * i); //trying to make msvc 10 happy
-    vars["arg_out_id"] = to_string((long)2 * i + 1);
+    vars["arg_in_id"] = to_string(2L * i); //trying to make msvc 10 happy
+    vars["arg_out_id"] = to_string(2L * i + 1);
     vars["method_name"] = method->name();
     vars["input_type_name"] = method->get_input_type_name();
     vars["output_type_name"] = method->get_output_type_name();

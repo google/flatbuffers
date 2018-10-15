@@ -362,7 +362,7 @@ namespace lua {
         }
         else {
           std::string &code = *code_ptr;
-          code += (std::string) ", " + nameprefix;
+          code += std::string(", ") + nameprefix;
           code += MakeCamel(NormalizedName(field), false);
         }
       }

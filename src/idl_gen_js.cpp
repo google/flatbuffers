@@ -459,8 +459,9 @@ class JsGenerator : public BaseGenerator {
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
         int64_t constant = StringToInt(value.constant.c_str());
-        return context + ".createLong(" + NumToString((int32_t)constant) +
-               ", " + NumToString((int32_t)(constant >> 32)) + ")";
+        return context + ".createLong(" +
+               NumToString(static_cast<int32_t>(constant)) + ", " +
+               NumToString(static_cast<int32_t>(constant >> 32)) + ")";
       }
 
       default: return value.constant;

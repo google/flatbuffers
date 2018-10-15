@@ -383,7 +383,7 @@ class PythonGenerator : public BaseGenerator {
                           (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
       } else {
         std::string &code = *code_ptr;
-        code += (std::string) ", " + nameprefix;
+        code += std::string(", ") + nameprefix;
         code += MakeCamel(NormalizedName(field), false);
       }
     }

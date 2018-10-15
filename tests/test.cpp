@@ -46,7 +46,7 @@ void FlatBufferBuilderTest();
 // http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
 uint32_t lcg_seed = 48271;
 uint32_t lcg_rand() {
-  return lcg_seed = ((uint64_t)lcg_seed * 279470273UL) % 4294967291UL;
+  return lcg_seed = (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
 }
 void lcg_reset() { lcg_seed = 48271; }
 
@@ -1279,12 +1279,12 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 void ValueTest() {
   // Test scientific notation numbers.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"),
-                       (float)3.14159),
+                       3.14159f),
           true);
   // number in string
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:\"0.0314159e+2\" }", "float"),
-    (float)3.14159),
-    true);
+                       3.14159f),
+          true);
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }", "float"), -1),
@@ -1454,12 +1454,12 @@ void ValidFloatTest() {
   TEST_EQ(TestValue<double>("{ Y:+1.7977e+308 }", "double"), +infinityd);
   TEST_EQ(TestValue<double>("{ Y:-1.7977e+308 }", "double"), -infinityd);
 
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"),
-                       (float)3.14159),
-          true);
+  TEST_EQ(
+      FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"), 3.14159f),
+      true);
   // float in string
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:\" 0.0314159e+2  \" }", "float"),
-                       (float)3.14159),
+                       3.14159f),
           true);
 
   TEST_EQ(TestValue<float>("{ Y:1 }", "float"), 1.0f);

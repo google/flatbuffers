@@ -130,6 +130,7 @@ if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
 elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
+  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   if(CYGWIN)
     set(CMAKE_CXX_FLAGS
@@ -140,6 +141,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
+  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
       set(CMAKE_CXX_FLAGS
@@ -157,6 +159,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
+  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
   if(FLATBUFFERS_LIBCXX_WITH_CLANG)
     if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
       set(CMAKE_CXX_FLAGS
@@ -200,10 +203,12 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   # CMake > 2.8.11: Attach header directory for when build via add_subdirectory().
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+  target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+  target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
   endif()
@@ -259,6 +264,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  target_compile_options(flattests PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)

@@ -2163,9 +2163,11 @@ class CppGenerator : public BaseGenerator {
         auto cpp_type = field.attributes.Lookup("cpp_type");
         std::string indexing;
         if (field.value.type.enum_def) {
-          indexing += "(" + WrapInNameSpace(*field.value.type.enum_def) + ")";
+          indexing += "static_cast<" +
+                      WrapInNameSpace(*field.value.type.enum_def) + ">(";
         }
         indexing += "_e->Get(_i)";
+        if (field.value.type.enum_def) { indexing += ")"; }
         if (field.value.type.element == BASE_TYPE_BOOL) { indexing += " != 0"; }
 
         // Generate code that pushes data from _e to _o in the form:
