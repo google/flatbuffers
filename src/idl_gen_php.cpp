@@ -454,7 +454,7 @@ class PhpGenerator : public BaseGenerator {
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
         std::string &code = *code_ptr;
-        code += (std::string) ", $" + nameprefix;
+        code += std::string(", $") + nameprefix;
         code += MakeCamel(field.name, false);
       }
     }
