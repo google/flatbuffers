@@ -1,4 +1,4 @@
-![logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers
+[logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers
 ===========
 
 [![Join the chat at https://gitter.im/google/flatbuffers](https://badges.gitter.im/google/flatbuffers.svg)](https://gitter.im/google/flatbuffers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
