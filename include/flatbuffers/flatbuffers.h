@@ -422,15 +422,11 @@ class DefaultAllocator : public Allocator {
     return new uint8_t[size];
   }
 
-  static void *alloc(size_t size) {
-    return new uint8_t[size];
-  }
-
   void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
     delete[] p;
   }
 
-  static void dealloc(void *p) {
+  static void dealloc(void *p, size_t) {
     delete[] static_cast<uint8_t *>(p);
   }
 };

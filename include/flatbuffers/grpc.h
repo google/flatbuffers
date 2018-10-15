@@ -176,15 +176,14 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   }
 
   /// Create a MessageBuilder from a FlatBufferBuilder.
-  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is supported.
-  explicit MessageBuilder(FlatBufferBuilder &&src)
+  explicit MessageBuilder(FlatBufferBuilder &&src, void (*dealloc)(void*, size_t) = &DefaultAllocator::dealloc)
     : FlatBufferBuilder(1024, &slice_allocator_, false) {
     src.Swap(*this);
     src.SwapBufAllocator(*this);
     if (buf_.capacity()) {
       uint8_t *buf = buf_.scratch_data();       // pointer to memory
       size_t capacity = buf_.capacity();        // size of memory
-      slice_allocator_.slice_ = grpc_slice_new(buf, capacity, &DefaultAllocator::dealloc);
+      slice_allocator_.slice_ = grpc_slice_new_with_len(buf, capacity, dealloc);
     }
     else {
       slice_allocator_.slice_ = grpc_empty_slice();
