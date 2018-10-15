@@ -66,6 +66,7 @@
   testarrayofbools:[
     true, false, true
   ],
+  testbool: true,
   testhashs32_fnv1: "This string is being hashed!",
   testhashu32_fnv1: "This string is being hashed!",
   testhashs64_fnv1: "This string is being hashed!",
