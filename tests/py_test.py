@@ -478,6 +478,266 @@ class TestByteLayout(unittest.TestCase):
         # 1-byte pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
+    def test_create_numpy_vector_int8(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -3], dtype=np.int8)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256 - 3, 0   # vector value + padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256 - 3, 0   # vector value + padding
+            ])
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_uint16(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, 312], dtype=np.uint16)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,     # vector length
+                1, 0,           # 1
+                2, 0,           # 2
+                312 - 256, 1,   # 312
+                0, 0            # padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,     # vector length
+                1, 0,           # 1
+                2, 0,           # 2
+                312 - 256, 1,   # 312
+                0, 0            # padding
+            ])
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_int64(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.int64)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                1, 0, 0, 0, 0, 0, 0, 0,         # 1
+                2, 0, 0, 0, 0, 0, 0, 0,         # 2
+                256 - 12, 255, 255, 255, 255, 255, 255, 255   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                1, 0, 0, 0, 0, 0, 0, 0,         # 1
+                2, 0, 0, 0, 0, 0, 0, 0,         # 2
+                256 - 12, 255, 255, 255, 255, 255, 255, 255   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_float32(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.float32)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 128, 63,                  # 1
+                0, 0, 0, 64,                    # 2
+                0, 0, 64, 193                   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 128, 63,                  # 1
+                0, 0, 0, 64,                    # 2
+                0, 0, 64, 193                   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_float64(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.float64)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 0, 0, 0, 0, 240, 63,                  # 1
+                0, 0, 0, 0, 0, 0, 0, 64,                    # 2
+                0, 0, 0, 0, 0, 0, 40, 192                   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 0, 0, 0, 0, 240, 63,                  # 1
+                0, 0, 0, 0, 0, 0, 0, 64,                    # 2
+                0, 0, 0, 0, 0, 0, 40, 192                   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_bool(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([True, False, True], dtype=np.bool)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0, # vector length
+                1, 0, 1, 0  # vector values + padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0, # vector length
+                1, 0, 1, 0  # vector values + padding
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_reject_strings(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Create String array
+            b = flatbuffers.Builder(0)
+            x = np.array(["hello", "fb", "testing"])
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                TypeError)
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_reject_object(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Create String array
+            b = flatbuffers.Builder(0)
+            x = np.array([{"m": 0}, {"as": -2.1, 'c': 'c'}])
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                TypeError)
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)

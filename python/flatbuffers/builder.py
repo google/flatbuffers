@@ -21,8 +21,9 @@ from . import packer
 from . import compat
 from .compat import range_func
 from .compat import memoryview_type
+from .compat import import_numpy, NumpyRequiredForThisFeature
 
-
+np = import_numpy()
 ## @file
 ## @addtogroup flatbuffers_python_api
 ## @{
@@ -440,6 +441,41 @@ class Builder(object):
         self.Bytes[self.Head():self.Head()+l] = x
 
         return self.EndVector(len(x))
+
+    def CreateNumpyVector(self, x):
+        """CreateNumpyVector writes a numpy array into the buffer."""
+
+        if np is None:
+            # Numpy is required for this feature
+            raise NumpyRequiredForThisFeature("Numpy was not found.")
+
+        if not isinstance(x, np.ndarray):
+            raise TypeError("non-numpy-ndarray passed to CreateNumpyVector")
+
+        if x.dtype.kind not in ['b', 'i', 'u', 'f']:
+            raise TypeError("numpy-ndarray holds elements of unsupported datatype")
+
+        if x.ndim > 1:
+            raise TypeError("multidimensional-ndarray passed to CreateNumpyVector")
+
+        self.StartVector(x.itemsize, x.size, x.dtype.alignment)
+
+        # Ensure little endian byte ordering
+        if x.dtype.str[0] == "<":
+            x_lend = x
+        else:
+            x_lend = x.byteswap(inplace=False)
+
+        # Calculate total length
+        l = UOffsetTFlags.py_type(x_lend.itemsize * x_lend.size)
+        ## @cond FLATBUFFERS_INTERNAL
+        self.head = UOffsetTFlags.py_type(self.Head() - l)
+        ## @endcond
+
+        # tobytes ensures c_contiguous ordering
+        self.Bytes[self.Head():self.Head()+l] = x_lend.tobytes(order='C')
+        
+        return self.EndVector(x.size)
 
     ## @cond FLATBUFFERS_INTERNAL
     def assertNested(self):
