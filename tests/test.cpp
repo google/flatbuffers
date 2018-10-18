@@ -1227,7 +1227,6 @@ void ErrorTest() {
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=1 }", "ascending");
-  TestError("union X { Y = 256 }", "must fit");
   TestError("enum X:byte (bit_flags) { Y=8 }", "bit flag out");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
@@ -1244,6 +1243,7 @@ void ErrorTest() {
   // float to integer conversion is forbidden
   TestError("table X { Y:int; } root_type X; { Y:1.0 }", "float");
   TestError("table X { Y:bool; } root_type X; { Y:1.0 }", "float");
+  TestError("enum X:bool { Y = true }", "must be integral");
 }
 
 template<typename T> T TestValue(const char *json, const char *type_name) {
@@ -1348,6 +1348,29 @@ void EnumNamesTest() {
   TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
   TEST_EQ_STR("", EnumNameColor(static_cast<Color>(-1)));
   TEST_EQ_STR("", EnumNameColor(static_cast<Color>(1000)));
+}
+
+void EnumOutOfRangeTest() {
+  TestError("enum X:byte { Y = 128 }", "enum value does not fit");
+  TestError("enum X:byte { Y = -129 }", "enum value does not fit");
+  TestError("enum X:byte { Y = 127, Z }", "enum value does not fit");
+  TestError("enum X:ubyte { Y = -1 }", "enum value does not fit");
+  TestError("enum X:ubyte { Y = 256 }", "enum value does not fit");
+  // Unions begin with an implicit "NONE = 0".
+  TestError("table Y{} union X { Y = -1 }",
+            "enum values must be specified in ascending order");
+  TestError("table Y{} union X { Y = 256 }", "enum value does not fit");
+  TestError("table Y{} union X { Y = 255, Z:Y }", "enum value does not fit");
+  TestError("enum X:int { Y = -2147483649 }", "enum value does not fit");
+  TestError("enum X:int { Y = 2147483648 }", "enum value does not fit");
+  TestError("enum X:uint { Y = -1 }", "enum value does not fit");
+  TestError("enum X:uint { Y = 4294967297 }", "enum value does not fit");
+  TestError("enum X:long { Y = 9223372036854775808 }", "constant does not fit");
+  TestError("enum X:long { Y = 9223372036854775807, Z }", "enum value overflows");
+  TestError("enum X:ulong { Y = -1 }", "enum value does not fit");
+  // TODO: these are perfectly valid constants that shouldn't fail
+  TestError("enum X:ulong { Y = 13835058055282163712 }", "constant does not fit");
+  TestError("enum X:ulong { Y = 18446744073709551615 }", "constant does not fit");
 }
 
 void IntegerOutOfRangeTest() {
@@ -2375,6 +2398,7 @@ int FlatBufferTests() {
   ValueTest();
   EnumStringsTest();
   EnumNamesTest();
+  EnumOutOfRangeTest();
   IntegerOutOfRangeTest();
   IntegerBoundaryTest();
   UnicodeTest();
