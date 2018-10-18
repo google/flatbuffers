@@ -425,6 +425,10 @@ class DefaultAllocator : public Allocator {
   void deallocate(uint8_t *p, size_t) FLATBUFFERS_OVERRIDE {
     delete[] p;
   }
+
+  static void dealloc(void *p, size_t) {
+    delete[] static_cast<uint8_t *>(p);
+  }
 };
 
 // These functions allow for a null allocator to mean use the default allocator,
@@ -549,7 +553,7 @@ class DetachedBuffer {
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
- protected:
+protected:
   Allocator *allocator_;
   bool own_allocator_;
   uint8_t *buf_;
@@ -986,7 +990,7 @@ class FlatBufferBuilder {
   /// `FlatBuffer` starts.
   /// @return A raw pointer to the start of the memory block containing
   /// the serialized `FlatBuffer`.
-  /// @remark If the allocator is owned, it gets deleted during this call.
+  /// @remark If the allocator is owned, it gets deleted when the destructor is called..
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
     return buf_.release_raw(size, offset);
@@ -1759,7 +1763,12 @@ class FlatBufferBuilder {
     Finish(root.o, file_identifier, true);
   }
 
- protected:
+  void SwapBufAllocator(FlatBufferBuilder &other) {
+    buf_.swap_allocator(other.buf_);
+  }
+
+protected:
+
   // You shouldn't really be copying instances of this class.
   FlatBufferBuilder(const FlatBufferBuilder &);
   FlatBufferBuilder &operator=(const FlatBufferBuilder &);
