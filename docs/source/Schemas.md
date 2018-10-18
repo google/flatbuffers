@@ -141,6 +141,9 @@ is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
 the type of any fields declared with this enum type.
 
+Only integer types are allowed, i.e. `byte`, `ubyte`, `short` `ushort`, `int`,
+`uint`, `long` and `ulong`.
+
 Typically, enum values should only ever be added, never removed (there is no
 deprecation for enums). This requires code to handle forwards compatibility
 itself, by handling unknown enum values.
@@ -150,9 +153,23 @@ itself, by handling unknown enum values.
 Unions share a lot of properties with enums, but instead of new names
 for constants, you use names of tables. You can then declare
 a union field, which can hold a reference to any of those types, and
-additionally a hidden field with the suffix `_type` is generated that
-holds the corresponding enum value, allowing you to know which type to
-cast to at runtime.
+additionally a field with the suffix `_type` is generated that holds
+the corresponding enum value, allowing you to know which type to cast
+to at runtime.
+
+It's possible to give an alias name to a type union. This way a type can even be
+used to mean different things depending on the name used:
+
+    table PointPosition { x:uint; y:uint; }
+    table MarkerPosition {}
+    union Position {
+      Start:MarkerPosition,
+      Point:PointPosition,
+      Finish:MarkerPosition
+    }
+
+Unions contain a special `NONE` marker to denote that no value is stored so that
+name cannot be used as an alias.
 
 Unions are a good way to be able to send multiple message types as a FlatBuffer.
 Note that because a union field is really two fields, it must always be
