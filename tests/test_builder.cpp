@@ -129,7 +129,9 @@ bool release_n_verify(flatbuffers::FlatBufferBuilder &fbb, const std::string &ex
 }
 
 void FlatBufferBuilderTest() {
-  BuilderTests<flatbuffers::FlatBufferBuilder>::all_tests();
+  using flatbuffers::FlatBufferBuilder;
+
+  BuilderTests<FlatBufferBuilder>::all_tests();
   BuilderTests<TestHeapBuilder>::all_tests();
   BuilderTests<GrpcLikeMessageBuilder>::all_tests();
 
@@ -140,7 +142,7 @@ void FlatBufferBuilderTest() {
     REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN
   };
 
-  BuilderReuseTests<flatbuffers::FlatBufferBuilder>::run_tests(TestSelector(tests, tests+4));
-  BuilderReuseTests<TestHeapBuilder>::run_tests(TestSelector(tests, tests+4));
-  BuilderReuseTests<GrpcLikeMessageBuilder>::run_tests(TestSelector(tests, tests+4));
+  BuilderReuseTests<FlatBufferBuilder, FlatBufferBuilder>::run_tests(TestSelector(tests, tests+4));
+  BuilderReuseTests<TestHeapBuilder, TestHeapBuilder>::run_tests(TestSelector(tests, tests+4));
+  BuilderReuseTests<GrpcLikeMessageBuilder, GrpcLikeMessageBuilder>::run_tests(TestSelector(tests, tests+4));
 }
