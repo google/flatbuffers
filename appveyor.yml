@@ -46,6 +46,7 @@ install:
   - cargo -V
 
 test_script:
+  - call .appveyor\check-generate-code.bat -b %CONFIGURATION%
   - "cd tests"
   - rem "Building all code"
   - generate_code.bat -b %CONFIGURATION%
