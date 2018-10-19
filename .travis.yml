@@ -73,7 +73,13 @@ matrix:
 
       script:
       - bash grpc/build_grpc.sh
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DFLATBUFFERS_BUILD_GRPCTEST=ON -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf . && make
+      - cmake . 
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
+        -DFLATBUFFERS_CODE_SANITIZE=ON
+      - make
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib make test ARGS=-V
       - bash .travis/check-generate-code.sh
       - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
@@ -87,7 +93,13 @@ matrix:
           - BUILD_TYPE=Release
       script:
       - bash grpc/build_grpc.sh
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DFLATBUFFERS_BUILD_GRPCTEST=ON -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf . && make
+      - cmake .
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
+        -DFLATBUFFERS_CODE_SANITIZE=ON
+      - make
       - ./flattests
       - bash .travis/check-generate-code.sh
       - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ./grpctest
