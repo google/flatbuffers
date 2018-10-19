@@ -23,5 +23,5 @@ if "%1"=="-b" set buildtype=%2
 cd ../samples
 ..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 cd ../reflection
-
+generate_code.bat %1 %2
 cd ../tests
