@@ -1,18 +1,12 @@
-#include "test_assert.h"
-
-#ifdef NDEBUG
-#undef NDEBUG // enable assert in release
-#endif
-
-// Reload <assert.h> with canceled NDEBUG.
 #include <assert.h>
+#include "test_assert.h"
 
 #ifdef _MSC_VER
 #  include <crtdbg.h>
 #endif
 
 int testing_fails = 0;
-static TestFailHook global_fail_hook = nullptr;
+static TestFailEventListener fail_listener_ = nullptr;
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func) {
@@ -22,11 +16,11 @@ void TestFail(const char *expval, const char *val, const char *exp,
                    func ? func : "");
   testing_fails++;
 
-  // hook can cancel assert if return true
-  auto terminate = !global_fail_hook ||
-                   !(*global_fail_hook)(expval, val, exp, file, line, func);
+  // Notify, emulate 'gtest::OnTestPartResult' event handler.
+  if(fail_listener_)
+    (*fail_listener_)(expval, val, exp, file, line, func);
 
-  assert(terminate);  // assert on first failure under debug
+  assert(0); // ignored in Release if NDEBUG defined
 }
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
@@ -43,7 +37,7 @@ int msvc_no_dialog_box_on_assert(int rpt_type, char *msg, int *ret_val) {
 }
 #endif
 
-void InitTestEngine(TestFailHook hook) {
+void InitTestEngine(TestFailEventListener listener) {
   testing_fails = 0;
   // Disable stdout buffering to prevent information lost on assertion or core
   // dump.
@@ -62,5 +56,5 @@ void InitTestEngine(TestFailHook hook) {
   #endif
   // clang-format on
 
-  global_fail_hook = hook;
+  fail_listener_ = listener;
 }

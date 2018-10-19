@@ -15,16 +15,19 @@
 #endif
 // clang-format on
 
-// Should returns true if need to skip termination due to TestFail.
-typedef bool (*TestFailHook)(const char *expval, const char *val,
+extern int testing_fails;
+
+// Listener of TestFail, like 'gtest::OnTestPartResult' event handler.
+// Called in TestFail after a failed assertion.
+typedef bool (*TestFailEventListener)(const char *expval, const char *val,
                              const char *exp, const char *file, int line,
                              const char *func);
 
-extern int testing_fails;
+// Prepare test engine (MSVC assertion setup, etc).
+// listener - this function will be notified on each TestFail call.
+void InitTestEngine(TestFailEventListener listener = nullptr);
 
-// Prepare test engine (MSVC assertion setup, etc)
-void InitTestEngine(TestFailHook hook = nullptr);
-
+// Write captured state to a log and terminate test run.
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func = 0);
 

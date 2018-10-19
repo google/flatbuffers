@@ -17,10 +17,10 @@ set(CMAKE_CXX_FLAGS
 # '-fsanitize=address' not allowed with '-fsanitize=memory'
 if(YES)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,address,undefined,alignment,signed-integer-overflow")
+    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,address,undefined")
 else()
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,memory,undefined,alignment,signed-integer-overflow")
+    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,memory,undefined -fsanitize-memory-track-origins=2")
 endif()
 
 set(CMAKE_CXX_FLAGS
@@ -35,8 +35,6 @@ set(CMAKE_CXX_FLAGS
 # print call-graph:> opt out.bc -analyze -print-callgraph &> callgraph.txt
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -flto")
 
-# use llvm-linker lld
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fuse-ld=lld")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 
 set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
@@ -67,12 +65,12 @@ include_directories(${FLATBUFFERS_DIR}/tests)
 add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 
 # FLATBUFFERS_ASSERT should assert in Release as well.
+# Redefine FLATBUFFERS_ASSERT macro definition.
 # Declare as PUBLIC to cover asserts in all included header files.
 target_compile_definitions(flatbuffers PUBLIC
-   FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_assert.h")
-
+   FLATBUFFERS_ASSERT=fuzzer_assert_impl)
 target_compile_definitions(flatbuffers PUBLIC
-   FLATBUFFERS_ASSERT=flatbuffers_assert_impl)
+   FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h")
 
 if(NOT DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   # Force checking of RecursionError in the test
@@ -94,13 +92,6 @@ if(DEFINED FUZZ_TEST_LOCALE)
 endif()
 message(STATUS "FUZZ_TEST_LOCALE: ${FUZZ_TEST_LOCALE}")
 
-if(NOT DEFINED FUZZ_TEST_PARSE_REPETITION)
-  # Force checking of RecursionError in the test
-  set(FUZZ_TEST_PARSE_REPETITION 2)
-endif()
-message(STATUS "FUZZ_TEST_PARSE_REPETITION: ${FUZZ_TEST_PARSE_REPETITION}")
-add_definitions(-DFUZZ_TEST_PARSE_REPETITION=${FUZZ_TEST_PARSE_REPETITION})
-
 add_executable(scalar_fuzzer flatbuffers_scalar_fuzzer.cc)
 target_link_libraries(scalar_fuzzer PRIVATE flatbuffers)
 
@@ -109,4 +100,3 @@ target_link_libraries(parser_fuzzer PRIVATE flatbuffers)
 
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
 target_link_libraries(verifier_fuzzer PRIVATE flatbuffers)
-target_include_directories(verifier_fuzzer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../")
