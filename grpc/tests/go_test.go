@@ -3,10 +3,10 @@ package testing
 import (
 	"../../tests/MyGame/Example"
 
+	"context"
 	"net"
 	"testing"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
