@@ -1901,7 +1901,7 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier, bool si
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
   Verifier(const uint8_t *buf, size_t buf_len, uoffset_t _max_depth = 64,
-           uoffset_t _max_tables = 1000000)
+           uoffset_t _max_tables = 1000000, bool _check_alignment = true)
       : buf_(buf),
         size_(buf_len),
         depth_(0),
@@ -1912,6 +1912,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
         , upper_bound_(0)
     #endif
+        , check_alignment_(_check_alignment)
   // clang-format on
   {
     assert(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
@@ -1944,7 +1945,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> bool VerifyAlignment(size_t elem) const {
-    return (elem & (sizeof(T) - 1)) == 0;
+    return (elem & (sizeof(T) - 1)) == 0 || !check_alignment_;
   }
 
   // Verify a range indicated by sizeof(T).
@@ -2127,6 +2128,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     mutable size_t upper_bound_;
   #endif
   // clang-format on
+  bool check_alignment_;
 };
 
 // Convenient way to bundle a buffer and its length, to pass it around
