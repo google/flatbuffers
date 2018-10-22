@@ -7,10 +7,12 @@
   #define _CRTDBG_MAP_ALLOC
 #endif
 
-#include <assert.h>
-
 #if !defined(FLATBUFFERS_ASSERT)
+#include <assert.h>
 #define FLATBUFFERS_ASSERT assert
+#elif defined(FLATBUFFERS_ASSERT_INCLUDE)
+// Include file with forward declaration
+#include FLATBUFFERS_ASSERT_INCLUDE
 #endif
 
 #ifndef ARDUINO

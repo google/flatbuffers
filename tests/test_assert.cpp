@@ -1,11 +1,12 @@
+#include <assert.h>
+#include "test_assert.h"
+
 #ifdef _MSC_VER
-#  include <assert.h>
 #  include <crtdbg.h>
 #endif
 
-#include "test_assert.h"
-
 int testing_fails = 0;
+static TestFailEventListener fail_listener_ = nullptr;
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func) {
@@ -14,7 +15,12 @@ void TestFail(const char *expval, const char *val, const char *exp,
   TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s in %s", file, line, exp,
                    func ? func : "");
   testing_fails++;
-  assert(0);  // assert on first failure under debug
+
+  // Notify, emulate 'gtest::OnTestPartResult' event handler.
+  if(fail_listener_)
+    (*fail_listener_)(expval, val, exp, file, line, func);
+
+  assert(0); // ignored in Release if NDEBUG defined
 }
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
@@ -31,7 +37,7 @@ int msvc_no_dialog_box_on_assert(int rpt_type, char *msg, int *ret_val) {
 }
 #endif
 
-void InitTestEngine() {
+void InitTestEngine(TestFailEventListener listener) {
   testing_fails = 0;
   // Disable stdout buffering to prevent information lost on assertion or core
   // dump.
@@ -49,4 +55,6 @@ void InitTestEngine() {
     _CrtSetReportHook(msvc_no_dialog_box_on_assert);
   #endif
   // clang-format on
+
+  fail_listener_ = listener;
 }
