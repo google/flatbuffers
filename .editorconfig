@@ -1,5 +1,5 @@
 root = true
-[*.{cpp,cc,h}]
+[*.{cpp,cc,h,sh}]
 end_of_line = LF
 indent_style = space
 indent_size = 2

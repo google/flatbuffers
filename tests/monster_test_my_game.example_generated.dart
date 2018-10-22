@@ -6,8 +6,8 @@ library my_game.example;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 import './monster_test_my_game_generated.dart' as my_game;
+import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
 class Color {
   final int value;

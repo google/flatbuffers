@@ -15,4 +15,4 @@
 set buildtype=Release
 if "%1"=="-b" set buildtype=%2
 
-..\%buildtype%\flatc.exe --cpp --no-prefix -o ../include/flatbuffers reflection.fbs
+..\%buildtype%\flatc.exe --cpp --no-prefix -o ../include/flatbuffers reflection.fbs || exit /b 1
