@@ -294,10 +294,7 @@ class RustGenerator : public BaseGenerator {
   // structs, and tables) and output them to a single file.
   bool generate() {
     code_.Clear();
-    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
-    code_ += "#![allow(dead_code)]";
-    code_ += "#![allow(unused_imports)]";
-    code_ += "extern crate flatbuffers;\n";
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n"; 
 
     assert(!cur_name_space_);
 
