@@ -1210,9 +1210,7 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
  * @param {number} high
  * @returns {flatbuffers.Long}
  */
-flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
-  return flatbuffers.Long.create(low, high);
-};
+flatbuffers.ByteBuffer.prototype.createLong = (low, high) => flatbuffers.Long.create(low, high);
 
 // Exports for Node.js and RequireJS
 this.flatbuffers = flatbuffers;
