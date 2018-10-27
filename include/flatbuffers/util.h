@@ -276,9 +276,9 @@ inline std::string StripFileName(const std::string &filepath) {
 }
 
 // Check if `path` is an absolute path.
-inline bool IsAbsPath(const std::string &path)
-{
-  return !path.empty() && (path[0] == kPathSeparator || path[0] == kPathSeparatorWindows);
+inline bool IsAbsPath(const std::string &path) {
+  return !path.empty() &&
+         (path[0] == kPathSeparator || path[0] == kPathSeparatorWindows);
 }
 
 // Concatenates a path with a filename, regardless of wether the path

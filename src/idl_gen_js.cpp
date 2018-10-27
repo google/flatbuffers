@@ -512,14 +512,14 @@ class JsGenerator : public BaseGenerator {
 
   std::string GenPrefixedImport(const std::string &full_file_name,
                                 const std::string &base_name) {
-    
     // either keep the include path as it was
     // or use only the base_name + kGeneratedFileNamePostfix
     std::string path;
     if (parser_.opts.keep_include_path) {
       auto it = parser_.included_files_.find(full_file_name);
       FLATBUFFERS_ASSERT(it != parser_.included_files_.end());
-      path = flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
+      path =
+          flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
     } else {
       path = base_name + kGeneratedFileNamePostfix;
     }
@@ -527,8 +527,7 @@ class JsGenerator : public BaseGenerator {
     // add the include prefix
     path = flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, path);
 
-    if(!flatbuffers::IsAbsPath(path))
-    {
+    if (!flatbuffers::IsAbsPath(path)) {
       // make it a strictly relative path
       path = std::string(".") + kPathSeparator + path;
     }
