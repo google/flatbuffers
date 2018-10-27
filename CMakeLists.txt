@@ -196,33 +196,25 @@ if(FLATBUFFERS_CODE_COVERAGE)
       "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
-if(FLATBUFFERS_CODE_SANITIZE AND
-    (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
-    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8"))
-  )
-  set(FLATBUFFERS_SANITIZER_LIST "=address,undefined")
+function(add_fsanitize_to_target _target _sanitizer)
   # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
   # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
-  if(FLATBUFFERS_CODE_SANITIZE MATCHES "=.*")
-    # override default by user-defined sanitizer list
-    set(FLATBUFFERS_SANITIZER_LIST ${FLATBUFFERS_CODE_SANITIZE})
+  if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
+    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8"))
+  )
+    set(_sanitizer_flags "=address,undefined")
+    if(_sanitizer MATCHES "=.*")
+      # override default by user-defined sanitizer list
+      set(_sanitizer_flags ${_sanitizer})
+    endif()
+    target_compile_options(${_target} PRIVATE 
+      -g -fsigned-char -fno-omit-frame-pointer
+      "-fsanitize${_sanitizer_flags}")
+    target_link_libraries(${_target} PRIVATE
+      "-fsanitize${_sanitizer_flags}")
+    set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
   endif()
-
-  set(FLATBUFFERS_SANITIZE_CXX_FLAGS
-    "-g"
-    "-fsigned-char"
-    "-fno-omit-frame-pointer"
-    "-fPIC"
-    "-fPIE"
-    "-fsanitize${FLATBUFFERS_SANITIZER_LIST}"
-  )
-
-  set(FLATBUFFERS_SANITIZE_LINKER_FLAGS
-    "-pie"
-    "-fsanitize${FLATBUFFERS_SANITIZER_LIST}"
-  )
-  unset(FLATBUFFERS_SANITIZER_LIST)
-endif()
+endfunction()
 
 if(BIICODE)
   include(biicode/cmake/biicode.cmake)
@@ -243,9 +235,8 @@ endif()
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
-  if(FLATBUFFERS_CODE_SANITIZE AND FLATBUFFERS_SANITIZE_CXX_FLAGS)
-    target_compile_options(flatc PRIVATE ${FLATBUFFERS_SANITIZE_CXX_FLAGS})
-    target_link_libraries(flatc PRIVATE ${FLATBUFFERS_SANITIZE_LINKER_FLAGS})
+  if(FLATBUFFERS_CODE_SANITIZE)
+    add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
@@ -302,10 +293,8 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
-  if(FLATBUFFERS_CODE_SANITIZE AND FLATBUFFERS_SANITIZE_CXX_FLAGS)
-    message(STATUS "Add -fsanitize to 'flattests': ${FLATBUFFERS_SANITIZE_LINKER_FLAGS}")
-    target_compile_options(flattests PRIVATE ${FLATBUFFERS_SANITIZE_CXX_FLAGS})
-    target_link_libraries(flattests PRIVATE ${FLATBUFFERS_SANITIZE_LINKER_FLAGS})
+  if(FLATBUFFERS_CODE_SANITIZE)
+    add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
