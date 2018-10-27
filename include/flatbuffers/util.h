@@ -472,6 +472,12 @@ inline std::string StripFileName(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
+// Check if `path` is an absolute path.
+inline bool IsAbsPath(const std::string &path)
+{
+  return !path.empty() && (path[0] == kPathSeparator || path[0] == kPathSeparatorWindows);
+}
+
 // Concatenates a path with a filename, regardless of wether the path
 // ends in a separator or not.
 inline std::string ConCatPathFileName(const std::string &path,
@@ -523,10 +529,10 @@ inline std::string AbsolutePath(const std::string &filepath) {
   #else
     #ifdef _WIN32
       char abs_path[MAX_PATH];
-      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+      return (!IsAbsPath(filepath) && GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr))
     #else
       char abs_path[PATH_MAX];
-      return realpath(filepath.c_str(), abs_path)
+      return (!IsAbsPath(filepath) && realpath(filepath.c_str(), abs_path))
     #endif
       ? abs_path
       : filepath;

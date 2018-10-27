@@ -128,8 +128,7 @@ class JsGenerator : public BaseGenerator {
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
       if (basename != file_name_) {
-        const auto file_name = basename + kGeneratedFileNamePostfix;
-        code += GenPrefixedImport(file, file_name);
+        code += GenPrefixedImport(file, basename);
       }
     }
   }
@@ -525,12 +524,30 @@ class JsGenerator : public BaseGenerator {
   }
 
   std::string GenPrefixedImport(const std::string &full_file_name,
-                                       const std::string &base_file_name) {
+                                const std::string &base_name) {
+    
+    // either keep the include path as it was
+    // or use only the base_name + kGeneratedFileNamePostfix
+    std::string path;
+    if (parser_.opts.keep_include_path) {
+      auto it = parser_.included_files_.find(full_file_name);
+      FLATBUFFERS_ASSERT(it != parser_.included_files_.end());
+      path = flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
+    } else {
+      path = base_name + kGeneratedFileNamePostfix;
+    }
+
+    // add the include prefix
+    path = flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, path);
+
+    if(!flatbuffers::IsAbsPath(path))
+    {
+      // make it a strictly relative path
+      path = std::string(".") + kPathSeparator + path;
+    }
+
     return "import * as " + GenFileNamespacePrefix(full_file_name) +
-           " from ./" 
-           + flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, 
-                                             parser_.opts.keep_include_path? full_file_name : base_file_name) 
-           + "\";\n";
+           " from \"" + path + "\";\n";
   }
 
   // Adds a source-dependent prefix, for of import * statements.
