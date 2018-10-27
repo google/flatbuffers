@@ -511,10 +511,13 @@ class JsGenerator : public BaseGenerator {
                       std::hash<std::string>()(file)));
   }
 
-  static std::string GenPrefixedImport(const std::string &full_file_name,
+  std::string GenPrefixedImport(const std::string &full_file_name,
                                        const std::string &base_file_name) {
     return "import * as " + GenFileNamespacePrefix(full_file_name) +
-           " from \"./" + base_file_name + "\";\n";
+           " from ./" 
+           + flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, 
+                                             parser_.opts.keep_include_path? full_file_name : base_file_name) 
+           + "\";\n";
   }
 
   // Adds a source-dependent prefix, for of import * statements.
