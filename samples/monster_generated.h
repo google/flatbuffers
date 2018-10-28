@@ -55,6 +55,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
+  if (e < Color_Red || e > Color_Blue) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesColor()[index];
 }
@@ -84,6 +85,7 @@ inline const char * const *EnumNamesEquipment() {
 }
 
 inline const char *EnumNameEquipment(Equipment e) {
+  if (e < Equipment_NONE || e > Equipment_Weapon) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesEquipment()[index];
 }
@@ -233,7 +235,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POS = 4,
     VT_MANA = 6,
     VT_HP = 8,
@@ -441,7 +443,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WeaponTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_DAMAGE = 6
   };
@@ -704,7 +706,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8, 12 };
+  static const int64_t values[] = { 0, 4, 8, 12 };
   static const char * const names[] = {
     "x",
     "y",

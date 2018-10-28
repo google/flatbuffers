@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include <assert.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <fstream>
@@ -49,6 +49,52 @@
 #include "flatbuffers/base.h"
 
 namespace flatbuffers {
+
+// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
+template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(const T &t) {
+  return !!t;
+}
+
+// @locale-independent functions for ASCII characters set.
+
+// Check that integer scalar is in closed range: (a <= x <= b)
+// using one compare (conditional branch) operator.
+template<typename T> inline bool check_in_range(T x, T a, T b) {
+  // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
+  FLATBUFFERS_ASSERT(a <= b);  // static_assert only if 'a' & 'b' templated
+  typedef typename flatbuffers::make_unsigned<T>::type U;
+  return (static_cast<U>(x - a) <= static_cast<U>(b - a));
+}
+
+// Case-insensitive isalpha
+static inline bool is_alpha(char c) {
+  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
+  return check_in_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
+}
+
+// Check (case-insensitive) that `c` is equal to alpha.
+static inline bool is_alpha_char(char c, char alpha) {
+  FLATBUFFERS_ASSERT(is_alpha(alpha));
+  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
+  return ((c & 0xDF) == (alpha & 0xDF));
+}
+
+// https://en.cppreference.com/w/cpp/string/byte/isxdigit
+// isdigit and isxdigit are the only standard narrow character classification
+// functions that are not affected by the currently installed C locale. although
+// some implementations (e.g. Microsoft in 1252 codepage) may classify
+// additional single-byte characters as digits.
+static inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
+
+static inline bool is_xdigit(char c) {
+  // Replace by look-up table.
+  return is_digit(c) | check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
+}
+
+// Case-insensitive isalnum
+static inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
+
+// @end-locale-independent functions for ASCII character set
 
 #ifdef FLATBUFFERS_PREFER_PRINTF
 template<typename T> size_t IntToDigitCount(T t) {
@@ -158,6 +204,7 @@ template<> inline std::string NumToString<float>(float t) {
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
 inline std::string IntToStringHex(int i, int xdigits) {
+  FLATBUFFERS_ASSERT(i >= 0);
   // clang-format off
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
@@ -170,28 +217,178 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-// Portable implementation of strtoll().
-inline int64_t StringToInt(const char *str, char **endptr = nullptr,
-                           int base = 10) {
+static inline double strtod_impl(const char *str, char **str_end) {
+  // Result of strtod (printf, etc) depends from current C-locale.
+  return strtod(str, str_end);
+}
+
+static inline float strtof_impl(const char *str, char **str_end) {
+  // Use "strtof" for float and strtod for double to avoid double=>float
+  // rounding problems (see
+  // https://en.cppreference.com/w/cpp/numeric/fenv/feround) or problems with
+  // std::numeric_limits<float>::is_iec559==false. Example:
+  //  for (int mode : { FE_DOWNWARD, FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD }){
+  //    const char *s = "-4e38";
+  //    std::fesetround(mode);
+  //    std::cout << strtof(s, nullptr) << "; " << strtod(s, nullptr) << "; "
+  //              << static_cast<float>(strtod(s, nullptr)) << "\n";
+  //  }
+  // Gives:
+  //  -inf; -4e+38; -inf
+  //  -inf; -4e+38; -inf
+  //  -inf; -4e+38; -3.40282e+38
+  //  -inf; -4e+38; -3.40282e+38
+
   // clang-format off
-  #ifdef _MSC_VER
-    return _strtoi64(str, endptr, base);
+  #ifdef FLATBUFFERS_HAS_NEW_STRTOD
+    return strtof(str, str_end);
   #else
-    return strtoll(str, endptr, base);
-  #endif
+    return static_cast<float>(strtod_impl(str, str_end));
+  #endif // !FLATBUFFERS_HAS_NEW_STRTOD
   // clang-format on
 }
 
-// Portable implementation of strtoull().
-inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
+// Adaptor for strtoull()/strtoll().
+// Flatbuffers accepts numbers with any count of leading zeros (-009 is -9),
+// while strtoll with base=0 interprets first leading zero as octal prefix.
+// In future, it is possible to add prefixed 0b0101.
+// 1) Checks errno code for overflow condition (out of range).
+// 2) If base <= 0, function try to detect base of number by prefix.
+//
+// Return value (like strtoull and strtoll, but reject partial result):
+// - If successful, an integer value corresponding to the str is returned.
+// - If full string conversion can't be performed, ​0​ is returned.
+// - If the converted value falls out of range of corresponding return type, a
+// range error occurs. In this case value MAX(T)/MIN(T) is returned.
+template<typename T>
+inline T StringToInteger64Impl(const char *const str, const char **endptr,
+                               const int base, const bool check_errno = true) {
+  static_assert(flatbuffers::is_same<T, int64_t>::value ||
+                flatbuffers::is_same<T, uint64_t>::value,
+                "Type T must be either int64_t or uint64_t");
+  FLATBUFFERS_ASSERT(str && endptr);  // endptr must be not null
+  if (base <= 0) {
+    auto s = str;
+    while (*s && !is_digit(*s)) s++;
+    if (s[0] == '0' && is_alpha_char(s[1], 'X'))
+      return StringToInteger64Impl<T>(str, endptr, 16, check_errno);
+    // if a prefix not match, try base=10
+    return StringToInteger64Impl<T>(str, endptr, 10, check_errno);
+  } else {
+    if (check_errno) errno = 0;  // clear thread-local errno
+    // calculate result
+    T result;
+    if (IsConstTrue(flatbuffers::is_same<T, int64_t>::value)) {
+      // clang-format off
+      #ifdef _MSC_VER
+        result = _strtoi64(str, const_cast<char**>(endptr), base);
+      #else
+        result = strtoll(str, const_cast<char**>(endptr), base);
+      #endif
+      // clang-format on
+    } else {  // T is uint64_t
+      // clang-format off
+      #ifdef _MSC_VER
+        result = _strtoui64(str, const_cast<char**>(endptr), base);
+      #else
+        result = strtoull(str, const_cast<char**>(endptr), base);
+      #endif
+      // clang-format on
+
+      // The strtoull accepts negative numbers:
+      // If the minus sign was part of the input sequence, the numeric value
+      // calculated from the sequence of digits is negated as if by unary minus
+      // in the result type, which applies unsigned integer wraparound rules.
+      // Fix this behaviour (except -0).
+      if ((**endptr == '\0') && (0 != result)) {
+        auto s = str;
+        while (*s && !is_digit(*s)) s++;
+        s = (s > str) ? (s - 1) : s;  // step back to one symbol
+        if (*s == '-') {
+          // For unsigned types return max to distinguish from
+          // "no conversion can be performed".
+          result = flatbuffers::numeric_limits<T>::max();
+          // point to the start of string, like errno
+          *endptr = str;
+        }
+      }
+    }
+    // check for overflow
+    if (check_errno && errno) *endptr = str; // point it to start of input
+    // erase partial result, but save an overflow
+    if ((*endptr != str) && (**endptr != '\0')) result = 0;
+    return result;
+  }
+}
+
+// Convert a string to an instance of T.
+// Return value (matched with StringToInteger64Impl and strtod):
+// - If successful, a numeric value corresponding to the str is returned.
+// - If full string conversion can't be performed, ​0​ is returned.
+// - If the converted value falls out of range of corresponding return type, a
+// range error occurs. In this case value MAX(T)/MIN(T) is returned.
+template<typename T> inline bool StringToNumber(const char *s, T *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  const char *end = nullptr;
+  // The errno check isn't needed. strtoll will return MAX/MIN on overlow.
+  const int64_t i = StringToInteger64Impl<int64_t>(s, &end, -1, false);
+  *val = static_cast<T>(i);
+  const auto done = (s != end) && (*end == '\0');
+  if (done) {
+    const int64_t max = flatbuffers::numeric_limits<T>::max();
+    const int64_t min = flatbuffers::numeric_limits<T>::lowest();
+    if (i > max) {
+      *val = static_cast<T>(max);
+      return false;
+    }
+    if (i < min) {
+      // For unsigned types return max to distinguish from
+      // "no conversion can be performed" when 0 is returned.
+      *val = static_cast<T>(flatbuffers::is_unsigned<T>::value ? max : min);
+      return false;
+    }
+  }
+  return done;
+}
+template<> inline bool StringToNumber<int64_t>(const char *s, int64_t *val) {
+  const char *end = s;  // request errno checking
+  *val = StringToInteger64Impl<int64_t>(s, &end, -1);
+  return (s != end) && (*end == '\0');
+}
+template<> inline bool StringToNumber<uint64_t>(const char *s, uint64_t *val) {
+  const char *end = s;  // request errno checking
+  *val = StringToInteger64Impl<uint64_t>(s, &end, -1);
+  return (s != end) && (*end == '\0');
+}
+
+template<> inline bool StringToNumber<double>(const char *s, double *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  char *end = nullptr;
+  *val = strtod_impl(s, &end);
+  auto done = (s != end) && (*end == '\0');
+  if (!done) *val = 0;  // erase partial result
+  return done;
+}
+
+template<> inline bool StringToNumber<float>(const char *s, float *val) {
+  FLATBUFFERS_ASSERT(s && val);
+  char *end = nullptr;
+  *val = strtof_impl(s, &end);
+  auto done = (s != end) && (*end == '\0');
+  if (!done) *val = 0;  // erase partial result
+  return done;
+}
+
+inline int64_t StringToInt(const char *str, const char **endptr = nullptr,
+                           int base = 10) {
+  const char *ep = nullptr;
+  return StringToInteger64Impl<int64_t>(str, endptr ? endptr : &ep, base);
+}
+
+inline uint64_t StringToUInt(const char *str, const char **endptr = nullptr,
                              int base = 10) {
-  // clang-format off
-  #ifdef _MSC_VER
-    return _strtoui64(str, endptr, base);
-  #else
-    return strtoull(str, endptr, base);
-  #endif
-  // clang-format on
+  const char *ep = nullptr;
+  return StringToInteger64Impl<uint64_t>(str, endptr ? endptr : &ep, base);
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,

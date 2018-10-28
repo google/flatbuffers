@@ -97,7 +97,7 @@ func (rcv *Monster) InventoryBytes() []byte {
 	return nil
 }
 
-func (rcv *Monster) Color() int8 {
+func (rcv *Monster) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -105,7 +105,7 @@ func (rcv *Monster) Color() int8 {
 	return 8
 }
 
-func (rcv *Monster) MutateColor(n int8) bool {
+func (rcv *Monster) MutateColor(n Color) bool {
 	return rcv._tab.MutateInt8Slot(16, n)
 }
 
@@ -241,16 +241,16 @@ func (rcv *Monster) Testempty(obj *Stat) *Stat {
 	return nil
 }
 
-func (rcv *Monster) Testbool() byte {
+func (rcv *Monster) Testbool() bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(34))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
 	}
-	return 0
+	return false
 }
 
-func (rcv *Monster) MutateTestbool(n byte) bool {
-	return rcv._tab.MutateByteSlot(34, n)
+func (rcv *Monster) MutateTestbool(n bool) bool {
+	return rcv._tab.MutateBoolSlot(34, n)
 }
 
 func (rcv *Monster) Testhashs32Fnv1() int32 {
@@ -349,13 +349,13 @@ func (rcv *Monster) MutateTesthashu64Fnv1a(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(50, n)
 }
 
-func (rcv *Monster) Testarrayofbools(j int) byte {
+func (rcv *Monster) Testarrayofbools(j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
+		return rcv._tab.GetBool(a + flatbuffers.UOffsetT(j*1))
 	}
-	return 0
+	return false
 }
 
 func (rcv *Monster) TestarrayofboolsLength() int {
@@ -716,8 +716,8 @@ func MonsterStartTestnestedflatbufferVector(builder *flatbuffers.Builder, numEle
 func MonsterAddTestempty(builder *flatbuffers.Builder, testempty flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(14, flatbuffers.UOffsetT(testempty), 0)
 }
-func MonsterAddTestbool(builder *flatbuffers.Builder, testbool byte) {
-	builder.PrependByteSlot(15, testbool, 0)
+func MonsterAddTestbool(builder *flatbuffers.Builder, testbool bool) {
+	builder.PrependBoolSlot(15, testbool, false)
 }
 func MonsterAddTesthashs32Fnv1(builder *flatbuffers.Builder, testhashs32Fnv1 int32) {
 	builder.PrependInt32Slot(16, testhashs32Fnv1, 0)

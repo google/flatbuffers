@@ -122,6 +122,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
+  if (e < Color_Red || e > Color_Blue) return "";
   const size_t index = static_cast<int>(e) - static_cast<int>(Color_Red);
   return EnumNamesColor()[index];
 }
@@ -157,6 +158,7 @@ inline const char * const *EnumNamesAny() {
 }
 
 inline const char *EnumNameAny(Any e) {
+  if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesAny()[index];
 }
@@ -537,7 +539,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COLOR = 4
   };
   Color color() const {
@@ -607,7 +609,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_VAL = 6,
     VT_COUNT = 8
@@ -711,7 +713,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4
   };
   uint64_t id() const {
@@ -802,9 +804,9 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_referrables;
   ReferrableT *single_weak_reference;
   std::vector<ReferrableT *> vector_of_weak_references;
-  std::vector<std::unique_ptr<ReferrableT>> vector_of_strong_referrables;
+  std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_strong_referrables;
   ReferrableT *co_owning_reference;
-  std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references;
+  std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references;
   ReferrableT *non_owning_reference;
   std::vector<ReferrableT *> vector_of_non_owning_references;
   MonsterT()
@@ -880,7 +882,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POS = 4,
     VT_MANA = 6,
     VT_HP = 8,
@@ -1663,7 +1665,7 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_I8 = 4,
     VT_U8 = 6,
     VT_I16 = 8,
@@ -2072,10 +2074,10 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), s
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; };
   { auto _e = vector_of_weak_references(); if (_e) { _o->vector_of_weak_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_weak_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_weak_references[_i] = nullptr; } } };
-  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = std::unique_ptr<ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } };
+  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = flatbuffers::unique_ptr<ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } };
   { auto _e = co_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->co_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->co_owning_reference = nullptr; };
-  { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, std::unique_ptr
+  { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, default_ptr_type
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_co_owning_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i)));/* else do nothing */; } } };
   { auto _e = non_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->non_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->non_owning_reference = nullptr; };
@@ -2358,7 +2360,7 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
   static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
   };
-  static const int32_t values[] = { 1, 2, 8 };
+  static const int64_t values[] = { 1, 2, 8 };
   static const char * const names[] = {
     "Red",
     "Green",
@@ -2421,7 +2423,7 @@ inline const flatbuffers::TypeTable *TestTypeTable() {
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_CHAR, 0, -1 }
   };
-  static const int32_t values[] = { 0, 2, 4 };
+  static const int64_t values[] = { 0, 2, 4 };
   static const char * const names[] = {
     "a",
     "b"
@@ -2461,7 +2463,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     ColorTypeTable,
     TestTypeTable
   };
-  static const int32_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
+  static const int64_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
   static const char * const names[] = {
     "x",
     "y",
@@ -2481,7 +2483,7 @@ inline const flatbuffers::TypeTable *AbilityTypeTable() {
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8 };
+  static const int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "id",
     "distance"

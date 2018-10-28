@@ -56,6 +56,7 @@
       name: "Wilma"
     }
   ],
+  testbool: true,
   testhashs32_fnv1: -579221183,
   testhashu32_fnv1: 3715746113,
   testhashs64_fnv1: 7930699090847568257,

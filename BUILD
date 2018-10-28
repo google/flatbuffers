@@ -104,6 +104,18 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "runtime_cc",
+    hdrs = [
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
+    ],
+    includes = ["include/"],
+    linkstatic = 1,
+)
+
 # Test binary.
 cc_test(
     name = "flatbuffers_test",
@@ -143,6 +155,7 @@ cc_test(
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
         ":tests/union_vector/union_vector.fbs",
+        ":tests/unicode_test.json",
     ],
     includes = ["include/"],
 )

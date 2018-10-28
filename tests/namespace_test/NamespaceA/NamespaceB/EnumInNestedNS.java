@@ -2,6 +2,8 @@
 
 package NamespaceA.NamespaceB;
 
+
+@javax.annotation.Generated(value="flatc")
 public final class EnumInNestedNS {
   private EnumInNestedNS() { }
   public static final byte A = 0;

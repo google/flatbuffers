@@ -2,6 +2,8 @@
 
 package MyGame.Example;
 
+
+@javax.annotation.Generated(value="flatc")
 public final class Any {
   private Any() { }
   public static final byte NONE = 0;

@@ -145,7 +145,7 @@ class CppGenerator : public BaseGenerator {
     std::string guard = file_name_;
     // Remove any non-alpha-numeric characters that may appear in a filename.
     struct IsAlnum {
-      bool operator()(char c) const { return !isalnum(c); }
+      bool operator()(char c) const { return !is_alnum(c); }
     };
     guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
                 guard.end());
@@ -578,7 +578,8 @@ class CppGenerator : public BaseGenerator {
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
     if (ptr_type != "naked") {
-      return ptr_type + "<" + type + ">";
+      return (ptr_type != "default_ptr_type" ? ptr_type :
+              parser_.opts.cpp_object_api_pointer_type) + "<" + type + ">";
     } else if (is_constructor) {
       return "";
     } else {
@@ -862,7 +863,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  };";
     }
     if (!vs.empty()) {
-      code_ += "  static const int32_t values[] = { {{VALUES}} };";
+      code_ += "  static const int64_t values[] = { {{VALUES}} };";
     }
     auto has_names =
         num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
@@ -989,6 +990,10 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
+
+      code_ += "  if (e < " + GetEnumValUse(enum_def, *enum_def.vals.vec.front()) +
+               " || e > " + GetEnumValUse(enum_def, *enum_def.vals.vec.back()) +
+               ") return \"\";";
 
       code_ += "  const size_t index = static_cast<int>(e)\\";
       if (enum_def.vals.vec.front()->value) {
@@ -1705,7 +1710,7 @@ class CppGenerator : public BaseGenerator {
       // We need to add a trailing comma to all elements except the last one as
       // older versions of gcc complain about this.
       code_.SetValue("SEP", "");
-      code_ += "  enum {";
+      code_ += "  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
@@ -2158,9 +2163,11 @@ class CppGenerator : public BaseGenerator {
         auto cpp_type = field.attributes.Lookup("cpp_type");
         std::string indexing;
         if (field.value.type.enum_def) {
-          indexing += "(" + WrapInNameSpace(*field.value.type.enum_def) + ")";
+          indexing += "static_cast<" +
+                      WrapInNameSpace(*field.value.type.enum_def) + ">(";
         }
         indexing += "_e->Get(_i)";
+        if (field.value.type.enum_def) { indexing += ")"; }
         if (field.value.type.element == BASE_TYPE_BOOL) { indexing += " != 0"; }
 
         // Generate code that pushes data from _e to _o in the form:

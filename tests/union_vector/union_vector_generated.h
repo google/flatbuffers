@@ -69,6 +69,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
+  if (e < Character_NONE || e > Character_Unused) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesCharacter()[index];
 }
@@ -250,7 +251,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
   int32_t sword_attack_damage() const {
@@ -316,7 +317,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MAIN_CHARACTER_TYPE = 4,
     VT_MAIN_CHARACTER = 6,
     VT_CHARACTERS_TYPE = 8,
@@ -476,7 +477,7 @@ inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *
   (void)_resolver;
   { auto _e = main_character_type(); _o->main_character.type = _e; };
   { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); };
-  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = (Character)_e->Get(_i); } } };
+  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } };
   { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } };
 }
 
@@ -718,7 +719,7 @@ inline const flatbuffers::TypeTable *RapunzelTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "hair_length"
   };
@@ -732,7 +733,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "books_read"
   };
