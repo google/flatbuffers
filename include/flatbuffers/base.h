@@ -195,6 +195,15 @@
   #endif
 #endif // !FLATBUFFERS_HAS_NEW_STRTOD
 
+// Suppress sanitizer directives.
+#if defined(__clang__)
+  #define __no_sanitize_undefined__(reason) __attribute__((no_sanitize("undefined")))
+#elif defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 408)
+  #define __no_sanitize_undefined__(reason) __attribute__((no_sanitize_undefined))
+#else
+  #define __no_sanitize_undefined__(reason)
+#endif
+
 /// @endcond
 
 /// @file
@@ -277,11 +286,15 @@ template<typename T> T EndianScalar(T t) {
   #endif
 }
 
-template<typename T> T ReadScalar(const void *p) {
+template<typename T>
+__no_sanitize_undefined__("C++ aliasing type rules, see std::bit_cast<>")
+T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
 
-template<typename T> void WriteScalar(void *p, T t) {
+template<typename T>
+__no_sanitize_undefined__("C++ aliasing type rules, see std::bit_cast<>")
+void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 

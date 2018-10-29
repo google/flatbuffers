@@ -1346,8 +1346,15 @@ void EnumNamesTest() {
   TEST_EQ_STR("Red", EnumNameColor(Color_Red));
   TEST_EQ_STR("Green", EnumNameColor(Color_Green));
   TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
-  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(-1)));
-  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(1000)));
+  // Check that Color to string don't crash while decode a mixture of Colors.
+  // 1) Example::Color enum is enum with unfixed underlying type.
+  // 2) Valid enum range: [0; 2^(ceil(log2(Color_ANY))) - 1].
+  // Consequence: A value is out of this range will lead to UB (since C++17).
+  // For details see C++17 standard or explanation on the SO:
+  // stackoverflow.com/questions/18195312/what-happens-if-you-static-cast-invalid-value-to-enum-class
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(0)));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY-1)));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY+1)));
 }
 
 void EnumOutOfRangeTest() {
