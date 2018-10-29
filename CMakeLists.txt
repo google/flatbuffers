@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
+# generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(FlatBuffers)
 
@@ -16,6 +18,10 @@ option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
        OFF)
 option(FLATBUFFERS_LIBCXX_WITH_CLANG "Force libc++ when using Clang" ON)
+# NOTE: Sanitizer check only works on Linux & OSX (gcc & llvm).
+option(FLATBUFFERS_CODE_SANITIZE 
+      "Add '-fsanitize' flags to 'flattests' and 'flatc' targets."
+      OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -190,6 +196,26 @@ if(FLATBUFFERS_CODE_COVERAGE)
       "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
+function(add_fsanitize_to_target _target _sanitizer)
+  # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
+  # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
+  if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
+    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8"))
+  )
+    set(_sanitizer_flags "=address,undefined")
+    if(_sanitizer MATCHES "=.*")
+      # override default by user-defined sanitizer list
+      set(_sanitizer_flags ${_sanitizer})
+    endif()
+    target_compile_options(${_target} PRIVATE 
+      -g -fsigned-char -fno-omit-frame-pointer
+      "-fsanitize${_sanitizer_flags}")
+    target_link_libraries(${_target} PRIVATE
+      "-fsanitize${_sanitizer_flags}")
+    set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+  endif()
+endfunction()
+
 if(BIICODE)
   include(biicode/cmake/biicode.cmake)
   return()
@@ -209,6 +235,9 @@ endif()
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  if(FLATBUFFERS_CODE_SANITIZE)
+    add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
+  endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
   endif()
@@ -264,7 +293,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
-  target_compile_options(flattests PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  if(FLATBUFFERS_CODE_SANITIZE)
+    add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
+  endif()
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
