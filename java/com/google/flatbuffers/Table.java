@@ -248,6 +248,7 @@ public class Table {
    * @param o1 An 'Integer' index of the first key into the bb.
    * @param o2 An 'Integer' index of the second key into the bb.
    * @param bb A {@code ByteBuffer} to get the keys.
+   * @return 0
    */
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) { return 0; }
 
@@ -257,6 +258,7 @@ public class Table {
    * @param offset_1 An 'int' index of the first string into the bb.
    * @param offset_2 An 'int' index of the second string into the bb.
    * @param bb A {@code ByteBuffer} to get the strings.
+   * @return negative, zero, or positive, per {@link Comparable#compareTo(Object) standard Java compareTo}.
    */
   protected static int compareStrings(int offset_1, int offset_2, ByteBuffer bb) {
     offset_1 += bb.getInt(offset_1);
@@ -279,6 +281,7 @@ public class Table {
    * @param offset_1 An 'int' index of the first string into the bb.
    * @param key Second string as a byte array.
    * @param bb A {@code ByteBuffer} to get the first string.
+   * @return negative, zero, or positive, per {@link Comparable#compareTo(Object) standard Java compareTo}.
    */
   protected static int compareStrings(int offset_1, byte[] key, ByteBuffer bb) {
     offset_1 += bb.getInt(offset_1);
