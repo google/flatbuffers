@@ -656,8 +656,50 @@ func (rcv *Monster) VectorOfNonOwningReferencesLength() int {
 	return 0
 }
 
+func (rcv *Monster) AnyUniqueType() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(90))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateAnyUniqueType(n byte) bool {
+	return rcv._tab.MutateByteSlot(90, n)
+}
+
+func (rcv *Monster) AnyUnique(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(92))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) AnyAmbiguousType() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(94))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateAnyAmbiguousType(n byte) bool {
+	return rcv._tab.MutateByteSlot(94, n)
+}
+
+func (rcv *Monster) AnyAmbiguous(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(96))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(43)
+	builder.StartObject(47)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -835,6 +877,18 @@ func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorO
 }
 func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType byte) {
+	builder.PrependByteSlot(43, anyUniqueType, 0)
+}
+func MonsterAddAnyUnique(builder *flatbuffers.Builder, anyUnique flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(44, flatbuffers.UOffsetT(anyUnique), 0)
+}
+func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType byte) {
+	builder.PrependByteSlot(45, anyAmbiguousType, 0)
+}
+func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
