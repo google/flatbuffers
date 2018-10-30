@@ -16,6 +16,7 @@
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
       "properties" : {
+        "a" : { "type" : "number" }
       },
       "additionalProperties" : false
     },

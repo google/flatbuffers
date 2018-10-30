@@ -8,8 +8,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import 'include_test1_my_game.example_generated.dart';
 import 'include_test2_my_game.example_generated.dart';
-import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 import './monster_test_my_game_generated.dart' as my_game;
+import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
 class Color {
   final int value;
