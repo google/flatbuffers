@@ -46,12 +46,14 @@ bool release_n_verify(flatbuffers::grpc::MessageBuilder &mbb, const std::string 
 // clang-format off
 #if !defined(FLATBUFFERS_CPP98_STL)
 // clang-format on
+// Invokes this function when testing the following Builder types
+// FlatBufferBuilder, TestHeapBuilder, and GrpcLikeMessageBuilder
 template <class Builder>
 void builder_move_assign_after_releaseraw_test(Builder b1) {
   auto root_offset1 = populate1(b1);
   b1.Finish(root_offset1);
   size_t size, offset;
-  b1.ReleaseRaw(size, offset);
+  uint8_t *raw = b1.ReleaseRaw(size, offset);
   Builder src;
   auto root_offset2 = populate2(src);
   src.Finish(root_offset2);
@@ -61,6 +63,7 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
   TEST_EQ_FUNC(b1.GetSize(), src_size);
   TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
   TEST_EQ_FUNC(src.GetSize(), 0);
+  flatbuffers::DefaultAllocator::dealloc(raw, size);
 }
 // clang-format off
 #endif  // !defined(FLATBUFFERS_CPP98_STL)
