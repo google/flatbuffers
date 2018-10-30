@@ -1230,6 +1230,7 @@ void ErrorTest() {
   TestError("enum X:byte (bit_flags) { Y=8 }", "bit flag out");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
+  TestError("struct X {}", "size 0");
   TestError("{}", "no root");
   TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "end of file");
   TestError("table X { Y:byte; } root_type X; { Y:1 } table Y{ Z:int }",

@@ -1778,21 +1778,24 @@ CheckedError Parser::ParseDecl() {
   EXPECT('{');
   while (token_ != '}') ECHECK(ParseField(*struct_def));
   auto force_align = struct_def->attributes.Lookup("force_align");
-  if (fixed && force_align) {
-    auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
-    if (force_align->type.base_type != BASE_TYPE_INT ||
-        align < struct_def->minalign || align > FLATBUFFERS_MAX_ALIGNMENT ||
-        align & (align - 1))
-      return Error(
-          "force_align must be a power of two integer ranging from the"
-          "struct\'s natural alignment to " +
-          NumToString(FLATBUFFERS_MAX_ALIGNMENT));
-    struct_def->minalign = align;
+  if (fixed) {
+    if (force_align) {
+      auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
+      if (force_align->type.base_type != BASE_TYPE_INT ||
+          align < struct_def->minalign || align > FLATBUFFERS_MAX_ALIGNMENT ||
+          align & (align - 1))
+        return Error(
+            "force_align must be a power of two integer ranging from the"
+            "struct\'s natural alignment to " +
+            NumToString(FLATBUFFERS_MAX_ALIGNMENT));
+      struct_def->minalign = align;
+    }
+    if (!struct_def->bytesize) return Error("size 0 structs not allowed");
   }
   struct_def->PadLastField(struct_def->minalign);
   // Check if this is a table that has manual id assignments
   auto &fields = struct_def->fields.vec;
-  if (!struct_def->fixed && fields.size()) {
+  if (!fixed && fields.size()) {
     size_t num_id_fields = 0;
     for (auto it = fields.begin(); it != fields.end(); ++it) {
       if ((*it)->attributes.Lookup("id")) num_id_fields++;
