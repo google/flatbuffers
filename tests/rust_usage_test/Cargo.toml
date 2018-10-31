@@ -10,6 +10,10 @@ flatbuffers = { path = "../../rust/flatbuffers" }
 name = "monster_example"
 path = "bin/monster_example.rs"
 
+[[bin]]
+name = "alloc_check"
+path = "bin/alloc_check.rs"
+
 
 [dev-dependencies]
 quickcheck = "0.6"
