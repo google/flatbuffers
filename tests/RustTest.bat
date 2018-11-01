@@ -19,4 +19,5 @@ rem TODO(rw): how do we make this script abort the calling script in appveyor?
 
 cd rust_usage_test
 cargo test -- --quiet || exit /b 1
+cargo run --bin=alloc_check || exit /b 1
 cd ..

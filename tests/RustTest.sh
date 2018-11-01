@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 #
 # Copyright 2018 Google Inc. All rights reserved.
 #
@@ -22,6 +22,15 @@ if [[ $TEST_RESULT  == 0 ]]; then
     echo "OK: Rust tests passed."
 else
     echo "KO: Rust tests failed."
+    exit 1
+fi
+
+cargo run --bin=alloc_check
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust heap alloc test passed."
+else
+    echo "KO: Rust heap alloc test failed."
     exit 1
 fi
 
