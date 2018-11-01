@@ -525,7 +525,7 @@ class JsGenerator : public BaseGenerator {
 
   std::string GenPrefixedImport(const std::string &full_file_name,
                                 const std::string &base_name) {
-    // either keep the include path as it was
+    // Either keep the include path as it was
     // or use only the base_name + kGeneratedFileNamePostfix
     std::string path;
     if (parser_.opts.keep_include_path) {
@@ -537,13 +537,9 @@ class JsGenerator : public BaseGenerator {
       path = base_name + kGeneratedFileNamePostfix;
     }
 
-    // add the include prefix
+    // Add the include prefix and make the path always relative
     path = flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, path);
-
-    if (!flatbuffers::IsAbsPath(path)) {
-      // make it a strictly relative path
-      path = std::string(".") + kPathSeparator + path;
-    }
+    path = std::string(".") + kPathSeparator + path;
 
     return "import * as " + GenFileNamespacePrefix(full_file_name) +
            " from \"" + path + "\";\n";
