@@ -294,6 +294,140 @@ pub fn enum_name_any(e: Any) -> &'static str {
 }
 
 pub struct AnyUnionTableOffset {}
+#[allow(non_camel_case_types)]
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum AnyUniqueAliases {
+  NONE = 0,
+  M = 1,
+  T = 2,
+  M2 = 3,
+
+}
+
+const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+
+impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
+  type Inner = Self;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::read_scalar_at::<Self>(buf, loc)
+  }
+}
+
+impl flatbuffers::EndianScalar for AnyUniqueAliases {
+  #[inline]
+  fn to_little_endian(self) -> Self {
+    let n = u8::to_le(self as u8);
+    let p = &n as *const u8 as *const AnyUniqueAliases;
+    unsafe { *p }
+  }
+  #[inline]
+  fn from_little_endian(self) -> Self {
+    let n = u8::from_le(self as u8);
+    let p = &n as *const u8 as *const AnyUniqueAliases;
+    unsafe { *p }
+  }
+}
+
+impl flatbuffers::Push for AnyUniqueAliases {
+    type Output = AnyUniqueAliases;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<AnyUniqueAliases>(dst, *self);
+    }
+}
+
+#[allow(non_camel_case_types)]
+const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
+  AnyUniqueAliases::NONE,
+  AnyUniqueAliases::M,
+  AnyUniqueAliases::T,
+  AnyUniqueAliases::M2
+];
+
+#[allow(non_camel_case_types)]
+const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
+    "NONE",
+    "M",
+    "T",
+    "M2"
+];
+
+pub fn enum_name_any_unique_aliases(e: AnyUniqueAliases) -> &'static str {
+  let index: usize = e as usize;
+  ENUM_NAMES_ANY_UNIQUE_ALIASES[index]
+}
+
+pub struct AnyUniqueAliasesUnionTableOffset {}
+#[allow(non_camel_case_types)]
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum AnyAmbiguousAliases {
+  NONE = 0,
+  M1 = 1,
+  M2 = 2,
+  M3 = 3,
+
+}
+
+const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+
+impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
+  type Inner = Self;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::read_scalar_at::<Self>(buf, loc)
+  }
+}
+
+impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
+  #[inline]
+  fn to_little_endian(self) -> Self {
+    let n = u8::to_le(self as u8);
+    let p = &n as *const u8 as *const AnyAmbiguousAliases;
+    unsafe { *p }
+  }
+  #[inline]
+  fn from_little_endian(self) -> Self {
+    let n = u8::from_le(self as u8);
+    let p = &n as *const u8 as *const AnyAmbiguousAliases;
+    unsafe { *p }
+  }
+}
+
+impl flatbuffers::Push for AnyAmbiguousAliases {
+    type Output = AnyAmbiguousAliases;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<AnyAmbiguousAliases>(dst, *self);
+    }
+}
+
+#[allow(non_camel_case_types)]
+const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
+  AnyAmbiguousAliases::NONE,
+  AnyAmbiguousAliases::M1,
+  AnyAmbiguousAliases::M2,
+  AnyAmbiguousAliases::M3
+];
+
+#[allow(non_camel_case_types)]
+const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
+    "NONE",
+    "M1",
+    "M2",
+    "M3"
+];
+
+pub fn enum_name_any_ambiguous_aliases(e: AnyAmbiguousAliases) -> &'static str {
+  let index: usize = e as usize;
+  ENUM_NAMES_ANY_AMBIGUOUS_ALIASES[index]
+}
+
+pub struct AnyAmbiguousAliasesUnionTableOffset {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -814,6 +948,8 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
+      if let Some(x) = args.any_unique { builder.add_any_unique(x); }
       if let Some(x) = args.vector_of_non_owning_references { builder.add_vector_of_non_owning_references(x); }
       if let Some(x) = args.vector_of_co_owning_references { builder.add_vector_of_co_owning_references(x); }
       if let Some(x) = args.vector_of_strong_referrables { builder.add_vector_of_strong_referrables(x); }
@@ -846,6 +982,8 @@ impl<'a> Monster<'a> {
       if let Some(x) = args.pos { builder.add_pos(x); }
       builder.add_hp(args.hp);
       builder.add_mana(args.mana);
+      builder.add_any_ambiguous_type(args.any_ambiguous_type);
+      builder.add_any_unique_type(args.any_unique_type);
       builder.add_testbool(args.testbool);
       builder.add_test_type(args.test_type);
       builder.add_color(args.color);
@@ -894,6 +1032,10 @@ impl<'a> Monster<'a> {
     pub const VT_VECTOR_OF_CO_OWNING_REFERENCES: flatbuffers::VOffsetT = 84;
     pub const VT_NON_OWNING_REFERENCE: flatbuffers::VOffsetT = 86;
     pub const VT_VECTOR_OF_NON_OWNING_REFERENCES: flatbuffers::VOffsetT = 88;
+    pub const VT_ANY_UNIQUE_TYPE: flatbuffers::VOffsetT = 90;
+    pub const VT_ANY_UNIQUE: flatbuffers::VOffsetT = 92;
+    pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
+    pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1085,6 +1227,22 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, None)
   }
   #[inline]
+  pub fn any_unique_type(&self) -> AnyUniqueAliases {
+    self._tab.get::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(AnyUniqueAliases::NONE)).unwrap()
+  }
+  #[inline]
+  pub fn any_unique(&self) -> Option<flatbuffers::Table<'a>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_UNIQUE, None)
+  }
+  #[inline]
+  pub fn any_ambiguous_type(&self) -> AnyAmbiguousAliases {
+    self._tab.get::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(AnyAmbiguousAliases::NONE)).unwrap()
+  }
+  #[inline]
+  pub fn any_ambiguous(&self) -> Option<flatbuffers::Table<'a>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_AMBIGUOUS, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&'a self) -> Option<Monster> {
     if self.test_type() == Any::Monster {
@@ -1109,6 +1267,66 @@ impl<'a> Monster<'a> {
   pub fn test_as_my_game_example_2_monster(&'a self) -> Option<super::example_2::Monster> {
     if self.test_type() == Any::MyGame_Example2_Monster {
       self.test().map(|u| super::example_2::Monster::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_unique_as_m(&'a self) -> Option<Monster> {
+    if self.any_unique_type() == AnyUniqueAliases::M {
+      self.any_unique().map(|u| Monster::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_unique_as_t(&'a self) -> Option<TestSimpleTableWithEnum> {
+    if self.any_unique_type() == AnyUniqueAliases::T {
+      self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_unique_as_m2(&'a self) -> Option<super::example_2::Monster> {
+    if self.any_unique_type() == AnyUniqueAliases::M2 {
+      self.any_unique().map(|u| super::example_2::Monster::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_ambiguous_as_m1(&'a self) -> Option<Monster> {
+    if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
+      self.any_ambiguous().map(|u| Monster::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_ambiguous_as_m2(&'a self) -> Option<Monster> {
+    if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
+      self.any_ambiguous().map(|u| Monster::init_from_table(u))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_ambiguous_as_m3(&'a self) -> Option<Monster> {
+    if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
+      self.any_ambiguous().map(|u| Monster::init_from_table(u))
     } else {
       None
     }
@@ -1159,6 +1377,10 @@ pub struct MonsterArgs<'a> {
     pub vector_of_co_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
     pub non_owning_reference: u64,
     pub vector_of_non_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
+    pub any_unique_type: AnyUniqueAliases,
+    pub any_unique: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
+    pub any_ambiguous_type: AnyAmbiguousAliases,
+    pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1206,6 +1428,10 @@ impl<'a> Default for MonsterArgs<'a> {
             vector_of_co_owning_references: None,
             non_owning_reference: 0,
             vector_of_non_owning_references: None,
+            any_unique_type: AnyUniqueAliases::NONE,
+            any_unique: None,
+            any_ambiguous_type: AnyAmbiguousAliases::NONE,
+            any_ambiguous: None,
         }
     }
 }
@@ -1381,6 +1607,22 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
   pub fn add_vector_of_non_owning_references(&mut self, vector_of_non_owning_references: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u64>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, vector_of_non_owning_references);
+  }
+  #[inline]
+  pub fn add_any_unique_type(&mut self, any_unique_type: AnyUniqueAliases) {
+    self.fbb_.push_slot::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, any_unique_type, AnyUniqueAliases::NONE);
+  }
+  #[inline]
+  pub fn add_any_unique(&mut self, any_unique: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_ANY_UNIQUE, any_unique);
+  }
+  #[inline]
+  pub fn add_any_ambiguous_type(&mut self, any_ambiguous_type: AnyAmbiguousAliases) {
+    self.fbb_.push_slot::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, any_ambiguous_type, AnyAmbiguousAliases::NONE);
+  }
+  #[inline]
+  pub fn add_any_ambiguous(&mut self, any_ambiguous: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {

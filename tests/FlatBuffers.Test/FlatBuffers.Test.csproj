@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -64,6 +64,12 @@
     </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\AnyAmbiguousAliases.cs">
+      <Link>MyGame\Example\AnyAmbiguousAliases.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\AnyUniqueAliases.cs">
+      <Link>MyGame\Example\AnyUniqueAliases.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\Color.cs">
       <Link>MyGame\Example\Color.cs</Link>

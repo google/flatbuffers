@@ -22,6 +22,28 @@ export enum Any{
 }};
 
 /**
+ * @enum
+ */
+export namespace MyGame.Example{
+export enum AnyUniqueAliases{
+  NONE= 0,
+  M= 1,
+  T= 2,
+  M2= 3
+}};
+
+/**
+ * @enum
+ */
+export namespace MyGame.Example{
+export enum AnyAmbiguousAliases{
+  NONE= 0,
+  M1= 1,
+  M2= 2,
+  M3= 3
+}};
+
+/**
  * @constructor
  */
 export namespace MyGame{
@@ -1594,10 +1616,74 @@ vectorOfNonOwningReferencesLength():number {
 };
 
 /**
+ * @returns MyGame.Example.AnyUniqueAliases
+ */
+anyUniqueType():MyGame.Example.AnyUniqueAliases {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyUniqueAliases.NONE;
+};
+
+/**
+ * @param MyGame.Example.AnyUniqueAliases value
+ * @returns boolean
+ */
+mutate_any_unique_type(value:MyGame.Example.AnyUniqueAliases):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
+ */
+anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
+  var offset = this.bb!.__offset(this.bb_pos, 92);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
+ * @returns MyGame.Example.AnyAmbiguousAliases
+ */
+anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
+  var offset = this.bb!.__offset(this.bb_pos, 94);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
+};
+
+/**
+ * @param MyGame.Example.AnyAmbiguousAliases value
+ * @returns boolean
+ */
+mutate_any_ambiguous_type(value:MyGame.Example.AnyAmbiguousAliases):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 94);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
+ */
+anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
+  var offset = this.bb!.__offset(this.bb_pos, 96);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(43);
+  builder.startObject(47);
 };
 
 /**
@@ -2252,6 +2338,38 @@ static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data
  */
 static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param MyGame.Example.AnyUniqueAliases anyUniqueType
+ */
+static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:MyGame.Example.AnyUniqueAliases) {
+  builder.addFieldInt8(43, anyUniqueType, MyGame.Example.AnyUniqueAliases.NONE);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset anyUniqueOffset
+ */
+static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(44, anyUniqueOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param MyGame.Example.AnyAmbiguousAliases anyAmbiguousType
+ */
+static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases) {
+  builder.addFieldInt8(45, anyAmbiguousType, MyGame.Example.AnyAmbiguousAliases.NONE);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset anyAmbiguousOffset
+ */
+static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(46, anyAmbiguousOffset, 0);
 };
 
 /**

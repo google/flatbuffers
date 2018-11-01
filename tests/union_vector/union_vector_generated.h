@@ -332,7 +332,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
   }
-  template<typename T> const T *main_character_as() const;
   const Attacker *main_character_as_MuLan() const {
     return main_character_type() == Character_MuLan ? static_cast<const Attacker *>(main_character()) : nullptr;
   }

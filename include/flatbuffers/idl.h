@@ -327,7 +327,7 @@ struct EnumVal {
 };
 
 struct EnumDef : public Definition {
-  EnumDef() : is_union(false), uses_type_aliases(false) {}
+  EnumDef() : is_union(false), uses_multiple_type_instances(false) {}
 
   EnumVal *ReverseLookup(int64_t enum_idx, bool skip_union_default = true) {
     for (auto it = vals.vec.begin() +
@@ -342,7 +342,9 @@ struct EnumDef : public Definition {
 
   SymbolTable<EnumVal> vals;
   bool is_union;
-  bool uses_type_aliases;
+  // Type is a union which uses type aliases where at least one type is
+  // available under two different names.
+  bool uses_multiple_type_instances;
   Type underlying_type;
 };
 
