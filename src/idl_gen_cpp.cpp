@@ -1025,7 +1025,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Generate type traits for unions to map from a type to union enum value.
-    if (enum_def.is_union && !enum_def.uses_type_aliases) {
+    if (enum_def.is_union && !enum_def.uses_multiple_type_instances) {
       for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
            ++it) {
         const auto &ev = **it;
@@ -1074,7 +1074,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
       code_ += "  void Reset();";
       code_ += "";
-      if (!enum_def.uses_type_aliases) {
+      if (!enum_def.uses_multiple_type_instances) {
         code_ += "#ifndef FLATBUFFERS_CPP98_STL";
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
@@ -1773,9 +1773,10 @@ class CppGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         auto u = field.value.type.enum_def;
 
-        code_ +=
-            "  template<typename T> "
-            "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
+        if (!field.value.type.enum_def->uses_multiple_type_instances)
+          code_ +=
+              "  template<typename T> "
+              "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
 
         for (auto u_it = u->vals.vec.begin(); u_it != u->vals.vec.end();
              ++u_it) {
@@ -1906,7 +1907,7 @@ class CppGenerator : public BaseGenerator {
       }
 
       auto u = field.value.type.enum_def;
-      if (u->uses_type_aliases) continue;
+      if (u->uses_multiple_type_instances) continue;
 
       code_.SetValue("FIELD_NAME", Name(field));
 

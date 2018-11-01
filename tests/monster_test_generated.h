@@ -263,6 +263,251 @@ inline bool operator==(const AnyUnion &lhs, const AnyUnion &rhs) {
 bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type);
 bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
+enum AnyUniqueAliases {
+  AnyUniqueAliases_NONE = 0,
+  AnyUniqueAliases_M = 1,
+  AnyUniqueAliases_T = 2,
+  AnyUniqueAliases_M2 = 3,
+  AnyUniqueAliases_MIN = AnyUniqueAliases_NONE,
+  AnyUniqueAliases_MAX = AnyUniqueAliases_M2
+};
+
+inline const AnyUniqueAliases (&EnumValuesAnyUniqueAliases())[4] {
+  static const AnyUniqueAliases values[] = {
+    AnyUniqueAliases_NONE,
+    AnyUniqueAliases_M,
+    AnyUniqueAliases_T,
+    AnyUniqueAliases_M2
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesAnyUniqueAliases() {
+  static const char * const names[] = {
+    "NONE",
+    "M",
+    "T",
+    "M2",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
+  if (e < AnyUniqueAliases_NONE || e > AnyUniqueAliases_M2) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesAnyUniqueAliases()[index];
+}
+
+template<typename T> struct AnyUniqueAliasesTraits {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_NONE;
+};
+
+template<> struct AnyUniqueAliasesTraits<Monster> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_M;
+};
+
+template<> struct AnyUniqueAliasesTraits<TestSimpleTableWithEnum> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_T;
+};
+
+template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_M2;
+};
+
+struct AnyUniqueAliasesUnion {
+  AnyUniqueAliases type;
+  void *value;
+
+  AnyUniqueAliasesUnion() : type(AnyUniqueAliases_NONE), value(nullptr) {}
+  AnyUniqueAliasesUnion(AnyUniqueAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
+    type(AnyUniqueAliases_NONE), value(nullptr)
+    { std::swap(type, u.type); std::swap(value, u.value); }
+  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &) FLATBUFFERS_NOEXCEPT;
+  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+    { AnyUniqueAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
+  AnyUniqueAliasesUnion &operator=(AnyUniqueAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
+  ~AnyUniqueAliasesUnion() { Reset(); }
+
+  void Reset();
+
+#ifndef FLATBUFFERS_CPP98_STL
+  template <typename T>
+  void Set(T&& val) {
+    Reset();
+    type = AnyUniqueAliasesTraits<typename T::TableType>::enum_value;
+    if (type != AnyUniqueAliases_NONE) {
+      value = new T(std::forward<T>(val));
+    }
+  }
+#endif  // FLATBUFFERS_CPP98_STL
+
+  static void *UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver);
+  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
+
+  MonsterT *AsM() {
+    return type == AnyUniqueAliases_M ?
+      reinterpret_cast<MonsterT *>(value) : nullptr;
+  }
+  const MonsterT *AsM() const {
+    return type == AnyUniqueAliases_M ?
+      reinterpret_cast<const MonsterT *>(value) : nullptr;
+  }
+  TestSimpleTableWithEnumT *AsT() {
+    return type == AnyUniqueAliases_T ?
+      reinterpret_cast<TestSimpleTableWithEnumT *>(value) : nullptr;
+  }
+  const TestSimpleTableWithEnumT *AsT() const {
+    return type == AnyUniqueAliases_T ?
+      reinterpret_cast<const TestSimpleTableWithEnumT *>(value) : nullptr;
+  }
+  MyGame::Example2::MonsterT *AsM2() {
+    return type == AnyUniqueAliases_M2 ?
+      reinterpret_cast<MyGame::Example2::MonsterT *>(value) : nullptr;
+  }
+  const MyGame::Example2::MonsterT *AsM2() const {
+    return type == AnyUniqueAliases_M2 ?
+      reinterpret_cast<const MyGame::Example2::MonsterT *>(value) : nullptr;
+  }
+};
+
+
+inline bool operator==(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case AnyUniqueAliases_NONE: {
+      return true;
+    }
+    case AnyUniqueAliases_M: {
+      return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MonsterT *>(rhs.value));
+    }
+    case AnyUniqueAliases_T: {
+      return *(reinterpret_cast<const TestSimpleTableWithEnumT *>(lhs.value)) ==
+             *(reinterpret_cast<const TestSimpleTableWithEnumT *>(rhs.value));
+    }
+    case AnyUniqueAliases_M2: {
+      return *(reinterpret_cast<const MyGame::Example2::MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MyGame::Example2::MonsterT *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
+bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type);
+bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
+enum AnyAmbiguousAliases {
+  AnyAmbiguousAliases_NONE = 0,
+  AnyAmbiguousAliases_M1 = 1,
+  AnyAmbiguousAliases_M2 = 2,
+  AnyAmbiguousAliases_M3 = 3,
+  AnyAmbiguousAliases_MIN = AnyAmbiguousAliases_NONE,
+  AnyAmbiguousAliases_MAX = AnyAmbiguousAliases_M3
+};
+
+inline const AnyAmbiguousAliases (&EnumValuesAnyAmbiguousAliases())[4] {
+  static const AnyAmbiguousAliases values[] = {
+    AnyAmbiguousAliases_NONE,
+    AnyAmbiguousAliases_M1,
+    AnyAmbiguousAliases_M2,
+    AnyAmbiguousAliases_M3
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesAnyAmbiguousAliases() {
+  static const char * const names[] = {
+    "NONE",
+    "M1",
+    "M2",
+    "M3",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
+  if (e < AnyAmbiguousAliases_NONE || e > AnyAmbiguousAliases_M3) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesAnyAmbiguousAliases()[index];
+}
+
+struct AnyAmbiguousAliasesUnion {
+  AnyAmbiguousAliases type;
+  void *value;
+
+  AnyAmbiguousAliasesUnion() : type(AnyAmbiguousAliases_NONE), value(nullptr) {}
+  AnyAmbiguousAliasesUnion(AnyAmbiguousAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
+    type(AnyAmbiguousAliases_NONE), value(nullptr)
+    { std::swap(type, u.type); std::swap(value, u.value); }
+  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &) FLATBUFFERS_NOEXCEPT;
+  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+    { AnyAmbiguousAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
+  AnyAmbiguousAliasesUnion &operator=(AnyAmbiguousAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
+  ~AnyAmbiguousAliasesUnion() { Reset(); }
+
+  void Reset();
+
+  static void *UnPack(const void *obj, AnyAmbiguousAliases type, const flatbuffers::resolver_function_t *resolver);
+  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
+
+  MonsterT *AsM1() {
+    return type == AnyAmbiguousAliases_M1 ?
+      reinterpret_cast<MonsterT *>(value) : nullptr;
+  }
+  const MonsterT *AsM1() const {
+    return type == AnyAmbiguousAliases_M1 ?
+      reinterpret_cast<const MonsterT *>(value) : nullptr;
+  }
+  MonsterT *AsM2() {
+    return type == AnyAmbiguousAliases_M2 ?
+      reinterpret_cast<MonsterT *>(value) : nullptr;
+  }
+  const MonsterT *AsM2() const {
+    return type == AnyAmbiguousAliases_M2 ?
+      reinterpret_cast<const MonsterT *>(value) : nullptr;
+  }
+  MonsterT *AsM3() {
+    return type == AnyAmbiguousAliases_M3 ?
+      reinterpret_cast<MonsterT *>(value) : nullptr;
+  }
+  const MonsterT *AsM3() const {
+    return type == AnyAmbiguousAliases_M3 ?
+      reinterpret_cast<const MonsterT *>(value) : nullptr;
+  }
+};
+
+
+inline bool operator==(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAliasesUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case AnyAmbiguousAliases_NONE: {
+      return true;
+    }
+    case AnyAmbiguousAliases_M1: {
+      return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MonsterT *>(rhs.value));
+    }
+    case AnyAmbiguousAliases_M2: {
+      return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MonsterT *>(rhs.value));
+    }
+    case AnyAmbiguousAliases_M3: {
+      return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MonsterT *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
+bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
+bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
   int16_t a_;
@@ -809,6 +1054,8 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references;
   ReferrableT *non_owning_reference;
   std::vector<ReferrableT *> vector_of_non_owning_references;
+  AnyUniqueAliasesUnion any_unique;
+  AnyAmbiguousAliasesUnion any_ambiguous;
   MonsterT()
       : mana(150),
         hp(100),
@@ -873,7 +1120,9 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.co_owning_reference == rhs.co_owning_reference) &&
       (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
       (lhs.non_owning_reference == rhs.non_owning_reference) &&
-      (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references);
+      (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references) &&
+      (lhs.any_unique == rhs.any_unique) &&
+      (lhs.any_ambiguous == rhs.any_ambiguous);
 }
 
 /// an example documentation comment: monster object
@@ -924,7 +1173,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_CO_OWNING_REFERENCE = 82,
     VT_VECTOR_OF_CO_OWNING_REFERENCES = 84,
     VT_NON_OWNING_REFERENCE = 86,
-    VT_VECTOR_OF_NON_OWNING_REFERENCES = 88
+    VT_VECTOR_OF_NON_OWNING_REFERENCES = 88,
+    VT_ANY_UNIQUE_TYPE = 90,
+    VT_ANY_UNIQUE = 92,
+    VT_ANY_AMBIGUOUS_TYPE = 94,
+    VT_ANY_AMBIGUOUS = 96
   };
   const Vec3 *pos() const {
     return GetStruct<const Vec3 *>(VT_POS);
@@ -1202,6 +1455,49 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<uint64_t> *mutable_vector_of_non_owning_references() {
     return GetPointer<flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_NON_OWNING_REFERENCES);
   }
+  AnyUniqueAliases any_unique_type() const {
+    return static_cast<AnyUniqueAliases>(GetField<uint8_t>(VT_ANY_UNIQUE_TYPE, 0));
+  }
+  bool mutate_any_unique_type(AnyUniqueAliases _any_unique_type) {
+    return SetField<uint8_t>(VT_ANY_UNIQUE_TYPE, static_cast<uint8_t>(_any_unique_type), 0);
+  }
+  const void *any_unique() const {
+    return GetPointer<const void *>(VT_ANY_UNIQUE);
+  }
+  template<typename T> const T *any_unique_as() const;
+  const Monster *any_unique_as_M() const {
+    return any_unique_type() == AnyUniqueAliases_M ? static_cast<const Monster *>(any_unique()) : nullptr;
+  }
+  const TestSimpleTableWithEnum *any_unique_as_T() const {
+    return any_unique_type() == AnyUniqueAliases_T ? static_cast<const TestSimpleTableWithEnum *>(any_unique()) : nullptr;
+  }
+  const MyGame::Example2::Monster *any_unique_as_M2() const {
+    return any_unique_type() == AnyUniqueAliases_M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
+  }
+  void *mutable_any_unique() {
+    return GetPointer<void *>(VT_ANY_UNIQUE);
+  }
+  AnyAmbiguousAliases any_ambiguous_type() const {
+    return static_cast<AnyAmbiguousAliases>(GetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, 0));
+  }
+  bool mutate_any_ambiguous_type(AnyAmbiguousAliases _any_ambiguous_type) {
+    return SetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, static_cast<uint8_t>(_any_ambiguous_type), 0);
+  }
+  const void *any_ambiguous() const {
+    return GetPointer<const void *>(VT_ANY_AMBIGUOUS);
+  }
+  const Monster *any_ambiguous_as_M1() const {
+    return any_ambiguous_type() == AnyAmbiguousAliases_M1 ? static_cast<const Monster *>(any_ambiguous()) : nullptr;
+  }
+  const Monster *any_ambiguous_as_M2() const {
+    return any_ambiguous_type() == AnyAmbiguousAliases_M2 ? static_cast<const Monster *>(any_ambiguous()) : nullptr;
+  }
+  const Monster *any_ambiguous_as_M3() const {
+    return any_ambiguous_type() == AnyAmbiguousAliases_M3 ? static_cast<const Monster *>(any_ambiguous()) : nullptr;
+  }
+  void *mutable_any_ambiguous() {
+    return GetPointer<void *>(VT_ANY_AMBIGUOUS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -1273,6 +1569,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint64_t>(verifier, VT_NON_OWNING_REFERENCE) &&
            VerifyOffset(verifier, VT_VECTOR_OF_NON_OWNING_REFERENCES) &&
            verifier.VerifyVector(vector_of_non_owning_references()) &&
+           VerifyField<uint8_t>(verifier, VT_ANY_UNIQUE_TYPE) &&
+           VerifyOffset(verifier, VT_ANY_UNIQUE) &&
+           VerifyAnyUniqueAliases(verifier, any_unique(), any_unique_type()) &&
+           VerifyField<uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE) &&
+           VerifyOffset(verifier, VT_ANY_AMBIGUOUS) &&
+           VerifyAnyAmbiguousAliases(verifier, any_ambiguous(), any_ambiguous_type()) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1290,6 +1592,18 @@ template<> inline const TestSimpleTableWithEnum *Monster::test_as<TestSimpleTabl
 
 template<> inline const MyGame::Example2::Monster *Monster::test_as<MyGame::Example2::Monster>() const {
   return test_as_MyGame_Example2_Monster();
+}
+
+template<> inline const Monster *Monster::any_unique_as<Monster>() const {
+  return any_unique_as_M();
+}
+
+template<> inline const TestSimpleTableWithEnum *Monster::any_unique_as<TestSimpleTableWithEnum>() const {
+  return any_unique_as_T();
+}
+
+template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
+  return any_unique_as_M2();
 }
 
 struct MonsterBuilder {
@@ -1421,6 +1735,18 @@ struct MonsterBuilder {
   void add_vector_of_non_owning_references(flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_non_owning_references) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, vector_of_non_owning_references);
   }
+  void add_any_unique_type(AnyUniqueAliases any_unique_type) {
+    fbb_.AddElement<uint8_t>(Monster::VT_ANY_UNIQUE_TYPE, static_cast<uint8_t>(any_unique_type), 0);
+  }
+  void add_any_unique(flatbuffers::Offset<void> any_unique) {
+    fbb_.AddOffset(Monster::VT_ANY_UNIQUE, any_unique);
+  }
+  void add_any_ambiguous_type(AnyAmbiguousAliases any_ambiguous_type) {
+    fbb_.AddElement<uint8_t>(Monster::VT_ANY_AMBIGUOUS_TYPE, static_cast<uint8_t>(any_ambiguous_type), 0);
+  }
+  void add_any_ambiguous(flatbuffers::Offset<void> any_ambiguous) {
+    fbb_.AddOffset(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1477,7 +1803,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     uint64_t co_owning_reference = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_co_owning_references = 0,
     uint64_t non_owning_reference = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_non_owning_references = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_non_owning_references = 0,
+    AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
+    flatbuffers::Offset<void> any_unique = 0,
+    AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
+    flatbuffers::Offset<void> any_ambiguous = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
@@ -1486,6 +1816,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_any_ambiguous(any_ambiguous);
+  builder_.add_any_unique(any_unique);
   builder_.add_vector_of_non_owning_references(vector_of_non_owning_references);
   builder_.add_vector_of_co_owning_references(vector_of_co_owning_references);
   builder_.add_vector_of_strong_referrables(vector_of_strong_referrables);
@@ -1518,6 +1850,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_pos(pos);
   builder_.add_hp(hp);
   builder_.add_mana(mana);
+  builder_.add_any_ambiguous_type(any_ambiguous_type);
+  builder_.add_any_unique_type(any_unique_type);
   builder_.add_testbool(testbool);
   builder_.add_test_type(test_type);
   builder_.add_color(color);
@@ -1567,7 +1901,11 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     uint64_t co_owning_reference = 0,
     const std::vector<uint64_t> *vector_of_co_owning_references = nullptr,
     uint64_t non_owning_reference = 0,
-    const std::vector<uint64_t> *vector_of_non_owning_references = nullptr) {
+    const std::vector<uint64_t> *vector_of_non_owning_references = nullptr,
+    AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
+    flatbuffers::Offset<void> any_unique = 0,
+    AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
+    flatbuffers::Offset<void> any_ambiguous = 0) {
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -1611,7 +1949,11 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       co_owning_reference,
       vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0,
       non_owning_reference,
-      vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0);
+      vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0,
+      any_unique_type,
+      any_unique,
+      any_ambiguous_type,
+      any_ambiguous);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2083,6 +2425,10 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_co_owning_r
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->non_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->non_owning_reference = nullptr; };
   { auto _e = vector_of_non_owning_references(); if (_e) { _o->vector_of_non_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_non_owning_references[_i] = nullptr; } } };
+  { auto _e = any_unique_type(); _o->any_unique.type = _e; };
+  { auto _e = any_unique(); if (_e) _o->any_unique.value = AnyUniqueAliasesUnion::UnPack(_e, any_unique_type(), _resolver); };
+  { auto _e = any_ambiguous_type(); _o->any_ambiguous.type = _e; };
+  { auto _e = any_ambiguous(); if (_e) _o->any_ambiguous.value = AnyAmbiguousAliasesUnion::UnPack(_e, any_ambiguous_type(), _resolver); };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2135,6 +2481,10 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_co_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
   auto _non_owning_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->non_owning_reference)) : 0;
   auto _vector_of_non_owning_references = _o->vector_of_non_owning_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_non_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_non_owning_references[i])) : 0; }, &_va ) : 0;
+  auto _any_unique_type = _o->any_unique.type;
+  auto _any_unique = _o->any_unique.Pack(_fbb);
+  auto _any_ambiguous_type = _o->any_ambiguous.type;
+  auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -2178,7 +2528,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _co_owning_reference,
       _vector_of_co_owning_references,
       _non_owning_reference,
-      _vector_of_non_owning_references);
+      _vector_of_non_owning_references,
+      _any_unique_type,
+      _any_unique,
+      _any_ambiguous_type,
+      _any_ambiguous);
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -2351,6 +2705,228 @@ inline void AnyUnion::Reset() {
   type = Any_NONE;
 }
 
+inline bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type) {
+  switch (type) {
+    case AnyUniqueAliases_NONE: {
+      return true;
+    }
+    case AnyUniqueAliases_M: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case AnyUniqueAliases_T: {
+      auto ptr = reinterpret_cast<const TestSimpleTableWithEnum *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case AnyUniqueAliases_M2: {
+      auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return false;
+  }
+}
+
+inline bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyAnyUniqueAliases(
+        verifier,  values->Get(i), types->GetEnum<AnyUniqueAliases>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver) {
+  switch (type) {
+    case AnyUniqueAliases_M: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case AnyUniqueAliases_T: {
+      auto ptr = reinterpret_cast<const TestSimpleTableWithEnum *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case AnyUniqueAliases_M2: {
+      auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    default: return nullptr;
+  }
+}
+
+inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  switch (type) {
+    case AnyUniqueAliases_M: {
+      auto ptr = reinterpret_cast<const MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    case AnyUniqueAliases_T: {
+      auto ptr = reinterpret_cast<const TestSimpleTableWithEnumT *>(value);
+      return CreateTestSimpleTableWithEnum(_fbb, ptr, _rehasher).Union();
+    }
+    case AnyUniqueAliases_M2: {
+      auto ptr = reinterpret_cast<const MyGame::Example2::MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    default: return 0;
+  }
+}
+
+inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case AnyUniqueAliases_M: {
+      FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
+      break;
+    }
+    case AnyUniqueAliases_T: {
+      value = new TestSimpleTableWithEnumT(*reinterpret_cast<TestSimpleTableWithEnumT *>(u.value));
+      break;
+    }
+    case AnyUniqueAliases_M2: {
+      value = new MyGame::Example2::MonsterT(*reinterpret_cast<MyGame::Example2::MonsterT *>(u.value));
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+inline void AnyUniqueAliasesUnion::Reset() {
+  switch (type) {
+    case AnyUniqueAliases_M: {
+      auto ptr = reinterpret_cast<MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    case AnyUniqueAliases_T: {
+      auto ptr = reinterpret_cast<TestSimpleTableWithEnumT *>(value);
+      delete ptr;
+      break;
+    }
+    case AnyUniqueAliases_M2: {
+      auto ptr = reinterpret_cast<MyGame::Example2::MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    default: break;
+  }
+  value = nullptr;
+  type = AnyUniqueAliases_NONE;
+}
+
+inline bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type) {
+  switch (type) {
+    case AnyAmbiguousAliases_NONE: {
+      return true;
+    }
+    case AnyAmbiguousAliases_M1: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case AnyAmbiguousAliases_M2: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case AnyAmbiguousAliases_M3: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return false;
+  }
+}
+
+inline bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyAnyAmbiguousAliases(
+        verifier,  values->Get(i), types->GetEnum<AnyAmbiguousAliases>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAliases type, const flatbuffers::resolver_function_t *resolver) {
+  switch (type) {
+    case AnyAmbiguousAliases_M1: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case AnyAmbiguousAliases_M2: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case AnyAmbiguousAliases_M3: {
+      auto ptr = reinterpret_cast<const Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    default: return nullptr;
+  }
+}
+
+inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  switch (type) {
+    case AnyAmbiguousAliases_M1: {
+      auto ptr = reinterpret_cast<const MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    case AnyAmbiguousAliases_M2: {
+      auto ptr = reinterpret_cast<const MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    case AnyAmbiguousAliases_M3: {
+      auto ptr = reinterpret_cast<const MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    default: return 0;
+  }
+}
+
+inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+  switch (type) {
+    case AnyAmbiguousAliases_M1: {
+      FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
+      break;
+    }
+    case AnyAmbiguousAliases_M2: {
+      FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
+      break;
+    }
+    case AnyAmbiguousAliases_M3: {
+      FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+inline void AnyAmbiguousAliasesUnion::Reset() {
+  switch (type) {
+    case AnyAmbiguousAliases_M1: {
+      auto ptr = reinterpret_cast<MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    case AnyAmbiguousAliases_M2: {
+      auto ptr = reinterpret_cast<MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    case AnyAmbiguousAliases_M3: {
+      auto ptr = reinterpret_cast<MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    default: break;
+  }
+  value = nullptr;
+  type = AnyAmbiguousAliases_NONE;
+}
+
 inline const flatbuffers::TypeTable *ColorTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -2389,6 +2965,52 @@ inline const flatbuffers::TypeTable *AnyTypeTable() {
     "Monster",
     "TestSimpleTableWithEnum",
     "MyGame_Example2_Monster"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *AnyUniqueAliasesTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MonsterTypeTable,
+    TestSimpleTableWithEnumTypeTable,
+    MyGame::Example2::MonsterTypeTable
+  };
+  static const char * const names[] = {
+    "NONE",
+    "M",
+    "T",
+    "M2"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *AnyAmbiguousAliasesTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MonsterTypeTable
+  };
+  static const char * const names[] = {
+    "NONE",
+    "M1",
+    "M2",
+    "M3"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
@@ -2568,7 +3190,11 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_ULONG, 0, -1 },
     { flatbuffers::ET_ULONG, 1, -1 },
     { flatbuffers::ET_ULONG, 0, -1 },
-    { flatbuffers::ET_ULONG, 1, -1 }
+    { flatbuffers::ET_ULONG, 1, -1 },
+    { flatbuffers::ET_UTYPE, 0, 9 },
+    { flatbuffers::ET_SEQUENCE, 0, 9 },
+    { flatbuffers::ET_UTYPE, 0, 10 },
+    { flatbuffers::ET_SEQUENCE, 0, 10 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     Vec3TypeTable,
@@ -2579,7 +3205,9 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     StatTypeTable,
     AbilityTypeTable,
     MyGame::InParentNamespaceTypeTable,
-    ReferrableTypeTable
+    ReferrableTypeTable,
+    AnyUniqueAliasesTypeTable,
+    AnyAmbiguousAliasesTypeTable
   };
   static const char * const names[] = {
     "pos",
@@ -2624,10 +3252,14 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "co_owning_reference",
     "vector_of_co_owning_references",
     "non_owning_reference",
-    "vector_of_non_owning_references"
+    "vector_of_non_owning_references",
+    "any_unique_type",
+    "any_unique",
+    "any_ambiguous_type",
+    "any_ambiguous"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 43, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 47, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

@@ -1603,6 +1603,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
   ECHECK(ParseMetaData(&enum_def->attributes));
   EXPECT('{');
   if (is_union) enum_def->vals.Add("NONE", new EnumVal("NONE", 0));
+  std::set<std::pair<BaseType, StructDef*>> union_types;
   for (;;) {
     if (opts.proto_mode && attribute_ == "option") {
       ECHECK(ParseProtoOption());
@@ -1633,9 +1634,16 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
           if (ev.union_type.base_type != BASE_TYPE_STRUCT &&
               ev.union_type.base_type != BASE_TYPE_STRING)
             return Error("union value type may only be table/struct/string");
-          enum_def->uses_type_aliases = true;
         } else {
           ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+        }
+        if (!enum_def->uses_multiple_type_instances) {
+          auto union_type_key = std::make_pair(ev.union_type.base_type, ev.union_type.struct_def);
+          if (union_types.count(union_type_key) > 0) {
+            enum_def->uses_multiple_type_instances = true;
+          } else {
+            union_types.insert(union_type_key);
+          }
         }
       }
       if (Is('=')) {

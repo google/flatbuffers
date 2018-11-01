@@ -1307,7 +1307,6 @@ class RustGenerator : public BaseGenerator {
       }
 
       auto u = field.value.type.enum_def;
-      if (u->uses_type_aliases) continue;
 
       code_.SetValue("FIELD_NAME", Name(field));
 
