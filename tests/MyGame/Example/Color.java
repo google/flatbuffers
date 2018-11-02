@@ -2,8 +2,6 @@
 
 package MyGame.Example;
 
-
-@javax.annotation.Generated(value="flatc")
 public final class Color {
   private Color() { }
   public static final byte Red = 1;

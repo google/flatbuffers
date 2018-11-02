@@ -7,9 +7,7 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")
-@javax.annotation.Generated(value="flatc")
-/**
+@SuppressWarnings("unused")/**
  * an example documentation comment: monster object
  */
 public final class Monster extends Table {
