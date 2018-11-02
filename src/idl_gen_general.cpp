@@ -221,7 +221,9 @@ class GeneralGenerator : public BaseGenerator {
       }
       code += lang_.class_annotation;
     }
-    code += lang_.generated_type_annotation;
+    if (parser_.opts.gen_generated) {
+      code += lang_.generated_type_annotation;
+    }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;

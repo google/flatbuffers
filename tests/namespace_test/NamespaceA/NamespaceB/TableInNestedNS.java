@@ -7,9 +7,7 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")
-@javax.annotation.Generated(value="flatc")
-public final class TableInNestedNS extends Table {
+@SuppressWarnings("unused")public final class TableInNestedNS extends Table {
   public static TableInNestedNS getRootAsTableInNestedNS(ByteBuffer _bb) { return getRootAsTableInNestedNS(_bb, new TableInNestedNS()); }
   public static TableInNestedNS getRootAsTableInNestedNS(ByteBuffer _bb, TableInNestedNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
