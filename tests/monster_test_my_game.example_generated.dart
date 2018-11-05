@@ -752,10 +752,11 @@ class Monster {
       default: return null;
     }
   }
+  List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums}';
   }
 }
 
@@ -962,6 +963,10 @@ class MonsterBuilder {
     fbBuilder.addOffset(46, offset);
     return fbBuilder.offset;
   }
+  int addVectorOfEnumsOffset(int offset) {
+    fbBuilder.addOffset(47, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1015,6 +1020,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final dynamic _anyUnique;
   final AnyAmbiguousAliasesTypeId _anyAmbiguousType;
   final dynamic _anyAmbiguous;
+  final List<Color> _vectorOfEnums;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -1063,6 +1069,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     dynamic anyUnique,
     AnyAmbiguousAliasesTypeId anyAmbiguousType,
     dynamic anyAmbiguous,
+    List<Color> vectorOfEnums,
   })
       : _pos = pos,
         _mana = mana,
@@ -1109,7 +1116,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _anyUniqueType = anyUniqueType,
         _anyUnique = anyUnique,
         _anyAmbiguousType = anyAmbiguousType,
-        _anyAmbiguous = anyAmbiguous;
+        _anyAmbiguous = anyAmbiguous,
+        _vectorOfEnums = vectorOfEnums;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1174,6 +1182,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : null;
     final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
+    final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
+        ? fbBuilder.writeListInt8(_vectorOfEnums.map((f) => f.value))
+        : null;
 
     fbBuilder.startTable();
     if (_pos != null) {
@@ -1271,6 +1282,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addUint8(45, _anyAmbiguousType?.value);
     if (anyAmbiguousOffset != null) {
       fbBuilder.addOffset(46, anyAmbiguousOffset);
+    }
+    if (vectorOfEnumsOffset != null) {
+      fbBuilder.addOffset(47, vectorOfEnumsOffset);
     }
     return fbBuilder.endTable();
   }

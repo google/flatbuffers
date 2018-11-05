@@ -155,7 +155,8 @@
         "any_unique_type" : { "$ref" : "#/definitions/MyGame_Example_AnyUniqueAliases" },
         "any_unique" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] },
         "any_ambiguous_type" : { "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases" },
-        "any_ambiguous" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] }
+        "any_ambiguous" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] },
+        "vector_of_enums" : { "$ref" : "#/definitions/MyGame_Example_Color" }
       },
       "required" : ["name"],
       "additionalProperties" : false

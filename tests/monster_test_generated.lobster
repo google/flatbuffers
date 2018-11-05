@@ -325,11 +325,15 @@ struct Monster : flatbuffers_handle
         MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 96) }
     def any_ambiguous_as_M3():
         MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 96) }
+    def vector_of_enums(i:int):
+        buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 98) + i * 1)
+    def vector_of_enums_length():
+        buf_.flatbuffers_field_vector_len(pos_, 98)
 
 def GetRootAsMonster(buf:string): Monster { buf, buf.flatbuffers_indirect(0) }
 
 def MonsterStart(b_:flatbuffers_builder):
-    b_.StartObject(47)
+    b_.StartObject(48)
 def MonsterAddPos(b_:flatbuffers_builder, pos:int):
     b_.PrependStructSlot(0, pos, 0)
 def MonsterAddMana(b_:flatbuffers_builder, mana:int):
@@ -512,6 +516,14 @@ def MonsterAddAnyAmbiguousType(b_:flatbuffers_builder, any_ambiguous_type:int):
     b_.PrependUint8Slot(45, any_ambiguous_type, 0)
 def MonsterAddAnyAmbiguous(b_:flatbuffers_builder, any_ambiguous:int):
     b_.PrependUOffsetTRelativeSlot(46, any_ambiguous, 0)
+def MonsterAddVectorOfEnums(b_:flatbuffers_builder, vector_of_enums:int):
+    b_.PrependUOffsetTRelativeSlot(47, vector_of_enums, 0)
+def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(1, n_, 1)
+def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(1, v_.length, 1)
+    reverse(v_) e_: b_.PrependInt8(e_)
+    b_.EndVector(v_.length)
 def MonsterEnd(b_:flatbuffers_builder):
     b_.EndObject()
 

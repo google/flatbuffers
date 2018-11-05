@@ -161,13 +161,22 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flexbuild.Finish();
   auto flex = builder.CreateVector(flexbuild.GetBuffer());
 
+  // Test vector of enums.
+  Color colors[] = { Color_Blue, Color_Green };
+  // We use this special creation function because we have an array of
+  // pre-C++11 (enum class) enums whose size likely is int, yet its declared
+  // type in the schema is byte.
+  auto vecofcolors = builder.CreateVectorScalarCast<int8_t, Color>(colors, 2);
+
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(),  // Store a union.
                             testv, vecofstrings, vecoftables, 0,
                             nested_flatbuffer_vector, 0, false, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 3.14159f, 3.0f, 0.0f, vecofstrings2,
-                            vecofstructs, flex, testv2);
+                            vecofstructs, flex, testv2, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, AnyUniqueAliases_NONE, 0,
+                            AnyAmbiguousAliases_NONE, 0, vecofcolors);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -309,6 +318,14 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // However, if you actually want to access the nested data, this is a
   // convenient accessor that directly gives you the root value:
   TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
+
+  // Test vector of enums:
+  auto colors = monster->vector_of_enums();
+  if (colors) {
+    TEST_EQ(colors->size(), 2);
+    TEST_EQ(colors->Get(0), Color_Blue);
+    TEST_EQ(colors->Get(1), Color_Green);
+  }
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
@@ -834,7 +851,8 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "{ id: 2, distance: 20 }, { id: 3, distance: 30 }, "
       "{ id: 4, distance: 40 } ], "
       "flex: [ 210, 4, 5, 2 ], "
-      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ] "
+      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
+      "vector_of_enums: [ Blue, Green ] "
       "}");
 }
 

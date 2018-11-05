@@ -698,8 +698,25 @@ func (rcv *Monster) AnyAmbiguous(obj *flatbuffers.Table) bool {
 	return false
 }
 
+func (rcv *Monster) VectorOfEnums(j int) Color {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) VectorOfEnumsLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(47)
+	builder.StartObject(48)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -889,6 +906,12 @@ func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType b
 }
 func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)
+}
+func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(47, flatbuffers.UOffsetT(vectorOfEnums), 0)
+}
+func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

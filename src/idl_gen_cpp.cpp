@@ -1538,7 +1538,7 @@ class CppGenerator : public BaseGenerator {
       cmp_rhs = "rhs";
       compare_op = "  return\n      " + compare_op + ";";
     }
-    
+
     code_.SetValue("CMP_OP", compare_op);
     code_.SetValue("CMP_LHS", cmp_lhs);
     code_.SetValue("CMP_RHS", cmp_rhs);
@@ -2363,7 +2363,7 @@ class CppGenerator : public BaseGenerator {
               // the underlying storage type (eg. uint8_t).
               const auto basetype = GenTypeBasic(
                   field.value.type.enum_def->underlying_type, false);
-              code += "_fbb.CreateVector((const " + basetype + "*)" + value +
+              code += "_fbb.CreateVectorScalarCast<" + basetype + ">(" + value +
                       ".data(), " + value + ".size())";
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);

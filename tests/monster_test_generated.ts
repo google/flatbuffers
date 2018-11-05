@@ -1680,10 +1680,35 @@ anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
 };
 
 /**
+ * @param number index
+ * @returns MyGame.Example.Color
+ */
+vectorOfEnums(index: number):MyGame.Example.Color|null {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? /**  */ (this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
+};
+
+/**
+ * @returns number
+ */
+vectorOfEnumsLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Int8Array
+ */
+vectorOfEnumsArray():Int8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(47);
+  builder.startObject(48);
 };
 
 /**
@@ -2370,6 +2395,35 @@ static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:MyGame.
  */
 static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
   builder.addFieldOffset(46, anyAmbiguousOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vectorOfEnumsOffset
+ */
+static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<MyGame.Example.Color> data
+ * @returns flatbuffers.Offset
+ */
+static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:MyGame.Example.Color[]):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**
