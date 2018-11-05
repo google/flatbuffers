@@ -948,6 +948,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
       if let Some(x) = args.any_unique { builder.add_any_unique(x); }
       if let Some(x) = args.vector_of_non_owning_references { builder.add_vector_of_non_owning_references(x); }
@@ -1036,6 +1037,7 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_UNIQUE: flatbuffers::VOffsetT = 92;
     pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
+    pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1243,6 +1245,10 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_AMBIGUOUS, None)
   }
   #[inline]
+  pub fn vector_of_enums(&self) -> Option<flatbuffers::Vector<'a, Color>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&'a self) -> Option<Monster> {
     if self.test_type() == Any::Monster {
@@ -1381,6 +1387,7 @@ pub struct MonsterArgs<'a> {
     pub any_unique: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub any_ambiguous_type: AnyAmbiguousAliases,
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
+    pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1432,6 +1439,7 @@ impl<'a> Default for MonsterArgs<'a> {
             any_unique: None,
             any_ambiguous_type: AnyAmbiguousAliases::NONE,
             any_ambiguous: None,
+            vector_of_enums: None,
         }
     }
 }
@@ -1623,6 +1631,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
   pub fn add_any_ambiguous(&mut self, any_ambiguous: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
+  }
+  #[inline]
+  pub fn add_vector_of_enums(&mut self, vector_of_enums: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Color>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {

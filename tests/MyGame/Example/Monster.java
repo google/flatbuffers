@@ -152,8 +152,13 @@ public final class Monster extends Table {
   public byte anyAmbiguousType() { int o = __offset(94); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateAnyAmbiguousType(byte any_ambiguous_type) { int o = __offset(94); if (o != 0) { bb.put(o + bb_pos, any_ambiguous_type); return true; } else { return false; } }
   public Table anyAmbiguous(Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o) : null; }
+  public byte vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int vectorOfEnumsLength() { int o = __offset(98); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vectorOfEnumsAsByteBuffer() { return __vector_as_bytebuffer(98, 1); }
+  public ByteBuffer vectorOfEnumsInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 98, 1); }
+  public boolean mutateVectorOfEnums(int j, byte vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, vector_of_enums); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(47); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(48); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -231,6 +236,9 @@ public final class Monster extends Table {
   public static void addAnyUnique(FlatBufferBuilder builder, int anyUniqueOffset) { builder.addOffset(44, anyUniqueOffset, 0); }
   public static void addAnyAmbiguousType(FlatBufferBuilder builder, byte anyAmbiguousType) { builder.addByte(45, anyAmbiguousType, 0); }
   public static void addAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.addOffset(46, anyAmbiguousOffset, 0); }
+  public static void addVectorOfEnums(FlatBufferBuilder builder, int vectorOfEnumsOffset) { builder.addOffset(47, vectorOfEnumsOffset, 0); }
+  public static int createVectorOfEnumsVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static void startVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name

@@ -1731,6 +1731,19 @@ class FlatBufferBuilder {
                                      reinterpret_cast<uint8_t **>(buf));
   }
 
+
+  // @brief Create a vector of scalar type T given as input a vector of scalar
+  // type U, useful with e.g. pre "enum class" enums, or any existing scalar
+  // data of the wrong type.
+  template<typename T, typename U>
+  Offset<Vector<T>> CreateVectorScalarCast(const U *v, size_t len) {
+    AssertScalarT<T>();
+    AssertScalarT<U>();
+    StartVector(len, sizeof(T));
+    for (auto i = len; i > 0;) { PushElement(static_cast<T>(v[--i])); }
+    return Offset<Vector<T>>(EndVector(len));
+  }
+
   /// @brief Write a struct by itself, typically to be part of a union.
   template<typename T> Offset<const T *> CreateStruct(const T &structobj) {
     NotNested();

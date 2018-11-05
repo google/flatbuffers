@@ -1056,6 +1056,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<ReferrableT *> vector_of_non_owning_references;
   AnyUniqueAliasesUnion any_unique;
   AnyAmbiguousAliasesUnion any_ambiguous;
+  std::vector<Color> vector_of_enums;
   MonsterT()
       : mana(150),
         hp(100),
@@ -1122,7 +1123,8 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.non_owning_reference == rhs.non_owning_reference) &&
       (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references) &&
       (lhs.any_unique == rhs.any_unique) &&
-      (lhs.any_ambiguous == rhs.any_ambiguous);
+      (lhs.any_ambiguous == rhs.any_ambiguous) &&
+      (lhs.vector_of_enums == rhs.vector_of_enums);
 }
 
 /// an example documentation comment: monster object
@@ -1177,7 +1179,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ANY_UNIQUE_TYPE = 90,
     VT_ANY_UNIQUE = 92,
     VT_ANY_AMBIGUOUS_TYPE = 94,
-    VT_ANY_AMBIGUOUS = 96
+    VT_ANY_AMBIGUOUS = 96,
+    VT_VECTOR_OF_ENUMS = 98
   };
   const Vec3 *pos() const {
     return GetStruct<const Vec3 *>(VT_POS);
@@ -1498,6 +1501,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
   }
+  const flatbuffers::Vector<int8_t> *vector_of_enums() const {
+    return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_VECTOR_OF_ENUMS);
+  }
+  flatbuffers::Vector<int8_t> *mutable_vector_of_enums() {
+    return GetPointer<flatbuffers::Vector<int8_t> *>(VT_VECTOR_OF_ENUMS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
@@ -1575,6 +1584,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE) &&
            VerifyOffset(verifier, VT_ANY_AMBIGUOUS) &&
            VerifyAnyAmbiguousAliases(verifier, any_ambiguous(), any_ambiguous_type()) &&
+           VerifyOffset(verifier, VT_VECTOR_OF_ENUMS) &&
+           verifier.VerifyVector(vector_of_enums()) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1747,6 +1758,9 @@ struct MonsterBuilder {
   void add_any_ambiguous(flatbuffers::Offset<void> any_ambiguous) {
     fbb_.AddOffset(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
   }
+  void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<int8_t>> vector_of_enums) {
+    fbb_.AddOffset(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1807,7 +1821,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
     flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
-    flatbuffers::Offset<void> any_ambiguous = 0) {
+    flatbuffers::Offset<void> any_ambiguous = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int8_t>> vector_of_enums = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
@@ -1816,6 +1831,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_vector_of_enums(vector_of_enums);
   builder_.add_any_ambiguous(any_ambiguous);
   builder_.add_any_unique(any_unique);
   builder_.add_vector_of_non_owning_references(vector_of_non_owning_references);
@@ -1905,7 +1921,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
     flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
-    flatbuffers::Offset<void> any_ambiguous = 0) {
+    flatbuffers::Offset<void> any_ambiguous = 0,
+    const std::vector<int8_t> *vector_of_enums = nullptr) {
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -1953,7 +1970,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       any_unique_type,
       any_unique,
       any_ambiguous_type,
-      any_ambiguous);
+      any_ambiguous,
+      vector_of_enums ? _fbb.CreateVector<int8_t>(*vector_of_enums) : 0);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2429,6 +2447,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = any_unique(); if (_e) _o->any_unique.value = AnyUniqueAliasesUnion::UnPack(_e, any_unique_type(), _resolver); };
   { auto _e = any_ambiguous_type(); _o->any_ambiguous.type = _e; };
   { auto _e = any_ambiguous(); if (_e) _o->any_ambiguous.value = AnyAmbiguousAliasesUnion::UnPack(_e, any_ambiguous_type(), _resolver); };
+  { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<Color>(_e->Get(_i)); } } };
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2485,6 +2504,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
+  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<int8_t>(_o->vector_of_enums.data(), _o->vector_of_enums.size()) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -2532,7 +2552,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _any_unique_type,
       _any_unique,
       _any_ambiguous_type,
-      _any_ambiguous);
+      _any_ambiguous,
+      _vector_of_enums);
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3194,7 +3215,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_UTYPE, 0, 9 },
     { flatbuffers::ET_SEQUENCE, 0, 9 },
     { flatbuffers::ET_UTYPE, 0, 10 },
-    { flatbuffers::ET_SEQUENCE, 0, 10 }
+    { flatbuffers::ET_SEQUENCE, 0, 10 },
+    { flatbuffers::ET_CHAR, 1, 1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     Vec3TypeTable,
@@ -3256,10 +3278,11 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "any_unique_type",
     "any_unique",
     "any_ambiguous_type",
-    "any_ambiguous"
+    "any_ambiguous",
+    "vector_of_enums"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 47, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 48, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

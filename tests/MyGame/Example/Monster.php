@@ -648,21 +648,40 @@ class Monster extends Table
     }
 
     /**
+     * @param int offset
+     * @return sbyte
+     */
+    public function getVectorOfEnums($j)
+    {
+        $o = $this->__offset(98);
+        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfEnumsLength()
+    {
+        $o = $this->__offset(98);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(47);
+        $builder->StartObject(48);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums)
     {
-        $builder->startObject(47);
+        $builder->startObject(48);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -709,6 +728,7 @@ class Monster extends Table
         self::addAnyUnique($builder, $any_unique);
         self::addAnyAmbiguousType($builder, $any_ambiguous_type);
         self::addAnyAmbiguous($builder, $any_ambiguous);
+        self::addVectorOfEnums($builder, $vector_of_enums);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1565,6 +1585,40 @@ class Monster extends Table
     public static function addAnyAmbiguous(FlatBufferBuilder $builder, $offset)
     {
         $builder->addOffsetX(46, $offset, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfEnums(FlatBufferBuilder $builder, $vectorOfEnums)
+    {
+        $builder->addOffsetX(47, $vectorOfEnums, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfEnumsVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(1, count($data), 1);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->addSbyte($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfEnumsVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(1, $numElems, 1);
     }
 
     /**
