@@ -2504,7 +2504,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
-  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<int8_t>(_o->vector_of_enums.data(), _o->vector_of_enums.size()) : 0;
+  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<int8_t>(flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,

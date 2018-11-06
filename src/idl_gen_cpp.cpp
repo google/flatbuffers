@@ -2363,8 +2363,9 @@ class CppGenerator : public BaseGenerator {
               // the underlying storage type (eg. uint8_t).
               const auto basetype = GenTypeBasic(
                   field.value.type.enum_def->underlying_type, false);
-              code += "_fbb.CreateVectorScalarCast<" + basetype + ">(" + value +
-                      ".data(), " + value + ".size())";
+              code += "_fbb.CreateVectorScalarCast<" + basetype +
+                      ">(flatbuffers::data(" + value + "), " + value +
+                      ".size())";
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);
               code += "_fbb.CreateVector<" + type + ">(" + value + ".size(), ";
