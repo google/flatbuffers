@@ -338,8 +338,7 @@ class Map : public Vector {
 };
 
 template<typename T>
-void AppendToString(std::string &s, T &&v, bool keys_quoted)
-{
+void AppendToString(std::string &s, T &&v, bool keys_quoted) {
     s += "[ ";
     for (size_t i = 0; i < v.size(); i++) {
       v[i].ToString(true, keys_quoted, s);
