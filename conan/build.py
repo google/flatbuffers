@@ -23,10 +23,10 @@ def get_branch():
             line = line.strip()
             if line.startswith("*") and " (HEAD detached" not in line:
                 return line.replace("*", "", 1).strip()
-        return None
+        return ""
     except Exception:
         pass
-    return None
+    return ""
 
 
 def get_version():
@@ -35,7 +35,9 @@ def get_version():
         version = os.getenv("TRAVIS_BRANCH")
 
     if os.getenv("APPVEYOR", False):
-        version = os.getenv("APPVEYOR_REPO_TAG_NAME")
+        version = os.getenv("APPVEYOR_REPO_BRANCH")
+        if os.getenv("APPVEYOR_REPO_TAG") == "true":
+            version = os.getenv("APPVEYOR_REPO_TAG_NAME")
 
     match = re.search(r"v(\d+\.\d+\.\d+.*)", version)
     if match:
