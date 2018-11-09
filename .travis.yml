@@ -82,7 +82,7 @@ matrix:
       - make
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib make test ARGS=-V
       - bash .travis/check-generate-code.sh
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
+      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
