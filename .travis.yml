@@ -5,9 +5,9 @@ env:
 
 conan-linux: &conan-linux
   os: linux
-  sudo: required
+  dist: xenial
   language: python
-  python: "3.6"
+  python: "3.7"
   services:
     - docker
   install:
@@ -132,8 +132,11 @@ matrix:
       osx_image: xcode9
       env: CONAN_APPLE_CLANG_VERSIONS=9.0
     - <<: *conan-osx
-      osx_image: xcode9.3
+      osx_image: xcode9.4
       env: CONAN_APPLE_CLANG_VERSIONS=9.1
+    - <<: *conan-osx
+      osx_image: xcode10
+      env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
     - language: android
       sudo: true
