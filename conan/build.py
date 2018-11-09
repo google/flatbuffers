@@ -35,7 +35,7 @@ def get_version():
         version = os.getenv("TRAVIS_BRANCH")
 
     if os.getenv("APPVEYOR", False):
-        version = os.getenv("APPVEYOR_REPO_BRANCH")
+        version = os.getenv("APPVEYOR_REPO_TAG_NAME")
 
     match = re.search(r"v(\d+\.\d+\.\d+.*)", version)
     if match:
