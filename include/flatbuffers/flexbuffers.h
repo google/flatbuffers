@@ -341,8 +341,8 @@ template<typename T>
 void AppendToString(std::string &s, T &&v, bool keys_quoted) {
     s += "[ ";
     for (size_t i = 0; i < v.size(); i++) {
+      if (i) s += ", ";
       v[i].ToString(true, keys_quoted, s);
-      if (i + 1 < v.size()) s += ", ";
     }
     s += " ]";
 }
