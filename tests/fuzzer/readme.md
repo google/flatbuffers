@@ -19,16 +19,16 @@ The fuzzer section include three tests:
 Flatbuffers library use only printable-ASCII characters as characters of grammar alphabet for type and data declaration.
 This alphabet is fully compatible with JSON specification and make schema declaration fully portable.
 Flatbuffers library is independent from global or thread locales used by end-user application.
-To run fuzzer tests with selected C-locale under test pass `-DFUZZ_TEST_LOCALE="<locale name>"` to CMake when configuring.
+To run fuzzer tests with selected C-locale under test pass `-DFLATBUFFERS_TEST_LOCALE="<locale name>"` to CMake when configuring.
 Selected locale must be installed in system before use.
 Command line:
 ```sh
-cmake .. -DFUZZ_TEST_LOCALE="ru_RU.CP1251"
+cmake .. -DFLATBUFFERS_TEST_LOCALE="ru_RU.CP1251"
 ```
 If use VSCode, use `cmake.configureSettings` section of workspace settings:
 ```json
 "cmake.configureSettings": {
-  "FUZZ_TEST_LOCALE" : "ru_RU.CP1251"
+  "FLATBUFFERS_TEST_LOCALE" : "ru_RU.CP1251"
 }
 ```
 
@@ -53,8 +53,8 @@ The **libFuzzer** allow to filter (minimize) corpus with help of `-merge` flag:
     If set to 1, any corpus inputs from the 2nd, 3rd etc. corpus directories that trigger new code coverage will be merged into the first corpus directory.
     Defaults to 0. This flag can be used to minimize a corpus.
 
-Merge several seeds to one:
-`./scalar_fuzzer -merge=1 ../.corpus/ ../.seed_1/ ../.seed_2/`
+Merge several seeds to one (a new collected corpus to the seed collection, for example):
+`./scalar_fuzzer -merge=1 ../.seed_parser/ ../.corpus_parser/`
 
 ## Know limitations
 - LLVM 7.0 std::regex library has problem with stack overflow, maximum length of input for `scalar_fuzzer` run should be limited to 3000.

@@ -58,6 +58,7 @@ bool FileExists(const char *name) {
 
 bool DirExists(const char *name) {
   // clang-format off
+
   #ifdef _WIN32
     #define flatbuffers_stat _stat
     #define FLATBUFFERS_S_IFDIR _S_IFDIR
@@ -84,5 +85,26 @@ FileExistsFunction SetFileExistsFunction(
       file_exists_function ? file_exists_function : FileExistsRaw;
   return previous_function;
 }
+
+// Locale-independent code.
+#if defined(FLATBUFFERS_LOCALE_INDEPENDENT) && \
+    (FLATBUFFERS_LOCALE_INDEPENDENT > 0)
+
+// clang-format off
+// Allocate locale instance at startup of application.
+ClassicLocale ClassicLocale::instance_;
+
+#ifdef _MSC_VER
+  ClassicLocale::ClassicLocale()
+    : locale_(_create_locale(LC_ALL, "C")) {}
+  ClassicLocale::~ClassicLocale() { _free_locale(locale_); }
+#else
+  ClassicLocale::ClassicLocale()
+    : locale_(newlocale(LC_ALL, "C", nullptr)) {}
+  ClassicLocale::~ClassicLocale() { freelocale(locale_); }
+#endif
+// clang-format off
+
+#endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
 }  // namespace flatbuffers

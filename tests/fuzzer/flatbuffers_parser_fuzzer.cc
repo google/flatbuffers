@@ -18,8 +18,8 @@ static constexpr uint8_t flags_allow_non_utf8 = 0x04;
 // static constexpr uint8_t flags_flag_7 = 0x80;
 
 // See readme.md and CMakeLists.txt for details.
-#ifdef FUZZ_TEST_LOCALE
-static constexpr const char *test_locale = (FUZZ_TEST_LOCALE);
+#ifdef FLATBUFFERS_TEST_LOCALE
+static constexpr const char *test_locale = (FLATBUFFERS_TEST_LOCALE);
 #else
 static constexpr const char *test_locale = nullptr;
 #endif

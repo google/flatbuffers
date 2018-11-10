@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#if defined(FLATBUFFERS_TEST_LOCALE)
+#include <clocale>
+#endif
+
 #include <cmath>
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -1530,7 +1534,7 @@ void ValidFloatTest() {
   // Old MSVC versions may have problem with this check.
   // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
   TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
-    6929495644600920);
+    6929495644600920.0);
   // check nan's
   TEST_EQ(std::isnan(TestValue<double>("{ Y:nan }", "double")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ Y:nan }", "float")), true);
@@ -1658,6 +1662,7 @@ void NumericUtilsTestInteger(const char *lower, const char *upper) {
 template<typename T>
 void NumericUtilsTestFloat(const char *lower, const char *upper) {
   T f;
+  TEST_EQ(flatbuffers::StringToNumber("", &f), false);
   TEST_EQ(flatbuffers::StringToNumber("1q", &f), false);
   TEST_EQ(f, 0);
   TEST_EQ(flatbuffers::StringToNumber(upper, &f), true);
@@ -2452,6 +2457,16 @@ int FlatBufferTests() {
 
 int main(int /*argc*/, const char * /*argv*/ []) {
   InitTestEngine();
+
+  // clang-format off
+  // If testing with specific C-locale is requested.
+  #ifdef FLATBUFFERS_TEST_LOCALE
+    // Assume that FLATBUFFERS_TEST_LOCALE is a string with locale name.
+    const auto loc_name = std::setlocale(LC_ALL, FLATBUFFERS_TEST_LOCALE);
+    TEST_NOTNULL(loc_name);
+    TEST_OUTPUT_LINE("The global locale is: %s", loc_name);
+  #endif
+  // clang-format on
 
   FlatBufferTests();
   FlatBufferBuilderTest();

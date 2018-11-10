@@ -83,14 +83,14 @@ target_compile_definitions(flatbuffers PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=8)
 
 # Change default ASCII locale (affects to isalpha, isalnum, decimal
 # delimiters, other). https://en.cppreference.com/w/cpp/locale/setlocale
-if(DEFINED FUZZ_TEST_LOCALE)
-  # Enable locale independent code and define locale for tests.
-  # -DFUZZ_TEST_LOCALE="" - enable, but test with default locale
-  # -DFUZZ_TEST_LOCALE="ru_RU.CP1251" - enable and test with ru_RU.CP1251
+if(DEFINED FLATBUFFERS_TEST_LOCALE)
+  # Enable test of locale independent code.
+  # -DFLATBUFFERS_TEST_LOCALE="" - test with default C-locale
+  # -DFLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" - test with ru_RU.CP1251
   # Locale was installed before (Ubuntu):>sudo locale-gen ru_RU.CP1251
-  add_definitions(-DFUZZ_TEST_LOCALE=\"${FUZZ_TEST_LOCALE}\")
+  add_definitions(-DFLATBUFFERS_TEST_LOCALE=\"${FLATBUFFERS_TEST_LOCALE}\")
 endif()
-message(STATUS "FUZZ_TEST_LOCALE: ${FUZZ_TEST_LOCALE}")
+message(STATUS "FLATBUFFERS_TEST_LOCALE: ${FLATBUFFERS_TEST_LOCALE}")
 
 add_executable(scalar_fuzzer flatbuffers_scalar_fuzzer.cc)
 target_link_libraries(scalar_fuzzer PRIVATE flatbuffers)

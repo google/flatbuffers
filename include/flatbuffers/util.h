@@ -50,11 +50,6 @@
 
 namespace flatbuffers {
 
-// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
-template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(const T &t) {
-  return !!t;
-}
-
 // @locale-independent functions for ASCII characters set.
 
 // Check that integer scalar is in closed range: (a <= x <= b)
@@ -217,36 +212,70 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-static inline double strtod_impl(const char *str, char **str_end) {
-  // Result of strtod (printf, etc) depends from current C-locale.
-  return strtod(str, str_end);
-}
+// clang-format off
+// Use locale independent functions {strtod_l, strtof_l, strtoll_l, strtoull_l}.
+#if defined(FLATBUFFERS_LOCALE_INDEPENDENT) && (FLATBUFFERS_LOCALE_INDEPENDENT > 0)
+  class ClassicLocale {
+    #ifdef _MSC_VER
+      typedef _locale_t locale_type;
+    #else
+      typedef locale_t locale_type;  // POSIX.1-2008 locale_t type
+    #endif
+    ClassicLocale();
+    ~ClassicLocale();
+    locale_type locale_;
+    static ClassicLocale instance_;
+  public:
+    static locale_type Get() { return instance_.locale_; }
+  };
 
-static inline float strtof_impl(const char *str, char **str_end) {
-  // Use "strtof" for float and strtod for double to avoid double=>float
-  // rounding problems (see
-  // https://en.cppreference.com/w/cpp/numeric/fenv/feround) or problems with
-  // std::numeric_limits<float>::is_iec559==false. Example:
-  //  for (int mode : { FE_DOWNWARD, FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD }){
-  //    const char *s = "-4e38";
-  //    std::fesetround(mode);
-  //    std::cout << strtof(s, nullptr) << "; " << strtod(s, nullptr) << "; "
-  //              << static_cast<float>(strtod(s, nullptr)) << "\n";
-  //  }
-  // Gives:
-  //  -inf; -4e+38; -inf
-  //  -inf; -4e+38; -inf
-  //  -inf; -4e+38; -3.40282e+38
-  //  -inf; -4e+38; -3.40282e+38
-
-  // clang-format off
-  #ifdef FLATBUFFERS_HAS_NEW_STRTOD
-    return strtof(str, str_end);
+  #ifdef _MSC_VER
+    #define __strtoull_impl(s, pe, b) _strtoui64_l(s, pe, b, ClassicLocale::Get())
+    #define __strtoll_impl(s, pe, b) _strtoi64_l(s, pe, b, ClassicLocale::Get())
+    #define __strtod_impl(s, pe) _strtod_l(s, pe, ClassicLocale::Get())
+    #define __strtof_impl(s, pe) _strtof_l(s, pe, ClassicLocale::Get())
   #else
-    return static_cast<float>(strtod_impl(str, str_end));
-  #endif // !FLATBUFFERS_HAS_NEW_STRTOD
-  // clang-format on
+    #define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())
+    #define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())
+    #define __strtod_impl(s, pe) strtod_l(s, pe, ClassicLocale::Get())
+    #define __strtof_impl(s, pe) strtof_l(s, pe, ClassicLocale::Get())
+  #endif
+#else
+  #define __strtod_impl(s, pe) strtod(s, pe)
+  #define __strtof_impl(s, pe) static_cast<float>(strtod(s, pe))
+  #ifdef _MSC_VER
+    #define __strtoull_impl(s, pe, b) _strtoui64(s, pe, b)
+    #define __strtoll_impl(s, pe, b) _strtoi64(s, pe, b)
+  #else
+    #define __strtoull_impl(s, pe, b) strtoull(s, pe, b)
+    #define __strtoll_impl(s, pe, b) strtoll(s, pe, b)
+  #endif
+#endif
+
+static inline void strtoval_impl(int64_t *val, const char *str, char **endptr,
+                                 int base) {
+    *val = __strtoll_impl(str, endptr, base);
 }
+
+static inline void strtoval_impl(uint64_t *val, const char *str, char **endptr,
+                                 int base) {
+  *val = __strtoull_impl(str, endptr, base);
+}
+
+static inline void strtoval_impl(double *val, const char *str, char **endptr) {
+  *val = __strtod_impl(str, endptr);
+}
+
+// UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
+__supress_ubsan__("float-cast-overflow")
+static inline void strtoval_impl(float *val, const char *str, char **endptr) {
+  *val = __strtof_impl(str, endptr);
+}
+#undef __strtoull_impl
+#undef __strtoll_impl
+#undef __strtod_impl
+#undef __strtof_impl
+// clang-format on
 
 // Adaptor for strtoull()/strtoll().
 // Flatbuffers accepts numbers with any count of leading zeros (-009 is -9),
@@ -261,64 +290,41 @@ static inline float strtof_impl(const char *str, char **str_end) {
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T>
-inline T StringToInteger64Impl(const char *const str, const char **endptr,
-                               const int base, const bool check_errno = true) {
-  static_assert(flatbuffers::is_same<T, int64_t>::value ||
-                flatbuffers::is_same<T, uint64_t>::value,
-                "Type T must be either int64_t or uint64_t");
-  FLATBUFFERS_ASSERT(str && endptr);  // endptr must be not null
+inline bool StringToIntegerImpl(T *val, const char *const str,
+                                const int base = 0,
+                                const bool check_errno = true) {
+  // T is int64_t or uint64_T
+  FLATBUFFERS_ASSERT(str);
   if (base <= 0) {
     auto s = str;
     while (*s && !is_digit(*s)) s++;
     if (s[0] == '0' && is_alpha_char(s[1], 'X'))
-      return StringToInteger64Impl<T>(str, endptr, 16, check_errno);
+      return StringToIntegerImpl(val, str, 16, check_errno);
     // if a prefix not match, try base=10
-    return StringToInteger64Impl<T>(str, endptr, 10, check_errno);
+    return StringToIntegerImpl(val, str, 10, check_errno);
   } else {
     if (check_errno) errno = 0;  // clear thread-local errno
-    // calculate result
-    T result;
-    if (IsConstTrue(flatbuffers::is_same<T, int64_t>::value)) {
-      // clang-format off
-      #ifdef _MSC_VER
-        result = _strtoi64(str, const_cast<char**>(endptr), base);
-      #else
-        result = strtoll(str, const_cast<char**>(endptr), base);
-      #endif
-      // clang-format on
-    } else {  // T is uint64_t
-      // clang-format off
-      #ifdef _MSC_VER
-        result = _strtoui64(str, const_cast<char**>(endptr), base);
-      #else
-        result = strtoull(str, const_cast<char**>(endptr), base);
-      #endif
-      // clang-format on
-
-      // The strtoull accepts negative numbers:
-      // If the minus sign was part of the input sequence, the numeric value
-      // calculated from the sequence of digits is negated as if by unary minus
-      // in the result type, which applies unsigned integer wraparound rules.
-      // Fix this behaviour (except -0).
-      if ((**endptr == '\0') && (0 != result)) {
-        auto s = str;
-        while (*s && !is_digit(*s)) s++;
-        s = (s > str) ? (s - 1) : s;  // step back to one symbol
-        if (*s == '-') {
-          // For unsigned types return max to distinguish from
-          // "no conversion can be performed".
-          result = flatbuffers::numeric_limits<T>::max();
-          // point to the start of string, like errno
-          *endptr = str;
-        }
-      }
+    auto endptr = str;
+    strtoval_impl(val, str, const_cast<char **>(&endptr), base);
+    if ((*endptr != '\0') || (endptr == str)) {
+      *val = 0;      // erase partial result
+      return false;  // invalid string
     }
-    // check for overflow
-    if (check_errno && errno) *endptr = str; // point it to start of input
-    // erase partial result, but save an overflow
-    if ((*endptr != str) && (**endptr != '\0')) result = 0;
-    return result;
+    // errno is out-of-range, return MAX/MIN
+    if (check_errno && errno) return false;
+    return true;
   }
+}
+
+template<typename T>
+inline bool StringToFloatImpl(T *val, const char *const str) {
+  // Type T must be either float or double.
+  FLATBUFFERS_ASSERT(str && val);
+  auto end = str;
+  strtoval_impl(val, str, const_cast<char **>(&end));
+  auto done = (end != str) && (*end == '\0');
+  if (!done) *val = 0;  // erase partial result
+  return done;
 }
 
 // Convert a string to an instance of T.
@@ -329,66 +335,69 @@ inline T StringToInteger64Impl(const char *const str, const char **endptr,
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T> inline bool StringToNumber(const char *s, T *val) {
   FLATBUFFERS_ASSERT(s && val);
-  const char *end = nullptr;
-  // The errno check isn't needed. strtoll will return MAX/MIN on overlow.
-  const int64_t i = StringToInteger64Impl<int64_t>(s, &end, -1, false);
-  *val = static_cast<T>(i);
-  const auto done = (s != end) && (*end == '\0');
-  if (done) {
+  int64_t i64;
+  // The errno check isn't needed, will return MAX/MIN on overflow.
+  if (StringToIntegerImpl(&i64, s, 0, false)) {
     const int64_t max = flatbuffers::numeric_limits<T>::max();
     const int64_t min = flatbuffers::numeric_limits<T>::lowest();
-    if (i > max) {
+    if (i64 > max) {
       *val = static_cast<T>(max);
       return false;
     }
-    if (i < min) {
+    if (i64 < min) {
       // For unsigned types return max to distinguish from
       // "no conversion can be performed" when 0 is returned.
       *val = static_cast<T>(flatbuffers::is_unsigned<T>::value ? max : min);
       return false;
     }
+    *val = static_cast<T>(i64);
+    return true;
   }
-  return done;
-}
-template<> inline bool StringToNumber<int64_t>(const char *s, int64_t *val) {
-  const char *end = s;  // request errno checking
-  *val = StringToInteger64Impl<int64_t>(s, &end, -1);
-  return (s != end) && (*end == '\0');
-}
-template<> inline bool StringToNumber<uint64_t>(const char *s, uint64_t *val) {
-  const char *end = s;  // request errno checking
-  *val = StringToInteger64Impl<uint64_t>(s, &end, -1);
-  return (s != end) && (*end == '\0');
+  *val = 0;
+  return false;
 }
 
-template<> inline bool StringToNumber<double>(const char *s, double *val) {
-  FLATBUFFERS_ASSERT(s && val);
-  char *end = nullptr;
-  *val = strtod_impl(s, &end);
-  auto done = (s != end) && (*end == '\0');
-  if (!done) *val = 0;  // erase partial result
-  return done;
+template<> inline bool StringToNumber<int64_t>(const char *str, int64_t *val) {
+  return StringToIntegerImpl(val, str);
 }
 
-template<> inline bool StringToNumber<float>(const char *s, float *val) {
-  FLATBUFFERS_ASSERT(s && val);
-  char *end = nullptr;
-  *val = strtof_impl(s, &end);
-  auto done = (s != end) && (*end == '\0');
-  if (!done) *val = 0;  // erase partial result
-  return done;
+template<> inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
+  if (!StringToIntegerImpl(val, str)) return false;
+  // The strtoull accepts negative numbers:
+  // If the minus sign was part of the input sequence, the numeric value
+  // calculated from the sequence of digits is negated as if by unary minus
+  // in the result type, which applies unsigned integer wraparound rules.
+  // Fix this behaviour (except -0).
+  if (*val) {
+    auto s = str;
+    while (*s && !is_digit(*s)) s++;
+    s = (s > str) ? (s - 1) : s;  // step back to one symbol
+    if (*s == '-') {
+      // For unsigned types return the max to distinguish from
+      // "no conversion can be performed".
+      *val = flatbuffers::numeric_limits<uint64_t>::max();
+      return false;
+    }
+  }
+  return true;
 }
 
-inline int64_t StringToInt(const char *str, const char **endptr = nullptr,
-                           int base = 10) {
-  const char *ep = nullptr;
-  return StringToInteger64Impl<int64_t>(str, endptr ? endptr : &ep, base);
+template<> inline bool StringToNumber(const char *s, float *val) {
+  return StringToFloatImpl(val, s);
 }
 
-inline uint64_t StringToUInt(const char *str, const char **endptr = nullptr,
-                             int base = 10) {
-  const char *ep = nullptr;
-  return StringToInteger64Impl<uint64_t>(str, endptr ? endptr : &ep, base);
+template<> inline bool StringToNumber(const char *s, double *val) {
+  return StringToFloatImpl(val, s);
+}
+
+static inline int64_t StringToInt(const char *s, int base = 10) {
+  int64_t val;
+  return StringToIntegerImpl(&val, s, base) ? val : 0;
+}
+
+static inline uint64_t StringToUInt(const char *s, int base = 10) {
+  uint64_t val;
+  return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,

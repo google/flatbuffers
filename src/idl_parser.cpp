@@ -219,7 +219,7 @@ CheckedError Parser::ParseHexNum(int nibbles, uint64_t *val) {
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
-  *val = StringToUInt(target.c_str(), nullptr, 16);
+  *val = StringToUInt(target.c_str(), 16);
   cursor_ += nibbles;
   return NoError();
 }
