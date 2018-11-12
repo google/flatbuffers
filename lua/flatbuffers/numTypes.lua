@@ -119,8 +119,8 @@ local int16_mt =
 local int32_mt = 
 {
     bytewidth = 4,
-    min_value = -2^32,
-    max_value = 2^32-1,
+    min_value = -2^31,
+    max_value = 2^31-1,
     lua_type = type(1),
     name = "int32",
     packFmt = "<i4"
