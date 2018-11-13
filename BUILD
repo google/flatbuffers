@@ -92,6 +92,7 @@ cc_binary(
         "src/idl_gen_lobster.cpp",
         "src/idl_gen_php.cpp",
         "src/idl_gen_python.cpp",
+        "src/idl_gen_rust.cpp",
         "src/idl_gen_text.cpp",
     ],
     includes = [
@@ -101,6 +102,18 @@ cc_binary(
     deps = [
         ":flatc_library",
     ],
+)
+
+cc_library(
+    name = "runtime_cc",
+    hdrs = [
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
+    ],
+    includes = ["include/"],
+    linkstatic = 1,
 )
 
 # Test binary.
@@ -121,6 +134,10 @@ cc_test(
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
         "tests/test.cpp",
+        "tests/test_builder.h",
+        "tests/test_assert.h",
+        "tests/test_builder.cpp",
+        "tests/test_assert.cpp",
         "tests/union_vector/union_vector_generated.h",
         ":public_headers",
     ],
@@ -138,6 +155,7 @@ cc_test(
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
         ":tests/union_vector/union_vector.fbs",
+        ":tests/unicode_test.json",
     ],
     includes = ["include/"],
 )

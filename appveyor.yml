@@ -13,6 +13,7 @@ environment:
 
   matrix:
     - CMAKE_VS_VERSION: "10 2010"
+    - CMAKE_VS_VERSION: "12 2013"
     - CMAKE_VS_VERSION: "14 2015"
 
 platform:
@@ -32,10 +33,20 @@ build:
   project: ALL_BUILD.vcxproj
   verbosity: minimal
 
+after_build:
+  - python conan/appveyor/install.py
+  - python conan/appveyor/build.py
+
 install:
   - set PATH=%CONDA_INSTALL_LOCN%;%CONDA_INSTALL_LOCN%\scripts;%PATH%;
+  - curl -sSf -o rustup-init.exe https://win.rustup.rs/
+  - rustup-init.exe -y
+  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+  - rustc -V
+  - cargo -V
 
 test_script:
+  - call .appveyor\check-generate-code.bat -b %CONFIGURATION%
   - "cd tests"
   - rem "Building all code"
   - generate_code.bat -b %CONFIGURATION%
@@ -47,6 +58,8 @@ test_script:
   - rem "---------------- Java -----------------"
   - "java -version"
   - "JavaTest.bat"
+  - rem "---------------- Rust ----------------"
+  - "RustTest.bat"
   - rem "---------------- JS -----------------"
   - "node --version"
   - "..\\%CONFIGURATION%\\flatc -b -I include_test monster_test.fbs unicode_test.json"

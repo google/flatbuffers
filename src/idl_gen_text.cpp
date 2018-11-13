@@ -131,7 +131,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       switch (type.base_type) {
         // clang-format off
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
           case BASE_TYPE_ ## ENUM: \
             if (!PrintVector<CTYPE>( \
                   *reinterpret_cast<const Vector<CTYPE> *>(val), \
@@ -149,19 +149,23 @@ bool Print<const void *>(const void *val, Type type, int indent,
   return true;
 }
 
+template<typename T> static T GetFieldDefault(const FieldDef &fd) {
+  T val;
+  auto check = StringToNumber(fd.value.constant.c_str(), &val);
+  (void)check;
+  FLATBUFFERS_ASSERT(check);
+  return val;
+}
+
 // Generate text for a scalar field.
-template<typename T> static bool GenField(const FieldDef &fd,
-                                          const Table *table, bool fixed,
-                                          const IDLOptions &opts,
-                                          int indent,
-                                          std::string *_text) {
-  return Print(fixed ?
-    reinterpret_cast<const Struct *>(table)->GetField<T>(fd.value.offset) :
-    table->GetField<T>(fd.value.offset,
-    IsFloat(fd.value.type.base_type) ?
-    static_cast<T>(strtod(fd.value.constant.c_str(), nullptr)) :
-    static_cast<T>(StringToInt(fd.value.constant.c_str()))),
-    fd.value.type, indent, nullptr, opts, _text);
+template<typename T>
+static bool GenField(const FieldDef &fd, const Table *table, bool fixed,
+                     const IDLOptions &opts, int indent, std::string *_text) {
+  return Print(
+      fixed ? reinterpret_cast<const Struct *>(table)->GetField<T>(
+                  fd.value.offset)
+            : table->GetField<T>(fd.value.offset, GetFieldDefault<T>(fd)),
+      fd.value.type, indent, nullptr, opts, _text);
 }
 
 static bool GenStruct(const StructDef &struct_def, const Table *table,
@@ -223,7 +227,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
       switch (fd.value.type.base_type) {
           // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: \
               if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
                                    opts, indent + Indent(opts), _text)) { \
@@ -234,7 +238,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
           case BASE_TYPE_ ## ENUM:
           FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD

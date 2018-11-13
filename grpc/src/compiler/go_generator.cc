@@ -84,7 +84,7 @@ void GenerateImports(grpc_generator::File *file, grpc_generator::Printer *printe
 	}
 	printer->Print("import (\n");
 	printer->Indent();
-	printer->Print(vars, "$context$ \"golang.org/x/net/context\"\n");
+	printer->Print(vars, "$context$ \"context\"\n");
 	printer->Print(vars, "$grpc$ \"google.golang.org/grpc\"\n");
 	printer->Outdent();
 	printer->Print(")\n\n");

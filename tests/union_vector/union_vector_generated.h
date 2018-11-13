@@ -16,6 +16,11 @@ struct BookReader;
 struct Movie;
 struct MovieT;
 
+bool operator==(const AttackerT &lhs, const AttackerT &rhs);
+bool operator==(const Rapunzel &lhs, const Rapunzel &rhs);
+bool operator==(const BookReader &lhs, const BookReader &rhs);
+bool operator==(const MovieT &lhs, const MovieT &rhs);
+
 inline const flatbuffers::TypeTable *AttackerTypeTable();
 
 inline const flatbuffers::TypeTable *RapunzelTypeTable();
@@ -64,6 +69,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
+  if (e < Character_NONE || e > Character_Unused) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesCharacter()[index];
 }
@@ -138,6 +144,42 @@ struct CharacterUnion {
   }
 };
 
+
+inline bool operator==(const CharacterUnion &lhs, const CharacterUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case Character_NONE: {
+      return true;
+    }
+    case Character_MuLan: {
+      return *(reinterpret_cast<const AttackerT *>(lhs.value)) ==
+             *(reinterpret_cast<const AttackerT *>(rhs.value));
+    }
+    case Character_Rapunzel: {
+      return *(reinterpret_cast<const Rapunzel *>(lhs.value)) ==
+             *(reinterpret_cast<const Rapunzel *>(rhs.value));
+    }
+    case Character_Belle: {
+      return *(reinterpret_cast<const BookReader *>(lhs.value)) ==
+             *(reinterpret_cast<const BookReader *>(rhs.value));
+    }
+    case Character_BookFan: {
+      return *(reinterpret_cast<const BookReader *>(lhs.value)) ==
+             *(reinterpret_cast<const BookReader *>(rhs.value));
+    }
+    case Character_Other: {
+      return *(reinterpret_cast<const std::string *>(lhs.value)) ==
+             *(reinterpret_cast<const std::string *>(rhs.value));
+    }
+    case Character_Unused: {
+      return *(reinterpret_cast<const std::string *>(lhs.value)) ==
+             *(reinterpret_cast<const std::string *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
 bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Character type);
 bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -161,6 +203,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Rapunzel, 4);
 
+inline bool operator==(const Rapunzel &lhs, const Rapunzel &rhs) {
+  return
+      (lhs.hair_length() == rhs.hair_length());
+}
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t books_read_;
@@ -181,6 +228,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(BookReader, 4);
 
+inline bool operator==(const BookReader &lhs, const BookReader &rhs) {
+  return
+      (lhs.books_read() == rhs.books_read());
+}
+
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
   int32_t sword_attack_damage;
@@ -189,12 +241,17 @@ struct AttackerT : public flatbuffers::NativeTable {
   }
 };
 
+inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
+  return
+      (lhs.sword_attack_damage == rhs.sword_attack_damage);
+}
+
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
   int32_t sword_attack_damage() const {
@@ -249,12 +306,18 @@ struct MovieT : public flatbuffers::NativeTable {
   }
 };
 
+inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
+  return
+      (lhs.main_character == rhs.main_character) &&
+      (lhs.characters == rhs.characters);
+}
+
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MAIN_CHARACTER_TYPE = 4,
     VT_MAIN_CHARACTER = 6,
     VT_CHARACTERS_TYPE = 8,
@@ -269,7 +332,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
   }
-  template<typename T> const T *main_character_as() const;
   const Attacker *main_character_as_MuLan() const {
     return main_character_type() == Character_MuLan ? static_cast<const Attacker *>(main_character()) : nullptr;
   }
@@ -414,7 +476,7 @@ inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *
   (void)_resolver;
   { auto _e = main_character_type(); _o->main_character.type = _e; };
   { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); };
-  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = (Character)_e->Get(_i); } } };
+  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } };
   { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } };
 }
 
@@ -656,7 +718,7 @@ inline const flatbuffers::TypeTable *RapunzelTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "hair_length"
   };
@@ -670,7 +732,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4 };
+  static const int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "books_read"
   };

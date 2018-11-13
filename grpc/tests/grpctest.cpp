@@ -20,8 +20,13 @@
 
 #include "monster_test.grpc.fb.h"
 #include "monster_test_generated.h"
+#include "test_assert.h"
 
 using namespace MyGame::Example;
+using flatbuffers::grpc::MessageBuilder;
+using flatbuffers::FlatBufferBuilder;
+
+void message_builder_tests();
 
 // The callback implementation of our server, that derives from the generated
 // code. It implements all rpcs specified in the FlatBuffers schema.
@@ -44,9 +49,9 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
       const flatbuffers::grpc::Message<Stat> *request,
       ::grpc::ServerWriter<flatbuffers::grpc::Message<Monster>> *writer)
       override {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 5; i++) {
       fbb_.Clear();
-      // Create 10 monsters for resposne.
+      // Create 5 monsters for resposne.
       auto monster_offset =
           CreateMonster(fbb_, 0, 0, 0,
                         fbb_.CreateString(request->GetRoot()->id()->str() +
@@ -92,7 +97,46 @@ void RunServer() {
   server_instance->Wait();
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+template <class Builder>
+void StoreRPC(MonsterStorage::Stub *stub) {
+  Builder fbb;
+  grpc::ClientContext context;
+  // Build a request with the name set.
+  auto monster_offset = CreateMonster(fbb, 0, 0, 0, fbb.CreateString("Fred"));
+  MessageBuilder mb(std::move(fbb));
+  mb.Finish(monster_offset);
+  auto request = mb.ReleaseMessage<Monster>();
+  flatbuffers::grpc::Message<Stat> response;
+
+  // The actual RPC.
+  auto status = stub->Store(&context, request, &response);
+
+  if (status.ok()) {
+    auto resp = response.GetRoot()->id();
+    std::cout << "RPC response: " << resp->str() << std::endl;
+  } else {
+    std::cout << "RPC failed" << std::endl;
+  }
+}
+
+template <class Builder>
+void RetrieveRPC(MonsterStorage::Stub *stub) {
+  Builder fbb;
+  grpc::ClientContext context;
+  fbb.Clear();
+  auto stat_offset = CreateStat(fbb, fbb.CreateString("Fred"));
+  fbb.Finish(stat_offset);
+  auto request = MessageBuilder(std::move(fbb)).ReleaseMessage<Stat>();
+
+  flatbuffers::grpc::Message<Monster> response;
+  auto stream = stub->Retrieve(&context, request);
+  while (stream->Read(&response)) {
+    auto resp = response.GetRoot()->name();
+    std::cout << "RPC Streaming response: " << resp->str() << std::endl;
+  }
+}
+
+int grpc_server_test() {
   // Launch server.
   std::thread server_thread(RunServer);
 
@@ -105,39 +149,12 @@ int main(int /*argc*/, const char * /*argv*/ []) {
                                      grpc::InsecureChannelCredentials());
   auto stub = MyGame::Example::MonsterStorage::NewStub(channel);
 
-  flatbuffers::grpc::MessageBuilder fbb;
-  {
-    grpc::ClientContext context;
-    // Build a request with the name set.
-    auto monster_offset = CreateMonster(fbb, 0, 0, 0, fbb.CreateString("Fred"));
-    fbb.Finish(monster_offset);
-    auto request = fbb.ReleaseMessage<Monster>();
-    flatbuffers::grpc::Message<Stat> response;
+  StoreRPC<MessageBuilder>(stub.get());
+  StoreRPC<FlatBufferBuilder>(stub.get());
 
-    // The actual RPC.
-    auto status = stub->Store(&context, request, &response);
+  RetrieveRPC<MessageBuilder>(stub.get());
+  RetrieveRPC<FlatBufferBuilder>(stub.get());
 
-    if (status.ok()) {
-      auto resp = response.GetRoot()->id();
-      std::cout << "RPC response: " << resp->str() << std::endl;
-    } else {
-      std::cout << "RPC failed" << std::endl;
-    }
-  }
-  {
-    grpc::ClientContext context;
-    fbb.Clear();
-    auto stat_offset = CreateStat(fbb, fbb.CreateString("Fred"));
-    fbb.Finish(stat_offset);
-    auto request = fbb.ReleaseMessage<Stat>();
-
-    flatbuffers::grpc::Message<Monster> response;
-    auto stream = stub->Retrieve(&context, request);
-    while (stream->Read(&response)) {
-      auto resp = response.GetRoot()->name();
-      std::cout << "RPC Streaming response: " << resp->str() << std::endl;
-    }
-  }
 
 #if !FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
   {
@@ -163,3 +180,17 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   return 0;
 }
+
+int main(int /*argc*/, const char * /*argv*/ []) {
+  message_builder_tests();
+  grpc_server_test();
+
+  if (!testing_fails) {
+    TEST_OUTPUT_LINE("ALL TESTS PASSED");
+    return 0;
+  } else {
+    TEST_OUTPUT_LINE("%d FAILED TESTS", testing_fails);
+    return 1;
+  }
+}
+

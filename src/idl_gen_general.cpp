@@ -56,6 +56,7 @@ struct LanguageParameters {
   std::string optional_suffix;
   std::string includes;
   std::string class_annotation;
+  std::string generated_type_annotation;
   CommentConfig comment_config;
 };
 
@@ -87,7 +88,8 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         "",
         "import java.nio.*;\nimport java.lang.*;\nimport "
         "java.util.*;\nimport com.google.flatbuffers.*;\n",
-        "\n@SuppressWarnings(\"unused\")\n",
+        "\n@SuppressWarnings(\"unused\")",
+        "\n@javax.annotation.Generated(value=\"flatc\")\n",
         {
             "/**",
             " *",
@@ -119,6 +121,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         "Table.",
         "?",
         "using global::System;\nusing global::FlatBuffers;\n\n",
+        "",
         "",
         {
             nullptr,
@@ -218,6 +221,9 @@ class GeneralGenerator : public BaseGenerator {
       }
       code += lang_.class_annotation;
     }
+    if (parser_.opts.gen_generated) {
+      code += lang_.generated_type_annotation;
+    }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
@@ -247,7 +253,7 @@ class GeneralGenerator : public BaseGenerator {
     // clang-format off
   static const char * const java_typename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
         #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -255,7 +261,7 @@ class GeneralGenerator : public BaseGenerator {
 
   static const char * const csharp_typename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
         #NTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -504,7 +510,16 @@ class GeneralGenerator : public BaseGenerator {
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &lang_.comment_config);
-    code += std::string("public ") + lang_.enum_decl + enum_def.name;
+    if (enum_def.attributes.Lookup("private")) {
+      // For Java, we leave the enum unmarked to indicate package-private
+      // For C# we mark the enum as internal
+      if (lang_.language == IDLOptions::kCSharp) {
+        code += "internal ";
+      }
+    } else {
+      code += "public ";
+    }
+    code += lang_.enum_decl + enum_def.name;
     if (lang_.language == IDLOptions::kCSharp) {
       code += lang_.inheritance_marker +
               GenTypeBasic(enum_def.underlying_type, false);
@@ -773,7 +788,15 @@ class GeneralGenerator : public BaseGenerator {
     //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
     // }
     GenComment(struct_def.doc_comment, code_ptr, &lang_.comment_config);
-    code += "public ";
+    if (struct_def.attributes.Lookup("private")) {
+      // For Java, we leave the struct unmarked to indicate package-private
+      // For C# we mark the struct as internal
+      if (lang_.language == IDLOptions::kCSharp) {
+        code += "internal ";
+      }
+    } else {
+      code += "public ";
+    }
     if (lang_.language == IDLOptions::kCSharp &&
         struct_def.attributes.Lookup("csharp_partial")) {
       // generate a partial class for this C# struct/table
@@ -1096,12 +1119,21 @@ class GeneralGenerator : public BaseGenerator {
             code += "); }\n";
             break;
           case IDLOptions::kCSharp:
+            code += "#if ENABLE_SPAN_T\n";
+            code += "  public Span<byte> Get";
+            code += MakeCamel(field.name, lang_.first_camel_upper);
+            code += "Bytes() { return ";
+            code += lang_.accessor_prefix + "__vector_as_span(";
+            code += NumToString(field.value.offset);
+            code += "); }\n";
+            code += "#else\n";
             code += "  public ArraySegment<byte>? Get";
             code += MakeCamel(field.name, lang_.first_camel_upper);
             code += "Bytes() { return ";
             code += lang_.accessor_prefix + "__vector_as_arraysegment(";
             code += NumToString(field.value.offset);
             code += "); }\n";
+            code += "#endif\n";
 
             // For direct blockcopying the data into a typed array
             code += "  public ";

@@ -128,8 +128,7 @@ class JsGenerator : public BaseGenerator {
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
       if (basename != file_name_) {
-        const auto file_name = basename + kGeneratedFileNamePostfix;
-        code += GenPrefixedImport(file, file_name);
+        code += GenPrefixedImport(file, basename);
       }
     }
   }
@@ -355,9 +354,22 @@ class JsGenerator : public BaseGenerator {
         if (it != enum_def.vals.vec.begin()) { code += '\n'; }
         GenDocComment(ev.doc_comment, code_ptr, "", "  ");
       }
+
+      // Generate mapping between EnumName: EnumValue(int)
       code += "  " + ev.name;
       code += lang_.language == IDLOptions::kTs ? "= " : ": ";
       code += NumToString(ev.value);
+
+      if (lang_.language == IDLOptions::kJs) {
+        // In pure Javascript, generate mapping between EnumValue(int):
+        // 'EnumName' so enums can be looked up by their ID.
+        code += ", ";
+
+        code += NumToString(ev.value);
+        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += "'" + ev.name + "'";
+      }
+
       code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
 
       if (ev.union_type.struct_def) {
@@ -446,8 +458,9 @@ class JsGenerator : public BaseGenerator {
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
         int64_t constant = StringToInt(value.constant.c_str());
-        return context + ".createLong(" + NumToString((int32_t)constant) +
-               ", " + NumToString((int32_t)(constant >> 32)) + ")";
+        return context + ".createLong(" +
+               NumToString(static_cast<int32_t>(constant)) + ", " +
+               NumToString(static_cast<int32_t>(constant >> 32)) + ")";
       }
 
       default: return value.constant;
@@ -507,14 +520,29 @@ class JsGenerator : public BaseGenerator {
   }
 
   static std::string GenFileNamespacePrefix(const std::string &file) {
-    return "NS" + std::to_string(static_cast<unsigned long long>(
-                      std::hash<std::string>()(file)));
+    return "NS" + std::to_string(HashFnv1a<uint64_t>(file.c_str()));
   }
 
-  static std::string GenPrefixedImport(const std::string &full_file_name,
-                                       const std::string &base_file_name) {
+  std::string GenPrefixedImport(const std::string &full_file_name,
+                                const std::string &base_name) {
+    // Either keep the include path as it was
+    // or use only the base_name + kGeneratedFileNamePostfix
+    std::string path;
+    if (parser_.opts.keep_include_path) {
+      auto it = parser_.included_files_.find(full_file_name);
+      FLATBUFFERS_ASSERT(it != parser_.included_files_.end());
+      path =
+          flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
+    } else {
+      path = base_name + kGeneratedFileNamePostfix;
+    }
+
+    // Add the include prefix and make the path always relative
+    path = flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, path);
+    path = std::string(".") + kPathSeparator + path;
+
     return "import * as " + GenFileNamespacePrefix(full_file_name) +
-           " from \"./" + base_file_name + "\";\n";
+           " from \"" + path + "\";\n";
   }
 
   // Adds a source-dependent prefix, for of import * statements.

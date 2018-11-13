@@ -94,12 +94,13 @@ inline const char * const *EnumNamesBaseType() {
 }
 
 inline const char *EnumNameBaseType(BaseType e) {
+  if (e < None || e > Union) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesBaseType()[index];
 }
 
 struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BASE_TYPE = 4,
     VT_ELEMENT = 6,
     VT_INDEX = 8
@@ -159,7 +160,7 @@ inline flatbuffers::Offset<Type> CreateType(
 }
 
 struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_KEY = 4,
     VT_VALUE = 6
   };
@@ -228,7 +229,7 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValueDirect(
 }
 
 struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_VALUE = 6,
     VT_OBJECT = 8,
@@ -336,7 +337,7 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_VALUES = 6,
     VT_IS_UNION = 8,
@@ -461,7 +462,7 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
 }
 
 struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
     VT_ID = 8,
@@ -643,7 +644,7 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FIELDS = 6,
     VT_IS_STRUCT = 8,
@@ -778,7 +779,7 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
 }
 
 struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_REQUEST = 6,
     VT_RESPONSE = 8,
@@ -890,7 +891,7 @@ inline flatbuffers::Offset<RPCCall> CreateRPCCallDirect(
 }
 
 struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_CALLS = 6,
     VT_ATTRIBUTES = 8,
@@ -988,7 +989,7 @@ inline flatbuffers::Offset<Service> CreateServiceDirect(
 }
 
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_OBJECTS = 4,
     VT_ENUMS = 6,
     VT_FILE_IDENT = 8,

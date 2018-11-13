@@ -2,6 +2,29 @@ env:
   global:
     # Set at the root level as this is ignored when set under matrix.env.
     - GCC_VERSION="4.9"
+
+conan-linux: &conan-linux
+  os: linux
+  dist: xenial
+  language: python
+  python: "3.7"
+  services:
+    - docker
+  install:
+    - ./conan/travis/install.sh
+  script:
+    - ./conan/travis/build.sh
+  if: tag IS present
+
+conan-osx: &conan-osx
+  os: osx
+  language: generic
+  install:
+    - ./conan/travis/install.sh
+  script:
+    - ./conan/travis/build.sh
+  if: tag IS present
+
 matrix:
   include:
     #- language: python
@@ -49,8 +72,17 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/testing -s build_type=$BUILD_TYPE; fi
+      - bash grpc/build_grpc.sh
+      - cmake . 
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
+        -DFLATBUFFERS_CODE_SANITIZE=ON
+      - make
+      - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib make test ARGS=-V
+      - bash .travis/check-generate-code.sh
+      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
@@ -60,28 +92,72 @@ matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
       script:
-      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
+      - bash grpc/build_grpc.sh
+      - cmake .
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
+        -DFLATBUFFERS_CODE_SANITIZE=ON
+      - make
+      - ./flattests
+      - bash .travis/check-generate-code.sh
+      - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ./grpctest
 
-    #- language: android
-    #  sudo: true
-    #  android:
-    #    components:
-    #      - tools
-    #      - platform-tools
-    #      - build-tools-25.0.2
-    #      - android-25
-    #      - extra-android-m2repository
-    #  compiler:
-    #    - gcc
-    #  before_install:
-    #    - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
-    #    - export ANDROID_NDK_HOME=$HOME/android-ndk-root
-    #    # Setup environment for Linux build which is required to build the sample.
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
-    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
-    #  script:
-    #    - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=conanio/gcc5
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=conanio/gcc6
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=conanio/gcc7
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=conanio/clang39
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=conanio/clang40
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=conanio/clang50
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=conanio/clang60
+    - <<: *conan-osx
+      osx_image: xcode7.3
+      env: CONAN_APPLE_CLANG_VERSIONS=7.3
+    - <<: *conan-osx
+      osx_image: xcode8.3
+      env: CONAN_APPLE_CLANG_VERSIONS=8.1
+    - <<: *conan-osx
+      osx_image: xcode9
+      env: CONAN_APPLE_CLANG_VERSIONS=9.0
+    - <<: *conan-osx
+      osx_image: xcode9.4
+      env: CONAN_APPLE_CLANG_VERSIONS=9.1
+    - <<: *conan-osx
+      osx_image: xcode10
+      env: CONAN_APPLE_CLANG_VERSIONS=10.0
+
+    - language: android
+      sudo: true
+      android:
+        components:
+          - tools
+          - platform-tools
+          - build-tools-25.0.2
+          - android-25
+          - extra-android-m2repository
+      compiler:
+        - gcc
+      before_install:
+        - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
+        - export ANDROID_NDK_HOME=$HOME/android-ndk-root
+        # Setup environment for Linux build which is required to build the sample.
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
+      script:
+        - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))

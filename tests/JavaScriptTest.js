@@ -52,7 +52,7 @@ function main() {
   MyGame.Example.Monster.addTest(fbb, mon2);
   MyGame.Example.Monster.addTest4(fbb, test4);
   MyGame.Example.Monster.addTestarrayofstring(fbb, testArrayOfString);
-  MyGame.Example.Monster.addTestbool(fbb, false);
+  MyGame.Example.Monster.addTestbool(fbb, true);
   var mon = MyGame.Example.Monster.endMonster(fbb);
 
   MyGame.Example.Monster.finishMonsterBuffer(fbb, mon);
@@ -140,7 +140,7 @@ function testBuffer(bb) {
   assert.strictEqual(monster.testarrayofstring(0), 'test1');
   assert.strictEqual(monster.testarrayofstring(1), 'test2');
 
-  assert.strictEqual(monster.testbool(), false);
+  assert.strictEqual(monster.testbool(), true);
 }
 
 function test64bit() {
