@@ -86,7 +86,7 @@ cc_binary(
         "src/idl_gen_general.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
-        "src/idl_gen_js.cpp",
+        "src/idl_gen_js_ts.cpp",
         "src/idl_gen_json_schema.cpp",
         "src/idl_gen_lua.cpp",
         "src/idl_gen_lobster.cpp",
