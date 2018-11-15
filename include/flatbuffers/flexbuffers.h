@@ -547,6 +547,9 @@ class Reference {
       AppendToString<TypedVector>(s, AsTypedVector(), keys_quoted);
     } else if (IsFixedTypedVector()) {
       AppendToString<FixedTypedVector>(s, AsFixedTypedVector(), keys_quoted);
+    } else if (IsBlob()) {
+      auto blob = AsBlob();
+      flatbuffers::EscapeString(reinterpret_cast<const char*>(blob.data()), blob.size(), &s, true, false);
     } else {
       s += "(?)";
     }
