@@ -1,4 +1,10 @@
-#include "flatbuffers/flexbuffers.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/util.h"
+
+#include "monster_test_generated.h"
 
 #ifdef __ANDROID__
   #include <android/log.h>
@@ -40,7 +46,19 @@ void TestEq(T expval, U val, const char *exp, const char *file, int line) {
 
 
 void FlexBuffersTest() {
-  TEST_EQ_STR("test", "test");
+  flatbuffers::FlatBufferBuilder builder(1024);
+
+  MyGame::Example::MonsterBuilder monster_builder(builder);
+  monster_builder.add_hp(10);
+  monster_builder.add_color(MyGame::Example::Color_Red);
+  auto monster = monster_builder.Finish();
+
+  builder.Finish(monster);
+
+  auto read_monster = MyGame::Example::GetMonster(builder.GetBufferPointer());
+
+  TEST_EQ(read_monster->hp(), 10);
+  TEST_EQ(read_monster->color(), MyGame::Example::Color_Red);
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {
@@ -52,6 +70,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
       //| _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF
     );
   #endif
+  // clang-format on
 
   FlexBuffersTest();
 
