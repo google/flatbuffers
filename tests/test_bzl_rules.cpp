@@ -40,7 +40,7 @@ void TestEq(T expval, U val, const char *exp, const char *file, int line) {
 
 
 void FlexBuffersTest() {
-  TEST_EQ_STR("test", "test")
+  TEST_EQ_STR("test", "test");
 }
 
 int main(int /*argc*/, const char * /*argv*/ []) {
@@ -53,7 +53,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
     );
   #endif
 
-  FlexBuffersTest()
+  FlexBuffersTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

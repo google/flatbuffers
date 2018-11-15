@@ -10,8 +10,11 @@ DEFAULT_INCLUDE_PATHS = [
 ]
 
 DEFAULT_FLATC_ARGS = [
-    "--no-union-value-namespacing",
     "--gen-object-api",
+    "--gen-compare",
+    "--no-includes",
+    "--gen-mutable",
+    "--reflect-names",
 ]
 
 def flatbuffer_library_public(
