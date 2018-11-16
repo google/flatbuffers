@@ -148,10 +148,8 @@ class JsGenerator : public BaseGenerator {
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
       if (basename != file_name_) {
-        const auto file_name = basename + kGeneratedFileNamePostfix;
-
         if (imported_files.find(file.first) == imported_files.end()) {
-          code += GenPrefixedImport(file.first, file_name);
+          code += GenPrefixedImport(file.first, basename);
           imported_files.emplace(file.first);
         }
 
