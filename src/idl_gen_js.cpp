@@ -1118,8 +1118,7 @@ class JsGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
-        auto argname = MakeCamel(field.name, false);
-        if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
+        const auto argname = GetArgName(field);
 
         // Generate the field insertion method
         GenDocComment(
@@ -1129,16 +1128,8 @@ class JsGenerator : public BaseGenerator {
                                   argname, false));
 
         if (lang_.language == IDLOptions::kTs) {
-          std::string argType;
-          if (field.value.type.enum_def) {
-            argType = GenPrefixedTypeName(GenTypeName(field.value.type, true),
-                                          field.value.type.enum_def->file);
-          } else {
-            argType = GenTypeName(field.value.type, true);
-          }
-
           code += "static add" + MakeCamel(field.name);
-          code += "(builder:flatbuffers.Builder, " + argname + ":" + argType +
+          code += "(builder:flatbuffers.Builder, " + argname + ":" + GetArgType(field) +
                   ") {\n";
         } else {
           code += object_name + ".add" + MakeCamel(field.name);
@@ -1268,12 +1259,55 @@ class JsGenerator : public BaseGenerator {
         code += ");\n";
         code += "};\n\n";
       }
+
+      if (lang_.language == IDLOptions::kTs) {
+          // Generate a convenient CreateX function
+          code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
+          for (auto it = struct_def.fields.vec.begin();
+               it != struct_def.fields.vec.end(); ++it) {
+            const auto &field = **it;
+            if (field.deprecated)
+              continue;
+
+            code += ", " + GetArgName(field) + ":" + GetArgType(field);
+          }
+
+          code += "):flatbuffers.Offset {\n";
+          code += "  " + struct_def.name + ".start" + struct_def.name + "(builder);\n";
+
+          for (auto it = struct_def.fields.vec.begin();
+               it != struct_def.fields.vec.end(); ++it) {
+              const auto &field = **it;
+              if (field.deprecated)
+                continue;
+
+              code += "  " + struct_def.name + ".add" + MakeCamel(field.name) +"(";
+              code += "builder, " + GetArgName(field) + ");\n";
+          }
+
+          code += "  return " + struct_def.name + ".end" + struct_def.name + "(builder);\n";
+          code += "}\n";
+      }
     }
 
     if (lang_.language == IDLOptions::kTs) {
       if (!object_namespace.empty()) { code += "}\n"; }
       code += "}\n";
     }
+  }
+
+  std::string GetArgType(const FieldDef &field) {
+    if (field.value.type.enum_def)
+      return GenPrefixedTypeName(GenTypeName(field.value.type, true),
+                                 field.value.type.enum_def->file);
+    return GenTypeName(field.value.type, true);
+  }
+
+  static std::string GetArgName(const FieldDef &field) {
+      auto argname = MakeCamel(field.name, false);
+      if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
+
+      return argname;
   }
 };
 }  // namespace js

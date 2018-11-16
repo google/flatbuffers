@@ -85,6 +85,11 @@ static endTableInNestedNS(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createTableInNestedNS(builder:flatbuffers.Builder, foo:number):flatbuffers.Offset {
+  TableInNestedNS.startTableInNestedNS(builder);
+  TableInNestedNS.addFoo(builder, foo);
+  return TableInNestedNS.endTableInNestedNS(builder);
+}
 }
 }
 /**

@@ -110,6 +110,13 @@ static endTableInFirstNS(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createTableInFirstNS(builder:flatbuffers.Builder, fooTableOffset:flatbuffers.Offset, fooEnum:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS, fooStructOffset:flatbuffers.Offset):flatbuffers.Offset {
+  TableInFirstNS.startTableInFirstNS(builder);
+  TableInFirstNS.addFooTable(builder, fooTableOffset);
+  TableInFirstNS.addFooEnum(builder, fooEnum);
+  TableInFirstNS.addFooStruct(builder, fooStructOffset);
+  return TableInFirstNS.endTableInFirstNS(builder);
+}
 }
 }
 /**
@@ -190,6 +197,12 @@ static endTableInC(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createTableInC(builder:flatbuffers.Builder, referToA1Offset:flatbuffers.Offset, referToA2Offset:flatbuffers.Offset):flatbuffers.Offset {
+  TableInC.startTableInC(builder);
+  TableInC.addReferToA1(builder, referToA1Offset);
+  TableInC.addReferToA2(builder, referToA2Offset);
+  return TableInC.endTableInC(builder);
+}
 }
 }
 /**
@@ -253,5 +266,10 @@ static endSecondTableInA(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createSecondTableInA(builder:flatbuffers.Builder, referToCOffset:flatbuffers.Offset):flatbuffers.Offset {
+  SecondTableInA.startSecondTableInA(builder);
+  SecondTableInA.addReferToC(builder, referToCOffset);
+  return SecondTableInA.endSecondTableInA(builder);
+}
 }
 }
