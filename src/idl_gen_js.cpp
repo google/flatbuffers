@@ -534,7 +534,7 @@ class JsGenerator : public BaseGenerator {
       path =
           flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
     } else {
-      path = base_name + kGeneratedFileNamePostfix;
+      path = base_name;
     }
 
     // Add the include prefix and make the path always relative
