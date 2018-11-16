@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(CheckCXXSymbolExists)
 
 project(FlatBuffers)
 
@@ -34,6 +35,16 @@ if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   add_definitions(-DFLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
   message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 endif()
+
+# Auto-detect locale-narrow 'strtod_l' function.
+if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
+  if(MSVC)
+    check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+  else()
+    check_cxx_symbol_exists(strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+  endif()
+endif()
+add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/code_generators.h
@@ -213,6 +224,7 @@ function(add_fsanitize_to_target _target _sanitizer)
     target_link_libraries(${_target} PRIVATE
       "-fsanitize${_sanitizer_flags}")
     set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
   endif()
 endfunction()
 

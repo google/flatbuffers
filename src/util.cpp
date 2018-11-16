@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <clocale>
+
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -58,6 +60,7 @@ bool FileExists(const char *name) {
 
 bool DirExists(const char *name) {
   // clang-format off
+
   #ifdef _WIN32
     #define flatbuffers_stat _stat
     #define FLATBUFFERS_S_IFDIR _S_IFDIR
@@ -83,6 +86,52 @@ FileExistsFunction SetFileExistsFunction(
   g_file_exists_function =
       file_exists_function ? file_exists_function : FileExistsRaw;
   return previous_function;
+}
+
+// Locale-independent code.
+#if defined(FLATBUFFERS_LOCALE_INDEPENDENT) && \
+    (FLATBUFFERS_LOCALE_INDEPENDENT > 0)
+
+// clang-format off
+// Allocate locale instance at startup of application.
+ClassicLocale ClassicLocale::instance_;
+
+#ifdef _MSC_VER
+  ClassicLocale::ClassicLocale()
+    : locale_(_create_locale(LC_ALL, "C")) {}
+  ClassicLocale::~ClassicLocale() { _free_locale(locale_); }
+#else
+  ClassicLocale::ClassicLocale()
+    : locale_(newlocale(LC_ALL, "C", nullptr)) {}
+  ClassicLocale::~ClassicLocale() { freelocale(locale_); }
+#endif
+// clang-format on
+
+#endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
+
+std::string RemoveStringQuotes(const std::string &s) {
+  auto ch = *s.c_str();
+  return ((s.size() >= 2) && (ch == '\"' || ch == '\'') &&
+          (ch == string_back(s)))
+             ? s.substr(1, s.length() - 2)
+             : s;
+}
+
+bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
+  const auto the_locale = setlocale(LC_ALL, locale_name);
+  if (!the_locale) return false;
+  if (_value) *_value = std::string(the_locale);
+  return true;
+}
+
+#ifdef _MSC_VER
+#  pragma warning(disable : 4996)  // _CRT_SECURE_NO_WARNINGS
+#endif
+bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
+  auto env_str = std::getenv(var_name);
+  if (!env_str) return false;
+  if (_value) *_value = std::string(env_str);
+  return true;
 }
 
 }  // namespace flatbuffers
