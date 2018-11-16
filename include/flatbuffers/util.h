@@ -17,18 +17,15 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include <errno.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <fstream>
-#include <iomanip>
+// clang-format off
+
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
 #else // FLATBUFFERS_PREFER_PRINTF
 #  include <float.h>
 #  include <stdio.h>
 #endif // FLATBUFFERS_PREFER_PRINTF
-#include <string>
+
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -43,8 +40,16 @@
 #else
 #  include <limits.h>
 #endif
+// clang-format on
+
+#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include <iomanip>
+#include <fstream>
 
 #include "flatbuffers/base.h"
 
@@ -114,21 +119,22 @@ template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
   return string_width;
 }
 
-template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
-                                                        int precision = 0) {
+template<typename T>
+std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
   // Allow snprintf to use std::string trailing null to detect buffer overflow
-  snprintf(const_cast<char*>(s.data()), (s.size()+1), fmt, precision, t);
+  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, precision, t);
   return s;
 }
-#endif // FLATBUFFERS_PREFER_PRINTF
+#endif  // FLATBUFFERS_PREFER_PRINTF
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
   // clang-format off
+
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
     ss << t;
@@ -164,6 +170,7 @@ inline std::string NumToString<unsigned long long>(unsigned long long t) {
 // Special versions for floats/doubles.
 template<typename T> std::string FloatToString(T t, int precision) {
   // clang-format off
+
   #ifndef FLATBUFFERS_PREFER_PRINTF
     // to_string() prints different numbers of digits for floats depending on
     // platform and isn't available on Android, so we use stringstream
@@ -201,6 +208,7 @@ template<> inline std::string NumToString<float>(float t) {
 inline std::string IntToStringHex(int i, int xdigits) {
   FLATBUFFERS_ASSERT(i >= 0);
   // clang-format off
+
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
     ss << std::setw(xdigits) << std::setfill('0') << std::hex << std::uppercase
@@ -361,7 +369,8 @@ template<> inline bool StringToNumber<int64_t>(const char *str, int64_t *val) {
   return StringToIntegerImpl(val, str);
 }
 
-template<> inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
+template<>
+inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
   if (!StringToIntegerImpl(val, str)) return false;
   // The strtoull accepts negative numbers:
   // If the minus sign was part of the input sequence, the numeric value
@@ -515,6 +524,7 @@ inline void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
     // clang-format off
+
   #ifdef _WIN32
     (void)_mkdir(filepath.c_str());
   #else
@@ -527,6 +537,7 @@ inline void EnsureDirExists(const std::string &filepath) {
 // Returns the input path if the absolute path couldn't be resolved.
 inline std::string AbsolutePath(const std::string &filepath) {
   // clang-format off
+
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
     return filepath;
   #else
@@ -585,7 +596,8 @@ inline int FromUTF8(const char **in) {
       break;
     }
   }
-  if ((static_cast<unsigned char>(**in) << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
+  if ((static_cast<unsigned char>(**in) << len) & 0x80)
+    return -1;  // Bit after leading 1's must be 0.
   if (!len) return *(*in)++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
   if (len < 2 || len > 4) { return -1; }
@@ -644,7 +656,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
   return wrapped;
 }
-#endif // !FLATBUFFERS_PREFER_PRINTF
+#endif  // !FLATBUFFERS_PREFER_PRINTF
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
                          bool allow_non_utf8, bool natural_utf8) {
@@ -715,6 +727,19 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   text += "\"";
   return true;
 }
+
+// Remove paired quotes in a string: "text"|'text' -> text.
+std::string RemoveStringQuotes(const std::string &s);
+
+// Change th global C-locale to locale with name <locale_name>.
+// Returns an actual locale name in <_value>, useful if locale_name is "" or
+// null.
+bool SetGlobalTestLocale(const char *locale_name,
+                         std::string *_value = nullptr);
+
+// Read (or test) a value of environment variable.
+bool ReadEnvironmentVariable(const char *var_name,
+                             std::string *_value = nullptr);
 
 }  // namespace flatbuffers
 

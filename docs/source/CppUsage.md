@@ -536,9 +536,10 @@ After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be
 set to `0` or `1`.
 
 It is possible to test the compatibility of the Flatbuffers library with 
-a specific locale. Set the exact name of locale for the `flattests` target 
-using `FLATBUFFERS_TEST_LOCALE` definition, for example:
-- `-D FLATBUFFERS_TEST_LOCALE=""` - default a system locale
-- `-D FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251"`
+a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
+```sh
+>FLATBUFFERS_TEST_LOCALE="" ./flattests
+>FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
+```
 
 <br>

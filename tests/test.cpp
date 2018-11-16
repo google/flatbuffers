@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if defined(FLATBUFFERS_TEST_LOCALE)
-#include <clocale>
-#endif
-
 #include <cmath>
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -2458,15 +2454,17 @@ int FlatBufferTests() {
 int main(int /*argc*/, const char * /*argv*/ []) {
   InitTestEngine();
 
-  // clang-format off
-  // If testing with specific C-locale is requested.
-  #ifdef FLATBUFFERS_TEST_LOCALE
-    // Assume that FLATBUFFERS_TEST_LOCALE is a string with locale name.
-    const auto loc_name = std::setlocale(LC_ALL, FLATBUFFERS_TEST_LOCALE);
-    TEST_NOTNULL(loc_name);
-    TEST_OUTPUT_LINE("The global locale is: %s", loc_name);
-  #endif
-  // clang-format on
+  std::string req_locale;
+  if (flatbuffers::ReadEnvironmentVariable("FLATBUFFERS_TEST_LOCALE",
+                                          &req_locale)) {
+    TEST_OUTPUT_LINE("The environment variable FLATBUFFERS_TEST_LOCALE=%s",
+                     req_locale.c_str());
+    req_locale = flatbuffers::RemoveStringQuotes(req_locale);
+    std::string the_locale;
+    TEST_ASSERT_FUNC(
+        flatbuffers::SetGlobalTestLocale(req_locale.c_str(), &the_locale));
+    TEST_OUTPUT_LINE("The global C-locale changed: %s", the_locale.c_str());
+  }
 
   FlatBufferTests();
   FlatBufferBuilderTest();

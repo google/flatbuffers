@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <clocale>
+
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -103,8 +105,33 @@ ClassicLocale ClassicLocale::instance_;
     : locale_(newlocale(LC_ALL, "C", nullptr)) {}
   ClassicLocale::~ClassicLocale() { freelocale(locale_); }
 #endif
-// clang-format off
+// clang-format on
 
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
+
+std::string RemoveStringQuotes(const std::string &s) {
+  auto ch = *s.c_str();
+  return ((s.size() >= 2) && (ch == '\"' || ch == '\'') &&
+          (ch == string_back(s)))
+             ? s.substr(1, s.length() - 2)
+             : s;
+}
+
+bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
+  const auto the_locale = setlocale(LC_ALL, locale_name);
+  if (!the_locale) return false;
+  if (_value) *_value = std::string(the_locale);
+  return true;
+}
+
+#ifdef _MSC_VER
+#  pragma warning(disable : 4996)  // _CRT_SECURE_NO_WARNINGS
+#endif
+bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
+  auto env_str = std::getenv(var_name);
+  if (!env_str) return false;
+  if (_value) *_value = std::string(env_str);
+  return true;
+}
 
 }  // namespace flatbuffers

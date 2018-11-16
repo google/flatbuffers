@@ -316,17 +316,6 @@ if(FLATBUFFERS_BUILD_TESTS)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
-
-  if(DEFINED FLATBUFFERS_TEST_LOCALE)
-    # Enable test of locale independent code.
-    # -DFLATBUFFERS_TEST_LOCALE="" - test with default C-locale
-    # -DFLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" - test with ru_RU.CP1251
-    # Locale was installed before (Ubuntu):>sudo locale-gen ru_RU.CP1251
-    target_compile_definitions(flattests PRIVATE
-      FLATBUFFERS_TEST_LOCALE=\"${FLATBUFFERS_TEST_LOCALE}\")
-    message(STATUS "FLATBUFFERS_TEST_LOCALE: \"${FLATBUFFERS_TEST_LOCALE}\"")
-  endif()
-
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
