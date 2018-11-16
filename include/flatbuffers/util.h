@@ -67,13 +67,13 @@ template<typename T> inline bool check_in_range(T x, T a, T b) {
 }
 
 // Case-insensitive isalpha
-static inline bool is_alpha(char c) {
+inline bool is_alpha(char c) {
   // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
   return check_in_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
 }
 
 // Check (case-insensitive) that `c` is equal to alpha.
-static inline bool is_alpha_char(char c, char alpha) {
+inline bool is_alpha_char(char c, char alpha) {
   FLATBUFFERS_ASSERT(is_alpha(alpha));
   // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
   return ((c & 0xDF) == (alpha & 0xDF));
@@ -84,15 +84,15 @@ static inline bool is_alpha_char(char c, char alpha) {
 // functions that are not affected by the currently installed C locale. although
 // some implementations (e.g. Microsoft in 1252 codepage) may classify
 // additional single-byte characters as digits.
-static inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
+inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
 
-static inline bool is_xdigit(char c) {
+inline bool is_xdigit(char c) {
   // Replace by look-up table.
   return is_digit(c) | check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum
-static inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
+inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
 
 // @end-locale-independent functions for ASCII character set
 
@@ -260,23 +260,23 @@ inline std::string IntToStringHex(int i, int xdigits) {
   #endif
 #endif
 
-static inline void strtoval_impl(int64_t *val, const char *str, char **endptr,
+inline void strtoval_impl(int64_t *val, const char *str, char **endptr,
                                  int base) {
     *val = __strtoll_impl(str, endptr, base);
 }
 
-static inline void strtoval_impl(uint64_t *val, const char *str, char **endptr,
+inline void strtoval_impl(uint64_t *val, const char *str, char **endptr,
                                  int base) {
   *val = __strtoull_impl(str, endptr, base);
 }
 
-static inline void strtoval_impl(double *val, const char *str, char **endptr) {
+inline void strtoval_impl(double *val, const char *str, char **endptr) {
   *val = __strtod_impl(str, endptr);
 }
 
 // UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
 __supress_ubsan__("float-cast-overflow")
-static inline void strtoval_impl(float *val, const char *str, char **endptr) {
+inline void strtoval_impl(float *val, const char *str, char **endptr) {
   *val = __strtof_impl(str, endptr);
 }
 #undef __strtoull_impl
@@ -399,12 +399,12 @@ template<> inline bool StringToNumber(const char *s, double *val) {
   return StringToFloatImpl(val, s);
 }
 
-static inline int64_t StringToInt(const char *s, int base = 10) {
+inline int64_t StringToInt(const char *s, int base = 10) {
   int64_t val;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
-static inline uint64_t StringToUInt(const char *s, int base = 10) {
+inline uint64_t StringToUInt(const char *s, int base = 10) {
   uint64_t val;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
