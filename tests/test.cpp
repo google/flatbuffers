@@ -1535,7 +1535,7 @@ void ValidFloatTest() {
   // Old MSVC versions may have problem with this check.
   // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
   TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
-    6929495644600920);
+    6929495644600920.0);
   // check nan's
   TEST_EQ(std::isnan(TestValue<double>("{ Y:nan }", "double")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ Y:nan }", "float")), true);
@@ -1663,6 +1663,7 @@ void NumericUtilsTestInteger(const char *lower, const char *upper) {
 template<typename T>
 void NumericUtilsTestFloat(const char *lower, const char *upper) {
   T f;
+  TEST_EQ(flatbuffers::StringToNumber("", &f), false);
   TEST_EQ(flatbuffers::StringToNumber("1q", &f), false);
   TEST_EQ(f, 0);
   TEST_EQ(flatbuffers::StringToNumber(upper, &f), true);
@@ -2457,6 +2458,18 @@ int FlatBufferTests() {
 
 int main(int /*argc*/, const char * /*argv*/ []) {
   InitTestEngine();
+
+  std::string req_locale;
+  if (flatbuffers::ReadEnvironmentVariable("FLATBUFFERS_TEST_LOCALE",
+                                          &req_locale)) {
+    TEST_OUTPUT_LINE("The environment variable FLATBUFFERS_TEST_LOCALE=%s",
+                     req_locale.c_str());
+    req_locale = flatbuffers::RemoveStringQuotes(req_locale);
+    std::string the_locale;
+    TEST_ASSERT_FUNC(
+        flatbuffers::SetGlobalTestLocale(req_locale.c_str(), &the_locale));
+    TEST_OUTPUT_LINE("The global C-locale changed: %s", the_locale.c_str());
+  }
 
   FlatBufferTests();
   FlatBufferBuilderTest();

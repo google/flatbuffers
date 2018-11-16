@@ -7,6 +7,7 @@
 #include <string>
 
 #include "flatbuffers/idl.h"
+#include "test_init.h"
 
 static constexpr uint8_t flags_strict_json = 0x01;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x02;
@@ -17,12 +18,8 @@ static constexpr uint8_t flags_allow_non_utf8 = 0x04;
 // static constexpr uint8_t flags_flag_6 = 0x40;
 // static constexpr uint8_t flags_flag_7 = 0x80;
 
-// See readme.md and CMakeLists.txt for details.
-#ifdef FUZZ_TEST_LOCALE
-static constexpr const char *test_locale = (FUZZ_TEST_LOCALE);
-#else
-static constexpr const char *test_locale = nullptr;
-#endif
+// Utility for test run.
+OneTimeTestInit OneTimeTestInit::one_time_init_;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
@@ -52,17 +49,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Each test should pass at least two times to ensure that the parser doesn't
   // have any hidden-states or locale-depended effects.
   for (auto cnt = 0; cnt < (extra_rep_number + 2); cnt++) {
-    auto use_locale = !!test_locale && (0 == (cnt % 2));
+    // Each even run (0,2,4..) will test locale independed code.
+    auto use_locale = !!OneTimeTestInit::test_locale() && (0 == (cnt % 2));
     // Set new locale.
     if (use_locale) {
-      FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, test_locale));
+      FLATBUFFERS_ASSERT(setlocale(LC_ALL, OneTimeTestInit::test_locale()));
     }
 
     // Check Parser.
     parser.Parse(parse_input);
 
     // Restore locale.
-    if (use_locale) { FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, "C")); }
+    if (use_locale) { FLATBUFFERS_ASSERT(setlocale(LC_ALL, "C")); }
   }
 
   return 0;

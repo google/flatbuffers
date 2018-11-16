@@ -15,27 +15,19 @@ The fuzzer section include three tests:
 - `parser_fuzzer` checks stability of schema and json parser under various inputs;
 - `scalar_parser` focused on validation of the parser while parse numeric scalars in schema and/or json files;
 
-## Build tests with locales
-Flatbuffers library use only printable-ASCII characters as characters of grammar alphabet for type and data declaration.
-This alphabet is fully compatible with JSON specification and make schema declaration fully portable.
-Flatbuffers library is independent from global or thread locales used by end-user application.
-To run fuzzer tests with selected C-locale under test pass `-DFUZZ_TEST_LOCALE="<locale name>"` to CMake when configuring.
-Selected locale must be installed in system before use.
-Command line:
+## Run tests with a specific locale
+The grammar of the Flatbuffers library is based on printable-ASCII characters.
+By design, the Flatbuffers library should be independent of the global or thread locales used by an end-user application.
+Set environment variable `FLATBUFFERS_TEST_LOCALE` to run a fuzzer with a specific C-locale:
 ```sh
-cmake .. -DFUZZ_TEST_LOCALE="ru_RU.CP1251"
-```
-If use VSCode, use `cmake.configureSettings` section of workspace settings:
-```json
-"cmake.configureSettings": {
-  "FUZZ_TEST_LOCALE" : "ru_RU.CP1251"
-}
+>FLATBUFFERS_TEST_LOCALE="" ./scalar_parser
+>FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./parser_fuzzer
 ```
 
 ## Run fuzzer
-These are examples of fuzzer run.
-Flags may vary and depend from version of libFuzzer library.
-For detail, run a fuzzer test with help flag: `./parser_fuzzer -help=1`
+These are examples of running a fuzzer.
+Flags may vary and depend on a version of the libFuzzer library.
+For details, run a fuzzer with `-help` flag: `./parser_fuzzer -help=1`
 
 `./verifier_fuzzer -reduce_depth=1 -use_value_profile=1 -shrink=1 ../.corpus_verifier/`
 
@@ -43,9 +35,11 @@ For detail, run a fuzzer test with help flag: `./parser_fuzzer -help=1`
 
 `./scalar_fuzzer -reduce_depth=1 -use_value_profile=1 -shrink=1 -max_len=3000 ../.corpus_parser/ ../.seed_parser/`
 
-Flag `-only_ascii=1` is useful for fast number-compatibility checking while run `scalar_fuzzer`:
-
+Flag `-only_ascii=1` is useful for fast number-compatibility checking while run `scalar_fuzzer`:  
 `./scalar_fuzzer -only_ascii=1 -reduce_depth=1 -use_value_profile=1 -shrink=1 -max_len=3000 -timeout=10 -rss_limit_mb=2048 -jobs=2 ../.corpus_parser/ ../.seed_parser/`
+
+Run with a specific C-locale:  
+`FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./scalar_fuzzer -reduce_depth=1 -use_value_profile=1 -shrink=1 -max_len=3000 -timeout=10 -rss_limit_mb=2048 ../.corpus_parser/ ../.seed_parser/`
 
 ## Merge (minimize) corpus
 The **libFuzzer** allow to filter (minimize) corpus with help of `-merge` flag:
@@ -53,8 +47,8 @@ The **libFuzzer** allow to filter (minimize) corpus with help of `-merge` flag:
     If set to 1, any corpus inputs from the 2nd, 3rd etc. corpus directories that trigger new code coverage will be merged into the first corpus directory.
     Defaults to 0. This flag can be used to minimize a corpus.
 
-Merge several seeds to one:
-`./scalar_fuzzer -merge=1 ../.corpus/ ../.seed_1/ ../.seed_2/`
+Merge several seeds to one (a new collected corpus to the seed collection, for example):
+`./scalar_fuzzer -merge=1 ../.seed_parser/ ../.corpus_parser/`
 
 ## Know limitations
 - LLVM 7.0 std::regex library has problem with stack overflow, maximum length of input for `scalar_fuzzer` run should be limited to 3000.

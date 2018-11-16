@@ -17,10 +17,9 @@ void TestFail(const char *expval, const char *val, const char *exp,
   testing_fails++;
 
   // Notify, emulate 'gtest::OnTestPartResult' event handler.
-  if(fail_listener_)
-    (*fail_listener_)(expval, val, exp, file, line, func);
+  if (fail_listener_) (*fail_listener_)(expval, val, exp, file, line, func);
 
-  assert(0); // ignored in Release if NDEBUG defined
+  assert(0);  // ignored in Release if NDEBUG defined
 }
 
 void TestEqStr(const char *expval, const char *val, const char *exp,

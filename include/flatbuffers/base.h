@@ -195,14 +195,34 @@
   #endif
 #endif // !FLATBUFFERS_HAS_NEW_STRTOD
 
-// Suppress sanitizer directives.
+#ifndef FLATBUFFERS_LOCALE_INDEPENDENT
+  // Enable locale independent functions {strtof_l, strtod_l,strtoll_l, strtoull_l}.
+  // They are part of the POSIX-2008 but not part of the C/C++ standard.
+  // GCC/Clang have definition (_XOPEN_SOURCE>=700) if POSIX-2008.
+  #if ((defined(_MSC_VER) && _MSC_VER >= 1800)            || \
+       (defined(_XOPEN_SOURCE) && (_XOPEN_SOURCE>=700)))
+    #define FLATBUFFERS_LOCALE_INDEPENDENT 1
+  #else
+    #define FLATBUFFERS_LOCALE_INDEPENDENT 0
+  #endif
+#endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
+
+// Suppress Undefined Behavior Sanitizer (recoverable only). Usage:
+// - __supress_ubsan__("undefined")
+// - __supress_ubsan__("signed-integer-overflow")
 #if defined(__clang__)
-  #define __no_sanitize_undefined__(reason) __attribute__((no_sanitize("undefined")))
+  #define __supress_ubsan__(type) __attribute__((no_sanitize(type)))
 #elif defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 408)
-  #define __no_sanitize_undefined__(reason) __attribute__((no_sanitize_undefined))
+  #define __supress_ubsan__(type) __attribute__((no_sanitize_undefined))
 #else
-  #define __no_sanitize_undefined__(reason)
+  #define __supress_ubsan__(type)
 #endif
+
+// This is constexpr function used for checking compile-time constants.
+// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
+template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
+  return !!t;
+}
 
 /// @endcond
 
@@ -287,13 +307,15 @@ template<typename T> T EndianScalar(T t) {
 }
 
 template<typename T>
-__no_sanitize_undefined__("C++ aliasing type rules, see std::bit_cast<>")
+// UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
+__supress_ubsan__("alignment")
 T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
 
 template<typename T>
-__no_sanitize_undefined__("C++ aliasing type rules, see std::bit_cast<>")
+// UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
+__supress_ubsan__("alignment")
 void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }

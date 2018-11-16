@@ -499,11 +499,47 @@ To use scalars, simply wrap them in a struct.
 
 ## Depth limit of nested objects and stack-overflow control
 The parser of Flatbuffers schema or json-files is kind of recursive parser.
-To avoid stack-overflow problem the parser has a built-in limiter of recursion depth.
-Number of nested declarations in a schema or number of nested json-objects is limited. 
-By default, this depth limit set to `64`.
-It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` definition.
-This definition can be helpful for testing purposes or embedded applications.
-For details see [build](@ref flatbuffers_guide_building) of CMake-based projects.
+To avoid stack-overflow problem the parser has a built-in limiter of 
+recursion depth. Number of nested declarations in a schema or number of 
+nested json-objects is limited. By default, this depth limit set to `64`.
+It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` 
+definition. This definition can be helpful for testing purposes or embedded 
+applications. For details see [build](@ref flatbuffers_guide_building) of 
+CMake-based projects.
+
+## Dependence from C-locale {#flatbuffers_locale_cpp}
+The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII 
+character set for identifiers, alphanumeric literals, reserved words.
+
+Internal implementation of the Flatbuffers depends from functions which 
+depend from C-locale: `strtod()` or `strtof()`, for example.
+The library expects the dot `.` symbol as the separator of an integer 
+part from the fractional part of a float number.
+Another separator symbols (`,` for example) will break the compatibility 
+and may lead to an error while parsing a Flatbuffers schema or a json file.
+
+The Standard C locale is a global resource, there is only one locale for 
+the entire application. Some modern compilers and platforms have 
+locale-independent or locale-narrow functions `strtof_l`, `strtod_l`, 
+`strtoll_l`, `strtoull_l` to resolve this dependency. 
+These functions use specified locale rather than the global or per-thread 
+locale instead. They are part of POSIX-2008 but not part of the C/C++ 
+standard library, therefore, may be missing on some platforms.
+
+The Flatbuffers library try to detect these functions at configuration and 
+compile time:
+- `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
+- `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
+- `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
+
+After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be 
+set to `0` or `1`.
+
+It is possible to test the compatibility of the Flatbuffers library with 
+a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
+```sh
+>FLATBUFFERS_TEST_LOCALE="" ./flattests
+>FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
+```
 
 <br>

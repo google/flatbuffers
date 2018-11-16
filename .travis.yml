@@ -2,6 +2,12 @@ env:
   global:
     # Set at the root level as this is ignored when set under matrix.env.
     - GCC_VERSION="4.9"
+    # Fail on first error if UBSAN or ASAN enabled for a target
+    - UBSAN_OPTIONS=halt_on_error=1
+    - ASAN_OPTIONS=halt_on_error=1
+    # Travis machines have 2 cores
+    - JOBS=2
+    - MAKEFLAGS="-j 2"
 
 conan-linux: &conan-linux
   os: linux
@@ -53,7 +59,7 @@ matrix:
     #        branch: master
     - language: cpp
       os:
-      - linux
+        - linux
 
       compiler:
         - gcc
@@ -79,8 +85,8 @@ matrix:
         -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
-      - make
-      - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib make test ARGS=-V
+      - cmake --build . -- -j${JOBS}
+      - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
       - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
@@ -91,6 +97,7 @@ matrix:
         matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
+      
       script:
       - bash grpc/build_grpc.sh
       - cmake .
@@ -99,10 +106,9 @@ matrix:
         -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
-      - make
-      - ./flattests
+      - cmake --build . -- -j${JOBS}
+      - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
-      - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ./grpctest
 
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
@@ -149,6 +155,7 @@ matrix:
           - extra-android-m2repository
       compiler:
         - gcc
+
       before_install:
         - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
         - export ANDROID_NDK_HOME=$HOME/android-ndk-root
