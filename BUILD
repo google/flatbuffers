@@ -143,6 +143,7 @@ cc_test(
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
+        "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
         ":tests/include_test/include_test1.fbs",

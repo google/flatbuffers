@@ -50,7 +50,12 @@ uint32_t lcg_rand() {
 }
 void lcg_reset() { lcg_seed = 48271; }
 
-std::string test_data_path = "tests/";
+std::string test_data_path =
+#ifdef BAZEL_TEST_DATA_PATH
+    "../com_github_google_flatbuffers/tests/";
+#else
+    "tests/";
+#endif
 
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
