@@ -290,9 +290,8 @@ if(FLATBUFFERS_INSTALL)
 
   if(FLATBUFFERS_BUILD_FLATC)
     install(
-      TARGETS flatc EXPORT FlatcTargets
+      TARGETS flatc flathash EXPORT FlatcTargets
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      CONFIGURATIONS Release
     )
 
     install(
@@ -300,7 +299,6 @@ if(FLATBUFFERS_INSTALL)
       FILE FlatcTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
-      CONFIGURATIONS Release
     )
   endif()
 
