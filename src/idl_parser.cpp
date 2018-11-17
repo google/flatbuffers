@@ -2441,10 +2441,14 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
-  if (source_filename &&
-      included_files_.find(source_filename) == included_files_.end()) {
-    included_files_[source_filename] = include_filename ? include_filename : "";
-    files_included_per_file_[source_filename] = std::set<std::string>();
+  if (source_filename) {
+    if (included_files_.find(source_filename) == included_files_.end()) {
+      included_files_[source_filename] =
+          include_filename ? include_filename : "";
+      files_included_per_file_[source_filename] = std::set<std::string>();
+    } else {
+      return NoError();
+    }
   }
   if (!include_paths) {
     static const char *current_directory[] = { "", nullptr };
@@ -2505,6 +2509,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         // entered into included_files_.
         // This is recursive, but only go as deep as the number of include
         // statements.
+        if (source_filename) {
+          included_files_.erase(source_filename);
+        }
         return DoParse(source, include_paths, source_filename,
                        include_filename);
       }
