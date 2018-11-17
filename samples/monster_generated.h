@@ -408,15 +408,18 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const std::vector<flatbuffers::Offset<Weapon>> *weapons = nullptr,
     Equipment equipped_type = Equipment_NONE,
     flatbuffers::Offset<void> equipped = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
+  auto weapons__ = weapons ? _fbb.CreateVector<flatbuffers::Offset<Weapon>>(*weapons) : 0;
   return MyGame::Sample::CreateMonster(
       _fbb,
       pos,
       mana,
       hp,
-      name ? _fbb.CreateString(name) : 0,
-      inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0,
+      name__,
+      inventory__,
       color,
-      weapons ? _fbb.CreateVector<flatbuffers::Offset<Weapon>>(*weapons) : 0,
+      weapons__,
       equipped_type,
       equipped);
 }
@@ -506,9 +509,10 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     int16_t damage = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   return MyGame::Sample::CreateWeapon(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       damage);
 }
 
