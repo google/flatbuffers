@@ -222,10 +222,12 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValueDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *key = nullptr,
     const char *value = nullptr) {
+  auto key__ = key ? _fbb.CreateString(key) : 0;
+  auto value__ = value ? _fbb.CreateString(value) : 0;
   return reflection::CreateKeyValue(
       _fbb,
-      key ? _fbb.CreateString(key) : 0,
-      value ? _fbb.CreateString(value) : 0);
+      key__,
+      value__);
 }
 
 struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -327,13 +329,15 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     flatbuffers::Offset<Object> object = 0,
     flatbuffers::Offset<Type> union_type = 0,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateEnumVal(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       value,
       object,
       union_type,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      documentation__);
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -451,14 +455,18 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
     flatbuffers::Offset<Type> underlying_type = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto values__ = values ? _fbb.CreateVector<flatbuffers::Offset<EnumVal>>(*values) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateEnum(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      values ? _fbb.CreateVector<flatbuffers::Offset<EnumVal>>(*values) : 0,
+      name__,
+      values__,
       is_union,
       underlying_type,
-      attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      attributes__,
+      documentation__);
 }
 
 struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -628,9 +636,12 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
     bool key = false,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateField(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       type,
       id,
       offset,
@@ -639,8 +650,8 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
       deprecated,
       required,
       key,
-      attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      attributes__,
+      documentation__);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -767,15 +778,19 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
     int32_t bytesize = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto fields__ = fields ? _fbb.CreateVector<flatbuffers::Offset<Field>>(*fields) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateObject(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      fields ? _fbb.CreateVector<flatbuffers::Offset<Field>>(*fields) : 0,
+      name__,
+      fields__,
       is_struct,
       minalign,
       bytesize,
-      attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      attributes__,
+      documentation__);
 }
 
 struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -881,13 +896,16 @@ inline flatbuffers::Offset<RPCCall> CreateRPCCallDirect(
     flatbuffers::Offset<Object> response = 0,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateRPCCall(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       request,
       response,
-      attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      attributes__,
+      documentation__);
 }
 
 struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -980,12 +998,16 @@ inline flatbuffers::Offset<Service> CreateServiceDirect(
     const std::vector<flatbuffers::Offset<RPCCall>> *calls = nullptr,
     const std::vector<flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto calls__ = calls ? _fbb.CreateVector<flatbuffers::Offset<RPCCall>>(*calls) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0;
+  auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateService(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      calls ? _fbb.CreateVector<flatbuffers::Offset<RPCCall>>(*calls) : 0,
-      attributes ? _fbb.CreateVector<flatbuffers::Offset<KeyValue>>(*attributes) : 0,
-      documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0);
+      name__,
+      calls__,
+      attributes__,
+      documentation__);
 }
 
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1097,14 +1119,19 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     const char *file_ext = nullptr,
     flatbuffers::Offset<Object> root_table = 0,
     const std::vector<flatbuffers::Offset<Service>> *services = nullptr) {
+  auto objects__ = objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0;
+  auto enums__ = enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0;
+  auto file_ident__ = file_ident ? _fbb.CreateString(file_ident) : 0;
+  auto file_ext__ = file_ext ? _fbb.CreateString(file_ext) : 0;
+  auto services__ = services ? _fbb.CreateVector<flatbuffers::Offset<Service>>(*services) : 0;
   return reflection::CreateSchema(
       _fbb,
-      objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0,
-      enums ? _fbb.CreateVector<flatbuffers::Offset<Enum>>(*enums) : 0,
-      file_ident ? _fbb.CreateString(file_ident) : 0,
-      file_ext ? _fbb.CreateString(file_ext) : 0,
+      objects__,
+      enums__,
+      file_ident__,
+      file_ext__,
       root_table,
-      services ? _fbb.CreateVector<flatbuffers::Offset<Service>>(*services) : 0);
+      services__);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) {

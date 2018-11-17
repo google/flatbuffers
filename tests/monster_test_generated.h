@@ -931,9 +931,10 @@ inline flatbuffers::Offset<Stat> CreateStatDirect(
     const char *id = nullptr,
     int64_t val = 0,
     uint16_t count = 0) {
+  auto id__ = id ? _fbb.CreateString(id) : 0;
   return MyGame::Example::CreateStat(
       _fbb,
-      id ? _fbb.CreateString(id) : 0,
+      id__,
       val,
       count);
 }
@@ -1923,21 +1924,40 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
     const std::vector<int8_t> *vector_of_enums = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
+  auto test4__ = test4 ? _fbb.CreateVectorOfStructs<Test>(*test4) : 0;
+  auto testarrayofstring__ = testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0;
+  auto testarrayoftables__ = testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0;
+  auto testnestedflatbuffer__ = testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0;
+  auto testarrayofbools__ = testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0;
+  auto testarrayofstring2__ = testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0;
+  auto testarrayofsortedstruct__ = testarrayofsortedstruct ? _fbb.CreateVectorOfStructs<Ability>(*testarrayofsortedstruct) : 0;
+  auto flex__ = flex ? _fbb.CreateVector<uint8_t>(*flex) : 0;
+  auto test5__ = test5 ? _fbb.CreateVectorOfStructs<Test>(*test5) : 0;
+  auto vector_of_longs__ = vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0;
+  auto vector_of_doubles__ = vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0;
+  auto vector_of_referrables__ = vector_of_referrables ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vector_of_referrables) : 0;
+  auto vector_of_weak_references__ = vector_of_weak_references ? _fbb.CreateVector<uint64_t>(*vector_of_weak_references) : 0;
+  auto vector_of_strong_referrables__ = vector_of_strong_referrables ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vector_of_strong_referrables) : 0;
+  auto vector_of_co_owning_references__ = vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0;
+  auto vector_of_non_owning_references__ = vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0;
+  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<int8_t>(*vector_of_enums) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
       mana,
       hp,
-      name ? _fbb.CreateString(name) : 0,
-      inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0,
+      name__,
+      inventory__,
       color,
       test_type,
       test,
-      test4 ? _fbb.CreateVectorOfStructs<Test>(*test4) : 0,
-      testarrayofstring ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring) : 0,
-      testarrayoftables ? _fbb.CreateVector<flatbuffers::Offset<Monster>>(*testarrayoftables) : 0,
+      test4__,
+      testarrayofstring__,
+      testarrayoftables__,
       enemy,
-      testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0,
+      testnestedflatbuffer__,
       testempty,
       testbool,
       testhashs32_fnv1,
@@ -1948,30 +1968,30 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       testhashu32_fnv1a,
       testhashs64_fnv1a,
       testhashu64_fnv1a,
-      testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0,
+      testarrayofbools__,
       testf,
       testf2,
       testf3,
-      testarrayofstring2 ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*testarrayofstring2) : 0,
-      testarrayofsortedstruct ? _fbb.CreateVectorOfStructs<Ability>(*testarrayofsortedstruct) : 0,
-      flex ? _fbb.CreateVector<uint8_t>(*flex) : 0,
-      test5 ? _fbb.CreateVectorOfStructs<Test>(*test5) : 0,
-      vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0,
-      vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0,
+      testarrayofstring2__,
+      testarrayofsortedstruct__,
+      flex__,
+      test5__,
+      vector_of_longs__,
+      vector_of_doubles__,
       parent_namespace_test,
-      vector_of_referrables ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vector_of_referrables) : 0,
+      vector_of_referrables__,
       single_weak_reference,
-      vector_of_weak_references ? _fbb.CreateVector<uint64_t>(*vector_of_weak_references) : 0,
-      vector_of_strong_referrables ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vector_of_strong_referrables) : 0,
+      vector_of_weak_references__,
+      vector_of_strong_referrables__,
       co_owning_reference,
-      vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0,
+      vector_of_co_owning_references__,
       non_owning_reference,
-      vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0,
+      vector_of_non_owning_references__,
       any_unique_type,
       any_unique,
       any_ambiguous_type,
       any_ambiguous,
-      vector_of_enums ? _fbb.CreateVector<int8_t>(*vector_of_enums) : 0);
+      vector_of_enums__);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2229,6 +2249,8 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
     double f64 = 0.0,
     const std::vector<int8_t> *v8 = nullptr,
     const std::vector<double> *vf64 = nullptr) {
+  auto v8__ = v8 ? _fbb.CreateVector<int8_t>(*v8) : 0;
+  auto vf64__ = vf64 ? _fbb.CreateVector<double>(*vf64) : 0;
   return MyGame::Example::CreateTypeAliases(
       _fbb,
       i8,
@@ -2241,8 +2263,8 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
       u64,
       f32,
       f64,
-      v8 ? _fbb.CreateVector<int8_t>(*v8) : 0,
-      vf64 ? _fbb.CreateVector<double>(*vf64) : 0);
+      v8__,
+      vf64__);
 }
 
 flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);

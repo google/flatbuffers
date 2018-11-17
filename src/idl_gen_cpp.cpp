@@ -2060,36 +2060,30 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a CreateXDirect function with vector types as parameters
     if (has_string_or_vector_fields) {
-      code_ +=
-          "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
-          "Create{{STRUCT_NAME}}Direct(";
+      code_ += "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
+               "Create{{STRUCT_NAME}}Direct(";
       code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
         if (!field.deprecated) { GenParam(field, true, ",\n    "); }
       }
-
       // Need to call "Create" with the struct namespace.
       const auto qualified_create_name =
           struct_def.defined_namespace->GetFullyQualifiedName("Create");
       code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
-
       code_ += ") {";
-      code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
-      code_ += "      _fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
         if (!field.deprecated) {
           code_.SetValue("FIELD_NAME", Name(field));
-
           if (field.value.type.base_type == BASE_TYPE_STRING) {
             code_ +=
-                ",\n      {{FIELD_NAME}} ? "
-                "_fbb.CreateString({{FIELD_NAME}}) : 0\\";
+                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+                "_fbb.CreateString({{FIELD_NAME}}) : 0;";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-            code_ += ",\n      {{FIELD_NAME}} ? \\";
+            code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
             if (IsStruct(vtype)) {
               const auto type = WrapInNameSpace(*vtype.struct_def);
@@ -2098,9 +2092,21 @@ class CppGenerator : public BaseGenerator {
               const auto type = GenTypeWire(vtype, "", false);
               code_ += "_fbb.CreateVector<" + type + ">\\";
             }
-            code_ += "(*{{FIELD_NAME}}) : 0\\";
-          } else {
-            code_ += ",\n      {{FIELD_NAME}}\\";
+            code_ += "(*{{FIELD_NAME}}) : 0;";
+          }
+        }
+      }
+      code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
+      code_ += "      _fbb\\";
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        if (!field.deprecated) {
+          code_.SetValue("FIELD_NAME", Name(field));
+          code_ += ",\n      {{FIELD_NAME}}\\";
+          if (field.value.type.base_type == BASE_TYPE_STRING ||
+              field.value.type.base_type == BASE_TYPE_VECTOR) {
+            code_ += "__\\";
           }
         }
       }

@@ -429,12 +429,14 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
     flatbuffers::Offset<void> main_character = 0,
     const std::vector<uint8_t> *characters_type = nullptr,
     const std::vector<flatbuffers::Offset<void>> *characters = nullptr) {
+  auto characters_type__ = characters_type ? _fbb.CreateVector<uint8_t>(*characters_type) : 0;
+  auto characters__ = characters ? _fbb.CreateVector<flatbuffers::Offset<void>>(*characters) : 0;
   return CreateMovie(
       _fbb,
       main_character_type,
       main_character,
-      characters_type ? _fbb.CreateVector<uint8_t>(*characters_type) : 0,
-      characters ? _fbb.CreateVector<flatbuffers::Offset<void>>(*characters) : 0);
+      characters_type__,
+      characters__);
 }
 
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
