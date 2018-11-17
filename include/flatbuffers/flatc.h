@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-#include <functional>
-#include <limits>
 #include <string>
-#include "flatbuffers/flatbuffers.h"
+#include <vector>
+
 #include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
+
 
 #ifndef FLATC_H_
 #  define FLATC_H_

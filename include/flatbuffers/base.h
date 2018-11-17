@@ -88,6 +88,12 @@
   #endif
 #endif
 
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+  #ifndef constexpr
+    #define constexpr const
+  #endif
+#endif
+
 // The wire format uses a little endian encoding (since that's efficient for
 // the common platforms).
 #if defined(__s390x__)
