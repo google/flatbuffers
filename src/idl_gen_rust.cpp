@@ -1328,8 +1328,12 @@ class RustGenerator : public BaseGenerator {
         code_ += "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&'a self) -> "
                  "Option<{{U_ELEMENT_TABLE_TYPE}}> {";
         code_ += "    if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
-        code_ += "      self.{{FIELD_NAME}}().map(|u| "
-                 "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        if (field.required) {
+          code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(self.{{FIELD_NAME}}()))";
+        } else {
+          code_ += "      self.{{FIELD_NAME}}().map(|u| "
+                   "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        }
         code_ += "    } else {";
         code_ += "      None";
         code_ += "    }";
