@@ -46,6 +46,12 @@ void InitTestEngine(TestFailEventListener listener) {
   // clang-format off
 
   #ifdef _MSC_VER
+    #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_DEBUG) 
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF
+        // For more thorough checking:
+        //| _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF
+      );
+    #endif
     // Suppress pop-up message box on assertion (MSVC2010, MSVC2012).
     // This message box hangs CI-test on the hour until timeout expired.
     // Default mode is file, file is stderr.

@@ -421,8 +421,8 @@ void ResizeVector(const reflection::Schema &schema, uoffset_t newsize, T val,
   // Set new elements to "val".
   for (int i = 0; i < delta_elem; i++) {
     auto loc = newelems + i * sizeof(T);
-    auto is_scalar = flatbuffers::is_scalar<T>::value;
-    if (is_scalar) {
+    __suppress_msvc_C4127__();
+    if (flatbuffers::is_scalar<T>::value) {
       WriteScalar(loc, val);
     } else {  // struct
       *reinterpret_cast<T *>(loc) = val;

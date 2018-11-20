@@ -19,8 +19,6 @@
 
 #include <stdlib.h>  // for abort()
 #include <iostream>
-#include <map>
-#include <string>
 
 #include "src/compiler/schema_interface.h"
 

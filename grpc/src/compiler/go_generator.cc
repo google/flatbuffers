@@ -31,11 +31,13 @@
  *
  */
 
-#include <map>
-#include <cctype>
-#include <sstream>
-
 #include "src/compiler/go_generator.h"
+
+#include <cctype>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
 
 template <class T>
 grpc::string as_string(T x) {

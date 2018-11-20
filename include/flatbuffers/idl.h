@@ -18,18 +18,12 @@
 #define FLATBUFFERS_IDL_H_
 
 #include <map>
-#include <memory>
-#include <stack>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
-
-#if !defined(FLATBUFFERS_CPP98_STL)
-#  include <functional>
-#endif  // !defined(FLATBUFFERS_CPP98_STL)
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.

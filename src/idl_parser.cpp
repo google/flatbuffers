@@ -1426,9 +1426,12 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
 
   auto match = false;
   // clang-format off
-  #define TRY_ECHECK(force, dtoken, check, req)    \
-    if (!match && ((check) || IsConstTrue(force))) \
-    ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+  // Shortcut for frequently used conditional call.
+  #define TRY_ECHECK(force, dtoken, check, req)                     \
+    __suppress_msvc_C4127__();                                      \
+    if (!match && ((check) || (force))) {                           \
+        ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))  \
+    }
   // clang-format on
 
   if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {

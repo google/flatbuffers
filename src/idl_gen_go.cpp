@@ -24,15 +24,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifdef _WIN32
-#  include <direct.h>
-#  define PATH_SEPARATOR "\\"
-#  define mkdir(n, m) _mkdir(n)
-#else
-#  include <sys/stat.h>
-#  define PATH_SEPARATOR "/"
-#endif
-
 namespace flatbuffers {
 
 static std::string GeneratedFileName(const std::string &path,

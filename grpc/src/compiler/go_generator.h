@@ -35,9 +35,6 @@
 #define GRPC_INTERNAL_COMPILER_GO_GENERATOR_H
 
 //go generator is used to generate GRPC code for serialization system, such as flatbuffers
-#include <memory>
-#include <vector>
-
 #include "src/compiler/schema_interface.h"
 
 namespace grpc_go_generator {

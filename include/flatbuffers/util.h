@@ -430,7 +430,7 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
 // Windows ('/' or '\\') separators are used.
 
 // Any new separators inserted are always posix.
-constexpr char kPathSeparator = '/';
+FLATBUFFERS_CONSTEXPR char kPathSeparator = '/';
 
 // Returns the path with the extension, if any, removed.
 std::string StripExtension(const std::string &filepath);

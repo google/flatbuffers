@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stddef.h>
-#include <stdint.h>
+#include <cstdint>
 #include <algorithm>
 #include <clocale>
 #include <memory>

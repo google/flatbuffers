@@ -19,6 +19,10 @@
 
 #include "flatbuffers/base.h"
 
+#ifndef FLATBUFFERS_CPP98_STL
+  #include <functional>
+#endif
+
 namespace flatbuffers {
 // Wrapper for uoffset_t to allow safe template specialization.
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).

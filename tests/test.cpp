@@ -2378,14 +2378,6 @@ void LoadVerifyBinaryTest() {
 
 int FlatBufferTests() {
   // clang-format off
-  #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
-      defined(_MSC_VER) && defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF
-      // For more thorough checking:
-      //| _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF
-    );
-  #endif
-
   // Run our various test suites:
 
   std::string rawbuf;

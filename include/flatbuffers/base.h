@@ -5,6 +5,9 @@
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
     defined(_MSC_VER) && defined(_DEBUG)
   #define _CRTDBG_MAP_ALLOC
+  #include <crtdbg.h>
+  #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+  #define new DEBUG_NEW
 #endif
 
 #if !defined(FLATBUFFERS_ASSERT)
@@ -23,13 +26,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
-    defined(_MSC_VER) && defined(_DEBUG)
-  #include <crtdbg.h>
-  #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-  #define new DEBUG_NEW
-#endif
-
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
   #include <utility.h>
 #else
@@ -46,9 +42,6 @@
 
 #ifdef _STLPORT_VERSION
   #define FLATBUFFERS_CPP98_STL
-#endif
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
 #endif
 
 #include "flatbuffers/stl_emulation.h"
@@ -83,12 +76,6 @@
       void operator&() const;
     } nullptr = {};
   #endif
-  #ifndef constexpr
-    #define constexpr const
-  #endif
-#endif
-
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
   #ifndef constexpr
     #define constexpr const
   #endif
@@ -140,7 +127,7 @@
     (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
 #else
-  #define FLATBUFFERS_CONSTEXPR
+  #define FLATBUFFERS_CONSTEXPR const
 #endif
 
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \
@@ -224,11 +211,17 @@
   #define __supress_ubsan__(type)
 #endif
 
-// This is constexpr function used for checking compile-time constants.
-// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
-template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
-  return !!t;
-}
+
+// Supress false positive warning C4127: expression is constant`.
+// This false warning generated under MSVC201/MSVC2013 only.
+// The suppress	pushes the current state of the pragma on the stack,
+// disables the specified warning for the next line,
+// and then pops the warning stack so that the pragma state is reset.
+#if defined _MSC_VER && _MSC_VER < 1900
+  #define __suppress_msvc_C4127__() __pragma(warning(suppress:4127))
+#else
+  #define __suppress_msvc_C4127__()
+#endif
 
 /// @endcond
 
@@ -256,12 +249,7 @@ typedef uintmax_t largest_scalar_t;
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
-#if defined(_MSC_VER)
-  #pragma warning(push)
-  #pragma warning(disable: 4127) // C4127: conditional expression is constant
-#endif
-
-template<typename T> T EndianSwap(T t) {
+template<typename T> inline T EndianSwap(T t) {
   #if defined(_MSC_VER)
     #define FLATBUFFERS_BYTESWAP16 _byteswap_ushort
     #define FLATBUFFERS_BYTESWAP32 _byteswap_ulong
@@ -277,34 +265,37 @@ template<typename T> T EndianSwap(T t) {
     #define FLATBUFFERS_BYTESWAP32 __builtin_bswap32
     #define FLATBUFFERS_BYTESWAP64 __builtin_bswap64
   #endif
-  if (sizeof(T) == 1) {   // Compile-time if-then's.
-    return t;
-  } else if (sizeof(T) == 2) {
-    union { T t; uint16_t i; } u;
-    u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP16(u.i);
-    return u.t;
-  } else if (sizeof(T) == 4) {
-    union { T t; uint32_t i; } u;
-    u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP32(u.i);
-    return u.t;
-  } else if (sizeof(T) == 8) {
-    union { T t; uint64_t i; } u;
-    u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP64(u.i);
-    return u.t;
-  } else {
-    FLATBUFFERS_ASSERT(0);
-  }
+  // Compile-time if-then's.
+  switch(sizeof(T)) {
+    case 1: return t;
+    case 2: {
+      union { T t; uint16_t i; } u;
+      u.t = t;
+      u.i = FLATBUFFERS_BYTESWAP16(u.i);
+      return u.t;
+    }
+    case 4: {
+      union { T t; uint32_t i; } u;
+      u.t = t;
+      u.i = FLATBUFFERS_BYTESWAP32(u.i);
+      return u.t;
+    }
+    case 8: {
+      union { T t; uint64_t i; } u;
+      u.t = t;
+      u.i = FLATBUFFERS_BYTESWAP64(u.i);
+      return u.t;
+    }
+    default:
+      FLATBUFFERS_ASSERT(0);
+      return 0; // fast fail
+  };
+  #undef FLATBUFFERS_BYTESWAP16
+  #undef FLATBUFFERS_BYTESWAP32
+  #undef FLATBUFFERS_BYTESWAP64
 }
 
-#if defined(_MSC_VER)
-  #pragma warning(pop)
-#endif
-
-
-template<typename T> T EndianScalar(T t) {
+template<typename T> inline T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
   #else
@@ -315,14 +306,14 @@ template<typename T> T EndianScalar(T t) {
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
-T ReadScalar(const void *p) {
+inline T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
 
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
-void WriteScalar(void *p, T t) {
+inline void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 

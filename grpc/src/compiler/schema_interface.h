@@ -36,6 +36,7 @@
 
 #include "src/compiler/config.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
