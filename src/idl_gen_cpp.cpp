@@ -1198,7 +1198,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    }";
       }
     }
-    code_ += "    default: return false;";
+    code_ += "    default: return true;";
     code_ += "  }";
     code_ += "}";
     code_ += "";
