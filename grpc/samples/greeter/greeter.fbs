@@ -14,4 +14,6 @@ table ManyHellosRequest {
 rpc_service Greeter {
   SayHello(HelloRequest):HelloReply;
   SayManyHellos(ManyHellosRequest):HelloReply (streaming: "server");
+  SendManyHellos(HellosRequest):HelloReply (streaming: "client");
+  SendManyRecieveManyHellos(HellosRequest):HelloReply (streaming: "bidi");
 }
