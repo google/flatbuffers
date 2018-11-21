@@ -342,3 +342,6 @@ include(CMake/BuildFlatBuffers.cmake)
 if(FLATBUFFERS_PACKAGE_DEBIAN)
     include(CMake/PackageDebian.cmake)
 endif()
+
+configure_file(flatbuffers.pc.in flatbuffers.pc @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/flatbuffers.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
