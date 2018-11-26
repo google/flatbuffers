@@ -126,6 +126,7 @@ cc_test(
     srcs = [
         "include/flatbuffers/minireflect.h",
         "include/flatbuffers/registry.h",
+        "monster_test_generated.h",
         "src/code_generators.cpp",
         "src/idl_gen_fbs.cpp",
         "src/idl_gen_general.cpp",
@@ -133,7 +134,6 @@ cc_test(
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",
-        "tests/monster_test_generated.h",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
         "tests/test.cpp",
@@ -164,8 +164,6 @@ cc_test(
     includes = ["include/"],
 )
 
-# Test bzl rules
-
 flatbuffer_cc_library(
     name = "monster_test_cc_fbs",
     srcs = ["tests/monster_test.fbs"],
@@ -174,11 +172,4 @@ flatbuffer_cc_library(
         "tests/include_test/include_test1.fbs",
         "tests/include_test/sub/include_test2.fbs",
     ],
-)
-
-cc_test(
-    name = "monster_bzl_rules_test",
-    testonly = 1,
-    srcs = ["tests/test_bzl_rules.cpp"],
-    deps = [":monster_test_cc_fbs"],
 )
