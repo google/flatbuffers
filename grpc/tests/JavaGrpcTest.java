@@ -74,14 +74,27 @@ public class JavaGrpcTest {
 
         @Override
         public StreamObserver<Monster> getMaxHitPoint(final StreamObserver<Stat> responseObserver) {
-          final AtomicInteger maxHp = new AtomicInteger();
+          return computeMinMax(responseObserver, false);
+        }
+
+        @Override
+        public StreamObserver<Monster> getMinMaxHitPoints(final StreamObserver<Stat> responseObserver) {
+          return computeMinMax(responseObserver, true);
+        }
+
+        private StreamObserver<Monster> computeMinMax(final StreamObserver<Stat> responseObserver, final boolean includeMin) {
+          final AtomicInteger maxHp = new AtomicInteger(Integer.MIN_VALUE);
           final AtomicReference<String> maxHpMonsterName = new AtomicReference<String>();
           final AtomicInteger maxHpCount = new AtomicInteger();
+
+          final AtomicInteger minHp = new AtomicInteger(Integer.MAX_VALUE);
+          final AtomicReference<String> minHpMonsterName = new AtomicReference<String>();
+          final AtomicInteger minHpCount = new AtomicInteger();
 
           return new StreamObserver<Monster>() {
             public void onNext(Monster monster) {
               if (monster.hp() > maxHp.get()) {
-                // Found a monster of higher hit points. Store its hp, name. Reset count to 1.
+                // Found a monster of higher hit points.
                 maxHp.set(monster.hp());
                 maxHpMonsterName.set(monster.name()); 
                 maxHpCount.set(1);
@@ -90,10 +103,27 @@ public class JavaGrpcTest {
                 // Count how many times we saw a monster of current max hit points.
                 maxHpCount.getAndIncrement();
               }
+
+              if (monster.hp() < minHp.get()) {
+                // Found a monster of a lower hit points.
+                minHp.set(monster.hp());
+                minHpMonsterName.set(monster.name());
+                minHpCount.set(1);
+              }
+              else if (monster.hp() == minHp.get()) {
+                // Count how many times we saw a monster of current min hit points.
+                minHpCount.getAndIncrement();
+              }
             }
             public void onCompleted() {
               Stat maxHpStat = GameFactory.createStat(maxHpMonsterName.get(), maxHp.get(), maxHpCount.get());
+              // Send max hit points first.
               responseObserver.onNext(maxHpStat);
+              if (includeMin) {
+                // Send min hit points.
+                Stat minHpStat = GameFactory.createStat(minHpMonsterName.get(), minHp.get(), minHpCount.get());
+                responseObserver.onNext(minHpStat);
+              }
               responseObserver.onCompleted();
             }
             public void onError(Throwable t) {
@@ -142,7 +172,7 @@ public class JavaGrpcTest {
     }
 
     @org.junit.Test
-    public void testClientStream() throws IOException, InterruptedException {
+    public void testClientStreaming() throws IOException, InterruptedException {
       final AtomicReference<Stat> maxHitStat = new AtomicReference<Stat>();
       final CountDownLatch streamAlive = new CountDownLatch(1);
 
@@ -167,5 +197,46 @@ public class JavaGrpcTest {
       Assert.assertEquals(maxHitStat.get().id(), BIG_MONSTER_NAME + (count - 1));
       Assert.assertEquals(maxHitStat.get().val(), nestedMonsterHp * (count - 1));
       Assert.assertEquals(maxHitStat.get().count(), 1);
+    }
+
+    @org.junit.Test
+    public void testBiDiStreaming() throws IOException, InterruptedException {
+      final AtomicReference<Stat> maxHitStat = new AtomicReference<Stat>();
+      final AtomicReference<Stat> minHitStat = new AtomicReference<Stat>();
+      final CountDownLatch streamAlive = new CountDownLatch(1);
+
+      StreamObserver<Stat> statObserver = new StreamObserver<Stat>() {
+        public void onCompleted() {
+          streamAlive.countDown();
+        }
+        public void onError(Throwable ex) { }
+        public void onNext(Stat stat) {
+          // We expect the server to send the max stat first and then the min stat.
+          if (maxHitStat.get() == null) {
+            maxHitStat.set(stat);
+          }
+          else {
+            minHitStat.set(stat);
+          }
+        }
+      };
+      StreamObserver<Monster> monsterStream = asyncStub.getMinMaxHitPoints(statObserver);
+      short count = 10;
+      for (short i = 0;i < count; ++i) {
+        Monster monster = GameFactory.createMonster(BIG_MONSTER_NAME + i, (short) (nestedMonsterHp * i), nestedMonsterMana);
+        monsterStream.onNext(monster);
+      }
+      monsterStream.onCompleted();
+
+      // Wait a little bit for the server to send the stats of the monster with the max and min hit-points.
+      streamAlive.await(timeoutMs, TimeUnit.MILLISECONDS);
+
+      Assert.assertEquals(maxHitStat.get().id(), BIG_MONSTER_NAME + (count - 1));
+      Assert.assertEquals(maxHitStat.get().val(), nestedMonsterHp * (count - 1));
+      Assert.assertEquals(maxHitStat.get().count(), 1);
+
+      Assert.assertEquals(minHitStat.get().id(), BIG_MONSTER_NAME + 0);
+      Assert.assertEquals(minHitStat.get().val(), nestedMonsterHp * 0);
+      Assert.assertEquals(minHitStat.get().count(), 1);
     }
 }
