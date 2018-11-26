@@ -456,9 +456,19 @@ class GeneralGenerator : public BaseGenerator {
       }
     }
 
-    auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
+    const auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
     switch (value.type.base_type) {
-      case BASE_TYPE_FLOAT: return value.constant + "f";
+      case BASE_TYPE_DOUBLE: {
+        if (value.constant == "NAN" || value.constant == "nan") {
+          return "double.NaN";
+        }
+        return value.constant;
+      }
+      case BASE_TYPE_FLOAT:
+        if (value.constant == "NAN" || value.constant == "nan") {
+          return "float.NaN";
+        }
+        return value.constant + "f";
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
       case BASE_TYPE_ULONG: {
         if (lang_.language != IDLOptions::kJava) return value.constant;
