@@ -460,13 +460,13 @@ class GeneralGenerator : public BaseGenerator {
     switch (value.type.base_type) {
       case BASE_TYPE_DOUBLE: {
         if (value.constant == "NAN" || value.constant == "nan") {
-          return "double.NaN";
+          return lang_.language == IDLOptions::kJava ? "Double.NaN" : "double.NaN";
         }
         return value.constant;
       }
       case BASE_TYPE_FLOAT:
         if (value.constant == "NAN" || value.constant == "nan") {
-          return "float.NaN";
+          return lang_.language == IDLOptions::kJava ? "Float.NaN" : "float.NaN";
         }
         return value.constant + "f";
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
