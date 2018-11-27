@@ -16,6 +16,8 @@
 
 LOCAL_PATH := $(call my-dir)/../..
 
+FLATBUFFERS_FLATC_ARGS := --gen-object-api --gen-compare --no-includes --gen-mutable --reflect-names
+
 include $(LOCAL_PATH)/android/jni/include.mk
 LOCAL_PATH := $(call realpath-portable,$(LOCAL_PATH))
 
@@ -67,6 +69,7 @@ LOCAL_SRC_FILES := android/jni/main.cpp \
                    src/idl_gen_general.cpp
 LOCAL_LDLIBS := -llog -landroid -latomic
 LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers_extra
+LOCAL_C_INCLUDES := $(ANDROID_TEST_GENERATED_OUTPUT_DIR)
 LOCAL_ARM_MODE := arm
 include $(BUILD_SHARED_LIBRARY)
 
