@@ -44,6 +44,19 @@ LOCAL_STATIC_LIBRARIES := flatbuffers
 LOCAL_ARM_MODE := arm
 include $(BUILD_STATIC_LIBRARY)
 
+# FlatBuffers test
+include $(CLEAR_VARS)
+LOCAL_MODULE := FlatBufferTest
+LOCAL_SRC_FILES := android/jni/main.cpp \
+                   tests/test.cpp \
+                   tests/test_assert.cpp \
+                   tests/test_builder.cpp \
+                   src/idl_gen_fbs.cpp \
+                   src/idl_gen_general.cpp
+LOCAL_LDLIBS := -llog -landroid -latomic
+LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers_extra
+LOCAL_ARM_MODE := arm
+
 ANDROID_TEST_SCHEMA_DIR := $(LOCAL_PATH)/tests
 ANDROID_TEST_SCHEMA_FILES := $(ANDROID_TEST_SCHEMA_DIR)/monster_test.fbs
 ANDROID_TEST_GENERATED_OUTPUT_DIR := $(LOCAL_PATH)/gen/include
@@ -56,21 +69,8 @@ $(call flatbuffers_header_build_rules, \
 			 $(ANDROID_TEST_SCHEMA_INCLUDE_DIR), \
 			 $(LOCAL_SRC_FILES))
 
-# FlatBuffers test
-include $(CLEAR_VARS)
-LOCAL_MODULE := FlatBufferTest
-LOCAL_SRC_FILES := android/jni/main.cpp \
-                   tests/test.cpp \
-                   tests/test_assert.h \
-                   tests/test_builder.h \
-                   tests/test_assert.cpp \
-                   tests/test_builder.cpp \
-                   src/idl_gen_fbs.cpp \
-                   src/idl_gen_general.cpp
-LOCAL_LDLIBS := -llog -landroid -latomic
-LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers_extra
 LOCAL_C_INCLUDES := $(ANDROID_TEST_GENERATED_OUTPUT_DIR)
-LOCAL_ARM_MODE := arm
+
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module,android/native_app_glue)
