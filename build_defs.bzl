@@ -15,6 +15,7 @@ DEFAULT_FLATC_ARGS = [
     "--no-includes",
     "--gen-mutable",
     "--reflect-names",
+    "--cpp-ptr-type flatbuffers::unique_ptr",
 ]
 
 def flatbuffer_library_public(

@@ -16,7 +16,7 @@
 
 LOCAL_PATH := $(call my-dir)/../..
 
-FLATBUFFERS_FLATC_ARGS := --gen-object-api --gen-compare --no-includes --gen-mutable --reflect-names
+FLATBUFFERS_FLATC_ARGS := --gen-object-api --gen-compare --no-includes --gen-mutable --reflect-names --cpp-ptr-type flatbuffers::unique_ptr
 
 include $(LOCAL_PATH)/android/jni/include.mk
 LOCAL_PATH := $(call realpath-portable,$(LOCAL_PATH))
