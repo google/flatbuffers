@@ -120,6 +120,8 @@ table TypeAliases {
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (streaming: "server", idempotent);
+  GetMaxHitPoint(Monster):Stat (streaming: "client");
+  GetMinMaxHitPoints(Monster):Stat (streaming: "bidi");
 }
 
 root_type Monster;
