@@ -35,6 +35,8 @@ pub use monster_test_generated::my_game;
 // verbatim from the test suite:
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let mon = {
+        let _ = builder.create_vector_of_strings(&["these", "unused", "strings", "check", "the", "create_vector_of_strings", "function"]);
+
         let s0 = builder.create_string("test1");
         let s1 = builder.create_string("test2");
         let fred_name = builder.create_string("Fred");
@@ -79,7 +81,7 @@ fn main() {
         create_serialized_example_with_generated_code(builder);
     }
 
-    // reset the builder, clearing its heap-allocted memory:
+    // reset the builder, clearing its heap-allocated memory:
     builder.reset();
 
     {
