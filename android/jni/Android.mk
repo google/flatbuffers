@@ -16,8 +16,6 @@
 
 LOCAL_PATH := $(call my-dir)/../..
 
-FLATBUFFERS_FLATC_ARGS := --gen-object-api --gen-compare --no-includes --gen-mutable --reflect-names --cpp-ptr-type flatbuffers::unique_ptr
-
 include $(LOCAL_PATH)/android/jni/include.mk
 LOCAL_PATH := $(call realpath-portable,$(LOCAL_PATH))
 
@@ -49,6 +47,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := FlatBufferTest
 LOCAL_SRC_FILES := android/jni/main.cpp \
                    tests/test.cpp \
+                   tests/test_assert.h \
+                   tests/test_builder.h \
                    tests/test_assert.cpp \
                    tests/test_builder.cpp \
                    src/idl_gen_fbs.cpp \
@@ -56,21 +56,6 @@ LOCAL_SRC_FILES := android/jni/main.cpp \
 LOCAL_LDLIBS := -llog -landroid -latomic
 LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers_extra
 LOCAL_ARM_MODE := arm
-
-ANDROID_TEST_SCHEMA_DIR := $(LOCAL_PATH)/tests
-ANDROID_TEST_SCHEMA_FILES := $(ANDROID_TEST_SCHEMA_DIR)/monster_test.fbs
-ANDROID_TEST_GENERATED_OUTPUT_DIR := $(LOCAL_PATH)/gen/include
-ANDROID_TEST_SCHEMA_INCLUDE_DIR := $(ANDROID_TEST_SCHEMA_DIR)/include_test
-
-$(call flatbuffers_header_build_rules, \
-       $(ANDROID_TEST_SCHEMA_FILES), \
-			 $(ANDROID_TEST_SCHEMA_DIR), \
-			 $(ANDROID_TEST_GENERATED_OUTPUT_DIR), \
-			 $(ANDROID_TEST_SCHEMA_INCLUDE_DIR), \
-			 $(LOCAL_SRC_FILES))
-
-LOCAL_C_INCLUDES := $(ANDROID_TEST_GENERATED_OUTPUT_DIR)
-
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module,android/native_app_glue)

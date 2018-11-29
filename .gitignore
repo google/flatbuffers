@@ -111,4 +111,3 @@ dart/doc/api/
 Cargo.lock
 .corpus**
 .seed**
-tests/monster_test_generated.h

@@ -126,7 +126,6 @@ cc_test(
     srcs = [
         "include/flatbuffers/minireflect.h",
         "include/flatbuffers/registry.h",
-        "monster_test_generated.h",
         "src/code_generators.cpp",
         "src/idl_gen_fbs.cpp",
         "src/idl_gen_general.cpp",
@@ -134,6 +133,7 @@ cc_test(
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",
+        "monster_test_generated.h",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
         "tests/test.cpp",
@@ -163,6 +163,8 @@ cc_test(
     ],
     includes = ["include/"],
 )
+
+# Test bzl rules
 
 flatbuffer_cc_library(
     name = "monster_test_cc_fbs",
