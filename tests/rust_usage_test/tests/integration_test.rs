@@ -246,7 +246,7 @@ mod lifetime_correctness {
 
     #[test]
     fn table_get_field_from_static_buffer_1() {
-        let buf = load_file("../monsterdata_test.mon");
+        let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
         // create 'static slice
         let slice: &[u8] = &buf;
         let slice: &'static [u8] = unsafe { mem::transmute(slice) };
@@ -268,7 +268,7 @@ mod lifetime_correctness {
     #[test]
     fn table_object_self_lifetime_in_closure() {
         // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
-        let buf = load_file("../monsterdata_test.mon");
+        let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
         let monster = my_game::example::get_root_as_monster(&buf);
         let enemy: Option<my_game::example::Monster> = monster.enemy();
         // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
@@ -1414,17 +1414,27 @@ mod read_examples_from_other_language_ports {
 
     #[test]
     fn gold_cpp_example_data_is_accessible_and_correct() {
-        let buf = load_file("../monsterdata_test.mon");
+        let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
         serialized_example_is_accessible_and_correct(&buf[..], true, false).unwrap();
     }
     #[test]
     fn java_wire_example_data_is_accessible_and_correct() {
         let buf = load_file("../monsterdata_java_wire.mon");
+        if buf.is_err() {
+            println!("skipping java wire test because it is not present");
+            return;
+        }
+        let buf = buf.unwrap();
         serialized_example_is_accessible_and_correct(&buf[..], true, false).unwrap();
     }
     #[test]
     fn java_wire_size_prefixed_example_data_is_accessible_and_correct() {
         let buf = load_file("../monsterdata_java_wire_sp.mon");
+        if buf.is_err() {
+            println!("skipping java wire test because it is not present");
+            return;
+        }
+        let buf = buf.unwrap();
         serialized_example_is_accessible_and_correct(&buf[..], true, true).unwrap();
     }
 }
@@ -2676,10 +2686,10 @@ fn write_example_wire_data_to_file() {
     f.write_all(b.finished_data()).unwrap();
 }
 
-fn load_file(filename: &str) -> Vec<u8> {
+fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
     use std::io::Read;
-    let mut f = std::fs::File::open(filename).expect("file does not exist");
+    let mut f = std::fs::File::open(filename)?;
     let mut buf = Vec::new();
-    f.read_to_end(&mut buf).expect("file reading failed");
-    buf
+    f.read_to_end(&mut buf)?;
+    Ok(buf)
 }

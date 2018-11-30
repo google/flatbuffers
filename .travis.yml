@@ -61,6 +61,17 @@ matrix:
       os:
         - linux
 
+      addons:
+        apt:
+          packages:
+            - docker-ce
+      script:
+        - bash .travis/build-and-run-docker-test-containers.sh
+
+    - language: cpp
+      os:
+        - linux
+
       compiler:
         - gcc
 
