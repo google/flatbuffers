@@ -554,7 +554,7 @@ namespace FlatBuffers
             }
             else
             {
-                *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(ptr + offset));
+                *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(&value));
             }
         }
 #else // !UNSAFE_BYTEBUFFER
