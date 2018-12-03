@@ -91,6 +91,15 @@ std::string MakeCamel(const std::string &in, bool first) {
   return s;
 }
 
+void DeserializeDocumentation(std::vector<std::string> &doc, const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation)
+{
+  if (documentation == nullptr)
+    return;
+
+  for (flatbuffers::uoffset_t index = 0; index < documentation->Length(); index++)
+    doc.push_back(documentation->Get(index)->str());
+}
+
 void Parser::Message(const std::string &msg) {
   error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
@@ -1763,6 +1772,21 @@ Namespace *Parser::UniqueNamespace(Namespace *ns) {
   return ns;
 }
 
+std::string Parser::GetNameFromFullQualifiedName(std::string fullQualifiedName)
+{
+  Namespace *ns = new Namespace();
+
+  std::size_t current, previous = 0;
+  current = fullQualifiedName.find('.');
+  while (current != std::string::npos) {
+    ns->components.push_back(fullQualifiedName.substr(previous, current - previous));
+    previous = current + 1;
+    current = fullQualifiedName.find('.', previous);
+  }
+  current_namespace_ = UniqueNamespace(ns);
+  return fullQualifiedName.substr(previous, current - previous);
+}
+
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
   auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
   auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
@@ -2695,6 +2719,21 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
                                   attr__, docs__);
 }
 
+void StructDef::Deserialize(Parser *parser, const flatbuffers::Vector<flatbuffers::Offset<reflection::Field>> *flatFields)
+{
+  std::vector<uoffset_t> indexes = std::vector<uoffset_t>(flatFields->Length());
+  for (uoffset_t i = 0; i < flatFields->Length(); i++)
+    indexes[flatFields->Get(i)->id()] = i;
+
+  for (size_t i = 0; i < indexes.size(); i++)
+  {
+    const reflection::Field* field = flatFields->Get(indexes[i]);
+    FieldDef *fieldDef = new FieldDef();
+    fieldDef->Deserialize(parser, field);
+    fields.Add(fieldDef->name, fieldDef);
+  }
+}
+
 Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
                                               uint16_t id,
                                               const Parser &parser) const {
@@ -2744,6 +2783,25 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
   return reflection::CreateService(*builder, name__, call__, attr__, docs__);
 }
 
+void FieldDef::Deserialize(Parser *parser, const reflection::Field *field)
+{
+  uint16_t id = 0;
+  name = parser->GetNameFromFullQualifiedName(field->name()->str());
+  defined_namespace = parser->current_namespace_;
+  value.type.Deserialize(parser, field->type());
+  value.offset = field->offset();
+  if (IsInteger(value.type.base_type))
+    value.constant = std::to_string(field->default_integer());
+  if (IsFloat(value.type.base_type))
+    value.constant = std::to_string(field->default_real());
+  deprecated = field->deprecated();
+  required = field->required();
+  key = field->key();
+  id = field->id();
+  parser->DeserializeAttributes(attributes, field->attributes());
+  DeserializeDocumentation(doc_comment, field->documentation());
+}
+
 Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
                                             const Parser &parser) const {
   std::vector<Offset<reflection::EnumVal>> enumval_offsets;
@@ -2760,6 +2818,21 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
                 : 0;
   return reflection::CreateEnum(*builder, name__, vals__, is_union, type__,
                                 attr__, docs__);
+}
+
+void EnumDef::Deserialize(Parser *parser, const flatbuffers::Vector<flatbuffers::Offset<reflection::EnumVal>> *values)
+{
+  for (uoffset_t i = 0; i < values->Length(); i++)
+  {
+    const reflection::EnumVal* value = values->Get(i);
+    EnumVal *val = new EnumVal(value->name()->str(), value->value());
+    if (value->object())
+    {
+      val->union_type.struct_def = parser->LookupStruct(value->object()->name()->str());
+    }
+    val->union_type.Deserialize(parser, value->union_type());
+    vals.Add(value->name()->str(), val);
+  }
 }
 
 Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
@@ -2802,6 +2875,147 @@ Definition::SerializeAttributes(FlatBufferBuilder *builder,
     return 0;
   }
 }
+
+void Parser::DeserializeAttributes(SymbolTable<Value> &dest, const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *attributes)
+{
+  if (attributes == nullptr)
+    return;
+  for (flatbuffers::uoffset_t index = 0; index < attributes->Length(); index++)
+  {
+    const reflection::KeyValue* attribute = attributes->Get(index);
+    if(known_attributes_.find(attribute->key()->str()) == known_attributes_.end())
+      known_attributes_[attribute->key()->str()] = false;
+    Value *val = new Value();
+    val->constant = attribute->value()->str();
+    dest.Add(attribute->key()->str(), val);
+  }
+
+}
+
+void Type::Deserialize(Parser *parser, const reflection::Type *type)
+{
+  base_type = BaseType(type->base_type());
+  element = BaseType(type->element());
+  if (base_type == BASE_TYPE_UNION || base_type == BASE_TYPE_UTYPE)
+  {
+    enum_def = parser->enums_.vec[type->index()];
+  }
+  if (base_type == BASE_TYPE_STRUCT)
+  {
+    struct_def = parser->structs_.vec[type->index()];
+    struct_def->refcount++;
+  }
+  if (base_type == BASE_TYPE_VECTOR)
+  {
+    if (element == BASE_TYPE_STRUCT)
+    {
+      struct_def = parser->structs_.vec[type->index()];
+      struct_def->refcount++;
+    }
+    if (element == BASE_TYPE_UNION)
+    {
+      enum_def = parser->enums_.vec[type->index()];
+    }
+  }
+}
+
+/************************************************************************/
+/* DESERIALIZATION                                                      */
+/************************************************************************/
+bool Parser::Deserialize(const uint8_t *buf, const size_t size)
+{
+  auto verifier = Verifier(buf, size);
+  if (!reflection::VerifySchemaBuffer(verifier))
+    return false;
+
+  auto *schema = reflection::GetSchema(buf);
+  CreateEnums(schema->enums());
+  CreateStructs(schema->objects());
+  DeserializeStructs(schema->objects());
+  DeserializeEnums(schema->enums());
+  file_identifier_ = schema->file_ident()->c_str();
+  file_extension_ = schema->file_ext()->c_str();
+  root_struct_def_ = LookupStruct(schema->root_table()->name()->str());
+  return true;
+}
+
+void Parser::CreateStructs(const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *structs)
+{
+  if (structs == nullptr)
+    return;
+
+  for (flatbuffers::uoffset_t index = 0; index < structs->Length(); index++)
+  {
+    const reflection::Object* iter = structs->Get(index);
+    flatbuffers::StructDef *def = new flatbuffers::StructDef();
+    // TODO namespace: def.defined_namespace
+    def->name = GetNameFromFullQualifiedName(iter->name()->str());
+    def->defined_namespace = current_namespace_;
+    def->fixed = iter->is_struct();
+    def->minalign = iter->minalign();
+    def->bytesize = iter->bytesize();
+    def->predecl = false;
+    DeserializeAttributes(def->attributes, iter->attributes());
+    DeserializeDocumentation(def->doc_comment, iter->documentation());
+    def->sortbysize =
+      def->attributes.Lookup("original_order") == nullptr && !def->fixed;
+    def->index = index;
+    structs_.Add(iter->name()->str(), def);
+    flatbuffers::Type *typeDef = new Type(BASE_TYPE_STRUCT, def, nullptr);
+    types_.Add(iter->name()->str(), typeDef);
+  }
+}
+void Parser::CreateEnums(const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums)
+{
+  if (enums == nullptr)
+    return;
+
+  for (flatbuffers::uoffset_t index = 0; index < enums->Length(); index++)
+  {
+    const reflection::Enum* iter = enums->Get(index);
+    flatbuffers::EnumDef *def = new EnumDef();
+    def->name = GetNameFromFullQualifiedName(iter->name()->str());
+    def->defined_namespace = current_namespace_;
+    def->is_union = iter->is_union();
+    def->index = index;
+    DeserializeAttributes(def->attributes, iter->attributes());
+    DeserializeDocumentation(def->doc_comment, iter->documentation());
+    enums_.Add(iter->name()->str(), def);
+    flatbuffers::Type *typeDef = new Type(BASE_TYPE_UNION, nullptr, def);
+    types_.Add(iter->name()->str(), typeDef);
+  }
+}
+
+void Parser::DeserializeStructs(const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *structs)
+{
+  if (structs == nullptr)
+    return;
+
+  for (flatbuffers::uoffset_t index = 0; index < structs->Length(); index++)
+  {
+    const reflection::Object* iter = structs->Get(index);
+    flatbuffers::StructDef *def = structs_.Lookup(iter->name()->str());
+    // TODO namespace: def.defined_namespace
+    def->Deserialize( this, iter->fields() );
+  }
+}
+
+void Parser::DeserializeEnums(const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums)
+{
+  if (enums == nullptr)
+    return;
+
+  for (flatbuffers::uoffset_t index = 0; index < enums->Length(); index++)
+  {
+    const reflection::Enum* iter = enums->Get(index);
+    flatbuffers::EnumDef *def = enums_.Lookup(iter->name()->str());
+    def->Deserialize(this, iter->values());
+    def->underlying_type.Deserialize(this, iter->underlying_type());
+    def->underlying_type.enum_def = def;
+  }
+}
+
+
 
 std::string Parser::ConformTo(const Parser &base) {
   for (auto sit = structs_.vec.begin(); sit != structs_.vec.end(); ++sit) {

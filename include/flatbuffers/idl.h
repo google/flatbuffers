@@ -152,6 +152,7 @@ struct Type {
   Type VectorType() const { return Type(element, struct_def, enum_def); }
 
   Offset<reflection::Type> Serialize(FlatBufferBuilder *builder) const;
+  void Deserialize(Parser *parser, const reflection::Type *type);
 
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
@@ -261,6 +262,8 @@ struct FieldDef : public Definition {
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
 
+  void Deserialize(Parser *parser, const reflection::Field *field);
+
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
                     // written in new data nor accessed in new code.
@@ -290,6 +293,8 @@ struct StructDef : public Definition {
 
   Offset<reflection::Object> Serialize(FlatBufferBuilder *builder,
                                        const Parser &parser) const;
+
+  void Deserialize(Parser *parser, const flatbuffers::Vector<flatbuffers::Offset<reflection::Field>> *flatFields);
 
   SymbolTable<FieldDef> fields;
 
@@ -339,6 +344,8 @@ struct EnumDef : public Definition {
   }
 
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
+  void Deserialize(Parser *parser, const flatbuffers::Vector<flatbuffers::Offset<reflection::EnumVal>> *values);
 
   SymbolTable<EnumVal> vals;
   bool is_union;
@@ -647,6 +654,23 @@ class Parser : public ParserState {
   // See reflection/reflection.fbs
   void Serialize();
 
+  // Deserialize a schema buffer
+  bool Deserialize(const uint8_t *buf, const size_t size);
+
+  // Deserialize structs
+  void CreateStructs(const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *structs);
+
+  // Deserialize enums
+  void CreateEnums(const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums);
+
+  // Deserialize structs
+  void DeserializeStructs(const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *structs);
+
+  // Deserialize enums
+  void DeserializeEnums(const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums);
+
+  void DeserializeAttributes(SymbolTable<Value> &dest, const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *attributes);
+
   // Checks that the schema represented by this parser is a safe evolution
   // of the schema provided. Returns non-empty error on any problems.
   std::string ConformTo(const Parser &base);
@@ -660,6 +684,8 @@ class Parser : public ParserState {
                                           const std::string &msg);
 
   StructDef *LookupStruct(const std::string &id) const;
+
+  std::string GetNameFromFullQualifiedName(std::string fullQualifiedName);
 
  private:
   void Message(const std::string &msg);
