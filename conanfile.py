@@ -18,7 +18,7 @@ class FlatbuffersConan(ConanFile):
     default_options = "shared=False"
     generators = "cmake"
     exports = "LICENSE.txt"
-    exports_sources = ["CMake/*", "include/*", "src/*", "grpc/*", "CMakeLists.txt"]
+    exports_sources = ["CMake/*", "include/*", "src/*", "grpc/*", "CMakeLists.txt", "flatbuffers.pc.in"]
 
     def _inject_magic_lines(self):
         """Inject Conan setup in cmake file to solve exteral dependencies.
