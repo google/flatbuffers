@@ -948,6 +948,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.any_required { builder.add_any_required(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
       if let Some(x) = args.any_unique { builder.add_any_unique(x); }
@@ -983,6 +984,7 @@ impl<'a> Monster<'a> {
       if let Some(x) = args.pos { builder.add_pos(x); }
       builder.add_hp(args.hp);
       builder.add_mana(args.mana);
+      builder.add_any_required_type(args.any_required_type);
       builder.add_any_ambiguous_type(args.any_ambiguous_type);
       builder.add_any_unique_type(args.any_unique_type);
       builder.add_testbool(args.testbool);
@@ -1038,6 +1040,8 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
+    pub const VT_ANY_REQUIRED_TYPE: flatbuffers::VOffsetT = 100;
+    pub const VT_ANY_REQUIRED: flatbuffers::VOffsetT = 102;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1249,6 +1253,14 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
+  pub fn any_required_type(&self) -> Any {
+    self._tab.get::<Any>(Monster::VT_ANY_REQUIRED_TYPE, Some(Any::NONE)).unwrap()
+  }
+  #[inline]
+  pub fn any_required(&self) -> flatbuffers::Table<'a> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_REQUIRED, None).unwrap()
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&'a self) -> Option<Monster> {
     if self.test_type() == Any::Monster {
@@ -1338,6 +1350,36 @@ impl<'a> Monster<'a> {
     }
   }
 
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_required_as_monster(&'a self) -> Option<Monster> {
+    if self.any_required_type() == Any::Monster {
+      Some(Monster::init_from_table(self.any_required()))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_required_as_test_simple_table_with_enum(&'a self) -> Option<TestSimpleTableWithEnum> {
+    if self.any_required_type() == Any::TestSimpleTableWithEnum {
+      Some(TestSimpleTableWithEnum::init_from_table(self.any_required()))
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn any_required_as_my_game_example_2_monster(&'a self) -> Option<super::example_2::Monster> {
+    if self.any_required_type() == Any::MyGame_Example2_Monster {
+      Some(super::example_2::Monster::init_from_table(self.any_required()))
+    } else {
+      None
+    }
+  }
+
 }
 
 pub struct MonsterArgs<'a> {
@@ -1388,6 +1430,8 @@ pub struct MonsterArgs<'a> {
     pub any_ambiguous_type: AnyAmbiguousAliases,
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
+    pub any_required_type: Any,
+    pub any_required: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1440,6 +1484,8 @@ impl<'a> Default for MonsterArgs<'a> {
             any_ambiguous_type: AnyAmbiguousAliases::NONE,
             any_ambiguous: None,
             vector_of_enums: None,
+            any_required_type: Any::NONE,
+            any_required: None, // required field
         }
     }
 }
@@ -1637,6 +1683,14 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   #[inline]
+  pub fn add_any_required_type(&mut self, any_required_type: Any) {
+    self.fbb_.push_slot::<Any>(Monster::VT_ANY_REQUIRED_TYPE, any_required_type, Any::NONE);
+  }
+  #[inline]
+  pub fn add_any_required(&mut self, any_required: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_ANY_REQUIRED, any_required);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1646,8 +1700,11 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
   #[inline]
   pub fn finish(self) -> flatbuffers::WIPOffset<Monster<'a>> {
+
     let o = self.fbb_.end_table(self.start_);
     self.fbb_.required(o, Monster::VT_NAME,"name");
+    println!("9");
+    self.fbb_.required(o, Monster::VT_ANY_REQUIRED,"any_required");
     flatbuffers::WIPOffset::new(o.value())
   }
 }

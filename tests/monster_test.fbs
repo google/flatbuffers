@@ -100,6 +100,7 @@ table Monster {
   any_unique:AnyUniqueAliases(id:44);
   any_ambiguous:AnyAmbiguousAliases (id:46);
   vector_of_enums:[Color] (id:47);
+  any_required:Any (id:49, required);
 }
 
 table TypeAliases {

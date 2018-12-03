@@ -88,6 +88,9 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
         // long enough to be used by MonsterArgs.
         let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
 
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(builder, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let args = my_game::example::MonsterArgs{
             hp: 80,
             mana: 150,
@@ -102,6 +105,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
             test4: Some(builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
                                                        my_game::example::Test::new(30, 40)])),
             testarrayofstring: Some(builder.create_vector(&[s0, s1])),
+            any_required: Some(any_required),
             ..Default::default()
         };
         my_game::example::Monster::create(builder, &args)
@@ -299,32 +303,45 @@ mod roundtrip_generated_code {
     fn scalar_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{hp: 123, name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{hp: 123, name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.hp(), 123);
     }
     #[test]
     fn scalar_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.hp(), 100);
     }
     #[test]
     fn string_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foobar");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.name(), "foobar");
     }
     #[test]
     fn struct_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
             pos: Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
                                                    my_game::example::Color::Green,
                                                    &my_game::example::Test::new(98, 99))),
+            any_required: Some(any_required),
             ..Default::default()
         });
         assert_eq!(m.pos(), Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
@@ -335,38 +352,54 @@ mod roundtrip_generated_code {
     fn struct_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.pos(), None);
     }
     #[test]
     fn enum_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), color: my_game::example::Color::Red, ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), color: my_game::example::Color::Red, any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.color(), my_game::example::Color::Red);
     }
     #[test]
     fn enum_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.color(), my_game::example::Color::Blue);
     }
     #[test]
     fn union_store() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let name_inner = b.create_string("foo");
             let name_outer = b.create_string("bar");
-
+            let any_required_inner = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
+            let any_required_outer = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
             let inner = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name_inner),
+                any_required: Some(any_required_inner),
                 ..Default::default()
             });
             let outer = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name_outer),
                 test_type: my_game::example::Any::Monster,
                 test: Some(inner.as_union_value()),
+                any_required: Some(any_required_outer),
                 ..Default::default()
             });
             my_game::example::finish_monster_buffer(b, outer);
@@ -385,24 +418,32 @@ mod roundtrip_generated_code {
     fn union_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.test_type(), my_game::example::Any::NONE);
         assert_eq!(m.test(), None);
     }
     #[test]
     fn table_full_namespace_store() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let name_inner = b.create_string("foo");
             let name_outer = b.create_string("bar");
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
 
             let inner = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name_inner),
+                any_required: Some(any_required),
                 ..Default::default()
             });
             let outer = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name_outer),
                 enemy: Some(inner),
+                any_required: Some(any_required),
                 ..Default::default()
             });
             my_game::example::finish_monster_buffer(b, outer);
@@ -416,16 +457,21 @@ mod roundtrip_generated_code {
     fn table_full_namespace_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.enemy(), None);
     }
     #[test]
     fn table_store() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let id_inner = b.create_string("foo");
             let name_outer = b.create_string("bar");
-
+            let any_required_outer = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
             let inner = my_game::example::Stat::create(b, &my_game::example::StatArgs{
                 id: Some(id_inner),
                 ..Default::default()
@@ -433,6 +479,7 @@ mod roundtrip_generated_code {
             let outer = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name_outer),
                 testempty: Some(inner),
+                any_required: Some(any_required_outer),
                 ..Default::default()
             });
             my_game::example::finish_monster_buffer(b, outer);
@@ -446,16 +493,24 @@ mod roundtrip_generated_code {
     fn table_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.testempty(), None);
     }
     #[test]
     fn nested_flatbuffer_store() {
         let b0 = {
             let mut b0 = flatbuffers::FlatBufferBuilder::new();
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b0, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
+        
             let args = my_game::example::MonsterArgs{
                 hp: 123,
                 name: Some(b0.create_string("foobar")),
+                any_required: Some(any_required),
                 ..Default::default()
             };
             let mon = my_game::example::Monster::create(&mut b0, &args);
@@ -465,9 +520,13 @@ mod roundtrip_generated_code {
 
         let b1 = {
             let mut b1 = flatbuffers::FlatBufferBuilder::new();
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b1, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
             let args = my_game::example::MonsterArgs{
                 testnestedflatbuffer: Some(b1.create_vector(b0.finished_data())),
                 name: Some(b1.create_string("foo")),
+                any_required: Some(any_required),
                 ..Default::default()
             };
             let mon = my_game::example::Monster::create(&mut b1, &args);
@@ -494,7 +553,10 @@ mod roundtrip_generated_code {
     fn nested_flatbuffer_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()});
         assert!(m.testnestedflatbuffer().is_none());
     }
     #[test]
@@ -502,9 +564,12 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let v = b.create_vector_of_strings(&["foobar", "baz"]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            testarrayofstring: Some(v), ..Default::default()});
+            testarrayofstring: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
@@ -516,9 +581,12 @@ mod roundtrip_generated_code {
         let s1 = b.create_string("baz");
         let v = b.create_vector(&[s0, s1]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            testarrayofstring: Some(v), ..Default::default()});
+            testarrayofstring: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
@@ -527,10 +595,15 @@ mod roundtrip_generated_code {
     fn vector_of_ubyte_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let v = b.create_vector(&[123u8, 234u8][..]);
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            inventory: Some(v), ..Default::default()});
+            inventory: Some(v),
+            any_required: Some(any_required),
+            ..Default::default()});
         assert_eq!(m.inventory().unwrap(), &[123, 234][..]);
     }
     #[test]
@@ -538,9 +611,12 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let v = b.create_vector(&[false, true, false, true][..]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            testarrayofbools: Some(v), ..Default::default()});
+            testarrayofbools: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.testarrayofbools().unwrap(), &[false, true, false, true][..]);
     }
     #[test]
@@ -548,9 +624,12 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let v = b.create_vector(&[3.14159265359f64][..]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            vector_of_doubles: Some(v), ..Default::default()});
+            vector_of_doubles: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.vector_of_doubles().unwrap().len(), 1);
         assert_eq!(m.vector_of_doubles().unwrap().get(0), 3.14159265359f64);
     }
@@ -559,9 +638,12 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let v = b.create_vector(&[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            test4: Some(v), ..Default::default()});
+            test4: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
     }
     #[test]
@@ -571,9 +653,12 @@ mod roundtrip_generated_code {
                                   my_game::example::Test::new(3, 123),
                                   my_game::example::Test::new(100, 101)]);
         let name = b.create_string("foo");
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
-            test4: Some(v), ..Default::default()});
+            test4: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123), my_game::example::Test::new(100, 101)][..]);
     }
     // TODO(rw) this passes, but I don't want to change the monster test schema right now
@@ -591,22 +676,25 @@ mod roundtrip_generated_code {
     // }
     #[test]
     fn vector_of_table_store() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let t0 = {
             let name = b.create_string("foo");
-            let args = my_game::example::MonsterArgs{hp: 55, name: Some(name), ..Default::default()};
+            let args = my_game::example::MonsterArgs{hp: 55, name: Some(name), any_required: Some(any_required), ..Default::default()};
             my_game::example::Monster::create(b, &args)
         };
         let t1 = {
             let name = b.create_string("bar");
-            let args = my_game::example::MonsterArgs{name: Some(name), ..Default::default()};
+            let args = my_game::example::MonsterArgs{name: Some(name), any_required: Some(any_required), ..Default::default()};
             my_game::example::Monster::create(b, &args)
         };
         let v = b.create_vector(&[t0, t1][..]);
         let name = b.create_string("foo");
         let m = build_mon(b, &my_game::example::MonsterArgs{
             name: Some(name),
-            testarrayoftables: Some(v), ..Default::default()});
+            testarrayoftables: Some(v), any_required: Some(any_required), ..Default::default()});
         assert_eq!(m.testarrayoftables().unwrap().len(), 2);
         assert_eq!(m.testarrayoftables().unwrap().get(0).hp(), 55);
         assert_eq!(m.testarrayoftables().unwrap().get(0).name(), "foo");
@@ -662,15 +750,21 @@ mod generated_code_alignment_and_padding {
 
     #[test]
     fn struct_vec3_is_written_with_correct_alignment_in_table() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let name = b.create_string("foo");
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
             let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name),
                 pos: Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
                                                        my_game::example::Color::Green,
-                                                       &my_game::example::Test::new(98, 99))),
-                                                       ..Default::default()});
+                                                       &my_game::example::Test::new(98, 99))
+                ),
+                any_required: Some(any_required),
+                ..Default::default()
+            });
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
@@ -697,15 +791,19 @@ mod generated_code_alignment_and_padding {
 
     #[test]
     fn struct_ability_is_written_with_correct_alignment_in_table_vector() {
-        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        let mut b = &mut flatbuffers::FlatBufferBuilder::new();
         {
             let name = b.create_string("foo");
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
             let v = b.create_vector(&[my_game::example::Ability::new(1, 2),
                                       my_game::example::Ability::new(3, 4),
                                       my_game::example::Ability::new(5, 6)]);
             let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name),
                 testarrayofsortedstruct: Some(v),
+                any_required: Some(any_required),
                 ..Default::default()});
             my_game::example::finish_monster_buffer(b, mon);
         }
@@ -981,10 +1079,14 @@ mod framing_format {
     fn test_size_prefixed_buffer() {
         // Create size prefixed buffer.
         let mut b = flatbuffers::FlatBufferBuilder::new();
+        let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+            color: my_game::example::Color::Green
+        }).as_union_value();
         let args = &my_game::example::MonsterArgs{
             mana: 200,
             hp: 300,
             name: Some(b.create_string("bob")),
+            any_required: Some(any_required),
             ..Default::default()
         };
         let mon = my_game::example::Monster::create(&mut b, &args);
@@ -2660,6 +2762,31 @@ mod byte_layouts {
               0, 2, // value #1 => 2 (u8)
               1, 0, // value #0 => 1 (int16)
         ]);
+    }
+}
+
+#[cfg(test)]
+mod required_fields {
+    extern crate flatbuffers;
+    use super::my_game;
+
+    #[test]
+    #[should_panic]
+    fn required_fields() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+
+        let mon = {
+            let any_required = my_game::example::TestSimpleTableWithEnum::create(&mut b, &my_game::example::TestSimpleTableWithEnumArgs {
+                color: my_game::example::Color::Green
+            }).as_union_value();
+            let args = my_game::example::MonsterArgs{
+                name: Some(b.create_string("MyMonster")),
+                // any_required: Some(any_required),
+                ..Default::default()
+            };
+            my_game::example::Monster::create(&mut b, &args)
+        };
+        my_game::example::finish_monster_buffer(&mut b, mon);
     }
 }
 
