@@ -2785,19 +2785,17 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
 
 void FieldDef::Deserialize(Parser *parser, const reflection::Field *field)
 {
-  uint16_t id = 0;
   name = parser->GetNameFromFullQualifiedName(field->name()->str());
   defined_namespace = parser->current_namespace_;
   value.type.Deserialize(parser, field->type());
   value.offset = field->offset();
   if (IsInteger(value.type.base_type))
-    value.constant = std::to_string(field->default_integer());
+    value.constant = NumToString(field->default_integer());
   if (IsFloat(value.type.base_type))
-    value.constant = std::to_string(field->default_real());
+    value.constant = NumToString(field->default_real());
   deprecated = field->deprecated();
   required = field->required();
   key = field->key();
-  id = field->id();
   parser->DeserializeAttributes(attributes, field->attributes());
   DeserializeDocumentation(doc_comment, field->documentation());
 }
