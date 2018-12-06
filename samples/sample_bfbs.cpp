@@ -17,6 +17,7 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#include "monster_test_generated.h"
 #include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
@@ -25,46 +26,34 @@ using namespace MyGame::Sample;
 // generating flatbuffer (JSON) text from the buffer.
 int main(int /*argc*/, const char * /*argv*/[]) {
   // load FlatBuffer schema (.fbs) and JSON from disk
-  std::string schemafile;
-  std::string jsonfile;
-  bool ok = flatbuffers::LoadFile("samples/monster.fbs", false, &schemafile) &&
-    flatbuffers::LoadFile("samples/monsterdata.json", false, &jsonfile);
+  std::string schema_file;
+  std::string json_file;
+  std::string bfbs_file;
+  bool ok =
+      flatbuffers::LoadFile("tests/monster_test.fbs", false, &schema_file) &&
+      flatbuffers::LoadFile("tests/monsterdata_test.golden", false, &json_file) &&
+      flatbuffers::LoadFile("tests/monster_test.bfbs", true, &bfbs_file);
   if (!ok) {
     printf("couldn't load files!\n");
     return 1;
   }
 
-  // parse schema first, so we can use it to parse the data after
+  const char *include_directories[] = { "samples", "tests",
+                                        "tests/include_test", nullptr };
+  // parse fbs schema
   flatbuffers::Parser parser1;
-  const char *include_directories[] = { "samples", nullptr };
-  ok = parser1.Parse(schemafile.c_str(), include_directories);
-  //    &&
-  //       parser.Parse(jsonfile.c_str(), include_directories);
+  ok = parser1.Parse(schema_file.c_str(), include_directories);
   assert(ok);
-  parser1.Serialize();
-
-  ok = flatbuffers::GenerateBinary(parser1, "samples/", "monster1");
-  assert(ok);
-
+  
+  // inizialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
-  std::string bfbsfile1;
-  ok = flatbuffers::LoadFile("samples/monster1.bin", true, &bfbsfile1);
-  assert(ok);
-  parser2.Deserialize((uint8_t*)bfbsfile1.c_str(), bfbsfile1.length());
-
-  parser2.Serialize();
-
-  ok = flatbuffers::GenerateBinary(parser1, "samples/", "monster2");
-  assert(ok);
-  std::string bfbsfile2;
-  ok = flatbuffers::LoadFile("samples/monster2.bin", true, &bfbsfile2);
-  assert(ok);
-  assert(bfbsfile1 == bfbsfile2);
-  ok = parser1.Parse(jsonfile.c_str(), include_directories);
-  ok = parser2.Parse(jsonfile.c_str(), include_directories);
+  ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
   assert(ok);
 
-
+  // parse json in parser from fbs and bfbs
+  ok = parser1.Parse(json_file.c_str(), include_directories);
+  ok = parser2.Parse(json_file.c_str(), include_directories);
+  assert(ok);
 
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:

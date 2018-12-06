@@ -22,5 +22,6 @@ set -e
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 cd ../samples
 ../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+--/flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh

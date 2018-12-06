@@ -569,25 +569,37 @@ void JsonDefaultTest() {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest() {
+void ParseAndGenerateTextTest(bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
-                                false, &schemafile),
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "monster_test." + (binary ? "bfbs" : "fbs"))
+                  .c_str(),
+              binary, &schemafile),
           true);
   TEST_EQ(flatbuffers::LoadFile(
               (test_data_path + "monsterdata_test.golden").c_str(), false,
               &jsonfile),
           true);
 
-  // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+    flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  if (binary) {
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    //auto schema = reflection::GetSchema(schemafile.c_str());
+    TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(), schemafile.size()), true);
+  } else {
+    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  }
   TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
@@ -2415,7 +2427,8 @@ int FlatBufferTests() {
       test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
                        test_data_path;
     #endif
-    ParseAndGenerateTextTest();
+    ParseAndGenerateTextTest(false);
+    ParseAndGenerateTextTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
     UnionVectorTest();
