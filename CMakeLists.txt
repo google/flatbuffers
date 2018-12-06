@@ -20,7 +20,7 @@ option(FLATBUFFERS_BUILD_SHAREDLIB
        OFF)
 option(FLATBUFFERS_LIBCXX_WITH_CLANG "Force libc++ when using Clang" ON)
 # NOTE: Sanitizer check only works on Linux & OSX (gcc & llvm).
-option(FLATBUFFERS_CODE_SANITIZE 
+option(FLATBUFFERS_CODE_SANITIZE
       "Add '-fsanitize' flags to 'flattests' and 'flatc' targets."
       OFF)
 
@@ -72,7 +72,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_dart.cpp
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
-  src/idl_gen_js.cpp
+  src/idl_gen_js_ts.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_lobster.cpp
@@ -218,7 +218,7 @@ function(add_fsanitize_to_target _target _sanitizer)
       # override default by user-defined sanitizer list
       set(_sanitizer_flags ${_sanitizer})
     endif()
-    target_compile_options(${_target} PRIVATE 
+    target_compile_options(${_target} PRIVATE
       -g -fsigned-char -fno-omit-frame-pointer
       "-fsanitize${_sanitizer_flags}")
     target_link_libraries(${_target} PRIVATE

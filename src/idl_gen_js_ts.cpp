@@ -28,7 +28,7 @@ namespace flatbuffers {
 
 const std::string kGeneratedFileNamePostfix = "_generated";
 
-struct JsLanguageParameters {
+struct JsTsLanguageParameters {
   IDLOptions::Language language;
   std::string file_extension;
 };
@@ -41,8 +41,8 @@ struct ReexportDescription {
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
 
-const JsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
-  static JsLanguageParameters js_language_parameters[] = {
+const JsTsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
+  static JsTsLanguageParameters js_language_parameters[] = {
     {
         IDLOptions::kJs,
         ".js",
@@ -63,20 +63,20 @@ const JsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
 
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name,
-                                     const JsLanguageParameters &lang) {
+                                     const JsTsLanguageParameters &lang) {
   return path + file_name + kGeneratedFileNamePostfix + lang.file_extension;
 }
 
-namespace js {
+namespace jsts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-class JsGenerator : public BaseGenerator {
+class JsTsGenerator : public BaseGenerator {
  public:
   typedef std::unordered_set<std::string> imported_fileset;
   typedef std::unordered_multimap<std::string, ReexportDescription>
       reexport_map;
 
-  JsGenerator(const Parser &parser, const std::string &path,
+  JsTsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
         lang_(GetJsLangParams(parser_.opts.lang)){};
@@ -117,7 +117,7 @@ class JsGenerator : public BaseGenerator {
   }
 
  private:
-  JsLanguageParameters lang_;
+  JsTsLanguageParameters lang_;
 
   // Generate code for imports
   void generateImportDependencies(std::string *code_ptr,
@@ -1308,15 +1308,15 @@ class JsGenerator : public BaseGenerator {
       return argname;
   }
 };
-}  // namespace js
+}  // namespace jsts
 
-bool GenerateJS(const Parser &parser, const std::string &path,
+bool GenerateJSTS(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  js::JsGenerator generator(parser, path, file_name);
+  jsts::JsTsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string JSMakeRule(const Parser &parser, const std::string &path,
+std::string JSTSMakeRule(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetJsLangParams(parser.opts.lang);
