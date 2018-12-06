@@ -2845,6 +2845,7 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
                                    request->serialized_location,
                                    response->serialized_location,
                                    attr__, docs__);
+}
 
 bool RPCCall::Deserialize(Parser &parser, const reflection::RPCCall *call) {
   name = call->name()->str();
