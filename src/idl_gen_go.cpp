@@ -100,6 +100,53 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			+ GoIdentity(fld->name, true) + ".Marshal(builder)";
 	}
 
+	void GenMarshalUnionField(FieldDef const *fld, int pos) {
+		code_ += "\tobjs[" + NumToString(pos) + "] = rcv."
+			+ GoIdentity(fld->name, true) + ".Marshal(builder, rcv."
+			+ GoIdentity(fld->name, true) + "Type)";
+	}
+
+	void GenMarshalVectorFieldComposite(FieldDef const *fld) {
+		auto vector_type(fld->value.type.VectorType());
+		switch (vector_type.base_type) {
+		case BASE_TYPE_STRING:
+			code_ += "\t\t\tuvec[pos] = builder.CreateString(vec[pos])";
+			return;
+		case BASE_TYPE_STRUCT:	
+			code_ += "\t\t\tuvec[pos] = vec[pos].Marshal(builder)";
+			return;
+		default:
+			FLATBUFFERS_ASSERT(0);
+		}
+	}
+
+	void GenMarshalVectorField(FieldDef const *fld, int pos) {
+		code_ += "\t{";
+		code_ += "\t\tvec := rcv." + GoIdentity(fld->name, true);
+		code_ += "\t\tcount := len(vec)";
+
+		auto vector_type(fld->value.type.VectorType());
+		if (IsScalar(vector_type.base_type)) {
+			code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
+			code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
+			code_ += "\t\t\tbuilder.Prepend" + MakeCamel(ToBasicType(vector_type)) + "(vec[pos])";
+			code_ += "\t\t}";
+		} else {
+			code_ += "\t\tuvec := make([]flatbuffers.UOffsetT, count)";
+			code_ += "\t\tfor pos := 0; pos < count; pos++ {";
+			GenMarshalVectorFieldComposite(fld);
+			code_ += "\t\t}";
+			code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
+			code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
+			code_ += "\t\t\tbuilder.PrependUOffsetT(uvec[pos])";
+			code_ += "\t\t}";
+		}
+
+		code_ += "\t\tobjs[" + NumToString(pos)
+			+ "] = builder.EndVector(count)"; 
+		code_ += "\t}";
+	}
+
 	void GenCompositeMarshal(StructDef const &def, int comp_count) {
 		code_ += "\tvar objs [" + NumToString(comp_count) + "]flatbuffers.UOffsetT";
 		comp_count = 0;
@@ -113,15 +160,17 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
-			case BASE_TYPE_UNION:
 				GenMarshalStructField(fld, comp_count);
-			break;
+				break;
+			case BASE_TYPE_UNION:
+				GenMarshalUnionField(fld, comp_count);
+				break;
 			case BASE_TYPE_STRING:
 				GenMarshalStringField(fld, comp_count);
 				break;
 			case BASE_TYPE_VECTOR:
-				
-			break;
+				GenMarshalVectorField(fld, comp_count);
+				break;
 			default:
 				FLATBUFFERS_ASSERT(0);
 			}
@@ -168,6 +217,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		if (comp_count > 0)
 			GenCompositeMarshal(def, comp_count);
 
+		code_ += "\tb.Start()";
 		comp_count = 0;
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -695,6 +745,23 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			code_ += "\treturn u.{{ENUM_VALUE_TAG}}.(" + ct_name + ").Value";
 			code_ += "}\n";
 		}
+
+		GenEnumMarshal(def);
+	}
+
+	void GenEnumMarshal(EnumDef const *def) {
+		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) flatbuffers.UOffsetT {";
+		code_ += "\tswitch sel {";
+		for (auto it: def->vals.vec) {
+			std::string ct_name = "{{ENUM_TYPE}}_" + it->name;
+			code_ += "\tcase {{ENUM_NAME}}" + it->name + ": {";
+			code_ += "\t\tif ct, ok := u.{{ENUM_VALUE_TAG}}.(" + ct_name + "); ok {";
+			code_ += "\t\t} else {";
+			code_ += "\t\t}";
+			code_ += "\t}";
+		}
+		code_ += "\t}";
+		code_ += "}\n";
 	}
 
 	// Returns the function name that is able to read a value of the given type.
@@ -931,11 +998,16 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			: GetRefTypeComposite(type, native);
 	}
 
-	std::string NativeFieldType(FieldDef const *field) {
+	std::string GetNativeFieldType(FieldDef const *field) {
 		auto& type(field->value.type);
 
 		if (type.enum_def) {
-			return GetEnumType(
+			std::string mod;
+
+			if (type.base_type == BASE_TYPE_VECTOR)
+				mod = "[]";
+
+			return mod + GetEnumType(
 				type.enum_def,
 				type.base_type == BASE_TYPE_UNION
 			);
@@ -974,7 +1046,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 				continue;
 
 			code_ += "\t" + GoIdentity(fld->name, true)
-				+ " " + NativeFieldType(fld);
+				+ " " + GetNativeFieldType(fld);
 		}
 		code_ += "}\n";
 	}
