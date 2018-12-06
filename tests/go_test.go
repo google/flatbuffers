@@ -152,7 +152,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("mana", 150, got))
 		}
 
-		if got := monster.Name(); !bytes.Equal([]byte("MyMonster"), got) {
+		if got := monster.Name(); "MyMonster" != got {
 			fail(FailString("name", "MyMonster", got))
 		}
 
@@ -234,7 +234,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 		var monster2 example.Monster
 		monster2.Init(table2.Bytes, table2.Pos)
 
-		if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
+		if got := monster2.Name(); "Fred" != got {
 			fail(FailString("monster2.Name()", "Fred", got))
 		}
 
@@ -292,11 +292,11 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("Testarrayofstring length", 2, got))
 		}
 
-		if got := monster.Testarrayofstring(0); !bytes.Equal([]byte("test1"), got) {
+		if got := monster.Testarrayofstring(0); "test1" != got {
 			fail(FailString("Testarrayofstring(0)", "test1", got))
 		}
 
-		if got := monster.Testarrayofstring(1); !bytes.Equal([]byte("test2"), got) {
+		if got := monster.Testarrayofstring(1); "test2" != got {
 			fail(FailString("Testarrayofstring(1)", "test2", got))
 		}
 	}
@@ -1106,17 +1106,18 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 
 func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)
+	sb := example.BuildStat(b)
 	str := b.CreateString("MyStat")
-	example.StatStart(b)
-	example.StatAddId(b, str)
-	example.StatAddVal(b, 12345678)
-	example.StatAddCount(b, 12345)
-	stat_end := example.StatEnd(b)
+	sb.Start()
+	sb.AddId(str)
+	sb.AddVal(12345678)
+	sb.AddCount(12345)
+	stat_end := sb.End()
 	b.Finish(stat_end)
 
 	stat := example.GetRootAsStat(b.Bytes, b.Head())
 
-	if got := stat.Id(); !bytes.Equal([]byte("MyStat"), got) {
+	if got := stat.Id(); "MyStat" != got {
 		fail(FailString("stat.Id()", "MyStat", got))
 	}
 
@@ -1132,12 +1133,15 @@ func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
 // CheckGeneratedBuild uses generated code to build the example Monster.
 func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UOffsetT) {
 	b := flatbuffers.NewBuilder(0)
+	sb := example.BuildMonster(b)
+
 	str := b.CreateString("MyMonster")
 	test1 := b.CreateString("test1")
 	test2 := b.CreateString("test2")
 	fred := b.CreateString("Fred")
 
-	example.MonsterStartInventoryVector(b, 5)
+
+	sb.StartInventoryVector(5)
 	b.PrependByte(4)
 	b.PrependByte(3)
 	b.PrependByte(2)
@@ -1145,34 +1149,34 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	b.PrependByte(0)
 	inv := b.EndVector(5)
 
-	example.MonsterStart(b)
-	example.MonsterAddName(b, fred)
-	mon2 := example.MonsterEnd(b)
+	sb.Start()
+	sb.AddName(fred)
+	mon2 := sb.End()
 
-	example.MonsterStartTest4Vector(b, 2)
+	sb.StartTest4Vector(2)
 	example.CreateTest(b, 10, 20)
 	example.CreateTest(b, 30, 40)
 	test4 := b.EndVector(2)
 
-	example.MonsterStartTestarrayofstringVector(b, 2)
+	sb.StartTestarrayofstringVector(2)
 	b.PrependUOffsetT(test2)
 	b.PrependUOffsetT(test1)
 	testArrayOfString := b.EndVector(2)
 
-	example.MonsterStart(b)
+	sb.Start()
 
 	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
-	example.MonsterAddPos(b, pos)
+	sb.AddPos(pos)
 
-	example.MonsterAddHp(b, 80)
-	example.MonsterAddName(b, str)
-	example.MonsterAddTestbool(b, true)
-	example.MonsterAddInventory(b, inv)
-	example.MonsterAddTestType(b, 1)
-	example.MonsterAddTest(b, mon2)
-	example.MonsterAddTest4(b, test4)
-	example.MonsterAddTestarrayofstring(b, testArrayOfString)
-	mon := example.MonsterEnd(b)
+	sb.AddHp(80)
+	sb.AddName(str)
+	sb.AddTestbool(true)
+	sb.AddInventory(inv)
+	sb.AddTestType(1)
+	sb.AddTest(mon2)
+	sb.AddTest4(test4)
+	sb.AddTestarrayofstring(testArrayOfString)
+	mon := sb.End()
 
 	b.Finish(mon)
 
@@ -1196,11 +1200,12 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	// test table accessor
 	b = flatbuffers.NewBuilder(0)
 	str := b.CreateString("MyStat")
-	example.StatStart(b)
-	example.StatAddId(b, str)
-	example.StatAddVal(b, 12345678)
-	example.StatAddCount(b, 12345)
-	pos = example.StatEnd(b)
+	sb := example.BuildStat(b)
+	sb.Start()
+	sb.AddId(str)
+	sb.AddVal(12345678)
+	sb.AddCount(12345)
+	pos = sb.End()
 	b.Finish(pos)
 	statBytes := b.FinishedBytes()
 	stat := &example.Stat{}
@@ -1406,23 +1411,24 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 	}
 
 	builder := flatbuffers.NewBuilder(0)
+	sb := example.BuildMonster(builder)
 
-	example.MonsterStartInventoryVector(builder, 5)
+	sb.StartInventoryVector(5)
 	for i := 4; i >= 0; i-- {
 		builder.PrependByte(byte(i))
 	}
 	inv := builder.EndVector(5)
 
 	str := builder.CreateString("MyMonster")
-	example.MonsterStart(builder)
-	example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
-	example.MonsterAddHp(builder, 80)
-	example.MonsterAddName(builder, str)
-	example.MonsterAddInventory(builder, inv)
-	example.MonsterAddTestType(builder, 1)
-	// example.MonsterAddTest(builder, mon2)
-	// example.MonsterAddTest4(builder, test4s)
-	_ = example.MonsterEnd(builder)
+	sb.Start()
+	sb.AddPos(example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
+	sb.AddHp(80)
+	sb.AddName(str)
+	sb.AddInventory(inv)
+	sb.AddTestType(1)
+	// sb.AddTest(mon2)
+	// sb.AddTest4(test4s)
+	_ = sb.End()
 }
 
 func CheckCreateByteVector(fail func(string, ...interface{})) {
@@ -1729,13 +1735,14 @@ func BenchmarkBuildGold(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		bldr.Reset()
+		sb := example.BuildMonster(bldr)
 
 		str := bldr.CreateString(reuse_str)
 		test1 := bldr.CreateString(reuse_test1)
 		test2 := bldr.CreateString(reuse_test2)
 		fred := bldr.CreateString(reuse_fred)
 
-		example.MonsterStartInventoryVector(bldr, 5)
+		sb.StartInventoryVector(5)
 		bldr.PrependByte(4)
 		bldr.PrependByte(3)
 		bldr.PrependByte(2)
@@ -1743,33 +1750,33 @@ func BenchmarkBuildGold(b *testing.B) {
 		bldr.PrependByte(0)
 		inv := bldr.EndVector(5)
 
-		example.MonsterStart(bldr)
-		example.MonsterAddName(bldr, fred)
-		mon2 := example.MonsterEnd(bldr)
+		sb.Start()
+		sb.AddName(fred)
+		mon2 := sb.End()
 
-		example.MonsterStartTest4Vector(bldr, 2)
+		sb.StartTest4Vector(2)
 		example.CreateTest(bldr, 10, 20)
 		example.CreateTest(bldr, 30, 40)
 		test4 := bldr.EndVector(2)
 
-		example.MonsterStartTestarrayofstringVector(bldr, 2)
+		sb.StartTestarrayofstringVector(2)
 		bldr.PrependUOffsetT(test2)
 		bldr.PrependUOffsetT(test1)
 		testArrayOfString := bldr.EndVector(2)
 
-		example.MonsterStart(bldr)
+		sb.Start()
 
 		pos := example.CreateVec3(bldr, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
-		example.MonsterAddPos(bldr, pos)
+		sb.AddPos(pos)
 
-		example.MonsterAddHp(bldr, 80)
-		example.MonsterAddName(bldr, str)
-		example.MonsterAddInventory(bldr, inv)
-		example.MonsterAddTestType(bldr, 1)
-		example.MonsterAddTest(bldr, mon2)
-		example.MonsterAddTest4(bldr, test4)
-		example.MonsterAddTestarrayofstring(bldr, testArrayOfString)
-		mon := example.MonsterEnd(bldr)
+		sb.AddHp(80)
+		sb.AddName(str)
+		sb.AddInventory(inv)
+		sb.AddTestType(1)
+		sb.AddTest(mon2)
+		sb.AddTest4(test4)
+		sb.AddTestarrayofstring(testArrayOfString)
+		mon := sb.End()
 
 		bldr.Finish(mon)
 	}

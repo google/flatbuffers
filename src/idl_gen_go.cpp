@@ -450,7 +450,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\tBuilder *flatbuffers.Builder";
 		code_ += "}\n";
 		code_ += "func Build{{STRUCT_NAME}}(builder *flatbuffers.Builder) {{STRUCT_NAME}}Builder {";
-		code_ += "\tbuilder.StartObject(" + NumToString(def.fields.vec.size()) + ")";
 		code_ += "\treturn {{STRUCT_NAME}}Builder {";
 		code_ += "\t\tBuilder: builder,";
 		code_ += "\t}";
@@ -461,10 +460,16 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			"func (b " + def.name + "Builder)"
 		);
 
+		code_ += "{{STRUCT_BUILDER_RECEIVER}} Start() {";
+		code_ += "\tb.Builder.StartObject(" + NumToString(def.fields.vec.size()) + ")";
+		code_ += "}\n";
+
 		int offset(0);
 		for (auto fld: def.fields.vec) {
-			if (fld->deprecated)
+			if (fld->deprecated) {
+				offset++;
 				continue;
+			}
 
 			BuildFieldOfTable(def, fld, offset++);
 			if (fld->value.type.base_type == BASE_TYPE_VECTOR) {
@@ -773,6 +778,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		code_ += ") flatbuffers.UOffsetT {";
 		code_ += "\tb := Build{{STRUCT_NAME}}(builder)";
+		code_ += "\tb.Start()";
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -787,9 +793,14 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 	void AddToImports(Namespace const *ns) {
 		auto is = go_import_prefix_;
+		bool write_slash = !is.empty();
+
 		for (auto &c: ns->components) {
-			is += "/";
+			if (write_slash)
+				is += "/";
+
 			is += c;
+			write_slash = true;
 		}
 		imports_.insert(is);
 	}

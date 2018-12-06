@@ -20,7 +20,7 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
-../flatc -g -I include_test monster_test.fbs
+../build/flatc -g -I include_test monster_test.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
@@ -29,10 +29,10 @@ mkdir -p ${go_src}/MyGame/Example
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
 
-cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
+rsync -a --include="*/" --include="*.go" --exclude="*" MyGame/ ./go_gen/src/MyGame/
 # do not compile the gRPC generated files, which are not tested by go_test.go
 # below, but have their own test.
-rm ./go_gen/src/MyGame/Example/*_grpc.go
+rm -f ./go_gen/src/MyGame/Example/*_grpc.go
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 
