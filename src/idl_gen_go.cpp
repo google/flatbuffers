@@ -90,33 +90,94 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			code_ += s;
 	}
 
-	void GenNativeMarshal(StructDef const &def) {
+	void GenMarshalStringField(FieldDef const *fld, int pos) {
+		code_ += "\tobjs[" + NumToString(pos) + "] = builder.CreateString(rcv."
+			+ GoIdentity(fld->name, true) + ")";
+	}
+
+	void GenMarshalStructField(FieldDef const *fld, int pos) {
+		code_ += "\tobjs[" + NumToString(pos) + "] = rcv."
+			+ GoIdentity(fld->name, true) + ".Marshal(builder)";
+	}
+
+	void GenCompositeMarshal(StructDef const &def, int comp_count) {
+		code_ += "\tvar objs [" + NumToString(comp_count) + "]flatbuffers.UOffsetT";
+		comp_count = 0;
+
+		for (auto fld: def.fields.vec) {
+			if (fld->deprecated)
+				continue;
+
+			if (IsScalar(fld->value.type.base_type))
+				continue;
+
+			switch (fld->value.type.base_type) {
+			case BASE_TYPE_STRUCT:
+			case BASE_TYPE_UNION:
+				GenMarshalStructField(fld, comp_count);
+			break;
+			case BASE_TYPE_STRING:
+				GenMarshalStringField(fld, comp_count);
+				break;
+			case BASE_TYPE_VECTOR:
+				
+			break;
+			default:
+				FLATBUFFERS_ASSERT(0);
+			}
+
+			comp_count++;
+		}
+	}
+
+	void GenNativeMarshalStructFields(StructDef const &def, std::string rcv) {
+		for (auto fld: def.fields.vec) {
+			if (IsScalar(fld->value.type.base_type))
+				code_ += "\t\t" + rcv + GoIdentity(fld->name, true) + ",";
+			else
+				GenNativeMarshalStructFields(
+					*fld->value.type.struct_def,
+					rcv + GoIdentity(fld->name, true) + "."
+				);
+		}
+	}
+
+	void GenNativeMarshalStruct(StructDef const &def) {
 		code_ += "{{NATIVE_STRUCT_RECEIVER}} Marshal(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
-		int comp_count_in = 0;
-		int comp_count_out = 0;
+		code_ += "\treturn Create{{STRUCT_NAME}}(";
+		code_ += "\t\tbuilder,";
+		GenNativeMarshalStructFields(def, "rcv.");
+		code_ += "\t)";
+		code_ += "}\n";
+	}
+
+	void GenNativeMarshalTable(StructDef const &def) {
+		code_ += "{{NATIVE_STRUCT_RECEIVER}} Marshal(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
+		int comp_count = 0;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
 				continue;
 
 			if (!IsScalar(fld->value.type.base_type))
-				comp_count_in++;
-		}
-
-		if (comp_count_in > 0) {
-			code_ += "\tvar objs [" + NumToString(comp_count_in) + "]flatbuffers.UOffsetT";
+				comp_count++;
 		}
 
 		code_ += "\tb := Build{{STRUCT_NAME}}(builder)";
+
+		if (comp_count > 0)
+			GenCompositeMarshal(def, comp_count);
+
+		comp_count = 0;
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
 				continue;
 
 			code_ += "\tb.Add" + MakeCamel(fld->name) + "(\\";
 			if (!IsScalar(fld->value.type.base_type)) {
-				code_ += "objs[" + NumToString(comp_count_out++) + "])";
+				code_ += "objs[" + NumToString(comp_count++) + "])";
 			} else {
-				code_ += "rcv." + GoIdentity(fld->name) + ")";
+				code_ += "rcv." + GoIdentity(fld->name, true) + ")";
 			}
 		}
 		code_ += "\treturn b.End()";
@@ -126,6 +187,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	void GenNativeUnmarshal(StructDef const &def) {
 		code_ += "{{STRUCT_RECEIVER}} Unmarshal(obj *{{NATIVE_STRUCT_NAME}}) *{{NATIVE_STRUCT_NAME}} {";
 		(void)def;
+		code_ += "\treturn nil";
 		code_ += "}\n";
 	}
 
@@ -553,7 +615,11 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		}
 
 		if (parser_.opts.generate_object_based_api) {
-			GenNativeMarshal(def);
+			if (def.fixed)
+				GenNativeMarshalStruct(def);
+			else
+				GenNativeMarshalTable(def);
+
 			GenNativeUnmarshal(def);
 		}
 	}
