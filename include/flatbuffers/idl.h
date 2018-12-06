@@ -820,7 +820,7 @@ extern bool GenerateDart(const Parser &parser,
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
-extern bool GenerateJS(const Parser &parser,
+extern bool GenerateJSTS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
 
@@ -882,7 +882,7 @@ extern bool GenerateFBS(const Parser &parser,
 
 // Generate a make rule for the generated JavaScript or TypeScript code.
 // See idl_gen_js.cpp.
-extern std::string JSMakeRule(const Parser &parser,
+extern std::string JSTSMakeRule(const Parser &parser,
                               const std::string &path,
                               const std::string &file_name);
 
