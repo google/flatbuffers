@@ -297,10 +297,44 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "}\n";
 	}
 
-	void GenNativeUnmarshal(StructDef const &def) {
+	void GenNativeUnmarshalStruct(StructDef const &def) {
 		code_ += "{{STRUCT_RECEIVER}} Unmarshal(obj *{{NATIVE_STRUCT_NAME}}) *{{NATIVE_STRUCT_NAME}} {";
+		code_ += "\tif obj == nil {";
+		code_ += "\t\tobj = &{{NATIVE_STRUCT_NAME}} {}";
+		code_ += "\t}\n";
+
+		for (auto fld: def.fields.vec) {
+			if (fld->deprecated)
+				continue;
+
+			if (IsScalar(fld->value.type.base_type)) {
+				code_ += "\tobj." + GoIdentity(fld->name, true)
+					+ " = rcv." + MakeCamel(fld->name)
+					+ "()";
+			} else {
+				code_ += "\t{";
+				code_ += "\t\tvar nested "
+					+ GetRefType(fld->value.type, false);
+				code_ += "\t\trcv." + MakeCamel(fld->name)
+					+ "(&nested)";
+				code_ += "\t\tnested.Unmarshal(&obj."
+					+ GoIdentity(fld->name, true)
+					+ ")";
+				code_ += "\t}";
+			}
+		}
+
+		code_ += "\treturn obj";
+		code_ += "}\n";
+	}
+
+	void GenNativeUnmarshalTable(StructDef const &def) {
+		code_ += "{{STRUCT_RECEIVER}} Unmarshal(obj *{{NATIVE_STRUCT_NAME}}) *{{NATIVE_STRUCT_NAME}} {";
+		code_ += "\tif obj == nil {";
+		code_ += "\t\tobj = &{{NATIVE_STRUCT_NAME}} {}";
+		code_ += "\t}\n";
 		(void)def;
-		code_ += "\treturn nil";
+		code_ += "\treturn obj";
 		code_ += "}\n";
 	}
 
@@ -728,12 +762,13 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		}
 
 		if (parser_.opts.generate_object_based_api) {
-			if (def.fixed)
+			if (def.fixed) {
 				GenNativeMarshalStruct(def);
-			else
+				GenNativeUnmarshalStruct(def);
+			} else {
 				GenNativeMarshalTable(def);
-
-			GenNativeUnmarshal(def);
+				GenNativeUnmarshalTable(def);
+			}
 		}
 	}
 
