@@ -79,6 +79,21 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\tif o != 0 {";
 	}
 
+	bool IsNativeFieldOptional(FieldDef const *fld) {
+		switch (fld->value.type.base_type) {
+		case BASE_TYPE_STRUCT:
+			return !fld->value.type.struct_def->fixed;
+		case BASE_TYPE_UNION:
+			return true;
+		case BASE_TYPE_STRING:
+			return false;
+		case BASE_TYPE_VECTOR:
+			return false;
+		default:
+			return false;
+		}
+	}
+
 	void GenComment(
 		const std::vector<std::string> &dc, 
 		const CommentConfig *config,
@@ -91,19 +106,33 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	void GenMarshalStringField(FieldDef const *fld, int pos) {
-		code_ += "\tobjs[" + NumToString(pos) + "] = builder.CreateString(rcv."
+		code_ += "\tobjs[" + NumToString(pos) + "] = b.CreateString(rcv."
 			+ GoIdentity(fld->name, true) + ")";
 	}
 
-	void GenMarshalStructField(FieldDef const *fld, int pos) {
-		code_ += "\tobjs[" + NumToString(pos) + "] = rcv."
-			+ GoIdentity(fld->name, true) + ".Marshal(builder)";
+	void GenMarshalStructField(
+		FieldDef const *fld, int pos, int &opt_pos
+	) {
+		std::string dst = "rcv." + GoIdentity(fld->name, true);
+
+		if (fld->value.type.struct_def->fixed) {
+			code_ += "\tobjs[" + NumToString(pos) + "] = " + dst
+				+ ".Marshal(b.Builder)";
+		} else {
+			code_ += "\tif " + dst + " != nil {";
+			code_ += "\t\tobjs[" + NumToString(pos) + "] = "
+				+ dst + ".Marshal(b.Builder)";
+			code_ += "\t\tpresent[" + NumToString(opt_pos++)
+				+ "] = true\n";
+			code_ += "\t}";
+		}
 	}
 
-	void GenMarshalUnionField(FieldDef const *fld, int pos) {
-		code_ += "\tobjs[" + NumToString(pos) + "] = rcv."
-			+ GoIdentity(fld->name, true) + ".Marshal(builder, rcv."
-			+ GoIdentity(fld->name, true) + "Type)";
+	void GenMarshalUnionField(FieldDef const *fld, int pos, int &opt_pos) {
+		std::string dst = "rcv." + GoIdentity(fld->name, true);
+		code_ += "\tobjs[" + NumToString(pos)
+			+ "], present["  + NumToString(opt_pos++) + "] = "
+			+ dst + ".Marshal(b.Builder, " + dst + "Type)";
 	}
 
 	void GenMarshalVectorFieldComposite(FieldDef const *fld) {
@@ -129,7 +158,9 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		if (IsScalar(vector_type.base_type)) {
 			code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
 			code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
-			code_ += "\t\t\tbuilder.Prepend" + MakeCamel(ToBasicType(vector_type)) + "(vec[pos])";
+			code_ += "\t\t\tbuilder.Prepend"
+				+ MakeCamel(ToBasicType(vector_type))
+				+ "(vec[pos])";
 			code_ += "\t\t}";
 		} else {
 			code_ += "\t\tuvec := make([]flatbuffers.UOffsetT, count)";
@@ -143,13 +174,19 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		}
 
 		code_ += "\t\tobjs[" + NumToString(pos)
-			+ "] = builder.EndVector(count)"; 
+			+ "] = builder.EndVector(count)";
 		code_ += "\t}";
 	}
 
-	void GenCompositeMarshal(StructDef const &def, int comp_count) {
+	void GenCompositeMarshal(
+		StructDef const &def, int comp_count, int opt_count
+	) {
 		code_ += "\tvar objs [" + NumToString(comp_count) + "]flatbuffers.UOffsetT";
+		if (opt_count > 0)
+			code_ += "\tvar present [" + NumToString(opt_count) + "]bool\n";
+
 		comp_count = 0;
+		opt_count = 0;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -160,10 +197,14 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
-				GenMarshalStructField(fld, comp_count);
+				GenMarshalStructField(
+					fld, comp_count, opt_count
+				);
 				break;
 			case BASE_TYPE_UNION:
-				GenMarshalUnionField(fld, comp_count);
+				GenMarshalUnionField(
+					fld, comp_count, opt_count
+				);
 				break;
 			case BASE_TYPE_STRING:
 				GenMarshalStringField(fld, comp_count);
@@ -203,31 +244,53 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	void GenNativeMarshalTable(StructDef const &def) {
 		code_ += "{{NATIVE_STRUCT_RECEIVER}} Marshal(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
 		int comp_count = 0;
+		int opt_count = 0;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
 				continue;
 
-			if (!IsScalar(fld->value.type.base_type))
+			if (!IsScalar(fld->value.type.base_type)) {
 				comp_count++;
+
+				if (IsNativeFieldOptional(fld))
+					opt_count++;
+			}
 		}
 
 		code_ += "\tb := Build{{STRUCT_NAME}}(builder)";
+		code_ += "\tif rcv == nil {";
+		code_ += "\t\tb.Start()";
+		code_ += "\t\treturn b.End()";
+		code_ += "\t}\n";
+
 
 		if (comp_count > 0)
-			GenCompositeMarshal(def, comp_count);
+			GenCompositeMarshal(def, comp_count, opt_count);
 
 		code_ += "\tb.Start()";
 		comp_count = 0;
+		opt_count = 0;
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
 				continue;
 
-			code_ += "\tb.Add" + MakeCamel(fld->name) + "(\\";
-			if (!IsScalar(fld->value.type.base_type)) {
-				code_ += "objs[" + NumToString(comp_count++) + "])";
+			if (IsScalar(fld->value.type.base_type)) {
+				code_ += "\tb.Add" + MakeCamel(fld->name)
+					+ "(rcv." + GoIdentity(fld->name, true)
+					+ ")";
+				continue;
+			}
+
+			if (IsNativeFieldOptional(fld)) {
+				code_ += "\tif present[" + NumToString(opt_count++)
+					+ "] {";
+				code_ += "\t\tb.Add" + MakeCamel(fld->name)
+					+ "(objs[" + NumToString(comp_count++) + "])";
+				code_ += "\t}";
 			} else {
-				code_ += "rcv." + GoIdentity(fld->name, true) + ")";
+				code_ += "\tb.Add" + MakeCamel(fld->name)
+					+ "(objs[" + NumToString(comp_count++) + "])";
 			}
 		}
 		code_ += "\treturn b.End()";
@@ -559,7 +622,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	// Generate table constructors, conditioned on its members' types.
 	void GenTableBuilders(StructDef const &def) {
 		code_ += "type {{STRUCT_NAME}}Builder struct {";
-		code_ += "\tBuilder *flatbuffers.Builder";
+		code_ += "\t*flatbuffers.Builder";
 		code_ += "}\n";
 		code_ += "func Build{{STRUCT_NAME}}(builder *flatbuffers.Builder) {{STRUCT_NAME}}Builder {";
 		code_ += "\treturn {{STRUCT_NAME}}Builder {";
@@ -713,6 +776,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	void GenEnumInterface(EnumDef const *def) {
+		needs_common_imports_ = true;
 		code_.SetValue("ENUM_UNION_TYPE", GetEnumType(def, true));
 		code_.SetValue(
 			"ENUM_VALUE_TAG", "is" + GetEnumType(def) + "_Value"
@@ -728,10 +792,16 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		code_ += "type {{ENUM_VALUE_TAG}} interface {";
 		code_ += "\t{{ENUM_VALUE_TAG}}()";
+		code_ += "\tmarshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool)";
 		code_ += "}\n";
 
 		for (auto it: def->vals.vec) {
+			std::string ct_sel = "{{ENUM_NAME}}" + it->name;
 			std::string ct_name = "{{ENUM_TYPE}}_" + it->name;
+			if (it->union_type.base_type == BASE_TYPE_NONE) {
+				continue;
+			}
+
 			auto ct_value_type(GetRefType(it->union_type, true));
 
 			code_ += "type " + ct_name + " struct {";
@@ -740,26 +810,32 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			code_ += "func (" + ct_name + ") {{ENUM_VALUE_TAG}}() {}\n";
 
+			code_ += "func (u " + ct_name + ") marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool) {";
+			code_ += "\tif sel == " + ct_sel + " && u.Value != nil {";
+			code_ += "\t\treturn u.Value.Marshal(builder), true";
+			code_ += "\t} else {";
+			code_ += "\t\treturn 0, false";
+			code_ += "\t}";
+			code_ += "}\n";
+
 			code_ += "{{ENUM_UNION_RECEIVER}} Get" + it->name
 				+ "() " + ct_value_type + " {";
 			code_ += "\treturn u.{{ENUM_VALUE_TAG}}.(" + ct_name + ").Value";
 			code_ += "}\n";
-		}
 
-		GenEnumMarshal(def);
-	}
-
-	void GenEnumMarshal(EnumDef const *def) {
-		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) flatbuffers.UOffsetT {";
-		code_ += "\tswitch sel {";
-		for (auto it: def->vals.vec) {
-			std::string ct_name = "{{ENUM_TYPE}}_" + it->name;
-			code_ += "\tcase {{ENUM_NAME}}" + it->name + ": {";
-			code_ += "\t\tif ct, ok := u.{{ENUM_VALUE_TAG}}.(" + ct_name + "); ok {";
-			code_ += "\t\t} else {";
-			code_ += "\t\t}";
+			code_ += "{{ENUM_UNION_RECEIVER}} Set" + it->name
+				+ "(value " + ct_value_type + ") {";
+			code_ += "\tu.{{ENUM_VALUE_TAG}} = " + ct_name + " {";
+			code_ += "\t\tValue: value,";
 			code_ += "\t}";
+			code_ += "}\n";
 		}
+
+		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool) {";
+		code_ += "\tif u.{{ENUM_VALUE_TAG}} != nil {";
+		code_ += "\t\treturn u.{{ENUM_VALUE_TAG}}.marshal(builder, sel)";
+		code_ += "\t} else {";
+		code_ += "\t\treturn 0, false";
 		code_ += "\t}";
 		code_ += "}\n";
 	}

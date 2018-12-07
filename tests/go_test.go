@@ -1105,17 +1105,16 @@ func CheckManualBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UO
 }
 
 func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
-	b := flatbuffers.NewBuilder(0)
-	sb := example.BuildStat(b)
-	str := b.CreateString("MyStat")
+	sb := example.BuildStat(flatbuffers.NewBuilder(0))
+	str := sb.CreateString("MyStat")
 	sb.Start()
 	sb.AddId(str)
 	sb.AddVal(12345678)
 	sb.AddCount(12345)
 	stat_end := sb.End()
-	b.Finish(stat_end)
+	sb.Finish(stat_end)
 
-	stat := example.GetRootAsStat(b.Bytes, b.Head())
+	stat := example.GetRootAsStat(sb.Bytes, sb.Head())
 
 	if got := stat.Id(); "MyStat" != got {
 		fail(FailString("stat.Id()", "MyStat", got))
@@ -1132,40 +1131,39 @@ func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
 
 // CheckGeneratedBuild uses generated code to build the example Monster.
 func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers.UOffsetT) {
-	b := flatbuffers.NewBuilder(0)
-	sb := example.BuildMonster(b)
+	sb := example.BuildMonster(flatbuffers.NewBuilder(0))
 
-	str := b.CreateString("MyMonster")
-	test1 := b.CreateString("test1")
-	test2 := b.CreateString("test2")
-	fred := b.CreateString("Fred")
+	str := sb.CreateString("MyMonster")
+	test1 := sb.CreateString("test1")
+	test2 := sb.CreateString("test2")
+	fred := sb.CreateString("Fred")
 
 
 	sb.StartInventoryVector(5)
-	b.PrependByte(4)
-	b.PrependByte(3)
-	b.PrependByte(2)
-	b.PrependByte(1)
-	b.PrependByte(0)
-	inv := b.EndVector(5)
+	sb.PrependByte(4)
+	sb.PrependByte(3)
+	sb.PrependByte(2)
+	sb.PrependByte(1)
+	sb.PrependByte(0)
+	inv := sb.EndVector(5)
 
 	sb.Start()
 	sb.AddName(fred)
 	mon2 := sb.End()
 
 	sb.StartTest4Vector(2)
-	example.CreateTest(b, 10, 20)
-	example.CreateTest(b, 30, 40)
-	test4 := b.EndVector(2)
+	example.CreateTest(sb.Builder, 10, 20)
+	example.CreateTest(sb.Builder, 30, 40)
+	test4 := sb.EndVector(2)
 
 	sb.StartTestarrayofstringVector(2)
-	b.PrependUOffsetT(test2)
-	b.PrependUOffsetT(test1)
-	testArrayOfString := b.EndVector(2)
+	sb.PrependUOffsetT(test2)
+	sb.PrependUOffsetT(test1)
+	testArrayOfString := sb.EndVector(2)
 
 	sb.Start()
 
-	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+	pos := example.CreateVec3(sb.Builder, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
 	sb.AddPos(pos)
 
 	sb.AddHp(80)
@@ -1178,9 +1176,9 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 	sb.AddTestarrayofstring(testArrayOfString)
 	mon := sb.End()
 
-	b.Finish(mon)
+	sb.Finish(mon)
 
-	return b.Bytes, b.Head()
+	return sb.Bytes, sb.Head()
 }
 
 // CheckTableAccessors checks that the table accessors work as expected.
@@ -1198,16 +1196,15 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	}
 
 	// test table accessor
-	b = flatbuffers.NewBuilder(0)
-	str := b.CreateString("MyStat")
-	sb := example.BuildStat(b)
+	sb := example.BuildStat(flatbuffers.NewBuilder(0))
+	str := sb.CreateString("MyStat")
 	sb.Start()
 	sb.AddId(str)
 	sb.AddVal(12345678)
 	sb.AddCount(12345)
 	pos = sb.End()
-	b.Finish(pos)
-	statBytes := b.FinishedBytes()
+	sb.Finish(pos)
+	statBytes := sb.FinishedBytes()
 	stat := &example.Stat{}
 	flatbuffers.GetRootAs(statBytes, 0, stat)
 
@@ -1410,18 +1407,17 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 		_ = monster.Inventory(i) // do something here
 	}
 
-	builder := flatbuffers.NewBuilder(0)
-	sb := example.BuildMonster(builder)
+	sb := example.BuildMonster(flatbuffers.NewBuilder(0))
 
 	sb.StartInventoryVector(5)
 	for i := 4; i >= 0; i-- {
-		builder.PrependByte(byte(i))
+		sb.PrependByte(byte(i))
 	}
-	inv := builder.EndVector(5)
+	inv := sb.EndVector(5)
 
-	str := builder.CreateString("MyMonster")
+	str := sb.CreateString("MyMonster")
 	sb.Start()
-	sb.AddPos(example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
+	sb.AddPos(example.CreateVec3(sb.Builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
 	sb.AddHp(80)
 	sb.AddName(str)
 	sb.AddInventory(inv)
@@ -1730,43 +1726,44 @@ func BenchmarkBuildGold(b *testing.B) {
 	reuse_fred := "Fred"
 
 	b.SetBytes(bytes_length)
-	bldr := flatbuffers.NewBuilder(0)
 	b.ResetTimer()
 	b.ReportAllocs()
+	sb := example.BuildMonster(flatbuffers.NewBuilder(0))
 	for i := 0; i < b.N; i++ {
-		bldr.Reset()
-		sb := example.BuildMonster(bldr)
+		sb.Reset()
 
-		str := bldr.CreateString(reuse_str)
-		test1 := bldr.CreateString(reuse_test1)
-		test2 := bldr.CreateString(reuse_test2)
-		fred := bldr.CreateString(reuse_fred)
+		str := sb.CreateString(reuse_str)
+		test1 := sb.CreateString(reuse_test1)
+		test2 := sb.CreateString(reuse_test2)
+		fred := sb.CreateString(reuse_fred)
 
 		sb.StartInventoryVector(5)
-		bldr.PrependByte(4)
-		bldr.PrependByte(3)
-		bldr.PrependByte(2)
-		bldr.PrependByte(1)
-		bldr.PrependByte(0)
-		inv := bldr.EndVector(5)
+		sb.PrependByte(4)
+		sb.PrependByte(3)
+		sb.PrependByte(2)
+		sb.PrependByte(1)
+		sb.PrependByte(0)
+		inv := sb.EndVector(5)
 
 		sb.Start()
 		sb.AddName(fred)
 		mon2 := sb.End()
 
 		sb.StartTest4Vector(2)
-		example.CreateTest(bldr, 10, 20)
-		example.CreateTest(bldr, 30, 40)
-		test4 := bldr.EndVector(2)
+		example.CreateTest(sb.Builder, 10, 20)
+		example.CreateTest(sb.Builder, 30, 40)
+		test4 := sb.EndVector(2)
 
 		sb.StartTestarrayofstringVector(2)
-		bldr.PrependUOffsetT(test2)
-		bldr.PrependUOffsetT(test1)
-		testArrayOfString := bldr.EndVector(2)
+		sb.PrependUOffsetT(test2)
+		sb.PrependUOffsetT(test1)
+		testArrayOfString := sb.EndVector(2)
 
 		sb.Start()
 
-		pos := example.CreateVec3(bldr, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+		pos := example.CreateVec3(
+			sb.Builder, 1.0, 2.0, 3.0, 3.0, 2, 5, 6,
+		)
 		sb.AddPos(pos)
 
 		sb.AddHp(80)
@@ -1778,6 +1775,6 @@ func BenchmarkBuildGold(b *testing.B) {
 		sb.AddTestarrayofstring(testArrayOfString)
 		mon := sb.End()
 
-		bldr.Finish(mon)
+		sb.Finish(mon)
 	}
 }
