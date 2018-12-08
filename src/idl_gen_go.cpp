@@ -80,18 +80,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	bool IsNativeFieldOptional(FieldDef const *fld) {
-		switch (fld->value.type.base_type) {
-		case BASE_TYPE_STRUCT:
-			return !fld->value.type.struct_def->fixed;
-		case BASE_TYPE_UNION:
-			return true;
-		case BASE_TYPE_STRING:
-			return false;
-		case BASE_TYPE_VECTOR:
-			return false;
-		default:
-			return false;
-		}
+		return fld->value.type.base_type == BASE_TYPE_UNION;
 	}
 
 	void GenComment(
@@ -103,36 +92,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		flatbuffers::GenComment(dc, &s, config, prefix);
 		if (!s.empty())
 			code_ += s;
-	}
-
-	void GenMarshalStringField(FieldDef const *fld, int pos) {
-		code_ += "\tobjs[" + NumToString(pos) + "] = b.CreateString(rcv."
-			+ GoIdentity(fld->name, true) + ")";
-	}
-
-	void GenMarshalStructField(
-		FieldDef const *fld, int pos, int &opt_pos
-	) {
-		std::string dst = "rcv." + GoIdentity(fld->name, true);
-
-		if (fld->value.type.struct_def->fixed) {
-			code_ += "\tobjs[" + NumToString(pos) + "] = " + dst
-				+ ".Marshal(b.Builder)";
-		} else {
-			code_ += "\tif " + dst + " != nil {";
-			code_ += "\t\tobjs[" + NumToString(pos) + "] = "
-				+ dst + ".Marshal(b.Builder)";
-			code_ += "\t\tpresent[" + NumToString(opt_pos++)
-				+ "] = true\n";
-			code_ += "\t}";
-		}
-	}
-
-	void GenMarshalUnionField(FieldDef const *fld, int pos, int &opt_pos) {
-		std::string dst = "rcv." + GoIdentity(fld->name, true);
-		code_ += "\tobjs[" + NumToString(pos)
-			+ "], present["  + NumToString(opt_pos++) + "] = "
-			+ dst + ".Marshal(b.Builder, " + dst + "Type)";
 	}
 
 	void GenMarshalVectorFieldComposite(FieldDef const *fld) {
@@ -187,6 +146,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		comp_count = 0;
 		opt_count = 0;
+		std::string dst;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -197,17 +157,22 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
-				GenMarshalStructField(
-					fld, comp_count, opt_count
-				);
+				dst = "rcv." + GoIdentity(fld->name, true);
+				code_ += "\tobjs[" + NumToString(comp_count)
+					+ "] = " + dst + ".Marshal(b.Builder)";
 				break;
 			case BASE_TYPE_UNION:
-				GenMarshalUnionField(
-					fld, comp_count, opt_count
-				);
+				dst = "rcv." + GoIdentity(fld->name, true);
+				code_ += "\tobjs[" + NumToString(comp_count)
+					+ "], present["
+					+ NumToString(opt_count++) + "] = "
+					+ dst + ".Marshal(b.Builder, " + dst
+					+ "Type)";
 				break;
 			case BASE_TYPE_STRING:
-				GenMarshalStringField(fld, comp_count);
+				code_ += "\tobjs[" + NumToString(comp_count)
+					+ "] = b.CreateString(rcv."
+					+ GoIdentity(fld->name, true) + ")";
 				break;
 			case BASE_TYPE_VECTOR:
 				GenMarshalVectorField(fld, comp_count);
@@ -218,6 +183,119 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			comp_count++;
 		}
+	}
+
+	void GenStructFieldUnmarshal(FieldDef const *fld) {
+		std::string src = "rcv." + MakeCamel(fld->name);
+		std::string dst = "obj." + GoIdentity(fld->name, true);
+		auto def(fld->value.type.struct_def);
+
+		code_ += "\t{";
+		code_ += "\t\tvar nested " + GetStructRefType(
+			def, false, false
+		);
+		code_ += "\t\t" + src + "(&nested)";
+
+		if (def->fixed) {
+			code_ += "\t\tnested.Unmarshal(&" + dst + ")";
+		} else {
+			code_ += "\t\tif " + dst + " == nil {";
+			code_ += "\t\t\t" + dst + " = &"
+				+ GetStructRefType(def, true, false) + " {}";
+			code_ += "\t\t}";
+			code_ += "\t\tnested.Unmarshal(" + dst + ")";
+		}
+		code_ += "\t}";
+	}
+
+	void GenVectorFieldUnmarshal(FieldDef const *fld) {
+		std::string src = "rcv." + MakeCamel(fld->name);
+		std::string dst = "obj." + GoIdentity(fld->name, true);
+		auto vector_type(fld->value.type.VectorType());
+		bool needs_copy(
+			(vector_type.base_type == BASE_TYPE_STRUCT)
+			&& !vector_type.struct_def->fixed
+		);
+
+		code_ += "\t{";
+		code_ += "\t\tcount := " + src + "Length()";
+		code_ += "\t\tif cap(" + dst + ") < count {";
+		if (needs_copy) {
+			code_ += "\t\t\ttmp := make([]"
+				+ GetStructRefType(
+					vector_type.struct_def, true, true
+				) + ", count)";
+			code_ += "\t\t\tcopy(tmp, " + dst + ")";
+			code_ += "\t\t\t" + dst + " = tmp";
+		} else {
+			code_ += "\t\t\t" + dst + " = make([]"
+				+ GetRefType(vector_type, true) + ", count)";
+		}
+		code_ += "\t\t} else {";
+		code_ += "\t\t\t" + dst + " = " + dst + "[:count]";
+		code_ += "\t\t}";
+
+		if (vector_type.base_type == BASE_TYPE_STRUCT)
+			code_ += "\t\tvar nested " + GetStructRefType(
+				vector_type.struct_def, false, false
+			);
+
+		code_ += "\t\tfor pos := 0; pos < count; pos++ {";
+		if (vector_type.base_type == BASE_TYPE_STRUCT) {
+			code_ += "\t\t\t" + src + "(&nested, pos)";
+			if (vector_type.struct_def->fixed) {
+				code_ += "\t\t\tnested.Unmarshal(&"
+					+ dst + "[pos])";
+			} else {
+				code_ += "\t\t\tif " + dst + "[pos] == nil {";
+				code_ += "\t\t\t\t" + dst + "[pos] = &"
+					+ GetStructRefType(
+						vector_type.struct_def,
+						true, false
+					) + " {}";
+				code_ += "\t\t\t}";
+				code_ += "\t\t\tnested.Unmarshal("
+					+ dst + "[pos])";
+			}
+		} else {
+			code_ += "\t\t\t" + dst + "[pos] = " + src + "(pos)";
+		}
+
+		code_ += "\t\t}";
+		code_ += "\t}";
+	}
+
+	void GenUnionFieldUnmarshal(FieldDef const *fld) {
+		std::string src = "rcv." + MakeCamel(fld->name);
+		std::string dst = "obj." + GoIdentity(fld->name, true);
+		auto def(fld->value.type.enum_def);
+
+		code_ += "\tswitch " + src + "Type() {";
+		for (auto it: def->vals.vec) {
+			if (it->union_type.base_type == BASE_TYPE_NONE)
+				continue;
+
+			std::string dst_var = dst + "."
+				+ GoIdentity(it->name, true);
+
+			code_ += "\tcase " + def->name + it->name + ": {";
+
+			code_ += "\t\tvar table flatbuffers.Table";
+			code_ += "\t\tvar nested " + GetStructRefType(
+				it->union_type.struct_def, false, false
+			);
+			code_ += "\t\t" + src + "(&table)";
+			code_ += "\t\tnested.Init(table.Bytes, table.Pos)";
+			code_ += "\t\tif " + dst_var + " == nil {";
+			code_ += "\t\t\t" + dst_var + " = &"
+				+ GetStructRefType(
+					it->union_type.struct_def, true, false
+				) + " {}";
+			code_ += "\t\t}";
+			code_ += "\t\tnested.Unmarshal(" + dst_var +")";
+			code_ += "\t}";
+		}
+		code_ += "\t}";
 	}
 
 	void GenNativeMarshalStructFields(StructDef const &def, std::string rcv) {
@@ -333,7 +411,36 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\tif obj == nil {";
 		code_ += "\t\tobj = &{{NATIVE_STRUCT_NAME}} {}";
 		code_ += "\t}\n";
-		(void)def;
+
+		for (auto fld: def.fields.vec) {
+			if (fld->deprecated)
+				continue;
+
+			switch (fld->value.type.base_type) {
+			case BASE_TYPE_STRING:
+				code_ += "\tobj." + GoIdentity(fld->name, true)
+					+ " = rcv." + MakeCamel(fld->name)
+					+ "()";
+				break;
+			case BASE_TYPE_VECTOR:
+				GenVectorFieldUnmarshal(fld);
+				break;
+			case BASE_TYPE_STRUCT:
+				GenStructFieldUnmarshal(fld);
+				break;
+			case BASE_TYPE_UNION:
+				GenUnionFieldUnmarshal(fld);
+				break;
+			default:
+				if (IsScalar(fld->value.type.base_type)) {
+					code_ += "\tobj." + GoIdentity(fld->name, true)
+						+ " = rcv." + MakeCamel(fld->name)
+						+ "()";
+				} else
+					FLATBUFFERS_ASSERT(0);
+			}
+		}
+
 		code_ += "\treturn obj";
 		code_ += "}\n";
 	}
@@ -814,62 +921,32 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		needs_common_imports_ = true;
 		code_.SetValue("ENUM_UNION_TYPE", GetEnumType(def, true));
 		code_.SetValue(
-			"ENUM_VALUE_TAG", "is" + GetEnumType(def) + "_Value"
-		);
-		code_.SetValue(
 			"ENUM_UNION_RECEIVER",
 			"func (u *" + GetEnumType(def, true) + ")"
 		);
 
 		code_ += "type {{ENUM_UNION_TYPE}} struct {";
-		code_ += "\t{{ENUM_VALUE_TAG}}";
-		code_ += "}\n";
-
-		code_ += "type {{ENUM_VALUE_TAG}} interface {";
-		code_ += "\t{{ENUM_VALUE_TAG}}()";
-		code_ += "\tmarshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool)";
-		code_ += "}\n";
-
 		for (auto it: def->vals.vec) {
-			std::string ct_sel = "{{ENUM_NAME}}" + it->name;
-			std::string ct_name = "{{ENUM_TYPE}}_" + it->name;
-			if (it->union_type.base_type == BASE_TYPE_NONE) {
+			if (it->union_type.base_type == BASE_TYPE_NONE)
 				continue;
-			}
 
-			auto ct_value_type(GetRefType(it->union_type, true));
-
-			code_ += "type " + ct_name + " struct {";
-			code_ += "\tValue " + ct_value_type;
-			code_ += "}\n";
-
-			code_ += "func (" + ct_name + ") {{ENUM_VALUE_TAG}}() {}\n";
-
-			code_ += "func (u " + ct_name + ") marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool) {";
-			code_ += "\tif sel == " + ct_sel + " && u.Value != nil {";
-			code_ += "\t\treturn u.Value.Marshal(builder), true";
-			code_ += "\t} else {";
-			code_ += "\t\treturn 0, false";
-			code_ += "\t}";
-			code_ += "}\n";
-
-			code_ += "{{ENUM_UNION_RECEIVER}} Get" + it->name
-				+ "() " + ct_value_type + " {";
-			code_ += "\treturn u.{{ENUM_VALUE_TAG}}.(" + ct_name + ").Value";
-			code_ += "}\n";
-
-			code_ += "{{ENUM_UNION_RECEIVER}} Set" + it->name
-				+ "(value " + ct_value_type + ") {";
-			code_ += "\tu.{{ENUM_VALUE_TAG}} = " + ct_name + " {";
-			code_ += "\t\tValue: value,";
-			code_ += "\t}";
-			code_ += "}\n";
+			code_ += "\t" + GoIdentity(it->name, true)
+				+ " " + GetRefType(it->union_type, true);
 		}
+		code_ += "}\n";
 
 		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool) {";
-		code_ += "\tif u.{{ENUM_VALUE_TAG}} != nil {";
-		code_ += "\t\treturn u.{{ENUM_VALUE_TAG}}.marshal(builder, sel)";
-		code_ += "\t} else {";
+		code_ += "\tswitch sel {";
+		for (auto it: def->vals.vec) {
+			code_ += "\tcase {{ENUM_NAME}}" + it->name + ":";
+			if (it->union_type.base_type == BASE_TYPE_NONE) {
+				code_ += "\t\treturn 0, false";
+			} else {
+				code_ += "\t\treturn u." + GoIdentity(it->name, true)
+					+ ".Marshal(builder), true";
+			}
+		}
+		code_ += "\tdefault:";
 		code_ += "\t\treturn 0, false";
 		code_ += "\t}";
 		code_ += "}\n";
