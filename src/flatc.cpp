@@ -38,18 +38,20 @@ void FlatCompiler::ParseFile(
 
 void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
                                     const std::string &filename,
-                                    const std::string &contents,
-                                    bool size_prefixed) {
+                                    const std::string &contents) {
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(contents.c_str()), contents.size());
-  auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
-                                 : &reflection::VerifySchemaBuffer;
-  if (!verify_fn(verifier)) {
+  bool size_prefixed = false;
+  if (reflection::VerifySizePrefixedSchemaBuffer(verifier)) {
+    size_prefixed = true;
+  } else if (reflection::VerifySchemaBuffer(verifier)) {
+    size_prefixed = false;
+  } else {
     Error("failed to verify binary schema: " + filename, false, false);
   }
   auto schema = size_prefixed
-                    ? reflection::GetSizePrefixedSchema(contents.data())
-                    : reflection::GetSchema(contents.c_str());
+                ? reflection::GetSizePrefixedSchema(contents.data())
+                : reflection::GetSchema(contents.c_str());
   if (!parser.Deserialize(schema)) {
     Error("failed to load binary schema: " + filename, false, false);
   }
@@ -125,8 +127,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed    Input binaries are size prefixed buffers.\n"
-    "  --schema-size-prefixed\n"
-    "                     Input binary schemas are size prefixed buffers.\n"
     "  --proto            Input is a .proto, translate to .fbs.\n"
     "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages\n"
@@ -170,7 +170,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   bool print_make_rules = false;
   bool raw_binary = false;
   bool schema_binary = false;
-  bool schema_size_prefixed = false;
   bool grpc_enabled = false;
   std::vector<std::string> filenames;
   std::list<std::string> include_directories_storage;
@@ -279,8 +278,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         raw_binary = true;
       } else if (arg == "--size-prefixed") {
         opts.size_prefixed = true;
-      } else if (arg == "--schema-size-prefixed") {
-        schema_size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
         binary_files_from = filenames.size();
       } else if (arg == "--proto") {
@@ -351,8 +348,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
 
     if (flatbuffers::GetExtension(conform_to_schema) ==
         reflection::SchemaExtension()) {
-      LoadBinarySchema(conform_parser, conform_to_schema, contents,
-                       schema_size_prefixed);
+      LoadBinarySchema(conform_parser, conform_to_schema, contents);
     } else {
       ParseFile(conform_parser, conform_to_schema, contents,
                 conform_include_directories);
@@ -409,8 +405,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         parser.reset(new flatbuffers::Parser(opts));
       }
       if (is_binary_schema) {
-        LoadBinarySchema(*parser.get(), filename, contents,
-                         schema_size_prefixed);
+        LoadBinarySchema(*parser.get(), filename, contents);
       } else {
         ParseFile(*parser.get(), filename, contents, include_directories);
         if (!is_schema && !parser->builder_.GetSize()) {

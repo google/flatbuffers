@@ -3029,8 +3029,16 @@ bool Definition::DeserializeAttributes(
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t *buf, const size_t size) {
   auto verifier = Verifier(buf, size);
-  if (!reflection::VerifySchemaBuffer(verifier)) return false;
-  auto *schema = reflection::GetSchema(buf);
+  bool size_prefixed = false;
+  if (reflection::VerifySizePrefixedSchemaBuffer(verifier)) {
+    size_prefixed = true;
+  } else if (reflection::VerifySchemaBuffer(verifier)) {
+    size_prefixed = false;
+  } else {
+    return false;
+  }
+  auto schema = size_prefixed ? reflection::GetSizePrefixedSchema(buf)
+                              : reflection::GetSchema(buf);
   return Deserialize(schema);
 }
 
