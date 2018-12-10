@@ -18,7 +18,11 @@
 
 #include <list>
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdate-time"
 #define FLATC_VERSION "1.10.0 (" __DATE__ " " __TIME__ ")"
+#pragma GCC diagnostic pop
 
 namespace flatbuffers {
 
