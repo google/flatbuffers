@@ -427,13 +427,13 @@ CheckedError Parser::Next() {
         }
 
         auto dot_lvl = (c == '.') ? 0 : 1;  // dot_lvl==0 <=> exactly one '.' seen
-        if (!dot_lvl && !is_digit(*cursor_)) return NoError();  // enum?
+        if (!dot_lvl && !is_digit(*cursor_)) return NoError(); // enum?
         // Parser accepts hexadecimal-ﬂoating-literal (see C++ 5.13.4).
         if (is_digit(c) || has_sign || !dot_lvl) {
           const auto start = cursor_ - 1;
           auto start_digits = !is_digit(c) ? cursor_ : cursor_ - 1;
           if (!is_digit(c) && is_digit(*cursor_)){
-            start_digits = cursor_;  // see digit in cursor_ position
+            start_digits = cursor_; // see digit in cursor_ position
             c = *cursor_++;
           }
           // hex-float can't begind with '.'
@@ -671,7 +671,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
-          "default values currently only supported for scalars in tables");
+            "default values currently only supported for scalars in tables");
     ECHECK(ParseSingleValue(&field->name, field->value, true));
   }
   if (type.enum_def &&
@@ -1218,7 +1218,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     }
     // Force alignment for nested flatbuffer
     builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
-        nested_parser.builder_.GetBufferMinAlignment());
+                                  nested_parser.builder_.GetBufferMinAlignment());
 
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
@@ -1239,7 +1239,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       auto name = attribute_;
       if (false == (Is(kTokenIdentifier) || Is(kTokenStringConstant)))
         return Error("attribute name must be either identifier or string: " +
-                     name);
+          name);
       if (known_attributes_.find(name) == known_attributes_.end())
         return Error("user define attributes must be declared before use: " +
                      name);
@@ -1511,7 +1511,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // which can be treated as octal-literal (idl_gen_cpp/GenDefaultConstant).
     const auto repack = IsInteger(e.type.base_type);
     switch (e.type.base_type) {
-      // clang-format off
+    // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: {\
@@ -1522,7 +1522,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
     #undef FLATBUFFERS_TD
     default: break;
-        // clang-format on
+    // clang-format on
     }
   }
   return NoError();
@@ -1688,7 +1688,7 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
         FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
         #undef FLATBUFFERS_TD
         default: break;
-          // clang-format on
+        // clang-format on
       }
 
       if (opts.proto_mode && Is('[')) {
@@ -2171,8 +2171,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           if (oneof_type.base_type != BASE_TYPE_STRUCT ||
               !oneof_type.struct_def || oneof_type.struct_def->fixed)
             return Error("oneof '" + name +
-                         "' cannot be mapped to a union because member '" +
-                         oneof_field.name + "' is not a table type.");
+                "' cannot be mapped to a union because member '" +
+                oneof_field.name + "' is not a table type.");
           auto enum_val = new EnumVal(oneof_type.struct_def->name,
                                       oneof_union->vals.vec.size());
           enum_val->union_type = oneof_type;
@@ -2735,8 +2735,8 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
   auto flds__ = builder->CreateVectorOfSortedTables(&field_offsets);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateObject(*builder, name__, flds__, fixed,
                                   static_cast<int>(minalign),
                                   static_cast<int>(bytesize),
@@ -2789,8 +2789,8 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   auto type__ = value.type.Serialize(builder);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateField(*builder, name__, type__, id, value.offset,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
@@ -2839,8 +2839,8 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
   auto name__ = builder->CreateString(name);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateRPCCall(*builder, name__,
                                    request->serialized_location,
                                    response->serialized_location,
@@ -2869,8 +2869,8 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
   auto call__ = builder->CreateVector(servicecall_offsets);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateService(*builder, name__, call__, attr__, docs__);
 }
 
@@ -2905,8 +2905,8 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
   auto type__ = underlying_type.Serialize(builder);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateEnum(*builder, name__, vals__, is_union, type__,
                                 attr__, docs__);
 }
@@ -2936,8 +2936,8 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   auto name__ = builder->CreateString(name);
   auto type__ = union_type.Serialize(builder);
   auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
+                ? builder->CreateVectorOfStrings(doc_comment)
+                : 0;
   return reflection::CreateEnumVal(*builder, name__, value,
       union_type.struct_def ? union_type.struct_def->serialized_location : 0,
       type__, docs__);
