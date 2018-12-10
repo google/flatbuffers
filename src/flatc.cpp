@@ -18,11 +18,14 @@
 
 #include <list>
 
-
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdate-time"
+#endif
 #define FLATC_VERSION "1.10.0 (" __DATE__ " " __TIME__ ")"
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 namespace flatbuffers {
 
