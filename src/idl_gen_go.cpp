@@ -1267,20 +1267,16 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		for (auto it: parser_.enums_.vec) {
 			current_namespace_ = it->defined_namespace;
 			GenEnum(it);
-			if (!parser_.opts.one_file) {
-				if (!SaveType(*it))
-					return false;
-			}
+			if (!SaveType(*it))
+				return false;
 		}
 
 		for (auto it: parser_.structs_.vec) {
 			needs_common_imports_ = true;
 			current_namespace_ = it->defined_namespace;
 			GenStruct(*it);
-			if (!parser_.opts.one_file) {
-				if (!SaveType(*it))
-					return false;
-			}
+			if (!SaveType(*it))
+				return false;
 		}
 
 		return true;
@@ -1354,7 +1350,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	std::set<std::string> imports_;
 	Namespace *current_namespace_;
 	CodeWriter code_;
-	bool needs_common_imports_;
+	bool needs_common_imports_ = false;
 };
 } // namespace go
 
