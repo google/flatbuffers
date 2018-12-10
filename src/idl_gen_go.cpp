@@ -265,6 +265,20 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\t}";
 	}
 
+	std::string GetQualifiedEnumName(EnumDef const *def, EnumVal const *val) {
+		std::string ns;
+
+		if (def->defined_namespace != current_namespace_) {
+			AddToImports(def->defined_namespace);
+			if (!parser_.opts.one_file)
+				ns = LastNamespacePart(
+					*(def->defined_namespace)
+				) + ".";
+		}
+
+		return ns + def->name + val->name;
+	}
+
 	void GenUnionFieldUnmarshal(FieldDef const *fld) {
 		std::string src = "rcv." + MakeCamel(fld->name);
 		std::string dst = "obj." + GoIdentity(fld->name, true);
@@ -278,7 +292,8 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			std::string dst_var = dst + "."
 				+ GoIdentity(it->name, true);
 
-			code_ += "\tcase " + def->name + it->name + ": {";
+			code_ += "\tcase " + GetQualifiedEnumName(def, it)
+				+ ": {";
 
 			code_ += "\t\tvar table flatbuffers.Table";
 			code_ += "\t\tvar nested " + GetStructRefType(
