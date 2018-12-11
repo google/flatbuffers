@@ -160,9 +160,8 @@ class ModuleTable {
       delete it->second;
   }
 
- public:
-  ModuleTable(ModuleTable const &) = delete;
-  void operator=(ModuleTable const &) = delete;
+  ModuleTable(ModuleTable const &);
+  void operator=(ModuleTable const &);
 };
 
 class JuliaGenerator : public BaseGenerator {
@@ -170,7 +169,18 @@ class JuliaGenerator : public BaseGenerator {
   JuliaGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */) {}
+                      "" /* not used */),
+        root_module_(MakeCamel(file_name_)),
+        module_table_(ModuleTable::GetInstance()) {
+    static const char * const keywords[] = {
+      "begin",      "while",    "if",       "for",    "try",    "return",
+      "break",      "continue", "function", "macro",  "quote",  "let",
+      "local",      "global",   "const",    "do",     "struct", "module",
+      "baremodule", "using",    "import",   "export", "end",    "else",
+      "catch",      "finally",  "true",     "false",  "Any"
+    };
+    keywords_.insert(std::begin(keywords), std::end(keywords));
+  }
 
   ~JuliaGenerator() {}
   bool generate() {
@@ -183,9 +193,9 @@ class JuliaGenerator : public BaseGenerator {
  private:
   // the root module is the name of the .fbs file which
   // we are compiling, in camel case
-  std::string root_module_ = MakeCamel(file_name_);
-  ModuleTable &module_table_ = ModuleTable::GetInstance();
-  static const std::unordered_set<std::string> keywords_;
+  const std::string root_module_;
+  ModuleTable &module_table_;
+  std::unordered_set<std::string> keywords_;
 
   bool GenEnums(void) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -252,8 +262,8 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // Begin an object declaration.
-  static void BeginObject(const StructDef &struct_def, std::string *code_ptr,
-                          bool has_defaults) {
+  void BeginObject(const StructDef &struct_def, std::string *code_ptr,
+                   bool has_defaults) {
     std::string &code = *code_ptr;
     if (has_defaults) code += JuliaPackageName + ".@with_kw ";
     if (!struct_def.fixed)
@@ -303,12 +313,12 @@ class JuliaGenerator : public BaseGenerator {
     code += "\n";
   }
 
-  static std::string EscapeKeyword(const std::string &name) {
+  std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
-  static std::string const NormalizedName(const Definition &child,
-                                          const Definition *parent = NULL) {
+  std::string NormalizedName(const Definition &child,
+                             const Definition *parent = NULL) const {
     std::string prefix = "";
     if (parent != NULL) {
       std::string relname = GetRelativeName(*parent, &child, false);
@@ -317,7 +327,7 @@ class JuliaGenerator : public BaseGenerator {
     return prefix + EscapeKeyword(child.name);
   }
 
-  static std::string NormalizedName(const EnumVal &ev) {
+  std::string NormalizedName(const EnumVal &ev) const {
     return EscapeKeyword(ev.name);
   }
 
@@ -326,8 +336,8 @@ class JuliaGenerator : public BaseGenerator {
     *code_ptr += "@enum " + enum_name + "::" + enum_type + " begin\n";
   }
 
-  static void EnumMember(const std::string enum_name, const EnumVal ev,
-                         std::string *code_ptr) {
+  void EnumMember(const std::string enum_name, const EnumVal ev,
+                  std::string *code_ptr) {
     *code_ptr += Indent + enum_name + NormalizedName(ev);
     *code_ptr += " = " + NumToString(ev.value) + "\n";
   }
@@ -344,8 +354,8 @@ class JuliaGenerator : public BaseGenerator {
 
   static void EndUnion(std::string *code_ptr) { *code_ptr += "))\n\n"; }
 
-  static void NewObjectFromBuffer(const StructDef &struct_def,
-                                  std::string *code_ptr) {
+  void NewObjectFromBuffer(const StructDef &struct_def,
+                           std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += NormalizedName(struct_def) + "(buf::AbstractVector{UInt8})";
     code += " = " + JuliaPackageName + ".read(" + NormalizedName(struct_def) +
@@ -497,8 +507,8 @@ class JuliaGenerator : public BaseGenerator {
     AddDependency(struct_def, field.value.type, imports_ptr);
   }
 
-  static void GenStringField(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr, bool *has_defaults) {
+  void GenStringField(const StructDef &struct_def, const FieldDef &field,
+                      std::string *code_ptr, bool *has_defaults) {
     *code_ptr += Indent + NormalizedName(field) + "::";
     // initialise strings to be empty by default
     *code_ptr += "Union{" + GenTypeGet(field.value.type) + ", Nothing}";
@@ -543,7 +553,9 @@ class JuliaGenerator : public BaseGenerator {
     if (struct_def.generated) return;
 
     // always need FlatBuffers package for structs
-    std::set<std::string> imports = { JuliaPackageName };
+    std::set<std::string> imports;
+    imports.insert(JuliaPackageName);
+
     bool has_defaults = false;
 
     // generate all the fields
@@ -574,7 +586,8 @@ class JuliaGenerator : public BaseGenerator {
     if (enum_def.generated) return;
 
     // always need FlatBuffers package for unions
-    std::set<std::string> imports = { JuliaPackageName };
+    std::set<std::string> imports;
+    imports.insert(JuliaPackageName);
     std::string union_name = NormalizedName(enum_def);
     BeginUnion(union_name, code_ptr);
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
@@ -619,8 +632,8 @@ class JuliaGenerator : public BaseGenerator {
     return ctypename[type.base_type];
   }
 
-  static std::string GenTypePointer(const Type &type,
-                                    const Definition *parent) {
+  std::string GenTypePointer(const Type &type,
+                             const Definition *parent) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR:
@@ -646,8 +659,8 @@ class JuliaGenerator : public BaseGenerator {
             IsInteger(type.enum_def->underlying_type.base_type));
   }
 
-  static std::string GenTypeGet(const Type &type,
-                                const Definition *parent = NULL) {
+  std::string GenTypeGet(const Type &type,
+                         const Definition *parent = NULL) {
     if (IsScalar(type.base_type))
       return IsScalarEnum(type) ? NormalizedName(*type.enum_def, parent)
                                 : GenTypeBasic(type);
@@ -794,14 +807,6 @@ class JuliaGenerator : public BaseGenerator {
     AddToOwnModule(def);
     return true;
   }
-};
-
-const std::unordered_set<std::string> JuliaGenerator::keywords_{
-  { "begin",      "while",    "if",       "for",    "try",    "return",
-    "break",      "continue", "function", "macro",  "quote",  "let",
-    "local",      "global",   "const",    "do",     "struct", "module",
-    "baremodule", "using",    "import",   "export", "end",    "else",
-    "catch",      "finally",  "true",     "false",  "Any" }
 };
 
 }  // namespace julia
