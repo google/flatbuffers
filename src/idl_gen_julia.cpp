@@ -160,9 +160,8 @@ class ModuleTable {
       delete it->second;
   }
 
- public:
-  ModuleTable(ModuleTable const &) = delete;
-  void operator=(ModuleTable const &) = delete;
+  ModuleTable(ModuleTable const &);
+  void operator=(ModuleTable const &);
 };
 
 class JuliaGenerator : public BaseGenerator {
@@ -170,7 +169,10 @@ class JuliaGenerator : public BaseGenerator {
   JuliaGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */) {}
+                      "" /* not used */),
+        root_module_(MakeCamel(file_name_)),
+        module_table_(ModuleTable::GetInstance()) {
+  }
 
   ~JuliaGenerator() {}
   bool generate() {
@@ -183,8 +185,8 @@ class JuliaGenerator : public BaseGenerator {
  private:
   // the root module is the name of the .fbs file which
   // we are compiling, in camel case
-  std::string root_module_ = MakeCamel(file_name_);
-  ModuleTable &module_table_ = ModuleTable::GetInstance();
+  const std::string root_module_;
+  ModuleTable &module_table_;
   static const std::unordered_set<std::string> keywords_;
 
   bool GenEnums(void) {
@@ -543,7 +545,9 @@ class JuliaGenerator : public BaseGenerator {
     if (struct_def.generated) return;
 
     // always need FlatBuffers package for structs
-    std::set<std::string> imports = { JuliaPackageName };
+    std::set<std::string> imports;
+    imports.insert(JuliaPackageName);
+
     bool has_defaults = false;
 
     // generate all the fields
