@@ -847,9 +847,15 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			code_ += "\treturn x";
 			code_ += "}\n";
 
+			code_ += "{{STRUCT_RECEIVER}} InitAsRoot(buf []byte, offset flatbuffers.UOffsetT) {";
+			code_ += "\tn := flatbuffers.GetUOffsetT(buf[offset:])";
+			code_ += "\trcv.Init(buf, n + offset)";
+			code_ += "}\n";
+
 			code_ += "{{STRUCT_RECEIVER}} Table() flatbuffers.Table {";
 			code_ += "\treturn rcv._tab";
 			code_ += "}\n";
+
 		} else {
 			code_ += "{{STRUCT_RECEIVER}} Table() flatbuffers.Table {";
 			code_ += "\treturn rcv._tab.Table";
@@ -858,9 +864,9 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		// Generate the Init method that sets the field in a pre-existing
 		// accessor object. This is to allow object reuse.
-		code_ += "{{STRUCT_RECEIVER}} Init(buf []byte, i flatbuffers.UOffsetT) {";
+		code_ += "{{STRUCT_RECEIVER}} Init(buf []byte, offset flatbuffers.UOffsetT) {";
 		code_ += "\trcv._tab.Bytes = buf";
-		code_ += "\trcv._tab.Pos = i";
+		code_ += "\trcv._tab.Pos = offset";
 		code_ += "}\n";
 
 
