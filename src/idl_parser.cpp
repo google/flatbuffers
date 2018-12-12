@@ -3028,13 +3028,18 @@ bool Definition::DeserializeAttributes(
 /* DESERIALIZATION                                                      */
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t *buf, const size_t size) {
-  auto verifier = Verifier(buf, size);
+  flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t *>(buf), size);
   bool size_prefixed = false;
-  if (reflection::VerifySizePrefixedSchemaBuffer(verifier)) {
-    size_prefixed = true;
-  } else if (reflection::VerifySchemaBuffer(verifier)) {
-    size_prefixed = false;
-  } else {
+  if(!reflection::SchemaBufferHasIdentifier(buf)) {
+    if (!flatbuffers::BufferHasIdentifier(buf, reflection::SchemaIdentifier(),
+                                          true))
+      return false;
+    else
+      size_prefixed = true;
+  } 
+  auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
+                                 : &reflection::VerifySchemaBuffer;
+  if (!verify_fn(verifier)) {
     return false;
   }
   auto schema = size_prefixed ? reflection::GetSizePrefixedSchema(buf)

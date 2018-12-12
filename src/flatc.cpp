@@ -39,20 +39,8 @@ void FlatCompiler::ParseFile(
 void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
                                     const std::string &filename,
                                     const std::string &contents) {
-  flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t *>(contents.c_str()), contents.size());
-  bool size_prefixed = false;
-  if (reflection::VerifySizePrefixedSchemaBuffer(verifier)) {
-    size_prefixed = true;
-  } else if (reflection::VerifySchemaBuffer(verifier)) {
-    size_prefixed = false;
-  } else {
-    Error("failed to verify binary schema: " + filename, false, false);
-  }
-  auto schema = size_prefixed
-                ? reflection::GetSizePrefixedSchema(contents.data())
-                : reflection::GetSchema(contents.c_str());
-  if (!parser.Deserialize(schema)) {
+  if (!parser.Deserialize(reinterpret_cast<const uint8_t *>(contents.c_str()),
+      contents.size())) {
     Error("failed to load binary schema: " + filename, false, false);
   }
 }
