@@ -231,7 +231,7 @@ flatbuffers.Builder = function(opt_initial_size) {
    * @type {boolean}
    * @private
    */
-  this.compact_vtable = false;
+  this.compact_vtable = true;
 };
 
 /**
