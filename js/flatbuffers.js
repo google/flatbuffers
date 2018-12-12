@@ -224,6 +224,14 @@ flatbuffers.Builder = function(opt_initial_size) {
    * @private
    */
   this.force_defaults = false;
+
+  /**
+   * False does not compact vtable
+   *
+   * @type {boolean}
+   * @private
+   */
+  this.compact_vtable = false;
 };
 
 /**
@@ -235,6 +243,16 @@ flatbuffers.Builder = function(opt_initial_size) {
  */
 flatbuffers.Builder.prototype.forceDefaults = function(forceDefaults) {
   this.force_defaults = forceDefaults;
+};
+
+/**
+ * In order to save space, vtable is compacted to remove null offset
+ * This allow disabling that.
+ *
+ * @param {boolean} compactVTable false to stop compacting vtable
+ */
+flatbuffers.Builder.prototype.compactVTable = function(compactVTable) {
+  this.compact_vtable = compactVTable;
 };
 
 /**
@@ -606,7 +624,9 @@ flatbuffers.Builder.prototype.endObject = function() {
 
   // Trim trailing zeroes.
   var i = this.vtable_in_use - 1;
-  for (; i >= 0 && this.vtable[i] == 0; i--) {}
+  if (this.compact_vtable) {
+    for (; i >= 0 && this.vtable[i] == 0; i--) {}
+  }
   var trimmed_size = i + 1;
 
   // Write out the current vtable.
