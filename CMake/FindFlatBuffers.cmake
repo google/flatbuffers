@@ -45,6 +45,7 @@ if(FLATBUFFERS_FOUND)
       add_custom_command(OUTPUT ${FLATC_OUTPUT}
         COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
         ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
+        DEPENDS ${FILE}
         COMMENT "Building C++ header for ${FILE}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endforeach()
