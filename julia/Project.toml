@@ -1,0 +1,6 @@
+name = "FlatBuffers"
+uuid = "6a5b833c-db2f-11e8-18d6-cf74c1981d29"
+
+[deps]
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
