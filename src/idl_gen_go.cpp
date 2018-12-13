@@ -79,10 +79,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\tif o != 0 {";
 	}
 
-	bool IsNativeFieldOptional(FieldDef const *fld) {
-		return fld->value.type.base_type == BASE_TYPE_UNION;
-	}
-
 	void GenComment(
 		const std::vector<std::string> &dc, 
 		const CommentConfig *config,
@@ -98,7 +94,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		auto vector_type(fld->value.type.VectorType());
 		switch (vector_type.base_type) {
 		case BASE_TYPE_STRING:
-			code_ += "\t\t\tuvec[pos] = builder.CreateString(vec[pos])";
+			code_ += "\t\t\tuvec[pos] = b.CreateString(vec[pos])";
 			return;
 		case BASE_TYPE_STRUCT:	
 			code_ += "\t\t\tuvec[pos] = vec[pos].Marshal(builder)";
@@ -117,10 +113,18 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		if (IsScalar(vector_type.base_type)) {
 			code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
 			code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
-			code_ += "\t\t\tbuilder.Prepend"
+			code_ += "\t\t\tb.Prepend"
 				+ MakeCamel(ToBasicType(vector_type))
 				+ "(vec[pos])";
 			code_ += "\t\t}";
+		} else if (
+			(vector_type.base_type == BASE_TYPE_STRUCT)
+			&& vector_type.struct_def->fixed
+		) {
+				code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
+				code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
+				code_ += "\t\t\tb.PrependUOffsetT(vec[pos].Marshal(b.Builder))";
+				code_ += "\t\t}";
 		} else {
 			code_ += "\t\tuvec := make([]flatbuffers.UOffsetT, count)";
 			code_ += "\t\tfor pos := 0; pos < count; pos++ {";
@@ -128,12 +132,12 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			code_ += "\t\t}";
 			code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
 			code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
-			code_ += "\t\t\tbuilder.PrependUOffsetT(uvec[pos])";
+			code_ += "\t\t\tb.PrependUOffsetT(uvec[pos])";
 			code_ += "\t\t}";
 		}
 
 		code_ += "\t\tobjs[" + NumToString(pos)
-			+ "] = builder.EndVector(count)";
+			+ "] = b.EndVector(count)";
 		code_ += "\t}";
 	}
 
@@ -157,6 +161,9 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
+				if (fld->value.type.struct_def->fixed)
+					continue;
+
 				dst = "rcv." + GoIdentity(fld->name, true);
 				code_ += "\tobjs[" + NumToString(comp_count)
 					+ "] = " + dst + ".Marshal(b.Builder)";
@@ -343,11 +350,18 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			if (fld->deprecated)
 				continue;
 
-			if (!IsScalar(fld->value.type.base_type)) {
+			switch (fld->value.type.base_type) {
+			case BASE_TYPE_STRUCT:
+				if (!fld->value.type.struct_def->fixed)
+					comp_count++;
+				break;
+			case BASE_TYPE_UNION:
 				comp_count++;
-
-				if (IsNativeFieldOptional(fld))
-					opt_count++;
+				opt_count++;
+				break;
+			default:
+				if (!IsScalar(fld->value.type.base_type))
+					comp_count++;
 			}
 		}
 
@@ -368,22 +382,33 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			if (fld->deprecated)
 				continue;
 
-			if (IsScalar(fld->value.type.base_type)) {
-				code_ += "\tb.Add" + MakeCamel(fld->name)
-					+ "(rcv." + GoIdentity(fld->name, true)
-					+ ")";
-				continue;
-			}
-
-			if (IsNativeFieldOptional(fld)) {
+			switch (fld->value.type.base_type) {
+			case BASE_TYPE_STRUCT:
+				if (fld->value.type.struct_def->fixed) {
+					code_ += "\tb.Add" + MakeCamel(fld->name)
+						+ "(rcv." + GoIdentity(fld->name, true)
+						+ ".Marshal(b.Builder))";
+				} else {
+					code_ += "\tb.Add" + MakeCamel(fld->name)
+						+ "(objs[" + NumToString(comp_count++) + "])";
+				}
+				break;
+			case BASE_TYPE_UNION:
 				code_ += "\tif present[" + NumToString(opt_count++)
 					+ "] {";
 				code_ += "\t\tb.Add" + MakeCamel(fld->name)
 					+ "(objs[" + NumToString(comp_count++) + "])";
 				code_ += "\t}";
-			} else {
-				code_ += "\tb.Add" + MakeCamel(fld->name)
-					+ "(objs[" + NumToString(comp_count++) + "])";
+				break;
+			default:
+				if (IsScalar(fld->value.type.base_type)) {
+					code_ += "\tb.Add" + MakeCamel(fld->name)
+						+ "(rcv." + GoIdentity(fld->name, true)
+						+ ")";
+				} else {
+					code_ += "\tb.Add" + MakeCamel(fld->name)
+						+ "(objs[" + NumToString(comp_count++) + "])";
+				}
 			}
 		}
 		code_ += "\treturn b.End()";
@@ -653,7 +678,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		line += ") {";
 		code_ += line;
 
-		line = "\tb.Builder.Prepend";
+		line = "\tb.Prepend";
 		line += GetMethodName(fld) + "Slot(";
 		line += NumToString(offset) + ", ";
 		if (!IsScalar(fld->value.type.base_type) && (!def.fixed)) {
@@ -679,7 +704,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		auto alignment = InlineAlignment(vector_type);
 		auto elem_size = InlineSize(vector_type);
 
-		code_ += "\treturn b.Builder.StartVector("
+		code_ += "\treturn b.StartVector("
 			+ NumToString(elem_size)
 			+ ", numElems, " + NumToString(alignment) + ")";
 		code_ += "}\n";
@@ -792,7 +817,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		);
 
 		code_ += "{{STRUCT_BUILDER_RECEIVER}} Start() {";
-		code_ += "\tb.Builder.StartObject(" + NumToString(def.fields.vec.size()) + ")";
+		code_ += "\tb.StartObject(" + NumToString(def.fields.vec.size()) + ")";
 		code_ += "}\n";
 
 		int offset(0);
@@ -809,7 +834,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		}
 
 		code_ += "{{STRUCT_BUILDER_RECEIVER}} End() flatbuffers.UOffsetT {";
-		code_ += "\treturn b.Builder.EndObject()";
+		code_ += "\treturn b.EndObject()";
 		code_ += "}\n";
 	}
 
