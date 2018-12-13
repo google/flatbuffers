@@ -46,6 +46,8 @@ flatsamplebinary
 flatsamplebinary.exe
 flatsampletext
 flatsampletext.exe
+flatsamplebfbs
+flatsamplebfbs.exe
 grpctest
 grpctest.exe
 snapshot.sh

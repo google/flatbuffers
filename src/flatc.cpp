@@ -36,6 +36,15 @@ void FlatCompiler::ParseFile(
   include_directories.pop_back();
 }
 
+void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
+                                    const std::string &filename,
+                                    const std::string &contents) {
+  if (!parser.Deserialize(reinterpret_cast<const uint8_t *>(contents.c_str()),
+      contents.size())) {
+    Error("failed to load binary schema: " + filename, false, false);
+  }
+}
+
 void FlatCompiler::Warn(const std::string &warn, bool show_exe_name) const {
   params_.warn_fn(this, warn, show_exe_name);
 }
@@ -127,8 +136,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --force-defaults   Emit default values in binary output from JSON\n"
     "  --force-empty      When serializing from object API representation,\n"
     "                     force strings and vectors to empty rather than null.\n"
-    "FILEs may be schemas (must end in .fbs), or JSON files (conforming to preceding\n"
-    "schema). FILEs after the -- must be binary flatbuffer format files.\n"
+    "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
+    "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
+    "binary flatbuffer format files.\n"
     "Output files are named using the base file name of the input,\n"
     "and written to the current directory or the path given by -o.\n"
     "example: " << program_name << " -c -b schema1.fbs schema2.fbs data.json\n";
@@ -323,8 +333,14 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     std::string contents;
     if (!flatbuffers::LoadFile(conform_to_schema.c_str(), true, &contents))
       Error("unable to load schema: " + conform_to_schema);
-    ParseFile(conform_parser, conform_to_schema, contents,
-              conform_include_directories);
+
+    if (flatbuffers::GetExtension(conform_to_schema) ==
+        reflection::SchemaExtension()) {
+      LoadBinarySchema(conform_parser, conform_to_schema, contents);
+    } else {
+      ParseFile(conform_parser, conform_to_schema, contents,
+                conform_include_directories);
+    }
   }
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
@@ -340,6 +356,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
     auto is_schema = ext == "fbs" || ext == "proto";
+    auto is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
@@ -366,7 +383,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       }
     } else {
       // Check if file contains 0 bytes.
-      if (contents.length() != strlen(contents.c_str())) {
+      if (!is_binary_schema && contents.length() != strlen(contents.c_str())) {
         Error("input file appears to be binary: " + filename, true);
       }
       if (is_schema) {
@@ -375,15 +392,19 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         // so explicitly using an include.
         parser.reset(new flatbuffers::Parser(opts));
       }
-      ParseFile(*parser.get(), filename, contents, include_directories);
-      if (!is_schema && !parser->builder_.GetSize()) {
-        // If a file doesn't end in .fbs, it must be json/binary. Ensure we
-        // didn't just parse a schema with a different extension.
-        Error(
-            "input file is neither json nor a .fbs (schema) file: " + filename,
-            true);
+      if (is_binary_schema) {
+        LoadBinarySchema(*parser.get(), filename, contents);
+      } else {
+        ParseFile(*parser.get(), filename, contents, include_directories);
+        if (!is_schema && !parser->builder_.GetSize()) {
+          // If a file doesn't end in .fbs, it must be json/binary. Ensure we
+          // didn't just parse a schema with a different extension.
+          Error("input file is neither json nor a .fbs (schema) file: " +
+                    filename,
+                true);
+        }
       }
-      if (is_schema && !conform_to_schema.empty()) {
+      if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err);
       }
@@ -401,7 +422,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       if (generator_enabled[i]) {
         if (!print_make_rules) {
           flatbuffers::EnsureDirExists(output_path);
-          if ((!params_.generators[i].schema_only || is_schema) &&
+          if ((!params_.generators[i].schema_only ||
+               (is_schema || is_binary_schema)) &&
               !params_.generators[i].generate(*parser.get(), output_path,
                                               filebase)) {
             Error(std::string("Unable to generate ") +
