@@ -105,9 +105,10 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	void GenMarshalVectorField(FieldDef const *fld, int pos) {
-		code_ += "\t{";
-		code_ += "\t\tvec := rcv." + GoIdentity(fld->name, true);
-		code_ += "\t\tcount := len(vec)";
+		std::string src = "rcv." + GoIdentity(fld->name, true);
+
+		code_ += "\tif count := len(" + src + "); count > 0 {";
+		code_ += "\t\tvec := " + src;
 
 		auto vector_type(fld->value.type.VectorType());
 		if (IsScalar(vector_type.base_type)) {
@@ -141,16 +142,11 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\t}";
 	}
 
-	void GenCompositeMarshal(
-		StructDef const &def, int comp_count, int opt_count
-	) {
+	void GenCompositeMarshal(StructDef const &def, int comp_count) {
 		code_ += "\tvar objs [" + NumToString(comp_count) + "]flatbuffers.UOffsetT";
-		if (opt_count > 0)
-			code_ += "\tvar present [" + NumToString(opt_count) + "]bool\n";
 
 		comp_count = 0;
-		opt_count = 0;
-		std::string dst;
+		std::string src;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -159,27 +155,25 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			if (IsScalar(fld->value.type.base_type))
 				continue;
 
+			src = "rcv." + GoIdentity(fld->name, true);
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
 				if (fld->value.type.struct_def->fixed)
 					continue;
 
-				dst = "rcv." + GoIdentity(fld->name, true);
 				code_ += "\tobjs[" + NumToString(comp_count)
-					+ "] = " + dst + ".Marshal(b.Builder)";
+					+ "] = " + src + ".Marshal(b.Builder)";
 				break;
 			case BASE_TYPE_UNION:
-				dst = "rcv." + GoIdentity(fld->name, true);
 				code_ += "\tobjs[" + NumToString(comp_count)
-					+ "], present["
-					+ NumToString(opt_count++) + "] = "
-					+ dst + ".Marshal(b.Builder, " + dst
-					+ "Type)";
+					+ "] = " + src + ".Marshal(b.Builder, "
+					+ src + "Type)";
 				break;
 			case BASE_TYPE_STRING:
-				code_ += "\tobjs[" + NumToString(comp_count)
-					+ "] = b.CreateString(rcv."
-					+ GoIdentity(fld->name, true) + ")";
+				code_ += "\tif " + src + " != \"\" {" ;
+				code_ += "\t\tobjs[" + NumToString(comp_count)
+					+ "] = b.CreateString(" + src + ")";
+				code_ += "\t}";
 				break;
 			case BASE_TYPE_VECTOR:
 				GenMarshalVectorField(fld, comp_count);
@@ -365,7 +359,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	void GenNativeMarshalTable(StructDef const &def) {
 		code_ += "{{NATIVE_STRUCT_RECEIVER}} Marshal(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
 		int comp_count = 0;
-		int opt_count = 0;
 
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
@@ -376,10 +369,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 				if (!fld->value.type.struct_def->fixed)
 					comp_count++;
 				break;
-			case BASE_TYPE_UNION:
-				comp_count++;
-				opt_count++;
-				break;
 			default:
 				if (!IsScalar(fld->value.type.base_type))
 					comp_count++;
@@ -388,20 +377,21 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		code_ += "\tb := Build{{STRUCT_NAME}}(builder)";
 		code_ += "\tif rcv == nil {";
-		code_ += "\t\tb.Start()";
-		code_ += "\t\treturn b.End()";
+		code_ += "\t\treturn 0";
 		code_ += "\t}\n";
 
 
 		if (comp_count > 0)
-			GenCompositeMarshal(def, comp_count, opt_count);
+			GenCompositeMarshal(def, comp_count);
 
 		code_ += "\tb.Start()";
 		comp_count = 0;
-		opt_count = 0;
 		for (auto fld: def.fields.vec) {
 			if (fld->deprecated)
 				continue;
+
+			std::string src = "rcv." + GoIdentity(fld->name, true);
+			std::string dst = "b.Add" + MakeCamel(fld->name);
 
 			switch (fld->value.type.base_type) {
 			case BASE_TYPE_STRUCT:
@@ -410,25 +400,27 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 						+ "(rcv." + GoIdentity(fld->name, true)
 						+ ".Marshal(b.Builder))";
 				} else {
-					code_ += "\tb.Add" + MakeCamel(fld->name)
-						+ "(objs[" + NumToString(comp_count++) + "])";
+					code_ += "\tif objs[" + NumToString(comp_count) + "] != 0 {";
+					code_ += "\t\t" + dst + "(objs["
+						+ NumToString(comp_count++) + "])";
+					code_ += "\t}";
 				}
 				break;
-			case BASE_TYPE_UNION:
-				code_ += "\tif present[" + NumToString(opt_count++)
-					+ "] {";
-				code_ += "\t\tb.Add" + MakeCamel(fld->name)
-					+ "(objs[" + NumToString(comp_count++) + "])";
+			case BASE_TYPE_BOOL:
+				code_ += "\tif " + src + " {";
+				code_ += "\t\t" + dst + "(" + src + ")";
 				code_ += "\t}";
 				break;
 			default:
 				if (IsScalar(fld->value.type.base_type)) {
-					code_ += "\tb.Add" + MakeCamel(fld->name)
-						+ "(rcv." + GoIdentity(fld->name, true)
-						+ ")";
+					code_ += "\tif " + src + " != 0 {";
+					code_ += "\t\t" + dst + "(" + src + ")";
+					code_ += "\t}";
 				} else {
-					code_ += "\tb.Add" + MakeCamel(fld->name)
-						+ "(objs[" + NumToString(comp_count++) + "])";
+					code_ += "\tif objs[" + NumToString(comp_count) + "] != 0 {";
+					code_ += "\t\t" + dst + "(objs["
+						+ NumToString(comp_count++) + "])";
+					code_ += "\t}";
 				}
 			}
 		}
@@ -1010,19 +1002,19 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		}
 		code_ += "}\n";
 
-		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) (flatbuffers.UOffsetT, bool) {";
+		code_ += "{{ENUM_UNION_RECEIVER}} Marshal(builder *flatbuffers.Builder, sel {{ENUM_TYPE}}) flatbuffers.UOffsetT {";
 		code_ += "\tswitch sel {";
 		for (auto it: def->vals.vec) {
 			code_ += "\tcase {{ENUM_NAME}}" + it->name + ":";
 			if (it->union_type.base_type == BASE_TYPE_NONE) {
-				code_ += "\t\treturn 0, false";
+				code_ += "\t\treturn 0";
 			} else {
 				code_ += "\t\treturn u." + GoIdentity(it->name, true)
-					+ ".Marshal(builder), true";
+					+ ".Marshal(builder)";
 			}
 		}
 		code_ += "\tdefault:";
-		code_ += "\t\treturn 0, false";
+		code_ += "\t\treturn 0";
 		code_ += "\t}";
 		code_ += "}\n";
 	}
