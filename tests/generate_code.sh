@@ -18,9 +18,10 @@ set -e
 ../flatc --cpp --java --csharp --dart --go --binary --lobster --lua --python --js --ts --php --julia --rust --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
 ../flatc --cpp --java --csharp --dart --go --binary --lobster --lua --python --js --ts --php --julia --rust --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 ../flatc --cpp --js --ts --php --julia --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
-../flatc -b --schema --bfbs-comments -I include_test monster_test.fbs
+../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 cd ../samples
 ../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh
