@@ -193,25 +193,33 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	void GenStructFieldUnmarshal(FieldDef const *fld) {
+		auto def(fld->value.type.struct_def);
 		std::string src = "rcv." + MakeCamel(fld->name);
 		std::string dst = "obj." + GoIdentity(fld->name, true);
-		auto def(fld->value.type.struct_def);
+		std::string dst_type = GetStructRefType(
+			def, true, false
+		);
 
 		code_ += "\t{";
-		code_ += "\t\tvar nested " + GetStructRefType(
+		code_ += "\t\tvar nested_ " + GetStructRefType(
 			def, false, false
 		);
-		code_ += "\t\t" + src + "(&nested)";
+		code_ += "\t\tnested := " + src + "(&nested_)";
+		code_ += "\t\tif nested != nil {";
 
 		if (def->fixed) {
-			code_ += "\t\tnested.Unmarshal(&" + dst + ")";
+			code_ += "\t\t\tnested.Unmarshal(&" + dst + ")";
+			code_ += "\t\t} else {";
+			code_ += "\t\t\t" + dst + " = " + dst_type + " {}";
 		} else {
-			code_ += "\t\tif " + dst + " == nil {";
-			code_ += "\t\t\t" + dst + " = &"
-				+ GetStructRefType(def, true, false) + " {}";
-			code_ += "\t\t}";
-			code_ += "\t\tnested.Unmarshal(" + dst + ")";
+			code_ += "\t\t\tif " + dst + " == nil {";
+			code_ += "\t\t\t\t" + dst + " = &" + dst_type + " {}";
+			code_ += "\t\t\t}";
+			code_ += "\t\t\tnested.Unmarshal(" + dst + ")";
+			code_ += "\t\t} else {";
+			code_ += "\t\t\t" + dst + " = nil";
 		}
+		code_ += "\t\t}";
 		code_ += "\t}";
 	}
 
@@ -249,20 +257,30 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		code_ += "\t\tfor pos := 0; pos < count; pos++ {";
 		if (vector_type.base_type == BASE_TYPE_STRUCT) {
-			code_ += "\t\t\t" + src + "(&nested, pos)";
+			code_ += "\t\t\tif " + src + "(&nested, pos) {";
 			if (vector_type.struct_def->fixed) {
-				code_ += "\t\t\tnested.Unmarshal(&"
+				code_ += "\t\t\t\tnested.Unmarshal(&"
 					+ dst + "[pos])";
-			} else {
-				code_ += "\t\t\tif " + dst + "[pos] == nil {";
-				code_ += "\t\t\t\t" + dst + "[pos] = &"
+				code_ += "\t\t\t} else {";
+				code_ += "\t\t\t\t" + dst + "[pos] = "
 					+ GetStructRefType(
 						vector_type.struct_def,
 						true, false
 					) + " {}";
 				code_ += "\t\t\t}";
-				code_ += "\t\t\tnested.Unmarshal("
+			} else {
+				code_ += "\t\t\t\tif " + dst + "[pos] == nil {";
+				code_ += "\t\t\t\t\t" + dst + "[pos] = &"
+					+ GetStructRefType(
+						vector_type.struct_def,
+						true, false
+					) + " {}";
+				code_ += "\t\t\t\t}";
+				code_ += "\t\t\t\tnested.Unmarshal("
 					+ dst + "[pos])";
+				code_ += "\t\t\t} else{";
+				code_ += "\t\t\t\t" + dst + "[pos] = nil";
+				code_ += "\t\t\t}";
 			}
 		} else {
 			code_ += "\t\t\t" + dst + "[pos] = " + src + "(pos)";
@@ -306,15 +324,18 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			code_ += "\t\tvar nested " + GetStructRefType(
 				it->union_type.struct_def, false, false
 			);
-			code_ += "\t\t" + src + "(&table)";
-			code_ += "\t\tnested.Init(table.Bytes, table.Pos)";
-			code_ += "\t\tif " + dst_var + " == nil {";
-			code_ += "\t\t\t" + dst_var + " = &"
+			code_ += "\t\tif " + src + "(&table) {";
+			code_ += "\t\t\tnested.Init(table.Bytes, table.Pos)";
+			code_ += "\t\t\tif " + dst_var + " == nil {";
+			code_ += "\t\t\t\t" + dst_var + " = &"
 				+ GetStructRefType(
 					it->union_type.struct_def, true, false
 				) + " {}";
+			code_ += "\t\t\t}";
+			code_ += "\t\t\tnested.Unmarshal(" + dst_var +")";
+			code_ += "\t\t} else {";
+			code_ += "\t\t\t" + dst_var + " = nil";
 			code_ += "\t\t}";
-			code_ += "\t\tnested.Unmarshal(" + dst_var +")";
 			code_ += "\t}";
 		}
 		code_ += "\t}";
@@ -431,13 +452,21 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 					+ "()";
 			} else {
 				code_ += "\t{";
-				code_ += "\t\tvar nested "
+				code_ += "\t\tvar nested_ "
 					+ GetRefType(fld->value.type, false);
-				code_ += "\t\trcv." + MakeCamel(fld->name)
-					+ "(&nested)";
-				code_ += "\t\tnested.Unmarshal(&obj."
+				code_ += "\t\tnested := rcv." + MakeCamel(fld->name)
+					+ "(&nested_)";
+				code_ += "\t\tif nested != nil {";
+				code_ += "\t\t\tnested.Unmarshal(&obj."
 					+ GoIdentity(fld->name, true)
 					+ ")";
+				code_ += "\t\t} else {";
+				code_ += "\t\t\tobj."
+					+ GoIdentity(fld->name, true)
+					+ " = "
+					+ GetRefType(fld->value.type, true)
+					+ " {}";
+				code_ += "\t\t}";
 				code_ += "\t}";
 			}
 		}
