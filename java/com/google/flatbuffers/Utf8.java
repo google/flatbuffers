@@ -60,11 +60,7 @@ public abstract class Utf8 {
    */
   public static Utf8 getDefault() {
     if (DEFAULT == null) {
-      if (UnsafeUtil.hasUnsafeArrayOperations() && UnsafeUtil.hasUnsafeByteBufferOperations()) {
-        DEFAULT = new Utf8Unsafe();
-      } else {
-        DEFAULT = new Utf8Safe();
-      }
+      DEFAULT = new Utf8Safe();
     }
     return DEFAULT;
   }

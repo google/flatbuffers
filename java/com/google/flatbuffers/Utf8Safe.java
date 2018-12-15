@@ -70,7 +70,7 @@ final public class Utf8Safe extends Utf8 {
    * @throws IllegalArgumentException if {@code sequence} contains ill-formed UTF-16 (unpaired
    *     surrogates)
    */
-  static int computeEncodedLength(CharSequence sequence) {
+  private static int computeEncodedLength(CharSequence sequence) {
     // Warning to maintainers: this implementation is highly optimized.
     int utf16Length = sequence.length();
     int utf8Length = utf16Length;
@@ -197,7 +197,8 @@ final public class Utf8Safe extends Utf8 {
     return new String(resultArr, 0, resultPos);
   }
 
-  static String decodeUtf8Buffer(ByteBuffer buffer, int offset, int length) {
+  private static String decodeUtf8Buffer(ByteBuffer buffer, int offset,
+                                         int length) {
     // Bitwise OR combines the sign bits so any negative value fails the check.
     if ((offset | length | buffer.limit() - offset - length) < 0) {
       throw new ArrayIndexOutOfBoundsException(
@@ -293,7 +294,7 @@ final public class Utf8Safe extends Utf8 {
   }
 
 
-  static void encodeUtf8Buffer(CharSequence in, ByteBuffer out) {
+  private static void encodeUtf8Buffer(CharSequence in, ByteBuffer out) {
     final int inLength = in.length();
     int outIx = out.position();
     int inIx = 0;
@@ -397,7 +398,7 @@ final public class Utf8Safe extends Utf8 {
         final char low;
         if (i + 1 == in.length()
                 || !Character.isSurrogatePair(c, (low = in.charAt(++i)))) {
-          throw new Utf8Unsafe.UnpairedSurrogateException((i - 1), utf16Length);
+          throw new UnpairedSurrogateException((i - 1), utf16Length);
         }
         int codePoint = Character.toCodePoint(c, low);
         out[j++] = (byte) ((0xF << 4) | (codePoint >>> 18));
@@ -410,7 +411,7 @@ final public class Utf8Safe extends Utf8 {
         if ((Character.MIN_SURROGATE <= c && c <= Character.MAX_SURROGATE)
                 && (i + 1 == in.length()
                         || !Character.isSurrogatePair(c, in.charAt(i + 1)))) {
-          throw new Utf8Unsafe.UnpairedSurrogateException(i, utf16Length);
+          throw new UnpairedSurrogateException(i, utf16Length);
         }
         throw new ArrayIndexOutOfBoundsException("Failed writing " + c + " at index " + j);
       }
@@ -436,6 +437,15 @@ final public class Utf8Safe extends Utf8 {
       out.position(end - start);
     } else {
       encodeUtf8Buffer(in, out);
+    }
+  }
+
+  // These UTF-8 handling methods are copied from Guava's Utf8Unsafe class with
+  // a modification to throw a local exception. This exception can be caught
+  // to fallback to more lenient behavior.
+  static class UnpairedSurrogateException extends IllegalArgumentException {
+    UnpairedSurrogateException(int index, int length) {
+      super("Unpaired surrogate at index " + index + " of " + length);
     }
   }
 }
