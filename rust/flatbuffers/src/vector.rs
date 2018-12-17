@@ -85,6 +85,7 @@ mod le_safe_slice_impls {
     impl super::SafeSliceAccess for f64 {}
 }
 
+#[cfg(target_endian = "little")]
 pub use self::le_safe_slice_impls::*;
 
 pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
