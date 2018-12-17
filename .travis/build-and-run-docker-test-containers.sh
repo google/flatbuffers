@@ -20,7 +20,7 @@ docker build -t build_flatc_debian_stretch -f tests/docker/Dockerfile.testing.bu
 BUILD_CONTAINER_ID=$(docker create --read-only build_flatc_debian_stretch)
 docker cp ${BUILD_CONTAINER_ID}:/code/flatc flatc_debian_stretch
 
-for f in $(ls tests/docker/languages | sort)
+for f in $(ls tests/docker/languages | grep endian | sort)
 do
         # docker pull sometimes fails for unknown reasons, probably travisci-related. this retries the pull we need a few times.
         REQUIRED_BASE_IMAGE=$(cat tests/docker/languages/${f} | head -n 1  | awk ' { print $2 } ')
