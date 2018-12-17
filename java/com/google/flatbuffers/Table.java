@@ -19,11 +19,7 @@ package com.google.flatbuffers;
 import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
 
 /// @cond FLATBUFFERS_INTERNAL
 
@@ -31,23 +27,17 @@ import java.nio.charset.CoderResult;
  * All tables in the generated code derive from this class, and add their own accessors.
  */
 public class Table {
-  private final static ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
-    @Override
-    protected CharsetDecoder initialValue() {
-      return Charset.forName("UTF-8").newDecoder();
-    }
-  };
   public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
     @Override
     protected Charset initialValue() {
       return Charset.forName("UTF-8");
     }
   };
-  private final static ThreadLocal<CharBuffer> CHAR_BUFFER = new ThreadLocal<CharBuffer>();
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Table. */
   protected ByteBuffer bb;
+  Utf8 utf8 = Utf8.getDefault();
 
   /**
    * Get the underlying ByteBuffer.
@@ -98,34 +88,10 @@ public class Table {
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
    */
   protected String __string(int offset) {
-    CharsetDecoder decoder = UTF8_DECODER.get();
-    decoder.reset();
-
     offset += bb.getInt(offset);
     ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int length = src.getInt(offset);
-    src.position(offset + SIZEOF_INT);
-    src.limit(offset + SIZEOF_INT + length);
-
-    int required = (int)((float)length * decoder.maxCharsPerByte());
-    CharBuffer dst = CHAR_BUFFER.get();
-    if (dst == null || dst.capacity() < required) {
-      dst = CharBuffer.allocate(required);
-      CHAR_BUFFER.set(dst);
-    }
-
-    dst.clear();
-
-    try {
-      CoderResult cr = decoder.decode(src, dst, true);
-      if (!cr.isUnderflow()) {
-        cr.throwException();
-      }
-    } catch (CharacterCodingException x) {
-      throw new RuntimeException(x);
-    }
-
-    return dst.flip().toString();
+    return utf8.decodeUtf8(bb, offset + SIZEOF_INT, length);
   }
 
   /**
