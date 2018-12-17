@@ -4,7 +4,7 @@ WORKDIR /setup
 RUN apt -qq update >/dev/null
 RUN apt -qq install -y curl
 RUN curl https://sh.rustup.rs > rustup.sh
-RUN cat rustup.sh | sh -s -- --default-toolchain none
+RUN cat rustup.sh | sh -s -- -y --default-toolchain none
 
 WORKDIR /code
 ADD . .
