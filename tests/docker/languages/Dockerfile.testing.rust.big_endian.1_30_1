@@ -5,6 +5,8 @@ RUN apt -qq update >/dev/null
 RUN apt -qq install -y curl
 RUN curl https://sh.rustup.rs > rustup.sh
 RUN cat rustup.sh | sh -s -- -y --default-toolchain none
+RUN rustup target add mips-unknown-linux-gnu
+
 
 WORKDIR /code
 ADD . .
