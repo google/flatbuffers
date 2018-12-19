@@ -43,6 +43,6 @@ Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | ev
   * ch = chobie
   * kr = krojew
   * jq = quinnj
-  * rk = rkat
+  * rk = rjkat
 
 <br>
