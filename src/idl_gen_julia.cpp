@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dolby Laboratories. All rights reserved.
+ * Copyright 2018 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ class JuliaGenerator : public BaseGenerator {
                       "" /* not used */),
         root_module_(MakeCamel(file_name_)),
         module_table_(ModuleTable::GetInstance()) {
-    static const char * const keywords[] = {
+    static const char *const keywords[] = {
       "begin",      "while",    "if",       "for",    "try",    "return",
       "break",      "continue", "function", "macro",  "quote",  "let",
       "local",      "global",   "const",    "do",     "struct", "module",
@@ -264,7 +264,7 @@ class JuliaGenerator : public BaseGenerator {
   // Begin an object declaration.
   void BeginObject(const StructDef &struct_def, std::string *code_ptr,
                    bool has_defaults) {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     if (has_defaults) code += JuliaPackageName + ".@with_kw ";
     if (!struct_def.fixed)
       code += "mutable struct ";
@@ -276,12 +276,12 @@ class JuliaGenerator : public BaseGenerator {
   void EndObject(const StructDef &struct_def,
                  const std::vector<std::string> &offsets,
                  std::string *code_ptr) const {
-    std::string &code = *code_ptr;
-    std::string name = NormalizedName(struct_def);
+    auto &code = *code_ptr;
+    auto name = NormalizedName(struct_def);
     code += "end\n";
     code += JuliaPackageName + ".@ALIGN(" + name + +", " +
             NumToString(struct_def.minalign) + ")\n";
-    std::string method_signature = "(::Type{T}) where {T<:" + name + "}";
+    auto method_signature = "(::Type{T}) where {T<:" + name + "}";
     if (!offsets.empty() && !struct_def.fixed) {
       bool first = true;
       int i = 0;
@@ -354,9 +354,8 @@ class JuliaGenerator : public BaseGenerator {
 
   static void EndUnion(std::string *code_ptr) { *code_ptr += "))\n\n"; }
 
-  void NewObjectFromBuffer(const StructDef &struct_def,
-                           std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void NewObjectFromBuffer(const StructDef &struct_def, std::string *code_ptr) {
+    auto &code = *code_ptr;
     code += NormalizedName(struct_def) + "(buf::AbstractVector{UInt8})";
     code += " = " + JuliaPackageName + ".read(" + NormalizedName(struct_def) +
             ", buf)\n";
@@ -367,8 +366,8 @@ class JuliaGenerator : public BaseGenerator {
   void GenScalarField(const StructDef &struct_def, const FieldDef &field,
                       std::string *code_ptr, bool *has_defaults,
                       std::set<std::string> *imports_ptr) {
-    std::string &code = *code_ptr;
-    std::string field_name = NormalizedName(field);
+    auto &code = *code_ptr;
+    auto field_name = NormalizedName(field);
     code += Indent + field_name;
     code += "::";
     code += GenTypeGet(field.value.type);
@@ -424,15 +423,15 @@ class JuliaGenerator : public BaseGenerator {
     std::string relname = "";
     // go up to common level (don't add dots to path if we are
     // annotating the type of a field - julia doesn't like that)
-    unsigned int i = 0;
-    unsigned int n = parent.components.size();
+    size_t i = 0;
+    size_t n = parent.components.size();
     while (i <= n && !SameNamespacePrefix(parent, child, n - i)) {
       if (dotprefix) relname += ".";
       i++;
     }
     // traverse down to the place we need to be
-    unsigned int m = parent.components.size() - i;
-    unsigned int j;
+    size_t m = parent.components.size() - i;
+    size_t j;
     for (j = m; j < child.components.size(); j++) {
       if (dotprefix || !relname.empty()) relname += ".";
       relname += child.components[j];
@@ -463,7 +462,7 @@ class JuliaGenerator : public BaseGenerator {
     if (child_def == NULL) return;
 
     GetRelativeNamespaces(def, child_def, &parent, &child);
-    std::string relname = GetRelativeName(parent, child);
+    auto relname = GetRelativeName(parent, child);
 
     // add relative import
     if (!relname.empty()) {
@@ -474,10 +473,10 @@ class JuliaGenerator : public BaseGenerator {
         imports_ptr->insert(relname);
     }
 
-    std::string module = GetCanonicalName(child);
-    std::string child_name =
+    auto module = GetCanonicalName(child);
+    auto child_name =
         GetCanonicalName(child) + kPathSeparator + NormalizedName(*child_def);
-    std::string parent_name =
+    auto parent_name =
         GetCanonicalName(parent) + kPathSeparator + NormalizedName(def);
     // self-reference - this is fine, but don't add it to the dependency table
     if (child_name == parent_name) return;
@@ -486,8 +485,7 @@ class JuliaGenerator : public BaseGenerator {
 
   // generate a field which depends upon generated types
   void GenDependentField(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr,
-                         bool *has_defaults,
+                         std::string *code_ptr, bool *has_defaults,
                          std::set<std::string> *imports_ptr) {
     std::string type_name = GenTypeGet(field.value.type, &struct_def);
 
@@ -534,7 +532,8 @@ class JuliaGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT:
         case BASE_TYPE_VECTOR:
         case BASE_TYPE_UNION:
-          GenDependentField(struct_def, field, code_ptr, has_defaults, imports_ptr);
+          GenDependentField(struct_def, field, code_ptr, has_defaults,
+                            imports_ptr);
           break;
         default: FLATBUFFERS_ASSERT(0);
       }
@@ -588,7 +587,7 @@ class JuliaGenerator : public BaseGenerator {
     // always need FlatBuffers package for unions
     std::set<std::string> imports;
     imports.insert(JuliaPackageName);
-    std::string union_name = NormalizedName(enum_def);
+    auto union_name = NormalizedName(enum_def);
     BeginUnion(union_name, code_ptr);
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
@@ -608,7 +607,7 @@ class JuliaGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
     GenComment(enum_def.doc_comment, code_ptr, &JuliaCommentConfig);
-    std::string enum_name = NormalizedName(enum_def);
+    auto enum_name = NormalizedName(enum_def);
     BeginEnum(enum_name, GenTypeBasic(enum_def.underlying_type), code_ptr);
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
@@ -632,8 +631,7 @@ class JuliaGenerator : public BaseGenerator {
     return ctypename[type.base_type];
   }
 
-  std::string GenTypePointer(const Type &type,
-                             const Definition *parent) {
+  std::string GenTypePointer(const Type &type, const Definition *parent) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR:
@@ -659,8 +657,7 @@ class JuliaGenerator : public BaseGenerator {
             IsInteger(type.enum_def->underlying_type.base_type));
   }
 
-  std::string GenTypeGet(const Type &type,
-                         const Definition *parent = NULL) {
+  std::string GenTypeGet(const Type &type, const Definition *parent = NULL) {
     if (IsScalar(type.base_type))
       return IsScalarEnum(type) ? NormalizedName(*type.enum_def, parent)
                                 : GenTypeBasic(type);
@@ -669,9 +666,9 @@ class JuliaGenerator : public BaseGenerator {
 
   void BeginFile(const std::string submodule_name,
                  std::string *code_ptr) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
-    std::string module = submodule_name;
+    auto module = submodule_name;
     if (module.empty()) module = root_module_;
     code += "# module: " + module + "\n\n";
   }
@@ -703,16 +700,16 @@ class JuliaGenerator : public BaseGenerator {
   // Save out the generated code for a Julia module
   bool SaveModule(bool is_root, std::string full_module_name,
                   DepGraph *children) {
-    std::string module_name = full_module_name;
+    auto module_name = full_module_name;
     auto start = full_module_name.rfind(kPathSeparator);
     if (start != std::string::npos)
       module_name = full_module_name.substr(start + 1);
-    std::string module_dir = ConCatPathFileName(path_, full_module_name);
+    auto module_dir = ConCatPathFileName(path_, full_module_name);
     if (is_root) {
       module_dir = path_;
       module_name = root_module_;
     }
-    std::string module_jl =
+    auto module_jl =
         ConCatPathFileName(module_dir, module_name) + JuliaFileExtension;
     std::string code = "";
     bool need_module_file = false;
@@ -720,7 +717,7 @@ class JuliaGenerator : public BaseGenerator {
     code += "module " + module_name + "\n";
 
     // Include all the dependencies of this module in the right order
-    std::vector<std::string> sorted_children = children->TopSort();
+    auto sorted_children = children->TopSort();
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
          ++it) {
       std::string child = *it;
@@ -737,7 +734,7 @@ class JuliaGenerator : public BaseGenerator {
         is_module = true;
         child = ConCatPathFileName(child, submodule_name);
       }
-      std::string dir = is_root ? path_ : module_dir;
+      auto dir = is_root ? path_ : module_dir;
       std::string relname;
       if (is_root)
         relname = child;
@@ -781,8 +778,8 @@ class JuliaGenerator : public BaseGenerator {
   // Add a dependency between two definitions
   void AddDependency(const Definition *parent, const Definition *child) {
     FLATBUFFERS_ASSERT(parent != NULL && child != NULL);
-    std::string parent_name = NormalizedName(*parent);
-    std::string module = parent_name;
+    auto parent_name = NormalizedName(*parent);
+    auto module = parent_name;
     if (parent->defined_namespace != NULL)
       module = GetCanonicalName(*parent->defined_namespace);
     module_table_.AddDependency(module, parent_name, NormalizedName(*child));
@@ -790,7 +787,7 @@ class JuliaGenerator : public BaseGenerator {
 
   // Add a definition as a dependency to its own module
   void AddToOwnModule(const Definition &def) {
-    std::string m = GetModule(def);
+    auto m = GetModule(def);
     module_table_.AddDependency(m, m + kPathSeparator + NormalizedName(def), m);
   }
 
@@ -800,7 +797,7 @@ class JuliaGenerator : public BaseGenerator {
     std::string code = "";
     BeginFile(GetSubModule(def), &code);
     code += declcode;
-    std::string filename = GetFilename(def);
+    auto filename = GetFilename(def);
     EnsureDirExists(GetDirname(def));
     if (!SaveFile(filename.c_str(), code, false)) return false;
     module_table_.AddFile(filename);

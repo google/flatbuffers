@@ -1,7 +1,7 @@
 
 # FlatBuffers
 
-*A Julia implementation of google flatbuffers*
+*A Julia implementation of [google flatbuffers](https://google.github.io/flatbuffers/)*
 
 
 | **Documentation**                                                               | **PackageEvaluator**                                            | **Build Status**                                                                                |
