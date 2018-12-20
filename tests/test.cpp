@@ -569,25 +569,37 @@ void JsonDefaultTest() {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest() {
+void ParseAndGenerateTextTest(bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
-                                false, &schemafile),
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "monster_test." + (binary ? "bfbs" : "fbs"))
+                  .c_str(),
+              binary, &schemafile),
           true);
   TEST_EQ(flatbuffers::LoadFile(
               (test_data_path + "monsterdata_test.golden").c_str(), false,
               &jsonfile),
           true);
 
-  // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+    flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  if (binary) {
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    //auto schema = reflection::GetSchema(schemafile.c_str());
+    TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(), schemafile.size()), true);
+  } else {
+    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  }
   TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
@@ -2376,6 +2388,58 @@ void LoadVerifyBinaryTest() {
   }
 }
 
+void CreateSharedStringTest() {
+  flatbuffers::FlatBufferBuilder builder;
+  const auto one1 = builder.CreateSharedString("one");
+  const auto two = builder.CreateSharedString("two");
+  const auto one2 = builder.CreateSharedString("one");
+  TEST_EQ(one1.o, one2.o);
+  const auto onetwo = builder.CreateSharedString("onetwo");
+  TEST_EQ(onetwo.o != one1.o, true);
+  TEST_EQ(onetwo.o != two.o, true);
+
+  // Support for embedded nulls
+  const char chars_b[] = {'a', '\0', 'b'};
+  const char chars_c[] = {'a', '\0', 'c'};
+  const auto null_b1 = builder.CreateSharedString(chars_b, sizeof(chars_b));
+  const auto null_c = builder.CreateSharedString(chars_c, sizeof(chars_c));
+  const auto null_b2 = builder.CreateSharedString(chars_b, sizeof(chars_b));
+  TEST_EQ(null_b1.o != null_c.o, true); // Issue#5058 repro
+  TEST_EQ(null_b1.o, null_b2.o);
+
+  // Put the strings into an array for round trip verification.
+  const flatbuffers::Offset<flatbuffers::String> array[7] = { one1, two, one2, onetwo, null_b1, null_c, null_b2 };
+  const auto vector_offset = builder.CreateVector(array, flatbuffers::uoffset_t(7));
+  MonsterBuilder monster_builder(builder);
+  monster_builder.add_name(two);
+  monster_builder.add_testarrayofstring(vector_offset);
+  builder.Finish(monster_builder.Finish());
+
+  // Read the Monster back.
+  const auto *monster = flatbuffers::GetRoot<Monster>(builder.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "two");
+  const auto *testarrayofstring = monster->testarrayofstring();
+  TEST_EQ(testarrayofstring->size(), flatbuffers::uoffset_t(7));
+  const auto &a = *testarrayofstring;
+  TEST_EQ_STR(a[0]->c_str(), "one");
+  TEST_EQ_STR(a[1]->c_str(), "two");
+  TEST_EQ_STR(a[2]->c_str(), "one");
+  TEST_EQ_STR(a[3]->c_str(), "onetwo");
+  TEST_EQ(a[4]->str(), (std::string(chars_b, sizeof(chars_b))));
+  TEST_EQ(a[5]->str(), (std::string(chars_c, sizeof(chars_c))));
+  TEST_EQ(a[6]->str(), (std::string(chars_b, sizeof(chars_b))));
+
+  // Make sure String::operator< works, too, since it is related to StringOffsetCompare.
+  TEST_EQ((*a[0]) < (*a[1]), true);
+  TEST_EQ((*a[1]) < (*a[0]), false);
+  TEST_EQ((*a[1]) < (*a[2]), false);
+  TEST_EQ((*a[2]) < (*a[1]), true);
+  TEST_EQ((*a[4]) < (*a[3]), true);
+  TEST_EQ((*a[5]) < (*a[4]), false);
+  TEST_EQ((*a[5]) < (*a[4]), false);
+  TEST_EQ((*a[6]) < (*a[5]), true);
+}
+
 int FlatBufferTests() {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
@@ -2415,7 +2479,8 @@ int FlatBufferTests() {
       test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
                        test_data_path;
     #endif
-    ParseAndGenerateTextTest();
+    ParseAndGenerateTextTest(false);
+    ParseAndGenerateTextTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
     UnionVectorTest();
@@ -2445,6 +2510,7 @@ int FlatBufferTests() {
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
+  CreateSharedStringTest();
   JsonDefaultTest();
   FlexBuffersTest();
   UninitializedVectorTest();

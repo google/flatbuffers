@@ -153,6 +153,8 @@ struct Type {
 
   Offset<reflection::Type> Serialize(FlatBufferBuilder *builder) const;
 
+  bool Deserialize(const Parser &parser, const reflection::Type *type);
+
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
@@ -235,6 +237,9 @@ struct Definition {
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
   SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
 
+  bool DeserializeAttributes(Parser &parser,
+                             const Vector<Offset<reflection::KeyValue>> *attrs);
+
   std::string name;
   std::string file;
   std::vector<std::string> doc_comment;
@@ -260,6 +265,8 @@ struct FieldDef : public Definition {
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
+
+  bool Deserialize(Parser &parser, const reflection::Field *field);
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -291,6 +298,8 @@ struct StructDef : public Definition {
   Offset<reflection::Object> Serialize(FlatBufferBuilder *builder,
                                        const Parser &parser) const;
 
+  bool Deserialize(Parser &parser, const reflection::Object *object);
+
   SymbolTable<FieldDef> fields;
 
   bool fixed;       // If it's struct, not a table.
@@ -317,8 +326,11 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
+  EnumVal(){};
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+
+  bool Deserialize(const Parser &parser, const reflection::EnumVal *val);
 
   std::string name;
   std::vector<std::string> doc_comment;
@@ -340,6 +352,8 @@ struct EnumDef : public Definition {
 
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
+  bool Deserialize(Parser &parser, const reflection::Enum *values);
+
   SymbolTable<EnumVal> vals;
   bool is_union;
   // Type is a union which uses type aliases where at least one type is
@@ -358,11 +372,14 @@ inline bool EqualByName(const Type &a, const Type &b) {
 struct RPCCall : public Definition {
   Offset<reflection::RPCCall> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
+  bool Deserialize(Parser &parser, const reflection::RPCCall *call);
+
   StructDef *request, *response;
 };
 
 struct ServiceDef : public Definition {
   Offset<reflection::Service> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  bool Deserialize(Parser &parser, const reflection::Service *service);
 
   SymbolTable<RPCCall> calls;
 };
@@ -647,6 +664,15 @@ class Parser : public ParserState {
   // See reflection/reflection.fbs
   void Serialize();
 
+  // Deserialize a schema buffer
+  bool Deserialize(const uint8_t *buf, const size_t size);
+
+  // Fills internal structure as if the schema passed had been loaded by parsing
+  // with Parse except that included filenames will not be populated.
+  bool Deserialize(const reflection::Schema* schema);
+
+  Type* DeserializeType(const reflection::Type* type);
+  
   // Checks that the schema represented by this parser is a safe evolution
   // of the schema provided. Returns non-empty error on any problems.
   std::string ConformTo(const Parser &base);
@@ -660,6 +686,8 @@ class Parser : public ParserState {
                                           const std::string &msg);
 
   StructDef *LookupStruct(const std::string &id) const;
+
+  std::string UnqualifiedName(std::string fullQualifiedName);
 
  private:
   void Message(const std::string &msg);
@@ -820,7 +848,7 @@ extern bool GenerateDart(const Parser &parser,
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
-extern bool GenerateJS(const Parser &parser,
+extern bool GenerateJSTS(const Parser &parser,
                        const std::string &path,
                        const std::string &file_name);
 
@@ -882,7 +910,7 @@ extern bool GenerateFBS(const Parser &parser,
 
 // Generate a make rule for the generated JavaScript or TypeScript code.
 // See idl_gen_js.cpp.
-extern std::string JSMakeRule(const Parser &parser,
+extern std::string JSTSMakeRule(const Parser &parser,
                               const std::string &path,
                               const std::string &file_name);
 
