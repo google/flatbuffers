@@ -154,7 +154,7 @@ class Movie extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -188,7 +188,7 @@ class Movie extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }

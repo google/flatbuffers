@@ -602,12 +602,12 @@ class PhpGenerator : public BaseGenerator {
     code += "for ($i = count($data) - 1; $i >= 0; $i--) {\n";
     if (IsScalar(field.value.type.VectorType().base_type)) {
       code += Indent + Indent + Indent;
-      code += "$builder->add";
+      code += "$builder->put";
       code += MakeCamel(GenTypeBasic(field.value.type.VectorType()));
       code += "($data[$i]);\n";
     } else {
       code += Indent + Indent + Indent;
-      code += "$builder->addOffset($data[$i]);\n";
+      code += "$builder->putOffset($data[$i]);\n";
     }
     code += Indent + Indent + "}\n";
     code += Indent + Indent + "return $builder->endVector();\n";
