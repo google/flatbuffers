@@ -370,7 +370,7 @@ class JuliaGenerator : public BaseGenerator {
     auto field_name = NormalizedName(field);
     code += Indent + field_name;
     code += "::";
-    code += GenTypeGet(field.value.type);
+    code += GenTypeGet(field.value.type, &struct_def);
     if (!field.value.constant.empty() && !struct_def.fixed) {
       *has_defaults = true;
       std::string c = field.value.constant;
