@@ -76,7 +76,7 @@ std::string OffsetPrefix(const FieldDef &field) {
 }
 
 // Begin a class declaration.
-static void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
+void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "type " + struct_def.name + " struct {\n\t";
@@ -93,21 +93,21 @@ std::string GetEnumTypeName(const EnumDef &enum_def) {
 }
 
 // Create a type for the enum values.
-static void GenEnumType(const EnumDef &enum_def, std::string *code_ptr) {
+void GenEnumType(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "type " + GetEnumTypeName(enum_def) + " = ";
   code += GenTypeBasic(enum_def.underlying_type) + "\n";
 }
 
 // Begin enum code with a class declaration.
-static void BeginEnum(std::string *code_ptr) {
+void BeginEnum(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "const (\n";
 }
 
 // A single enum member.
-static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
-                       std::string *code_ptr) {
+void EnumMember(const EnumDef &enum_def, const EnumVal ev,
+                std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t";
   code += enum_def.name;
@@ -119,13 +119,13 @@ static void EnumMember(const EnumDef &enum_def, const EnumVal ev,
 }
 
 // End enum code.
-static void EndEnum(std::string *code_ptr) {
+void EndEnum(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += ")\n\n";
 }
 
 // Begin enum name code.
-static void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
+void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "var EnumNames";
   code += enum_def.name;
@@ -133,8 +133,8 @@ static void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
 }
 
 // A single enum name member.
-static void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
-                           std::string *code_ptr) {
+void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
+                    std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\t";
   code += enum_def.name;
@@ -145,14 +145,14 @@ static void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
 }
 
 // End enum name code.
-static void EndEnumNames(std::string *code_ptr) {
+void EndEnumNames(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "}\n\n";
 }
 
 // Initialize a new struct or table from existing data.
-static void NewRootTypeFromBuffer(const StructDef &struct_def,
-                                  std::string *code_ptr) {
+void NewRootTypeFromBuffer(const StructDef &struct_def,
+                           std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   code += "func GetRootAs";
@@ -168,8 +168,7 @@ static void NewRootTypeFromBuffer(const StructDef &struct_def,
 }
 
 // Initialize an existing object with other data, to avoid an allocation.
-static void InitializeExisting(const StructDef &struct_def,
-                               std::string *code_ptr) {
+void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
@@ -181,8 +180,7 @@ static void InitializeExisting(const StructDef &struct_def,
 }
 
 // Implement the table accessor
-static void GenTableAccessor(const StructDef &struct_def,
-                             std::string *code_ptr) {
+void GenTableAccessor(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
@@ -198,8 +196,8 @@ static void GenTableAccessor(const StructDef &struct_def,
 }
 
 // Get the length of a vector.
-static void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr) {
+void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
+                  std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
@@ -210,8 +208,8 @@ static void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
 }
 
 // Get a [ubyte] vector as a byte slice.
-static void GetUByteSlice(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+void GetUByteSlice(const StructDef &struct_def, const FieldDef &field,
+                   std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   GenReceiver(struct_def, code_ptr);
@@ -222,9 +220,9 @@ static void GetUByteSlice(const StructDef &struct_def, const FieldDef &field,
 }
 
 // Get the value of a struct's scalar.
-static void GetScalarFieldOfStruct(const StructDef &struct_def,
-                                   const FieldDef &field,
-                                   std::string *code_ptr) {
+void GetScalarFieldOfStruct(const StructDef &struct_def,
+                            const FieldDef &field,
+                            std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
@@ -236,9 +234,9 @@ static void GetScalarFieldOfStruct(const StructDef &struct_def,
 }
 
 // Get the value of a table's scalar.
-static void GetScalarFieldOfTable(const StructDef &struct_def,
-                                  const FieldDef &field,
-                                  std::string *code_ptr) {
+void GetScalarFieldOfTable(const StructDef &struct_def,
+                           const FieldDef &field,
+                           std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string getter = GenGetter(field.value.type);
   GenReceiver(struct_def, code_ptr);
@@ -252,9 +250,9 @@ static void GetScalarFieldOfTable(const StructDef &struct_def,
 
 // Get a struct by initializing an existing struct.
 // Specific to Struct.
-static void GetStructFieldOfStruct(const StructDef &struct_def,
-                                   const FieldDef &field,
-                                   std::string *code_ptr) {
+void GetStructFieldOfStruct(const StructDef &struct_def,
+                            const FieldDef &field,
+                            std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name);
@@ -272,9 +270,9 @@ static void GetStructFieldOfStruct(const StructDef &struct_def,
 
 // Get a struct by initializing an existing struct.
 // Specific to Table.
-static void GetStructFieldOfTable(const StructDef &struct_def,
-                                  const FieldDef &field,
-                                  std::string *code_ptr) {
+void GetStructFieldOfTable(const StructDef &struct_def,
+                           const FieldDef &field,
+                           std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name);
@@ -295,8 +293,9 @@ static void GetStructFieldOfTable(const StructDef &struct_def,
 }
 
 // Get the value of a string.
-static void GetStringField(const StructDef &struct_def, const FieldDef &field,
-                           std::string *code_ptr) {
+void GetStringField(const StructDef &struct_def,
+                    const FieldDef &field,
+                    std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name);
@@ -307,8 +306,8 @@ static void GetStringField(const StructDef &struct_def, const FieldDef &field,
 }
 
 // Get the value of a union from an object.
-static void GetUnionField(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+void GetUnionField(const StructDef &struct_def, const FieldDef &field,
+                   std::string *code_ptr) {
   std::string &code = *code_ptr;
   GenReceiver(struct_def, code_ptr);
   code += " " + MakeCamel(field.name) + "(";
@@ -321,9 +320,9 @@ static void GetUnionField(const StructDef &struct_def, const FieldDef &field,
 }
 
 // Get the value of a vector's struct member.
-static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
-                                      const FieldDef &field,
-                                      std::string *code_ptr) {
+void GetMemberOfVectorOfStruct(const StructDef &struct_def,
+                               const FieldDef &field,
+                               std::string *code_ptr) {
   std::string &code = *code_ptr;
   auto vectortype = field.value.type.VectorType();
 
@@ -345,9 +344,9 @@ static void GetMemberOfVectorOfStruct(const StructDef &struct_def,
 
 // Get the value of a vector's non-struct member. Uses a named return
 // argument to conveniently set the zero value for the result.
-static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
-                                         const FieldDef &field,
-                                         std::string *code_ptr) {
+void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
+                                  const FieldDef &field,
+                                  std::string *code_ptr) {
   std::string &code = *code_ptr;
   auto vectortype = field.value.type.VectorType();
 
@@ -371,8 +370,7 @@ static void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
 }
 
 // Begin the creator function signature.
-static void BeginBuilderArgs(const StructDef &struct_def,
-                             std::string *code_ptr) {
+void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
 
   if (code.substr(code.length() - 2) != "\n\n") {
@@ -385,8 +383,8 @@ static void BeginBuilderArgs(const StructDef &struct_def,
 
 // Recursively generate arguments for a constructor, to deal with nested
 // structs.
-static void StructBuilderArgs(const StructDef &struct_def,
-                              const char *nameprefix, std::string *code_ptr) {
+void StructBuilderArgs(const StructDef &struct_def, const char *nameprefix,
+                       std::string *code_ptr) {
   for (auto it = struct_def.fields.vec.begin();
        it != struct_def.fields.vec.end(); ++it) {
     auto &field = **it;
@@ -406,15 +404,15 @@ static void StructBuilderArgs(const StructDef &struct_def,
 }
 
 // End the creator function signature.
-static void EndBuilderArgs(std::string *code_ptr) {
+void EndBuilderArgs(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += ") flatbuffers.UOffsetT {\n";
 }
 
 // Recursively generate struct construction statements and instert manual
 // padding.
-static void StructBuilderBody(const StructDef &struct_def,
-                              const char *nameprefix, std::string *code_ptr) {
+void StructBuilderBody(const StructDef &struct_def,
+                       const char *nameprefix, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\tbuilder.Prep(" + NumToString(struct_def.minalign) + ", ";
   code += NumToString(struct_def.bytesize) + ")\n";
@@ -433,15 +431,14 @@ static void StructBuilderBody(const StructDef &struct_def,
   }
 }
 
-static void EndBuilderBody(std::string *code_ptr) {
+void EndBuilderBody(std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "\treturn builder.Offset()\n";
   code += "}\n";
 }
 
 // Get the value of a table's starting offset.
-static void GetStartOfTable(const StructDef &struct_def,
-                            std::string *code_ptr) {
+void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "func " + struct_def.name + "Start";
   code += "(builder *flatbuffers.Builder) {\n";
@@ -451,9 +448,8 @@ static void GetStartOfTable(const StructDef &struct_def,
 }
 
 // Set the value of a table's field.
-static void BuildFieldOfTable(const StructDef &struct_def,
-                              const FieldDef &field, const size_t offset,
-                              std::string *code_ptr) {
+void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
+                       const size_t offset, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "func " + struct_def.name + "Add" + MakeCamel(field.name);
   code += "(builder *flatbuffers.Builder, ";
@@ -479,8 +475,8 @@ static void BuildFieldOfTable(const StructDef &struct_def,
 }
 
 // Set the value of one of the members of a table's vector.
-static void BuildVectorOfTable(const StructDef &struct_def,
-                               const FieldDef &field, std::string *code_ptr) {
+void BuildVectorOfTable(const StructDef &struct_def,
+                        const FieldDef &field, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "func " + struct_def.name + "Start";
   code += MakeCamel(field.name);
@@ -495,8 +491,7 @@ static void BuildVectorOfTable(const StructDef &struct_def,
 }
 
 // Get the offset of the end of a table.
-static void GetEndOffsetOnTable(const StructDef &struct_def,
-                                std::string *code_ptr) {
+void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "func " + struct_def.name + "End";
   code += "(builder *flatbuffers.Builder) flatbuffers.UOffsetT ";
@@ -504,14 +499,14 @@ static void GetEndOffsetOnTable(const StructDef &struct_def,
 }
 
 // Generate the receiver for function signatures.
-static void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
+void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
   std::string &code = *code_ptr;
   code += "func (rcv *" + struct_def.name + ")";
 }
 
 // Generate a struct field getter, conditioned on its child type(s).
-static void GenStructAccessor(const StructDef &struct_def,
-                              const FieldDef &field, std::string *code_ptr) {
+void GenStructAccessor(const StructDef &struct_def,
+                       const FieldDef &field, std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
@@ -551,9 +546,9 @@ static void GenStructAccessor(const StructDef &struct_def,
 }
 
 // Mutate the value of a struct's scalar.
-static void MutateScalarFieldOfStruct(const StructDef &struct_def,
-                                      const FieldDef &field,
-                                      std::string *code_ptr) {
+void MutateScalarFieldOfStruct(const StructDef &struct_def,
+                               const FieldDef &field,
+                               std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string type = MakeCamel(GenTypeBasic(field.value.type));
   std::string setter = "rcv._tab.Mutate" + type;
@@ -565,9 +560,9 @@ static void MutateScalarFieldOfStruct(const StructDef &struct_def,
 }
 
 // Mutate the value of a table's scalar.
-static void MutateScalarFieldOfTable(const StructDef &struct_def,
-                                     const FieldDef &field,
-                                     std::string *code_ptr) {
+void MutateScalarFieldOfTable(const StructDef &struct_def,
+                              const FieldDef &field,
+                              std::string *code_ptr) {
   std::string &code = *code_ptr;
   std::string type = MakeCamel(GenTypeBasic(field.value.type));
   std::string setter = "rcv._tab.Mutate" + type + "Slot";
@@ -579,8 +574,8 @@ static void MutateScalarFieldOfTable(const StructDef &struct_def,
 }
 
 // Generate a struct field setter, conditioned on its child type(s).
-static void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr) {
+void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
+                      std::string *code_ptr) {
   GenComment(field.doc_comment, code_ptr, nullptr, "");
   if (IsScalar(field.value.type.base_type)) {
     if (struct_def.fixed) {
@@ -592,8 +587,7 @@ static void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
 }
 
 // Generate table constructors, conditioned on its members' types.
-static void GenTableBuilders(const StructDef &struct_def,
-                             std::string *code_ptr) {
+void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
   GetStartOfTable(struct_def, code_ptr);
 
   for (auto it = struct_def.fields.vec.begin();
@@ -612,7 +606,7 @@ static void GenTableBuilders(const StructDef &struct_def,
 }
 
 // Generate struct or table methods.
-static void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
+void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
   if (struct_def.generated) return;
 
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
@@ -649,7 +643,7 @@ static void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
 }
 
 // Generate enum declarations.
-static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
 
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
@@ -673,7 +667,7 @@ static void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
 }
 
 // Returns the function name that is able to read a value of the given type.
-static std::string GenGetter(const Type &type) {
+std::string GenGetter(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
     case BASE_TYPE_UNION: return "rcv._tab.Union";
@@ -683,13 +677,13 @@ static std::string GenGetter(const Type &type) {
 }
 
 // Returns the method name for use with add/put calls.
-static std::string GenMethod(const FieldDef &field) {
+std::string GenMethod(const FieldDef &field) {
   return IsScalar(field.value.type.base_type)
              ? MakeCamel(GenTypeBasic(field.value.type))
              : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
 }
 
-static std::string GenTypeBasic(const Type &type) {
+std::string GenTypeBasic(const Type &type) {
   static const char *ctypename[] = {
   // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
@@ -702,7 +696,7 @@ static std::string GenTypeBasic(const Type &type) {
   return ctypename[type.base_type];
 }
 
-static std::string GenTypePointer(const Type &type) {
+std::string GenTypePointer(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "[]byte";
     case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
@@ -713,18 +707,18 @@ static std::string GenTypePointer(const Type &type) {
   }
 }
 
-static std::string GenTypeGet(const Type &type) {
+std::string GenTypeGet(const Type &type) {
   if (type.enum_def != nullptr && !type.enum_def->is_union) {
     return GetEnumTypeName(*type.enum_def);
   }
   return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
 }
 
-static std::string TypeName(const FieldDef &field) {
+std::string TypeName(const FieldDef &field) {
   return GenTypeGet(field.value.type);
 }
 
-static std::string GenConstant(const FieldDef &field) {
+std::string GenConstant(const FieldDef &field) {
   switch (field.value.type.base_type) {
     case BASE_TYPE_BOOL: return field.value.constant == "0" ? "false" : "true";;
     default: return field.value.constant;
@@ -732,8 +726,7 @@ static std::string GenConstant(const FieldDef &field) {
 }
 
 // Create a struct with a builder and the struct's arguments.
-static void GenStructBuilder(const StructDef &struct_def,
-                             std::string *code_ptr) {
+void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
   BeginBuilderArgs(struct_def, code_ptr);
   StructBuilderArgs(struct_def, "", code_ptr);
   EndBuilderArgs(code_ptr);
