@@ -64,7 +64,8 @@ class GoGenerator : public BaseGenerator {
   GoGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name, const std::string &go_namespace)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
-                      "" /* not used */) {
+                      "" /* not used */),
+        cur_name_space_(nullptr) {
     std::istringstream iss(go_namespace);
     std::string component;
     while (std::getline(iss, component, '.')) {
@@ -108,6 +109,8 @@ class GoGenerator : public BaseGenerator {
   }
 
  private:
+  Namespace go_namespace_;
+  Namespace *cur_name_space_;
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -130,7 +133,7 @@ void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
 
 // Construct the name of the type alias for this enum.
 std::string GetEnumTypeName(const EnumDef &enum_def) {
-  return GoIdentity(enum_def.name);
+  return WrapInNameSpace(cur_name_space_, GoIdentity(enum_def.name));
 }
 
 // Create a type for the enum values.
@@ -650,6 +653,8 @@ void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
 void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
   if (struct_def.generated) return;
 
+  cur_name_space_ = struct_def.defined_namespace;
+
   GenComment(struct_def.doc_comment, code_ptr, nullptr);
   BeginClass(struct_def, code_ptr);
   if (!struct_def.fixed) {
@@ -686,6 +691,8 @@ void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
 // Generate enum declarations.
 void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
   if (enum_def.generated) return;
+
+  cur_name_space_ = enum_def.defined_namespace;
 
   GenComment(enum_def.doc_comment, code_ptr, nullptr);
   GenEnumType(enum_def, code_ptr);
@@ -741,7 +748,7 @@ std::string GenTypePointer(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "[]byte";
     case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-    case BASE_TYPE_STRUCT: return type.struct_def->name;
+    case BASE_TYPE_STRUCT: return WrapInNameSpace(*type.struct_def);
     case BASE_TYPE_UNION:
       // fall through
     default: return "*flatbuffers.Table";
@@ -806,7 +813,27 @@ void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
     return SaveFile(filename.c_str(), code, false);
   }
 
-  Namespace go_namespace_;
+// Ensure that a type is prefixed with its go package import name if it is used
+// outside of its namespace.
+std::string WrapInNameSpace(const Namespace *ns,
+                            const std::string &name) const {
+  if (CurrentNameSpace() == ns) return name;
+  std::string import_name = "";
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+    if (import_name.size() == 0) {
+      import_name += *it;
+    } else {
+      import_name += "__" + *it;
+    }
+  }
+  return import_name + "." + name;
+}
+
+std::string WrapInNameSpace(const Definition &def) const {
+  return WrapInNameSpace(def.defined_namespace, def.name);
+}
+
+  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 };
 }  // namespace go
 

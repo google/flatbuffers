@@ -516,12 +516,12 @@ func (rcv *Monster) VectorOfDoublesLength() int {
 	return 0
 }
 
-func (rcv *Monster) ParentNamespaceTest(obj *InParentNamespace) *InParentNamespace {
+func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.InParentNamespace {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
-			obj = new(InParentNamespace)
+			obj = new(MyGame.InParentNamespace)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
