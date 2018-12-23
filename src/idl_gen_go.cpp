@@ -76,9 +76,9 @@ class GoGenerator : public BaseGenerator {
 
   bool generate() {
     std::string one_file_code;
-    imported_namespaces_.clear();
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      tracked_imported_namespaces_.clear();
       std::string enumcode;
       GenEnum(**it, &enumcode);
       if (parser_.opts.one_file) {
@@ -90,6 +90,7 @@ class GoGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      tracked_imported_namespaces_.clear();
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -113,7 +114,7 @@ class GoGenerator : public BaseGenerator {
  private:
   Namespace go_namespace_;
   Namespace *cur_name_space_;
-  std::set<const Namespace*> imported_namespaces_;
+  std::set<const Namespace*> tracked_imported_namespaces_;
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -136,7 +137,7 @@ void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
 
 // Construct the name of the type alias for this enum.
 std::string GetEnumTypeName(const EnumDef &enum_def) {
-  return WrapInNameSpace(cur_name_space_, GoIdentity(enum_def.name));
+  return WrapInNameSpaceAndTrackImports(cur_name_space_, GoIdentity(enum_def.name));
 }
 
 // Create a type for the enum values.
@@ -798,6 +799,15 @@ void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
       } else {
         code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
       }
+      if (tracked_imported_namespaces_.size() > 0) {
+        code += "\n";
+        for (auto it = tracked_imported_namespaces_.begin();
+             it != tracked_imported_namespaces_.end();
+             ++it) {
+        code += "\t" + NamespaceImportName(*it) + " \"" + \
+                NamespaceImportPath(*it) + "\"\n";
+        }
+      }
       code += ")\n\n";
     }
   }
@@ -816,23 +826,38 @@ void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
     return SaveFile(filename.c_str(), code, false);
   }
 
+std::string NamespaceImportName(const Namespace *ns) {
+  std::string s = "";
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+    if (s.size() == 0) {
+      s += *it;
+    } else {
+      s += "__" + *it;
+    }
+  }
+  return s;
+}
+std::string NamespaceImportPath(const Namespace *ns) {
+  std::string s = "";
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+    if (s.size() == 0) {
+      s += *it;
+    } else {
+      s += "/" + *it;
+    }
+  }
+  return s;
+}
 // Ensure that a type is prefixed with its go package import name if it is used
 // outside of its namespace.
 std::string WrapInNameSpaceAndTrackImports(const Namespace *ns,
                                            const std::string &name) {
   if (CurrentNameSpace() == ns) return name;
 
-  imported_namespaces_.insert(ns);
+  tracked_imported_namespaces_.insert(ns);
 
-  std::string import_name = "";
-  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
-    if (import_name.size() == 0) {
-      import_name += *it;
-    } else {
-      import_name += "__" + *it;
-    }
-  }
-  std::cerr << "needs namespace " << import_name << std::endl;
+  std::string import_name = NamespaceImportName(ns);
+  std::cerr << "needs namespace " << import_name << ": " << name << std::endl;
   return import_name + "." + name;
 }
 

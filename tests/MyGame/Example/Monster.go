@@ -4,6 +4,8 @@ package Example
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
+
+	MyGame "MyGame"
 )
 
 /// an example documentation comment: monster object
