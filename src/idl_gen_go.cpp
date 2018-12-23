@@ -50,15 +50,6 @@ static const char * const g_golang_keywords[] = {
   "for",    "import",  "return",      "var",
 };
 
-static std::string GenGetter(const Type &type);
-static std::string GenMethod(const FieldDef &field);
-static std::string GenConstant(const FieldDef &field);
-static void GenStructBuilder(const StructDef &struct_def,
-                             std::string *code_ptr);
-static void GenReceiver(const StructDef &struct_def, std::string *code_ptr);
-static std::string GenTypeBasic(const Type &type);
-static std::string GenTypeGet(const Type &type);
-static std::string TypeName(const FieldDef &field);
 static std::string GoIdentity(const std::string &name) {
   for (size_t i = 0;
        i < sizeof(g_golang_keywords) / sizeof(g_golang_keywords[0]); i++) {
@@ -67,6 +58,56 @@ static std::string GoIdentity(const std::string &name) {
 
   return MakeCamel(name, false);
 }
+
+class GoGenerator : public BaseGenerator {
+ public:
+  GoGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name, const std::string &go_namespace)
+      : BaseGenerator(parser, path, file_name, "" /* not used*/,
+                      "" /* not used */) {
+    std::istringstream iss(go_namespace);
+    std::string component;
+    while (std::getline(iss, component, '.')) {
+      go_namespace_.components.push_back(component);
+    }
+  }
+
+  bool generate() {
+    std::string one_file_code;
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      std::string enumcode;
+      GenEnum(**it, &enumcode);
+      if (parser_.opts.one_file) {
+        one_file_code += enumcode;
+      } else {
+        if (!SaveType(**it, enumcode, false)) return false;
+      }
+    }
+
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      std::string declcode;
+      GenStruct(**it, &declcode);
+      if (parser_.opts.one_file) {
+        one_file_code += declcode;
+      } else {
+        if (!SaveType(**it, declcode, true)) return false;
+      }
+    }
+
+    if (parser_.opts.one_file) {
+      std::string code = "";
+      BeginFile(LastNamespacePart(go_namespace_), true, &code);
+      code += one_file_code;
+      const std::string filename = GeneratedFileName(path_, file_name_);
+      return SaveFile(filename.c_str(), code, false);
+    }
+
+    return true;
+  }
+
+ private:
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -734,56 +775,6 @@ void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
   StructBuilderBody(struct_def, "", code_ptr);
   EndBuilderBody(code_ptr);
 }
-
-class GoGenerator : public BaseGenerator {
- public:
-  GoGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, const std::string &go_namespace)
-      : BaseGenerator(parser, path, file_name, "" /* not used*/,
-                      "" /* not used */) {
-    std::istringstream iss(go_namespace);
-    std::string component;
-    while (std::getline(iss, component, '.')) {
-      go_namespace_.components.push_back(component);
-    }
-  }
-
-  bool generate() {
-    std::string one_file_code;
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      std::string enumcode;
-      go::GenEnum(**it, &enumcode);
-      if (parser_.opts.one_file) {
-        one_file_code += enumcode;
-      } else {
-        if (!SaveType(**it, enumcode, false)) return false;
-      }
-    }
-
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      std::string declcode;
-      go::GenStruct(**it, &declcode);
-      if (parser_.opts.one_file) {
-        one_file_code += declcode;
-      } else {
-        if (!SaveType(**it, declcode, true)) return false;
-      }
-    }
-
-    if (parser_.opts.one_file) {
-      std::string code = "";
-      BeginFile(LastNamespacePart(go_namespace_), true, &code);
-      code += one_file_code;
-      const std::string filename = GeneratedFileName(path_, file_name_);
-      return SaveFile(filename.c_str(), code, false);
-    }
-
-    return true;
-  }
-
- private:
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string name_space_name, const bool needs_imports,
                  std::string *code_ptr) {
