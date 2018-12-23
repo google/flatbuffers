@@ -18,6 +18,7 @@
 
 #include <sstream>
 #include <string>
+#include <iostream>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -75,6 +76,7 @@ class GoGenerator : public BaseGenerator {
 
   bool generate() {
     std::string one_file_code;
+    imported_namespaces_.clear();
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
@@ -111,6 +113,7 @@ class GoGenerator : public BaseGenerator {
  private:
   Namespace go_namespace_;
   Namespace *cur_name_space_;
+  std::set<const Namespace*> imported_namespaces_;
 
 // Most field accessors need to retrieve and test the field offset first,
 // this is the prefix code for that.
@@ -748,7 +751,7 @@ std::string GenTypePointer(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_STRING: return "[]byte";
     case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-    case BASE_TYPE_STRUCT: return WrapInNameSpace(*type.struct_def);
+    case BASE_TYPE_STRUCT: return WrapInNameSpaceAndTrackImports(*type.struct_def);
     case BASE_TYPE_UNION:
       // fall through
     default: return "*flatbuffers.Table";
@@ -815,9 +818,12 @@ void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
 
 // Ensure that a type is prefixed with its go package import name if it is used
 // outside of its namespace.
-std::string WrapInNameSpace(const Namespace *ns,
-                            const std::string &name) const {
+std::string WrapInNameSpaceAndTrackImports(const Namespace *ns,
+                                           const std::string &name) {
   if (CurrentNameSpace() == ns) return name;
+
+  imported_namespaces_.insert(ns);
+
   std::string import_name = "";
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     if (import_name.size() == 0) {
@@ -826,11 +832,12 @@ std::string WrapInNameSpace(const Namespace *ns,
       import_name += "__" + *it;
     }
   }
+  std::cerr << "needs namespace " << import_name << std::endl;
   return import_name + "." + name;
 }
 
-std::string WrapInNameSpace(const Definition &def) const {
-  return WrapInNameSpace(def.defined_namespace, def.name);
+std::string WrapInNameSpaceAndTrackImports(const Definition &def) {
+  return WrapInNameSpaceAndTrackImports(def.defined_namespace, def.name);
 }
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
