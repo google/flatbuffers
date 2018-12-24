@@ -421,6 +421,7 @@ struct IDLOptions {
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
+  bool go_no_funcs;
   bool reexport_ts_modules;
   bool protobuf_ascii_alike;
   bool size_prefixed;

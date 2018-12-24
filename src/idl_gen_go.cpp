@@ -673,8 +673,9 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	// Set the value of a table's field.
-	void BuildFieldOfTable(
-		StructDef const &def, FieldDef const *fld, const size_t offset
+	void GenFieldOfTableBuilder(
+		StructDef const &def, FieldDef const *fld,
+		const size_t offset, bool freeFunc
 	) {
 		std::string basic_type(ToBasicType(fld->value.type));
 		std::string actual_type;
@@ -685,8 +686,16 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			actual_type = GetTypeName(fld->value.type);
 		}
 
-		std::string line = "{{STRUCT_BUILDER_RECEIVER}} Add";
-		line += MakeCamel(fld->name) + "(" + GoIdentity(fld->name) + " ";
+		std::string line;
+
+		if (freeFunc) {
+			line = "func {{STRUCT_NAME}}Add";
+			line += MakeCamel(fld->name);
+			line += "(b *flatbuffers.Builder, " + GoIdentity(fld->name) + " ";
+		} else {
+			line = "{{STRUCT_BUILDER_RECEIVER}} Add";
+			line += MakeCamel(fld->name) + "(" + GoIdentity(fld->name) + " ";
+		}
 
 		if (!IsScalar(fld->value.type.base_type) && (!def.fixed)) {
 			line += "flatbuffers.UOffsetT";
@@ -717,9 +726,19 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	// Set the value of one of the members of a table's vector.
-	void BuildVectorOfTable(FieldDef const *fld) {
-		code_ += "{{STRUCT_BUILDER_RECEIVER}} Start" + MakeCamel(fld->name)
-			+ "Vector(numElems int) flatbuffers.UOffsetT {";
+	void GenVectorOfTableBuilder(
+		FieldDef const *fld, bool freeFunc
+	) {
+		if (freeFunc) {
+			 code_ += "func {{STRUCT_NAME}}Start"
+				+ MakeCamel(fld->name)
+				+ "Vector(b *flatbuffers.Builder, numElems int) "
+				"flatbuffers.UOffsetT {";
+		} else {
+			code_ += "{{STRUCT_BUILDER_RECEIVER}} Start"
+				+ MakeCamel(fld->name)
+				+ "Vector(numElems int) flatbuffers.UOffsetT {";
+		}
 
 		auto vector_type = fld->value.type.VectorType();
 		auto alignment = InlineAlignment(vector_type);
@@ -822,7 +841,33 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	}
 
 	// Generate table constructors, conditioned on its members' types.
-	void GenTableBuilders(StructDef const &def) {
+	void GenTableFuncBuilders(StructDef const &def) {
+		code_ += "func {{STRUCT_NAME}}Start"
+			"(builder *flatbuffers.Builder) {";
+		code_ += "\tbuilder.StartObject("
+			+ NumToString(def.fields.vec.size())
+			+ ")";
+		code_ += "}\n";
+ 
+		int offset(0);
+		for (auto fld: def.fields.vec) {
+			if (fld->deprecated) {
+				offset++;
+				continue;
+			}
+ 
+			GenFieldOfTableBuilder(def, fld, offset++, true);
+			if (fld->value.type.base_type == BASE_TYPE_VECTOR)
+				GenVectorOfTableBuilder(fld, true);
+		}
+
+		code_ += "func {{STRUCT_NAME}}End"
+			"(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
+		code_ += "\treturn builder.EndObject()";
+		code_ += "}\n";
+	}
+
+	void GenTableBuilder(StructDef const &def) {
 		code_ += "type {{STRUCT_NAME}}Builder struct {";
 		code_ += "\t*flatbuffers.Builder";
 		code_ += "}\n";
@@ -848,10 +893,9 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 				continue;
 			}
 
-			BuildFieldOfTable(def, fld, offset++);
-			if (fld->value.type.base_type == BASE_TYPE_VECTOR) {
-				BuildVectorOfTable(fld);
-			}
+			GenFieldOfTableBuilder(def, fld, offset++, false);
+			if (fld->value.type.base_type == BASE_TYPE_VECTOR)
+				GenVectorOfTableBuilder(fld, false);
 		}
 
 		code_ += "{{STRUCT_BUILDER_RECEIVER}} End() flatbuffers.UOffsetT {";
@@ -925,14 +969,17 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 			GenStructMutator(def, fld);
 		}
 
-		// Generate builders
 		if (def.fixed) {
 			// create a struct constructor function
 			GenStructBuilder(def);
 		} else {
 			// Create a set of functions that allow table construction.
-			GenTableBuilders(def);
+
+			GenTableBuilder(def);
 			GenTableCreate(def);
+			if (!parser_.opts.go_no_funcs) {
+				GenTableFuncBuilders(def);
+			}
 		}
 
 		if (parser_.opts.generate_object_based_api) {
