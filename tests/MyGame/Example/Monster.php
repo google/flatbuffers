@@ -793,7 +793,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -852,7 +852,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 2);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -886,7 +886,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -920,7 +920,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -964,7 +964,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1098,7 +1098,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addBool($data[$i]);
+            $builder->putBool($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1162,7 +1162,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1196,7 +1196,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1230,7 +1230,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1264,7 +1264,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 2);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1298,7 +1298,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addLong($data[$i]);
+            $builder->putLong($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1332,7 +1332,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addDouble($data[$i]);
+            $builder->putDouble($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1376,7 +1376,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1420,7 +1420,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addUlong($data[$i]);
+            $builder->putUlong($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1454,7 +1454,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1498,7 +1498,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addUlong($data[$i]);
+            $builder->putUlong($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1542,7 +1542,7 @@ class Monster extends Table
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addUlong($data[$i]);
+            $builder->putUlong($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1606,7 +1606,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addSbyte($data[$i]);
+            $builder->putSbyte($data[$i]);
         }
         return $builder->endVector();
     }
