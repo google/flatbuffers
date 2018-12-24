@@ -18,7 +18,6 @@
 
 #include <sstream>
 #include <string>
-#include <iostream>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -857,7 +856,6 @@ std::string WrapInNameSpaceAndTrackImports(const Namespace *ns,
   tracked_imported_namespaces_.insert(ns);
 
   std::string import_name = NamespaceImportName(ns);
-  std::cerr << "needs namespace " << import_name << ": " << name << std::endl;
   return import_name + "." + name;
 }
 
