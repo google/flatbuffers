@@ -170,7 +170,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
       set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -faligned-new")
+        "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
     endif()
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
