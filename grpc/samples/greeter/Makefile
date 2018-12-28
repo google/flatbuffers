@@ -1,5 +1,5 @@
 CXXFLAGS ?= -I../../../include
-LDFLAGS ?= -L/usr/local/lib/ -L/usr/lib/
+LDFLAGS ?=
 
 .PHONY: all
 all: greeter_generated.h greeter_server greeter_client

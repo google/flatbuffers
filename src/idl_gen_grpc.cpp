@@ -167,7 +167,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
     }
   }
 
-  void PrintRaw(const char* data){
+  void PrintRaw(const char *data){
     Print(data);
   }
 
