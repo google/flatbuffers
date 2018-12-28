@@ -2,17 +2,20 @@
 // If you make any local change, they will be lost.
 // source: monster_test
 
-#include "monster_test_generated.h"
-#include "monster_test.grpc.fb.h"
+#include "monster_test.pb.h"
+#include "monster_test.grpc.pb.h"
 
-#include <grpc++/impl/codegen/async_stream.h>
-#include <grpc++/impl/codegen/async_unary_call.h>
-#include <grpc++/impl/codegen/channel_interface.h>
-#include <grpc++/impl/codegen/client_unary_call.h>
-#include <grpc++/impl/codegen/method_handler_impl.h>
-#include <grpc++/impl/codegen/rpc_service_method.h>
-#include <grpc++/impl/codegen/service_type.h>
-#include <grpc++/impl/codegen/sync_stream.h>
+#include <functional>
+#include <grpcpp/impl/codegen/async_stream.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
+#include <grpcpp/impl/codegen/channel_interface.h>
+#include <grpcpp/impl/codegen/client_unary_call.h>
+#include <grpcpp/impl/codegen/client_callback.h>
+#include <grpcpp/impl/codegen/method_handler_impl.h>
+#include <grpcpp/impl/codegen/rpc_service_method.h>
+#include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/service_type.h>
+#include <grpcpp/impl/codegen/sync_stream.h>
 namespace MyGame {
 namespace Example {
 
@@ -24,6 +27,7 @@ static const char* MonsterStorage_method_names[] = {
 };
 
 std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+  (void)options;
   std::unique_ptr< MonsterStorage::Stub> stub(new MonsterStorage::Stub(channel));
   return stub;
 }
@@ -39,6 +43,10 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
   return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_Store_, context, request, response);
 }
 
+void MonsterStorage::Stub::experimental_async::Store(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>* request, flatbuffers::grpc::Message<Stat>* response, std::function<void(::grpc::Status)> f) {
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Store_, context, request, response, std::move(f));
+}
+
 ::grpc::ClientAsyncResponseReader< flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::AsyncStoreRaw(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< flatbuffers::grpc::Message<Stat>>::Create(channel_.get(), cq, rpcmethod_Store_, context, request, true);
 }
@@ -49,6 +57,10 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
 
 ::grpc::ClientReader< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::RetrieveRaw(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Stat>& request) {
   return ::grpc::internal::ClientReaderFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), rpcmethod_Retrieve_, context, request);
+}
+
+void MonsterStorage::Stub::experimental_async::Retrieve(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* request, ::grpc::experimental::ClientReadReactor< flatbuffers::grpc::Message<Monster>>* reactor) {
+  ::grpc::internal::ClientCallbackReaderFactory< flatbuffers::grpc::Message<Monster>>::Create(stub_->channel_.get(), stub_->rpcmethod_Retrieve_, context, request, reactor);
 }
 
 ::grpc::ClientAsyncReader< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::AsyncRetrieveRaw(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Stat>& request, ::grpc::CompletionQueue* cq, void* tag) {
@@ -63,6 +75,10 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
   return ::grpc::internal::ClientWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), rpcmethod_GetMaxHitPoint_, context, response);
 }
 
+void MonsterStorage::Stub::experimental_async::GetMaxHitPoint(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response, ::grpc::experimental::ClientWriteReactor< flatbuffers::grpc::Message<Monster>>* reactor) {
+  ::grpc::internal::ClientCallbackWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(stub_->channel_.get(), stub_->rpcmethod_GetMaxHitPoint_, context, response, reactor);
+}
+
 ::grpc::ClientAsyncWriter< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::AsyncGetMaxHitPointRaw(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response, ::grpc::CompletionQueue* cq, void* tag) {
   return ::grpc::internal::ClientAsyncWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), cq, rpcmethod_GetMaxHitPoint_, context, response, true, tag);
 }
@@ -73,6 +89,10 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
 
 ::grpc::ClientReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::GetMinMaxHitPointsRaw(::grpc::ClientContext* context) {
   return ::grpc::internal::ClientReaderWriterFactory< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>::Create(channel_.get(), rpcmethod_GetMinMaxHitPoints_, context);
+}
+
+void MonsterStorage::Stub::experimental_async::GetMinMaxHitPoints(::grpc::ClientContext* context, ::grpc::experimental::ClientBidiReactor< flatbuffers::grpc::Message<Monster>,flatbuffers::grpc::Message<Stat>>* reactor) {
+  ::grpc::internal::ClientCallbackReaderWriterFactory< flatbuffers::grpc::Message<Monster>,flatbuffers::grpc::Message<Stat>>::Create(stub_->channel_.get(), stub_->rpcmethod_GetMinMaxHitPoints_, context, reactor);
 }
 
 ::grpc::ClientAsyncReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::AsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {

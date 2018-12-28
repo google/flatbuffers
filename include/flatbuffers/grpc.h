@@ -321,6 +321,17 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
     }
 #endif
   }
+
+  static grpc::Status Deserialize(ByteBuffer *buffer,
+                                  flatbuffers::grpc::Message<T> *msg) {
+    return Deserialize(buffer->get_buffer(), msg);
+  }
+
+  static grpc::Status Deserialize(ByteBuffer::ByteBufferPointer p,
+                                  flatbuffers::grpc::Message<T> *msg) {
+    return Deserialize((grpc_byte_buffer*)(p) , msg);
+  }
+
 };
 
 }  // namespace grpc

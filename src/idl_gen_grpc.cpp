@@ -167,6 +167,10 @@ class FlatBufPrinter : public grpc_generator::Printer {
     }
   }
 
+  void PrintRaw(const char* data){
+    Print(data);
+  }
+
   void Indent() { indent_++; }
 
   void Outdent() {

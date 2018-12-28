@@ -5,6 +5,8 @@ include(CheckCXXSymbolExists)
 
 project(FlatBuffers)
 
+#include_directories(/home/henry/evolvability/protobuf/src)
+
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
@@ -170,10 +172,10 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
       set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
+        "${CMAKE_CXX_FLAGS} -faligned-new")
     endif()
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
+      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wno-unused-parameter")
   endif()
 
   # Certain platforms such as ARM do not use signed chars by default
