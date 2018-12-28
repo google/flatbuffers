@@ -4,6 +4,8 @@ package NamespaceA
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
+
+	NamespaceA__NamespaceB "NamespaceA/NamespaceB"
 )
 
 type TableInFirstNS struct {
@@ -26,12 +28,12 @@ func (rcv *TableInFirstNS) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *TableInFirstNS) FooTable(obj *TableInNestedNS) *TableInNestedNS {
+func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS) *NamespaceA__NamespaceB.TableInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
-			obj = new(TableInNestedNS)
+			obj = new(NamespaceA__NamespaceB.TableInNestedNS)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
@@ -51,12 +53,12 @@ func (rcv *TableInFirstNS) MutateFooEnum(n EnumInNestedNS) bool {
 	return rcv._tab.MutateInt8Slot(6, n)
 }
 
-func (rcv *TableInFirstNS) FooStruct(obj *StructInNestedNS) *StructInNestedNS {
+func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		x := o + rcv._tab.Pos
 		if obj == nil {
-			obj = new(StructInNestedNS)
+			obj = new(NamespaceA__NamespaceB.StructInNestedNS)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
