@@ -16,6 +16,7 @@
  *
  */
 
+#include <cassert>
 #include <map>
 
 #include "src/compiler/cpp_generator.h"
