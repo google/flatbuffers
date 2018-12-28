@@ -2,7 +2,7 @@ CXXFLAGS ?= -I../../../include
 LDFLAGS ?= -L/usr/local/lib/ -L/usr/lib/
 
 .PHONY: all
-all: greeter_server greeter_client
+all: greeter_generated.h greeter_server greeter_client
 
 greeter_generated.h: greeter.fbs
 	flatc --grpc --cpp $<
