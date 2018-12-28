@@ -4,7 +4,7 @@
 #ifndef GRPC_monster_5ftest__INCLUDED
 #define GRPC_monster_5ftest__INCLUDED
 
-#include "monster_test.pb.h"
+#include "monster_test_generated.h"
 #include "flatbuffers/grpc.h"
 
 #include <functional>

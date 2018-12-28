@@ -2,8 +2,8 @@
 // If you make any local change, they will be lost.
 // source: monster_test
 
-#include "monster_test.pb.h"
-#include "monster_test.grpc.pb.h"
+#include "monster_test_generated.h"
+#include "monster_test.grpc.fb.h"
 
 #include <functional>
 #include <grpcpp/impl/codegen/async_stream.h>

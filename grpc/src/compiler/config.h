@@ -23,8 +23,8 @@ namespace grpc {}  // namespace grpc
 
 namespace grpc_cpp_generator {
 
-static const char* const kCppGeneratorMessageHeaderExt = ".pb.h";
-static const char* const kCppGeneratorServiceHeaderExt = ".grpc.pb.h";
+static const char* const kCppGeneratorMessageHeaderExt = "_generated.h";
+static const char* const kCppGeneratorServiceHeaderExt = ".grpc.fb.h";
 
 }  // namespace grpc_cpp_generator
 
