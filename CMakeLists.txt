@@ -5,8 +5,6 @@ include(CheckCXXSymbolExists)
 
 project(FlatBuffers)
 
-#include_directories(/home/henry/evolvability/protobuf/src)
-
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
