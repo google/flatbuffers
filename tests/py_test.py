@@ -40,6 +40,7 @@ import MyGame.Example.Monster  # refers to generated code
 import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
+import MyGame.MonsterExtra  # refers to generated code
 
 
 def assertRaises(test_case, fn, exception_class):

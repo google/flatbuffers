@@ -1,7 +1,7 @@
 namespace MyGame;
 
 // Not all programmining languages support this extra table.
-table MonsterExra {
+table MonsterExtra {
   // Float-point values with NaN and Inf defaults.
   testf_nan:float = nan;
   testf_pinf:float = +inf;

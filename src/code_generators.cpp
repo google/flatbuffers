@@ -188,6 +188,94 @@ std::string FloatConstantGenerator::GenFloatConstant(
   };
 }
 
+TypedFloatConstantGenerator::TypedFloatConstantGenerator(
+    const char *double_prefix, const char *single_prefix,
+    const char *nan_number, const char *pos_inf_number,
+    const char *neg_inf_number)
+    : double_prefix_(double_prefix),
+      single_prefix_(single_prefix),
+      nan_number_(nan_number),
+      pos_inf_number_(pos_inf_number),
+      neg_inf_number_(neg_inf_number) {}
+
+std::string TypedFloatConstantGenerator::MakeNaN(
+    const std::string &prefix) const {
+  return prefix + nan_number_;
+}
+std::string TypedFloatConstantGenerator::MakeInf(
+    bool neg, const std::string &prefix) const {
+  if (neg)
+    return !neg_inf_number_.empty() ? (prefix + neg_inf_number_)
+                                    : ("-" + prefix + pos_inf_number_);
+  else
+    return prefix + pos_inf_number_;
+}
+
+std::string TypedFloatConstantGenerator::Value(double v,
+                                               const std::string &src) const {
+  (void)v;
+  return src;
+}
+
+std::string TypedFloatConstantGenerator::Inf(double v) const {
+  return MakeInf(v < 0, double_prefix_);
+}
+
+std::string TypedFloatConstantGenerator::NaN(double v) const {
+  (void)v;
+  return MakeNaN(double_prefix_);
+}
+
+std::string TypedFloatConstantGenerator::Value(float v,
+                                               const std::string &src) const {
+  (void)v;
+  return src + "f";
+}
+
+std::string TypedFloatConstantGenerator::Inf(float v) const {
+  return MakeInf(v < 0, single_prefix_);
+}
+
+std::string TypedFloatConstantGenerator::NaN(float v) const {
+  (void)v;
+  return MakeNaN(single_prefix_);
+}
+
+SimpleFloatConstantGenerator::SimpleFloatConstantGenerator(
+    const char *nan_number, const char *pos_inf_number,
+    const char *neg_inf_number)
+    : nan_number_(nan_number),
+      pos_inf_number_(pos_inf_number),
+      neg_inf_number_(neg_inf_number) {}
+
+std::string SimpleFloatConstantGenerator::Value(double v,
+                                                const std::string &src) const {
+  (void)v;
+  return src;
+}
+
+std::string SimpleFloatConstantGenerator::Inf(double v) const {
+  return (v < 0) ? neg_inf_number_ : pos_inf_number_;
+}
+
+std::string SimpleFloatConstantGenerator::NaN(double v) const {
+  (void)v;
+  return nan_number_;
+}
+
+std::string SimpleFloatConstantGenerator::Value(float v,
+                                                const std::string &src) const {
+  return this->Value(static_cast<double>(v), src);
+}
+
+std::string SimpleFloatConstantGenerator::Inf(float v) const {
+  return this->Inf(static_cast<double>(v));
+}
+
+std::string SimpleFloatConstantGenerator::NaN(float v) const {
+  return this->NaN(static_cast<double>(v));
+}
+
 }  // namespace flatbuffers
 
 #if defined(_MSC_VER)
