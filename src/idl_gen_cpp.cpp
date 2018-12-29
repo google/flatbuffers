@@ -16,12 +16,13 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <cmath>
+#include <unordered_set>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
-#include <unordered_set>
 
 namespace flatbuffers {
 
@@ -34,6 +35,16 @@ static std::string GeneratedFileName(const std::string &path,
 }
 
 namespace cpp {
+template<typename T> struct FloatTraits {
+  static std::string suffix() { return "f"; }
+  static std::string limits() { return "std::numeric_limits<float>::"; }
+};
+
+template<> struct FloatTraits<double> {
+  static std::string suffix() { return ""; }
+  static std::string limits() { return "std::numeric_limits<double>::"; }
+};
+
 class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
@@ -1391,10 +1402,35 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
+  template<typename T>
+  std::string GenDefaultConstantFloat(const std::string &constant) {
+  #if !defined(FLATBUFFERS_WITHOUT_NAN)
+    typedef FloatTraits<T> trait;
+    T v;
+    auto done = StringToNumber(constant.c_str(), &v);
+    FLATBUFFERS_ASSERT(done);
+    if (done) {
+      if (std::isfinite(v)) return constant + trait::suffix();
+      // Requires #include <limits>.
+      // The Infinity and NaN are defined if is_iec559 is true (IEEE 754).
+      if (std::isinf(v))
+        return std::string((v < 0) ? "-" : "") + trait::limits() + "infinity()";
+
+      if (std::isnan(v)) return trait::limits() + "quiet_NaN()";
+    }
+    return "#";  // compile time error
+  #else
+    return constant + FloatTraits<T>::suffix();
+  #endif
+  }
+
   std::string GenDefaultConstant(const FieldDef &field) {
-    return field.value.type.base_type == BASE_TYPE_FLOAT
-               ? field.value.constant + "f"
-               : field.value.constant;
+    if (field.value.type.base_type == BASE_TYPE_FLOAT)
+      return GenDefaultConstantFloat<float>(field.value.constant);
+    else if (field.value.type.base_type == BASE_TYPE_DOUBLE)
+      return GenDefaultConstantFloat<double>(field.value.constant);
+    else
+      return field.value.constant;
   }
 
   std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
