@@ -224,7 +224,7 @@ template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
   return !!t;
 }
 
-// MSVC2010 doesn't have std::isnan(), workaround for scalar types.
+// MSVC2010 doesn't have std::isnan, std::isinf, std::isfinite.
 #if defined(_MSC_VER) && (_MSC_VER <= 1600)
   #define FLATBUFFERS_WITHOUT_NAN
 #endif

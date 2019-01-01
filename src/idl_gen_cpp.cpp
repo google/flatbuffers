@@ -35,14 +35,43 @@ static std::string GeneratedFileName(const std::string &path,
 }
 
 namespace cpp {
-template<typename T> struct FloatTraits {
-  static std::string suffix() { return "f"; }
-  static std::string limits() { return "std::numeric_limits<float>::"; }
-};
 
-template<> struct FloatTraits<double> {
-  static std::string suffix() { return ""; }
-  static std::string limits() { return "std::numeric_limits<double>::"; }
+class CppFloatConstantGenerator : public FloatConstantGenerator {
+ protected:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return src;
+  };
+
+  std::string Value(float v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return src + "f";
+  }
+
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return "std::numeric_limits<double>::quiet_NaN()";
+  }
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return "std::numeric_limits<float>::quiet_NaN()";
+  }
+
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE {
+    if(v < 0)
+      return "-std::numeric_limits<double>::infinity()";
+    else
+      return "std::numeric_limits<double>::infinity()";
+  }
+
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE {
+    if (v < 0)
+      return "-std::numeric_limits<float>::infinity()";
+    else
+      return "std::numeric_limits<float>::infinity()";
+  }
 };
 
 class CppGenerator : public BaseGenerator {
@@ -1402,33 +1431,9 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
-  template<typename T>
-  std::string GenDefaultConstantFloat(const std::string &constant) {
-  #if !defined(FLATBUFFERS_WITHOUT_NAN)
-    typedef FloatTraits<T> trait;
-    T v;
-    auto done = StringToNumber(constant.c_str(), &v);
-    FLATBUFFERS_ASSERT(done);
-    if (done) {
-      if (std::isfinite(v)) return constant + trait::suffix();
-      // Requires #include <limits>.
-      // The Infinity and NaN are defined if is_iec559 is true (IEEE 754).
-      if (std::isinf(v))
-        return std::string((v < 0) ? "-" : "") + trait::limits() + "infinity()";
-
-      if (std::isnan(v)) return trait::limits() + "quiet_NaN()";
-    }
-    return "#";  // compile time error
-  #else
-    return constant + FloatTraits<T>::suffix();
-  #endif
-  }
-
   std::string GenDefaultConstant(const FieldDef &field) {
-    if (field.value.type.base_type == BASE_TYPE_FLOAT)
-      return GenDefaultConstantFloat<float>(field.value.constant);
-    else if (field.value.type.base_type == BASE_TYPE_DOUBLE)
-      return GenDefaultConstantFloat<double>(field.value.constant);
+    if(IsFloat(field.value.type.base_type))
+      return float_const_gen_.GenFloatConstant(field);
     else
       return field.value.constant;
   }
@@ -2781,6 +2786,8 @@ class CppGenerator : public BaseGenerator {
 
     cur_name_space_ = ns;
   }
+
+  const CppFloatConstantGenerator float_const_gen_;
 };
 
 }  // namespace cpp

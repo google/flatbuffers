@@ -130,6 +130,23 @@ extern void GenComment(const std::vector<std::string> &dc,
                        std::string *code_ptr, const CommentConfig *config,
                        const char *prefix = "");
 
+class FloatConstantGenerator {
+ public:
+  virtual ~FloatConstantGenerator(){};
+  std::string GenFloatConstant(const FieldDef &field) const;
+
+ protected:
+  virtual std::string Value(double v, const std::string &src) const = 0;
+  virtual std::string Value(float v, const std::string &src) const = 0;
+  virtual std::string NaN(double v) const = 0;
+  virtual std::string NaN(float v) const = 0;
+  virtual std::string Inf(double v) const = 0;
+  virtual std::string Inf(float v) const = 0;
+
+  template<typename T>
+  std::string GenFloatConstantImpl(const FieldDef &field) const;
+};
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_CODE_GENERATORS_H_
