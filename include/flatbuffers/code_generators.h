@@ -135,13 +135,23 @@ class FloatConstantGenerator {
   virtual ~FloatConstantGenerator(){};
   std::string GenFloatConstant(const FieldDef &field) const;
 
- protected:
-  virtual std::string Value(double v, const std::string &src) const = 0;
-  virtual std::string Value(float v, const std::string &src) const = 0;
-  virtual std::string NaN(double v) const = 0;
-  virtual std::string NaN(float v) const = 0;
+ private:
   virtual std::string Inf(double v) const = 0;
-  virtual std::string Inf(float v) const = 0;
+  virtual std::string NaN(double v) const = 0;
+  virtual std::string Value(double v, const std::string &src) const {
+    (void)v;
+    return src;
+  }
+
+  virtual std::string Inf(float v) const {
+    return this->Inf(static_cast<double>(v));
+  }
+  virtual std::string NaN(float v) const {
+    return this->NaN(static_cast<double>(v));
+  }
+  virtual std::string Value(float v, const std::string &src) const {
+    return this->Value(static_cast<double>(v), src);
+  }
 
   template<typename T>
   std::string GenFloatConstantImpl(const FieldDef &field) const;

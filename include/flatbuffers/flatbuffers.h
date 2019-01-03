@@ -17,25 +17,9 @@
 #ifndef FLATBUFFERS_H_
 #define FLATBUFFERS_H_
 
-#include <cmath>
-
 #include "flatbuffers/base.h"
 
 namespace flatbuffers {
-// `IsTheSameAs(e, def)`: `e` is the same as `def`.
-// Like `operator==(e, def)` with weak NaN if T=(float|double).
-template<typename T> inline bool IsTheSameAs(T e, T def) { return (e == def); }
-
-#if !defined(FLATBUFFERS_WITHOUT_NAN)
-template<> inline bool IsTheSameAs<float>(float e, float def) {
-  return (e == def) || (std::isnan(e) && std::isnan(def));
-}
-
-template<> inline bool IsTheSameAs<double>(double e, double def) {
-  return (e == def) || (std::isnan(e) && std::isnan(def));
-}
-#endif
-
 // Wrapper for uoffset_t to allow safe template specialization.
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
 template<typename T> struct Offset {
@@ -1103,7 +1087,7 @@ class FlatBufferBuilder {
   // Like PushElement, but additionally tracks the field this represents.
   template<typename T> void AddElement(voffset_t field, T e, T def) {
     // We don't serialize values equal to the default.
-    if (IsTheSameAs(e, def) && !force_defaults_) return;
+    if (e == def && !force_defaults_) return;
     auto off = PushElement(e);
     TrackField(field, off);
   }
@@ -2257,7 +2241,7 @@ class Table {
 
   template<typename T> bool SetField(voffset_t field, T val, T def) {
     auto field_offset = GetOptionalFieldOffset(field);
-    if (!field_offset) return IsTheSameAs(val, def);
+    if (!field_offset) return val == def;
     WriteScalar(data_ + field_offset, val);
     return true;
   }

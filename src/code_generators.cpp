@@ -19,6 +19,8 @@
 #include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
+#include <cmath>
+
 #if defined(_MSC_VER)
 #  pragma warning(push)
 #  pragma warning(disable : 4127)  // C4127: conditional expression is constant
