@@ -16,13 +16,12 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include <cmath>
-#include <unordered_set>
-
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+
+#include <unordered_set>
 
 namespace flatbuffers {
 
@@ -35,7 +34,6 @@ static std::string GeneratedFileName(const std::string &path,
 }
 
 namespace cpp {
-
 class CppFloatConstantGenerator : public FloatConstantGenerator {
  protected:
   std::string Value(double v,

@@ -159,7 +159,6 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
   }
 }
 
-
 template<typename T>
 std::string FloatConstantGenerator::GenFloatConstantImpl(
     const FieldDef &field) const {
@@ -168,8 +167,8 @@ std::string FloatConstantGenerator::GenFloatConstantImpl(
   auto done = StringToNumber(constant.c_str(), &v);
   FLATBUFFERS_ASSERT(done);
   if (done) {
-#if !defined(FLATBUFFERS_WITHOUT_NAN)
-    if (std::isnan(v)) return NaN(v);  // check NaN first!
+#if (!defined(_MSC_VER) || (_MSC_VER >= 1800))
+    if (std::isnan(v)) return NaN(v);
     if (std::isinf(v)) return Inf(v);
 #endif
     return Value(v, constant);
@@ -179,11 +178,13 @@ std::string FloatConstantGenerator::GenFloatConstantImpl(
 
 std::string FloatConstantGenerator::GenFloatConstant(
     const FieldDef &field) const {
-  // type dispatch table
   switch (field.value.type.base_type) {
     case BASE_TYPE_FLOAT: return GenFloatConstantImpl<float>(field);
     case BASE_TYPE_DOUBLE: return GenFloatConstantImpl<double>(field);
-    default: FLATBUFFERS_ASSERT(false); return "INVALID_BASE_TYPE";
+    default: {
+      FLATBUFFERS_ASSERT(false);
+      return "INVALID_BASE_TYPE";
+    }
   };
 }
 
