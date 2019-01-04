@@ -7,7 +7,7 @@ import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct TableInFirstNS
     foo_table::Union{NamespaceB.TableInNestedNS, Nothing} = nothing
-    foo_enum::EnumInNestedNS = 0
+    foo_enum::NamespaceB.EnumInNestedNS = 0
     foo_struct::Union{NamespaceB.StructInNestedNS, Nothing} = nothing
 end
 FlatBuffers.@ALIGN(TableInFirstNS, 1)
