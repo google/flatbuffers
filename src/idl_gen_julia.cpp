@@ -624,7 +624,7 @@ class JuliaGenerator : public BaseGenerator {
 
   static std::string GenTypeBasic(const Type &type) {
     static const char *ctypename[] = {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
         #JLTYPE,
