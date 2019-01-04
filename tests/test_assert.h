@@ -1,6 +1,7 @@
 #ifndef TEST_ASSERT_H
 #define TEST_ASSERT_H
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 // clang-format off
@@ -41,6 +42,12 @@ typedef bool (*TestFailEventListener)(const char *expval, const char *val,
 // Prepare test engine (MSVC assertion setup, etc).
 // listener - this function will be notified on each TestFail call.
 void InitTestEngine(TestFailEventListener listener = nullptr);
+
+// Release all test-engine resources.
+// Prints or schedule a debug report if all test passed.
+// Returns 0 if all tests passed or 1 otherwise.
+// Memory leak report: FLATBUFFERS_MEMORY_LEAK_TRACKING && _MSC_VER && _DEBUG.
+int CloseTestEngine(bool force_report = false);
 
 // Write captured state to a log and terminate test run.
 void TestFail(const char *expval, const char *val, const char *exp,

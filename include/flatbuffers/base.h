@@ -2,9 +2,18 @@
 #define FLATBUFFERS_BASE_H_
 
 // clang-format off
+
+// If activate should be declared and included first.
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
     defined(_MSC_VER) && defined(_DEBUG)
+  // The _CRTDBG_MAP_ALLOC inside <crtdbg.h> will replace
+  // calloc/free (etc) to its debug version using #define directives.
   #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+  // Replace operator new by trace-enabled version.
+  #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+  #define new DEBUG_NEW
 #endif
 
 #if !defined(FLATBUFFERS_ASSERT)
@@ -22,13 +31,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-
-#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
-    defined(_MSC_VER) && defined(_DEBUG)
-  #include <crtdbg.h>
-  #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-  #define new DEBUG_NEW
-#endif
 
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
   #include <utility.h>
