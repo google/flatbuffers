@@ -490,15 +490,19 @@ class JuliaGenerator : public BaseGenerator {
     std::string type_name = GenTypeGet(field.value.type, &struct_def);
 
     BaseType bt = field.value.type.base_type;
-    if ((bt == BASE_TYPE_STRUCT || bt == BASE_TYPE_VECTOR) &&
-        !struct_def.fixed) {
+    if (bt == BASE_TYPE_STRUCT && !struct_def.fixed) {
       type_name = "Union{" + type_name + ", Nothing}";
     }
     // initialise nullable fields to nothing by default
     if ((bt == BASE_TYPE_STRUCT || bt == BASE_TYPE_UNION ||
          bt == BASE_TYPE_VECTOR || bt == BASE_TYPE_STRING) &&
         !struct_def.fixed) {
-      type_name += " = nothing";
+      if (bt == BASE_TYPE_VECTOR)
+        type_name += " = []";
+      else if (bt == BASE_TYPE_STRING)
+        type_name += " = \"\"";
+      else
+        type_name += " = nothing";
       *has_defaults = true;
     }
     *code_ptr += Indent + NormalizedName(field) + "::" + type_name + "\n";
@@ -509,9 +513,9 @@ class JuliaGenerator : public BaseGenerator {
                       std::string *code_ptr, bool *has_defaults) {
     *code_ptr += Indent + NormalizedName(field) + "::";
     // initialise strings to be empty by default
-    *code_ptr += "Union{" + GenTypeGet(field.value.type) + ", Nothing}";
+    *code_ptr += GenTypeGet(field.value.type);
     if (!struct_def.fixed) {
-      *code_ptr += " = nothing";
+      *code_ptr += " = \"\"";
       *has_defaults = true;
     }
     *code_ptr += "\n";

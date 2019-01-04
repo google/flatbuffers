@@ -15,8 +15,8 @@ FlatBuffers.@with_kw mutable struct TypeAliases
     u64::UInt64 = 0
     f32::Float32 = 0.0
     f64::Float64 = 0.0
-    v8::Union{Vector{Int8}, Nothing} = nothing
-    vf64::Union{Vector{Float64}, Nothing} = nothing
+    v8::Vector{Int8} = []
+    vf64::Vector{Float64} = []
 end
 FlatBuffers.@ALIGN(TypeAliases, 1)
 FlatBuffers.slot_offsets(::Type{T}) where {T<:TypeAliases} = [

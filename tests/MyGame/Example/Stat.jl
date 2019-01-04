@@ -5,7 +5,7 @@
 import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct Stat
-    id::Union{String, Nothing} = nothing
+    id::String = ""
     val::Int64 = 0
     count::UInt16 = 0
 end

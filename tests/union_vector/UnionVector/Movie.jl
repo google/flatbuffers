@@ -7,8 +7,8 @@ import FlatBuffers
 FlatBuffers.@with_kw mutable struct Movie
     main_character_type::UInt8 = 0
     main_character::Character = nothing
-    characters_type::Union{Vector{UInt8}, Nothing} = nothing
-    characters::Union{Vector{Character}, Nothing} = nothing
+    characters_type::Vector{UInt8} = []
+    characters::Vector{Character} = []
 end
 FlatBuffers.@ALIGN(Movie, 1)
 FlatBuffers.slot_offsets(::Type{T}) where {T<:Movie} = [
