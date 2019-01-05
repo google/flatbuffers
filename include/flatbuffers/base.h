@@ -212,7 +212,7 @@
 // - __supress_ubsan__("signed-integer-overflow")
 #if defined(__clang__)
   #define __supress_ubsan__(type) __attribute__((no_sanitize(type)))
-#elif defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 408)
+#elif defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 409)
   #define __supress_ubsan__(type) __attribute__((no_sanitize_undefined))
 #else
   #define __supress_ubsan__(type)

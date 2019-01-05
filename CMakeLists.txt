@@ -171,7 +171,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
       set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -faligned-new")
+        "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
     endif()
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
@@ -220,7 +220,7 @@ function(add_fsanitize_to_target _target _sanitizer)
   # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
   # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
   if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
-    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8"))
+    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
   )
     set(_sanitizer_flags "=address,undefined")
     if(_sanitizer MATCHES "=.*")
