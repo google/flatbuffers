@@ -1,7 +1,7 @@
 # Description:
 #   BUILD rules for generating flatbuffer files in various languages.
 
-flatc_path = "//:flatc"
+flatc_path = "@com_github_google_flatbuffers//:flatc"
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
@@ -214,7 +214,7 @@ def flatbuffer_cc_library(
             "-parse_headers",
         ],
         deps = [
-            "//:runtime_cc",
+            "@com_github_google_flatbuffers//:runtime_cc",
         ],
         includes = [],
         linkstatic = 1,
