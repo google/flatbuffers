@@ -33,6 +33,7 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
+#include "monster_extra_generated.h"
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
