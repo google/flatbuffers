@@ -134,7 +134,7 @@
     (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
 #else
-  #define FLATBUFFERS_CONSTEXPR
+  #define FLATBUFFERS_CONSTEXPR const
 #endif
 
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \

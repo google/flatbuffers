@@ -17,41 +17,19 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-// clang-format off
+#include "flatbuffers/base.h"
+
+#include <errno.h>
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
-#else // FLATBUFFERS_PREFER_PRINTF
+#else  // FLATBUFFERS_PREFER_PRINTF
 #  include <float.h>
 #  include <stdio.h>
-#endif // FLATBUFFERS_PREFER_PRINTF
-
-#ifdef _WIN32
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  include <windows.h>  // Must be included before <direct.h>
-#  include <direct.h>
-#  include <winbase.h>
-#  undef interface  // This is also important because of reasons
-#else
-#  include <limits.h>
-#endif
-// clang-format on
-
-#include <errno.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#endif  // FLATBUFFERS_PREFER_PRINTF
 
 #include <iomanip>
-#include <fstream>
-
-#include "flatbuffers/base.h"
+#include <string>
 
 namespace flatbuffers {
 
@@ -435,13 +413,7 @@ bool LoadFile(const char *name, bool binary, std::string *buf);
 // If "binary" is false data is written using ifstream's
 // text mode, otherwise data is written with no
 // transcoding.
-inline bool SaveFile(const char *name, const char *buf, size_t len,
-                     bool binary) {
-  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
-  if (!ofs.is_open()) return false;
-  ofs.write(buf, len);
-  return !ofs.bad();
-}
+bool SaveFile(const char *name, const char *buf, size_t len, bool binary);
 
 // Save data "buf" into file "name" returning true if
 // successful, false otherwise.  If "binary" is false
@@ -457,102 +429,35 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
 // Windows ('/' or '\\') separators are used.
 
 // Any new separators inserted are always posix.
-
-// We internally store paths in posix format ('/'). Paths supplied
-// by the user should go through PosixPath to ensure correct behavior
-// on Windows when paths are string-compared.
-
-static const char kPathSeparator = '/';
-static const char kPathSeparatorWindows = '\\';
-static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
+FLATBUFFERS_CONSTEXPR char kPathSeparator = '/';
 
 // Returns the path with the extension, if any, removed.
-inline std::string StripExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
-  return i != std::string::npos ? filepath.substr(0, i) : filepath;
-}
+std::string StripExtension(const std::string &filepath);
 
 // Returns the extension, if any.
-inline std::string GetExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
-  return i != std::string::npos ? filepath.substr(i + 1) : "";
-}
+std::string GetExtension(const std::string &filepath);
 
 // Return the last component of the path, after the last separator.
-inline std::string StripPath(const std::string &filepath) {
-  size_t i = filepath.find_last_of(PathSeparatorSet);
-  return i != std::string::npos ? filepath.substr(i + 1) : filepath;
-}
+std::string StripPath(const std::string &filepath);
 
 // Strip the last component of the path + separator.
-inline std::string StripFileName(const std::string &filepath) {
-  size_t i = filepath.find_last_of(PathSeparatorSet);
-  return i != std::string::npos ? filepath.substr(0, i) : "";
-}
+std::string StripFileName(const std::string &filepath);
 
 // Concatenates a path with a filename, regardless of wether the path
 // ends in a separator or not.
-inline std::string ConCatPathFileName(const std::string &path,
-                                      const std::string &filename) {
-  std::string filepath = path;
-  if (filepath.length()) {
-    char &filepath_last_character = string_back(filepath);
-    if (filepath_last_character == kPathSeparatorWindows) {
-      filepath_last_character = kPathSeparator;
-    } else if (filepath_last_character != kPathSeparator) {
-      filepath += kPathSeparator;
-    }
-  }
-  filepath += filename;
-  // Ignore './' at the start of filepath.
-  if (filepath[0] == '.' && filepath[1] == kPathSeparator) {
-    filepath.erase(0, 2);
-  }
-  return filepath;
-}
+std::string ConCatPathFileName(const std::string &path,
+                               const std::string &filename);
 
 // Replaces any '\\' separators with '/'
-inline std::string PosixPath(const char *path) {
-  std::string p = path;
-  std::replace(p.begin(), p.end(), '\\', '/');
-  return p;
-}
+std::string PosixPath(const char *path);
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
-inline void EnsureDirExists(const std::string &filepath) {
-  auto parent = StripFileName(filepath);
-  if (parent.length()) EnsureDirExists(parent);
-    // clang-format off
-
-  #ifdef _WIN32
-    (void)_mkdir(filepath.c_str());
-  #else
-    mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
-  #endif
-  // clang-format on
-}
+void EnsureDirExists(const std::string &filepath);
 
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
-inline std::string AbsolutePath(const std::string &filepath) {
-  // clang-format off
-
-  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
-    return filepath;
-  #else
-    #ifdef _WIN32
-      char abs_path[MAX_PATH];
-      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
-    #else
-      char abs_path[PATH_MAX];
-      return realpath(filepath.c_str(), abs_path)
-    #endif
-      ? abs_path
-      : filepath;
-  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
-  // clang-format on
-}
+std::string AbsolutePath(const std::string &filepath);
 
 // To and from UTF-8 unicode conversion functions
 
