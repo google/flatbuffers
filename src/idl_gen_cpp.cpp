@@ -34,6 +34,44 @@ static std::string GeneratedFileName(const std::string &path,
 }
 
 namespace cpp {
+class CppFloatConstantGenerator : public FloatConstantGenerator {
+ protected:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return src;
+  };
+
+  std::string Value(float v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return src + "f";
+  }
+
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return "std::numeric_limits<double>::quiet_NaN()";
+  }
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE {
+    (void)v;
+    return "std::numeric_limits<float>::quiet_NaN()";
+  }
+
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE {
+    if(v < 0)
+      return "-std::numeric_limits<double>::infinity()";
+    else
+      return "std::numeric_limits<double>::infinity()";
+  }
+
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE {
+    if (v < 0)
+      return "-std::numeric_limits<float>::infinity()";
+    else
+      return "std::numeric_limits<float>::infinity()";
+  }
+};
+
 class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
@@ -1392,9 +1430,10 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GenDefaultConstant(const FieldDef &field) {
-    return field.value.type.base_type == BASE_TYPE_FLOAT
-               ? field.value.constant + "f"
-               : field.value.constant;
+    if(IsFloat(field.value.type.base_type))
+      return float_const_gen_.GenFloatConstant(field);
+    else
+      return field.value.constant;
   }
 
   std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
@@ -2745,6 +2784,8 @@ class CppGenerator : public BaseGenerator {
 
     cur_name_space_ = ns;
   }
+
+  const CppFloatConstantGenerator float_const_gen_;
 };
 
 }  // namespace cpp

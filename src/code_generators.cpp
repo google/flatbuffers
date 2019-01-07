@@ -19,6 +19,8 @@
 #include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
+#include <cmath>
+
 #if defined(_MSC_VER)
 #  pragma warning(push)
 #  pragma warning(disable : 4127)  // C4127: conditional expression is constant
@@ -155,6 +157,35 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
   if (config != nullptr && config->last_line != nullptr) {
     code += std::string(prefix) + std::string(config->last_line) + "\n";
   }
+}
+
+template<typename T>
+std::string FloatConstantGenerator::GenFloatConstantImpl(
+    const FieldDef &field) const {
+  const auto &constant = field.value.constant;
+  T v;
+  auto done = StringToNumber(constant.c_str(), &v);
+  FLATBUFFERS_ASSERT(done);
+  if (done) {
+#if (!defined(_MSC_VER) || (_MSC_VER >= 1800))
+    if (std::isnan(v)) return NaN(v);
+    if (std::isinf(v)) return Inf(v);
+#endif
+    return Value(v, constant);
+  }
+  return "#";  // compile time error
+}
+
+std::string FloatConstantGenerator::GenFloatConstant(
+    const FieldDef &field) const {
+  switch (field.value.type.base_type) {
+    case BASE_TYPE_FLOAT: return GenFloatConstantImpl<float>(field);
+    case BASE_TYPE_DOUBLE: return GenFloatConstantImpl<double>(field);
+    default: {
+      FLATBUFFERS_ASSERT(false);
+      return "INVALID_BASE_TYPE";
+    }
+  };
 }
 
 }  // namespace flatbuffers
