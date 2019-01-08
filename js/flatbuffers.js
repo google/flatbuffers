@@ -226,6 +226,18 @@ flatbuffers.Builder = function(opt_initial_size) {
   this.force_defaults = false;
 };
 
+flatbuffers.Builder.prototype.clear = function() {
+  this.bb.clear();
+  this.space = this.bb.capacity();
+  this.minalign = 1;
+  this.vtable = null;
+  this.vtable_in_use = 0;
+  this.isNested = false;
+  this.object_start = 0;
+  this.vtables = [];
+  this.vector_num_elems = 0;
+};
+
 /**
  * In order to save space, fields that are set to their default value
  * don't get serialized into the buffer. Forcing defaults provides a
@@ -816,6 +828,12 @@ flatbuffers.ByteBuffer = function(bytes) {
    * @private
    */
   this.position_ = 0;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.size_ = bytes.length;
 };
 
 /**
@@ -826,6 +844,14 @@ flatbuffers.ByteBuffer = function(bytes) {
  */
 flatbuffers.ByteBuffer.allocate = function(byte_size) {
   return new flatbuffers.ByteBuffer(new Uint8Array(byte_size));
+};
+
+flatbuffers.ByteBuffer.prototype.clear = function() {
+  var len = this.bytes_.length;
+  for (var i = 0; i < len; i++) {
+    this.bytes_[i] = 0;
+  }  
+  this.position_ = 0;
 };
 
 /**
