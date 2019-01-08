@@ -2,7 +2,7 @@ FROM rust:1.30.1-slim-stretch as base
 
 WORKDIR /setup
 RUN apt -qq update >/dev/null
-RUN apt -qq install -y curl
+RUN apt -qq install -y curl gcc-mips-linux-gnu
 RUN curl https://sh.rustup.rs > rustup.sh
 RUN cat rustup.sh | sh -s -- -y --default-toolchain none
 RUN rustup target add mips-unknown-linux-gnu
@@ -11,4 +11,5 @@ RUN rustup target add mips-unknown-linux-gnu
 WORKDIR /code
 ADD . .
 WORKDIR /code/tests/rust_usage_test
+ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=gcc-mips-linux-gnu
 RUN cargo build --target mips-unknown-linux-gnu
