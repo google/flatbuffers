@@ -11,5 +11,5 @@ RUN rustup target add mips-unknown-linux-gnu
 WORKDIR /code
 ADD . .
 WORKDIR /code/tests/rust_usage_test
-ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=gcc-mips-linux-gnu
+ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=mips-linux-gnu-gcc
 RUN cargo build --target mips-unknown-linux-gnu
