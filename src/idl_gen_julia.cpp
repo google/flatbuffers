@@ -210,6 +210,7 @@ class JuliaGenerator : public BaseGenerator {
   bool GenTopLevel(void) {
     std::string code = "# ";
     std::set<std::string> included;
+    std::set<std::string> toplevel;
     code += FlatBuffersGeneratedWarning();
     code += "\n\n";
     // include other included .fbs files first
@@ -235,8 +236,11 @@ class JuliaGenerator : public BaseGenerator {
           parent = *component;
           child = *component;
           module_table_.AddDependency(root_module_, parent, child);
-
-          code += "if !isdefined(@__MODULE__(), :" + *component + ") @__MODULE__().eval(:(module " + *component + " import FlatBuffers end)) end\n";
+          // only create toplevel modules once
+          if (toplevel.find(*component) == toplevel.end()) {
+            code += "if !isdefined(@__MODULE__(), :" + *component + ") @__MODULE__().eval(:(module " + *component + " import FlatBuffers end)) end\n";
+            toplevel.insert(*component);
+          }
         } else {
           child = parent + kPathSeparator + *component;
           // Add component to parent's list of children
@@ -253,11 +257,10 @@ class JuliaGenerator : public BaseGenerator {
     
     auto sorted_modules = module_table_.SortedModuleNames();
     // iterate through child modules first, then parents
-    for (auto m = sorted_modules.rbegin(); m != sorted_modules.rend(); ++m) {
-      DepGraph *deps = module_table_.GetDependencies(*m); 
-      GenIncludes(deps, included, &code);
+    for (auto m = sorted_modules.begin(); m != sorted_modules.end(); ++m) {
+      GenIncludes(*m, included, &code);
     }
-    auto filename = ConCatPathFileName(path_, root_module_) + JuliaFileExtension;
+    auto filename = ConCatPathFileName(path_, StripExtension(file_name_) + "_generated") + JuliaFileExtension;
     if (!SaveFile(filename.c_str(), code, false)) return false;
     return true;
   }
@@ -556,9 +559,7 @@ class JuliaGenerator : public BaseGenerator {
   void GenObject(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
 
-    // always need FlatBuffers package for structs
     std::set<std::string> imports;
-    imports.insert(JuliaPackageName);
 
     bool has_defaults = false;
 
@@ -589,9 +590,7 @@ class JuliaGenerator : public BaseGenerator {
   void GenUnion(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
 
-    // always need FlatBuffers package for unions
     std::set<std::string> imports;
-    imports.insert(JuliaPackageName);
     auto union_name = NormalizedName(enum_def);
     BeginUnion(union_name, code_ptr);
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
@@ -704,14 +703,23 @@ class JuliaGenerator : public BaseGenerator {
     return "";
   }
 
-  bool GenIncludes(DepGraph *children, std::set<std::string> &included, std::string *code_ptr) {
+  bool GenIncludes(std::string &mod, std::set<std::string> &included, std::string *code_ptr) {
     auto &code = *code_ptr;
+    DepGraph *children = module_table_.GetDependencies(mod); 
+    if (mod != root_module_)
+      code += "# module: " + mod + "\n";
     // Include all the contents of this module in the right order
     auto sorted_children = children->TopSort();
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
          ++it) {
       std::string child = *it;
 
+      // this is not a direct child of this module, so don't include here
+      if (child.find(mod) == std::string::npos
+          || child.length() < (mod.length() + 1)
+          || child.substr(mod.length() + 1).find(kPathSeparator) != std::string::npos)
+         continue;
+      // this is a module or something that's already been included, don't include here
       if (module_table_.IsModule(child) || included.find(child) != included.end())
          continue;
       // If the file doesn't exist, don't include it
@@ -721,7 +729,7 @@ class JuliaGenerator : public BaseGenerator {
       std::string fullpath = ConCatPathFileName(path_, toinclude);
       if (!module_table_.IsFile(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
-      included.insert(child);
+      // included.insert(child);
     }
     return true;
   }

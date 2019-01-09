@@ -2,7 +2,6 @@
 
 Core.eval(UnionVector, quote
 
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct Movie
     main_character_type::UInt8 = 0

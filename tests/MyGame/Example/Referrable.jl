@@ -2,7 +2,6 @@
 
 Core.eval(MyGame.Example, quote
 
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct Referrable
     id::UInt64 = 0

@@ -2,7 +2,6 @@
 
 Core.eval(UnionVector, quote
 
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct Attacker
     sword_attack_damage::Int32 = 0

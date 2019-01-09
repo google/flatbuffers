@@ -2,7 +2,6 @@
 
 Core.eval(NamespaceA.NamespaceB, quote
 
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct TableInNestedNS
     foo::Int32 = 0

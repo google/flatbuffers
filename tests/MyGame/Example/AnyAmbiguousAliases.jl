@@ -2,7 +2,6 @@
 
 Core.eval(MyGame.Example, quote
 
-import FlatBuffers
 
 FlatBuffers.@UNION(AnyAmbiguousAliases, (
     Nothing,

@@ -3,7 +3,6 @@
 Core.eval(MyGame.Example, quote
 
 import ..Example2
-import FlatBuffers
 
 FlatBuffers.@UNION(Any_, (
     Nothing,

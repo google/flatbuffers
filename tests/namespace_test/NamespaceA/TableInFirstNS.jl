@@ -3,7 +3,6 @@
 Core.eval(NamespaceA, quote
 
 import .NamespaceB
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct TableInFirstNS
     foo_table::Union{NamespaceB.TableInNestedNS, Nothing} = nothing

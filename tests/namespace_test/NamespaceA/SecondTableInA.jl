@@ -3,7 +3,6 @@
 Core.eval(NamespaceA, quote
 
 import ..NamespaceC
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct SecondTableInA
     refer_to_c::Union{NamespaceC.TableInC, Nothing} = nothing

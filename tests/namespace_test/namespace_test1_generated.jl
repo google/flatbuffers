@@ -2,6 +2,8 @@
 
 if !isdefined(@__MODULE__(), :NamespaceA) @__MODULE__().eval(:(module NamespaceA import FlatBuffers end)) end
 if !isdefined(NamespaceA, :NamespaceB) Core.eval(NamespaceA, :(module NamespaceB import FlatBuffers end)) end
+# module: NamespaceA
+# module: NamespaceA/NamespaceB
 include("NamespaceA/NamespaceB/EnumInNestedNS.jl")
 include("NamespaceA/NamespaceB/TableInNestedNS.jl")
 include("NamespaceA/NamespaceB/StructInNestedNS.jl")

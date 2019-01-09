@@ -2,7 +2,6 @@
 
 Core.eval(UnionVector, quote
 
-import FlatBuffers
 
 FlatBuffers.@UNION(Character, (
     Nothing,

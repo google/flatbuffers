@@ -2,7 +2,6 @@
 
 Core.eval(MyGame.Example2, quote
 
-import FlatBuffers
 
 mutable struct Monster
 end

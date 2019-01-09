@@ -2,14 +2,11 @@
 
 if !isdefined(@__MODULE__(), :MyGame) @__MODULE__().eval(:(module MyGame import FlatBuffers end)) end
 if !isdefined(MyGame, :OtherNameSpace) Core.eval(MyGame, :(module OtherNameSpace import FlatBuffers end)) end
-if !isdefined(@__MODULE__(), :MyGame) @__MODULE__().eval(:(module MyGame import FlatBuffers end)) end
-if !isdefined(@__MODULE__(), :MyGame) @__MODULE__().eval(:(module MyGame import FlatBuffers end)) end
 if !isdefined(MyGame, :Example2) Core.eval(MyGame, :(module Example2 import FlatBuffers end)) end
-if !isdefined(@__MODULE__(), :MyGame) @__MODULE__().eval(:(module MyGame import FlatBuffers end)) end
 if !isdefined(MyGame, :Example) Core.eval(MyGame, :(module Example import FlatBuffers end)) end
-include("MyGame/Example2/Monster.jl")
-include("MyGame/Example/Any_.jl")
-include("MyGame/Example/AnyUniqueAliases.jl")
+# module: MyGame
+include("MyGame/InParentNamespace.jl")
+# module: MyGame/Example
 include("MyGame/Example/Color.jl")
 include("MyGame/Example/Test.jl")
 include("MyGame/Example/Vec3.jl")
@@ -17,7 +14,10 @@ include("MyGame/Example/Stat.jl")
 include("MyGame/Example/Ability.jl")
 include("MyGame/Example/Referrable.jl")
 include("MyGame/Example/TestSimpleTableWithEnum.jl")
+include("MyGame/Example/AnyUniqueAliases.jl")
 include("MyGame/Example/AnyAmbiguousAliases.jl")
 include("MyGame/Example/Monster.jl")
+include("MyGame/Example/Any_.jl")
 include("MyGame/Example/TypeAliases.jl")
-include("MyGame/InParentNamespace.jl")
+# module: MyGame/Example2
+include("MyGame/Example2/Monster.jl")

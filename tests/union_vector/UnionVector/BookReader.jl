@@ -2,7 +2,6 @@
 
 Core.eval(UnionVector, quote
 
-import FlatBuffers
 
 FlatBuffers.@STRUCT struct BookReader
     books_read::Int32

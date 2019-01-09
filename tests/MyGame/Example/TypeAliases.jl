@@ -2,7 +2,6 @@
 
 Core.eval(MyGame.Example, quote
 
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct TypeAliases
     i8::Int8 = 0

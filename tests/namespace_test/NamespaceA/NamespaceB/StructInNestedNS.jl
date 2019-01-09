@@ -2,7 +2,6 @@
 
 Core.eval(NamespaceA.NamespaceB, quote
 
-import FlatBuffers
 
 FlatBuffers.@STRUCT struct StructInNestedNS
     a::Int32

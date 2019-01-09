@@ -2,7 +2,6 @@
 
 Core.eval(UnionVector, quote
 
-import FlatBuffers
 
 FlatBuffers.@STRUCT struct Rapunzel
     hair_length::Int32

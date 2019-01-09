@@ -3,7 +3,6 @@
 Core.eval(MyGame.Example, quote
 
 import ..InParentNamespace
-import FlatBuffers
 
 FlatBuffers.@with_kw mutable struct Monster
 #=

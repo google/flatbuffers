@@ -2,7 +2,6 @@
 
 Core.eval(MyGame, quote
 
-import FlatBuffers
 
 mutable struct InParentNamespace
 end
