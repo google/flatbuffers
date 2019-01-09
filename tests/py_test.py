@@ -20,9 +20,9 @@ PY_VERSION = sys.version_info[:2]
 
 import ctypes
 from collections import defaultdict
+import math
 import timeit
 import unittest
-
 
 from flatbuffers import compat
 from flatbuffers import util
@@ -1394,6 +1394,27 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(b"MyStat", stat2.Id())
         self.assertEqual(12345678, stat2.Val())
         self.assertEqual(12345, stat2.Count())
+
+
+class TestAllCodePathsOfMonsterExtraSchema(unittest.TestCase):
+    def setUp(self, *args, **kwargs):
+        super(TestAllCodePathsOfMonsterExtraSchema, self).setUp(*args, **kwargs)
+
+        b = flatbuffers.Builder(0)
+        MyGame.MonsterExtra.MonsterExtraStart(b)
+        gen_mon = MyGame.MonsterExtra.MonsterExtraEnd(b)
+        b.Finish(gen_mon)
+
+        self.mon = MyGame.MonsterExtra.MonsterExtra.GetRootAsMonsterExtra(b.Bytes, b.Head())
+
+    def test_default_nan_inf(self):
+        self.assertTrue(math.isnan(self.mon.TestfNan()))
+        self.assertEqual(self.mon.TestfPinf(), float("inf"))
+        self.assertEqual(self.mon.TestfNinf(), float("-inf"))
+
+        self.assertTrue(math.isnan(self.mon.TestdNan()))
+        self.assertEqual(self.mon.TestdPinf(), float("inf"))
+        self.assertEqual(self.mon.TestdNinf(), float("-inf"))
 
 
 class TestVtableDeduplication(unittest.TestCase):
