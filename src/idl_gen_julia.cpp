@@ -117,19 +117,8 @@ class DepGraph {
   }
 };
 
-// Singleton class which keeps track of generated modules
-// and their dependencies. A singleton class is necessary
-// since our generator is run multiple times with
-// multiple different .fbs files, and we want to preserve
-// the set of module dependencies across these runs.
-// We need to keep track of dependencies since Julia doesn't
-// support forward declarations of types.
 class ModuleTable {
  public:
-  static ModuleTable &GetInstance() {
-    static ModuleTable instance;
-    return instance;
-  }
   bool IsModule(const std::string &m) {
     return modules_.find(m) != modules_.end();
   }
@@ -154,14 +143,6 @@ class ModuleTable {
  private:
   std::map<std::string, DepGraph *> modules_;
   std::set<std::string> files_;
-  ModuleTable() {}
-  ~ModuleTable() {
-    for (auto it = modules_.begin(); it != modules_.end(); ++it)
-      delete it->second;
-  }
-
-  ModuleTable(ModuleTable const &);
-  void operator=(ModuleTable const &);
 };
 
 class JuliaGenerator : public BaseGenerator {
@@ -170,8 +151,7 @@ class JuliaGenerator : public BaseGenerator {
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */),
-        root_module_(MakeCamel(file_name_)),
-        module_table_(ModuleTable::GetInstance()) {
+        root_module_(MakeCamel(file_name_)) {
     static const char *const keywords[] = {
       "begin",      "while",    "if",       "for",    "try",    "return",
       "break",      "continue", "function", "macro",  "quote",  "let",
@@ -186,7 +166,7 @@ class JuliaGenerator : public BaseGenerator {
   bool generate() {
     if (!GenEnums()) return false;
     if (!GenStructs()) return false;
-    if (!GenModules()) return false;
+    if (!GenTopLevel()) return false;
     return true;
   }
 
@@ -194,7 +174,7 @@ class JuliaGenerator : public BaseGenerator {
   // the root module is the name of the .fbs file which
   // we are compiling, in camel case
   const std::string root_module_;
-  ModuleTable &module_table_;
+  ModuleTable module_table_;
   std::unordered_set<std::string> keywords_;
 
   bool GenEnums(void) {
@@ -222,7 +202,23 @@ class JuliaGenerator : public BaseGenerator {
     return true;
   }
 
-  bool GenModules(void) {
+  bool GenTopLevel(void) {
+    std::string code = "# ";
+    std::set<std::string> included;
+    code += FlatBuffersGeneratedWarning();
+    code += "\n\n";
+    // include other included .fbs files first
+    for (auto it = parser_.included_files_.begin();
+        it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+      auto dir = flatbuffers::StripFileName(it->second);
+      auto basename = MakeCamel(flatbuffers::StripPath(flatbuffers::StripExtension(it->second)));
+      auto toinclude = (dir + kPathSeparator + basename) + JuliaFileExtension;
+      auto fullpath = path_ + kPathSeparator + toinclude;
+      if (!FileExists(fullpath.c_str()))
+        continue;
+      code += "include(\"" + toinclude + "\")\n";
+    }
     for (auto it = parser_.namespaces_.begin(); it != parser_.namespaces_.end();
          ++it) {
       std::string parent;
@@ -245,19 +241,12 @@ class JuliaGenerator : public BaseGenerator {
       }
     }
     auto sorted_modules = module_table_.SortedModuleNames();
-    bool save_root = false;
     // iterate through child modules first, then parents
     for (auto m = sorted_modules.rbegin(); m != sorted_modules.rend(); ++m) {
-      if (*m == root_module_) {
-        save_root = true;
-        continue;
-      }
-      SaveModule(false, *m, module_table_.GetDependencies(*m));
+      GenIncludes(module_table_.GetDependencies(*m), included, &code);
     }
-    // save the root module last
-    if (save_root)
-      SaveModule(true, root_module_,
-                 module_table_.GetDependencies(root_module_));
+    auto filename = ConCatPathFileName(path_, root_module_) + JuliaFileExtension;
+    if (!SaveFile(filename.c_str(), code, false)) return false;
     return true;
   }
 
@@ -668,13 +657,19 @@ class JuliaGenerator : public BaseGenerator {
     return GenTypePointer(type, parent);
   }
 
-  void BeginFile(const std::string submodule_name,
-                 std::string *code_ptr) const {
+  void BeginFile(const Namespace &ns, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
-    auto module = submodule_name;
-    if (module.empty()) module = root_module_;
-    code += "# module: " + module + "\n\n";
+    for (size_t i = 0; i < ns.components.size(); i++) {
+      code += "module " + std::string(ns.components[i]) + "\n\n";
+    }
+  }
+
+  void EndFile(const Namespace &ns, std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    for (size_t i = 0; i < ns.components.size(); i++) {
+      code += "\nend\n\n";
+    }
   }
 
   std::string GetDirname(const Definition &def) const {
@@ -701,70 +696,25 @@ class JuliaGenerator : public BaseGenerator {
     return "";
   }
 
-  // Save out the generated code for a Julia module
-  bool SaveModule(bool is_root, std::string full_module_name,
-                  DepGraph *children) {
-    auto module_name = full_module_name;
-    auto start = full_module_name.rfind(kPathSeparator);
-    if (start != std::string::npos)
-      module_name = full_module_name.substr(start + 1);
-    auto module_dir = ConCatPathFileName(path_, full_module_name);
-    if (is_root) {
-      module_dir = path_;
-      module_name = root_module_;
-    }
-    auto module_jl =
-        ConCatPathFileName(module_dir, module_name) + JuliaFileExtension;
-    std::string code = "";
-    bool need_module_file = false;
-    BeginFile(module_name, &code);
-    code += "module " + module_name + "\n";
-
-    // Include all the dependencies of this module in the right order
+  bool GenIncludes(DepGraph *children, std::set<std::string> &included, std::string *code_ptr) {
+    auto &code = *code_ptr;
+    // Include all the contents of this module in the right order
     auto sorted_children = children->TopSort();
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
          ++it) {
       std::string child = *it;
-      bool is_module = false;
-      std::string submodule_name =
-          child.substr(child.rfind(kPathSeparator) + 1);
 
-      // Don't include the root module from the root
-      if (is_root && submodule_name == root_module_) continue;
-
-      // Modules live in a subdirectory named after themselves
-      if (module_table_.IsModule(child) &&
-          !(is_root && submodule_name == root_module_)) {
-        is_module = true;
-        child = ConCatPathFileName(child, submodule_name);
-      }
-      auto dir = is_root ? path_ : module_dir;
-      std::string relname;
-      if (is_root)
-        relname = child;
-      else if (is_module)
-        relname = child.substr(child.find(kPathSeparator) + 1);
-      else
-        relname = child.substr(child.rfind(kPathSeparator) + 1);
-
+      if (module_table_.IsModule(child) || included.find(child) != included.end())
+         continue;
       // If the file doesn't exist, don't include it
       // TODO: this doesn't allow types which reference each other,
       // but Julia doesn't support this yet anyway
-      std::string toinclude = relname + JuliaFileExtension;
-      std::string fullpath = ConCatPathFileName(dir, toinclude);
+      std::string toinclude = child + JuliaFileExtension;
+      std::string fullpath = ConCatPathFileName(path_, toinclude);
       if (!module_table_.IsFile(fullpath.c_str())) continue;
-      code += Indent + "include(\"" + toinclude + "\")\n";
-      need_module_file = true;
+      code += "include(\"" + toinclude + "\")\n";
+      included.insert(child);
     }
-    code += "end\n";
-
-    // only write the module if it has some things to include
-    if (!need_module_file) return true;
-
-    EnsureDirExists(module_dir);
-    if (!SaveFile(module_jl.c_str(), code, false)) return false;
-
-    module_table_.AddFile(module_jl);
     return true;
   }
 
@@ -799,8 +749,9 @@ class JuliaGenerator : public BaseGenerator {
   bool SaveType(const Definition &def, const std::string &declcode) {
     if (!declcode.length()) return true;
     std::string code = "";
-    BeginFile(GetSubModule(def), &code);
+    BeginFile(*def.defined_namespace, &code);
     code += declcode;
+    EndFile(*def.defined_namespace, &code);
     auto filename = GetFilename(def);
     EnsureDirExists(GetDirname(def));
     if (!SaveFile(filename.c_str(), code, false)) return false;
