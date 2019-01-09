@@ -205,6 +205,11 @@ class JuliaGenerator : public BaseGenerator {
     return true;
   }
 
+  std::string DefineModule(std::string scope, std::string mod) {
+    return "if !isdefined(" + scope + ", :" + mod + ") " + scope +
+           ".eval(:(module " + mod + " import " + JuliaPackageName + " end)) end\n";
+  }
+
   bool GenTopLevel(void) {
     std::string code = "# ";
     std::set<std::string> included;
@@ -216,9 +221,8 @@ class JuliaGenerator : public BaseGenerator {
          it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
       auto dir = flatbuffers::StripFileName(it->second);
-      auto basename = MakeCamel(
-          flatbuffers::StripPath(flatbuffers::StripExtension(it->second)));
-      auto toinclude = ConCatPathFileName(dir, basename + JuliaFileExtension);
+      auto basename = flatbuffers::StripPath(flatbuffers::StripExtension(it->second));
+      auto toinclude = ConCatPathFileName(dir, basename + "_generated" + JuliaFileExtension);
       auto fullpath = ConCatPathFileName(path_, toinclude);
       if (!FileExists(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
@@ -230,15 +234,14 @@ class JuliaGenerator : public BaseGenerator {
       // Gather all parent namespaces for this namespace
       for (auto component = (*it)->components.begin();
            component != (*it)->components.end(); ++component) {
+        std::string scope;
         if (parent.empty()) {
           parent = *component;
           child = *component;
           module_table_.AddDependency(root_module_, parent, child);
           // only create toplevel modules once
           if (toplevel.find(*component) == toplevel.end()) {
-            code += "if !isdefined(@__MODULE__(), :" + *component +
-                    ") @__MODULE__().eval(:(module " + *component +
-                    " import FlatBuffers end)) end\n";
+            code += DefineModule("@__MODULE__()", *component);
             toplevel.insert(*component);
           }
         } else {
@@ -248,10 +251,7 @@ class JuliaGenerator : public BaseGenerator {
 
           std::string mod = parent;
           std::replace(mod.begin(), mod.end(), kPathSeparator, '.');
-          // Create module if it doesn't exist
-          code += "if !isdefined(" + mod + ", :" + *component + ") Core.eval(" +
-                  mod + ", :(module " + *component +
-                  " import FlatBuffers end)) end\n";
+          code += DefineModule(mod, *component);
         }
         parent = child;
       }
@@ -675,7 +675,7 @@ class JuliaGenerator : public BaseGenerator {
   void BeginFile(const Namespace &ns, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
-    code += "Core.eval(" + GetCanonicalName(ns, '.') + ", quote\n\n";
+    code += GetCanonicalName(ns, '.') + ".eval(quote\n\n";
   }
 
   void EndFile(std::string *code_ptr) const {
@@ -711,12 +711,18 @@ class JuliaGenerator : public BaseGenerator {
                    std::string *code_ptr) {
     auto &code = *code_ptr;
     DepGraph *children = module_table_.GetDependencies(mod);
-    if (mod != root_module_) code += "# module: " + mod + "\n";
     // Include all the contents of this module in the right order
     auto sorted_children = children->TopSort();
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
          ++it) {
       std::string child = *it;
+
+      // if this module depends on another module, go and generate that module
+      // first
+      if (module_table_.IsModule(child)) {
+        GenIncludes(child, included, code_ptr);
+        continue;
+      }
 
       // this is not a direct child of this module, so don't include here
       if (child.find(mod) == std::string::npos ||
@@ -724,11 +730,7 @@ class JuliaGenerator : public BaseGenerator {
           child.substr(mod.length() + 1).find(kPathSeparator) !=
               std::string::npos)
         continue;
-      // this is a module or something that's already been included, don't
-      // include here
-      if (module_table_.IsModule(child) ||
-          included.find(child) != included.end())
-        continue;
+      if (included.find(child) != included.end()) continue;
       // If the file doesn't exist, don't include it
       // TODO: this doesn't allow types which reference each other,
       // but Julia doesn't support this yet anyway
@@ -736,7 +738,7 @@ class JuliaGenerator : public BaseGenerator {
       std::string fullpath = ConCatPathFileName(path_, toinclude);
       if (!module_table_.IsFile(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
-      // included.insert(child);
+      included.insert(child);
     }
     return true;
   }

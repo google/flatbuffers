@@ -1,6 +1,6 @@
 import FlatBuffers
 
-include("MyGame/MyGame.jl")
+include("monster_generated.jl")
 
 # require the files generated from the schema
 import .MyGame.Sample.Weapon
