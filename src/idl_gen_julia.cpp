@@ -16,10 +16,10 @@
 
 // loosely based on idl_gen_python.cpp
 
+#include <algorithm>
 #include <iostream>
 #include <list>
 #include <string>
-#include <algorithm>
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -117,9 +117,7 @@ class DepGraph {
     return sorted_nodes;
   }
 
-  size_t size() {
-      return adj.size();
-  }
+  size_t size() { return adj.size(); }
 };
 
 class ModuleTable {
@@ -215,14 +213,14 @@ class JuliaGenerator : public BaseGenerator {
     code += "\n\n";
     // include other included .fbs files first
     for (auto it = parser_.included_files_.begin();
-        it != parser_.included_files_.end(); ++it) {
+         it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
       auto dir = flatbuffers::StripFileName(it->second);
-      auto basename = MakeCamel(flatbuffers::StripPath(flatbuffers::StripExtension(it->second)));
+      auto basename = MakeCamel(
+          flatbuffers::StripPath(flatbuffers::StripExtension(it->second)));
       auto toinclude = ConCatPathFileName(dir, basename + JuliaFileExtension);
       auto fullpath = ConCatPathFileName(path_, toinclude);
-      if (!FileExists(fullpath.c_str()))
-        continue;
+      if (!FileExists(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
     }
     for (auto it = parser_.namespaces_.begin(); it != parser_.namespaces_.end();
@@ -238,29 +236,35 @@ class JuliaGenerator : public BaseGenerator {
           module_table_.AddDependency(root_module_, parent, child);
           // only create toplevel modules once
           if (toplevel.find(*component) == toplevel.end()) {
-            code += "if !isdefined(@__MODULE__(), :" + *component + ") @__MODULE__().eval(:(module " + *component + " import FlatBuffers end)) end\n";
+            code += "if !isdefined(@__MODULE__(), :" + *component +
+                    ") @__MODULE__().eval(:(module " + *component +
+                    " import FlatBuffers end)) end\n";
             toplevel.insert(*component);
           }
         } else {
           child = parent + kPathSeparator + *component;
           // Add component to parent's list of children
           module_table_.AddDependency(parent, child, *component);
-        
+
           std::string mod = parent;
           std::replace(mod.begin(), mod.end(), kPathSeparator, '.');
           // Create module if it doesn't exist
-          code += "if !isdefined(" + mod + ", :" + *component + ") Core.eval(" + mod + ", :(module " + *component + " import FlatBuffers end)) end\n";
+          code += "if !isdefined(" + mod + ", :" + *component + ") Core.eval(" +
+                  mod + ", :(module " + *component +
+                  " import FlatBuffers end)) end\n";
         }
         parent = child;
       }
     }
-    
+
     auto sorted_modules = module_table_.SortedModuleNames();
     // iterate through child modules first, then parents
     for (auto m = sorted_modules.begin(); m != sorted_modules.end(); ++m) {
       GenIncludes(*m, included, &code);
     }
-    auto filename = ConCatPathFileName(path_, StripExtension(file_name_) + "_generated") + JuliaFileExtension;
+    auto filename =
+        ConCatPathFileName(path_, StripExtension(file_name_) + "_generated") +
+        JuliaFileExtension;
     if (!SaveFile(filename.c_str(), code, false)) return false;
     return true;
   }
@@ -624,7 +628,7 @@ class JuliaGenerator : public BaseGenerator {
 
   static std::string GenTypeBasic(const Type &type) {
     static const char *ctypename[] = {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
         #JLTYPE,
@@ -703,11 +707,11 @@ class JuliaGenerator : public BaseGenerator {
     return "";
   }
 
-  bool GenIncludes(std::string &mod, std::set<std::string> &included, std::string *code_ptr) {
+  bool GenIncludes(std::string &mod, std::set<std::string> &included,
+                   std::string *code_ptr) {
     auto &code = *code_ptr;
-    DepGraph *children = module_table_.GetDependencies(mod); 
-    if (mod != root_module_)
-      code += "# module: " + mod + "\n";
+    DepGraph *children = module_table_.GetDependencies(mod);
+    if (mod != root_module_) code += "# module: " + mod + "\n";
     // Include all the contents of this module in the right order
     auto sorted_children = children->TopSort();
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
@@ -715,13 +719,16 @@ class JuliaGenerator : public BaseGenerator {
       std::string child = *it;
 
       // this is not a direct child of this module, so don't include here
-      if (child.find(mod) == std::string::npos
-          || child.length() < (mod.length() + 1)
-          || child.substr(mod.length() + 1).find(kPathSeparator) != std::string::npos)
-         continue;
-      // this is a module or something that's already been included, don't include here
-      if (module_table_.IsModule(child) || included.find(child) != included.end())
-         continue;
+      if (child.find(mod) == std::string::npos ||
+          child.length() < (mod.length() + 1) ||
+          child.substr(mod.length() + 1).find(kPathSeparator) !=
+              std::string::npos)
+        continue;
+      // this is a module or something that's already been included, don't
+      // include here
+      if (module_table_.IsModule(child) ||
+          included.find(child) != included.end())
+        continue;
       // If the file doesn't exist, don't include it
       // TODO: this doesn't allow types which reference each other,
       // but Julia doesn't support this yet anyway
@@ -735,7 +742,8 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // Canonical julia name of a namespace (Foo.Bar.Baz)
-  std::string GetCanonicalName(const Namespace &ns, char separator = kPathSeparator) const {
+  std::string GetCanonicalName(const Namespace &ns,
+                               char separator = kPathSeparator) const {
     std::string name;
     for (size_t i = 0; i < ns.components.size(); i++) {
       if (i) name += separator;
