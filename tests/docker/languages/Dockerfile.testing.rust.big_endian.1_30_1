@@ -12,4 +12,5 @@ WORKDIR /code
 ADD . .
 WORKDIR /code/tests/rust_usage_test
 ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=mips-linux-gnu-gcc
-RUN cargo build --target mips-unknown-linux-gnu
+ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_RUNNER="qemu-mips -L /usr/mips-linux-gnu"
+RUN cargo test --target mips-unknown-linux-gnu
