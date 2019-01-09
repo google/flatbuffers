@@ -207,7 +207,8 @@ class JuliaGenerator : public BaseGenerator {
 
   std::string DefineModule(std::string scope, std::string mod) {
     return "if !isdefined(" + scope + ", :" + mod + ") " + scope +
-           ".eval(:(module " + mod + " import " + JuliaPackageName + " end)) end\n";
+           ".eval(:(module " + mod + " import " + JuliaPackageName +
+           " end)) end\n";
   }
 
   bool GenTopLevel(void) {
@@ -221,8 +222,10 @@ class JuliaGenerator : public BaseGenerator {
          it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
       auto dir = flatbuffers::StripFileName(it->second);
-      auto basename = flatbuffers::StripPath(flatbuffers::StripExtension(it->second));
-      auto toinclude = ConCatPathFileName(dir, basename + "_generated" + JuliaFileExtension);
+      auto basename =
+          flatbuffers::StripPath(flatbuffers::StripExtension(it->second));
+      auto toinclude =
+          ConCatPathFileName(dir, basename + "_generated" + JuliaFileExtension);
       auto fullpath = ConCatPathFileName(path_, toinclude);
       if (!FileExists(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
@@ -628,7 +631,7 @@ class JuliaGenerator : public BaseGenerator {
 
   static std::string GenTypeBasic(const Type &type) {
     static const char *ctypename[] = {
-// clang-format off
+    // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
         #JLTYPE,
