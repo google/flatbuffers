@@ -19,6 +19,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <algorithm>
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -114,6 +115,10 @@ class DepGraph {
       stack.pop_back();
     }
     return sorted_nodes;
+  }
+
+  size_t size() {
+      return adj.size();
   }
 };
 
@@ -213,8 +218,8 @@ class JuliaGenerator : public BaseGenerator {
       if (it->second.empty()) continue;
       auto dir = flatbuffers::StripFileName(it->second);
       auto basename = MakeCamel(flatbuffers::StripPath(flatbuffers::StripExtension(it->second)));
-      auto toinclude = (dir + kPathSeparator + basename) + JuliaFileExtension;
-      auto fullpath = path_ + kPathSeparator + toinclude;
+      auto toinclude = ConCatPathFileName(dir, basename + JuliaFileExtension);
+      auto fullpath = ConCatPathFileName(path_, toinclude);
       if (!FileExists(fullpath.c_str()))
         continue;
       code += "include(\"" + toinclude + "\")\n";
@@ -224,26 +229,33 @@ class JuliaGenerator : public BaseGenerator {
       std::string parent;
       std::string child;
       // Gather all parent namespaces for this namespace
-      // TODO: this is similar to idl_gen_js.cpp, maybe
-      // move into common place?
       for (auto component = (*it)->components.begin();
            component != (*it)->components.end(); ++component) {
         if (parent.empty()) {
           parent = *component;
           child = *component;
           module_table_.AddDependency(root_module_, parent, child);
+
+          code += "if !isdefined(@__MODULE__(), :" + *component + ") @__MODULE__().eval(:(module " + *component + " import FlatBuffers end)) end\n";
         } else {
           child = parent + kPathSeparator + *component;
           // Add component to parent's list of children
           module_table_.AddDependency(parent, child, *component);
+        
+          std::string mod = parent;
+          std::replace(mod.begin(), mod.end(), kPathSeparator, '.');
+          // Create module if it doesn't exist
+          code += "if !isdefined(" + mod + ", :" + *component + ") Core.eval(" + mod + ", :(module " + *component + " import FlatBuffers end)) end\n";
         }
         parent = child;
       }
     }
+    
     auto sorted_modules = module_table_.SortedModuleNames();
     // iterate through child modules first, then parents
     for (auto m = sorted_modules.rbegin(); m != sorted_modules.rend(); ++m) {
-      GenIncludes(module_table_.GetDependencies(*m), included, &code);
+      DepGraph *deps = module_table_.GetDependencies(*m); 
+      GenIncludes(deps, included, &code);
     }
     auto filename = ConCatPathFileName(path_, root_module_) + JuliaFileExtension;
     if (!SaveFile(filename.c_str(), code, false)) return false;
@@ -660,16 +672,12 @@ class JuliaGenerator : public BaseGenerator {
   void BeginFile(const Namespace &ns, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
-    for (size_t i = 0; i < ns.components.size(); i++) {
-      code += "module " + std::string(ns.components[i]) + "\n\n";
-    }
+    code += "Core.eval(" + GetCanonicalName(ns, '.') + ", quote\n\n";
   }
 
-  void EndFile(const Namespace &ns, std::string *code_ptr) const {
+  void EndFile(std::string *code_ptr) const {
     auto &code = *code_ptr;
-    for (size_t i = 0; i < ns.components.size(); i++) {
-      code += "\nend\n\n";
-    }
+    code += "\nend)\n\n";
   }
 
   std::string GetDirname(const Definition &def) const {
@@ -719,10 +727,10 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // Canonical julia name of a namespace (Foo.Bar.Baz)
-  std::string GetCanonicalName(const Namespace &ns) const {
+  std::string GetCanonicalName(const Namespace &ns, char separator = kPathSeparator) const {
     std::string name;
     for (size_t i = 0; i < ns.components.size(); i++) {
-      if (i) name += kPathSeparator;
+      if (i) name += separator;
       name += std::string(ns.components[i]);
     }
     if (name.empty()) name = root_module_;
@@ -751,7 +759,7 @@ class JuliaGenerator : public BaseGenerator {
     std::string code = "";
     BeginFile(*def.defined_namespace, &code);
     code += declcode;
-    EndFile(*def.defined_namespace, &code);
+    EndFile(&code);
     auto filename = GetFilename(def);
     EnsureDirExists(GetDirname(def));
     if (!SaveFile(filename.c_str(), code, false)) return false;
