@@ -272,7 +272,12 @@ class GeneralGenerator : public BaseGenerator {
       if (lang_.language == IDLOptions::kCSharp) {
         if (IsEnum(type)) return WrapInNameSpace(*type.enum_def);
         if (type.base_type == BASE_TYPE_STRUCT) {
-          return "Offset<" + WrapInNameSpace(*type.struct_def) + ">";
+          if (IsStruct(type)) {
+            // for struct -> only instance of struct type
+            return WrapInNameSpace(*type.struct_def);
+          } else {
+            return "Offset<" + WrapInNameSpace(*type.struct_def) + ">";
+          }
         }
       }
     }
@@ -484,8 +489,13 @@ class GeneralGenerator : public BaseGenerator {
           switch (value.type.base_type) {
             case BASE_TYPE_STRING: return "default(StringOffset)";
             case BASE_TYPE_STRUCT:
-              return "default(Offset<" +
-                     WrapInNameSpace(*value.type.struct_def) + ">)";
+              if (IsStruct(value.type)) {
+                // for struct -> only instance of struct type
+                return "default(" + WrapInNameSpace(*value.type.struct_def) +
+                       ")";
+              } else {
+                return "default(Offset<" + WrapInNameSpace(*value.type.struct_def) + ">)";
+              }
             case BASE_TYPE_VECTOR: return "default(VectorOffset)";
             default: break;
           }
@@ -688,6 +698,38 @@ class GeneralGenerator : public BaseGenerator {
         code += "    builder." + FunctionStart('P') + "ut";
         code += GenMethod(field.value.type) + "(";
         code += SourceCast(field.value.type);
+        auto argname =
+            nameprefix + MakeCamel(field.name, lang_.first_camel_upper);
+        code += argname;
+        code += ");\n";
+      }
+    }
+  }
+
+  // Generates the body of the CreateXXX Methode of a struct type
+  void GenStructBodyStructInstance(const StructDef &struct_def,
+                                   std::string *code_ptr,
+                                   const char *nameprefix,
+                                   std::string structInstanceName) const {
+    std::string &code = *code_ptr;
+    code += "    builder." + FunctionStart('P') + "rep(";
+    code += NumToString(struct_def.minalign) + ", ";
+    code += NumToString(struct_def.bytesize) + ");\n";
+    for (auto it = struct_def.fields.vec.rbegin();
+         it != struct_def.fields.vec.rend(); ++it) {
+      auto &field = **it;
+      if (field.padding) {
+        code += "    builder." + FunctionStart('P') + "ad(";
+        code += NumToString(field.padding) + ");\n";
+      }
+      if (IsStruct(field.value.type)) {
+        GenStructBodyStructInstance(
+            *field.value.type.struct_def, code_ptr,
+            (nameprefix +(MakeCamel(field.name, lang_.first_camel_upper) + ".")).c_str(), structInstanceName);
+      } else {
+        code += "    builder." + FunctionStart('P') + "ut";
+        code += GenMethod(field.value.type) + "(";
+        code += structInstanceName + "." + SourceCast(field.value.type);
         auto argname =
             nameprefix + MakeCamel(field.name, lang_.first_camel_upper);
         code += argname;
@@ -1240,20 +1282,43 @@ class GeneralGenerator : public BaseGenerator {
       code += GenOffsetConstruct(
           struct_def, "builder." + std::string(lang_.get_fbb_offset));
       code += ";\n  }\n";
+
+      // Additional Create-Methode for Structs
+      if (lang_.language == IDLOptions::kCSharp) {
+        // create a struct constructor function
+        code += "  public static " + GenOffsetType(struct_def) + " ";
+        code += FunctionStart('C') + "reate";
+        code += struct_def.name + "(FlatBufferBuilder builder";
+        code += ", " + struct_def.name + " " + FirstToLower(struct_def.name);
+        code += ") {\n";
+        GenStructBodyStructInstance(struct_def, code_ptr, "", FirstToLower(struct_def.name));
+        code += "    return ";
+        code += GenOffsetConstruct(
+            struct_def, "builder." + std::string(lang_.get_fbb_offset));
+        code += ";\n  }\n";
+      }
+
     } else {
       // Generate a method that creates a table in one go. This is only possible
       // when the table has no struct fields, since those have to be created
       // inline, and there's no way to do so in Java.
       bool has_no_struct_fields = true;
+      // field for later check if a field has the same name as a struct type
+      std::set<std::string> fieldNames;
       int num_fields = 0;
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
+        fieldNames.insert(MakeCamel(field.name, lang_.first_camel_upper));
         if (field.deprecated) continue;
-        if (IsStruct(field.value.type)) {
-          has_no_struct_fields = false;
-        } else {
+        if (lang_.language == IDLOptions::kCSharp) {
           num_fields++;
+        } else {
+          if (IsStruct(field.value.type)) {
+            has_no_struct_fields = false;
+          } else {
+            num_fields++;
+          }
         }
       }
       // JVM specifications restrict default constructor params to be < 255.
@@ -1272,7 +1337,13 @@ class GeneralGenerator : public BaseGenerator {
           code += GenTypeBasic(DestinationType(field.value.type, false));
           code += " ";
           code += field.name;
-          if (!IsScalar(field.value.type.base_type)) code += "Offset";
+          if (lang_.language == IDLOptions::kCSharp) {
+            if (!IsScalar(field.value.type.base_type) &&
+                !IsStruct(field.value.type))
+              code += "Offset";
+          } else {
+            if (!IsScalar(field.value.type.base_type)) code += "Offset";
+          }
 
           // Java doesn't have defaults, which means this method must always
           // supply all arguments, and thus won't compile when fields are added.
@@ -1294,8 +1365,26 @@ class GeneralGenerator : public BaseGenerator {
                  size == SizeOf(field.value.type.base_type))) {
               code += "    " + struct_def.name + ".";
               code += FunctionStart('A') + "dd";
-              code += MakeCamel(field.name) + "(builder, " + field.name;
-              if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              code += MakeCamel(field.name) + "(builder, ";
+
+              if (lang_.language == IDLOptions::kCSharp) {
+                if (IsStruct(field.value.type)) {
+                  // for structs the offset must create inside
+                  if (fieldNames.find(field.value.type.struct_def->name) != fieldNames.end()) {
+                    code += WrapInNameSpace(*field.value.type.struct_def, true);
+                  } else {
+                    code += GenTypeBasic(DestinationType(field.value.type, false));
+                  }
+                  code +=  ".Create" + GenTypeBasic(DestinationType(field.value.type, false)) + "(builder, " + field.name + ")";
+                } else {
+                  code += field.name;
+                  if (!IsScalar(field.value.type.base_type)) code += "Offset";
+                }
+
+              } else {
+                code += field.name;
+                if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              }
               code += ");\n";
             }
           }
@@ -1322,7 +1411,14 @@ class GeneralGenerator : public BaseGenerator {
         code += "  public static void " + FunctionStart('A') + "dd";
         code += MakeCamel(field.name);
         code += "(FlatBufferBuilder builder, ";
-        code += GenTypeBasic(DestinationType(field.value.type, false));
+        if (lang_.language == IDLOptions::kCSharp &&
+            IsStruct(field.value.type)) {
+          // for struct types -> the parameter of add should be an offset
+          code += "Offset<" + GenTypeBasic(DestinationType(field.value.type, false)) + ">";
+        } else {
+          code += GenTypeBasic(DestinationType(field.value.type, false));
+        }
+
         auto argname = MakeCamel(field.name, false);
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
         code += " " + argname + ") { builder." + FunctionStart('A') + "dd";

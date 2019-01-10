@@ -108,16 +108,20 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
 // Ensure that a type is prefixed with its namespace whenever it is used
 // outside of its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
-                                           const std::string &name) const {
-  if (CurrentNameSpace() == ns) return name;
+                                           const std::string &name,
+                                           bool force) const {
+  if (!force)
+    if (CurrentNameSpace() == ns) return name;
+
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
   return qualified_name + name;
 }
 
-std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
-  return WrapInNameSpace(def.defined_namespace, def.name);
+std::string BaseGenerator::WrapInNameSpace(const Definition &def,
+                                           bool force) const {
+  return WrapInNameSpace(def.defined_namespace, def.name, force);
 }
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {

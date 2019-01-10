@@ -107,9 +107,11 @@ class BaseGenerator {
   // Ensure that a type is prefixed with its namespace whenever it is used
   // outside of its namespace.
   std::string WrapInNameSpace(const Namespace *ns,
-                              const std::string &name) const;
+                              const std::string &name,
+                              bool force = false) const;
 
-  std::string WrapInNameSpace(const Definition &def) const;
+  std::string WrapInNameSpace(const Definition &def,
+                              bool force = false) const;
 
   std::string GetNameSpace(const Definition &def) const;
 
