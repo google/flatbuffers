@@ -29,17 +29,6 @@ namespace flatbuffers {
 
 // These arrays need to correspond to the IDLOptions::k enum.
 
-// clang-format off
-
-#ifdef _MSC_VER
-// Instances of LanguageParameters are never created by default constructor.
-// Nevertheless "MSVC2010/2013" generate warnings :
-// - C4510: 'LanguageParameters' : default constructor could not be generated
-// - C4610: 'LanguageParameters' can never be instantiated - user defined constructor required
-__pragma(warning(disable : 4510));  // default constructor could not be generated
-__pragma(warning(disable : 4610));  // user defined constructor required
-#endif
-// clang-format on
 struct LanguageParameters {
   IDLOptions::Language language;
   // Whether function names in the language typically start with uppercase.
@@ -69,14 +58,14 @@ struct LanguageParameters {
   std::string class_annotation;
   std::string generated_type_annotation;
   CommentConfig comment_config;
-  const FloatConstantGenerator &float_gen;
+  const FloatConstantGenerator *float_gen;
 };
 
 const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
-  static const TypedFloatConstantGenerator CSharpFloatGen(
+  static TypedFloatConstantGenerator CSharpFloatGen(
       "Double.", "Single.", "NaN", "PositiveInfinity", "NegativeInfinity");
 
-  static const TypedFloatConstantGenerator JavaFloatGen(
+  static TypedFloatConstantGenerator JavaFloatGen(
       "Double.", "Float.", "NaN", "POSITIVE_INFINITY", "NEGATIVE_INFINITY");
 
   static const LanguageParameters language_parameters[] = {
@@ -113,7 +102,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
             " *",
             " */",
         },
-        JavaFloatGen
+        &JavaFloatGen
     },
     {
         IDLOptions::kCSharp,
@@ -147,7 +136,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
             "///",
             nullptr,
         },
-        CSharpFloatGen
+        &CSharpFloatGen
     },
   };
 
@@ -491,7 +480,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_LONG: return value.constant + longSuffix;
       default:
         if(IsFloat(value.type.base_type))
-          return lang_.float_gen.GenFloatConstant(field);
+          return lang_.float_gen->GenFloatConstant(field);
         else
           return value.constant;
     }
