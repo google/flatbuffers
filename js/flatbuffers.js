@@ -236,6 +236,7 @@ flatbuffers.Builder.prototype.clear = function() {
   this.object_start = 0;
   this.vtables = [];
   this.vector_num_elems = 0;
+  this.force_defaults = false;
 };
 
 /**
@@ -829,11 +830,6 @@ flatbuffers.ByteBuffer = function(bytes) {
    */
   this.position_ = 0;
 
-  /**
-   * @type {number}
-   * @private
-   */
-  this.size_ = bytes.length;
 };
 
 /**
@@ -846,11 +842,7 @@ flatbuffers.ByteBuffer.allocate = function(byte_size) {
   return new flatbuffers.ByteBuffer(new Uint8Array(byte_size));
 };
 
-flatbuffers.ByteBuffer.prototype.clear = function() {
-  var len = this.bytes_.length;
-  for (var i = 0; i < len; i++) {
-    this.bytes_[i] = 0;
-  }  
+flatbuffers.ByteBuffer.prototype.clear = function() {  
   this.position_ = 0;
 };
 
