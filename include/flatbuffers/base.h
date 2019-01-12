@@ -59,6 +59,15 @@
 // Clang 3.4 and later implement all of the ISO C++ 2014 standard.
 // http://clang.llvm.org/cxx_status.html
 
+// MSVC note: requires `/Zc:__cplusplus` or use _MSVC_LANG
+// > The MSVC compiler’s definition of the __cplusplus predefined macro leaps ahead 20 years
+// > in Visual Studio 2017 version 15.7 Preview 3. This macro has stubbornly remained at the value
+// > “199711L”, indicating (erroneously!) that the compiler conformed to the C++98 Standard.
+// > ...
+// > You need to compile with the /Zc:__cplusplus switch to see the updated value
+// > of the __cplusplus macro.
+// https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/
+
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
     (!defined(_MSC_VER) || _MSC_VER < 1600) && \
@@ -223,6 +232,15 @@
 template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
   return !!t;
 }
+
+// Enable of std:c++17 or higher.
+#if (defined(__cplusplus) &&  (__cplusplus >= 201703L)) || \
+    (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L))
+  // All attributes unknown to an implementation are ignored without causing an error.
+  #define FLATBUFFERS_ATTRIBUTE(attr) // [[attr]] - will be enabled in a future release
+#else
+  #define FLATBUFFERS_ATTRIBUTE(attr)
+#endif
 
 /// @endcond
 

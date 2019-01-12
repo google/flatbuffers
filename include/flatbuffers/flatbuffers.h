@@ -211,6 +211,7 @@ template<typename T> class Vector {
   uoffset_t size() const { return EndianScalar(length_); }
 
   // Deprecated: use size(). Here for backwards compatibility.
+  FLATBUFFERS_ATTRIBUTE(deprecated("use size() instead"))
   uoffset_t Length() const { return size(); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
@@ -996,8 +997,8 @@ class FlatBufferBuilder {
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
   /// @return A `FlatBuffer` that owns the buffer and its allocator and
   /// behaves similar to a `unique_ptr` with a deleter.
-  /// Deprecated: use Release() instead
-  DetachedBuffer ReleaseBufferPointer() {
+  FLATBUFFERS_ATTRIBUTE(deprecated("use Release() instead")) DetachedBuffer
+  ReleaseBufferPointer() {
     Finished();
     return buf_.release();
   }
@@ -1205,7 +1206,7 @@ class FlatBufferBuilder {
         auto vt_offset_ptr = reinterpret_cast<uoffset_t *>(it);
         auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*vt_offset_ptr));
         auto vt2_size = *vt2;
-        if (vt1_size != vt2_size || memcmp(vt2, vt1, vt1_size)) continue;
+        if (vt1_size != vt2_size || 0 != memcmp(vt2, vt1, vt1_size)) continue;
         vt_use = *vt_offset_ptr;
         buf_.pop(GetSize() - vtableoffsetloc);
         break;
@@ -1226,7 +1227,7 @@ class FlatBufferBuilder {
     return vtableoffsetloc;
   }
 
-  // DEPRECATED: call the version above instead.
+  FLATBUFFERS_ATTRIBUTE(deprecated("call the version above instead"))
   uoffset_t EndTable(uoffset_t start, voffset_t /*numfields*/) {
     return EndTable(start);
   }
@@ -2114,7 +2115,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!Verify<uoffset_t>(start)) return 0;
     auto o = ReadScalar<uoffset_t>(buf_ + start);
     // May not point to itself.
-    Check(o != 0);
+    if (!Check(o != 0)) return 0;
     // Can't wrap around / buffers are max 2GB.
     if (!Check(static_cast<soffset_t>(o) >= 0)) return 0;
     // Must be inside the buffer to create a pointer from it (pointer outside
