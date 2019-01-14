@@ -136,25 +136,66 @@ class FloatConstantGenerator {
   std::string GenFloatConstant(const FieldDef &field) const;
 
  private:
+  virtual std::string Value(double v, const std::string &src) const = 0;
   virtual std::string Inf(double v) const = 0;
   virtual std::string NaN(double v) const = 0;
-  virtual std::string Value(double v, const std::string &src) const {
-    (void)v;
-    return src;
-  }
 
-  virtual std::string Inf(float v) const {
-    return this->Inf(static_cast<double>(v));
-  }
-  virtual std::string NaN(float v) const {
-    return this->NaN(static_cast<double>(v));
-  }
-  virtual std::string Value(float v, const std::string &src) const {
-    return this->Value(static_cast<double>(v), src);
-  }
+  virtual std::string Value(float v, const std::string &src) const = 0;
+  virtual std::string Inf(float v) const = 0;
+  virtual std::string NaN(float v) const = 0;
 
   template<typename T>
   std::string GenFloatConstantImpl(const FieldDef &field) const;
+};
+
+class SimpleFloatConstantGenerator : public FloatConstantGenerator {
+ public:
+  SimpleFloatConstantGenerator(const char *nan_number,
+                               const char *pos_inf_number,
+                               const char *neg_inf_number);
+
+ private:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
+
+  const std::string nan_number_;
+  const std::string pos_inf_number_;
+  const std::string neg_inf_number_;
+};
+
+// C++, C#, Java like generator.
+class TypedFloatConstantGenerator : public FloatConstantGenerator {
+ public:
+  TypedFloatConstantGenerator(const char *double_prefix,
+                              const char *single_prefix, const char *nan_number,
+                              const char *pos_inf_number,
+                              const char *neg_inf_number = "");
+
+ private:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
+
+  std::string MakeNaN(const std::string &prefix) const;
+  std::string MakeInf(bool neg, const std::string &prefix) const;
+
+  const std::string double_prefix_;
+  const std::string single_prefix_;
+  const std::string nan_number_;
+  const std::string pos_inf_number_;
+  const std::string neg_inf_number_;
 };
 
 }  // namespace flatbuffers
