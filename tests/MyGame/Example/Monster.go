@@ -66,12 +66,12 @@ func (rcv *Monster) MutateHp(n int16) bool {
 	return rcv._tab.MutateInt16Slot(8, n)
 }
 
-func (rcv *Monster) Name() []byte {
+func (rcv *Monster) Name() string {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.String(o + rcv._tab.Pos)
 	}
-	return nil
+	return ""
 }
 
 func (rcv *Monster) Inventory(j int) byte {
@@ -151,11 +151,11 @@ func (rcv *Monster) Test4Length() int {
 	return 0
 }
 
-func (rcv *Monster) Testarrayofstring(j int) []byte {
+func (rcv *Monster) Testarrayofstring(j int) string {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.ByteVector(a + flatbuffers.UOffsetT(j*4))
+		return rcv._tab.String(a + flatbuffers.UOffsetT(j*4))
 	}
 	return nil
 }
@@ -404,11 +404,11 @@ func (rcv *Monster) MutateTestf3(n float32) bool {
 	return rcv._tab.MutateFloat32Slot(58, n)
 }
 
-func (rcv *Monster) Testarrayofstring2(j int) []byte {
+func (rcv *Monster) Testarrayofstring2(j int) string {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.ByteVector(a + flatbuffers.UOffsetT(j*4))
+		return rcv._tab.String(a + flatbuffers.UOffsetT(j*4))
 	}
 	return nil
 }

@@ -348,7 +348,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
-    code += "(o + rcv._tab.Pos)\n\t}\n\treturn nil\n";
+    code += "(o + rcv._tab.Pos)\n\t}\n\treturn \"\"\n";
     code += "}\n\n";
   }
 
@@ -720,7 +720,7 @@ class GoGenerator : public BaseGenerator {
   // Returns the function name that is able to read a value of the given type.
   std::string GenGetter(const Type &type) {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
+      case BASE_TYPE_STRING: return "rcv._tab.String";
       case BASE_TYPE_UNION: return "rcv._tab.Union";
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default: return "rcv._tab.Get" + MakeCamel(GenTypeBasic(type));
@@ -749,7 +749,7 @@ class GoGenerator : public BaseGenerator {
 
   std::string GenTypePointer(const Type &type) {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "[]byte";
+      case BASE_TYPE_STRING: return "string";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT: return WrapInNameSpaceAndTrack(*type.struct_def);
       case BASE_TYPE_UNION:
