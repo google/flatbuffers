@@ -8,22 +8,22 @@
 
 namespace MyGame {
 
-struct MonsterExra;
-struct MonsterExraT;
+struct MonsterExtra;
+struct MonsterExtraT;
 
-bool operator==(const MonsterExraT &lhs, const MonsterExraT &rhs);
+bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 
-inline const flatbuffers::TypeTable *MonsterExraTypeTable();
+inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
 
-struct MonsterExraT : public flatbuffers::NativeTable {
-  typedef MonsterExra TableType;
+struct MonsterExtraT : public flatbuffers::NativeTable {
+  typedef MonsterExtra TableType;
   float testf_nan;
   float testf_pinf;
   float testf_ninf;
   double testd_nan;
   double testd_pinf;
   double testd_ninf;
-  MonsterExraT()
+  MonsterExtraT()
       : testf_nan(std::numeric_limits<float>::quiet_NaN()),
         testf_pinf(std::numeric_limits<float>::infinity()),
         testf_ninf(-std::numeric_limits<float>::infinity()),
@@ -33,7 +33,7 @@ struct MonsterExraT : public flatbuffers::NativeTable {
   }
 };
 
-inline bool operator==(const MonsterExraT &lhs, const MonsterExraT &rhs) {
+inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
   return
       (lhs.testf_nan == rhs.testf_nan) &&
       (lhs.testf_pinf == rhs.testf_pinf) &&
@@ -43,10 +43,10 @@ inline bool operator==(const MonsterExraT &lhs, const MonsterExraT &rhs) {
       (lhs.testd_ninf == rhs.testd_ninf);
 }
 
-struct MonsterExra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef MonsterExraT NativeTableType;
+struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MonsterExtraT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return MonsterExraTypeTable();
+    return MonsterExtraTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TESTF_NAN = 4,
@@ -102,45 +102,45 @@ struct MonsterExra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<double>(verifier, VT_TESTD_NINF) &&
            verifier.EndTable();
   }
-  MonsterExraT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MonsterExraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<MonsterExra> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExraT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  MonsterExtraT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<MonsterExtra> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
-struct MonsterExraBuilder {
+struct MonsterExtraBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_testf_nan(float testf_nan) {
-    fbb_.AddElement<float>(MonsterExra::VT_TESTF_NAN, testf_nan, std::numeric_limits<float>::quiet_NaN());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NAN, testf_nan, std::numeric_limits<float>::quiet_NaN());
   }
   void add_testf_pinf(float testf_pinf) {
-    fbb_.AddElement<float>(MonsterExra::VT_TESTF_PINF, testf_pinf, std::numeric_limits<float>::infinity());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_PINF, testf_pinf, std::numeric_limits<float>::infinity());
   }
   void add_testf_ninf(float testf_ninf) {
-    fbb_.AddElement<float>(MonsterExra::VT_TESTF_NINF, testf_ninf, -std::numeric_limits<float>::infinity());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NINF, testf_ninf, -std::numeric_limits<float>::infinity());
   }
   void add_testd_nan(double testd_nan) {
-    fbb_.AddElement<double>(MonsterExra::VT_TESTD_NAN, testd_nan, std::numeric_limits<double>::quiet_NaN());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NAN, testd_nan, std::numeric_limits<double>::quiet_NaN());
   }
   void add_testd_pinf(double testd_pinf) {
-    fbb_.AddElement<double>(MonsterExra::VT_TESTD_PINF, testd_pinf, std::numeric_limits<double>::infinity());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_PINF, testd_pinf, std::numeric_limits<double>::infinity());
   }
   void add_testd_ninf(double testd_ninf) {
-    fbb_.AddElement<double>(MonsterExra::VT_TESTD_NINF, testd_ninf, -std::numeric_limits<double>::infinity());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NINF, testd_ninf, -std::numeric_limits<double>::infinity());
   }
-  explicit MonsterExraBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterExtraBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterExraBuilder &operator=(const MonsterExraBuilder &);
-  flatbuffers::Offset<MonsterExra> Finish() {
+  MonsterExtraBuilder &operator=(const MonsterExtraBuilder &);
+  flatbuffers::Offset<MonsterExtra> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<MonsterExra>(end);
+    auto o = flatbuffers::Offset<MonsterExtra>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<MonsterExra> CreateMonsterExra(
+inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
     flatbuffers::FlatBufferBuilder &_fbb,
     float testf_nan = std::numeric_limits<float>::quiet_NaN(),
     float testf_pinf = std::numeric_limits<float>::infinity(),
@@ -148,7 +148,7 @@ inline flatbuffers::Offset<MonsterExra> CreateMonsterExra(
     double testd_nan = std::numeric_limits<double>::quiet_NaN(),
     double testd_pinf = std::numeric_limits<double>::infinity(),
     double testd_ninf = -std::numeric_limits<double>::infinity()) {
-  MonsterExraBuilder builder_(_fbb);
+  MonsterExtraBuilder builder_(_fbb);
   builder_.add_testd_ninf(testd_ninf);
   builder_.add_testd_pinf(testd_pinf);
   builder_.add_testd_nan(testd_nan);
@@ -158,15 +158,15 @@ inline flatbuffers::Offset<MonsterExra> CreateMonsterExra(
   return builder_.Finish();
 }
 
-flatbuffers::Offset<MonsterExra> CreateMonsterExra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-inline MonsterExraT *MonsterExra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterExraT();
+inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new MonsterExtraT();
   UnPackTo(_o, _resolver);
   return _o;
 }
 
-inline void MonsterExra::UnPackTo(MonsterExraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = testf_nan(); _o->testf_nan = _e; };
@@ -177,21 +177,21 @@ inline void MonsterExra::UnPackTo(MonsterExraT *_o, const flatbuffers::resolver_
   { auto _e = testd_ninf(); _o->testd_ninf = _e; };
 }
 
-inline flatbuffers::Offset<MonsterExra> MonsterExra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonsterExra(_fbb, _o, _rehasher);
+inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateMonsterExtra(_fbb, _o, _rehasher);
 }
 
-inline flatbuffers::Offset<MonsterExra> CreateMonsterExra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExraT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterExraT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _testf_nan = _o->testf_nan;
   auto _testf_pinf = _o->testf_pinf;
   auto _testf_ninf = _o->testf_ninf;
   auto _testd_nan = _o->testd_nan;
   auto _testd_pinf = _o->testd_pinf;
   auto _testd_ninf = _o->testd_ninf;
-  return MyGame::CreateMonsterExra(
+  return MyGame::CreateMonsterExtra(
       _fbb,
       _testf_nan,
       _testf_pinf,
@@ -201,7 +201,7 @@ inline flatbuffers::Offset<MonsterExra> CreateMonsterExra(flatbuffers::FlatBuffe
       _testd_ninf);
 }
 
-inline const flatbuffers::TypeTable *MonsterExraTypeTable() {
+inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },

@@ -24,6 +24,7 @@ import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.ByteBufferUtil;
 import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
+import MyGame.MonsterExtra;
 
 class JavaTest {
     public static void main(String[] args) {
