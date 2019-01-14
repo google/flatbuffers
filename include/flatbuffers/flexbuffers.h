@@ -494,7 +494,7 @@ class Reference {
   }
 
   // Unlike AsString(), this will convert any type to a std::string.
-  std::string ToString() {
+  std::string ToString() const {
     std::string s;
     ToString(false, false, s);
     return s;
