@@ -632,13 +632,6 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   text += "\"";
   return true;
 }
-
-inline std::string FirstToLower(std::string in) {
-
-  in[0] = static_cast<char>(tolower(in[0]));
-  return in;
-}
-
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
 

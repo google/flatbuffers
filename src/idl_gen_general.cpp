@@ -510,6 +510,11 @@ class GeneralGenerator : public BaseGenerator {
     return GenDefaultValueBasic(value, true);
   }
 
+  std::string FirstToLower(std::string in) const {
+    in[0] = static_cast<char>(tolower(in[0]));
+    return in;
+  }
+
   void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
@@ -1268,6 +1273,7 @@ class GeneralGenerator : public BaseGenerator {
         }
       }
     }
+
     code += "\n";
     flatbuffers::FieldDef *key_field = nullptr;
     if (struct_def.fixed) {
