@@ -59,14 +59,14 @@
 // Clang 3.4 and later implement all of the ISO C++ 2014 standard.
 // http://clang.llvm.org/cxx_status.html
 
-// MSVC note: requires `/Zc:__cplusplus` or use _MSVC_LANG
-// > The MSVC compiler’s definition of the __cplusplus predefined macro leaps ahead 20 years
-// > in Visual Studio 2017 version 15.7 Preview 3. This macro has stubbornly remained at the value
-// > “199711L”, indicating (erroneously!) that the compiler conformed to the C++98 Standard.
-// > ...
-// > You need to compile with the /Zc:__cplusplus switch to see the updated value
-// > of the __cplusplus macro.
-// https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/
+// Note the MSVC value '__cplusplus' may be incorrect:
+// The '__cplusplus' predefined macro in the MSVC stuck at the value 199711L,
+// indicating (erroneously!) that the compiler conformed to the C++98 Standard.
+// This value should be correct starting from MSVC2017-15.7-Preview-3.
+// The '__cplusplus' will be valid only if MSVC2017-15.7-P3 and the `/Zc:__cplusplus` switch is set.
+// Workaround (for details see MSDN):
+// Use the _MSC_VER and _MSVC_LANG definition instead of the __cplusplus  for compatibility.
+// The _MSVC_LANG macro reports the Standard version regardless of the '/Zc:__cplusplus' switch.
 
 /// @cond FLATBUFFERS_INTERNAL
 #if __cplusplus <= 199711L && \
