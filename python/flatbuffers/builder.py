@@ -509,6 +509,17 @@ class Builder(object):
             self.head = self.head - flags.bytewidth
             encode.Write(flags.packer_type, self.Bytes, self.Head(), fid[i])
         return self.Finish(rootTable)
+    def FinishSizePrefixedWithFileIdentifier(self, rootTable, fid):
+        if (fid is None or len(fid) != encode.FILEIDENTIFIER_LENGTH):
+            raise Exception('fid must be 4 chars')
+
+        flags = N.Uint8Flags
+        prepSize = N.Uint8Flags.bytewidth*len(fid)
+        self.Prep(self.minalign, prepSize+len(fid))
+        for i in range(len(fid)-1, -1, -1):
+            self.head = self.head - flags.bytewidth
+            encode.Write(flags.packer_type, self.Bytes, self.Head(), fid[i])
+        return self.FinishSizePrefixed(rootTable)
 
 
     def Finish(self, rootTable):
