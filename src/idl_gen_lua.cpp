@@ -362,7 +362,7 @@ namespace lua {
         }
         else {
           std::string &code = *code_ptr;
-          code += (std::string) ", " + nameprefix;
+          code += std::string(", ") + nameprefix;
           code += MakeCamel(NormalizedName(field), false);
         }
       }
@@ -604,7 +604,7 @@ namespace lua {
       static const char *ctypename[] = {
         // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             #PTYPE,
             FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD

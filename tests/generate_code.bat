@@ -15,13 +15,29 @@
 set buildtype=Release
 if "%1"=="-b" set buildtype=%2
 
-..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --ts --php --grpc --gen-mutable --reflect-names --gen-object-api --no-includes --cpp-ptr-type flatbuffers::unique_ptr --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
-..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --ts --php --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-..\%buildtype%\flatc.exe --cpp --js --ts --php --gen-mutable --reflect-names --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
-..\%buildtype%\flatc.exe -b --schema --bfbs-comments -I include_test monster_test.fbs
-..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs
-cd ../samples
-..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
-cd ../reflection
+..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --rust --ts --php --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --rust --ts --php --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs || goto FAIL
+..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs || goto FAIL
 
+IF NOT "%MONSTER_EXTRA%"=="skip" (
+  @echo Generate MosterExtra
+  ..\%buildtype%\flatc.exe --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs || goto FAIL
+) else (
+  @echo monster_extra.fbs skipped (the strtod function from MSVC2013 or older doesn't support NaN/Inf arguments)
+)
+
+cd ../samples
+..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs || goto FAIL
+..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins monster.fbs || goto FAIL
+cd ../reflection
+call generate_code.bat %1 %2 || goto FAIL
+
+set EXITCODE=0
+goto SUCCESS
+:FAIL
+set EXITCODE=1
+:SUCCESS
 cd ../tests
+EXIT /B %EXITCODE%

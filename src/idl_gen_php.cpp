@@ -454,7 +454,7 @@ class PhpGenerator : public BaseGenerator {
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
         std::string &code = *code_ptr;
-        code += (std::string) ", $" + nameprefix;
+        code += std::string(", $") + nameprefix;
         code += MakeCamel(field.name, false);
       }
     }
@@ -602,12 +602,12 @@ class PhpGenerator : public BaseGenerator {
     code += "for ($i = count($data) - 1; $i >= 0; $i--) {\n";
     if (IsScalar(field.value.type.VectorType().base_type)) {
       code += Indent + Indent + Indent;
-      code += "$builder->add";
+      code += "$builder->put";
       code += MakeCamel(GenTypeBasic(field.value.type.VectorType()));
       code += "($data[$i]);\n";
     } else {
       code += Indent + Indent + Indent;
-      code += "$builder->addOffset($data[$i]);\n";
+      code += "$builder->putOffset($data[$i]);\n";
     }
     code += Indent + Indent + "}\n";
     code += Indent + Indent + "return $builder->endVector();\n";
@@ -864,7 +864,7 @@ class PhpGenerator : public BaseGenerator {
     static const char *ctypename[] = {
     // clang-format off
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             #NTYPE,
                 FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD

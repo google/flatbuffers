@@ -7,7 +7,7 @@ package Example
 import "github.com/google/flatbuffers/go"
 
 import (
-  context "golang.org/x/net/context"
+  context "context"
   grpc "google.golang.org/grpc"
 )
 
@@ -17,6 +17,10 @@ type MonsterStorageClient interface{
   	opts... grpc.CallOption) (* Stat, error)  
   Retrieve(ctx context.Context, in *flatbuffers.Builder, 
   	opts... grpc.CallOption) (MonsterStorage_RetrieveClient, error)  
+  GetMaxHitPoint(ctx context.Context, 
+  	opts... grpc.CallOption) (MonsterStorage_GetMaxHitPointClient, error)  
+  GetMinMaxHitPoints(ctx context.Context, 
+  	opts... grpc.CallOption) (MonsterStorage_GetMinMaxHitPointsClient, error)  
 }
 
 type monsterStorageClient struct {
@@ -60,10 +64,69 @@ func (x *monsterStorageRetrieveClient) Recv() (*Monster, error) {
   return m, nil
 }
 
+func (c *monsterStorageClient) GetMaxHitPoint(ctx context.Context, 
+	opts... grpc.CallOption) (MonsterStorage_GetMaxHitPointClient, error) {
+  stream, err := grpc.NewClientStream(ctx, &_MonsterStorage_serviceDesc.Streams[1], c.cc, "/MyGame.Example.MonsterStorage/GetMaxHitPoint", opts...)
+  if err != nil { return nil, err }
+  x := &monsterStorageGetMaxHitPointClient{stream}
+  return x,nil
+}
+
+type MonsterStorage_GetMaxHitPointClient interface {
+  Send(*flatbuffers.Builder) error
+  CloseAndRecv() (*Stat, error)
+  grpc.ClientStream
+}
+
+type monsterStorageGetMaxHitPointClient struct{
+  grpc.ClientStream
+}
+
+func (x *monsterStorageGetMaxHitPointClient) Send(m *flatbuffers.Builder) error {
+  return x.ClientStream.SendMsg(m)
+}
+
+func (x *monsterStorageGetMaxHitPointClient) CloseAndRecv() (*Stat, error) {
+  if err := x.ClientStream.CloseSend(); err != nil { return nil, err }
+  m := new (Stat)
+  if err := x.ClientStream.RecvMsg(m); err != nil { return nil, err }
+  return m, nil
+}
+
+func (c *monsterStorageClient) GetMinMaxHitPoints(ctx context.Context, 
+	opts... grpc.CallOption) (MonsterStorage_GetMinMaxHitPointsClient, error) {
+  stream, err := grpc.NewClientStream(ctx, &_MonsterStorage_serviceDesc.Streams[2], c.cc, "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints", opts...)
+  if err != nil { return nil, err }
+  x := &monsterStorageGetMinMaxHitPointsClient{stream}
+  return x,nil
+}
+
+type MonsterStorage_GetMinMaxHitPointsClient interface {
+  Send(*flatbuffers.Builder) error
+  Recv() (*Stat, error)
+  grpc.ClientStream
+}
+
+type monsterStorageGetMinMaxHitPointsClient struct{
+  grpc.ClientStream
+}
+
+func (x *monsterStorageGetMinMaxHitPointsClient) Send(m *flatbuffers.Builder) error {
+  return x.ClientStream.SendMsg(m)
+}
+
+func (x *monsterStorageGetMinMaxHitPointsClient) Recv() (*Stat, error) {
+  m := new(Stat)
+  if err := x.ClientStream.RecvMsg(m); err != nil { return nil, err }
+  return m, nil
+}
+
 // Server API for MonsterStorage service
 type MonsterStorageServer interface {
   Store(context.Context, *Monster) (*flatbuffers.Builder, error)  
   Retrieve(*Stat, MonsterStorage_RetrieveServer) error  
+  GetMaxHitPoint(MonsterStorage_GetMaxHitPointServer) error  
+  GetMinMaxHitPoints(MonsterStorage_GetMinMaxHitPointsServer) error  
 }
 
 func RegisterMonsterStorageServer(s *grpc.Server, srv MonsterStorageServer) {
@@ -107,6 +170,56 @@ func (x *monsterStorageRetrieveServer) Send(m *flatbuffers.Builder) error {
 }
 
 
+func _MonsterStorage_GetMaxHitPoint_Handler(srv interface{}, stream grpc.ServerStream) error {
+  return srv.(MonsterStorageServer).GetMaxHitPoint(&monsterStorageGetMaxHitPointServer{stream})
+}
+
+type MonsterStorage_GetMaxHitPointServer interface { 
+  Recv() (* Monster, error)
+  SendAndClose(* flatbuffers.Builder) error
+  grpc.ServerStream
+}
+
+type monsterStorageGetMaxHitPointServer struct {
+  grpc.ServerStream
+}
+
+func (x *monsterStorageGetMaxHitPointServer) Recv() (*Monster, error) {
+  m := new(Monster)
+  if err := x.ServerStream.RecvMsg(m); err != nil { return nil, err }
+  return m, nil
+}
+
+func (x *monsterStorageGetMaxHitPointServer) SendAndClose(m *flatbuffers.Builder) error {
+  return x.ServerStream.SendMsg(m)
+}
+
+
+func _MonsterStorage_GetMinMaxHitPoints_Handler(srv interface{}, stream grpc.ServerStream) error {
+  return srv.(MonsterStorageServer).GetMinMaxHitPoints(&monsterStorageGetMinMaxHitPointsServer{stream})
+}
+
+type MonsterStorage_GetMinMaxHitPointsServer interface { 
+  Send(* flatbuffers.Builder) error
+  Recv() (* Monster, error)
+  grpc.ServerStream
+}
+
+type monsterStorageGetMinMaxHitPointsServer struct {
+  grpc.ServerStream
+}
+
+func (x *monsterStorageGetMinMaxHitPointsServer) Send(m *flatbuffers.Builder) error {
+  return x.ServerStream.SendMsg(m)
+}
+
+func (x *monsterStorageGetMinMaxHitPointsServer) Recv() (*Monster, error) {
+  m := new(Monster)
+  if err := x.ServerStream.RecvMsg(m); err != nil { return nil, err }
+  return m, nil
+}
+
+
 var _MonsterStorage_serviceDesc = grpc.ServiceDesc{
   ServiceName: "MyGame.Example.MonsterStorage",
   HandlerType: (*MonsterStorageServer)(nil),
@@ -121,6 +234,17 @@ var _MonsterStorage_serviceDesc = grpc.ServiceDesc{
       StreamName: "Retrieve",
       Handler: _MonsterStorage_Retrieve_Handler, 
       ServerStreams: true,
+    },
+    {
+      StreamName: "GetMaxHitPoint",
+      Handler: _MonsterStorage_GetMaxHitPoint_Handler, 
+      ClientStreams: true,
+    },
+    {
+      StreamName: "GetMinMaxHitPoints",
+      Handler: _MonsterStorage_GetMinMaxHitPoints_Handler, 
+      ServerStreams: true,
+      ClientStreams: true,
     },
   },
 }

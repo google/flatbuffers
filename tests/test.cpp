@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <cmath>
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -33,65 +33,30 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
-
-// clang-format off
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <random>
-#endif
+#include "monster_extra_generated.h"
+#include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
 
 using namespace MyGame::Example;
 
-#ifdef __ANDROID__
-  #include <android/log.h>
-  #define TEST_OUTPUT_LINE(...) \
-    __android_log_print(ANDROID_LOG_INFO, "FlatBuffers", __VA_ARGS__)
-  #define FLATBUFFERS_NO_FILE_TESTS
-#else
-  #define TEST_OUTPUT_LINE(...) \
-    { printf(__VA_ARGS__); printf("\n"); }
-#endif
-// clang-format on
-
-int testing_fails = 0;
-
-void TestFail(const char *expval, const char *val, const char *exp,
-              const char *file, int line) {
-  TEST_OUTPUT_LINE("VALUE: \"%s\"", expval);
-  TEST_OUTPUT_LINE("EXPECTED: \"%s\"", val);
-  TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s", file, line, exp);
-  assert(0);
-  testing_fails++;
-}
-
-void TestEqStr(const char *expval, const char *val, const char *exp,
-               const char *file, int line) {
-  if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line); }
-}
-
-template<typename T, typename U>
-void TestEq(T expval, U val, const char *exp, const char *file, int line) {
-  if (U(expval) != val) {
-    TestFail(flatbuffers::NumToString(expval).c_str(),
-             flatbuffers::NumToString(val).c_str(), exp, file, line);
-  }
-}
-
-#define TEST_EQ(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__)
-#define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
-#define TEST_EQ_STR(exp, val) TestEqStr(exp, val, #exp, __FILE__, __LINE__)
+void FlatBufferBuilderTest();
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
 // http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
 uint32_t lcg_seed = 48271;
 uint32_t lcg_rand() {
-  return lcg_seed = ((uint64_t)lcg_seed * 279470273UL) % 4294967291UL;
+  return lcg_seed = (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
 }
 void lcg_reset() { lcg_seed = 48271; }
 
-std::string test_data_path = "tests/";
+std::string test_data_path =
+#ifdef BAZEL_TEST_DATA_PATH
+    "../com_github_google_flatbuffers/tests/";
+#else
+    "tests/";
+#endif
 
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
@@ -202,13 +167,22 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flexbuild.Finish();
   auto flex = builder.CreateVector(flexbuild.GetBuffer());
 
+  // Test vector of enums.
+  Color colors[] = { Color_Blue, Color_Green };
+  // We use this special creation function because we have an array of
+  // pre-C++11 (enum class) enums whose size likely is int, yet its declared
+  // type in the schema is byte.
+  auto vecofcolors = builder.CreateVectorScalarCast<int8_t, Color>(colors, 2);
+
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,
                             Any_Monster, mlocs[1].Union(),  // Store a union.
                             testv, vecofstrings, vecoftables, 0,
                             nested_flatbuffer_vector, 0, false, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 3.14159f, 3.0f, 0.0f, vecofstrings2,
-                            vecofstructs, flex, testv2);
+                            vecofstructs, flex, testv2, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, AnyUniqueAliases_NONE, 0,
+                            AnyAmbiguousAliases_NONE, 0, vecofcolors);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -350,6 +324,14 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // However, if you actually want to access the nested data, this is a
   // convenient accessor that directly gives you the root value:
   TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
+
+  // Test vector of enums:
+  auto colors = monster->vector_of_enums();
+  if (colors) {
+    TEST_EQ(colors->size(), 2);
+    TEST_EQ(colors->Get(0), Color_Blue);
+    TEST_EQ(colors->Get(1), Color_Green);
+  }
 
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
@@ -588,25 +570,37 @@ void JsonDefaultTest() {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest() {
+void ParseAndGenerateTextTest(bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
-                                false, &schemafile),
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "monster_test." + (binary ? "bfbs" : "fbs"))
+                  .c_str(),
+              binary, &schemafile),
           true);
   TEST_EQ(flatbuffers::LoadFile(
               (test_data_path + "monsterdata_test.golden").c_str(), false,
               &jsonfile),
           true);
 
-  // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+    flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  if (binary) {
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    //auto schema = reflection::GetSchema(schemafile.c_str());
+    TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(), schemafile.size()), true);
+  } else {
+    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  }
   TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
@@ -875,7 +869,8 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "{ id: 2, distance: 20 }, { id: 3, distance: 30 }, "
       "{ id: 4, distance: 40 } ], "
       "flex: [ 210, 4, 5, 2 ], "
-      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ] "
+      "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
+      "vector_of_enums: [ Blue, Green ] "
       "}");
 }
 
@@ -1202,22 +1197,40 @@ void FuzzTest2() {
 }
 
 // Test that parser errors are actually generated.
-void TestError(const char *src, const char *error_substr,
-               bool strict_json = false) {
+void TestError_(const char *src, const char *error_substr, bool strict_json,
+                const char *file, int line, const char *func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
-  TEST_EQ(parser.Parse(src), false);  // Must signal error
-  // Must be the error we're expecting
-  TEST_NOTNULL(strstr(parser.error_.c_str(), error_substr));
+  if (parser.Parse(src)) {
+    TestFail("true", "false",
+             ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
+             func);
+  } else if (!strstr(parser.error_.c_str(), error_substr)) {
+    TestFail(parser.error_.c_str(), error_substr,
+             ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
+             func);
+  }
 }
+
+void TestError_(const char *src, const char *error_substr, const char *file,
+                int line, const char *func) {
+  TestError_(src, error_substr, false, file, line, func);
+}
+
+#ifdef WIN32
+#  define TestError(src, ...) \
+    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
+#else
+#  define TestError(src, ...) \
+    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#endif
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
 void ErrorTest() {
   // In order they appear in idl_parser.cpp
   TestError("table X { Y:byte; } root_type X; { Y: 999 }", "does not fit");
-  TestError(".0", "floating point");
   TestError("\"\0", "illegal");
   TestError("\"\\q", "escape code");
   TestError("table ///", "documentation");
@@ -1250,30 +1263,48 @@ void ErrorTest() {
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=1 }", "ascending");
-  TestError("union X { Y = 256 }", "must fit");
   TestError("enum X:byte (bit_flags) { Y=8 }", "bit flag out");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
+  TestError("struct X {}", "size 0");
   TestError("{}", "no root");
-  TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "one json");
+  TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "end of file");
+  TestError("table X { Y:byte; } root_type X; { Y:1 } table Y{ Z:int }",
+            "end of file");
   TestError("root_type X;", "unknown root");
   TestError("struct X { Y:int; } root_type X;", "a table");
   TestError("union X { Y }", "referenced");
   TestError("union Z { X } struct X { Y:int; }", "only tables");
   TestError("table X { Y:[int]; YLength:int; }", "clash");
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
+  // float to integer conversion is forbidden
+  TestError("table X { Y:int; } root_type X; { Y:1.0 }", "float");
+  TestError("table X { Y:bool; } root_type X; { Y:1.0 }", "float");
+  TestError("enum X:bool { Y = true }", "must be integral");
 }
 
 template<typename T> T TestValue(const char *json, const char *type_name) {
   flatbuffers::Parser parser;
-
+  parser.builder_.ForceDefaults(true);  // return defaults
+  auto check_default = json ? false : true;
+  if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
-  TEST_EQ(parser.Parse(std::string("table X { Y:" + std::string(type_name) +
-                                   "; } root_type X;")
-                           .c_str()),
-          true);
+  std::string schema =
+      "table X { Y:" + std::string(type_name) + "; } root_type X;";
+  TEST_EQ(parser.Parse(schema.c_str()), true);
 
-  TEST_EQ(parser.Parse(json), true);
+  auto done = parser.Parse(check_default ? "{}" : json);
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(done, true);
+
+  // Check with print.
+  std::string print_back;
+  parser.opts.indent_step = -1;
+  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
+          true);
+  // restore value from its default
+  if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
+
   auto root = flatbuffers::GetRoot<flatbuffers::Table>(
       parser.builder_.GetBufferPointer());
   return root->GetField<T>(flatbuffers::FieldIndexToOffset(0), 0);
@@ -1285,19 +1316,46 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 void ValueTest() {
   // Test scientific notation numbers.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"),
-                       (float)3.14159),
+                       3.14159f),
+          true);
+  // number in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\"0.0314159e+2\" }", "float"),
+                       3.14159f),
           true);
 
   // Test conversion functions.
   TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }", "float"), -1),
           true);
 
+  // int embedded to string
+  TEST_EQ(TestValue<int>("{ Y:\"-876\" }", "int=-123"), -876);
+  TEST_EQ(TestValue<int>("{ Y:\"876\" }", "int=-123"), 876);
+
   // Test negative hex constant.
-  TEST_EQ(TestValue<int>("{ Y:-0x80 }", "int"), -128);
+  TEST_EQ(TestValue<int>("{ Y:-0x8ea0 }", "int=-0x8ea0"), -36512);
+  TEST_EQ(TestValue<int>(nullptr, "int=-0x8ea0"), -36512);
+
+  // positive hex constant
+  TEST_EQ(TestValue<int>("{ Y:0x1abcdef }", "int=0x1"), 0x1abcdef);
+  // with optional '+' sign
+  TEST_EQ(TestValue<int>("{ Y:+0x1abcdef }", "int=+0x1"), 0x1abcdef);
+  // hex in string
+  TEST_EQ(TestValue<int>("{ Y:\"0x1abcdef\" }", "int=+0x1"), 0x1abcdef);
 
   // Make sure we do unsigned 64bit correctly.
   TEST_EQ(TestValue<uint64_t>("{ Y:12335089644688340133 }", "ulong"),
           12335089644688340133ULL);
+
+  // bool in string
+  TEST_EQ(TestValue<bool>("{ Y:\"false\" }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ Y:\"true\" }", "bool=\"true\""), true);
+  TEST_EQ(TestValue<bool>("{ Y:'false' }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ Y:'true' }", "bool=\"true\""), true);
+
+  // check comments before and after json object
+  TEST_EQ(TestValue<int>("/*before*/ { Y:1 } /*after*/", "int"), 1);
+  TEST_EQ(TestValue<int>("//before \n { Y:1 } //after", "int"), 1);
+
 }
 
 void NestedListTest() {
@@ -1319,6 +1377,44 @@ void EnumStringsTest() {
                         "root_type T;"
                         "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"),
           true);
+}
+
+void EnumNamesTest() {
+  TEST_EQ_STR("Red", EnumNameColor(Color_Red));
+  TEST_EQ_STR("Green", EnumNameColor(Color_Green));
+  TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
+  // Check that Color to string don't crash while decode a mixture of Colors.
+  // 1) Example::Color enum is enum with unfixed underlying type.
+  // 2) Valid enum range: [0; 2^(ceil(log2(Color_ANY))) - 1].
+  // Consequence: A value is out of this range will lead to UB (since C++17).
+  // For details see C++17 standard or explanation on the SO:
+  // stackoverflow.com/questions/18195312/what-happens-if-you-static-cast-invalid-value-to-enum-class
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(0)));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY-1)));
+  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY+1)));
+}
+
+void EnumOutOfRangeTest() {
+  TestError("enum X:byte { Y = 128 }", "enum value does not fit");
+  TestError("enum X:byte { Y = -129 }", "enum value does not fit");
+  TestError("enum X:byte { Y = 127, Z }", "enum value does not fit");
+  TestError("enum X:ubyte { Y = -1 }", "enum value does not fit");
+  TestError("enum X:ubyte { Y = 256 }", "enum value does not fit");
+  // Unions begin with an implicit "NONE = 0".
+  TestError("table Y{} union X { Y = -1 }",
+            "enum values must be specified in ascending order");
+  TestError("table Y{} union X { Y = 256 }", "enum value does not fit");
+  TestError("table Y{} union X { Y = 255, Z:Y }", "enum value does not fit");
+  TestError("enum X:int { Y = -2147483649 }", "enum value does not fit");
+  TestError("enum X:int { Y = 2147483648 }", "enum value does not fit");
+  TestError("enum X:uint { Y = -1 }", "enum value does not fit");
+  TestError("enum X:uint { Y = 4294967297 }", "enum value does not fit");
+  TestError("enum X:long { Y = 9223372036854775808 }", "constant does not fit");
+  TestError("enum X:long { Y = 9223372036854775807, Z }", "enum value overflows");
+  TestError("enum X:ulong { Y = -1 }", "enum value does not fit");
+  // TODO: these are perfectly valid constants that shouldn't fail
+  TestError("enum X:ulong { Y = 13835058055282163712 }", "constant does not fit");
+  TestError("enum X:ulong { Y = 18446744073709551615 }", "constant does not fit");
 }
 
 void IntegerOutOfRangeTest() {
@@ -1346,6 +1442,47 @@ void IntegerOutOfRangeTest() {
             "constant does not fit");
   TestError("table T { F:uint; } root_type T; { F:-1 }",
             "constant does not fit");
+  // Check fixed width aliases
+  TestError("table X { Y:uint8; } root_type X; { Y: -1 }", "does not fit");
+  TestError("table X { Y:uint8; } root_type X; { Y: 256 }", "does not fit");
+  TestError("table X { Y:uint16; } root_type X; { Y: -1 }", "does not fit");
+  TestError("table X { Y:uint16; } root_type X; { Y: 65536 }", "does not fit");
+  TestError("table X { Y:uint32; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint32; } root_type X; { Y: 4294967296 }",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint64; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: 18446744073709551616 }",
+            "does not fit");
+
+  TestError("table X { Y:int8; } root_type X; { Y: -129 }", "does not fit");
+  TestError("table X { Y:int8; } root_type X; { Y: 128 }", "does not fit");
+  TestError("table X { Y:int16; } root_type X; { Y: -32769 }", "does not fit");
+  TestError("table X { Y:int16; } root_type X; { Y: 32768 }", "does not fit");
+  TestError("table X { Y:int32; } root_type X; { Y: -2147483649 }", "");
+  TestError("table X { Y:int32; } root_type X; { Y: 2147483648 }",
+            "does not fit");
+  TestError("table X { Y:int64; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:int64; } root_type X; { Y: 9223372036854775808 }",
+            "does not fit");
+  // check out-of-int64 as int8
+  TestError("table X { Y:int8; } root_type X; { Y: -9223372036854775809 }",
+            "does not fit");
+  TestError("table X { Y:int8; } root_type X; { Y: 9223372036854775808 }",
+            "does not fit");
+
+  // Check default values
+  TestError("table X { Y:int64=-9223372036854775809; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:int64= 9223372036854775808; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:uint64; } root_type X; { Y: -1 }", "");
+  TestError("table X { Y:uint64=-9223372036854775809; } root_type X; {}",
+            "does not fit");
+  TestError("table X { Y:uint64= 18446744073709551616; } root_type X; {}",
+            "does not fit");
 }
 
 void IntegerBoundaryTest() {
@@ -1368,6 +1505,208 @@ void IntegerBoundaryTest() {
   TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }", "ulong"),
           18446744073709551615U);
   TEST_EQ(TestValue<uint64_t>("{ Y:0 }", "ulong"), 0);
+  TEST_EQ(TestValue<uint64_t>("{ Y: 18446744073709551615 }", "uint64"),
+          18446744073709551615ULL);
+  // check that the default works
+  TEST_EQ(TestValue<uint64_t>(nullptr, "uint64 = 18446744073709551615"),
+          18446744073709551615ULL);
+}
+
+void ValidFloatTest() {
+  const auto infinityf = flatbuffers::numeric_limits<float>::infinity();
+  const auto infinityd = flatbuffers::numeric_limits<double>::infinity();
+  // check rounding to infinity
+  TEST_EQ(TestValue<float>("{ Y:+3.4029e+38 }", "float"), +infinityf);
+  TEST_EQ(TestValue<float>("{ Y:-3.4029e+38 }", "float"), -infinityf);
+  TEST_EQ(TestValue<double>("{ Y:+1.7977e+308 }", "double"), +infinityd);
+  TEST_EQ(TestValue<double>("{ Y:-1.7977e+308 }", "double"), -infinityd);
+
+  TEST_EQ(
+      FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"), 3.14159f),
+      true);
+  // float in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\" 0.0314159e+2  \" }", "float"),
+                       3.14159f),
+          true);
+
+  TEST_EQ(TestValue<float>("{ Y:1 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:+1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:-1. }", "float"), -1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e+0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:1.e-0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ Y:0.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ Y:.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ Y:-.125 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ Y:+.125 }", "float"), +0.125f);
+  TEST_EQ(TestValue<float>("{ Y:5 }", "float"), 5.0f);
+  TEST_EQ(TestValue<float>("{ Y:\"5\" }", "float"), 5.0f);
+
+  #if defined(FLATBUFFERS_HAS_NEW_STRTOD)
+  // Old MSVC versions may have problem with this check.
+  // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
+  TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
+    6929495644600920.0);
+  // check nan's
+  TEST_EQ(std::isnan(TestValue<double>("{ Y:nan }", "double")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:+nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ Y:-nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=-nan")), true);
+  // check inf
+  TEST_EQ(TestValue<float>("{ Y:inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:\"inf\" }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:+inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ Y:-inf }", "float"), -infinityf);
+  TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinityf);
+  TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinityf);
+  TestValue<double>(
+      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[double]");
+  TestValue<float>(
+      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[float]");
+
+  // Test binary format of float point.
+  // https://en.cppreference.com/w/cpp/language/floating_literal
+  // 0x11.12p-1 = (1*16^1 + 2*16^0 + 3*16^-1 + 4*16^-2) * 2^-1 =
+  TEST_EQ(TestValue<double>("{ Y:0x12.34p-1 }", "double"), 9.1015625);
+  // hex fraction 1.2 (decimal 1.125) scaled by 2^3, that is 9.0
+  TEST_EQ(TestValue<float>("{ Y:-0x0.2p0 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ Y:-0x.2p1 }", "float"), -0.25f);
+  TEST_EQ(TestValue<float>("{ Y:0x1.2p3 }", "float"), 9.0f);
+  TEST_EQ(TestValue<float>("{ Y:0x10.1p0 }", "float"), 16.0625f);
+  TEST_EQ(TestValue<double>("{ Y:0x1.2p3 }", "double"), 9.0);
+  TEST_EQ(TestValue<double>("{ Y:0x10.1p0 }", "double"), 16.0625);
+  TEST_EQ(TestValue<double>("{ Y:0xC.68p+2 }", "double"), 49.625);
+  TestValue<double>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[double]");
+  TestValue<float>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[float]");
+
+#else   // FLATBUFFERS_HAS_NEW_STRTOD
+  TEST_OUTPUT_LINE("FLATBUFFERS_HAS_NEW_STRTOD tests skipped");
+#endif  // FLATBUFFERS_HAS_NEW_STRTOD
+}
+
+void InvalidFloatTest() {
+  auto invalid_msg = "invalid number";
+  auto comma_msg = "expecting: ,";
+  TestError("table T { F:float; } root_type T; { F:1,0 }", "");
+  TestError("table T { F:float; } root_type T; { F:. }", "");
+  TestError("table T { F:float; } root_type T; { F:- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:.e }", "");
+  TestError("table T { F:float; } root_type T; { F:-e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-.e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+.e }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-e1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+e1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e- }", invalid_msg);
+  // exponent pP is mandatory for hex-float
+  TestError("table T { F:float; } root_type T; { F:0x0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:-0x. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x. }", invalid_msg);
+  // eE not exponent in hex-float!
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0p- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0pa1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e+0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0e-0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0ep+ }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0x0.0ep- }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2.e3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e0.3 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e3. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.2e3.0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:+-1.0 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.0e+-1 }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"1.0e+-1\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:1.e0e }", comma_msg);
+  TestError("table T { F:float; } root_type T; { F:0x1.p0e }", comma_msg);
+  TestError("table T { F:float; } root_type T; { F:\" 0x10 \" }", invalid_msg);
+  // floats in string
+  TestError("table T { F:float; } root_type T; { F:\"1,2.\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"1.2e3.\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0x1.p0e\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0x1.0\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\" 0x1.0\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"+ 0\" }", invalid_msg);
+  // disable escapes for "number-in-string"
+  TestError("table T { F:float; } root_type T; { F:\"\\f1.2e3.\" }", "invalid");
+  TestError("table T { F:float; } root_type T; { F:\"\\t1.2e3.\" }", "invalid");
+  TestError("table T { F:float; } root_type T; { F:\"\\n1.2e3.\" }", "invalid");
+  TestError("table T { F:float; } root_type T; { F:\"\\r1.2e3.\" }", "invalid");
+  TestError("table T { F:float; } root_type T; { F:\"4\\x005\" }", "invalid");
+  TestError("table T { F:float; } root_type T; { F:\"\'12\'\" }", invalid_msg);
+  // null is not a number constant!
+  TestError("table T { F:float; } root_type T; { F:\"null\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:null }", invalid_msg);
+}
+
+template<typename T>
+void NumericUtilsTestInteger(const char *lower, const char *upper) {
+  T x;
+  TEST_EQ(flatbuffers::StringToNumber("1q", &x), false);
+  TEST_EQ(x, 0);
+  TEST_EQ(flatbuffers::StringToNumber(upper, &x), false);
+  TEST_EQ(x, flatbuffers::numeric_limits<T>::max());
+  TEST_EQ(flatbuffers::StringToNumber(lower, &x), false);
+  auto expval = flatbuffers::is_unsigned<T>::value
+                    ? flatbuffers::numeric_limits<T>::max()
+                    : flatbuffers::numeric_limits<T>::lowest();
+  TEST_EQ(x, expval);
+}
+
+template<typename T>
+void NumericUtilsTestFloat(const char *lower, const char *upper) {
+  T f;
+  TEST_EQ(flatbuffers::StringToNumber("", &f), false);
+  TEST_EQ(flatbuffers::StringToNumber("1q", &f), false);
+  TEST_EQ(f, 0);
+  TEST_EQ(flatbuffers::StringToNumber(upper, &f), true);
+  TEST_EQ(f, +flatbuffers::numeric_limits<T>::infinity());
+  TEST_EQ(flatbuffers::StringToNumber(lower, &f), true);
+  TEST_EQ(f, -flatbuffers::numeric_limits<T>::infinity());
+}
+
+void NumericUtilsTest() {
+  NumericUtilsTestInteger<uint64_t>("-1", "18446744073709551616");
+  NumericUtilsTestInteger<uint8_t>("-1", "256");
+  NumericUtilsTestInteger<int64_t>("-9223372036854775809",
+                                   "9223372036854775808");
+  NumericUtilsTestInteger<int8_t>("-129", "128");
+  NumericUtilsTestFloat<float>("-3.4029e+38", "+3.4029e+38");
+  NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
+}
+
+void IsAsciiUtilsTest() {
+  char c = -128;
+  for (int cnt = 0; cnt < 256; cnt++) {
+    auto alpha = (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'));
+    auto dec = (('0' <= c) && (c <= '9'));
+    auto hex = (('a' <= c) && (c <= 'f')) || (('A' <= c) && (c <= 'F'));
+    TEST_EQ(flatbuffers::is_alpha(c), alpha);
+    TEST_EQ(flatbuffers::is_alnum(c), alpha || dec);
+    TEST_EQ(flatbuffers::is_digit(c), dec);
+    TEST_EQ(flatbuffers::is_xdigit(c), dec || hex);
+    c += 1;
+  }
 }
 
 void UnicodeTest() {
@@ -1581,6 +1920,15 @@ void InvalidUTF8Test() {
       // U+10400 "encoded" as U+D801 U+DC00
       "{ F:\"\xED\xA0\x81\xED\xB0\x80\"}",
       "illegal UTF-8 sequence");
+
+  // Check independence of identifier from locale.
+  std::string locale_ident;
+  locale_ident += "table T { F";
+  locale_ident += static_cast<char>(-32); // unsigned 0xE0
+  locale_ident += " :string; }";
+  locale_ident += "root_type T;";
+  locale_ident += "{}";
+  TestError(locale_ident.c_str(), "");
 }
 
 void UnknownFieldsTest() {
@@ -1727,6 +2075,38 @@ void UnionVectorTest() {
       "characters_type: [ Belle, MuLan, BookFan, Other, Unused ], "
       "characters: [ { books_read: 7 }, { sword_attack_damage: 5 }, "
       "{ books_read: 2 }, \"Other\", \"Unused\" ] }");
+
+
+  flatbuffers::ToStringVisitor visitor("\n", true, "  ");
+  IterateFlatBuffer(fbb.GetBufferPointer(), MovieTypeTable(), &visitor);
+  TEST_EQ_STR(
+      visitor.s.c_str(),
+      "{\n"
+      "  \"main_character_type\": \"Rapunzel\",\n"
+      "  \"main_character\": {\n"
+      "    \"hair_length\": 6\n"
+      "  },\n"
+      "  \"characters_type\": [\n"
+      "    \"Belle\",\n"
+      "    \"MuLan\",\n"
+      "    \"BookFan\",\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ],\n"
+      "  \"characters\": [\n"
+      "    {\n"
+      "      \"books_read\": 7\n"
+      "    },\n"
+      "    {\n"
+      "      \"sword_attack_damage\": 5\n"
+      "    },\n"
+      "    {\n"
+      "      \"books_read\": 2\n"
+      "    },\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ]\n"
+      "}");
 }
 
 void ConformTest() {
@@ -1978,6 +2358,25 @@ void UninitializedVectorTest() {
   TEST_EQ(test_1->b(), 40);
 }
 
+void EqualOperatorTest() {
+  MonsterT a;
+  MonsterT b;
+  TEST_EQ(b == a, true);
+
+  b.mana = 33;
+  TEST_EQ(b == a, false);
+  b.mana = 150;
+  TEST_EQ(b == a, true);
+
+  b.inventory.push_back(3);
+  TEST_EQ(b == a, false);
+  b.inventory.clear();
+  TEST_EQ(b == a, true);
+
+  b.test.type = Any_Monster;
+  TEST_EQ(b == a, false);
+}
+
 // For testing any binaries, e.g. from fuzzing.
 void LoadVerifyBinaryTest() {
   std::string binary;
@@ -1990,7 +2389,59 @@ void LoadVerifyBinaryTest() {
   }
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+void CreateSharedStringTest() {
+  flatbuffers::FlatBufferBuilder builder;
+  const auto one1 = builder.CreateSharedString("one");
+  const auto two = builder.CreateSharedString("two");
+  const auto one2 = builder.CreateSharedString("one");
+  TEST_EQ(one1.o, one2.o);
+  const auto onetwo = builder.CreateSharedString("onetwo");
+  TEST_EQ(onetwo.o != one1.o, true);
+  TEST_EQ(onetwo.o != two.o, true);
+
+  // Support for embedded nulls
+  const char chars_b[] = {'a', '\0', 'b'};
+  const char chars_c[] = {'a', '\0', 'c'};
+  const auto null_b1 = builder.CreateSharedString(chars_b, sizeof(chars_b));
+  const auto null_c = builder.CreateSharedString(chars_c, sizeof(chars_c));
+  const auto null_b2 = builder.CreateSharedString(chars_b, sizeof(chars_b));
+  TEST_EQ(null_b1.o != null_c.o, true); // Issue#5058 repro
+  TEST_EQ(null_b1.o, null_b2.o);
+
+  // Put the strings into an array for round trip verification.
+  const flatbuffers::Offset<flatbuffers::String> array[7] = { one1, two, one2, onetwo, null_b1, null_c, null_b2 };
+  const auto vector_offset = builder.CreateVector(array, flatbuffers::uoffset_t(7));
+  MonsterBuilder monster_builder(builder);
+  monster_builder.add_name(two);
+  monster_builder.add_testarrayofstring(vector_offset);
+  builder.Finish(monster_builder.Finish());
+
+  // Read the Monster back.
+  const auto *monster = flatbuffers::GetRoot<Monster>(builder.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "two");
+  const auto *testarrayofstring = monster->testarrayofstring();
+  TEST_EQ(testarrayofstring->size(), flatbuffers::uoffset_t(7));
+  const auto &a = *testarrayofstring;
+  TEST_EQ_STR(a[0]->c_str(), "one");
+  TEST_EQ_STR(a[1]->c_str(), "two");
+  TEST_EQ_STR(a[2]->c_str(), "one");
+  TEST_EQ_STR(a[3]->c_str(), "onetwo");
+  TEST_EQ(a[4]->str(), (std::string(chars_b, sizeof(chars_b))));
+  TEST_EQ(a[5]->str(), (std::string(chars_c, sizeof(chars_c))));
+  TEST_EQ(a[6]->str(), (std::string(chars_b, sizeof(chars_b))));
+
+  // Make sure String::operator< works, too, since it is related to StringOffsetCompare.
+  TEST_EQ((*a[0]) < (*a[1]), true);
+  TEST_EQ((*a[1]) < (*a[0]), false);
+  TEST_EQ((*a[1]) < (*a[2]), false);
+  TEST_EQ((*a[2]) < (*a[1]), true);
+  TEST_EQ((*a[4]) < (*a[3]), true);
+  TEST_EQ((*a[5]) < (*a[4]), false);
+  TEST_EQ((*a[5]) < (*a[4]), false);
+  TEST_EQ((*a[6]) < (*a[5]), true);
+}
+
+int FlatBufferTests() {
   // clang-format off
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
       defined(_MSC_VER) && defined(_DEBUG)
@@ -2029,7 +2480,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
       test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
                        test_data_path;
     #endif
-    ParseAndGenerateTextTest();
+    ParseAndGenerateTextTest(false);
+    ParseAndGenerateTextTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
     UnionVectorTest();
@@ -2043,6 +2495,8 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   ErrorTest();
   ValueTest();
   EnumStringsTest();
+  EnumNamesTest();
+  EnumOutOfRangeTest();
   IntegerOutOfRangeTest();
   IntegerBoundaryTest();
   UnicodeTest();
@@ -2057,11 +2511,35 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
-
+  CreateSharedStringTest();
   JsonDefaultTest();
-
   FlexBuffersTest();
   UninitializedVectorTest();
+  EqualOperatorTest();
+  NumericUtilsTest();
+  IsAsciiUtilsTest();
+  ValidFloatTest();
+  InvalidFloatTest();
+  return 0;
+}
+
+int main(int /*argc*/, const char * /*argv*/ []) {
+  InitTestEngine();
+
+  std::string req_locale;
+  if (flatbuffers::ReadEnvironmentVariable("FLATBUFFERS_TEST_LOCALE",
+                                          &req_locale)) {
+    TEST_OUTPUT_LINE("The environment variable FLATBUFFERS_TEST_LOCALE=%s",
+                     req_locale.c_str());
+    req_locale = flatbuffers::RemoveStringQuotes(req_locale);
+    std::string the_locale;
+    TEST_ASSERT_FUNC(
+        flatbuffers::SetGlobalTestLocale(req_locale.c_str(), &the_locale));
+    TEST_OUTPUT_LINE("The global C-locale changed: %s", the_locale.c_str());
+  }
+
+  FlatBufferTests();
+  FlatBufferBuilderTest();
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

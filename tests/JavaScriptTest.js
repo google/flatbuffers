@@ -21,7 +21,28 @@ function main() {
   // normally a size larger than the typical FlatBuffer you generate would be
   // better for performance.
   var fbb = new flatbuffers.Builder(1);
+  createMonster(fbb);
+  serializeAndTest(fbb);
 
+  // clear the builder, repeat tests
+  var clearIterations = 100;
+  var startingCapacity = fbb.bb.capacity();
+  for (var i = 0; i < clearIterations; i++) {
+    fbb.clear();
+    createMonster(fbb);
+    serializeAndTest(fbb);
+  }
+  // the capacity of our buffer shouldn't increase with the same size payload
+  assert.strictEqual(fbb.bb.capacity(), startingCapacity);
+
+  test64bit();
+  testUnicode();
+  fuzzTest1();
+
+  console.log('FlatBuffers test: completed successfully');
+}
+
+function createMonster(fbb) {
   // We set up the same values as monsterdata.json:
 
   var str = fbb.createString('MyMonster');
@@ -52,11 +73,13 @@ function main() {
   MyGame.Example.Monster.addTest(fbb, mon2);
   MyGame.Example.Monster.addTest4(fbb, test4);
   MyGame.Example.Monster.addTestarrayofstring(fbb, testArrayOfString);
-  MyGame.Example.Monster.addTestbool(fbb, false);
+  MyGame.Example.Monster.addTestbool(fbb, true);
   var mon = MyGame.Example.Monster.endMonster(fbb);
 
   MyGame.Example.Monster.finishMonsterBuffer(fbb, mon);
+}
 
+function serializeAndTest(fbb) {
   // Write the result to a file for debugging purposes:
   // Note that the binaries are not necessarily identical, since the JSON
   // parser may serialize in a slightly different order than the above
@@ -69,12 +92,6 @@ function main() {
   testMutation(fbb.dataBuffer());
 
   testBuffer(fbb.dataBuffer());
-
-  test64bit();
-  testUnicode();
-  fuzzTest1();
-
-  console.log('FlatBuffers test: completed successfully');
 }
 
 function testMutation(bb) {
@@ -140,7 +157,7 @@ function testBuffer(bb) {
   assert.strictEqual(monster.testarrayofstring(0), 'test1');
   assert.strictEqual(monster.testarrayofstring(1), 'test2');
 
-  assert.strictEqual(monster.testbool(), false);
+  assert.strictEqual(monster.testbool(), true);
 }
 
 function test64bit() {

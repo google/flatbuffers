@@ -1,6 +1,7 @@
 #!/bin/bash
+set -e
 #
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2018 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-clang++ -fsanitize-coverage=edge -fsanitize=address -fsanitize=undefined \
-  -g -fno-omit-frame-pointer -std=c++11 -stdlib=libstdc++ \
-  -I.. -I../../include flatbuffers_verifier_fuzzer.cc libFuzzer.a -o fuzz_verifier
-mkdir -p verifier_corpus
-cp ../*.mon verifier_corpus
-./fuzz_verifier verifier_corpus
+cd ./rust_usage_test
+cargo test -- --quiet
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust tests passed."
+else
+    echo "KO: Rust tests failed."
+    exit 1
+fi
+
+cargo run --bin=alloc_check
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust heap alloc test passed."
+else
+    echo "KO: Rust heap alloc test failed."
+    exit 1
+fi
+
+cargo bench

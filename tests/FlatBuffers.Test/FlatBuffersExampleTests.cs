@@ -97,7 +97,7 @@ namespace FlatBuffers.Test
             Monster.AddTest(fbb, mon2.Value);
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
-            Monster.AddTestbool(fbb, false);
+            Monster.AddTestbool(fbb, true);
             Monster.AddTestarrayoftables(fbb, sortMons);
             var mon = Monster.EndMonster(fbb);
 
@@ -110,14 +110,19 @@ namespace FlatBuffers.Test
                 Monster.FinishMonsterBuffer(fbb, mon);
             }
 
-
             // Dump to output directory so we can inspect later, if needed
+#if ENABLE_SPAN_T
+            var data = fbb.DataBuffer.ToSizedArray();
+            string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+            File.WriteAllBytes(filename, data);
+#else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
                 string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
+#endif
 
             // Remove the size prefix if necessary for further testing
             ByteBuffer dataBuffer = fbb.DataBuffer;
@@ -241,8 +246,21 @@ namespace FlatBuffers.Test
             Assert.AreEqual("test1", monster.Testarrayofstring(0));
             Assert.AreEqual("test2", monster.Testarrayofstring(1));
 
-            Assert.AreEqual(false, monster.Testbool);
+            Assert.AreEqual(true, monster.Testbool);
 
+#if ENABLE_SPAN_T
+            var nameBytes = monster.GetNameBytes();
+            Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.ToArray(), 0, nameBytes.Length));
+
+            if (0 == monster.TestarrayofboolsLength)
+            {
+                Assert.IsFalse(monster.GetTestarrayofboolsBytes().Length != 0);
+            }
+            else
+            {
+                Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length == 0);
+            }
+#else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
 
@@ -254,6 +272,7 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
+#endif
         }
 
         [FlatBuffersTestMethod]

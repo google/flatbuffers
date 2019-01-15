@@ -18,9 +18,12 @@ enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
+union AnyUniqueAliases { M: Monster, T: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
+union AnyAmbiguousAliases { M1: Monster, M2: Monster, M3: Monster }
+
 struct Test { a:short; b:byte; }
 
-table TestSimpleTableWithEnum (csharp_partial) {
+table TestSimpleTableWithEnum (csharp_partial, private) {
   color: Color = Green;
 }
 
@@ -89,11 +92,14 @@ table Monster {
   vector_of_referrables:[Referrable](id:35);
   single_weak_reference:ulong(id:36, hash:"fnv1a_64", cpp_type:"ReferrableT");
   vector_of_weak_references:[ulong](id:37, hash:"fnv1a_64", cpp_type:"ReferrableT");
-  vector_of_strong_referrables:[Referrable](id:38, cpp_ptr_type:"std::unique_ptr");                 //was shared_ptr
+  vector_of_strong_referrables:[Referrable](id:38, cpp_ptr_type:"default_ptr_type");                 //was shared_ptr
   co_owning_reference:ulong(id:39, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked");  //was shared_ptr as well
-  vector_of_co_owning_references:[ulong](id:40, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"std::unique_ptr", cpp_ptr_type_get:".get()");  //was shared_ptr
+  vector_of_co_owning_references:[ulong](id:40, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"default_ptr_type", cpp_ptr_type_get:".get()");  //was shared_ptr
   non_owning_reference:ulong(id:41, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked", cpp_ptr_type_get:"");                              //was weak_ptr
   vector_of_non_owning_references:[ulong](id:42, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked", cpp_ptr_type_get:"");                 //was weak_ptr
+  any_unique:AnyUniqueAliases(id:44);
+  any_ambiguous:AnyAmbiguousAliases (id:46);
+  vector_of_enums:[Color] (id:47);
 }
 
 table TypeAliases {
@@ -114,6 +120,8 @@ table TypeAliases {
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (streaming: "server", idempotent);
+  GetMaxHitPoint(Monster):Stat (streaming: "client");
+  GetMinMaxHitPoints(Monster):Stat (streaming: "bidi");
 }
 
 root_type Monster;

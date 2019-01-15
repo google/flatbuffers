@@ -43,6 +43,8 @@ For any schema input files, one or more generators can be specified:
 
 -   `--lobster`: Generate Lobster code.
 
+-   `--rust`, `-r` : Generate Rust code.
+
 For any data input files:
 
 -   `--binary`, `-b` : If data is contained in this file, generate a
@@ -94,12 +96,16 @@ Additional options:
     at the cost of efficiency (object allocation). Recommended only to be used
     if other options are insufficient.
 
+-   `--gen-compare` :  Generate operator== for object-based API types.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
 -   `--gen-all`: Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
     this one file.
+
+-   `--gen-generated`: Add @Generated annotation for Java
 
 -   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
 

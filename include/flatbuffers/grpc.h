@@ -88,6 +88,24 @@ class SliceAllocator : public Allocator {
   SliceAllocator(const SliceAllocator &other) = delete;
   SliceAllocator &operator=(const SliceAllocator &other) = delete;
 
+  SliceAllocator(SliceAllocator &&other)
+    : slice_(grpc_empty_slice()) {
+    // default-construct and swap idiom
+    swap(other);
+  }
+
+  SliceAllocator &operator=(SliceAllocator &&other) {
+    // move-construct and swap idiom
+    SliceAllocator temp(std::move(other));
+    swap(temp);
+    return *this;
+  }
+
+  void swap(SliceAllocator &other) {
+    using std::swap;
+    swap(slice_, other.slice_);
+  }
+
   virtual ~SliceAllocator() { grpc_slice_unref(slice_); }
 
   virtual uint8_t *allocate(size_t size) override {
@@ -146,10 +164,67 @@ class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
   explicit MessageBuilder(uoffset_t initial_size = 1024)
-      : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
+    : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
+
+  MessageBuilder(MessageBuilder &&other)
+    : FlatBufferBuilder(1024, &slice_allocator_, false) {
+    // Default construct and swap idiom.
+    Swap(other);
+  }
+
+  /// Create a MessageBuilder from a FlatBufferBuilder.
+  explicit MessageBuilder(FlatBufferBuilder &&src, void (*dealloc)(void*, size_t) = &DefaultAllocator::dealloc)
+    : FlatBufferBuilder(1024, &slice_allocator_, false) {
+    src.Swap(*this);
+    src.SwapBufAllocator(*this);
+    if (buf_.capacity()) {
+      uint8_t *buf = buf_.scratch_data();       // pointer to memory
+      size_t capacity = buf_.capacity();        // size of memory
+      slice_allocator_.slice_ = grpc_slice_new_with_len(buf, capacity, dealloc);
+    }
+    else {
+      slice_allocator_.slice_ = grpc_empty_slice();
+    }
+  }
+
+  /// Move-assign a FlatBufferBuilder to a MessageBuilder.
+  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is supported.
+  MessageBuilder &operator=(FlatBufferBuilder &&src) {
+    // Move construct a temporary and swap
+    MessageBuilder temp(std::move(src));
+    Swap(temp);
+    return *this;
+  }
+
+  MessageBuilder &operator=(MessageBuilder &&other) {
+    // Move construct a temporary and swap
+    MessageBuilder temp(std::move(other));
+    Swap(temp);
+    return *this;
+  }
+
+  void Swap(MessageBuilder &other) {
+    slice_allocator_.swap(other.slice_allocator_);
+    FlatBufferBuilder::Swap(other);
+    // After swapping the FlatBufferBuilder, we swap back the allocator, which restores
+    // the original allocator back in place. This is necessary because MessageBuilder's
+    // allocator is its own member (SliceAllocatorMember). The allocator passed to
+    // FlatBufferBuilder::vector_downward must point to this member.
+    buf_.swap_allocator(other.buf_);
+  }
+
+  // Releases the ownership of the buffer pointer.
+  // Returns the size, offset, and the original grpc_slice that
+  // allocated the buffer. Also see grpc_slice_unref().
+  uint8_t *ReleaseRaw(size_t &size, size_t &offset, grpc_slice &slice) {
+    uint8_t *buf = FlatBufferBuilder::ReleaseRaw(size, offset);
+    slice = slice_allocator_.slice_;
+    slice_allocator_.slice_ = grpc_empty_slice();
+    return buf;
+  }
 
   ~MessageBuilder() {}
 

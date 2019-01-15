@@ -1,3 +1,5 @@
+licenses(["notice"])
+
 package(
     default_visibility = ["//visibility:public"],
     features = [
@@ -10,10 +12,7 @@ exports_files([
     "LICENSE",
 ])
 
-FLATBUFFERS_COPTS = [
-    "-Wno-implicit-fallthrough",
-    "-linclude",
-]
+load(":build_defs.bzl", "flatbuffer_cc_library")
 
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
@@ -28,7 +27,6 @@ cc_library(
         "src/util.cpp",
     ],
     hdrs = [":public_headers"],
-    copts = FLATBUFFERS_COPTS,
     includes = ["include/"],
     linkstatic = 1,
 )
@@ -66,7 +64,6 @@ cc_library(
         "include/flatbuffers/flatc.h",
         ":public_headers",
     ],
-    copts = FLATBUFFERS_COPTS,
     includes = [
         "grpc/",
         "include/",
@@ -91,15 +88,15 @@ cc_binary(
         "src/idl_gen_general.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
-        "src/idl_gen_js.cpp",
+        "src/idl_gen_js_ts.cpp",
         "src/idl_gen_json_schema.cpp",
-        "src/idl_gen_lua.cpp",
         "src/idl_gen_lobster.cpp",
+        "src/idl_gen_lua.cpp",
         "src/idl_gen_php.cpp",
         "src/idl_gen_python.cpp",
+        "src/idl_gen_rust.cpp",
         "src/idl_gen_text.cpp",
     ],
-    copts = FLATBUFFERS_COPTS,
     includes = [
         "grpc/",
         "include/",
@@ -107,6 +104,19 @@ cc_binary(
     deps = [
         ":flatc_library",
     ],
+)
+
+cc_library(
+    name = "runtime_cc",
+    hdrs = [
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flexbuffers.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
+    ],
+    includes = ["include/"],
+    linkstatic = 1,
 )
 
 # Test binary.
@@ -123,15 +133,20 @@ cc_test(
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",
-        "tests/monster_test_generated.h",
+        "monster_test_generated.h",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
         "tests/test.cpp",
+        "tests/test_assert.cpp",
+        "tests/test_assert.h",
+        "tests/test_builder.cpp",
+        "tests/test_builder.h",
         "tests/union_vector/union_vector_generated.h",
         ":public_headers",
     ],
-    copts = FLATBUFFERS_COPTS + [
+    copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
+        "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
         ":tests/include_test/include_test1.fbs",
@@ -143,7 +158,20 @@ cc_test(
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
+        ":tests/unicode_test.json",
         ":tests/union_vector/union_vector.fbs",
     ],
     includes = ["include/"],
+)
+
+# Test bzl rules
+
+flatbuffer_cc_library(
+    name = "monster_test_cc_fbs",
+    srcs = ["tests/monster_test.fbs"],
+    include_paths = ["tests/include_test"],
+    includes = [
+        "tests/include_test/include_test1.fbs",
+        "tests/include_test/sub/include_test2.fbs",
+    ],
 )

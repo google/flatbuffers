@@ -59,15 +59,18 @@ a `char *` array, which you pass to `GetMonster()`.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     #include "flatbuffers/flatbuffers.h"
     #include "monster_test_generate.h"
-    #include <cstdio> // For printing and file access.
+    #include <iostream> // C++ header file for printing
+    #include <fstream> // C++ header file for file access
 
-    FILE* file = fopen("monsterdata_test.mon", "rb");
-    fseek(file, 0L, SEEK_END);
-    int length = ftell(file);
-    fseek(file, 0L, SEEK_SET);
+
+    std::ifstream infile;
+    infile.open("monsterdata_test.mon", std::ios::binary | std::ios::in);
+    infile.seekg(0,std::ios::end);
+    int length = infile.tellg();
+    infile.seekg(0,std::ios::beg);
     char *data = new char[length];
-    fread(data, sizeof(char), length, file);
-    fclose(file);
+    infile.read(data, length);
+    infile.close();
 
     auto monster = GetMonster(data);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,9 +81,9 @@ If you look in your generated header, you'll see it has
 convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    printf("%d\n", monster->hp());            // `80`
-    printf("%d\n", monster->mana());          // default value of `150`
-    printf("%s\n", monster->name()->c_str()); // "MyMonster"
+    std::cout << "hp : " << monster->hp() << std::endl;            // `80`
+    std::cout << "mana : " << monster->mana() << std::endl;        // default value of `150`
+    std::cout << "name : " << monster->name()->c_str() << std::endl;        // "MyMonster"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Note: That we never stored a `mana` value, so it will return the default.*
@@ -237,7 +240,9 @@ influence this either globally (using the `--cpp-ptr-type` argument to
 `flatc`) or per field (using the `cpp_ptr_type` attribute) to by any smart
 pointer type (`my_ptr<T>`), or by specifying `naked` as the type to get `T *`
 pointers. Unlike the smart pointers, naked pointers do not manage memory for
-you, so you'll have to manage their lifecycles manually.
+you, so you'll have to manage their lifecycles manually.  To reference the
+pointer type specified by the `--cpp-ptr-type` argument to `flatc` from a
+flatbuffer field set the `cpp_ptr_type` attribute to `default_ptr_type`.
 
 
 # Using different string type.
@@ -491,5 +496,50 @@ These features reduce the amount of "table wrapping" that was previously
 needed to use unions.
 
 To use scalars, simply wrap them in a struct.
+
+## Depth limit of nested objects and stack-overflow control
+The parser of Flatbuffers schema or json-files is kind of recursive parser.
+To avoid stack-overflow problem the parser has a built-in limiter of 
+recursion depth. Number of nested declarations in a schema or number of 
+nested json-objects is limited. By default, this depth limit set to `64`.
+It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` 
+definition. This definition can be helpful for testing purposes or embedded 
+applications. For details see [build](@ref flatbuffers_guide_building) of 
+CMake-based projects.
+
+## Dependence from C-locale {#flatbuffers_locale_cpp}
+The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII 
+character set for identifiers, alphanumeric literals, reserved words.
+
+Internal implementation of the Flatbuffers depends from functions which 
+depend from C-locale: `strtod()` or `strtof()`, for example.
+The library expects the dot `.` symbol as the separator of an integer 
+part from the fractional part of a float number.
+Another separator symbols (`,` for example) will break the compatibility 
+and may lead to an error while parsing a Flatbuffers schema or a json file.
+
+The Standard C locale is a global resource, there is only one locale for 
+the entire application. Some modern compilers and platforms have 
+locale-independent or locale-narrow functions `strtof_l`, `strtod_l`, 
+`strtoll_l`, `strtoull_l` to resolve this dependency. 
+These functions use specified locale rather than the global or per-thread 
+locale instead. They are part of POSIX-2008 but not part of the C/C++ 
+standard library, therefore, may be missing on some platforms.
+
+The Flatbuffers library try to detect these functions at configuration and 
+compile time:
+- `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
+- `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
+- `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
+
+After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be 
+set to `0` or `1`.
+
+It is possible to test the compatibility of the Flatbuffers library with 
+a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
+```sh
+>FLATBUFFERS_TEST_LOCALE="" ./flattests
+>FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
+```
 
 <br>

@@ -15,19 +15,13 @@ export enum EnumInNestedNS{
  */
 export namespace NamespaceA.NamespaceB{
 export class TableInNestedNS {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {TableInNestedNS}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns TableInNestedNS
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):TableInNestedNS {
   this.bb_pos = i;
@@ -36,16 +30,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInNestedNS {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {TableInNestedNS=} obj
- * @returns {TableInNestedNS}
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInNestedNS= obj
+ * @returns TableInNestedNS
  */
 static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
   return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 foo():number {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -53,8 +47,8 @@ foo():number {
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_foo(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -68,29 +62,34 @@ mutate_foo(value:number):boolean {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
+ * @param flatbuffers.Builder builder
  */
 static startTableInNestedNS(builder:flatbuffers.Builder) {
   builder.startObject(1);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} foo
+ * @param flatbuffers.Builder builder
+ * @param number foo
  */
 static addFoo(builder:flatbuffers.Builder, foo:number) {
   builder.addFieldInt32(0, foo, 0);
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
  */
 static endTableInNestedNS(builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
   return offset;
 };
 
+static createTableInNestedNS(builder:flatbuffers.Builder, foo:number):flatbuffers.Offset {
+  TableInNestedNS.startTableInNestedNS(builder);
+  TableInNestedNS.addFoo(builder, foo);
+  return TableInNestedNS.endTableInNestedNS(builder);
+}
 }
 }
 /**
@@ -98,19 +97,13 @@ static endTableInNestedNS(builder:flatbuffers.Builder):flatbuffers.Offset {
  */
 export namespace NamespaceA.NamespaceB{
 export class StructInNestedNS {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
   bb: flatbuffers.ByteBuffer|null = null;
 
-  /**
-   * @type {number}
-   */
   bb_pos:number = 0;
 /**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {StructInNestedNS}
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns StructInNestedNS
  */
 __init(i:number, bb:flatbuffers.ByteBuffer):StructInNestedNS {
   this.bb_pos = i;
@@ -119,15 +112,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):StructInNestedNS {
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 a():number {
   return this.bb!.readInt32(this.bb_pos);
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_a(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 0);
@@ -141,15 +134,15 @@ mutate_a(value:number):boolean {
 };
 
 /**
- * @returns {number}
+ * @returns number
  */
 b():number {
   return this.bb!.readInt32(this.bb_pos + 4);
 };
 
 /**
- * @param {number} value
- * @returns {boolean}
+ * @param number value
+ * @returns boolean
  */
 mutate_b(value:number):boolean {
   var offset = this.bb!.__offset(this.bb_pos, 4);
@@ -163,10 +156,10 @@ mutate_b(value:number):boolean {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} a
- * @param {number} b
- * @returns {flatbuffers.Offset}
+ * @param flatbuffers.Builder builder
+ * @param number a
+ * @param number b
+ * @returns flatbuffers.Offset
  */
 static createStructInNestedNS(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
   builder.prep(4, 8);

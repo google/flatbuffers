@@ -24,6 +24,7 @@ import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.ByteBufferUtil;
 import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
+import MyGame.MonsterExtra;
 
 class JavaTest {
     public static void main(String[] args) {
@@ -130,7 +131,7 @@ class JavaTest {
         TestEq(monster.testarrayofstring(0),"test1");
         TestEq(monster.testarrayofstring(1),"test2");
 
-        TestEq(monster.testbool(), false);
+        TestEq(monster.testbool(), true);
     }
 
     // this method checks additional fields not present in the binary buffer read from file
@@ -319,7 +320,7 @@ class JavaTest {
         Monster.addTest(fbb, mon2);
         Monster.addTest4(fbb, test4);
         Monster.addTestarrayofstring(fbb, testArrayOfString);
-        Monster.addTestbool(fbb, false);
+        Monster.addTestbool(fbb, true);
         Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L);
         Monster.addTestarrayoftables(fbb, sortMons);
         int mon = Monster.endMonster(fbb);

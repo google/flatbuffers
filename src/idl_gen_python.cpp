@@ -36,7 +36,8 @@ class PythonGenerator : public BaseGenerator {
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */){
+                      "" /* not used */),
+        float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
     static const char * const keywords[] = {
       "False",
       "None",
@@ -191,7 +192,7 @@ class PythonGenerator : public BaseGenerator {
     code += "(self):";
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
-    auto is_bool = field.value.type.base_type == BASE_TYPE_BOOL;
+    auto is_bool = IsBool(field.value.type.base_type);
     if (is_bool) {
       getter = "bool(" + getter + ")";
     }
@@ -200,7 +201,9 @@ class PythonGenerator : public BaseGenerator {
     if (is_bool) {
       default_value = field.value.constant == "0" ? "False" : "True";
     } else {
-      default_value = field.value.constant;
+      default_value = IsFloat(field.value.type.base_type)
+                          ? float_const_gen_.GenFloatConstant(field)
+                          : field.value.constant;
     }
     code += Indent + Indent + "return " + default_value + "\n\n";
   }
@@ -383,7 +386,7 @@ class PythonGenerator : public BaseGenerator {
                           (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
       } else {
         std::string &code = *code_ptr;
-        code += (std::string) ", " + nameprefix;
+        code += std::string(", ") + nameprefix;
         code += MakeCamel(NormalizedName(field), false);
       }
     }
@@ -452,7 +455,10 @@ class PythonGenerator : public BaseGenerator {
     } else {
       code += MakeCamel(NormalizedName(field), false);
     }
-    code += ", " + field.value.constant;
+    code += ", ";
+    code += IsFloat(field.value.type.base_type)
+                ? float_const_gen_.GenFloatConstant(field)
+                : field.value.constant;
     code += ")\n";
   }
 
@@ -615,7 +621,7 @@ class PythonGenerator : public BaseGenerator {
     static const char *ctypename[] = {
     // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
         #PTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
@@ -715,6 +721,7 @@ class PythonGenerator : public BaseGenerator {
   }
  private:
   std::unordered_set<std::string> keywords_;
+  const SimpleFloatConstantGenerator float_const_gen_;
 };
 
 }  // namespace python

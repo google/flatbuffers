@@ -45,6 +45,7 @@ inline const char * const *EnumNamesEnumInNestedNS() {
 }
 
 inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
+  if (e < EnumInNestedNS_A || e > EnumInNestedNS_C) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesEnumInNestedNS()[index];
 }
@@ -81,7 +82,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInNestedNSTypeTable();
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FOO = 4
   };
   int32_t foo() const {
@@ -161,7 +162,7 @@ inline const flatbuffers::TypeTable *StructInNestedNSTypeTable() {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 }
   };
-  static const int32_t values[] = { 0, 4, 8 };
+  static const int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "a",
     "b"

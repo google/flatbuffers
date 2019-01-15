@@ -13,7 +13,8 @@ sh PythonTest.sh
 echo "************************ JavaScript:"
 
 sh JavaScriptTest.sh
-sh JavaScriptUnionVectorTest.sh
+# FIXME does not exist:
+# sh JavaScriptUnionVectorTest.sh
 
 echo "************************ TypeScript:"
 
@@ -39,6 +40,10 @@ sh phpUnionVectorTest.sh
 echo "************************ Dart:"
 
 sh DartTest.sh
+
+echo "************************ Rust:"
+
+sh RustTest.sh
 
 echo "************************ Lobster:"
 

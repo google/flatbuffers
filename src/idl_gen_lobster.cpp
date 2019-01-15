@@ -81,7 +81,7 @@ class LobsterGenerator : public BaseGenerator {
     static const char *ctypename[] = {
       // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
         #PTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
@@ -116,7 +116,7 @@ class LobsterGenerator : public BaseGenerator {
         if (struct_def.fixed) {
           code += name + "{ buf_, pos_ + " + offsets + " }\n";
         } else {
-          code += std::string("o := buf_.flatbuffers_field_") + 
+          code += std::string("o := buf_.flatbuffers_field_") +
                   (field.value.type.struct_def->fixed ? "struct" : "table") +
                   "(pos_, " + offsets + ")\n        if o: " + name +
                   " { buf_, o } else: nil\n";
@@ -149,11 +149,15 @@ class LobsterGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UNION: {
-        for (auto &ev : field.value.type.enum_def->vals.vec) if (ev->value) {
-          code += def + "_as_" + ev->name + "():\n        " +
-                  NamespacedName(*ev->union_type.struct_def) +
-                  " { buf_, buf_.flatbuffers_field_table(pos_, " + offsets +
-                  ") }\n";
+        for (auto it = field.value.type.enum_def->vals.vec.begin();
+             it != field.value.type.enum_def->vals.vec.end(); ++it) {
+          auto &ev = **it;
+          if (ev.value) {
+            code += def + "_as_" + ev.name + "():\n        " +
+                    NamespacedName(*ev.union_type.struct_def) +
+                    " { buf_, buf_.flatbuffers_field_table(pos_, " + offsets +
+                    ") }\n";
+          }
         }
         break;
       }
@@ -293,7 +297,7 @@ class LobsterGenerator : public BaseGenerator {
   void StructBuilderBody(const StructDef &struct_def,
                          const char *nameprefix, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "    b_.Prep(" + NumToString(struct_def.minalign) + ", " + 
+    code += "    b_.Prep(" + NumToString(struct_def.minalign) + ", " +
             NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
