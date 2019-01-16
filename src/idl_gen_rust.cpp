@@ -298,7 +298,8 @@ class RustGenerator : public BaseGenerator {
 
     assert(!cur_name_space_);
 
-    // Generate global namespace imports.
+    // Generate imports for the global scope in case no namespace is used
+    // in the schema file.
     GenNamespaceImports();
 
     // Generate all code in their namespaces, once, because Rust does not
