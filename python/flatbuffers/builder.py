@@ -518,8 +518,20 @@ class Builder(object):
         self.current_vtable[slotnum] = self.Offset()
     ## @endcond
 
-    def __Finish(self, rootTable, sizePrefix):
+    def __addFileID(self, rootTable, fileID):
+        """Add file_identifier to givem rootTable"""
+        if(fileID is None or len(fileID) != encode.FILE_IDENTIFIER_LENGTH):
+                raise Exception("fileID Lenght must be "+str(encode.FILEIDENTIFIER_LENGTH)+" charectors in length")
+        flags = N.Uint8Flags
+        self.Prep(self.minalign, 4)
+
+        for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
+            self.PrependUint8(fileID[i])
+			
+    def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
+        if(not file_identifier is None):
+            self.__addFileID(rootTable, file_identifier)
         N.enforce_number(rootTable, N.UOffsetTFlags)
         prepSize = N.UOffsetTFlags.bytewidth
         if sizePrefix:
@@ -533,16 +545,16 @@ class Builder(object):
         self.finished = True
         return self.Head()
 
-    def Finish(self, rootTable):
+    def Finish(self, rootTable, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        return self.__Finish(rootTable, False)
+        return self.__Finish(rootTable, False, file_identifier)
 
-    def FinishSizePrefixed(self, rootTable):
+    def FinishSizePrefixed(self, rootTable, file_identifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
         with the size prefixed.
         """
-        return self.__Finish(rootTable, True)
+        return self.__Finish(rootTable, True, file_identifier)
 
     ## @cond FLATBUFFERS_INTERNAL
     def Prepend(self, flags, off):
