@@ -530,13 +530,14 @@ class Builder(object):
 			
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        if(not file_identifier is None):
-            self.__addFileID(rootTable, file_identifier)
         N.enforce_number(rootTable, N.UOffsetTFlags)
         prepSize = N.UOffsetTFlags.bytewidth
         if sizePrefix:
             prepSize += N.Int32Flags.bytewidth
         self.Prep(self.minalign, prepSize)
+        if(not file_identifier is None):
+            self.__addFileID(rootTable, file_identifier)
+
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
