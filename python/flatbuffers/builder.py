@@ -516,17 +516,8 @@ class Builder(object):
         """
         self.assertNested()
         self.current_vtable[slotnum] = self.Offset()
-    ## @endcond
-
-    def __addFileID(self, rootTable, fileID):
-        """Add file_identifier to givem rootTable"""
-        if(fileID is None or len(fileID) != encode.FILE_IDENTIFIER_LENGTH):
-                raise Exception("fileID Lenght must be "+str(encode.FILEIDENTIFIER_LENGTH)+" charectors in length")
-        flags = N.Uint8Flags
-        self.Prep(self.minalign, 4)
-
-
-			
+    ## @endconds
+        
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
@@ -541,6 +532,7 @@ class Builder(object):
         self.Prep(self.minalign, prepSize)
 
         if(not file_identifier is None):
+            file_identifier=N.struct.unpack("<BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
                 self.Place(file_identifier[i], N.Uint8Flags)
                 
