@@ -516,8 +516,8 @@ class Builder(object):
         """
         self.assertNested()
         self.current_vtable[slotnum] = self.Offset()
-    ## @endconds
-        
+    ## @endcond
+		
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
