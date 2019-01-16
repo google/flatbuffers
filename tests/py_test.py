@@ -60,7 +60,7 @@ class TestWireFormat(unittest.TestCase):
         # Verify that using the generated Python code builds a buffer without
         # returning errors, and is interpreted correctly, for size prefixed
         # representation and regular:
-        for sizePrefix in [True, True]:
+        for sizePrefix in [True, False]:
             for file_identifier in [None, b"MONS"]:
                     gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix, file_identifier = file_identifier)
                     CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix, file_identifier = file_identifier)
@@ -90,16 +90,10 @@ def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
 
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
-        f = open('monsterdata_test.mon', 'rb')
-        canonicalWireData = f.read()
-        print(size, file_identifier)
-        f.close()
-        if(file_identifier is None):
-            # taken from the size of monsterdata_python_wire.mon, minus 4, when there is no file_identifier
-            asserter(size == 348)
-        else:
-            # taken from the size of monsterdata_python_wire.mon, minus 4, when there is a file_identifier
-            asserter(size == 356)
+       
+        # taken from the size of monsterdata_python_wire.mon
+        asserter(size == 348)
+    
         buf, offset = util.RemoveSizePrefix(buf, offset)
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
     asserter(monster.Hp() == 80)

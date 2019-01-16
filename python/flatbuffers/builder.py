@@ -525,20 +525,27 @@ class Builder(object):
         flags = N.Uint8Flags
         self.Prep(self.minalign, 4)
 
-        for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
-            self.PrependUint8(fileID[i])
+
 			
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
         prepSize = N.UOffsetTFlags.bytewidth
+
         if sizePrefix:
             prepSize += N.Int32Flags.bytewidth
-        self.Prep(self.minalign, prepSize)
+        
         if(not file_identifier is None):
-            self.__addFileID(rootTable, file_identifier)
+            prepSize += N.Uint8Flags.bytewidth * 4
+  
+        self.Prep(self.minalign, prepSize)
 
+        if(not file_identifier is None):
+            for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
+                self.Place(file_identifier[i], N.Uint8Flags)
+                
         self.PrependUOffsetTRelative(rootTable)
+        
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
             N.enforce_number(size, N.Int32Flags)
