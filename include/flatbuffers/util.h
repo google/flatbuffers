@@ -66,7 +66,7 @@ inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
 
 inline bool is_xdigit(char c) {
   // Replace by look-up table.
-  return is_digit(c) | check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
+  return is_digit(c) || check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum

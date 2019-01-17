@@ -411,8 +411,10 @@ CheckedError Parser::Next() {
           }
           cursor_ += 2;
           break;
+        } else {
+          // fall thru
         }
-        // fall thru
+        FLATBUFFERS_ATTRIBUTE(fallthrough);
       default:
         const auto has_sign = (c == '+') || (c == '-');
         // '-'/'+' and following identifier - can be a predefined constant like:
@@ -2752,7 +2754,7 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
   minalign = object->minalign();
   predecl = false;
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
-  std::vector<uoffset_t> indexes = 
+  std::vector<uoffset_t> indexes =
     std::vector<uoffset_t>(object->fields()->Length());
   for (uoffset_t i = 0; i < object->fields()->Length(); i++)
     indexes[object->fields()->Get(i)->id()] = i;
@@ -2768,7 +2770,7 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
       // Recompute padding since that's currently not serialized.
       auto size = InlineSize(field_def->value.type);
       auto next_field =
-          i + 1 < indexes.size() 
+          i + 1 < indexes.size()
           ? object->fields()->Get(indexes[i+1])
           : nullptr;
       bytesize += size;
@@ -3036,7 +3038,7 @@ bool Parser::Deserialize(const uint8_t *buf, const size_t size) {
       return false;
     else
       size_prefixed = true;
-  } 
+  }
   auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
                                  : &reflection::VerifySchemaBuffer;
   if (!verify_fn(verifier)) {

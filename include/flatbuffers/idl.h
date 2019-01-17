@@ -326,7 +326,7 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
-  EnumVal(){};
+  EnumVal() : value(0){};
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
@@ -672,7 +672,7 @@ class Parser : public ParserState {
   bool Deserialize(const reflection::Schema* schema);
 
   Type* DeserializeType(const reflection::Type* type);
-  
+
   // Checks that the schema represented by this parser is a safe evolution
   // of the schema provided. Returns non-empty error on any problems.
   std::string ConformTo(const Parser &base);
