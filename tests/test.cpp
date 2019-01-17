@@ -254,6 +254,24 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
     TEST_EQ(*it, inv_data[indx]);
   }
 
+  for (auto it = inventory->cbegin(); it != inventory->cend(); ++it) {
+    auto indx = it - inventory->cbegin();
+    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
+    TEST_EQ(*it, inv_data[indx]);
+  }
+
+  for (auto it = inventory->rbegin(); it != inventory->rend(); ++it) {
+    auto indx = inventory->rend() - it;
+    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
+    TEST_EQ(*it, inv_data[indx]);
+  }
+
+  for (auto it = inventory->crbegin(); it != inventory->crend(); ++it) {
+    auto indx = inventory->crend() - it;
+    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
+    TEST_EQ(*it, inv_data[indx]);
+  }
+
   TEST_EQ(monster->color(), Color_Blue);
 
   // Example of accessing a union:
