@@ -517,27 +517,21 @@ class Builder(object):
         self.assertNested()
         self.current_vtable[slotnum] = self.Offset()
     ## @endcond
-		
+
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
         prepSize = N.UOffsetTFlags.bytewidth
-
         if sizePrefix:
             prepSize += N.Int32Flags.bytewidth
-        
         if(not file_identifier is None):
             prepSize += N.Uint8Flags.bytewidth * 4
-  
         self.Prep(self.minalign, prepSize)
-
         if(not file_identifier is None):
             file_identifier=N.struct.unpack("<BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
-                self.Place(file_identifier[i], N.Uint8Flags)
-                
+                self.Place(file_identifier[i], N.Uint8Flags)                
         self.PrependUOffsetTRelative(rootTable)
-        
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
             N.enforce_number(size, N.Int32Flags)

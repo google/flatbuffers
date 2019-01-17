@@ -62,8 +62,8 @@ class TestWireFormat(unittest.TestCase):
         # representation and regular:
         for sizePrefix in [True, False]:
             for file_identifier in [None, b"MONS"]:
-                    gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix, file_identifier = file_identifier)
-                    CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix, file_identifier = file_identifier)
+                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix, file_identifier = file_identifier)
+                CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix, file_identifier = file_identifier)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -90,12 +90,11 @@ def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
 
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
-       
-        # taken from the size of monsterdata_python_wire.mon
+        # taken from the size of monsterdata_python_wire.mon, minus 4
         asserter(size == 348)
-    
         buf, offset = util.RemoveSizePrefix(buf, offset)
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
+
     asserter(monster.Hp() == 80)
     asserter(monster.Mana() == 150)
     asserter(monster.Name() == b'MyMonster')
