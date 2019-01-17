@@ -11,14 +11,14 @@ extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
 
 pub mod my_game {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 pub enum InParentNamespaceOffset {}
@@ -85,14 +85,14 @@ impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
 }
 
 pub mod example_2 {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 pub enum MonsterOffset {}
@@ -161,14 +161,14 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
 }  // pub mod Example2
 
 pub mod example {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 #[allow(non_camel_case_types)]

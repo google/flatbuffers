@@ -300,7 +300,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
-    GenNamespaceImports();
+    GenNamespaceImports(0);
 
     // Generate all code in their namespaces, once, because Rust does not
     // permit re-opening modules.
@@ -1744,15 +1744,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  void GenNamespaceImports() {
-      code_ += "#![allow(dead_code)]";
-      code_ += "#![allow(unused_imports)]";
+  void GenNamespaceImports(const int white_spaces) {
+      std::string indent = std::string(white_spaces, ' ');
+      code_ += indent + "#![allow(dead_code)]";
+      code_ += indent + "#![allow(unused_imports)]";
       code_ += "";
-      code_ += "use std::mem;";
-      code_ += "use std::cmp::Ordering;";
+      code_ += indent + "use std::mem;";
+      code_ += indent + "use std::cmp::Ordering;";
       code_ += "";
-      code_ += "extern crate flatbuffers;";
-      code_ += "use self::flatbuffers::EndianScalar;";
+      code_ += indent + "extern crate flatbuffers;";
+      code_ += indent + "use self::flatbuffers::EndianScalar;";
       code_ += "";
   }
 
@@ -1791,7 +1792,7 @@ class RustGenerator : public BaseGenerator {
     for (auto j = common_prefix_size; j != new_size; ++j) {
       code_ += "pub mod " + MakeSnakeCase(ns->components[j]) + " {";
       // Generate local namespace imports.
-      GenNamespaceImports();
+      GenNamespaceImports(2);
     }
     if (new_size != common_prefix_size) { code_ += ""; }
 

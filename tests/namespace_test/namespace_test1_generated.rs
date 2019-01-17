@@ -11,24 +11,24 @@ extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
 
 pub mod namespace_a {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 pub mod namespace_b {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 #[allow(non_camel_case_types)]

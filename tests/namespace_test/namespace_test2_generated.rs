@@ -11,14 +11,14 @@ extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
 
 pub mod namespace_a {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 pub enum TableInFirstNSOffset {}
@@ -200,14 +200,14 @@ impl<'a: 'b, 'b> SecondTableInABuilder<'a, 'b> {
 }  // pub mod NamespaceA
 
 pub mod namespace_c {
-#![allow(dead_code)]
-#![allow(unused_imports)]
+  #![allow(dead_code)]
+  #![allow(unused_imports)]
 
-use std::mem;
-use std::cmp::Ordering;
+  use std::mem;
+  use std::cmp::Ordering;
 
-extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+  extern crate flatbuffers;
+  use self::flatbuffers::EndianScalar;
 
 
 pub enum TableInCOffset {}
