@@ -301,6 +301,7 @@ class RustGenerator : public BaseGenerator {
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
     GenNamespaceImports(0);
+    code_ += "";
 
     // Generate all code in their namespaces, once, because Rust does not
     // permit re-opening modules.
@@ -1754,7 +1755,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "";
       code_ += indent + "extern crate flatbuffers;";
       code_ += indent + "use self::flatbuffers::EndianScalar;";
-      code_ += "";
   }
 
   // Set up the correct namespace. This opens a namespace if the current

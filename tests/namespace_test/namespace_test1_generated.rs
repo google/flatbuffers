@@ -19,7 +19,6 @@ pub mod namespace_a {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
-
 pub mod namespace_b {
   #![allow(dead_code)]
   #![allow(unused_imports)]
@@ -29,7 +28,6 @@ pub mod namespace_b {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
-
 
 #[allow(non_camel_case_types)]
 #[repr(i8)]

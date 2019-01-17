@@ -20,7 +20,6 @@ pub mod namespace_a {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-
 pub enum TableInFirstNSOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
@@ -208,7 +207,6 @@ pub mod namespace_c {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
-
 
 pub enum TableInCOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]

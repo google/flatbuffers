@@ -20,7 +20,6 @@ pub mod my_game {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-
 pub enum InParentNamespaceOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
@@ -93,7 +92,6 @@ pub mod example_2 {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
-
 
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -169,7 +167,6 @@ pub mod example {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
-
 
 #[allow(non_camel_case_types)]
 #[repr(i8)]
