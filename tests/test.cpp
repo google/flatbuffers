@@ -200,7 +200,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
       reinterpret_cast<const char *>(builder.GetBufferPointer());
   buffer.assign(bufferpointer, bufferpointer + builder.GetSize());
 
-  return builder.ReleaseBufferPointer();
+  return builder.Release();
 }
 
 //  example of accessing a buffer loaded in memory:
@@ -2032,6 +2032,7 @@ void UnionVectorTest() {
     TEST_EQ(cts->GetEnum<Character>(4) == Character_Unused, true);
 
     auto rapunzel = movie->main_character_as_Rapunzel();
+    TEST_NOTNULL(rapunzel);
     TEST_EQ(rapunzel->hair_length(), 6);
 
     auto cs = movie->characters();
@@ -2309,16 +2310,17 @@ void TypeAliasesTest() {
   TEST_EQ(ta->u64(), flatbuffers::numeric_limits<uint64_t>::max());
   TEST_EQ(ta->f32(), 2.3f);
   TEST_EQ(ta->f64(), 2.3);
-  TEST_EQ(sizeof(ta->i8()), 1);
-  TEST_EQ(sizeof(ta->i16()), 2);
-  TEST_EQ(sizeof(ta->i32()), 4);
-  TEST_EQ(sizeof(ta->i64()), 8);
-  TEST_EQ(sizeof(ta->u8()), 1);
-  TEST_EQ(sizeof(ta->u16()), 2);
-  TEST_EQ(sizeof(ta->u32()), 4);
-  TEST_EQ(sizeof(ta->u64()), 8);
-  TEST_EQ(sizeof(ta->f32()), 4);
-  TEST_EQ(sizeof(ta->f64()), 8);
+  using namespace flatbuffers; // is_same
+  static_assert(is_same<decltype(ta->i8()), int8_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->i16()), int16_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->i32()), int32_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->i64()), int64_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->u8()), uint8_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->u16()), uint16_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->u32()), uint32_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->u64()), uint64_t>::value, "invalid type");
+  static_assert(is_same<decltype(ta->f32()), float>::value, "invalid type");
+  static_assert(is_same<decltype(ta->f64()), double>::value, "invalid type");
 }
 
 void EndianSwapTest() {
