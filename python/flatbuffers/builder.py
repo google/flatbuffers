@@ -524,11 +524,12 @@ class Builder(object):
         prepSize = N.UOffsetTFlags.bytewidth
         if sizePrefix:
             prepSize += N.Int32Flags.bytewidth
-        if(not file_identifier is None):
+        if(file_identifier is not None):
             prepSize += N.Uint8Flags.bytewidth * 4
         self.Prep(self.minalign, prepSize)
-        if(not file_identifier is None):
-            file_identifier=N.struct.unpack("<BBBB", file_identifier)
+        if(file_identifier is not None):
+            # Convert bytes object file_identifier to an array of 4 8-bit integers, and use big-endian to enforce size compliance (https://docs.python.org/2/library/struct.html#format-characters)
+            file_identifier=N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
                 self.Place(file_identifier[i], N.Uint8Flags)                
         self.PrependUOffsetTRelative(rootTable)
