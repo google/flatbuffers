@@ -18,7 +18,8 @@ and [Writing a schema](@ref flatbuffers_guide_writing_schema).
 
 Assuming you wrote a schema, say `mygame.fbs` (though the extension doesn't
 matter), you've generated a Rust file called `mygame_generated.rs` using the
-compiler (e.g. `flatc --rust mygame.fbs`), you can now start using this in
+compiler (e.g. `flatc --rust mygame.fbs` or via helpers listed in "Useful
+tools created by others" section bellow), you can now start using this in
 your program by including the file. As noted, this header relies on the crate
 `flatbuffers`, which should be in your include `Cargo.toml`.
 
@@ -162,5 +163,11 @@ share instances of FlatBufferBuilder between threads (recommended), or
 manually wrap it in synchronisation primitives. There's no automatic way to
 accomplish this, by design, as we feel multithreaded construction
 of a single buffer will be rare, and synchronisation overhead would be costly.
+
+## Useful tools created by others
+
+* [flatc-rust](https://github.com/frol/flatc-rust) - FlatBuffers compiler
+(flatc) as API for transparent `.fbs` to `.rs` code-generation via Cargo
+build scripts integration.
 
 <br>
