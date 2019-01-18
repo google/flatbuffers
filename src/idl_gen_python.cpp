@@ -144,6 +144,28 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return x\n";
     code += "\n";
   }
+  // Checks for propper file identifier
+  void HasFileIdentifier(const StructDef &struct_def,
+                             std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    char esapedID[17]={'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'};
+    //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
+    //to prevent this, convert all chars to there hex escaped equivilent
+    for(int x=0; x<4; x++){
+        sprintf(esapedID+(4*x), "\\x%02X", parser_.file_identifier_[x]);
+    }
+	
+    code += Indent + "@classmethod\n";
+    code += Indent + "def " + NormalizedName(struct_def);
+    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed = False):";
+    code += "\n";
+    code += Indent + Indent;
+    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
+    code += esapedID;
+    code += "\", size_prefixed)\n";
+    code += "\n";
+	 	  
+  }
 
   // Initialize an existing object with other data, to avoid an allocation.
   void InitializeExisting(const StructDef &struct_def,
@@ -562,6 +584,8 @@ class PythonGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
+      // Generate a special function to test file_identifier
+      HasFileIdentifier(struct_def, code_ptr);
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.

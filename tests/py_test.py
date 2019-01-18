@@ -93,6 +93,9 @@ def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
         # taken from the size of monsterdata_python_wire.mon, minus 4
         asserter(size == 348)
         buf, offset = util.RemoveSizePrefix(buf, offset)
+    if file_identifier:
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
+    
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
