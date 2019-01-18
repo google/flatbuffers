@@ -218,11 +218,6 @@
   #define __supress_ubsan__(type)
 #endif
 
-// Add snprintf to MSVC
-#if defined(_MSC_VER) && _MSC_VER < 1900
-  #define snprintf _snprintf
-#endif
-
 // This is constexpr function used for checking compile-time constants.
 // Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
 template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {

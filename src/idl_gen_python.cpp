@@ -23,6 +23,13 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#include <cstdio>
+// Add snprintf to MSVC
+#if defined(_MSC_VER) && _MSC_VER < 1900
+  #define snprintf(buf, size, ...) sprintf_s(buf, size, __VA_ARGS__)
+#endif
+
+
 #include <unordered_set>
 
 namespace flatbuffers {
