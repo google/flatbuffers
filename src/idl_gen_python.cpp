@@ -152,7 +152,9 @@ class PythonGenerator : public BaseGenerator {
     //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
     //to prevent this, convert all chars to there hex escaped equivilent
     for(int x=0; x<4; x++){
-        snprintf(esapedID+(4*x), 4, "\\x%02X", parser_.file_identifier_[x]);
+        if(snprintf(esapedID+(4*x), 5, "\\x%02X", parser_.file_identifier_[x])<0){
+			throw std::runtime_error("snprintf hex conversion failed.");
+		}
     }
 	
     code += Indent + "@classmethod\n";
