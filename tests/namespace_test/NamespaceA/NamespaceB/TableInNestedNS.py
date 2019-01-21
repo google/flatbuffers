@@ -14,6 +14,10 @@ class TableInNestedNS(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def TableInNestedNSBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x00\x00\x00\x00", size_prefixed)
+
     # TableInNestedNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
