@@ -23,13 +23,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include <cstdio>
-// Add snprintf to MSVC
-#if defined(_MSC_VER) && _MSC_VER < 1900
-  #define snprintf(buf, size, ...) sprintf_s(buf, size, __VA_ARGS__)
-#endif
-
-
 #include <unordered_set>
 
 namespace flatbuffers {
@@ -150,30 +143,6 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "x.Init(buf, n + offset)\n";
     code += Indent + Indent + "return x\n";
     code += "\n";
-  }
-  // Checks for propper file identifier
-  void HasFileIdentifier(const StructDef &struct_def,
-                             std::string *code_ptr) {
-    std::string &code = *code_ptr;
-    char esapedID[17]={'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'};
-    //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
-    //to prevent this, convert all chars to there hex escaped equivilent
-    for(int x=0; x<4; x++){
-        if(snprintf(esapedID+(4*x), 5, "\\x%02X", parser_.file_identifier_[x])<0){
-			throw std::runtime_error("snprintf hex conversion failed.");
-		}
-    }
-	
-    code += Indent + "@classmethod\n";
-    code += Indent + "def " + NormalizedName(struct_def);
-    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed = False):";
-    code += "\n";
-    code += Indent + Indent;
-    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
-    code += esapedID;
-    code += "\", size_prefixed)\n";
-    code += "\n";
-	 	  
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
@@ -582,7 +551,30 @@ class PythonGenerator : public BaseGenerator {
 
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
-
+  
+  // Generate funtion to cehck for propper file identifier
+  void GenHasFileIdentifier(const StructDef &struct_def,
+                             std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    std::string esapedID;
+    //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
+    //to prevent this, convert all chars to there hex escaped equivilent
+    for(int x=0; x<4; x++){
+		esapedID += "\\x" + IntToStringHex(parser_.file_identifier_[x], 2);
+    }
+	
+    code += Indent + "@classmethod\n";
+    code += Indent + "def " + NormalizedName(struct_def);
+    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed = False):";
+    code += "\n";
+    code += Indent + Indent;
+    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
+    code += esapedID;
+    code += "\", size_prefixed)\n";
+    code += "\n";
+	 	  
+  }
+  
   // Generate struct or table methods.
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
@@ -594,7 +586,7 @@ class PythonGenerator : public BaseGenerator {
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
       // Generate a special function to test file_identifier
-      HasFileIdentifier(struct_def, code_ptr);
+      GenHasFileIdentifier(struct_def, code_ptr);
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
