@@ -14,10 +14,6 @@ class TableInC(object):
         x.Init(buf, n + offset)
         return x
 
-    @classmethod
-    def TableInCBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x00\x20\x20\x2A", size_prefixed)
-
     # TableInC
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
