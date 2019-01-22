@@ -207,7 +207,7 @@ class JuliaGenerator : public BaseGenerator {
 
   std::string DefineModule(std::string scope, std::string mod) {
     return "if !isdefined(" + scope + ", :" + mod + ") " + scope +
-           ".eval(:(module " + mod + " import " + JuliaPackageName +
+           ".eval(:(module " + mod + " __precompile__(false); import " + JuliaPackageName +
            " end)) end\n";
   }
 
@@ -720,6 +720,10 @@ class JuliaGenerator : public BaseGenerator {
          ++it) {
       std::string child = *it;
 
+      if (included.find(child) != included.end()) continue;
+
+      included.insert(child);
+
       // if this module depends on another module, go and generate that module
       // first
       if (module_table_.IsModule(child)) {
@@ -733,7 +737,6 @@ class JuliaGenerator : public BaseGenerator {
           child.substr(mod.length() + 1).find(kPathSeparator) !=
               std::string::npos)
         continue;
-      if (included.find(child) != included.end()) continue;
       // If the file doesn't exist, don't include it
       // TODO: this doesn't allow types which reference each other,
       // but Julia doesn't support this yet anyway
@@ -741,7 +744,6 @@ class JuliaGenerator : public BaseGenerator {
       std::string fullpath = ConCatPathFileName(path_, toinclude);
       if (!module_table_.IsFile(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
-      included.insert(child);
     }
     return true;
   }
