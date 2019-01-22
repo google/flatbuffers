@@ -71,7 +71,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0)
+        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier=b'MONS')
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -95,7 +95,8 @@ def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
         buf, offset = util.RemoveSizePrefix(buf, offset)
     if file_identifier:
         asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
-    
+    else:
+        asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
