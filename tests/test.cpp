@@ -283,7 +283,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
 
   // Example of accessing a vector of strings:
   auto vecofstrings = monster->testarrayofstring();
-  TEST_EQ(vecofstrings->Length(), 4U);
+  TEST_EQ(vecofstrings->size(), 4U);
   TEST_EQ_STR(vecofstrings->Get(0)->c_str(), "bob");
   TEST_EQ_STR(vecofstrings->Get(1)->c_str(), "fred");
   if (pooled) {
@@ -294,14 +294,14 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
 
   auto vecofstrings2 = monster->testarrayofstring2();
   if (vecofstrings2) {
-    TEST_EQ(vecofstrings2->Length(), 2U);
+    TEST_EQ(vecofstrings2->size(), 2U);
     TEST_EQ_STR(vecofstrings2->Get(0)->c_str(), "jane");
     TEST_EQ_STR(vecofstrings2->Get(1)->c_str(), "mary");
   }
 
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
-  TEST_EQ(vecoftables->Length(), 3U);
+  TEST_EQ(vecoftables->size(), 3U);
   for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
     TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
   TEST_EQ_STR(vecoftables->Get(0)->name()->c_str(), "Barney");

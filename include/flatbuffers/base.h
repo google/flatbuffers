@@ -235,11 +235,11 @@ template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
   return !!t;
 }
 
-// Enable of std:c++17 or higher.
+// Enable C++ attribute [[]] if std:c++17 or higher.
 #if (defined(__cplusplus) &&  (__cplusplus >= 201703L)) || \
     (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L))
   // All attributes unknown to an implementation are ignored without causing an error.
-  #define FLATBUFFERS_ATTRIBUTE(attr) // [[attr]] - will be enabled in a future release
+  #define FLATBUFFERS_ATTRIBUTE(attr) [[attr]]
 #else
   #define FLATBUFFERS_ATTRIBUTE(attr)
 #endif

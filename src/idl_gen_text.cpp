@@ -119,7 +119,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       break;
     case BASE_TYPE_STRING: {
       auto s = reinterpret_cast<const String *>(val);
-      if (!EscapeString(s->c_str(), s->Length(), _text, opts.allow_non_utf8,
+      if (!EscapeString(s->c_str(), s->size(), _text, opts.allow_non_utf8,
                         opts.natural_utf8)) {
         return false;
       }
