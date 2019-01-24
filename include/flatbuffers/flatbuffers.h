@@ -116,6 +116,7 @@ template<typename T, typename IT> struct VectorIterator {
   VectorIterator(const uint8_t *data, uoffset_t i)
       : data_(data + IndirectHelper<T>::element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
+  VectorIterator() : data_(nullptr) {}
 
   VectorIterator &operator=(const VectorIterator &other) {
     data_ = other.data_;
@@ -183,7 +184,7 @@ template<typename T, typename IT> struct VectorIterator {
     return temp;
   }
 
-  VectorIterator operator-(const uoffset_t &offset) {
+  VectorIterator operator-(const uoffset_t &offset) const {
     return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride,
                           0);
   }
@@ -197,6 +198,19 @@ template<typename T, typename IT> struct VectorIterator {
   const uint8_t *data_;
 };
 
+template<typename Iterator> struct VectorReverseIterator :
+  public std::reverse_iterator<Iterator> {
+
+  explicit VectorReverseIterator(Iterator iter) : iter_(iter) {}
+
+  typename Iterator::value_type operator*() const { return *(iter_ - 1); }
+
+  typename Iterator::value_type operator->() const { return *(iter_ - 1); }
+
+ private:
+  Iterator iter_;
+};
+
 struct String;
 
 // This is used as a helper type for accessing vectors.
@@ -207,6 +221,8 @@ template<typename T> class Vector {
       iterator;
   typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
       const_iterator;
+  typedef VectorReverseIterator<iterator> reverse_iterator;
+  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
   uoffset_t size() const { return EndianScalar(length_); }
 
@@ -252,6 +268,20 @@ template<typename T> class Vector {
 
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
+
+  reverse_iterator rbegin() { return reverse_iterator(end()); }
+  const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+
+  reverse_iterator rend() { return reverse_iterator(end()); }
+  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+
+  const_iterator cbegin() const { return begin(); }
+
+  const_iterator cend() const { return end(); }
+
+  const_reverse_iterator crbegin() const { return rbegin(); }
+
+  const_reverse_iterator crend() const { return rend(); }
 
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
