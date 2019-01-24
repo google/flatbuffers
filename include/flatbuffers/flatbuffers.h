@@ -390,7 +390,7 @@ const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
 // Convenient helper function to get the length of any vector, regardless
 // of whether it is null or not (the field is not set).
 template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
-  return v ? v->Length() : 0;
+  return v ? v->size() : 0;
 }
 
 // Lexicographically compare two strings (possibly containing nulls), and
@@ -403,12 +403,12 @@ static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
 
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
-  std::string str() const { return std::string(c_str(), Length()); }
+  std::string str() const { return std::string(c_str(), size()); }
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
-    return flatbuffers::string_view(c_str(), Length());
+    return flatbuffers::string_view(c_str(), size());
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on
@@ -1340,7 +1340,7 @@ class FlatBufferBuilder {
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateString(const String *str) {
-    return str ? CreateString(str->c_str(), str->Length()) : 0;
+    return str ? CreateString(str->c_str(), str->size()) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -1400,7 +1400,7 @@ class FlatBufferBuilder {
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
-    return CreateSharedString(str->c_str(), str->Length());
+    return CreateSharedString(str->c_str(), str->size());
   }
 
   /// @cond FLATBUFFERS_INTERNAL
