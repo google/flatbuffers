@@ -551,7 +551,7 @@ class PythonGenerator : public BaseGenerator {
 
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
-  
+
   // Generate funtion to cehck for propper file identifier
   void GenHasFileIdentifier(const StructDef &struct_def,
                              std::string *code_ptr) {
