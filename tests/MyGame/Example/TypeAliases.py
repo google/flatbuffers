@@ -16,7 +16,7 @@ class TypeAliases(object):
 
     @classmethod
     def TypeAliasesBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed)
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed = size_prefixed)
 
     # TypeAliases
     def Init(self, buf, pos):

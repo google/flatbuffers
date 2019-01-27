@@ -16,7 +16,7 @@ class Referrable(object):
 
     @classmethod
     def ReferrableBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed)
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed = size_prefixed)
 
     # Referrable
     def Init(self, buf, pos):

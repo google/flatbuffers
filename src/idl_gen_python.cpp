@@ -570,7 +570,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent;
     code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
     code += esapedID;
-    code += "\", size_prefixed)\n";
+    code += "\", size_prefixed = size_prefixed)\n";
     code += "\n";
 	 	  
   }

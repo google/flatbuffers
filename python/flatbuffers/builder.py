@@ -542,14 +542,14 @@ class Builder(object):
 
     def Finish(self, rootTable, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        return self.__Finish(rootTable, False, file_identifier)
-
+        return self.__Finish(rootTable, False, file_identifier = file_identifier)
+ 
     def FinishSizePrefixed(self, rootTable, file_identifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
         with the size prefixed.
         """
-        return self.__Finish(rootTable, True, file_identifier)
+        return self.__Finish(rootTable, True, file_identifier = file_identifier)
 
     ## @cond FLATBUFFERS_INTERNAL
     def Prepend(self, flags, off):
