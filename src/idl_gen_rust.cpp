@@ -130,6 +130,7 @@ FullType GetFullType(const Type &type) {
       case ftUnionKey:
       case ftUnionValue: {
         FLATBUFFERS_ASSERT(false && "vectors of unions are unsupported");
+        break;
       }
       default: {
         FLATBUFFERS_ASSERT(false && "vector of vectors are unsupported");

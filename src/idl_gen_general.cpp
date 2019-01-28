@@ -306,7 +306,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         // Unions in C# use a generic Table-derived type for better type safety
         if (lang_.language == IDLOptions::kCSharp) return "TTable";
-        // fall through
+        FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default: return "Table";
     }
   }
@@ -327,7 +327,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UINT: return Type(BASE_TYPE_LONG);
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationType(type.VectorType(), vectorelem);
-        // else fall thru
+        FLATBUFFERS_FALLTHROUGH(); // else fall thru
       default: return type;
     }
   }
@@ -371,7 +371,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UINT: return " & 0xFFFFFFFFL";
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationMask(type.VectorType(), vectorelem);
-        // else fall thru
+        FLATBUFFERS_FALLTHROUGH(); // else fall thru
       default: return "";
     }
   }

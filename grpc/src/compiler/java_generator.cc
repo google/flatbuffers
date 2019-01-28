@@ -37,9 +37,6 @@
 #define XSTR(s) STR(s)
 #endif
 
-#ifndef FALLTHROUGH_INTENDED
-#define FALLTHROUGH_INTENDED
-#endif
 
 typedef grpc_generator::Printer Printer;
 typedef std::map<grpc::string, grpc::string> VARS;
@@ -479,7 +476,7 @@ static void PrintStub(Printer* p, VARS& vars, const ServiceDescriptor* service,
       break;
     case BLOCKING_CLIENT_INTERFACE:
       interface = true;
-      FALLTHROUGH_INTENDED;  // fallthrough
+      FLATBUFFERS_FALLTHROUGH(); // fall thru
     case BLOCKING_CLIENT_IMPL:
       call_type = BLOCKING_CALL;
       stub_name += "BlockingStub";
@@ -487,7 +484,7 @@ static void PrintStub(Printer* p, VARS& vars, const ServiceDescriptor* service,
       break;
     case FUTURE_CLIENT_INTERFACE:
       interface = true;
-      FALLTHROUGH_INTENDED;  // fallthrough
+      FLATBUFFERS_FALLTHROUGH(); // fall thru
     case FUTURE_CLIENT_IMPL:
       call_type = FUTURE_CALL;
       stub_name += "FutureStub";
