@@ -148,11 +148,15 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
     // Android NDK doesn't have std::make_unsigned or std::tr1::make_unsigned.
     template<typename T> struct make_unsigned {
-      static_assert(is_unsigned<T>::value, "Specialization not impelented!");
+      static_assert(is_unsigned<T>::value, "Specialization not implemented!");
       using type = T;
     };
     template<> struct make_unsigned<char> { using type = unsigned char; };
-    template<> struct make_unsigned<int>  { using type = unsigned int;  };
+    template<> struct make_unsigned<short> { using type = unsigned short; };
+    template<> struct make_unsigned<int> { using type = unsigned int; };
+    template<> struct make_unsigned<long> { using type = unsigned long; };
+    template<>
+    struct make_unsigned<long long> { using type = unsigned long long; };
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
