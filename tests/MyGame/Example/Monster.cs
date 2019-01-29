@@ -172,8 +172,23 @@ public struct Monster : IFlatbufferObject
 #endif
   public ulong[] GetVectorOfNonOwningReferencesArray() { return __p.__vector_as_array<ulong>(88); }
   public bool MutateVectorOfNonOwningReferences(int j, ulong vector_of_non_owning_references) { int o = __p.__offset(88); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
+  public AnyUniqueAliases AnyUniqueType { get { int o = __p.__offset(90); return o != 0 ? (AnyUniqueAliases)__p.bb.Get(o + __p.bb_pos) : AnyUniqueAliases.NONE; } }
+  public bool MutateAnyUniqueType(AnyUniqueAliases any_unique_type) { int o = __p.__offset(90); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)any_unique_type); return true; } else { return false; } }
+  public TTable? AnyUnique<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(92); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
+  public AnyAmbiguousAliases AnyAmbiguousType { get { int o = __p.__offset(94); return o != 0 ? (AnyAmbiguousAliases)__p.bb.Get(o + __p.bb_pos) : AnyAmbiguousAliases.NONE; } }
+  public bool MutateAnyAmbiguousType(AnyAmbiguousAliases any_ambiguous_type) { int o = __p.__offset(94); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)any_ambiguous_type); return true; } else { return false; } }
+  public TTable? AnyAmbiguous<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(96); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
+  public Color VectorOfEnums(int j) { int o = __p.__offset(98); return o != 0 ? (Color)__p.bb.GetSbyte(__p.__vector(o) + j * 1) : (Color)0; }
+  public int VectorOfEnumsLength { get { int o = __p.__offset(98); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetVectorOfEnumsBytes() { return __p.__vector_as_span(98); }
+#else
+  public ArraySegment<byte>? GetVectorOfEnumsBytes() { return __p.__vector_as_arraysegment(98); }
+#endif
+  public Color[] GetVectorOfEnumsArray() { return __p.__vector_as_array<Color>(98); }
+  public bool MutateVectorOfEnums(int j, Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.PutSbyte(__p.__vector(o) + j * 1, (sbyte)vector_of_enums); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(43); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(48); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -261,6 +276,14 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddUlong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVectorOfNonOwningReferencesVectorBlock(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddAnyUniqueType(FlatBufferBuilder builder, AnyUniqueAliases anyUniqueType) { builder.AddByte(43, (byte)anyUniqueType, 0); }
+  public static void AddAnyUnique(FlatBufferBuilder builder, int anyUniqueOffset) { builder.AddOffset(44, anyUniqueOffset, 0); }
+  public static void AddAnyAmbiguousType(FlatBufferBuilder builder, AnyAmbiguousAliases anyAmbiguousType) { builder.AddByte(45, (byte)anyAmbiguousType, 0); }
+  public static void AddAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.AddOffset(46, anyAmbiguousOffset, 0); }
+  public static void AddVectorOfEnums(FlatBufferBuilder builder, VectorOffset vectorOfEnumsOffset) { builder.AddOffset(47, vectorOfEnumsOffset.Value, 0); }
+  public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddSbyte((sbyte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
+  public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

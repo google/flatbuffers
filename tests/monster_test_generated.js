@@ -44,6 +44,26 @@ MyGame.Example.Any = {
 };
 
 /**
+ * @enum
+ */
+MyGame.Example.AnyUniqueAliases = {
+  NONE: 0, 0: 'NONE',
+  M: 1, 1: 'M',
+  T: 2, 2: 'T',
+  M2: 3, 3: 'M2'
+};
+
+/**
+ * @enum
+ */
+MyGame.Example.AnyAmbiguousAliases = {
+  NONE: 0, 0: 'NONE',
+  M1: 1, 1: 'M1',
+  M2: 2, 2: 'M2',
+  M3: 3, 3: 'M3'
+};
+
+/**
  * @constructor
  */
 MyGame.InParentNamespace = function() {
@@ -1655,10 +1675,99 @@ MyGame.Example.Monster.prototype.vectorOfNonOwningReferencesLength = function() 
 };
 
 /**
+ * @returns {MyGame.Example.AnyUniqueAliases}
+ */
+MyGame.Example.Monster.prototype.anyUniqueType = function() {
+  var offset = this.bb.__offset(this.bb_pos, 90);
+  return offset ? /** @type {MyGame.Example.AnyUniqueAliases} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyUniqueAliases.NONE;
+};
+
+/**
+ * @param {MyGame.Example.AnyUniqueAliases} value
+ * @returns {boolean}
+ */
+MyGame.Example.Monster.prototype.mutate_any_unique_type = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 90);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Table} obj
+ * @returns {?flatbuffers.Table}
+ */
+MyGame.Example.Monster.prototype.anyUnique = function(obj) {
+  var offset = this.bb.__offset(this.bb_pos, 92);
+  return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
+ * @returns {MyGame.Example.AnyAmbiguousAliases}
+ */
+MyGame.Example.Monster.prototype.anyAmbiguousType = function() {
+  var offset = this.bb.__offset(this.bb_pos, 94);
+  return offset ? /** @type {MyGame.Example.AnyAmbiguousAliases} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
+};
+
+/**
+ * @param {MyGame.Example.AnyAmbiguousAliases} value
+ * @returns {boolean}
+ */
+MyGame.Example.Monster.prototype.mutate_any_ambiguous_type = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 94);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Table} obj
+ * @returns {?flatbuffers.Table}
+ */
+MyGame.Example.Monster.prototype.anyAmbiguous = function(obj) {
+  var offset = this.bb.__offset(this.bb_pos, 96);
+  return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {number} index
+ * @returns {MyGame.Example.Color}
+ */
+MyGame.Example.Monster.prototype.vectorOfEnums = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 98);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfEnumsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 98);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Int8Array}
+ */
+MyGame.Example.Monster.prototype.vectorOfEnumsArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 98);
+  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(43);
+  builder.startObject(48);
 };
 
 /**
@@ -2313,6 +2422,67 @@ MyGame.Example.Monster.createVectorOfNonOwningReferencesVector = function(builde
  */
 MyGame.Example.Monster.startVectorOfNonOwningReferencesVector = function(builder, numElems) {
   builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {MyGame.Example.AnyUniqueAliases} anyUniqueType
+ */
+MyGame.Example.Monster.addAnyUniqueType = function(builder, anyUniqueType) {
+  builder.addFieldInt8(43, anyUniqueType, MyGame.Example.AnyUniqueAliases.NONE);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} anyUniqueOffset
+ */
+MyGame.Example.Monster.addAnyUnique = function(builder, anyUniqueOffset) {
+  builder.addFieldOffset(44, anyUniqueOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {MyGame.Example.AnyAmbiguousAliases} anyAmbiguousType
+ */
+MyGame.Example.Monster.addAnyAmbiguousType = function(builder, anyAmbiguousType) {
+  builder.addFieldInt8(45, anyAmbiguousType, MyGame.Example.AnyAmbiguousAliases.NONE);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} anyAmbiguousOffset
+ */
+MyGame.Example.Monster.addAnyAmbiguous = function(builder, anyAmbiguousOffset) {
+  builder.addFieldOffset(46, anyAmbiguousOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfEnumsOffset
+ */
+MyGame.Example.Monster.addVectorOfEnums = function(builder, vectorOfEnumsOffset) {
+  builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<MyGame.Example.Color>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfEnumsVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**

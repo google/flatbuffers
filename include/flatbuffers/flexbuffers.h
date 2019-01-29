@@ -337,6 +337,16 @@ class Map : public Vector {
   bool IsTheEmptyMap() const { return data_ == EmptyMap().data_; }
 };
 
+template<typename T>
+void AppendToString(std::string &s, T &&v, bool keys_quoted) {
+    s += "[ ";
+    for (size_t i = 0; i < v.size(); i++) {
+      if (i) s += ", ";
+      v[i].ToString(true, keys_quoted, s);
+    }
+    s += " ]";
+}
+
 class Reference {
  public:
   Reference(const uint8_t *data, uint8_t parent_width, uint8_t byte_width,
@@ -484,7 +494,7 @@ class Reference {
   }
 
   // Unlike AsString(), this will convert any type to a std::string.
-  std::string ToString() {
+  std::string ToString() const {
     std::string s;
     ToString(false, false, s);
     return s;
@@ -532,13 +542,14 @@ class Reference {
       }
       s += " }";
     } else if (IsVector()) {
-      s += "[ ";
-      auto v = AsVector();
-      for (size_t i = 0; i < v.size(); i++) {
-        v[i].ToString(true, keys_quoted, s);
-        if (i < v.size() - 1) s += ", ";
-      }
-      s += " ]";
+      AppendToString<Vector>(s, AsVector(), keys_quoted);
+    } else if (IsTypedVector()) {
+      AppendToString<TypedVector>(s, AsTypedVector(), keys_quoted);
+    } else if (IsFixedTypedVector()) {
+      AppendToString<FixedTypedVector>(s, AsFixedTypedVector(), keys_quoted);
+    } else if (IsBlob()) {
+      auto blob = AsBlob();
+      flatbuffers::EscapeString(reinterpret_cast<const char*>(blob.data()), blob.size(), &s, true, false);
     } else {
       s += "(?)";
     }

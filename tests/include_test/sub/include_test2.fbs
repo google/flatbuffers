@@ -5,7 +5,7 @@ namespace MyGame.OtherNameSpace;
 
 enum FromInclude:long { IncludeVal }
 
-struct Unused {}
+struct Unused { a:int; }
 
 table TableB {
   a:TableA;

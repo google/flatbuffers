@@ -87,6 +87,11 @@ static endAttacker(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createAttacker(builder:flatbuffers.Builder, swordAttackDamage:number):flatbuffers.Offset {
+  Attacker.startAttacker(builder);
+  Attacker.addSwordAttackDamage(builder, swordAttackDamage);
+  return Attacker.endAttacker(builder);
+}
 }
 /**
  * @constructor
@@ -400,4 +405,12 @@ static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset)
   builder.finish(offset, 'MOVI');
 };
 
+static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
+  Movie.startMovie(builder);
+  Movie.addMainCharacterType(builder, mainCharacterType);
+  Movie.addMainCharacter(builder, mainCharacterOffset);
+  Movie.addCharactersType(builder, charactersTypeOffset);
+  Movie.addCharacters(builder, charactersOffset);
+  return Movie.endMovie(builder);
+}
 }

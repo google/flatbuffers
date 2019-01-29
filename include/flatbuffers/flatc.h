@@ -80,6 +80,9 @@ class FlatCompiler {
                  const std::string &contents,
                  std::vector<const char *> &include_directories) const;
 
+  void LoadBinarySchema(Parser &parser, const std::string &filename,
+                        const std::string &contents);
+
   void Warn(const std::string &warn, bool show_exe_name = true) const;
 
   void Error(const std::string &err, bool usage = true,

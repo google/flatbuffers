@@ -19,6 +19,8 @@ namespace Example {
 static const char* MonsterStorage_method_names[] = {
   "/MyGame.Example.MonsterStorage/Store",
   "/MyGame.Example.MonsterStorage/Retrieve",
+  "/MyGame.Example.MonsterStorage/GetMaxHitPoint",
+  "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints",
 };
 
 std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -29,6 +31,8 @@ std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared
 MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   : channel_(channel)  , rpcmethod_Store_(MonsterStorage_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Retrieve_(MonsterStorage_method_names[1], ::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_GetMaxHitPoint_(MonsterStorage_method_names[2], ::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_GetMinMaxHitPoints_(MonsterStorage_method_names[3], ::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
   {}
   
 ::grpc::Status MonsterStorage::Stub::Store(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, flatbuffers::grpc::Message<Stat>* response) {
@@ -55,6 +59,30 @@ MonsterStorage::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
   return ::grpc::internal::ClientAsyncReaderFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), cq, rpcmethod_Retrieve_, context, request, false, nullptr);
 }
 
+::grpc::ClientWriter< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::GetMaxHitPointRaw(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response) {
+  return ::grpc::internal::ClientWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), rpcmethod_GetMaxHitPoint_, context, response);
+}
+
+::grpc::ClientAsyncWriter< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::AsyncGetMaxHitPointRaw(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), cq, rpcmethod_GetMaxHitPoint_, context, response, true, tag);
+}
+
+::grpc::ClientAsyncWriter< flatbuffers::grpc::Message<Monster>>* MonsterStorage::Stub::PrepareAsyncGetMaxHitPointRaw(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncWriterFactory< flatbuffers::grpc::Message<Monster>>::Create(channel_.get(), cq, rpcmethod_GetMaxHitPoint_, context, response, false, nullptr);
+}
+
+::grpc::ClientReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::GetMinMaxHitPointsRaw(::grpc::ClientContext* context) {
+  return ::grpc::internal::ClientReaderWriterFactory< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>::Create(channel_.get(), rpcmethod_GetMinMaxHitPoints_, context);
+}
+
+::grpc::ClientAsyncReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::AsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>::Create(channel_.get(), cq, rpcmethod_GetMinMaxHitPoints_, context, true, tag);
+}
+
+::grpc::ClientAsyncReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* MonsterStorage::Stub::PrepareAsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>::Create(channel_.get(), cq, rpcmethod_GetMinMaxHitPoints_, context, false, nullptr);
+}
+
 MonsterStorage::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[0],
@@ -66,6 +94,16 @@ MonsterStorage::Service::Service() {
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>(
           std::mem_fn(&MonsterStorage::Service::Retrieve), this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MonsterStorage_method_names[2],
+      ::grpc::internal::RpcMethod::CLIENT_STREAMING,
+      new ::grpc::internal::ClientStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+          std::mem_fn(&MonsterStorage::Service::GetMaxHitPoint), this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MonsterStorage_method_names[3],
+      ::grpc::internal::RpcMethod::BIDI_STREAMING,
+      new ::grpc::internal::BidiStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+          std::mem_fn(&MonsterStorage::Service::GetMinMaxHitPoints), this)));
 }
 
 MonsterStorage::Service::~Service() {
@@ -82,6 +120,19 @@ MonsterStorage::Service::~Service() {
   (void) context;
   (void) request;
   (void) writer;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MonsterStorage::Service::GetMaxHitPoint(::grpc::ServerContext* context, ::grpc::ServerReader< flatbuffers::grpc::Message<Monster>>* reader, flatbuffers::grpc::Message<Stat>* response) {
+  (void) context;
+  (void) reader;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MonsterStorage::Service::GetMinMaxHitPoints(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>* stream) {
+  (void) context;
+  (void) stream;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 

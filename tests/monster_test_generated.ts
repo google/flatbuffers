@@ -22,6 +22,28 @@ export enum Any{
 }};
 
 /**
+ * @enum
+ */
+export namespace MyGame.Example{
+export enum AnyUniqueAliases{
+  NONE= 0,
+  M= 1,
+  T= 2,
+  M2= 3
+}};
+
+/**
+ * @enum
+ */
+export namespace MyGame.Example{
+export enum AnyAmbiguousAliases{
+  NONE= 0,
+  M1= 1,
+  M2= 2,
+  M3= 3
+}};
+
+/**
  * @constructor
  */
 export namespace MyGame{
@@ -65,6 +87,10 @@ static endInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
+  InParentNamespace.startInParentNamespace(builder);
+  return InParentNamespace.endInParentNamespace(builder);
+}
 }
 }
 /**
@@ -111,6 +137,10 @@ static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
+  Monster.startMonster(builder);
+  return Monster.endMonster(builder);
+}
 }
 }
 /**
@@ -267,6 +297,11 @@ static endTestSimpleTableWithEnum(builder:flatbuffers.Builder):flatbuffers.Offse
   return offset;
 };
 
+static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.Example.Color):flatbuffers.Offset {
+  TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
+  TestSimpleTableWithEnum.addColor(builder, color);
+  return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
+}
 }
 }
 /**
@@ -639,6 +674,13 @@ static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:flatbuffers.Long, count:number):flatbuffers.Offset {
+  Stat.startStat(builder);
+  Stat.addId(builder, idOffset);
+  Stat.addVal(builder, val);
+  Stat.addCount(builder, count);
+  return Stat.endStat(builder);
+}
 }
 }
 /**
@@ -716,6 +758,11 @@ static endReferrable(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbuffers.Offset {
+  Referrable.startReferrable(builder);
+  Referrable.addId(builder, id);
+  return Referrable.endReferrable(builder);
+}
 }
 }
 /**
@@ -1594,10 +1641,99 @@ vectorOfNonOwningReferencesLength():number {
 };
 
 /**
+ * @returns MyGame.Example.AnyUniqueAliases
+ */
+anyUniqueType():MyGame.Example.AnyUniqueAliases {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyUniqueAliases.NONE;
+};
+
+/**
+ * @param MyGame.Example.AnyUniqueAliases value
+ * @returns boolean
+ */
+mutate_any_unique_type(value:MyGame.Example.AnyUniqueAliases):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 90);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
+ */
+anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
+  var offset = this.bb!.__offset(this.bb_pos, 92);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
+ * @returns MyGame.Example.AnyAmbiguousAliases
+ */
+anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
+  var offset = this.bb!.__offset(this.bb_pos, 94);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
+};
+
+/**
+ * @param MyGame.Example.AnyAmbiguousAliases value
+ * @returns boolean
+ */
+mutate_any_ambiguous_type(value:MyGame.Example.AnyAmbiguousAliases):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 94);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
+ */
+anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
+  var offset = this.bb!.__offset(this.bb_pos, 96);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
+ * @param number index
+ * @returns MyGame.Example.Color
+ */
+vectorOfEnums(index: number):MyGame.Example.Color|null {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? /**  */ (this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
+};
+
+/**
+ * @returns number
+ */
+vectorOfEnumsLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Int8Array
+ */
+vectorOfEnumsArray():Int8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 98);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(43);
+  builder.startObject(48);
 };
 
 /**
@@ -2256,6 +2392,67 @@ static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numEl
 
 /**
  * @param flatbuffers.Builder builder
+ * @param MyGame.Example.AnyUniqueAliases anyUniqueType
+ */
+static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:MyGame.Example.AnyUniqueAliases) {
+  builder.addFieldInt8(43, anyUniqueType, MyGame.Example.AnyUniqueAliases.NONE);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset anyUniqueOffset
+ */
+static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(44, anyUniqueOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param MyGame.Example.AnyAmbiguousAliases anyAmbiguousType
+ */
+static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases) {
+  builder.addFieldInt8(45, anyAmbiguousType, MyGame.Example.AnyAmbiguousAliases.NONE);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset anyAmbiguousOffset
+ */
+static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(46, anyAmbiguousOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vectorOfEnumsOffset
+ */
+static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<MyGame.Example.Color> data
+ * @returns flatbuffers.Offset
+ */
+static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:MyGame.Example.Color[]):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -2272,6 +2469,57 @@ static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offse
   builder.finish(offset, 'MONS');
 };
 
+static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset):flatbuffers.Offset {
+  Monster.startMonster(builder);
+  Monster.addPos(builder, posOffset);
+  Monster.addMana(builder, mana);
+  Monster.addHp(builder, hp);
+  Monster.addName(builder, nameOffset);
+  Monster.addInventory(builder, inventoryOffset);
+  Monster.addColor(builder, color);
+  Monster.addTestType(builder, testType);
+  Monster.addTest(builder, testOffset);
+  Monster.addTest4(builder, test4Offset);
+  Monster.addTestarrayofstring(builder, testarrayofstringOffset);
+  Monster.addTestarrayoftables(builder, testarrayoftablesOffset);
+  Monster.addEnemy(builder, enemyOffset);
+  Monster.addTestnestedflatbuffer(builder, testnestedflatbufferOffset);
+  Monster.addTestempty(builder, testemptyOffset);
+  Monster.addTestbool(builder, testbool);
+  Monster.addTesthashs32Fnv1(builder, testhashs32Fnv1);
+  Monster.addTesthashu32Fnv1(builder, testhashu32Fnv1);
+  Monster.addTesthashs64Fnv1(builder, testhashs64Fnv1);
+  Monster.addTesthashu64Fnv1(builder, testhashu64Fnv1);
+  Monster.addTesthashs32Fnv1a(builder, testhashs32Fnv1a);
+  Monster.addTesthashu32Fnv1a(builder, testhashu32Fnv1a);
+  Monster.addTesthashs64Fnv1a(builder, testhashs64Fnv1a);
+  Monster.addTesthashu64Fnv1a(builder, testhashu64Fnv1a);
+  Monster.addTestarrayofbools(builder, testarrayofboolsOffset);
+  Monster.addTestf(builder, testf);
+  Monster.addTestf2(builder, testf2);
+  Monster.addTestf3(builder, testf3);
+  Monster.addTestarrayofstring2(builder, testarrayofstring2Offset);
+  Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
+  Monster.addFlex(builder, flexOffset);
+  Monster.addTest5(builder, test5Offset);
+  Monster.addVectorOfLongs(builder, vectorOfLongsOffset);
+  Monster.addVectorOfDoubles(builder, vectorOfDoublesOffset);
+  Monster.addParentNamespaceTest(builder, parentNamespaceTestOffset);
+  Monster.addVectorOfReferrables(builder, vectorOfReferrablesOffset);
+  Monster.addSingleWeakReference(builder, singleWeakReference);
+  Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset);
+  Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset);
+  Monster.addCoOwningReference(builder, coOwningReference);
+  Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset);
+  Monster.addNonOwningReference(builder, nonOwningReference);
+  Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset);
+  Monster.addAnyUniqueType(builder, anyUniqueType);
+  Monster.addAnyUnique(builder, anyUniqueOffset);
+  Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
+  Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
+  Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  return Monster.endMonster(builder);
+}
 }
 }
 /**
@@ -2736,5 +2984,21 @@ static endTypeAliases(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
+static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:number, u16:number, i32:number, u32:number, i64:flatbuffers.Long, u64:flatbuffers.Long, f32:number, f64:number, v8Offset:flatbuffers.Offset, vf64Offset:flatbuffers.Offset):flatbuffers.Offset {
+  TypeAliases.startTypeAliases(builder);
+  TypeAliases.addI8(builder, i8);
+  TypeAliases.addU8(builder, u8);
+  TypeAliases.addI16(builder, i16);
+  TypeAliases.addU16(builder, u16);
+  TypeAliases.addI32(builder, i32);
+  TypeAliases.addU32(builder, u32);
+  TypeAliases.addI64(builder, i64);
+  TypeAliases.addU64(builder, u64);
+  TypeAliases.addF32(builder, f32);
+  TypeAliases.addF64(builder, f64);
+  TypeAliases.addV8(builder, v8Offset);
+  TypeAliases.addVf64(builder, vf64Offset);
+  return TypeAliases.endTypeAliases(builder);
+}
 }
 }

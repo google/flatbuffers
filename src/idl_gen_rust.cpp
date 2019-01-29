@@ -130,6 +130,7 @@ FullType GetFullType(const Type &type) {
       case ftUnionKey:
       case ftUnionValue: {
         FLATBUFFERS_ASSERT(false && "vectors of unions are unsupported");
+        break;
       }
       default: {
         FLATBUFFERS_ASSERT(false && "vector of vectors are unsupported");
@@ -297,6 +298,11 @@ class RustGenerator : public BaseGenerator {
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n"; 
 
     assert(!cur_name_space_);
+
+    // Generate imports for the global scope in case no namespace is used
+    // in the schema file.
+    GenNamespaceImports(0);
+    code_ += "";
 
     // Generate all code in their namespaces, once, because Rust does not
     // permit re-opening modules.
@@ -1307,7 +1313,6 @@ class RustGenerator : public BaseGenerator {
       }
 
       auto u = field.value.type.enum_def;
-      if (u->uses_type_aliases) continue;
 
       code_.SetValue("FIELD_NAME", Name(field));
 
@@ -1741,6 +1746,18 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  void GenNamespaceImports(const int white_spaces) {
+      std::string indent = std::string(white_spaces, ' ');
+      code_ += indent + "#![allow(dead_code)]";
+      code_ += indent + "#![allow(unused_imports)]";
+      code_ += "";
+      code_ += indent + "use std::mem;";
+      code_ += indent + "use std::cmp::Ordering;";
+      code_ += "";
+      code_ += indent + "extern crate flatbuffers;";
+      code_ += indent + "use self::flatbuffers::EndianScalar;";
+  }
+
   // Set up the correct namespace. This opens a namespace if the current
   // namespace is different from the target namespace. This function
   // closes and opens the namespaces only as necessary.
@@ -1775,14 +1792,8 @@ class RustGenerator : public BaseGenerator {
     // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j) {
       code_ += "pub mod " + MakeSnakeCase(ns->components[j]) + " {";
-      code_ += "  #![allow(dead_code)]";
-      code_ += "  #![allow(unused_imports)]";
-      code_ += "";
-      code_ += "  use std::mem;";
-      code_ += "  use std::cmp::Ordering;";
-      code_ += "";
-      code_ += "  extern crate flatbuffers;";
-      code_ += "  use self::flatbuffers::EndianScalar;";
+      // Generate local namespace imports.
+      GenNamespaceImports(2);
     }
     if (new_size != common_prefix_size) { code_ += ""; }
 

@@ -4,6 +4,8 @@ package Example
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
+
+	MyGame "MyGame"
 )
 
 /// an example documentation comment: monster object
@@ -516,12 +518,12 @@ func (rcv *Monster) VectorOfDoublesLength() int {
 	return 0
 }
 
-func (rcv *Monster) ParentNamespaceTest(obj *InParentNamespace) *InParentNamespace {
+func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.InParentNamespace {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
-			obj = new(InParentNamespace)
+			obj = new(MyGame.InParentNamespace)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
@@ -656,8 +658,67 @@ func (rcv *Monster) VectorOfNonOwningReferencesLength() int {
 	return 0
 }
 
+func (rcv *Monster) AnyUniqueType() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(90))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateAnyUniqueType(n byte) bool {
+	return rcv._tab.MutateByteSlot(90, n)
+}
+
+func (rcv *Monster) AnyUnique(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(92))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) AnyAmbiguousType() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(94))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateAnyAmbiguousType(n byte) bool {
+	return rcv._tab.MutateByteSlot(94, n)
+}
+
+func (rcv *Monster) AnyAmbiguous(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(96))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VectorOfEnums(j int) Color {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) VectorOfEnumsLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(43)
+	builder.StartObject(48)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -835,6 +896,24 @@ func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorO
 }
 func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType byte) {
+	builder.PrependByteSlot(43, anyUniqueType, 0)
+}
+func MonsterAddAnyUnique(builder *flatbuffers.Builder, anyUnique flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(44, flatbuffers.UOffsetT(anyUnique), 0)
+}
+func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType byte) {
+	builder.PrependByteSlot(45, anyAmbiguousType, 0)
+}
+func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)
+}
+func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(47, flatbuffers.UOffsetT(vectorOfEnums), 0)
+}
+func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

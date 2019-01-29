@@ -2,7 +2,10 @@
   "name": "flatbuffers",
   "version": "1.10.2",
   "description": "Memory Efficient Serialization Library",
-  "files": ["js/flatbuffers.js", "js/flatbuffers.mjs"],
+  "files": [
+    "js/flatbuffers.js",
+    "js/flatbuffers.mjs"
+  ],
   "main": "js/flatbuffers",
   "module": "js/flatbuffers.mjs",
   "directories": {
@@ -26,5 +29,6 @@
   "bugs": {
     "url": "https://github.com/google/flatbuffers/issues"
   },
-  "homepage": "https://google.github.io/flatbuffers/"
+  "homepage": "https://google.github.io/flatbuffers/",
+  "dependencies": {}
 }

@@ -8,54 +8,12 @@
 #include <string>
 
 #include "flatbuffers/idl.h"
-#include "fuzzer_assert.h"
-#include "test_assert.h"
-
-static_assert(__has_feature(memory_sanitizer) ||
-                  __has_feature(address_sanitizer),
-              "sanitizer disabled");
+#include "test_init.h"
 
 static constexpr uint8_t flags_scalar_type = 0x0F;  // type of scalar value
 static constexpr uint8_t flags_quotes_kind = 0x10;  // quote " or '
 // reserved for future: json {named} or [unnamed]
 // static constexpr uint8_t flags_json_bracer = 0x20;
-
-// See readme.md and CMakeLists.txt for details.
-#ifdef FUZZ_TEST_LOCALE
-static constexpr const char *test_locale = (FUZZ_TEST_LOCALE);
-#else
-static constexpr const char *test_locale = nullptr;
-#endif
-
-// Utility for test run.
-struct OneTimeTestInit {
-  // Declare trap for the flatbuffers test engine.
-  // This hook terminate program both in Debug and Release.
-  static bool TestFailListener(const char *expval, const char *val,
-                               const char *exp, const char *file, int line,
-                               const char *func = 0) {
-    (void)expval;
-    (void)val;
-    (void)exp;
-    (void)file;
-    (void)line;
-    (void)func;
-    // FLATBUFFERS_ASSERT also redefined to be fully independed from library
-    // implementation (see test_assert.h for details).
-    fuzzer_assert_impl(false);  // terminate
-    return false;
-  }
-
-  OneTimeTestInit() {
-    // Fuzzer test should not depend from the test engine implementation.
-    // This hook will terminate test if TEST_EQ/TEST_ASSERT asserted.
-    InitTestEngine(OneTimeTestInit::TestFailListener);
-  }
-
-  static OneTimeTestInit one_time_init_;
-};
-
-OneTimeTestInit OneTimeTestInit::one_time_init_;
 
 // Find all 'subj' sub-strings and replace first character of sub-string.
 // BreakSequence("testest","tes", 'X') -> "XesXest".
@@ -248,6 +206,9 @@ bool Parse(flatbuffers::Parser &parser, const std::string &json,
   return done;
 }
 
+// Utility for test run.
+OneTimeTestInit OneTimeTestInit::one_time_init_;
+
 // llvm std::regex have problem with stack overflow, limit maximum length.
 // ./scalar_fuzzer -max_len=3000
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
@@ -299,23 +260,26 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // have any hidden-states or locale-depended effects.
   for (auto cnt = 0; cnt < (extra_rep_number + 2); cnt++) {
     // Each even run (0,2,4..) will test locale independed code.
-    auto use_locale = !!test_locale && (0 == (cnt % 2));
+    auto use_locale = !!OneTimeTestInit::test_locale() && (0 == (cnt % 2));
     // Set new locale.
     if (use_locale) {
-      FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, test_locale));
+      FLATBUFFERS_ASSERT(setlocale(LC_ALL, OneTimeTestInit::test_locale()));
     }
 
     // Parse original input as-is.
     auto orig_scalar = "{ \"Y\" : " + input + " }";
     std::string orig_back;
     auto orig_done = Parse(parser, orig_scalar, &orig_back);
+
     if (recheck.res != orig_done) {
       // look for "does not fit" or "doesn't fit" or "out of range"
-      auto parser_not_fit =
-          (orig_back.find("does not fit") == std::string::npos) ||
-          (orig_back.find("out of range") == std::string::npos);
+      auto not_fit =
+          (true == recheck.res)
+              ? ((orig_back.find("does not fit") != std::string::npos) ||
+                 (orig_back.find("out of range") != std::string::npos))
+              : false;
 
-      if ((false == recheck.res) || (false == parser_not_fit)) {
+      if (false == not_fit) {
         TEST_OUTPUT_LINE("Stage 1 failed: Parser(%d) != Regex(%d)", orig_done,
                          recheck.res);
         TEST_EQ_STR(orig_back.c_str(),
@@ -344,6 +308,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       auto fix_scalar = "{ \"Y\" : " + qouted_input + " }";
       std::string fix_back;
       auto fix_done = Parse(parser, fix_scalar, &fix_back);
+
       if (orig_done != fix_done) {
         TEST_OUTPUT_LINE("Stage 2 failed: Parser(%d) != Regex(%d)", fix_done,
                          orig_done);
@@ -353,9 +318,34 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       TEST_EQ_FUNC(fix_done, orig_done);
     }
 
-    // Restore locale.
-    if (use_locale) { FLATBUFFERS_ASSERT(!!std::setlocale(LC_ALL, "C")); }
-  }
+    // Create new parser and test default value
+    if (true == orig_done) {
+      flatbuffers::Parser def_parser(opts);  // re-use options
+      auto def_schema = "table X { Y: " + std::string(ref_res.type) + " = " +
+                        input + "; } root_type X;" +
+                        "{}";  // <- with empty json {}!
 
+      auto def_done = def_parser.Parse(def_schema.c_str());
+      if (false == def_done) {
+        TEST_OUTPUT_LINE("Stage 3.1 failed with _error = %s",
+                         def_parser.error_.c_str());
+        FLATBUFFERS_ASSERT(false);
+      }
+      // Compare with print.
+      std::string ref_string, def_string;
+      FLATBUFFERS_ASSERT(GenerateText(
+          parser, parser.builder_.GetBufferPointer(), &ref_string));
+      FLATBUFFERS_ASSERT(GenerateText(
+          def_parser, def_parser.builder_.GetBufferPointer(), &def_string));
+      if (ref_string != def_string) {
+        TEST_OUTPUT_LINE("Stage 3.2 failed: '%s' != '%s'", def_string.c_str(),
+                         ref_string.c_str());
+        FLATBUFFERS_ASSERT(false);
+      }
+    }
+
+    // Restore locale.
+    if (use_locale) { FLATBUFFERS_ASSERT(setlocale(LC_ALL, "C")); }
+  }
   return 0;
 }

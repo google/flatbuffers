@@ -105,6 +105,8 @@ Additional options:
     output (by default the case for C++ and JS), all code will end up in
     this one file.
 
+-   `--gen-generated`: Add @Generated annotation for Java
+
 -   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
 
 -   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
