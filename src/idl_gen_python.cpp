@@ -552,13 +552,13 @@ class PythonGenerator : public BaseGenerator {
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
-  // Generate funtion to cehck for propper file identifier
+  // Generate function to check for proper file identifier
   void GenHasFileIdentifier(const StructDef &struct_def,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
     std::string esapedID;
     //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
-    //to prevent this, convert all chars to there hex escaped equivilent
+    //to prevent this, convert all chars to their hex-escaped equivalent
     for(int x=0; x<4; x++){
 		esapedID += "\\x" + IntToStringHex(parser_.file_identifier_[x], 2);
     }
