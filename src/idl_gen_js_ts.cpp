@@ -695,11 +695,15 @@ class JsTsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kParam, object_name + "=", "obj") +
                         GenTypeAnnotation(kReturns, object_name, "", false));
       if (lang_.language == IDLOptions::kTs) {
-        code += "static getRootAs" + struct_def.name;
+        code += "static getRoot";
+        if (!parser_.opts.js_ts_short_names) 
+          code += "As" + struct_def.name;
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
-        code += object_name + ".getRootAs" + struct_def.name;
+        code += object_name + ".getRoot";
+        if (!parser_.opts.js_ts_short_names) 
+          code += "As" + struct_def.name;
         code += " = function(bb, obj) {\n";
       }
       code += "  return (obj || new " + object_name;
@@ -1083,12 +1087,16 @@ class JsTsGenerator : public BaseGenerator {
                                                 "", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code +=
-            "static create" + struct_def.name + "(builder:flatbuffers.Builder";
+        code += "static create";
+        if (!parser_.opts.js_ts_short_names) 
+          code += struct_def.name;
+        code += "(builder:flatbuffers.Builder";
         code += arguments + "):flatbuffers.Offset {\n";
       } else {
-        code +=
-            object_name + ".create" + struct_def.name + " = function(builder";
+        code += object_name + ".create";
+        if (!parser_.opts.js_ts_short_names) 
+          code += struct_def.name;
+        code += " = function(builder";
         code += arguments + ") {\n";
       }
 
@@ -1100,10 +1108,14 @@ class JsTsGenerator : public BaseGenerator {
                                                 "builder", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static start" + struct_def.name;
+        code += "static start";
+        if (!parser_.opts.js_ts_short_names) 
+          code += struct_def.name;
         code += "(builder:flatbuffers.Builder) {\n";
       } else {
-        code += object_name + ".start" + struct_def.name;
+        code += object_name + ".start";
+        if (!parser_.opts.js_ts_short_names)
+          code += struct_def.name;
         code += " = function(builder) {\n";
       }
 
@@ -1213,10 +1225,14 @@ class JsTsGenerator : public BaseGenerator {
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static end" + struct_def.name;
+        code += "static end";
+        if (!parser_.opts.js_ts_short_names) 
+          code += struct_def.name;
         code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
       } else {
-        code += object_name + ".end" + struct_def.name;
+        code += object_name + ".end";
+        if (!parser_.opts.js_ts_short_names) 
+          code += struct_def.name;
         code += " = function(builder) {\n";
       }
 
@@ -1242,11 +1258,17 @@ class JsTsGenerator : public BaseGenerator {
                                   false));
 
         if (lang_.language == IDLOptions::kTs) {
-          code += "static finish" + struct_def.name + "Buffer";
+          code += "static finish";
+          if (!parser_.opts.js_ts_short_names) 
+            code += struct_def.name;
+          code += "Buffer";
           code +=
               "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
         } else {
-          code += object_name + ".finish" + struct_def.name + "Buffer";
+          code += object_name + ".finish";
+          if (!parser_.opts.js_ts_short_names) 
+            code += struct_def.name;
+          code += "Buffer";
           code += " = function(builder, offset) {\n";
         }
 
@@ -1260,7 +1282,11 @@ class JsTsGenerator : public BaseGenerator {
 
       if (lang_.language == IDLOptions::kTs) {
           // Generate a convenient CreateX function
-          code += "static create" + struct_def.name + "(builder:flatbuffers.Builder";
+          code += "static create";
+          if (!parser_.opts.js_ts_short_names) 
+            code += struct_def.name;
+          code += "(builder:flatbuffers.Builder";
+          
           for (auto it = struct_def.fields.vec.begin();
                it != struct_def.fields.vec.end(); ++it) {
             const auto &field = **it;
@@ -1271,7 +1297,10 @@ class JsTsGenerator : public BaseGenerator {
           }
 
           code += "):flatbuffers.Offset {\n";
-          code += "  " + struct_def.name + ".start" + struct_def.name + "(builder);\n";
+          code += "  " + struct_def.name + ".start";
+          if (!parser_.opts.js_ts_short_names) 
+            code += struct_def.name;
+          code += "(builder);\n";
 
           for (auto it = struct_def.fields.vec.begin();
                it != struct_def.fields.vec.end(); ++it) {
@@ -1283,7 +1312,10 @@ class JsTsGenerator : public BaseGenerator {
               code += "builder, " + GetArgName(field) + ");\n";
           }
 
-          code += "  return " + struct_def.name + ".end" + struct_def.name + "(builder);\n";
+          code += "  return " + struct_def.name + ".end";
+          if (!parser_.opts.js_ts_short_names) 
+            code += struct_def.name;
+          code += "(builder);\n";
           code += "}\n";
       }
     }

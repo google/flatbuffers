@@ -130,6 +130,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --keep-prefix      Keep original prefix of schema include statement.\n"
     "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
+    "  --short-names      Use short function names for JS and TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
     "  --root-type T      Select or override the default root_type\n"
@@ -289,6 +290,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_flatbuffers_import = true;
       } else if (arg == "--no-ts-reexport") {
         opts.reexport_ts_modules = false;
+      } else if (arg == "--short-names") {
+        opts.js_ts_short_names = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {

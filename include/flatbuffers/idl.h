@@ -422,6 +422,7 @@ struct IDLOptions {
   std::string go_import;
   std::string go_namespace;
   bool reexport_ts_modules;
+  bool js_ts_short_names;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -493,6 +494,7 @@ struct IDLOptions {
         binary_schema_builtins(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
+        js_ts_short_names(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
