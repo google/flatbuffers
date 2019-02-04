@@ -444,6 +444,7 @@ struct IDLOptions {
     kLua = 1 << 12,
     kLobster = 1 << 13,
     kRust = 1 << 14,
+    kCppNative = 1 << 15,
     kMAX
   };
 
@@ -839,6 +840,10 @@ extern bool GenerateBinary(const Parser &parser,
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
 extern bool GenerateCPP(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name);
+
+extern bool GenerateCPPNative(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
