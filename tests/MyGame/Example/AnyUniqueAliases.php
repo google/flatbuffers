@@ -11,10 +11,10 @@ class AnyUniqueAliases
     const M2 = 3;
 
     private static $names = array(
-        "NONE",
-        "M",
-        "T",
-        "M2",
+        AnyUniqueAliases::NONE=>"NONE",
+        AnyUniqueAliases::M=>"M",
+        AnyUniqueAliases::T=>"T",
+        AnyUniqueAliases::M2=>"M2",
     );
 
     public static function Name($e)

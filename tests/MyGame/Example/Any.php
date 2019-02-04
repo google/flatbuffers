@@ -11,10 +11,10 @@ class Any
     const MyGame_Example2_Monster = 3;
 
     private static $names = array(
-        "NONE",
-        "Monster",
-        "TestSimpleTableWithEnum",
-        "MyGame_Example2_Monster",
+        Any::NONE=>"NONE",
+        Any::Monster=>"Monster",
+        Any::TestSimpleTableWithEnum=>"TestSimpleTableWithEnum",
+        Any::MyGame_Example2_Monster=>"MyGame_Example2_Monster",
     );
 
     public static function Name($e)

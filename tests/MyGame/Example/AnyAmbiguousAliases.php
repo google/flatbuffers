@@ -11,10 +11,10 @@ class AnyAmbiguousAliases
     const M3 = 3;
 
     private static $names = array(
-        "NONE",
-        "M1",
-        "M2",
-        "M3",
+        AnyAmbiguousAliases::NONE=>"NONE",
+        AnyAmbiguousAliases::M1=>"M1",
+        AnyAmbiguousAliases::M2=>"M2",
+        AnyAmbiguousAliases::M3=>"M3",
     );
 
     public static function Name($e)

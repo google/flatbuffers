@@ -828,7 +828,7 @@ class PhpGenerator : public BaseGenerator {
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
       auto &ev = **it;
-      code += Indent + Indent + "\"" + ev.name + "\",\n";
+      code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" + ev.name + "\",\n";
     }
 
     code += Indent + ");\n\n";

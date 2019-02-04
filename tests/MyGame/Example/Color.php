@@ -10,9 +10,9 @@ class Color
     const Blue = 8;
 
     private static $names = array(
-        "Red",
-        "Green",
-        "Blue",
+        Color::Red=>"Red",
+        Color::Green=>"Green",
+        Color::Blue=>"Blue",
     );
 
     public static function Name($e)
