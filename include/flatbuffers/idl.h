@@ -276,8 +276,9 @@ struct FieldDef : public Definition {
   bool key;         // Field functions as a key for creating sorted vectors.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
-  bool native_shared;  // Field will be using CreateSharedString while packing
-                       // if field is a string.
+  bool native_shared;  // Field will be using string pooling
+                       // (i.e. CreateSharedString) as default serialization
+                       // behavior if field is a string.
   bool flexbuffer;     // This field contains FlexBuffer data.
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
