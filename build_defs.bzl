@@ -10,7 +10,7 @@ DEFAULT_INCLUDE_PATHS = [
 ]
 
 DEFAULT_FLATC_ARGS = [
-    "--gen-object-api",
+    #"--gen-object-api",
     "--gen-compare",
     "--no-includes",
     "--gen-mutable",

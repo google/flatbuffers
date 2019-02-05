@@ -91,8 +91,7 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 The following attributes are supported:
 
 -   `native_shared` (on a field): For string fields, this enables the usage of
-    CreateSharedString() instead of CreateString() for generated
-    CreateXxxDirect(), and Pack() in object-based API if enabled.
+    string pooling (i.e. CreateSharedString) as default serialization behavior.
 
 ## Object based API.  {#flatbuffers_cpp_object_based_api}
 
