@@ -259,6 +259,7 @@ struct FieldDef : public Definition {
         required(false),
         key(false),
         native_inline(false),
+        native_shared(false),
         flexbuffer(false),
         nested_flatbuffer(NULL),
         padding(0) {}
@@ -275,6 +276,8 @@ struct FieldDef : public Definition {
   bool key;         // Field functions as a key for creating sorted vectors.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
+  bool native_shared;  // Field will be using CreateSharedString while packing
+                       // if field is a string.
   bool flexbuffer;     // This field contains FlexBuffer data.
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
@@ -623,6 +626,7 @@ class Parser : public ParserState {
     known_attributes_["cpp_str_type"] = true;
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
+    known_attributes_["native_shared"] = true;
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;

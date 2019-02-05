@@ -88,6 +88,12 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+The following attributes are supported:
+
+-   `native_shared` (on a field): For string fields, this enables the usage of
+    CreateSharedString() instead of CreateString() for generated
+    CreateXxxDirect(), and Pack() in object-based API if enabled.
+
 ## Object based API.  {#flatbuffers_cpp_object_based_api}
 
 FlatBuffers is all about memory efficiency, which is why its base API is written
