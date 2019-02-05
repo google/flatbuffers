@@ -39,8 +39,8 @@ class CppNativeGenerator : public BaseGenerator {
  public:
    CppNativeGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "::"),
-        cur_name_space_(nullptr),
+      : BaseGenerator(parser, path, file_name, "::", "::"),
+        cur_name_space_(Namespace()),
         float_const_gen_("std::numeric_limits<double>::",
                          "std::numeric_limits<float>::", "quiet_NaN()",
                          "infinity()") {
@@ -174,7 +174,9 @@ class CppNativeGenerator : public BaseGenerator {
     return EscapeKeyword(def.name);
   }
 
-  std::string Name(const EnumVal &ev) const { return EscapeKeyword(ev.name); }
+  std::string Name(const EnumVal &ev) const { 
+    return EscapeKeyword(ev.name);
+  }
 
   bool hasNative(const StructDef &struct_def)
   {
@@ -182,7 +184,8 @@ class CppNativeGenerator : public BaseGenerator {
   }
 
   bool isInline(const FieldDef &field) {
-    return field.native_inline;
+    auto &ptr_type = parser_.opts.cpp_object_api_pointer_type;
+    return field.native_inline || ptr_type == "inline";
   }
 
   // Iterate through all definitions we haven't generate code for (enums,
@@ -204,9 +207,6 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "#include \"" + GeneratedFileName(path_, file_name_, "generated") + "\"";
 
     code_ += "";
-    code_ += "namespace Native {";
-
-    FLATBUFFERS_ASSERT(!cur_name_space_);
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -214,7 +214,7 @@ class CppNativeGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       const auto &struct_def = **it;
       if (!struct_def.generated && !hasNative(struct_def)) {
-        SetNameSpace(struct_def.defined_namespace);
+        SetNameSpace(*struct_def.defined_namespace);
         auto nativeName = NativeName(struct_def);
         if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
       }
@@ -227,7 +227,7 @@ class CppNativeGenerator : public BaseGenerator {
           it != parser_.structs_.vec.end(); ++it) {
         const auto &struct_def = **it;
         if (!struct_def.fixed && !struct_def.generated) {
-          SetNameSpace(struct_def.defined_namespace);
+          SetNameSpace(*struct_def.defined_namespace);
           auto nativeName = NativeName(struct_def);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
           code_ += TablePackSignature(struct_def, true);
@@ -242,7 +242,7 @@ class CppNativeGenerator : public BaseGenerator {
          ++it) {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        SetNameSpace(enum_def.defined_namespace);
+        SetNameSpace(*enum_def.defined_namespace);
         // unions are not supported right now
         FLATBUFFERS_ASSERT(false);
       }
@@ -253,7 +253,7 @@ class CppNativeGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
-        SetNameSpace(struct_def.defined_namespace);
+        SetNameSpace(*struct_def.defined_namespace);
         GenNativeTable(struct_def);
       }
     }
@@ -263,7 +263,7 @@ class CppNativeGenerator : public BaseGenerator {
          ++it) {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        SetNameSpace(enum_def.defined_namespace);
+        SetNameSpace(*enum_def.defined_namespace);
         // unions are not supported right now
         FLATBUFFERS_ASSERT(false);
       }
@@ -272,13 +272,12 @@ class CppNativeGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
-        SetNameSpace(struct_def.defined_namespace);
+        SetNameSpace(*struct_def.defined_namespace);
         GenTablePackUnpack(struct_def);
       }
     }
 
-    if (cur_name_space_) SetNameSpace(nullptr);
-    code_ += "} // namespace Native";
+    SetNameSpace(Namespace{});
 
     // Close the include guard.
     code_ += "#endif  // " + include_guard;
@@ -294,9 +293,9 @@ class CppNativeGenerator : public BaseGenerator {
   std::unordered_set<std::string> keywords_;
 
   // This tracks the current namespace so we can insert namespace declarations.
-  const Namespace *cur_name_space_;
+  Namespace cur_name_space_;
 
-  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
+  const Namespace *CurrentNameSpace() const { return &cur_name_space_; }
 
   // Translates a qualified name in flatbuffer text format to the same name in
   // the equivalent C++ namespace.
@@ -334,49 +333,24 @@ class CppNativeGenerator : public BaseGenerator {
     return ctypename[type.base_type];
   }
 
-  // Return a C++ pointer type, specialized to the actual struct/table types,
-  // and vector element types.
-  std::string GenTypePointer(const Type &type) const {
-    switch (type.base_type) {
-      case BASE_TYPE_STRING: {
-        return "flatbuffers::String";
-      }
-      case BASE_TYPE_VECTOR: {
-        const auto type_name = GenTypeWire(type.VectorType(), "", false);
-        return "flatbuffers::Vector<" + type_name + ">";
-      }
-      case BASE_TYPE_STRUCT: {
-        return WrapInNameSpace(*type.struct_def);
-      }
-      case BASE_TYPE_UNION:
-      // fall through
-      default: { return "void"; }
-    }
-  }
-
-  // Return a C++ type for any type (scalar/pointer) specifically for
-  // building a flatbuffer.
-  std::string GenTypeWire(const Type &type, const char *postfix,
-                          bool user_facing_type) const {
-    if (IsScalar(type.base_type)) {
-      return GenTypeBasic(type, user_facing_type) + postfix;
-    } else if (IsStruct(type)) {
-      return "const " + GenTypePointer(type) + " *";
-    } else {
-      return "flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
-    }
-  }
-
-  std::string NullableExtension() {
-    return parser_.opts.gen_nullable ? " _Nullable " : "";
+  static inline Namespace NativeNamespace(Namespace ns)
+  {
+    ns.components.insert(ns.components.begin(), "Native");
+    return ns;
   }
 
   std::string NativeName(const StructDef &sd) {
-    auto nativeName = sd.fixed ? Name(sd) : parser_.opts.object_prefix + Name(sd) + parser_.opts.object_suffix;
     auto nativeUserType = sd.attributes.Lookup("native_type");
-    if (nativeUserType) return 
-      nativeName = nativeUserType->constant;
-    return WrapInNameSpace(sd.defined_namespace, nativeName);
+    if (nativeUserType) {
+      return nativeUserType->constant;
+    } else if (sd.fixed) {
+      return Name(sd);
+    } else {
+      auto nativeName = parser_.opts.object_prefix + EscapeKeyword(sd.name) + parser_.opts.object_suffix;
+      Namespace ns = NativeNamespace(*sd.defined_namespace);
+      return WrapInNameSpace(&ns, nativeName);
+    }
+
   }
 
   std::string NameNameSpace(const StructDef &sd) {
@@ -409,12 +383,12 @@ class CppNativeGenerator : public BaseGenerator {
     return ptr_type == "naked" ? "" : ".get()";
   }
 
-  std::string GenTypeNative(const Type &type, bool invector = false) {
+  std::string GenTypeNative(const Type &type, const FieldDef &field, bool invector = false) {
     if (type.base_type == BASE_TYPE_STRING) {
       auto &ret = parser_.opts.cpp_object_api_string_type;
       return ret.empty() ? "std::string" : ret;
     } else if (type.base_type == BASE_TYPE_VECTOR) {
-      const auto type_name = GenTypeNative(type.VectorType(), true);
+      const auto type_name = GenTypeNative(type.VectorType(), field, true);
       if (type.struct_def && type.struct_def->attributes.Lookup("native_custom_alloc")) {
         auto native_custom_alloc = type.struct_def->attributes.Lookup("native_custom_alloc");
         return "std::vector<" + type_name + "," +
@@ -423,7 +397,7 @@ class CppNativeGenerator : public BaseGenerator {
         return "std::vector<" + type_name + ">";
     } else if (type.base_type == BASE_TYPE_STRUCT) {
       auto type_name = NativeName(*type.struct_def);
-      if (invector)
+      if (invector || isInline(field))
         return type_name;
       else
         return GenTypeNativePtr(type_name, false);
@@ -459,7 +433,7 @@ class CppNativeGenerator : public BaseGenerator {
   }
 
   std::string TableUnPackSignature(const StructDef &struct_def, bool predecl) {
-    return NativeName(struct_def) + " UnPack(" + NameNameSpace(struct_def) + " &_i, "
+    return NativeName(struct_def) + " UnPack(const " + NameNameSpace(struct_def) + " &_i, "
            + "const flatbuffers::resolver_function_t *_resolver" +
            (predecl ? " = nullptr" : "") + ") const";
   }
@@ -480,12 +454,6 @@ class CppNativeGenerator : public BaseGenerator {
     } else {
       return val;
     }
-  }
-
-  std::string GenFieldOffsetName(const FieldDef &field) {
-    std::string uname = Name(field);
-    std::transform(uname.begin(), uname.end(), uname.begin(), ToUpper);
-    return "VT_" + uname;
   }
 
   void GenFullyQualifiedNameGetter(const StructDef &struct_def) {
@@ -532,28 +500,6 @@ class CppNativeGenerator : public BaseGenerator {
     }
   }
 
-  void GenParam(const FieldDef &field, bool direct, const char *prefix) {
-    code_.SetValue("PRE", prefix);
-    code_.SetValue("PARAM_NAME", Name(field));
-    if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
-      code_.SetValue("PARAM_TYPE", "const char *");
-      code_.SetValue("PARAM_VALUE", "nullptr");
-    } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
-      const auto vtype = field.value.type.VectorType();
-      std::string type;
-      if (IsStruct(vtype)) {
-        type = WrapInNameSpace(*vtype.struct_def);
-      } else {
-        type = GenTypeWire(vtype, "", false);
-      }
-      code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
-      code_.SetValue("PARAM_VALUE", "nullptr");
-    } else {
-      code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
-      code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
-    }
-    code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
-  }
 
   // Generate a member, including a default value for scalars and raw pointers.
   void GenMember(const FieldDef &field) {
@@ -561,7 +507,7 @@ class CppNativeGenerator : public BaseGenerator {
         field.value.type.base_type != BASE_TYPE_UTYPE &&
         (field.value.type.base_type != BASE_TYPE_VECTOR ||
          field.value.type.element != BASE_TYPE_UTYPE)) {
-      auto type = GenTypeNative(field.value.type);
+      auto type = GenTypeNative(field.value.type, field);
       code_.SetValue("FIELD_TYPE", type);
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "  {{FIELD_TYPE}} {{FIELD_NAME}};";
@@ -661,12 +607,11 @@ class CppNativeGenerator : public BaseGenerator {
   }
 
   void GenNativeTable(const StructDef &struct_def) {
-    code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME", NativeName(struct_def));
 
     // Generate a C++ object that can hold an unpacked version of this table.
     code_ += "struct {{NATIVE_NAME}} : public flatbuffers::NativeTable {";
-    code_ += "  typedef {{STRUCT_NAME}} TableType;";
+    code_ += "  typedef " + NameNameSpace(struct_def) + " TableType;";
     GenFullyQualifiedNameGetter(struct_def);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -933,7 +878,6 @@ class CppNativeGenerator : public BaseGenerator {
 
   // Generate code for tables that needs to come after the regular definition.
   void GenTablePackUnpack(const StructDef &struct_def) {
-    code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME", NativeName(struct_def));
 
     code_ += "inline " +
@@ -967,15 +911,15 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "inline " + TablePackSignature(struct_def, false) + " {";
     code_ += "  (void)_rehasher;";
     code_ += "  (void)_i;";
-    code_ += "  {{STRUCT_NAME}}Builder builder_(_fbb);";
+    code_ += "  " + Name(struct_def) + "Builder builder_(_fbb);";
 
     code_ +=
         "  struct _VectorArgs "
         "{ flatbuffers::FlatBufferBuilder *__fbb; "
-        "const " + Name(struct_def) +
-        "& __i; "
+        "const " + NativeName(struct_def) +
+        "& __o; "
         "const flatbuffers::rehasher_function_t *__rehasher; } _va = { "
-        "&_fbb, _i, _rehasher}; (void)_va;";
+        "&_fbb, _o, _rehasher}; (void)_va;";
 
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
@@ -1000,34 +944,35 @@ class CppNativeGenerator : public BaseGenerator {
   //
   // The file must start and end with an empty (or null) namespace so that
   // namespaces are properly opened and closed.
-  void SetNameSpace(const Namespace *ns) {
-    if (cur_name_space_ == ns) { return; }
+  void SetNameSpace(const Namespace &nsInput) {
+    auto ns = NativeNamespace(nsInput);
+    if (cur_name_space_.components == ns.components) { return; }
 
     // Compute the size of the longest common namespace prefix.
     // If cur_name_space is A::B::C::D and ns is A::B::E::F::G,
     // the common prefix is A::B:: and we have old_size = 4, new_size = 5
     // and common_prefix_size = 2
-    size_t old_size = cur_name_space_ ? cur_name_space_->components.size() : 0;
-    size_t new_size = ns ? ns->components.size() : 0;
+    size_t old_size = cur_name_space_.components.size();
+    size_t new_size = ns.components.size();
 
     size_t common_prefix_size = 0;
     while (common_prefix_size < old_size && common_prefix_size < new_size &&
-           ns->components[common_prefix_size] ==
-               cur_name_space_->components[common_prefix_size]) {
+           ns.components[common_prefix_size] ==
+               cur_name_space_.components[common_prefix_size]) {
       common_prefix_size++;
     }
 
     // Close cur_name_space in reverse order to reach the common prefix.
     // In the previous example, D then C are closed.
     for (size_t j = old_size; j > common_prefix_size; --j) {
-      code_ += "}  // namespace " + cur_name_space_->components[j - 1];
+      code_ += "}  // namespace " + cur_name_space_.components[j - 1];
     }
     if (old_size != common_prefix_size) { code_ += ""; }
 
     // open namespace parts to reach the ns namespace
     // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j) {
-      code_ += "namespace " + ns->components[j] + " {";
+      code_ += "namespace " + ns.components[j] + " {";
     }
     if (new_size != common_prefix_size) { code_ += ""; }
 
