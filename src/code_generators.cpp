@@ -109,7 +109,7 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
 // outside of its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
                                            const std::string &name) const {
-  if (CurrentNameSpace() == ns) return name;
+  if (CurrentNameSpace()->components == ns->components) return name;
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
@@ -122,7 +122,7 @@ std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   const Namespace *ns = def.defined_namespace;
-  if (CurrentNameSpace() == ns) return "";
+  if (CurrentNameSpace()->components == ns->components) return "";
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
