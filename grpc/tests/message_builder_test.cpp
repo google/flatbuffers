@@ -3,6 +3,10 @@
 #include "test_assert.h"
 #include "test_builder.h"
 
+using MyGame::Example::Vec3;
+using MyGame::Example::CreateStat;
+using MyGame::Example::Any_NONE;
+
 bool verify(flatbuffers::grpc::Message<Monster> &msg, const std::string &expected_name, Color color) {
   const Monster *monster = msg.GetRoot();
   return (monster->name()->str() == expected_name) && (monster->color() == color);
