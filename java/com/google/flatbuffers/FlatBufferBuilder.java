@@ -65,6 +65,7 @@ public class FlatBufferBuilder {
      * @param initial_size The initial size of the internal buffer to use.
      * @param bb_factory The factory to be used for allocating the internal buffer
      * @param existing_bb The byte buffer to reuse.
+     * @param utf8 The Utf8 codec
      */
     public FlatBufferBuilder(int initial_size, ByteBufferFactory bb_factory,
                              ByteBuffer existing_bb, Utf8 utf8) {
@@ -76,10 +77,10 @@ public class FlatBufferBuilder {
         if (existing_bb != null) {
           bb = existing_bb;
           bb.clear();
+          bb.order(ByteOrder.LITTLE_ENDIAN);
         } else {
           bb = bb_factory.newByteBuffer(initial_size);
         }
-        bb.order(ByteOrder.LITTLE_ENDIAN);
         this.utf8 = utf8;
     }
 
@@ -89,7 +90,7 @@ public class FlatBufferBuilder {
     * @param initial_size The initial size of the internal buffer to use.
     */
     public FlatBufferBuilder(int initial_size) {
-        this(initial_size, new HeapByteBufferFactory(), null, Utf8.getDefault());
+        this(initial_size, HeapByteBufferFactory.INSTANCE, null, Utf8.getDefault());
     }
 
     /**
@@ -159,14 +160,15 @@ public class FlatBufferBuilder {
      * preserve the default behavior in the event that the user does not provide
      * their own implementation of this interface.
      */
-    public interface ByteBufferFactory {
+    public static abstract class ByteBufferFactory {
         /**
          * Create a `ByteBuffer` with a given capacity.
+         * The returned ByteBuf must have a ByteOrder.LITTLE_ENDIAN ByteOrder.
          *
          * @param capacity The size of the `ByteBuffer` to allocate.
          * @return Returns the new `ByteBuffer` that was allocated.
          */
-        ByteBuffer newByteBuffer(int capacity);
+        public abstract ByteBuffer newByteBuffer(int capacity);
 
         /**
          * Release a ByteBuffer. Current {@link FlatBufferBuilder}
@@ -177,7 +179,7 @@ public class FlatBufferBuilder {
          *
          * @param bb the buffer to release
          */
-        default void releaseByteBuffer(ByteBuffer bb) {
+        public void releaseByteBuffer(ByteBuffer bb) {
         }
     }
 
@@ -187,7 +189,10 @@ public class FlatBufferBuilder {
      *
      * Allocate memory for a new byte-array backed `ByteBuffer` array inside the JVM.
      */
-    public static final class HeapByteBufferFactory implements ByteBufferFactory {
+    public static final class HeapByteBufferFactory extends ByteBufferFactory {
+
+        public static final HeapByteBufferFactory INSTANCE = new HeapByteBufferFactory();
+
         @Override
         public ByteBuffer newByteBuffer(int capacity) {
             return ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
