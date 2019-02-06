@@ -1259,7 +1259,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_monster(&'a self) -> Option<Monster> {
+  pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
       self.test().map(|u| Monster::init_from_table(u))
     } else {
@@ -1269,7 +1269,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_test_simple_table_with_enum(&'a self) -> Option<TestSimpleTableWithEnum> {
+  pub fn test_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.test_type() == Any::TestSimpleTableWithEnum {
       self.test().map(|u| TestSimpleTableWithEnum::init_from_table(u))
     } else {
@@ -1279,7 +1279,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_my_game_example_2_monster(&'a self) -> Option<super::example_2::Monster> {
+  pub fn test_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
     if self.test_type() == Any::MyGame_Example2_Monster {
       self.test().map(|u| super::example_2::Monster::init_from_table(u))
     } else {
@@ -1289,7 +1289,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_unique_as_m(&'a self) -> Option<Monster> {
+  pub fn any_unique_as_m(&self) -> Option<Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M {
       self.any_unique().map(|u| Monster::init_from_table(u))
     } else {
@@ -1299,7 +1299,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_unique_as_t(&'a self) -> Option<TestSimpleTableWithEnum> {
+  pub fn any_unique_as_t(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::T {
       self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
     } else {
@@ -1309,7 +1309,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_unique_as_m2(&'a self) -> Option<super::example_2::Monster> {
+  pub fn any_unique_as_m2(&self) -> Option<super::example_2::Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M2 {
       self.any_unique().map(|u| super::example_2::Monster::init_from_table(u))
     } else {
@@ -1319,7 +1319,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_ambiguous_as_m1(&'a self) -> Option<Monster> {
+  pub fn any_ambiguous_as_m1(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
       self.any_ambiguous().map(|u| Monster::init_from_table(u))
     } else {
@@ -1329,7 +1329,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_ambiguous_as_m2(&'a self) -> Option<Monster> {
+  pub fn any_ambiguous_as_m2(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
       self.any_ambiguous().map(|u| Monster::init_from_table(u))
     } else {
@@ -1339,7 +1339,7 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_ambiguous_as_m3(&'a self) -> Option<Monster> {
+  pub fn any_ambiguous_as_m3(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
       self.any_ambiguous().map(|u| Monster::init_from_table(u))
     } else {
