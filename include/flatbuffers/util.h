@@ -633,6 +633,30 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   return true;
 }
 
+inline std::string EscapeAndWrapBuffer(const void *buf, size_t bufsize,  size_t max_length,
+                            const std::string wrapped_line_prefix, 
+                            const std::string wrapped_line_suffix) {
+  std::string text = wrapped_line_prefix;
+  size_t startOffset= text.size();
+  const char *s= (const char *)buf;
+  for (size_t i = 0; s && i < bufsize; i++) {
+    text += "\\x";
+    text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
+
+	// If we have more to process and we reached max_length
+	if (i + 1 < bufsize && text.size() >= startOffset + max_length) {
+		text+= wrapped_line_suffix;
+		text+= "\n";
+		text+= wrapped_line_prefix;
+		startOffset= text.size();
+	}
+  }
+
+  text+= wrapped_line_suffix;
+  return text;
+}
+
+
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
 

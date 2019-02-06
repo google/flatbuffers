@@ -68,6 +68,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     ss << "  " << full_name.str() << " " << name << "    " << help << ".\n";
   }
   // clang-format off
+
+  // Output width
+  // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
   ss <<
     "  -o PATH            Prefix PATH to all generated files.\n"
     "  -I PATH            Search for includes in the specified path.\n"
@@ -121,6 +124,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
+	"  --gen-bfbs-embed   Generate code to embed the bfbs schema to the source.\n"
     "  --conform FILE     Specify a schema the following schemas should be\n"
     "                     an evolution of. Gives errors if not.\n"
     "  --conform-includes Include path for the schema given with --conform\n"
@@ -142,6 +146,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "Output files are named using the base file name of the input,\n"
     "and written to the current directory or the path given by -o.\n"
     "example: " << program_name << " -c -b schema1.fbs schema2.fbs data.json\n";
+  // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
   // clang-format on
   return ss.str();
 }
@@ -177,22 +182,22 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         output_path = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "-I") {
-        if (++argi >= argc) Error("missing path following" + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         include_directories_storage.push_back(
             flatbuffers::PosixPath(argv[argi]));
         include_directories.push_back(
             include_directories_storage.back().c_str());
       } else if (arg == "--conform") {
-        if (++argi >= argc) Error("missing path following" + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         conform_to_schema = flatbuffers::PosixPath(argv[argi]);
       } else if (arg == "--conform-includes") {
-        if (++argi >= argc) Error("missing path following" + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         include_directories_storage.push_back(
             flatbuffers::PosixPath(argv[argi]));
         conform_include_directories.push_back(
             include_directories_storage.back().c_str());
       } else if (arg == "--include-prefix") {
-        if (++argi >= argc) Error("missing path following" + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         opts.include_prefix = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "--keep-prefix") {
@@ -212,10 +217,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.use_goog_js_export_format = false;
         opts.use_ES6_js_export_format = true;
       } else if (arg == "--go-namespace") {
-        if (++argi >= argc) Error("missing golang namespace" + arg, true);
+        if (++argi >= argc) Error("missing golang namespace: " + arg, true);
         opts.go_namespace = argv[argi];
       } else if (arg == "--go-import") {
-        if (++argi >= argc) Error("missing golang import" + arg, true);
+        if (++argi >= argc) Error("missing golang import: " + arg, true);
         opts.go_import = argv[argi];
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
@@ -237,20 +242,20 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
       } else if (arg == "--cpp-ptr-type") {
-        if (++argi >= argc) Error("missing type following" + arg, true);
+        if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];
       } else if (arg == "--cpp-str-type") {
-        if (++argi >= argc) Error("missing type following" + arg, true);
+        if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.cpp_object_api_string_type = argv[argi];
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
       } else if (arg == "--object-prefix") {
-        if (++argi >= argc) Error("missing prefix following" + arg, true);
+        if (++argi >= argc) Error("missing prefix following: " + arg, true);
         opts.object_prefix = argv[argi];
       } else if (arg == "--object-suffix") {
-        if (++argi >= argc) Error("missing suffix following" + arg, true);
+        if (++argi >= argc) Error("missing suffix following: " + arg, true);
         opts.object_suffix = argv[argi];
       } else if (arg == "--gen-all") {
         opts.generate_all = true;
@@ -285,6 +290,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.binary_schema_comments = true;
       } else if (arg == "--bfbs-builtins") {
         opts.binary_schema_builtins = true;
+      } else if (arg == "--gen-bfbs-embed") {
+        opts.gen_binary_schema_embed= true;
       } else if (arg == "--no-fb-import") {
         opts.skip_flatbuffers_import = true;
       } else if (arg == "--no-ts-reexport") {
@@ -294,7 +301,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
       } else if (arg == "--root-type") {
-        if (++argi >= argc) Error("missing type following" + arg, true);
+        if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.root_type = argv[argi];
       } else if (arg == "--force-defaults") {
         opts.force_defaults = true;
@@ -346,7 +353,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
 
   for (auto file_it = filenames.begin(); file_it != filenames.end();
-       ++file_it) {
+       ++file_it) 
+  {
     auto &filename = *file_it;
     std::string contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
@@ -408,7 +416,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err);
       }
-      if (schema_binary) {
+      if (schema_binary || opts.gen_binary_schema_embed) {
         parser->Serialize();
         parser->file_extension_ = reflection::SchemaExtension();
       }
@@ -464,6 +472,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // in any files coming up next.
     parser->MarkGenerated();
   }
+
   return 0;
 }
 
