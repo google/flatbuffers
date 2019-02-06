@@ -4,7 +4,7 @@ FlatBuffers    {#flatbuffers_index}
 # Overview {#flatbuffers_overview}
 
 [FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
-serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python.
+serialization library for C++, C#, C, Go, Java, JavaScript, Lobster, Lua, TypeScript, PHP, Python, and Rust.
 It was originally created at Google for game development and other
 performance-critical applications.
 
@@ -78,6 +78,9 @@ inefficiency, but also forces you to write *more* code to access data
 In this context, it is only a better choice for systems that have very
 little to no information ahead of time about what data needs to be stored.
 
+If you do need to store data that doesn't fit a schema, FlatBuffers also
+offers a schema-less (self-describing) version!
+
 Read more about the "why" of FlatBuffers in the
 [white paper](@ref flatbuffers_white_paper).
 
@@ -131,12 +134,24 @@ sections provide a more in-depth usage guide.
     in your own programs.
 -   How to [use the generated Go code](@ref flatbuffers_guide_use_go) in your
     own programs.
+-   How to [use the generated Lua code](@ref flatbuffers_guide_use_lua) in your
+    own programs.
+-   How to [use the generated JavaScript code](@ref flatbuffers_guide_use_javascript) in your
+    own programs.
+-   How to [use the generated TypeScript code](@ref flatbuffers_guide_use_typescript) in your
+    own programs.
 -   How to [use FlatBuffers in C with `flatcc`](@ref flatbuffers_guide_use_c) in your
+    own programs.
+-   How to [use the generated Lobster code](@ref flatbuffers_guide_use_lobster) in your
+    own programs.
+-   How to [use the generated Rust code](@ref flatbuffers_guide_use_rust) in your
     own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of
     using FlatBuffers.
 -   A [white paper](@ref flatbuffers_white_paper) explaining the "why" of
+    FlatBuffers.
+-   How to use the [schema-less](@ref flexbuffers) version of
     FlatBuffers.
 -   A description of the [internals](@ref flatbuffers_internals) of FlatBuffers.
 -   A formal [grammar](@ref flatbuffers_grammar) of the schema language.

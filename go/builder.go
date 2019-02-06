@@ -19,6 +19,8 @@ type Builder struct {
 	finished  bool
 }
 
+const fileIdentifierLength = 4
+
 // NewBuilder initializes a Builder of size `initial_size`.
 // The internal buffer is grown as needed.
 func NewBuilder(initialSize int) *Builder {
@@ -80,7 +82,6 @@ func (b *Builder) StartObject(numfields int) {
 	}
 
 	b.objectEnd = b.Offset()
-	b.minalign = 1
 }
 
 // WriteVtable serializes the vtable for the current object, if applicable.
@@ -109,6 +110,12 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 
 	objectOffset := b.Offset()
 	existingVtable := UOffsetT(0)
+
+	// Trim vtable of trailing zeroes.
+	i := len(b.vtable) - 1
+	for ; i >= 0 && b.vtable[i] == 0; i-- {
+	}
+	b.vtable = b.vtable[:i+1]
 
 	// Search backwards through existing vtables, because similar vtables
 	// are likely to have been recently appended. See
@@ -533,6 +540,23 @@ func (b *Builder) PrependStructSlot(voffset int, x, d UOffsetT) {
 // Slot sets the vtable key `voffset` to the current location in the buffer.
 func (b *Builder) Slot(slotnum int) {
 	b.vtable[slotnum] = UOffsetT(b.Offset())
+}
+
+// FinishWithFileIdentifier finalizes a buffer, pointing to the given `rootTable`.
+// as well as applys a file identifier
+func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
+	if fid == nil || len(fid) != fileIdentifierLength {
+		panic("incorrect file identifier length")
+	}
+	// In order to add a file identifier to the flatbuffer message, we need
+	// to prepare an alignment and file identifier length
+	b.Prep(b.minalign, SizeInt32+fileIdentifierLength)
+	for i := fileIdentifierLength - 1; i >= 0; i-- {
+		// place the file identifier
+		b.PlaceByte(fid[i])
+	}
+	// finish
+	b.Finish(rootTable)
 }
 
 // Finish finalizes a buffer, pointing to the given `rootTable`.

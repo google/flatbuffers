@@ -5,12 +5,12 @@ Building    {#flatbuffers_guide_building}
 
 The distribution comes with a `cmake` file that should allow
 you to build project/make files for any platform. For details on `cmake`, see
-<http://www.cmake.org>. In brief, depending on your platform, use one of
+<https://www.cmake.org>. In brief, depending on your platform, use one of
 e.g.:
 
-    cmake -G "Unix Makefiles"
-    cmake -G "Visual Studio 10"
-    cmake -G "Xcode"
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    cmake -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release
+    cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release
 
 Then, build as normal for your platform. This should result in a `flatc`
 executable, essential for the next steps.
@@ -41,7 +41,7 @@ running the `android_sample.sh` script. Optionally, you may go to the
 `flatbuffers/samples/android` folder and build the sample with the
 `build_apk.sh` script or `ndk_build` / `adb` etc.
 
-## Using FlatBuffers in your own projects.
+## Using FlatBuffers in your own projects
 
 For C++, there is usually no runtime to compile, as the code consists of a
 single header, `include/flatbuffers/flatbuffers.h`. You should add the
@@ -54,6 +54,39 @@ also want to be able convert binary to text).
 To see how to include FlatBuffers in any of our supported languages, please
 view the [Tutorial](@ref flatbuffers_guide_tutorial) and select your appropriate
 language using the radio buttons.
+
+### Using in CMake-based projects
+If you want to use FlatBuffers in a project which already uses CMake, then a more
+robust and flexible approach is to build FlatBuffers as part of that project directly.
+This is done by making the FlatBuffers source code available to the main build
+and adding it using CMake's `add_subdirectory()` command. This has the
+significant advantage that the same compiler and linker settings are used
+between FlatBuffers and the rest of your project, so issues associated with using
+incompatible libraries (eg debug/release), etc. are avoided. This is
+particularly useful on Windows.
+
+Suppose you put FlatBuffers source code in directory `${FLATBUFFERS_SRC_DIR}`.
+To build it as part of your project, add following code to your `CMakeLists.txt` file:
+```cmake
+# Add FlatBuffers directly to our build. This defines the `flatbuffers` target.
+add_subdirectory(${FLATBUFFERS_SRC_DIR}
+                 ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-build
+                 EXCLUDE_FROM_ALL)
+
+# Now simply link against flatbuffers as needed to your already declared target.
+# The flatbuffers target carry header search path automatically if CMake > 2.8.11.
+target_link_libraries(own_project_target PRIVATE flatbuffers)
+```
+When build your project the `flatbuffers` library will be compiled and linked 
+to a target as part of your project.
+
+#### Override default depth limit of nested objects
+To override [the depth limit of recursion](@ref flatbuffers_guide_use_cpp), 
+add this directive:
+```cmake
+set(FLATBUFFERS_MAX_PARSING_DEPTH 16)
+```
+to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
 
 #### For Google Play apps
 

@@ -38,7 +38,7 @@ $(info $(LOCAL_C_INCLUDES))
 LOCAL_SRC_FILES := main.cpp
 
 LOCAL_CPPFLAGS := -std=c++11 -fexceptions -Wall -Wno-literal-suffix
-LOCAL_LDLIBS := -llog -landroid
+LOCAL_LDLIBS := -llog -landroid -latomic
 LOCAL_ARM_MODE := arm
 LOCAL_STATIC_LIBRARIES := android_native_app_glue flatbuffers
 

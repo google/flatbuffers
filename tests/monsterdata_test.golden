@@ -1,13 +1,13 @@
 {
   pos: {
-    x: 1,
-    y: 2,
-    z: 3,
-    test1: 3,
-    test2: Green,
+    x: 1.0,
+    y: 2.0,
+    z: 3.0,
+    test1: 3.14159265359,
+    test2: "Green",
     test3: {
-      a: 5,
-      b: 6
+      a: 10,
+      b: 20
     }
   },
   hp: 80,
@@ -17,9 +17,14 @@
     1,
     2,
     3,
-    4
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
   ],
-  test_type: Monster,
+  test_type: "Monster",
   test: {
     name: "Fred"
   },
@@ -34,9 +39,24 @@
     }
   ],
   testarrayofstring: [
-    "test1",
-    "test2"
+    "bob",
+    "fred",
+    "bob",
+    "fred"
   ],
+  testarrayoftables: [
+    {
+      hp: 1000,
+      name: "Barney"
+    },
+    {
+      name: "Fred"
+    },
+    {
+      name: "Wilma"
+    }
+  ],
+  testbool: true,
   testhashs32_fnv1: -579221183,
   testhashu32_fnv1: 3715746113,
   testhashs64_fnv1: 7930699090847568257,
@@ -44,5 +64,16 @@
   testhashs32_fnv1a: -1904106383,
   testhashu32_fnv1a: 2390860913,
   testhashs64_fnv1a: 4898026182817603057,
-  testhashu64_fnv1a: 4898026182817603057
+  testhashu64_fnv1a: 4898026182817603057,
+  flex: 1234,
+  test5: [
+    {
+      a: 10,
+      b: 20
+    },
+    {
+      a: 30,
+      b: 40
+    }
+  ]
 }

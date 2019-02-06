@@ -139,7 +139,7 @@ can have fast lookups directly from a FlatBuffer without having to unpack
 your data into a `Dictionary` or similar.
 
 To use it:
--   Designate one of the fields in a table as they "key" field. You do this
+-   Designate one of the fields in a table as the "key" field. You do this
     by setting the `key` attribute on this field, e.g.
     `name:string (key)`.
     You may only have one key field, and it must be of string or scalar type.
@@ -147,19 +147,20 @@ To use it:
     array.
 -   Instead of calling standard generated method,
     e.g.: `Monster.createTestarrayoftablesVector`,
-    call `CreateMySortedVectorOfTables` in C# or
+    call `CreateSortedVectorOfMonster` in C# or
     `createSortedVectorOfTables` (from the `FlatBufferBuilder` object) in Java,
     which will first sort all offsets such that the tables they refer to
     are sorted by the key field, then serialize it.
--   Now when you're accessing the FlatBuffer, you can use `LookupByKey`
-    to access elements of the vector, e.g.:
-    `Monster.lookupByKey(tablesVectorOffset, "Frodo", dataBuffer)`,
+-   Now when you're accessing the FlatBuffer, you can use
+    the `ByKey` accessor to access elements of the vector, e.g.:
+    `monster.testarrayoftablesByKey("Frodo")` in Java or
+    `monster.TestarrayoftablesByKey("Frodo")` in C#,
     which returns an object of the corresponding table type,
     or `null` if not found.
-    `LookupByKey` performs a binary search, so should have a similar speed to
-    `Dictionary`, though may be faster because of better caching. `LookupByKey`
-    only works if the vector has been sorted, it will likely not find elements
-    if it hasn't been sorted.
+    `ByKey` performs a binary search, so should have a similar
+    speed to `Dictionary`, though may be faster because of better caching.
+    `ByKey` only works if the vector has been sorted, it will
+    likely not find elements if it hasn't been sorted.
 
 ## Text parsing
 

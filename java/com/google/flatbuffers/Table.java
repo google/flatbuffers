@@ -19,11 +19,7 @@ package com.google.flatbuffers;
 import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
 
 /// @cond FLATBUFFERS_INTERNAL
 
@@ -31,23 +27,17 @@ import java.nio.charset.CoderResult;
  * All tables in the generated code derive from this class, and add their own accessors.
  */
 public class Table {
-  private final static ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
-    @Override
-    protected CharsetDecoder initialValue() {
-      return Charset.forName("UTF-8").newDecoder();
-    }
-  };
   public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
     @Override
     protected Charset initialValue() {
       return Charset.forName("UTF-8");
     }
   };
-  private final static ThreadLocal<CharBuffer> CHAR_BUFFER = new ThreadLocal<CharBuffer>();
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Table. */
   protected ByteBuffer bb;
+  Utf8 utf8 = Utf8.getDefault();
 
   /**
    * Get the underlying ByteBuffer.
@@ -68,7 +58,7 @@ public class Table {
   }
 
   protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
-    int vtable = bb.array().length - offset;
+    int vtable = bb.capacity() - offset;
     return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable;
   }
 
@@ -98,34 +88,10 @@ public class Table {
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
    */
   protected String __string(int offset) {
-    CharsetDecoder decoder = UTF8_DECODER.get();
-    decoder.reset();
-
     offset += bb.getInt(offset);
     ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int length = src.getInt(offset);
-    src.position(offset + SIZEOF_INT);
-    src.limit(offset + SIZEOF_INT + length);
-
-    int required = (int)((float)length * decoder.maxCharsPerByte());
-    CharBuffer dst = CHAR_BUFFER.get();
-    if (dst == null || dst.capacity() < required) {
-      dst = CharBuffer.allocate(required);
-      CHAR_BUFFER.set(dst);
-    }
-
-    dst.clear();
-
-    try {
-      CoderResult cr = decoder.decode(src, dst, true);
-      if (!cr.isUnderflow()) {
-        cr.throwException();
-      }
-    } catch (CharacterCodingException x) {
-      throw new Error(x);
-    }
-
-    return dst.flip().toString();
+    return utf8.decodeUtf8(bb, offset + SIZEOF_INT, length);
   }
 
   /**
@@ -169,6 +135,27 @@ public class Table {
     int vectorstart = __vector(o);
     bb.position(vectorstart);
     bb.limit(vectorstart + __vector_len(o) * elem_size);
+    return bb;
+  }
+
+  /**
+   * Initialize vector as a ByteBuffer.
+   *
+   * This is more efficient than using duplicate, since it doesn't copy the data
+   * nor allocattes a new {@link ByteBuffer}, creating no garbage to be collected.
+   *
+   * @param bb The {@link ByteBuffer} for the array
+   * @param vector_offset The position of the vector in the byte buffer
+   * @param elem_size The size of each element in the array
+   * @return The {@link ByteBuffer} for the array
+   */
+  protected ByteBuffer __vector_in_bytebuffer(ByteBuffer bb, int vector_offset, int elem_size) {
+    int o = this.__offset(vector_offset);
+    if (o == 0) return null;
+    int vectorstart = __vector(o);
+    bb.rewind();
+    bb.limit(vectorstart + __vector_len(o) * elem_size);
+    bb.position(vectorstart);
     return bb;
   }
 
@@ -245,10 +232,9 @@ public class Table {
     int startPos_1 = offset_1 + SIZEOF_INT;
     int startPos_2 = offset_2 + SIZEOF_INT;
     int len = Math.min(len_1, len_2);
-    byte[] bbArray = bb.array();
     for(int i = 0; i < len; i++) {
-      if (bbArray[i + startPos_1] != bbArray[i + startPos_2])
-        return bbArray[i + startPos_1] - bbArray[i + startPos_2];
+      if (bb.get(i + startPos_1) != bb.get(i + startPos_2))
+        return bb.get(i + startPos_1) - bb.get(i + startPos_2);
     }
     return len_1 - len_2;
   }
@@ -266,12 +252,23 @@ public class Table {
     int len_2 = key.length;
     int startPos_1 = offset_1 + Constants.SIZEOF_INT;
     int len = Math.min(len_1, len_2);
-    byte[] bbArray = bb.array();
     for (int i = 0; i < len; i++) {
-      if (bbArray[i + startPos_1] != key[i])
-        return bbArray[i + startPos_1] - key[i];
+      if (bb.get(i + startPos_1) != key[i])
+        return bb.get(i + startPos_1) - key[i];
     }
     return len_1 - len_2;
+  }
+
+  /**
+   * Resets the internal state with a null {@code ByteBuffer} and a zero position.
+   *
+   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
+   * again to a {@code ByteBuffer}.
+   */
+  public void __reset() {
+    bb = null;
+    bb_pos = 0;
   }
 }
 

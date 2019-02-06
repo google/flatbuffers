@@ -380,21 +380,308 @@ class Monster extends Table
     }
 
     /**
+     * @returnVectorOffset
+     */
+    public function getTestarrayofsortedstruct($j)
+    {
+        $o = $this->__offset(62);
+        $obj = new Ability();
+        return $o != 0 ? $obj->init($this->__vector($o) + $j *8, $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTestarrayofsortedstructLength()
+    {
+        $o = $this->__offset(62);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return byte
+     */
+    public function getFlex($j)
+    {
+        $o = $this->__offset(64);
+        return $o != 0 ? $this->bb->getByte($this->__vector($o) + $j * 1) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFlexLength()
+    {
+        $o = $this->__offset(64);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFlexBytes()
+    {
+        return $this->__vector_as_bytes(64);
+    }
+
+    /**
+     * @returnVectorOffset
+     */
+    public function getTest5($j)
+    {
+        $o = $this->__offset(66);
+        $obj = new Test();
+        return $o != 0 ? $obj->init($this->__vector($o) + $j *4, $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTest5Length()
+    {
+        $o = $this->__offset(66);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return long
+     */
+    public function getVectorOfLongs($j)
+    {
+        $o = $this->__offset(68);
+        return $o != 0 ? $this->bb->getLong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfLongsLength()
+    {
+        $o = $this->__offset(68);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return double
+     */
+    public function getVectorOfDoubles($j)
+    {
+        $o = $this->__offset(70);
+        return $o != 0 ? $this->bb->getDouble($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfDoublesLength()
+    {
+        $o = $this->__offset(70);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    public function getParentNamespaceTest()
+    {
+        $obj = new InParentNamespace();
+        $o = $this->__offset(72);
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
+    }
+
+    /**
+     * @returnVectorOffset
+     */
+    public function getVectorOfReferrables($j)
+    {
+        $o = $this->__offset(74);
+        $obj = new Referrable();
+        return $o != 0 ? $obj->init($this->__indirect($this->__vector($o) + $j * 4), $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfReferrablesLength()
+    {
+        $o = $this->__offset(74);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getSingleWeakReference()
+    {
+        $o = $this->__offset(76);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfWeakReferences($j)
+    {
+        $o = $this->__offset(78);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfWeakReferencesLength()
+    {
+        $o = $this->__offset(78);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @returnVectorOffset
+     */
+    public function getVectorOfStrongReferrables($j)
+    {
+        $o = $this->__offset(80);
+        $obj = new Referrable();
+        return $o != 0 ? $obj->init($this->__indirect($this->__vector($o) + $j * 4), $this->bb) : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfStrongReferrablesLength()
+    {
+        $o = $this->__offset(80);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getCoOwningReference()
+    {
+        $o = $this->__offset(82);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfCoOwningReferences($j)
+    {
+        $o = $this->__offset(84);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfCoOwningReferencesLength()
+    {
+        $o = $this->__offset(84);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return ulong
+     */
+    public function getNonOwningReference()
+    {
+        $o = $this->__offset(86);
+        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+    }
+
+    /**
+     * @param int offset
+     * @return ulong
+     */
+    public function getVectorOfNonOwningReferences($j)
+    {
+        $o = $this->__offset(88);
+        return $o != 0 ? $this->bb->getUlong($this->__vector($o) + $j * 8) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfNonOwningReferencesLength()
+    {
+        $o = $this->__offset(88);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return byte
+     */
+    public function getAnyUniqueType()
+    {
+        $o = $this->__offset(90);
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\AnyUniqueAliases::NONE;
+    }
+
+    /**
+     * @returnint
+     */
+    public function getAnyUnique($obj)
+    {
+        $o = $this->__offset(92);
+        return $o != 0 ? $this->__union($obj, $o) : null;
+    }
+
+    /**
+     * @return byte
+     */
+    public function getAnyAmbiguousType()
+    {
+        $o = $this->__offset(94);
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\AnyAmbiguousAliases::NONE;
+    }
+
+    /**
+     * @returnint
+     */
+    public function getAnyAmbiguous($obj)
+    {
+        $o = $this->__offset(96);
+        return $o != 0 ? $this->__union($obj, $o) : null;
+    }
+
+    /**
+     * @param int offset
+     * @return sbyte
+     */
+    public function getVectorOfEnums($j)
+    {
+        $o = $this->__offset(98);
+        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVectorOfEnumsLength()
+    {
+        $o = $this->__offset(98);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(29);
+        $builder->StartObject(48);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums)
     {
-        $builder->startObject(29);
+        $builder->startObject(48);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -423,6 +710,25 @@ class Monster extends Table
         self::addTestf2($builder, $testf2);
         self::addTestf3($builder, $testf3);
         self::addTestarrayofstring2($builder, $testarrayofstring2);
+        self::addTestarrayofsortedstruct($builder, $testarrayofsortedstruct);
+        self::addFlex($builder, $flex);
+        self::addTest5($builder, $test5);
+        self::addVectorOfLongs($builder, $vector_of_longs);
+        self::addVectorOfDoubles($builder, $vector_of_doubles);
+        self::addParentNamespaceTest($builder, $parent_namespace_test);
+        self::addVectorOfReferrables($builder, $vector_of_referrables);
+        self::addSingleWeakReference($builder, $single_weak_reference);
+        self::addVectorOfWeakReferences($builder, $vector_of_weak_references);
+        self::addVectorOfStrongReferrables($builder, $vector_of_strong_referrables);
+        self::addCoOwningReference($builder, $co_owning_reference);
+        self::addVectorOfCoOwningReferences($builder, $vector_of_co_owning_references);
+        self::addNonOwningReference($builder, $non_owning_reference);
+        self::addVectorOfNonOwningReferences($builder, $vector_of_non_owning_references);
+        self::addAnyUniqueType($builder, $any_unique_type);
+        self::addAnyUnique($builder, $any_unique);
+        self::addAnyAmbiguousType($builder, $any_ambiguous_type);
+        self::addAnyAmbiguous($builder, $any_ambiguous);
+        self::addVectorOfEnums($builder, $vector_of_enums);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -487,7 +793,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -546,7 +852,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 2);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -580,7 +886,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -614,7 +920,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -658,7 +964,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addByte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -792,7 +1098,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addBool($data[$i]);
+            $builder->putBool($data[$i]);
         }
         return $builder->endVector();
     }
@@ -856,7 +1162,7 @@ class Monster extends Table
     {
         $builder->startVector(4, count($data), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->addOffset($data[$i]);
+            $builder->putOffset($data[$i]);
         }
         return $builder->endVector();
     }
@@ -869,6 +1175,450 @@ class Monster extends Table
     public static function startTestarrayofstring2Vector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addTestarrayofsortedstruct(FlatBufferBuilder $builder, $testarrayofsortedstruct)
+    {
+        $builder->addOffsetX(29, $testarrayofsortedstruct, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createTestarrayofsortedstructVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startTestarrayofsortedstructVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addFlex(FlatBufferBuilder $builder, $flex)
+    {
+        $builder->addOffsetX(30, $flex, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createFlexVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(1, count($data), 1);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putByte($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startFlexVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addTest5(FlatBufferBuilder $builder, $test5)
+    {
+        $builder->addOffsetX(31, $test5, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createTest5Vector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 2);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startTest5Vector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 2);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfLongs(FlatBufferBuilder $builder, $vectorOfLongs)
+    {
+        $builder->addOffsetX(32, $vectorOfLongs, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfLongsVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putLong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfLongsVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfDoubles(FlatBufferBuilder $builder, $vectorOfDoubles)
+    {
+        $builder->addOffsetX(33, $vectorOfDoubles, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfDoublesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putDouble($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfDoublesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int
+     * @return void
+     */
+    public static function addParentNamespaceTest(FlatBufferBuilder $builder, $parentNamespaceTest)
+    {
+        $builder->addOffsetX(34, $parentNamespaceTest, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfReferrables(FlatBufferBuilder $builder, $vectorOfReferrables)
+    {
+        $builder->addOffsetX(35, $vectorOfReferrables, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfReferrablesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfReferrablesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addSingleWeakReference(FlatBufferBuilder $builder, $singleWeakReference)
+    {
+        $builder->addUlongX(36, $singleWeakReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfWeakReferences(FlatBufferBuilder $builder, $vectorOfWeakReferences)
+    {
+        $builder->addOffsetX(37, $vectorOfWeakReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfWeakReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfWeakReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfStrongReferrables(FlatBufferBuilder $builder, $vectorOfStrongReferrables)
+    {
+        $builder->addOffsetX(38, $vectorOfStrongReferrables, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfStrongReferrablesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(4, count($data), 4);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putOffset($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfStrongReferrablesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addCoOwningReference(FlatBufferBuilder $builder, $coOwningReference)
+    {
+        $builder->addUlongX(39, $coOwningReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfCoOwningReferences(FlatBufferBuilder $builder, $vectorOfCoOwningReferences)
+    {
+        $builder->addOffsetX(40, $vectorOfCoOwningReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfCoOwningReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfCoOwningReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param ulong
+     * @return void
+     */
+    public static function addNonOwningReference(FlatBufferBuilder $builder, $nonOwningReference)
+    {
+        $builder->addUlongX(41, $nonOwningReference, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfNonOwningReferences(FlatBufferBuilder $builder, $vectorOfNonOwningReferences)
+    {
+        $builder->addOffsetX(42, $vectorOfNonOwningReferences, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfNonOwningReferencesVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(8, count($data), 8);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putUlong($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfNonOwningReferencesVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(8, $numElems, 8);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param byte
+     * @return void
+     */
+    public static function addAnyUniqueType(FlatBufferBuilder $builder, $anyUniqueType)
+    {
+        $builder->addByteX(43, $anyUniqueType, 0);
+    }
+
+    public static function addAnyUnique(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->addOffsetX(44, $offset, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param byte
+     * @return void
+     */
+    public static function addAnyAmbiguousType(FlatBufferBuilder $builder, $anyAmbiguousType)
+    {
+        $builder->addByteX(45, $anyAmbiguousType, 0);
+    }
+
+    public static function addAnyAmbiguous(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->addOffsetX(46, $offset, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addVectorOfEnums(FlatBufferBuilder $builder, $vectorOfEnums)
+    {
+        $builder->addOffsetX(47, $vectorOfEnums, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createVectorOfEnumsVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(1, count($data), 1);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putSbyte($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startVectorOfEnumsVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(1, $numElems, 1);
     }
 
     /**

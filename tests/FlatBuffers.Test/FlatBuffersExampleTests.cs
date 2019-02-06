@@ -33,6 +33,12 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanCreateNewFlatBufferFromScratch()
         {
+            CanCreateNewFlatBufferFromScratch(true);
+            CanCreateNewFlatBufferFromScratch(false);
+        }
+
+        private void CanCreateNewFlatBufferFromScratch(bool sizePrefix)
+        {
             // Second, let's create a FlatBuffer from scratch in C#, and test it also.
             // We use an initial size of 1 to exercise the reallocation algorithm,
             // normally a size larger than the typical FlatBuffer you generate would be
@@ -50,7 +56,7 @@ namespace FlatBuffers.Test
             Monster.StartMonster(fbb);
             Monster.AddName(fbb, names[2]);
             off[2] = Monster.EndMonster(fbb);
-            var sortMons = Monster.CreateMySortedVectorOfTables(fbb, off);
+            var sortMons = Monster.CreateSortedVectorOfMonster(fbb, off);
 
             // We set up the same values as monsterdata.json:
 
@@ -91,26 +97,49 @@ namespace FlatBuffers.Test
             Monster.AddTest(fbb, mon2.Value);
             Monster.AddTest4(fbb, test4);
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
-            Monster.AddTestbool(fbb, false);
+            Monster.AddTestbool(fbb, true);
             Monster.AddTestarrayoftables(fbb, sortMons);
             var mon = Monster.EndMonster(fbb);
 
-            Monster.FinishMonsterBuffer(fbb, mon);
-
+            if (sizePrefix)
+            {
+                Monster.FinishSizePrefixedMonsterBuffer(fbb, mon);
+            }
+            else
+            {
+                Monster.FinishMonsterBuffer(fbb, mon);
+            }
 
             // Dump to output directory so we can inspect later, if needed
-            using (var ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset))
+#if ENABLE_SPAN_T
+            var data = fbb.DataBuffer.ToSizedArray();
+            string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+            File.WriteAllBytes(filename, data);
+#else
+            using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                File.WriteAllBytes(@"Resources/monsterdata_cstest.mon",data);
+                string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                File.WriteAllBytes(filename, data);
+            }
+#endif
+
+            // Remove the size prefix if necessary for further testing
+            ByteBuffer dataBuffer = fbb.DataBuffer;
+            if (sizePrefix)
+            {
+                Assert.AreEqual(ByteBufferUtil.GetSizePrefix(dataBuffer) + FlatBufferConstants.SizePrefixLength,
+                                dataBuffer.Length - dataBuffer.Position);
+                dataBuffer = ByteBufferUtil.RemoveSizePrefix(dataBuffer);
             }
 
             // Now assert the buffer
-            TestBuffer(fbb.DataBuffer);
+            TestBuffer(dataBuffer);
 
             //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
             // revert to original values after testing
-            Monster monster = Monster.GetRootAsMonster(fbb.DataBuffer);
+            Monster monster = Monster.GetRootAsMonster(dataBuffer);
+            
 
             // mana is optional and does not exist in the buffer so the mutation should fail
             // the mana field should retain its default value
@@ -123,9 +152,9 @@ namespace FlatBuffers.Test
             Assert.AreEqual(monster.Testarrayoftables(2).Value.Name, "Wilma");
 
             // Example of searching for a table by the key
-            Assert.IsTrue(Monster.LookupByKey(sortMons, "Frodo", fbb.DataBuffer) != null);
-            Assert.IsTrue(Monster.LookupByKey(sortMons, "Barney", fbb.DataBuffer) != null);
-            Assert.IsTrue(Monster.LookupByKey(sortMons, "Wilma", fbb.DataBuffer)!= null);
+            Assert.IsTrue(monster.TestarrayoftablesByKey("Frodo") != null);
+            Assert.IsTrue(monster.TestarrayoftablesByKey("Barney") != null);
+            Assert.IsTrue(monster.TestarrayoftablesByKey("Wilma") != null);
 
             // testType is an existing field and mutating it should succeed
             Assert.AreEqual(monster.TestType, Any.Monster);
@@ -161,12 +190,12 @@ namespace FlatBuffers.Test
             pos.MutateX(1.0f);
             Assert.AreEqual(pos.X, 1.0f);
 
-            TestBuffer(fbb.DataBuffer);
+            TestBuffer(dataBuffer);
         }
 
         private void TestBuffer(ByteBuffer bb)
         {
-            var monster = Monster.GetRootAsMonster(bb);
+            Monster monster = Monster.GetRootAsMonster(bb);
 
             Assert.AreEqual(80, monster.Hp);
             Assert.AreEqual(150, monster.Mana);
@@ -197,6 +226,16 @@ namespace FlatBuffers.Test
             }
             Assert.AreEqual(10, invsum);
 
+            // Get the inventory as an array and subtract the
+            // sum to get it back to 0
+            var inventoryArray = monster.GetInventoryArray();
+            Assert.AreEqual(5, inventoryArray.Length);
+            foreach(var inv in inventoryArray)
+            {
+                invsum -= inv;
+            }
+            Assert.AreEqual(0, invsum);
+
             var test0 = monster.Test4(0).Value;
             var test1 = monster.Test4(1).Value;
             Assert.AreEqual(2, monster.Test4Length);
@@ -207,8 +246,21 @@ namespace FlatBuffers.Test
             Assert.AreEqual("test1", monster.Testarrayofstring(0));
             Assert.AreEqual("test2", monster.Testarrayofstring(1));
 
-            Assert.AreEqual(false, monster.Testbool);
+            Assert.AreEqual(true, monster.Testbool);
 
+#if ENABLE_SPAN_T
+            var nameBytes = monster.GetNameBytes();
+            Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.ToArray(), 0, nameBytes.Length));
+
+            if (0 == monster.TestarrayofboolsLength)
+            {
+                Assert.IsFalse(monster.GetTestarrayofboolsBytes().Length != 0);
+            }
+            else
+            {
+                Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length == 0);
+            }
+#else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
 
@@ -220,6 +272,7 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
+#endif
         }
 
         [FlatBuffersTestMethod]

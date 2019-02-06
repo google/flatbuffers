@@ -43,12 +43,15 @@
 namespace grpc_go_generator {
 
 struct Parameters {
-	//Defines the custom parameter types for methods
-	//eg: flatbuffers uses flatbuffers.Builder as input for the client and output for the server
-	grpc::string custom_method_io_type;
+  //Defines the custom parameter types for methods
+  //eg: flatbuffers uses flatbuffers.Builder as input for the client and output for the server
+  grpc::string custom_method_io_type;
 
-	//Package name for the service
-	grpc::string package_name;
+  //Package name for the service
+  grpc::string package_name;
+
+  //Prefix for RPC Calls
+  grpc::string service_prefix;
 };
 
 // Return the source of the generated service file.

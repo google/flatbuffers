@@ -49,7 +49,7 @@ class CodeWriter {
   // Associates a key with a value.  All subsequent calls to operator+=, where
   // the specified key is contained in {{ and }} delimiters will be replaced by
   // the given value.
-  void SetValue(const std::string& key, const std::string& value) {
+  void SetValue(const std::string &key, const std::string &value) {
     value_map_[key] = value;
   }
 
@@ -71,8 +71,7 @@ class BaseGenerator {
  public:
   virtual bool generate() = 0;
 
-  static std::string NamespaceDir(const Parser &parser,
-                                  const std::string &path,
+  static std::string NamespaceDir(const Parser &parser, const std::string &path,
                                   const Namespace &ns);
 
  protected:
@@ -95,8 +94,6 @@ class BaseGenerator {
 
   static const char *FlatBuffersGeneratedWarning();
 
-  bool IsEverythingGenerated() const;
-
   static std::string FullNamespace(const char *separator, const Namespace &ns);
 
   static std::string LastNamespacePart(const Namespace &ns);
@@ -114,6 +111,8 @@ class BaseGenerator {
 
   std::string WrapInNameSpace(const Definition &def) const;
 
+  std::string GetNameSpace(const Definition &def) const;
+
   const Parser &parser_;
   const std::string &path_;
   const std::string &file_name_;
@@ -128,9 +127,76 @@ struct CommentConfig {
 };
 
 extern void GenComment(const std::vector<std::string> &dc,
-                       std::string *code_ptr,
-                       const CommentConfig *config,
+                       std::string *code_ptr, const CommentConfig *config,
                        const char *prefix = "");
+
+class FloatConstantGenerator {
+ public:
+  virtual ~FloatConstantGenerator(){};
+  std::string GenFloatConstant(const FieldDef &field) const;
+
+ private:
+  virtual std::string Value(double v, const std::string &src) const = 0;
+  virtual std::string Inf(double v) const = 0;
+  virtual std::string NaN(double v) const = 0;
+
+  virtual std::string Value(float v, const std::string &src) const = 0;
+  virtual std::string Inf(float v) const = 0;
+  virtual std::string NaN(float v) const = 0;
+
+  template<typename T>
+  std::string GenFloatConstantImpl(const FieldDef &field) const;
+};
+
+class SimpleFloatConstantGenerator : public FloatConstantGenerator {
+ public:
+  SimpleFloatConstantGenerator(const char *nan_number,
+                               const char *pos_inf_number,
+                               const char *neg_inf_number);
+
+ private:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
+
+  const std::string nan_number_;
+  const std::string pos_inf_number_;
+  const std::string neg_inf_number_;
+};
+
+// C++, C#, Java like generator.
+class TypedFloatConstantGenerator : public FloatConstantGenerator {
+ public:
+  TypedFloatConstantGenerator(const char *double_prefix,
+                              const char *single_prefix, const char *nan_number,
+                              const char *pos_inf_number,
+                              const char *neg_inf_number = "");
+
+ private:
+  std::string Value(double v,
+                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
+
+  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
+  std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
+
+  std::string MakeNaN(const std::string &prefix) const;
+  std::string MakeInf(bool neg, const std::string &prefix) const;
+
+  const std::string double_prefix_;
+  const std::string single_prefix_;
+  const std::string nan_number_;
+  const std::string pos_inf_number_;
+  const std::string neg_inf_number_;
+};
 
 }  // namespace flatbuffers
 

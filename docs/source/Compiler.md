@@ -29,11 +29,21 @@ For any schema input files, one or more generators can be specified:
 
 -   `--python`, `-p`: Generate Python code.
 
--   `--javascript`, `-s`: Generate JavaScript code.
+-   `--js`, `-s`: Generate JavaScript code.
+
+-   `--ts`: Generate TypeScript code.
 
 -   `--php`: Generate PHP code.
 
 -   `--grpc`: Generate RPC stub code for GRPC.
+
+-   `--dart`: Generate Dart code.
+
+-   `--lua`: Generate Lua code.
+
+-   `--lobster`: Generate Lobster code.
+
+-   `--rust`, `-r` : Generate Rust code.
 
 For any data input files:
 
@@ -86,12 +96,26 @@ Additional options:
     at the cost of efficiency (object allocation). Recommended only to be used
     if other options are insufficient.
 
+-   `--gen-compare` :  Generate operator== for object-based API types.
+
 -   `--gen-onefile` :  Generate single output file (useful for C#)
 
 -   `--gen-all`: Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
     this one file.
+
+-   `--gen-generated`: Add @Generated annotation for Java
+
+-   `--no-js-exports` :  Removes Node.js style export lines (useful for JS)
+
+-   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
+    instead of Node.js style exporting.  Needed for compatibility with the
+    Google closure compiler (useful for JS).
+
+-   `--es6-js-export` : Generates ECMAScript v6 style export definitions
+    instead of Node.js style exporting. Useful when integrating flatbuffers
+    with modern Javascript projects.
 
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
@@ -108,9 +132,26 @@ Additional options:
     to the reflection/reflection.fbs schema. Loading this binary file is the
     basis for reflection functionality.
 
+-   `--bfbs-comments`: Add doc comments to the binary schema files.
+
 -   `--conform FILE` : Specify a schema the following schemas should be
     an evolution of. Gives errors if not. Useful to check if schema
     modifications don't break schema evolution rules.
+
+-   `--include-prefix PATH` : Prefix this path to any generated include
+    statements.
+
+-   `--keep-prefix` : Keep original prefix of schema include statement.
+
+-   `--reflect-types` : Add minimal type reflection to code generation.
+-   `--reflect-names` : Add minimal type/name reflection.
+
+-   `--root-type T` : Select or override the default root_type.
+
+-   `--force-defaults` : Emit default values in binary output from JSON.
+
+-   `--force-empty` : When serializing from object API representation, force
+     strings and vectors to empty rather than null.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

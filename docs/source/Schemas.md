@@ -84,15 +84,19 @@ parent object, and use no virtual table).
 
 ### Types
 
-Built-in scalar types are:
+Built-in scalar types are 
 
--   8 bit: `byte`, `ubyte`, `bool`
+-   8 bit: `byte` (`int8`), `ubyte` (`uint8`), `bool`
 
--   16 bit: `short`, `ushort`
+-   16 bit: `short` (`int16`), `ushort` (`uint16`)
 
--   32 bit: `int`, `uint`, `float`
+-   32 bit: `int` (`int32`), `uint` (`uint32`), `float` (`float32`)
 
--   64 bit: `long`, `ulong`, `double`
+-   64 bit: `long` (`int64`), `ulong` (`uint64`), `double` (`float64`)
+
+The type names in parentheses are alias names such that for example
+`uint8` can be used in place of `ubyte`, and `int32` can be used in
+place of `int` without affecting code generation.
 
 Built-in non-scalar types:
 
@@ -137,6 +141,9 @@ is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
 the type of any fields declared with this enum type.
 
+Only integer types are allowed, i.e. `byte`, `ubyte`, `short` `ushort`, `int`,
+`uint`, `long` and `ulong`.
+
 Typically, enum values should only ever be added, never removed (there is no
 deprecation for enums). This requires code to handle forwards compatibility
 itself, by handling unknown enum values.
@@ -146,9 +153,23 @@ itself, by handling unknown enum values.
 Unions share a lot of properties with enums, but instead of new names
 for constants, you use names of tables. You can then declare
 a union field, which can hold a reference to any of those types, and
-additionally a hidden field with the suffix `_type` is generated that
-holds the corresponding enum value, allowing you to know which type to
-cast to at runtime.
+additionally a field with the suffix `_type` is generated that holds
+the corresponding enum value, allowing you to know which type to cast
+to at runtime.
+
+It's possible to give an alias name to a type union. This way a type can even be
+used to mean different things depending on the name used:
+
+    table PointPosition { x:uint; y:uint; }
+    table MarkerPosition {}
+    union Position {
+      Start:MarkerPosition,
+      Point:PointPosition,
+      Finish:MarkerPosition
+    }
+
+Unions contain a special `NONE` marker to denote that no value is stored so that
+name cannot be used as an alias.
 
 Unions are a good way to be able to send multiple message types as a FlatBuffer.
 Note that because a union field is really two fields, it must always be
@@ -278,7 +299,10 @@ Current understood attributes:
     IDs allow the fields to be placed in any order in the schema.
     When a new field is added to the schema it must use the next available ID.
 -   `deprecated` (on a field): do not generate accessors for this field
-    anymore, code should stop using this data.
+    anymore, code should stop using this data. Old data may still contain this
+    field, but it won't be accessible anymore by newer code. Note that if you
+    deprecate a field that was previous required, old code may fail to validate
+    new data (when using the optional verifier).
 -   `required` (on a non-scalar table field): this field must always be set.
     By default, all fields are optional, i.e. may be left out. This is
     desirable, as it helps with forwards/backwards compatibility, and
@@ -288,7 +312,10 @@ Current understood attributes:
     constructs FlatBuffers to ensure this field is initialized, so the reading
     code may access it directly, without checking for NULL. If the constructing
     code does not initialize this field, they will get an assert, and also
-    the verifier will fail on buffers that have missing required fields.
+    the verifier will fail on buffers that have missing required fields. Note
+    that if you add this attribute to an existing field, this will only be
+    valid if existing data always contains this field / existing code always
+    writes this field.
 -   `force_align: size` (on a struct): force the alignment of this struct
     to be something higher than what it is naturally aligned to. Causes
     these structs to be aligned to that amount inside a buffer, IF that
@@ -302,6 +329,9 @@ Current understood attributes:
     (which must be a vector of ubyte) contains flatbuffer data, for which the
     root type is given by `table_name`. The generated code will then produce
     a convenient accessor for the nested FlatBuffer.
+-   `flexbuffer` (on a field): this indicates that the field
+    (which must be a vector of ubyte) contains flexbuffer data. The generated
+    code will then produce a convenient accessor for the FlexBuffer root.
 -   `key` (on a field): this field is meant to be used as a key when sorting
     a vector of the type of table it sits in. Can be used for in-place
     binary search.
@@ -371,6 +401,31 @@ When parsing JSON, it recognizes the following escape codes in strings:
 
 It also generates these escape codes back again when generating JSON from a
 binary representation.
+
+When parsing numbers, the parser is more flexible than JSON.
+A format of numeric literals is more close to the C/C++.
+According to the [grammar](@ref flatbuffers_grammar), it accepts the following 
+numerical literals:
+
+-   An integer literal can have any number of leading zero `0` digits.
+    Unlike C/C++, the parser ignores a leading zero, not interpreting it as the 
+    beginning of the octal number.
+    The numbers `[081, -00094]` are equal to `[81, -94]`  decimal integers.
+-   The parser accepts unsigned and signed hexadecimal integer numbers.
+    For example: `[0x123, +0x45, -0x67]` are equal to `[291, 69, -103]` decimals.
+-   The format of float-point numbers is fully compatible with C/C++ format.
+    If a modern C++ compiler is used the parser accepts hexadecimal and special 
+    float-point literals as well:
+    `[-1.0, 2., .3e0, 3.e4, 0x21.34p-5, -inf, nan]`.
+    The exponent suffix of hexadecimal float-point number is mandatory.
+    
+    Extended float-point support was tested with:
+    - x64 Windows: `MSVC2015` and higher.
+    - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
+
+-   For compatibility with a JSON lint tool all numeric literals of scalar 
+    fields can be wrapped to quoted string:
+    `"1", "2.0", "0x48A", "0x0C.0Ep-1", "-inf", "true"`.
 
 ## Guidelines
 

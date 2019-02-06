@@ -33,10 +33,26 @@
           title="Use in Java/C#"/>
       <tab type="user" url="@ref flatbuffers_guide_use_javascript"
           title="Use in JavaScript"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_typescript"
+          title="Use in TypeScript"/>
       <tab type="user" url="@ref flatbuffers_guide_use_php"
           title="Use in PHP"/>
       <tab type="user" url="@ref flatbuffers_guide_use_python"
           title="Use in Python"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_dart"
+          title="Use in Dart"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_lua"
+          title="Use in Lua"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_lobster"
+          title="Use in Lobster"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_rust"
+          title="Use in Rust"/>
+      <tab type="user" url="@ref flexbuffers"
+          title="Schema-less version"/>
+      <tab type="usergroup" url="" title="gRPC">
+        <tab type="user" url="@ref flatbuffers_grpc_guide_use_cpp"
+            title="Use in C++"/>
+      </tab>
     </tab>
     <tab type="user" url="@ref flatbuffers_support"
         title="Platform / Language / Feature support"/>

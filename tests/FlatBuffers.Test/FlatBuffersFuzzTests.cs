@@ -33,21 +33,21 @@ namespace FlatBuffers.Test
         public void TestNumbers()
         {
             var builder = new FlatBufferBuilder(1);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddBool(true);
-            Assert.ArrayEqual(new byte[] { 1 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 1 }, builder.DataBuffer.ToFullArray());
             builder.AddSbyte(-127);
-            Assert.ArrayEqual(new byte[] { 129, 1 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 129, 1 }, builder.DataBuffer.ToFullArray());
             builder.AddByte(255);
-            Assert.ArrayEqual(new byte[] { 0, 255, 129, 1 }, builder.DataBuffer.Data); // First pad
+            Assert.ArrayEqual(new byte[] { 0, 255, 129, 1 }, builder.DataBuffer.ToFullArray()); // First pad
             builder.AddShort(-32222);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.Data); // Second pad
+            Assert.ArrayEqual(new byte[] { 0, 0, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.ToFullArray()); // Second pad
             builder.AddUshort(0xFEEE);
-            Assert.ArrayEqual(new byte[] { 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.Data); // no pad
+            Assert.ArrayEqual(new byte[] { 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.ToFullArray()); // no pad
             builder.AddInt(-53687092);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 204, 204, 204, 252, 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.Data); // third pad
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 204, 204, 204, 252, 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.ToFullArray()); // third pad
             builder.AddUint(0x98765432);
-            Assert.ArrayEqual(new byte[] { 0x32, 0x54, 0x76, 0x98, 204, 204, 204, 252, 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.Data); // no pad
+            Assert.ArrayEqual(new byte[] { 0x32, 0x54, 0x76, 0x98, 204, 204, 204, 252, 0xEE, 0xFE, 0x22, 0x82, 0, 255, 129, 1 }, builder.DataBuffer.ToFullArray()); // no pad
         }
 
         [FlatBuffersTestMethod]
@@ -55,11 +55,11 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.AddUlong(0x1122334455667788);
-            Assert.ArrayEqual(new byte[] { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }, builder.DataBuffer.ToFullArray());
 
             builder = new FlatBufferBuilder(1);
             builder.AddLong(0x1122334455667788);
-            Assert.ArrayEqual(new byte[] { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -67,11 +67,11 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartVector(sizeof(byte), 1, 1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.AddByte(1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.EndVector();
-            Assert.ArrayEqual(new byte[] { 1, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 1, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -79,13 +79,13 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartVector(sizeof(byte), 2, 1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.AddByte(1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 1, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 1, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.AddByte(2);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 2, 1, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 2, 1, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.EndVector();
-            Assert.ArrayEqual(new byte[] { 2, 0, 0, 0, 2, 1, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 2, 0, 0, 0, 2, 1, 0, 0 }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -93,11 +93,11 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartVector(sizeof(ushort), 1, 1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.AddUshort(1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.EndVector();
-            Assert.ArrayEqual(new byte[] { 1, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 1, 0, 0, 0, 1, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -105,13 +105,13 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartVector(sizeof(ushort), 2, 1);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, builder.DataBuffer.ToFullArray());
             builder.AddUshort(0xABCD);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0xCD, 0xAB }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0xCD, 0xAB }, builder.DataBuffer.ToFullArray());
             builder.AddUshort(0xDCBA);
-            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB }, builder.DataBuffer.ToFullArray());
             builder.EndVector();
-            Assert.ArrayEqual(new byte[] { 2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -119,7 +119,7 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.CreateString("foo");
-            Assert.ArrayEqual(new byte[] { 3, 0, 0, 0, (byte)'f', (byte)'o', (byte)'o', 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 3, 0, 0, 0, (byte)'f', (byte)'o', (byte)'o', 0 }, builder.DataBuffer.ToFullArray());
 
             builder.CreateString("moop");
             Assert.ArrayEqual(new byte[]
@@ -132,7 +132,7 @@ namespace FlatBuffers.Test
                 0, 0, 0, 0, // zero terminator with 3 byte pad
                 3, 0, 0, 0,
                 (byte)'f', (byte)'o', (byte)'o', 0
-            }, builder.DataBuffer.Data);
+            }, builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -144,7 +144,7 @@ namespace FlatBuffers.Test
             {
                 3, 0, 0, 0,
                 0x01, 0x02, 0x03, 0
-            }, builder.DataBuffer.Data); // No padding
+            }, builder.DataBuffer.ToFullArray()); // No padding
             builder.CreateString("\x04\x05\x06\x07");
             Assert.ArrayEqual(new byte[]
             {
@@ -156,7 +156,7 @@ namespace FlatBuffers.Test
                 0, 0, 0, 0, // zero terminator with 3 byte pad
                 3, 0, 0, 0,
                 0x01, 0x02, 0x03, 0
-            }, builder.DataBuffer.Data); // No padding
+            }, builder.DataBuffer.ToFullArray()); // No padding
         }
 
         [FlatBuffersTestMethod]
@@ -164,14 +164,14 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(0);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
                 4, 0, 4, 0,
                 4, 0, 0, 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -179,7 +179,7 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(1);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddBool(0, true, false);
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
@@ -192,7 +192,7 @@ namespace FlatBuffers.Test
                 0, 0, 0, // padding
                 1, // value 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -200,18 +200,18 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(1);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddBool(0, false, false);
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
             {
-                0, 0, 0, 0, 0, 0, // padding to 16 bytes
-                6, 0, // vtable bytes
+                // No padding.
+                4, 0, // vtable bytes
                 4, 0, // end of object from here
-                0, 0, // entry 0 is empty (default value)
-                6, 0, 0, 0, // int32 offset for start of vtable
+                // entry 0 is not stored (trimmed end of vtable)
+                4, 0, 0, 0, // int32 offset for start of vtable
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -219,7 +219,7 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(1);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x789A, 0);
             builder.EndObject();
             Assert.ArrayEqual(new byte[]
@@ -232,7 +232,7 @@ namespace FlatBuffers.Test
                 0, 0, // padding
                 0x9A, 0x78, //value 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -240,7 +240,7 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(2);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x3456, 0);
             builder.AddShort(1, 0x789A, 0);
             builder.EndObject();
@@ -254,7 +254,7 @@ namespace FlatBuffers.Test
                 0x9A, 0x78, // value 1
                 0x56, 0x34, // value 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -262,7 +262,7 @@ namespace FlatBuffers.Test
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartObject(2);
-            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.Data);
+            Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x3456, 0);
             builder.AddBool(1, true, false);
             builder.EndObject();
@@ -276,7 +276,7 @@ namespace FlatBuffers.Test
                 0, 1, // padding + value 1
                 0x56, 0x34, // value 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -303,7 +303,7 @@ namespace FlatBuffers.Test
                 4, 0, 0, 0,
                 0, 0, 0, 0,
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -330,7 +330,7 @@ namespace FlatBuffers.Test
                 0, 0, 55, 0, // value 0
                 0, 0, 0, 0, // length of vector (not in sctruc)
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
 
@@ -361,7 +361,7 @@ namespace FlatBuffers.Test
                 0x78, 0x56,       // vector value 0
                 0x34, 0x12,       // vector value 1
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -391,7 +391,7 @@ namespace FlatBuffers.Test
                 0x00, 0x00, 0x34, 0x12, // struct value 1
                 0x00, 0x00, 0x00, 55, // struct value 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -425,7 +425,7 @@ namespace FlatBuffers.Test
                 44, // vector 0, 1
                 33, // vector 0, 0
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -438,7 +438,7 @@ namespace FlatBuffers.Test
             var off = builder.EndObject();
             builder.Finish(off);
 
-            Assert.ArrayEqual(new byte[]
+            byte[] padded = new byte[]
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
@@ -452,8 +452,13 @@ namespace FlatBuffers.Test
                 66, 0, // value 1
                 0, 33, // value 0
 
-            },
-                builder.DataBuffer.Data);
+            };
+            Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
+
+            // no padding in sized array
+            byte[] unpadded = new byte[padded.Length - 12];
+            Buffer.BlockCopy(padded, 12, unpadded, 0, unpadded.Length);
+            Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
         }
 
         [FlatBuffersTestMethod]
@@ -504,7 +509,7 @@ namespace FlatBuffers.Test
                 44, // value 1, 0
                 33,
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         [FlatBuffersTestMethod]
@@ -519,7 +524,7 @@ namespace FlatBuffers.Test
             var off = builder.EndObject();
             builder.Finish(off);
 
-            Assert.ArrayEqual(new byte[]
+            byte[] padded = new byte[]
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
@@ -546,8 +551,61 @@ namespace FlatBuffers.Test
                 1, 1, 1, 1,  // values
                 1, 1, 1, 1,
 
-            },
-                builder.DataBuffer.Data);
+            };
+            Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
+
+            // no padding in sized array
+            byte[] unpadded = new byte[padded.Length - 28];
+            Buffer.BlockCopy(padded, 28, unpadded, 0, unpadded.Length);
+            Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestBunchOfBoolsSizePrefixed()
+        {
+            var builder = new FlatBufferBuilder(1);
+            builder.StartObject(8);
+            for (var i = 0; i < 8; i++)
+            {
+                builder.AddBool(i, true, false);
+            }
+            var off = builder.EndObject();
+            builder.FinishSizePrefixed(off);
+
+            byte[] padded = new byte[]
+            {
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,      // padding to 64 bytes
+
+                36, 0, 0, 0,     // size prefix
+                24, 0, 0, 0,     // root of table, pointing to vtable offset (obj0)
+                20, 0, // vtable bytes
+                12, 0, // object length
+                11, 0, // start of value 0
+                10, 0, // start of value 1
+                9, 0, // start of value 2
+                8, 0, // start of value 3
+                7, 0, // start of value 4
+                6, 0, // start of value 5
+                5, 0, // start of value 6
+                4, 0, // start of value 7
+
+                20, 0, 0, 0, // int32 offset for start of vtable
+
+                1, 1, 1, 1,  // values
+                1, 1, 1, 1,
+
+            };
+            Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
+
+            // no padding in sized array
+            byte[] unpadded = new byte[padded.Length - 24];
+            Buffer.BlockCopy(padded, 24, unpadded, 0, unpadded.Length);
+            Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
         }
 
         [FlatBuffersTestMethod]
@@ -569,7 +627,7 @@ namespace FlatBuffers.Test
                 0, 0, 128, 63,  // value
 
             },
-                builder.DataBuffer.Data);
+                builder.DataBuffer.ToFullArray());
         }
 
         private void CheckObjects(int fieldCount, int objectCount)
