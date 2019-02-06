@@ -124,7 +124,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		) {
 				code_ += "\t\tb.Start" + MakeCamel(fld->name) + "Vector(count)";
 				code_ += "\t\tfor pos := count - 1; pos >= 0; pos-- {";
-				code_ += "\t\t\tb.PrependUOffsetT(vec[pos].Marshal(b.Builder))";
+				code_ += "\t\t\tvec[pos].Marshal(b.Builder)";
 				code_ += "\t\t}";
 		} else {
 			code_ += "\t\tuvec := make([]flatbuffers.UOffsetT, count)";
@@ -148,7 +148,13 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		comp_count = 0;
 		std::string src;
 
-		for (auto fld: def.fields.vec) {
+		for (
+			auto fld_ = def.fields.vec.rbegin();
+			fld_ != def.fields.vec.rend();
+			++fld_
+		) {
+			auto &fld(*fld_);
+
 			if (fld->deprecated)
 				continue;
 
@@ -360,7 +366,13 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "{{NATIVE_STRUCT_RECEIVER}} Marshal(builder *flatbuffers.Builder) flatbuffers.UOffsetT {";
 		int comp_count = 0;
 
-		for (auto fld: def.fields.vec) {
+		for (
+			auto fld_ = def.fields.vec.rbegin();
+			fld_ != def.fields.vec.rend();
+			++fld_
+		) {
+			auto &fld(*fld_);
+
 			if (fld->deprecated)
 				continue;
 
@@ -386,7 +398,14 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 		code_ += "\tb.Start()";
 		comp_count = 0;
-		for (auto fld: def.fields.vec) {
+
+		for (
+			auto fld_ = def.fields.vec.rbegin();
+			fld_ != def.fields.vec.rend();
+			++fld_
+		) {
+			auto &fld(*fld_);
+
 			if (fld->deprecated)
 				continue;
 
@@ -407,7 +426,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 				}
 				break;
 			case BASE_TYPE_BOOL:
-				code_ += "\tif " + src + " {";
+				code_ += "\tif " + src + " != 0 {";
 				code_ += "\t\t" + dst + "(" + src + ")";
 				code_ += "\t}";
 				break;
@@ -977,9 +996,6 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 
 			GenTableBuilder(def);
 			GenTableCreate(def);
-			if (!parser_.opts.go_no_funcs) {
-				GenTableFuncBuilders(def);
-			}
 		}
 
 		if (parser_.opts.generate_object_based_api) {
@@ -1120,7 +1136,7 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 	std::string GenConstant(const FieldDef &field) {
 		switch (field.value.type.base_type) {
 			case BASE_TYPE_BOOL:
-				return field.value.constant == "0" ? "false" : "true";
+				return field.value.constant == "0" ? "0" : "1";
 			default:
 				return field.value.constant;
 		}
@@ -1215,7 +1231,13 @@ FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 		code_ += "\tb := Build{{STRUCT_NAME}}(builder)";
 		code_ += "\tb.Start()";
 
-		for (auto fld: def.fields.vec) {
+		for (
+			auto fld_ = def.fields.vec.rbegin();
+			fld_ != def.fields.vec.rend();
+			++fld_
+		) {
+			auto &fld(*fld_);
+
 			if (fld->deprecated)
 				continue;
 
