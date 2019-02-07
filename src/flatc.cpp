@@ -353,8 +353,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
 
   for (auto file_it = filenames.begin(); file_it != filenames.end();
-       ++file_it) 
-  {
+       ++file_it) {
     auto &filename = *file_it;
     std::string contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
@@ -472,7 +471,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // in any files coming up next.
     parser->MarkGenerated();
   }
-
   return 0;
 }
 

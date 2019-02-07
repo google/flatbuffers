@@ -480,7 +480,6 @@ class CppGenerator : public BaseGenerator {
     const auto final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }
-   
 private:
   CodeWriter code_;
 
