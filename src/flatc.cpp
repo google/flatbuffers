@@ -124,7 +124,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --schema           Serialize schemas instead of JSON (use with -b)\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
-	"  --gen-bfbs-embed   Generate code to embed the bfbs schema to the source.\n"
+    "  --gen-bfbs-embed   Generate code to embed the bfbs schema to the source.\n"
     "  --conform FILE     Specify a schema the following schemas should be\n"
     "                     an evolution of. Gives errors if not.\n"
     "  --conform-includes Include path for the schema given with --conform\n"

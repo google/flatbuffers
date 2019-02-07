@@ -492,7 +492,7 @@ struct IDLOptions {
         keep_include_path(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
-		gen_binary_schema_embed(false),
+        gen_binary_schema_embed(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         protobuf_ascii_alike(false),
