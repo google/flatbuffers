@@ -29,10 +29,17 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   std::string schema_file;
   std::string json_file;
   std::string bfbs_file;
+  std::string monsterJson_file;
+  std::string monsterDataBin_file;
+  std::string monsterBfbs_file;
+
   bool ok =
       flatbuffers::LoadFile("tests/monster_test.fbs", false, &schema_file) &&
       flatbuffers::LoadFile("tests/monsterdata_test.golden", false, &json_file) &&
-      flatbuffers::LoadFile("tests/monster_test.bfbs", true, &bfbs_file);
+      flatbuffers::LoadFile("tests/monster_test.bfbs", true, &bfbs_file) &&
+      flatbuffers::LoadFile("samples/monsterdata.json", false, &monsterJson_file) &&
+      flatbuffers::LoadFile("samples/monsterdata.bin", true, &monsterDataBin_file) &&
+      flatbuffers::LoadFile("samples/monster.bfbs", true, &monsterBfbs_file);
   if (!ok) {
     printf("couldn't load files!\n");
     return 1;
@@ -45,7 +52,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ok = parser1.Parse(schema_file.c_str(), include_directories);
   assert(ok);
 
-  // inizialize parser by deserializing bfbs schema
+  // initialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
   ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
   assert(ok);
@@ -72,7 +79,51 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   if (jsongen1 != jsongen2) {
     printf("%s----------------\n%s", jsongen1.c_str(), jsongen2.c_str());
+    return 2;
+  }
+
+  // The GetMonsterBinarySchema() can be used as input iterators.
+  std::string embeddedBfbs(GetMonsterBinarySchema(), GetMonsterBinarySchema(true));
+  
+  // Calculate the size.
+  size_t schemaSize= GetMonsterBinarySchema(true) - GetMonsterBinarySchema();
+  // Should be the same as:
+  assert(schemaSize == (size_t)std::distance(GetMonsterBinarySchema(), GetMonsterBinarySchema(true)));
+  assert(schemaSize == embeddedBfbs.size());
+
+  if (schemaSize != monsterBfbs_file.size() || memcmp(GetMonsterBinarySchema(), monsterBfbs_file.c_str(), schemaSize) != 0) {
+    printf("The monster.bfbs data doesn't match with GetMonsterBinarySchema()\n");
+    return 3;
+  }
+
+  // Initialize parser by deserializing bfbs schema from source.
+  flatbuffers::Parser parser3;
+  ok = parser3.Deserialize(GetMonsterBinarySchema(), schemaSize);
+  assert(ok);
+
+  // parse json in parser from bfbs
+  ok = parser3.Parse(monsterJson_file.c_str(), nullptr);
+  assert(ok);
+
+  // Generate JSON from JSON.
+  std::string jsongen3;
+  if (!GenerateText(parser3, parser3.builder_.GetBufferPointer(), &jsongen3)) {
+    printf("Couldn't serialize parsed data to JSON!\n");
+    return 1;
+  }
+
+  // Generate JSON from binary.
+  std::string jsongen4;
+  if (!GenerateText(parser3, monsterDataBin_file.c_str(), &jsongen4)) {
+    printf("Couldn't serialize parsed data to JSON!\n");
+    return 1;
+  }
+
+  if (jsongen3 != jsongen4) {
+    printf("%s----------------\n%s", jsongen3.c_str(), jsongen4.c_str());
+    return 2;
   }
 
   printf("The FlatBuffer has been parsed from JSON successfully.\n");
+  return 0;
 }
