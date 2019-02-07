@@ -118,7 +118,7 @@ struct Vec3 : flatbuffers_handle
         MyGame_Example_Test{ buf_, pos_ + 26 }
 
 def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float, test1:float, test2:int, test3_a:int, test3_b:int):
-    b_.Prep(16, 32)
+    b_.Prep(8, 32)
     b_.Pad(2)
     b_.Prep(2, 4)
     b_.Pad(1)

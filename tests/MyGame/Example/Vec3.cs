@@ -28,7 +28,7 @@ public struct Vec3 : IFlatbufferObject
   public Test Test3 { get { return (new Test()).__assign(__p.bb_pos + 26, __p.bb); } }
 
   public static Offset<Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
-    builder.Prep(16, 32);
+    builder.Prep(8, 32);
     builder.Pad(2);
     builder.Prep(2, 4);
     builder.Pad(1);

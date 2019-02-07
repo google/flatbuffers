@@ -545,7 +545,7 @@ inline bool operator==(const Test &lhs, const Test &rhs) {
       (lhs.b() == rhs.b());
 }
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(16) Vec3 FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
   float y_;

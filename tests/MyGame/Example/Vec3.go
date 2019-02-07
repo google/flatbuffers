@@ -63,7 +63,7 @@ func (rcv *Vec3) Test3(obj *Test) *Test {
 }
 
 func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, test1 float64, test2 int8, test3_a int16, test3_b int8) flatbuffers.UOffsetT {
-	builder.Prep(16, 32)
+	builder.Prep(8, 32)
 	builder.Pad(2)
 	builder.Prep(2, 4)
 	builder.Pad(1)

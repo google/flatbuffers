@@ -27,7 +27,7 @@ table TestSimpleTableWithEnum (csharp_partial, private) {
   color: Color = Green;
 }
 
-struct Vec3 (force_align: 16) {
+struct Vec3 (force_align: 8) {
   x:float;
   y:float;
   z:float;

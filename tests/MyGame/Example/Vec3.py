@@ -28,7 +28,7 @@ class Vec3(object):
 
 
 def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
-    builder.Prep(16, 32)
+    builder.Prep(8, 32)
     builder.Pad(2)
     builder.Prep(2, 4)
     builder.Pad(1)
