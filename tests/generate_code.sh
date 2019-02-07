@@ -22,7 +22,8 @@ set -e
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs || goto FAIL
 cd ../samples
-../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --gen-bfbs-embed --cpp-ptr-type flatbuffers::unique_ptr --bfbs-comments --bfbs-builtins monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
+../flatc -b monster.fbs monsterdata.json
 cd ../reflection
 ./generate_code.sh
