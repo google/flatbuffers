@@ -453,7 +453,7 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
  * @returns flatbuffers.Offset
  */
 static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: MyGame.Example.Color, test3_a: number, test3_b: number):flatbuffers.Offset {
-  builder.prep(16, 32);
+  builder.prep(8, 32);
   builder.pad(2);
   builder.prep(2, 4);
   builder.pad(1);

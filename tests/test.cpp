@@ -210,18 +210,22 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  std::vector<uint8_t> test_buff;
-  test_buff.resize(length * 2);
-  std::memcpy(&test_buff[0], flatbuf, length);
-  std::memcpy(&test_buff[length], flatbuf, length);
+  // clang-format off
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+    std::vector<uint8_t> test_buff;
+    test_buff.resize(length * 2);
+    std::memcpy(&test_buff[0], flatbuf, length);
+    std::memcpy(&test_buff[length], flatbuf, length);
 
-  flatbuffers::Verifier verifier1(&test_buff[0], length);
-  TEST_EQ(VerifyMonsterBuffer(verifier1), true);
-  TEST_EQ(verifier1.GetComputedSize(), length);
+    flatbuffers::Verifier verifier1(&test_buff[0], length);
+    TEST_EQ(VerifyMonsterBuffer(verifier1), true);
+    TEST_EQ(verifier1.GetComputedSize(), length);
 
-  flatbuffers::Verifier verifier2(&test_buff[length], length);
-  TEST_EQ(VerifyMonsterBuffer(verifier2), true);
-  TEST_EQ(verifier2.GetComputedSize(), length);
+    flatbuffers::Verifier verifier2(&test_buff[length], length);
+    TEST_EQ(VerifyMonsterBuffer(verifier2), true);
+    TEST_EQ(verifier2.GetComputedSize(), length);
+  #endif
+  // clang-format on
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);

@@ -487,7 +487,7 @@ MyGame.Example.Vec3.prototype.test3 = function(obj) {
  * @returns {flatbuffers.Offset}
  */
 MyGame.Example.Vec3.createVec3 = function(builder, x, y, z, test1, test2, test3_a, test3_b) {
-  builder.prep(16, 32);
+  builder.prep(8, 32);
   builder.pad(2);
   builder.prep(2, 4);
   builder.pad(1);
