@@ -1978,8 +1978,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_depth_(_max_depth),
         num_tables_(0),
         max_tables_(_max_tables), 
-		upper_bound_(0), 
-		check_alignment_(_check_alignment)
+        upper_bound_(0), 
+        check_alignment_(_check_alignment)
   {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
