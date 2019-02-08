@@ -638,7 +638,7 @@ inline std::string EscapeAndWrapBuffer(const void *buf, size_t bufsize,  size_t 
                             const std::string wrapped_line_suffix) {
   std::string text = wrapped_line_prefix;
   size_t startOffset= text.size();
-  const char *s= (const char *)buf;
+  const char *s= reinterpret_cast<const char *>(buf);
   for (size_t i = 0; s && i < bufsize; i++) {
     text += "\\x";
     text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
