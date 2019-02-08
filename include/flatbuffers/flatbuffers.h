@@ -1982,8 +1982,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
         upper_bound_(0),
     #endif
-        check_alignment_(_check_alignment)
   // clang-format on
+        check_alignment_(_check_alignment)
   {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
@@ -2174,21 +2174,17 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
+  // clang-format off
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    // clang-format off
-    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      uintptr_t size = upper_bound_;
-      // Align the size to uoffset_t
-      size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
-      return (size > size_) ?  0 : size;
-    #else
-      // Must turn on FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE for this to work.
-      FLATBUFFERS_ASSERT(false);
-      return 0;
-    #endif
-    // clang-format on
+    uintptr_t size = upper_bound_;
+    // Align the size to uoffset_t
+    size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
+    return (size > size_) ?  0 : size;
   }
+  #endif
+  // clang-format on
 
  private:
   const uint8_t *buf_;
@@ -2197,7 +2193,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   uoffset_t max_depth_;
   uoffset_t num_tables_;
   uoffset_t max_tables_;
-  mutable size_t upper_bound_;
+  // clang-format off
+  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+    mutable size_t upper_bound_;
+  #endif
+  // clang-format on
   bool check_alignment_;
 };
 
