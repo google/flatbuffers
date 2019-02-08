@@ -204,7 +204,8 @@ class CppNativeGenerator : public BaseGenerator {
     }
 
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
-    code_ += "#include \"" + GeneratedFileName(path_, file_name_, "generated") + "\"";
+    code_ += "#include \"" + GeneratedFileName("", file_name_, "generated") + "\"";
+    if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
 
     code_ += "";
 
@@ -227,11 +228,10 @@ class CppNativeGenerator : public BaseGenerator {
           it != parser_.structs_.vec.end(); ++it) {
         const auto &struct_def = **it;
         if (!struct_def.fixed && !struct_def.generated) {
-          SetNameSpace(*struct_def.defined_namespace);
           auto nativeName = NativeName(struct_def);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
-          code_ += TablePackSignature(struct_def, true);
-          code_ += TableUnPackSignature(struct_def, true);
+          code_ += TablePackSignature(struct_def, true) + ";";
+          code_ += TableUnPackSignature(struct_def, true) + ";";
           code_ += "";
         }
       }
@@ -263,7 +263,6 @@ class CppNativeGenerator : public BaseGenerator {
          ++it) {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        SetNameSpace(*enum_def.defined_namespace);
         // unions are not supported right now
         FLATBUFFERS_ASSERT(false);
       }
@@ -272,12 +271,11 @@ class CppNativeGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
-        SetNameSpace(*struct_def.defined_namespace);
         GenTablePackUnpack(struct_def);
       }
     }
 
-    SetNameSpace(Namespace{});
+    SetNameSpace(Namespace{}, false);
 
     // Close the include guard.
     code_ += "#endif  // " + include_guard;
@@ -313,6 +311,27 @@ class CppNativeGenerator : public BaseGenerator {
     std::string text;
     ::flatbuffers::GenComment(dc, &text, nullptr, prefix);
     code_ += text + "\\";
+  }
+
+  void GenIncludeDependencies() {
+    int num_includes = 0;
+    for (auto it = parser_.native_included_files_.begin();
+         it != parser_.native_included_files_.end(); ++it) {
+      code_ += "#include \"" + *it + "\"";
+      num_includes++;
+    }
+    for (auto it = parser_.included_files_.begin();
+         it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      code_ += "#include \"" + parser_.opts.include_prefix +
+               (parser_.opts.keep_include_path ? noext : basename) +
+               "_generated.h\"";
+      num_includes++;
+    }
+    if (num_includes) code_ += "";
   }
 
   // Return a C++ type from the table in idl.h
@@ -433,9 +452,9 @@ class CppNativeGenerator : public BaseGenerator {
   }
 
   std::string TableUnPackSignature(const StructDef &struct_def, bool predecl) {
-    return NativeName(struct_def) + " UnPack(const " + NameNameSpace(struct_def) + " &_i, "
+    return NativeName(struct_def) + " UnPack(const " + NameNameSpace(struct_def) + " &_f, "
            + "const flatbuffers::resolver_function_t *_resolver" +
-           (predecl ? " = nullptr" : "") + ") const";
+           (predecl ? " = nullptr" : "") + ")";
   }
 
   // Generates a value with optionally a cast applied if the field has a
@@ -641,12 +660,12 @@ class CppNativeGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRUCT: {
         std::string unpacker;
-        if (IsStruct(type)) {
-          unpacker = "*" + val;
-        } else if (hasNative(*type.struct_def)) {
-          unpacker = "flatbuffers::UnPack(*" + val + ")";
+        if (hasNative(*type.struct_def)) {
+          unpacker = "Native::UnPack(*" + val + ")";
+        } else if (IsStruct(type)) {
+            unpacker = "*" + val;
         } else {
-          unpacker = "flatbuffers::UnPack(*" + val + ", _resolver)";
+          unpacker = "Native::UnPack(*" + val + ", _resolver)";
         }
 
         if (invector || isInline(afield)) {
@@ -772,22 +791,24 @@ class CppNativeGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_STRUCT: {
+            auto name = WrapInNameSpace(*vector_type.struct_def);
             if (IsStruct(vector_type)) {
               auto native_type =
                   field.value.type.struct_def->attributes.Lookup("native_type");
               if (native_type) {
-                code += "_fbb.CreateVectorOfNativeStructs<";
-                code += WrapInNameSpace(*vector_type.struct_def) + ">";
+                code += "_fbb.CreateVectorOfStructs<";
+                code += name + ">(" + value + ".size(),";
+                code += "[&](size_t i, " + name + " *r) {";
+                code += "*r = Native::Pack(" + value + "[i]);})";
               } else {
-                code += "_fbb.CreateVectorOfStructs";
+                code += "_fbb.CreateVectorOfStructs(" + value + ")";
               }
-              code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
-              code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
+              code += name + ">> ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
-              code += "return flatbuffers::Pack(*__va->__fbb, __va->_" + value + "[i], ";
+              code += "return Native::Pack(*__va->__fbb, __va->_" + value + "[i], ";
               code += "__va->__rehasher); }, &_va )";
             }
             break;
@@ -849,8 +870,8 @@ class CppNativeGenerator : public BaseGenerator {
           if (hasNative(*field.value.type.struct_def))
           {
             packer = "& static_cast<const " +
-                NativeName(*field.value.type.struct_def) + 
-                " &>(flatbuffers::Pack(" + valueRef + "))";
+                Name(*field.value.type.struct_def) + 
+                " &>(Native::Pack(" + valueRef + "))";
           } else {
             if (isInline(field)) {
               packer = "&" + value;
@@ -859,7 +880,7 @@ class CppNativeGenerator : public BaseGenerator {
             }
           }
         } else {
-          packer = "flatbuffers::Pack(__fbb, " + valueRef + ", __rehasher)";
+          packer = "Native::Pack(_fbb, " + valueRef + ", _rehasher)";
         }
         if (isInline(field)) {
           code += packer;
@@ -882,7 +903,7 @@ class CppNativeGenerator : public BaseGenerator {
 
     code_ += "inline " +
               TableUnPackSignature(struct_def, false) + " {";
-    code_ += "  (void)_i;";
+    code_ += "  (void)_f;";
     code_ += "  (void)_resolver;";
     code_ += "  auto _o = {{NATIVE_NAME}}();";
 
@@ -899,7 +920,7 @@ class CppNativeGenerator : public BaseGenerator {
           GenUnpackFieldStatement(field, is_union ? *(it + 1) : nullptr);
 
       code_.SetValue("FIELD_NAME", Name(field));
-      auto prefix = "  { auto _e = _i.{{FIELD_NAME}}(); ";
+      auto prefix = "  { auto _e = _f.{{FIELD_NAME}}(); ";
       auto check = IsScalar(field.value.type.base_type) ? "" : "if (_e) ";
       auto postfix = " };";
       code_ += std::string(prefix) + check + statement + postfix;
@@ -910,7 +931,7 @@ class CppNativeGenerator : public BaseGenerator {
     // Generate a CreateX method that works with an unpacked C++ object.
     code_ += "inline " + TablePackSignature(struct_def, false) + " {";
     code_ += "  (void)_rehasher;";
-    code_ += "  (void)_i;";
+    code_ += "  (void)_o;";
     code_ += "  " + Name(struct_def) + "Builder builder_(_fbb);";
 
     code_ +=
@@ -944,8 +965,8 @@ class CppNativeGenerator : public BaseGenerator {
   //
   // The file must start and end with an empty (or null) namespace so that
   // namespaces are properly opened and closed.
-  void SetNameSpace(const Namespace &nsInput) {
-    auto ns = NativeNamespace(nsInput);
+  void SetNameSpace(const Namespace &nsInput, bool inNative = true) {
+    auto ns = inNative ? NativeNamespace(nsInput) : nsInput;
     if (cur_name_space_.components == ns.components) { return; }
 
     // Compute the size of the longest common namespace prefix.
