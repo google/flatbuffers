@@ -1977,13 +1977,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         depth_(0),
         max_depth_(_max_depth),
         num_tables_(0),
-        max_tables_(_max_tables)
+        max_tables_(_max_tables),
   // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-        , upper_bound_(0)
+        upper_bound_(0),
     #endif
-        , check_alignment_(_check_alignment)
   // clang-format on
+        check_alignment_(_check_alignment)
   {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
