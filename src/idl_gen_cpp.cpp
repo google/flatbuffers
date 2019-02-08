@@ -2083,15 +2083,14 @@ class CppGenerator : public BaseGenerator {
         if (!field.deprecated) {
           code_.SetValue("FIELD_NAME", Name(field));
           if (field.value.type.base_type == BASE_TYPE_STRING) {
-            if (!field.native_shared) {
-              code_ +=
-                  "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
-                  "_fbb.CreateString({{FIELD_NAME}}) : 0;";
+            if (!field.shared) {
+              code_.SetValue("CREATE_STRING", "CreateString");
             } else {
-              code_ +=
-                  "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
-                  "_fbb.CreateSharedString({{FIELD_NAME}}) : 0;";
+              code_.SetValue("CREATE_STRING", "CreateSharedString");
             }
+            code_ +=
+                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+                "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
             code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
@@ -2303,11 +2302,13 @@ class CppGenerator : public BaseGenerator {
       // or
       //   _fbb.CreateSharedString(_o->field)
       case BASE_TYPE_STRING: {
-        if (!field.native_shared) {
-          code += "_fbb.CreateString(" + value + ")";
+        if (!field.shared) {
+          code += "_fbb.CreateString(";
         } else {
-          code += "_fbb.CreateSharedString(" + value + ")";
+          code += "_fbb.CreateSharedString(";
         }
+        code += value;
+        code.push_back(')');
 
         // For optional fields, check to see if there actually is any data
         // in _o->field before attempting to access it. If there isn't,

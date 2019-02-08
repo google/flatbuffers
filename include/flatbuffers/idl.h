@@ -258,8 +258,8 @@ struct FieldDef : public Definition {
       : deprecated(false),
         required(false),
         key(false),
+        shared(false),
         native_inline(false),
-        native_shared(false),
         flexbuffer(false),
         nested_flatbuffer(NULL),
         padding(0) {}
@@ -274,11 +274,10 @@ struct FieldDef : public Definition {
                     // written in new data nor accessed in new code.
   bool required;    // Field must always be present.
   bool key;         // Field functions as a key for creating sorted vectors.
+  bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
+                // as default serialization behavior if field is a string.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
-  bool native_shared;  // Field will be using string pooling
-                       // (i.e. CreateSharedString) as default serialization
-                       // behavior if field is a string.
   bool flexbuffer;     // This field contains FlexBuffer data.
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
@@ -612,6 +611,7 @@ class Parser : public ParserState {
     known_attributes_["deprecated"] = true;
     known_attributes_["required"] = true;
     known_attributes_["key"] = true;
+    known_attributes_["shared"] = true;
     known_attributes_["hash"] = true;
     known_attributes_["id"] = true;
     known_attributes_["force_align"] = true;
@@ -627,7 +627,6 @@ class Parser : public ParserState {
     known_attributes_["cpp_str_type"] = true;
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
-    known_attributes_["native_shared"] = true;
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;

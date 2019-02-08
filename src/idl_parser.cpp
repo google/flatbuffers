@@ -767,6 +767,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+  field->shared = field->attributes.Lookup("shared") != nullptr;
+  if (field->shared && field->value.type.base_type != BASE_TYPE_STRING)
+    return Error("shared can only be defined on strings");
 
   auto field_native_custom_alloc =
       field->attributes.Lookup("native_custom_alloc");
@@ -778,9 +781,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
   if (field->native_inline && !IsStruct(field->value.type))
     return Error("native_inline can only be defined on structs");
-  field->native_shared = field->attributes.Lookup("native_shared") != nullptr;
-  if (field->native_shared && field->value.type.base_type != BASE_TYPE_STRING)
-    return Error("native_shared can only be defined on strings");
 
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
