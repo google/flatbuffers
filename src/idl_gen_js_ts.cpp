@@ -695,15 +695,11 @@ class JsTsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kParam, object_name + "=", "obj") +
                         GenTypeAnnotation(kReturns, object_name, "", false));
       if (lang_.language == IDLOptions::kTs) {
-        code += "static getRoot";
-        if (!parser_.opts.js_ts_short_names) 
-          code += "As" + struct_def.name;
+        code += "static getRoot" + Verbose(struct_def,"As");
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
-        code += object_name + ".getRoot";
-        if (!parser_.opts.js_ts_short_names) 
-          code += "As" + struct_def.name;
+        code += object_name + ".getRoot" + Verbose(struct_def, "As");
         code += " = function(bb, obj) {\n";
       }
       code += "  return (obj || new " + object_name;
@@ -1087,15 +1083,10 @@ class JsTsGenerator : public BaseGenerator {
                                                 "", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static create";
-        if (!parser_.opts.js_ts_short_names) 
-          code += struct_def.name;
-        code += "(builder:flatbuffers.Builder";
+        code += "static create" + Verbose(struct_def) + "(builder:flatbuffers.Builder";
         code += arguments + "):flatbuffers.Offset {\n";
       } else {
-        code += object_name + ".create";
-        if (!parser_.opts.js_ts_short_names) 
-          code += struct_def.name;
+        code += object_name + ".create" + Verbose(struct_def);
         code += " = function(builder";
         code += arguments + ") {\n";
       }
@@ -1108,14 +1099,9 @@ class JsTsGenerator : public BaseGenerator {
                                                 "builder", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static start";
-        if (!parser_.opts.js_ts_short_names) 
-          code += struct_def.name;
-        code += "(builder:flatbuffers.Builder) {\n";
+        code += "static start" + Verbose(struct_def) + "(builder:flatbuffers.Builder) {\n";
       } else {
-        code += object_name + ".start";
-        if (!parser_.opts.js_ts_short_names)
-          code += struct_def.name;
+        code += object_name + ".start" + Verbose(struct_def);
         code += " = function(builder) {\n";
       }
 
@@ -1225,14 +1211,10 @@ class JsTsGenerator : public BaseGenerator {
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static end";
-        if (!parser_.opts.js_ts_short_names) 
-          code += struct_def.name;
+        code += "static end" + Verbose(struct_def);
         code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
       } else {
-        code += object_name + ".end";
-        if (!parser_.opts.js_ts_short_names) 
-          code += struct_def.name;
+        code += object_name + ".end" + Verbose(struct_def);
         code += " = function(builder) {\n";
       }
 
@@ -1258,17 +1240,10 @@ class JsTsGenerator : public BaseGenerator {
                                   false));
 
         if (lang_.language == IDLOptions::kTs) {
-          code += "static finish";
-          if (!parser_.opts.js_ts_short_names) 
-            code += struct_def.name;
-          code += "Buffer";
-          code +=
-              "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+          code += "static finish" + Verbose(struct_def) + "Buffer";
+          code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
         } else {
-          code += object_name + ".finish";
-          if (!parser_.opts.js_ts_short_names) 
-            code += struct_def.name;
-          code += "Buffer";
+          code += object_name + ".finish" + Verbose(struct_def) + "Buffer";
           code += " = function(builder, offset) {\n";
         }
 
@@ -1282,9 +1257,7 @@ class JsTsGenerator : public BaseGenerator {
 
       if (lang_.language == IDLOptions::kTs) {
           // Generate a convenient CreateX function
-          code += "static create";
-          if (!parser_.opts.js_ts_short_names) 
-            code += struct_def.name;
+          code += "static create" + Verbose(struct_def);
           code += "(builder:flatbuffers.Builder";
           
           for (auto it = struct_def.fields.vec.begin();
@@ -1297,10 +1270,7 @@ class JsTsGenerator : public BaseGenerator {
           }
 
           code += "):flatbuffers.Offset {\n";
-          code += "  " + struct_def.name + ".start";
-          if (!parser_.opts.js_ts_short_names) 
-            code += struct_def.name;
-          code += "(builder);\n";
+          code += "  " + struct_def.name + ".start" + Verbose(struct_def) + "(builder);\n";
 
           for (auto it = struct_def.fields.vec.begin();
                it != struct_def.fields.vec.end(); ++it) {
@@ -1312,10 +1282,7 @@ class JsTsGenerator : public BaseGenerator {
               code += "builder, " + GetArgName(field) + ");\n";
           }
 
-          code += "  return " + struct_def.name + ".end";
-          if (!parser_.opts.js_ts_short_names) 
-            code += struct_def.name;
-          code += "(builder);\n";
+          code += "  return " + struct_def.name + ".end" + Verbose(struct_def) + "(builder);\n";
           code += "}\n";
       }
     }
@@ -1338,6 +1305,12 @@ class JsTsGenerator : public BaseGenerator {
       if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
 
       return argname;
+  }
+
+  std::string Verbose(const StructDef &struct_def, 
+                      const char* prefix = "")
+  {
+    return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
   }
 };
 }  // namespace jsts
