@@ -50,6 +50,9 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         debug_assert!(sz > 0);
         T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
     }
+
+    #[inline(always)]
+    pub fn iter(&'a self) -> VectorIter<'a, T> { VectorIter::new(&self) }
 }
 
 pub trait SafeSliceAccess {}
@@ -131,3 +134,23 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     }
 }
 
+pub struct VectorIter<'a, T:'a >(&'a Vector<'a, T>, usize);
+impl<'a, T: 'a> VectorIter<'a, T> {
+    pub fn new(inner: &'a Vector<'a, T>) -> Self {
+        VectorIter(inner, 0)
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
+    type Item = T::Inner;
+
+    fn next(&mut self) -> Option<T::Inner> {
+        if self.1 >= self.0.len() {
+            return None;
+        }
+        let ret = Some(self.0.get(self.1));
+        self.1 += 1;
+
+        ret
+    }
+}
