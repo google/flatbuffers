@@ -529,8 +529,9 @@ class Builder(object):
         self.Prep(self.minalign, prepSize)
         if file_identifier is not None:
             # Convert bytes object file_identifier to an array of 4 8-bit integers, and use big-endian to enforce size compliance (https://docs.python.org/2/library/struct.html#format-characters)
-            file_identifier=N.struct.unpack(">BBBB", file_identifier)
+            file_identifier = N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
+                # Place the bytes of the file_identifer in reverse order(depth-first)
                 self.Place(file_identifier[i], N.Uint8Flags)                
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
@@ -542,14 +543,14 @@ class Builder(object):
 
     def Finish(self, rootTable, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        return self.__Finish(rootTable, False, file_identifier = file_identifier)
+        return self.__Finish(rootTable, False, file_identifier=file_identifier)
  
     def FinishSizePrefixed(self, rootTable, file_identifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
         with the size prefixed.
         """
-        return self.__Finish(rootTable, True, file_identifier = file_identifier)
+        return self.__Finish(rootTable, True, file_identifier=file_identifier)
 
     ## @cond FLATBUFFERS_INTERNAL
     def Prepend(self, flags, off):

@@ -15,8 +15,8 @@ class Stat(object):
         return x
 
     @classmethod
-    def StatBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed = size_prefixed)
+    def StatBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
 
     # Stat
     def Init(self, buf, pos):

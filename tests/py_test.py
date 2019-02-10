@@ -62,8 +62,8 @@ class TestWireFormat(unittest.TestCase):
         # representation and regular:
         for sizePrefix in [True, False]:
             for file_identifier in [None, b"MONS"]:
-                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix, file_identifier = file_identifier)
-                CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix, file_identifier = file_identifier)
+                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix=sizePrefix, file_identifier=file_identifier)
+                CheckReadBuffer(gen_buf, gen_off, sizePrefix=sizePrefix, file_identifier=file_identifier)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -89,8 +89,8 @@ def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
             raise AssertionError('CheckReadBuffer case failed')
     if file_identifier:
         # test prior to removal of size_prefix
-        asserter(util.GetBufferIdentifier(buf, offset, size_prefixed = sizePrefix) == file_identifier)
-        asserter(util.BufferHasIdentifier(buf, offset, file_identifier = file_identifier, size_prefixed = sizePrefix))
+        asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
+        asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
         # taken from the size of monsterdata_python_wire.mon, minus 4

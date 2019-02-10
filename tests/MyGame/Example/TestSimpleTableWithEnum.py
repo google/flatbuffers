@@ -15,8 +15,8 @@ class TestSimpleTableWithEnum(object):
         return x
 
     @classmethod
-    def TestSimpleTableWithEnumBufferHasIdentifier(cls, buf, offset, size_prefixed = False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed = size_prefixed)
+    def TestSimpleTableWithEnumBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
 
     # TestSimpleTableWithEnum
     def Init(self, buf, pos):

@@ -20,13 +20,13 @@ def GetSizePrefix(buf, offset):
 	"""Extract the size prefix from a buffer."""
 	return encode.Get(packer.int32, buf, offset)
 
-def GetBufferIdentifier(buf, offset, size_prefixed = False):
+def GetBufferIdentifier(buf, offset, size_prefixed=False):
         """Extract the file_identifier from a buffer"""
-        offset+=(number_types.UOffsetTFlags.bytewidth if size_prefixed else 0) + number_types.UOffsetTFlags.bytewidth # offset sizeof(root table offset) + sizeof(size prefix) if present   
+        offset += (number_types.UOffsetTFlags.bytewidth if size_prefixed else 0) + number_types.UOffsetTFlags.bytewidth # offset sizeof(root table offset) + sizeof(size prefix) if present   
         return buf[offset:offset+encode.FILE_IDENTIFIER_LENGTH]
 
-def BufferHasIdentifier(buf, offset, file_identifier, size_prefixed = False):
-        return GetBufferIdentifier(buf, offset, size_prefixed = size_prefixed)==file_identifier
+def BufferHasIdentifier(buf, offset, file_identifier, size_prefixed=False):
+        return GetBufferIdentifier(buf, offset, size_prefixed=size_prefixed)==file_identifier
 
 def RemoveSizePrefix(buf, offset):
 	"""

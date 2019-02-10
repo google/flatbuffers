@@ -556,21 +556,21 @@ class PythonGenerator : public BaseGenerator {
   void GenHasFileIdentifier(const StructDef &struct_def,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
-    std::string esapedID;
+    std::string escapedID;
     //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
     //to prevent this, convert all chars to their hex-escaped equivalent
     for(int x=0; x<4; x++){
-		esapedID += "\\x" + IntToStringHex(parser_.file_identifier_[x], 2);
+		escapedID += "\\x" + IntToStringHex(parser_.file_identifier_[x], 2);
     }
 	
     code += Indent + "@classmethod\n";
     code += Indent + "def " + NormalizedName(struct_def);
-    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed = False):";
+    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed=False):";
     code += "\n";
     code += Indent + Indent;
     code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
-    code += esapedID;
-    code += "\", size_prefixed = size_prefixed)\n";
+    code += escapedID;
+    code += "\", size_prefixed=size_prefixed)\n";
     code += "\n";
 	 	  
   }
