@@ -71,7 +71,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier = b'MONS')
+        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier=b'MONS')
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -79,7 +79,7 @@ class TestWireFormat(unittest.TestCase):
         f.close()
 
 
-def CheckReadBuffer(buf, offset, sizePrefix = False, file_identifier = None):
+def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     ''' CheckReadBuffer checks that the given buffer is evaluated correctly
         as the example Monster. '''
 
