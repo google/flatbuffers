@@ -585,7 +585,7 @@ class PythonGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
-	  if(parser_.file_identifier_.length()){
+      if(parser_.file_identifier_.length()){
 		  // Generate a special function to test file_identifier
 		  GenHasFileIdentifier(struct_def, code_ptr);
 	  }
