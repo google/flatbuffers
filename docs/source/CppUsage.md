@@ -88,6 +88,14 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+The following attributes are supported:
+
+-   `shared` (on a field): For string fields, this enables the usage of string
+    pooling (i.e. `CreateSharedString`) as default serialization behavior.
+
+    Specifically, `CreateXxxDirect` functions and `Pack` functions for object
+    based API (see below) will use `CreateSharedString` to create strings.
+
 ## Object based API.  {#flatbuffers_cpp_object_based_api}
 
 FlatBuffers is all about memory efficiency, which is why its base API is written
