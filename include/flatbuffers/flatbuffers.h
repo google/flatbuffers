@@ -2180,6 +2180,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       return (size > size_) ?  0 : size;
     #else
       // Must turn on FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE for this to work.
+      (void)upper_bound_;
       FLATBUFFERS_ASSERT(false);
       return 0;
     #endif
