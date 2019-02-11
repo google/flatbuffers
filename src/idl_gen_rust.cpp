@@ -1748,14 +1748,9 @@ class RustGenerator : public BaseGenerator {
 
   void GenNamespaceImports(const int white_spaces) {
       std::string indent = std::string(white_spaces, ' ');
-      code_ += indent + "#![allow(dead_code)]";
-      code_ += indent + "#![allow(unused_imports)]";
-      code_ += "";
       code_ += indent + "use std::mem;";
       code_ += indent + "use std::cmp::Ordering;";
-      code_ += "";
-      code_ += indent + "extern crate flatbuffers;";
-      code_ += indent + "use self::flatbuffers::EndianScalar;";
+      code_ += indent + "use fflatbuffers::EndianScalar;";
   }
 
   // Set up the correct namespace. This opens a namespace if the current
