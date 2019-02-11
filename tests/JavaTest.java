@@ -232,7 +232,7 @@ class JavaTest {
     }
 
     static void TestByteBufferFactory() {
-        final class MappedByteBufferFactory implements FlatBufferBuilder.ByteBufferFactory {
+        final class MappedByteBufferFactory extends FlatBufferBuilder.ByteBufferFactory {
             @Override
             public ByteBuffer newByteBuffer(int capacity) {
                 ByteBuffer bb;
