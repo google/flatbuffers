@@ -1978,7 +1978,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_depth_(_max_depth),
         num_tables_(0),
         max_tables_(_max_tables),
+#ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
         upper_bound_(0),
+#endif
         check_alignment_(_check_alignment)
   {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
@@ -2193,7 +2195,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   uoffset_t max_depth_;
   uoffset_t num_tables_;
   uoffset_t max_tables_;
+#ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   mutable size_t upper_bound_;
+#endif
   bool check_alignment_;
 };
 
