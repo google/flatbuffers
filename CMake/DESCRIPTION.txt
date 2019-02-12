@@ -1,0 +1,4 @@
+FlatBuffers is an efficient cross platform serialization library for
+C++, with support for Java, C# and Go. It was created at Google
+specifically for game development and other performance-critical
+applications.
