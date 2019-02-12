@@ -454,18 +454,17 @@ class CppGenerator : public BaseGenerator {
       }
 
 	  if (parser_.opts.gen_binary_schema_embed && parser_.builder_.GetSize()) {
-		const int width= 120;
+		const int width= 105;
         // create code to return the binary schema
 		std::string escapedBinarySchemaBuffer= EscapeAndWrapBuffer(parser_.builder_.GetBufferPointer(), 
-			parser_.builder_.GetSize(), width, "        \"", "\"");
+			parser_.builder_.GetSize(), width, "        ", "");
 
         code_ += "inline const uint8_t *Get{{STRUCT_NAME}}BinarySchema(bool endPtr= false) {";
-        code_ += "    // Buffer containing binary schema (includes an extra null terminator)";
-        code_ += "    static const uint8_t bfbsData[" + NumToString(parser_.builder_.GetSize()) + " + 1] = {";
+        code_ += "    // Buffer containing the binary schema.";
+        code_ += "    static const uint8_t bfbsData[] = {";
         code_ += escapedBinarySchemaBuffer;
         code_ += "    };";
-        code_ += "    // Subtract the extra null if we are returning the end pointer.";
-        code_ += "    return endPtr ? bfbsData + sizeof(bfbsData) - 1 : bfbsData;";
+        code_ += "    return endPtr ? bfbsData + " + NumToString(parser_.builder_.GetSize()) + " : bfbsData;";
         code_ += "}";
         code_ += "";
       }
