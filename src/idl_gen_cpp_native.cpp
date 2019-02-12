@@ -227,7 +227,7 @@ class CppNativeGenerator : public BaseGenerator {
       for (auto it = parser_.structs_.vec.begin();
           it != parser_.structs_.vec.end(); ++it) {
         const auto &struct_def = **it;
-        if (!struct_def.fixed && !struct_def.generated) {
+        if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
           auto nativeName = NativeName(struct_def);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
           code_ += TablePackSignature(struct_def, true) + ";";
@@ -270,7 +270,7 @@ class CppNativeGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       const auto &struct_def = **it;
-      if (!struct_def.fixed && !struct_def.generated) {
+      if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
         GenTablePackUnpack(struct_def);
       }
     }
@@ -660,9 +660,10 @@ class CppNativeGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRUCT: {
         std::string unpacker;
-        if (hasNative(*type.struct_def)) {
-          unpacker = "Native::UnPack(*" + val + ")";
-        } else if (IsStruct(type)) {
+        if (IsStruct(type)) {
+          if (hasNative(*type.struct_def))
+            unpacker = "Native::UnPack(*" + val + ")";
+          else
             unpacker = "*" + val;
         } else {
           unpacker = "Native::UnPack(*" + val + ", _resolver)";
@@ -932,7 +933,6 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "inline " + TablePackSignature(struct_def, false) + " {";
     code_ += "  (void)_rehasher;";
     code_ += "  (void)_o;";
-    code_ += "  " + Name(struct_def) + "Builder builder_(_fbb);";
 
     code_ +=
         "  struct _VectorArgs "
@@ -950,7 +950,23 @@ class CppNativeGenerator : public BaseGenerator {
         if (!field.deprecated && (!struct_def.sortbysize ||
                                   size == SizeOf(field.value.type.base_type))) {
           code_.SetValue("FIELD_NAME", Name(field));
-          code_ += "  builder_.add_{{FIELD_NAME}}(" + GenPackParam(field) + ");";
+          code_ +=
+              "  auto {{FIELD_NAME}}__ = " + GenPackParam(field) + ";";
+        }
+      }
+    }
+
+    code_ += "  " + Name(struct_def) + "Builder builder_(_fbb);";
+
+    for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
+         size; size /= 2) {
+      for (auto it = struct_def.fields.vec.rbegin();
+           it != struct_def.fields.vec.rend(); ++it) {
+        const auto &field = **it;
+        if (!field.deprecated && (!struct_def.sortbysize ||
+                                  size == SizeOf(field.value.type.base_type))) {
+          code_.SetValue("FIELD_NAME", Name(field));
+          code_ += "  builder_.add_{{FIELD_NAME}}({{FIELD_NAME}}__);";
         }
       }
     }
