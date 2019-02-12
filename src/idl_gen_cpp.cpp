@@ -453,11 +453,11 @@ class CppGenerator : public BaseGenerator {
         code_ += "";
       }
 
-	  if (parser_.opts.gen_binary_schema_embed && parser_.builder_.GetSize()) {
-		const int width= 105;
+      if (parser_.opts.gen_binary_schema_embed && parser_.builder_.GetSize()) {
+        const int width= 105;
         // create code to return the binary schema
-		std::string escapedBinarySchemaBuffer= EscapeAndWrapBuffer(parser_.builder_.GetBufferPointer(), 
-			parser_.builder_.GetSize(), width, "        ", "");
+        std::string escapedBinarySchemaBuffer= EscapeAndWrapBuffer(parser_.builder_.GetBufferPointer(), 
+            parser_.builder_.GetSize(), width, "        ", "");
 
         code_ += "inline const uint8_t *Get{{STRUCT_NAME}}BinarySchema(bool endPtr= false) {";
         code_ += "    // Buffer containing the binary schema.";

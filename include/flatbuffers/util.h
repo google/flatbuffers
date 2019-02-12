@@ -644,17 +644,17 @@ inline std::string EscapeAndWrapBuffer(const void *buf, size_t bufsize,  size_t 
     bool haveMore= i + 1 < bufsize;
     text += "0x";
     text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
-	if (haveMore) {
-	    text += ',';
-	}
+    if (haveMore) {
+        text += ',';
+    }
 
-	// If we have more to process and we reached max_length
-	if (haveMore && text.size() + wrapped_line_suffix.size() >= startOffset + max_length) {
-		text+= wrapped_line_suffix;
-		text+= '\n';
-		startOffset= text.size();
-		text+= wrapped_line_prefix;
-	}
+    // If we have more to process and we reached max_length
+    if (haveMore && text.size() + wrapped_line_suffix.size() >= startOffset + max_length) {
+        text+= wrapped_line_suffix;
+        text+= '\n';
+        startOffset= text.size();
+        text+= wrapped_line_prefix;
+    }
   }
 
   text+= wrapped_line_suffix;
