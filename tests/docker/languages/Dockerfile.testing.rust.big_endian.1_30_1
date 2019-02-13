@@ -1,16 +1,15 @@
 FROM rust:1.30.1-slim-stretch as base
-
-WORKDIR /setup
-RUN apt -qq update >/dev/null
-RUN apt -qq install -y curl gcc-mips-linux-gnu qemu-user
-RUN curl https://sh.rustup.rs > rustup.sh
-RUN cat rustup.sh | sh -s -- -y --default-toolchain none
+RUN apt -qq update -y && apt -qq install -y \
+    gcc-mips-linux-gnu \
+    libexpat1 \
+    libmagic1 \
+    libmpdec2 \
+    libreadline7 \
+    qemu-user
 RUN rustup target add mips-unknown-linux-gnu
-
-
 WORKDIR /code
 ADD . .
-WORKDIR /code/tests/rust_usage_test
-ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=mips-linux-gnu-gcc
-ENV CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_RUNNER="qemu-mips -L /usr/mips-linux-gnu"
-RUN cargo test --target mips-unknown-linux-gnu
+RUN cp flatc_debian_stretch flatc
+WORKDIR /code/tests
+RUN rustc --version
+RUN ./RustTest.sh mips-unknown-linux-gnu
