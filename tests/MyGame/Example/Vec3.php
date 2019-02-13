@@ -78,7 +78,7 @@ class Vec3 extends Struct
      */
     public static function createVec3(FlatBufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b)
     {
-        $builder->prep(16, 32);
+        $builder->prep(8, 32);
         $builder->pad(2);
         $builder->prep(2, 4);
         $builder->pad(1);

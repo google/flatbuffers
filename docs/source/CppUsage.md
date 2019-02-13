@@ -88,6 +88,14 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+The following attributes are supported:
+
+-   `shared` (on a field): For string fields, this enables the usage of string
+    pooling (i.e. `CreateSharedString`) as default serialization behavior.
+
+    Specifically, `CreateXxxDirect` functions and `Pack` functions for object
+    based API (see below) will use `CreateSharedString` to create strings.
+
 ## Object based API.  {#flatbuffers_cpp_object_based_api}
 
 FlatBuffers is all about memory efficiency, which is why its base API is written
@@ -130,10 +138,10 @@ The following attributes are specific to the object-based API code generation:
     verbatim in the class constructor initializer list for this member.
 
 -   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
-    object-based API all generated NativeTables that  are allocated when unpacking 
-    your  flatbuffer will use "custom allocator". The allocator is also used by 
-    any std::vector that appears in a table defined with `native_custom_alloc`. 
-    This can be  used to provide allocation from a pool for example, for faster 
+    object-based API all generated NativeTables that  are allocated when unpacking
+    your  flatbuffer will use "custom allocator". The allocator is also used by
+    any std::vector that appears in a table defined with `native_custom_alloc`.
+    This can be  used to provide allocation from a pool for example, for faster
     unpacking when using the object-based API.
 
     Minimal Example:
@@ -151,8 +159,8 @@ The following attributes are specific to the object-based API code generation:
       typedef T *pointer;
 
       template <class U>
-      struct rebind { 
-        typedef custom_allocator<U> other; 
+      struct rebind {
+        typedef custom_allocator<U> other;
       };
 
       pointer allocate(const std::size_t n) {
@@ -164,7 +172,7 @@ The following attributes are specific to the object-based API code generation:
       }
 
       custom_allocator() throw() {}
-      template <class U> 
+      template <class U>
       custom_allocator(const custom_allocator<U>&) throw() {}
     };
 
@@ -208,11 +216,14 @@ The following attributes are specific to the object-based API code generation:
 
 Finally, the following top-level attribute
 
--   native_include: "path" (at file level): Because the `native_type` attribute
+-   `native_include`: "path" (at file level): Because the `native_type` attribute
     can be used to introduce types that are unknown to flatbuffers, it may be
     necessary to include "external" header files in the generated code.  This
     attribute can be used to directly add an #include directive to the top of
     the generated code that includes the specified path directly.
+
+-   `force_align`: this attribute may not be respected in the object API,
+    depending on the aligned of the allocator used with `new`.
 
 # External references.
 
@@ -499,43 +510,43 @@ To use scalars, simply wrap them in a struct.
 
 ## Depth limit of nested objects and stack-overflow control
 The parser of Flatbuffers schema or json-files is kind of recursive parser.
-To avoid stack-overflow problem the parser has a built-in limiter of 
-recursion depth. Number of nested declarations in a schema or number of 
+To avoid stack-overflow problem the parser has a built-in limiter of
+recursion depth. Number of nested declarations in a schema or number of
 nested json-objects is limited. By default, this depth limit set to `64`.
-It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` 
-definition. This definition can be helpful for testing purposes or embedded 
-applications. For details see [build](@ref flatbuffers_guide_building) of 
+It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH`
+definition. This definition can be helpful for testing purposes or embedded
+applications. For details see [build](@ref flatbuffers_guide_building) of
 CMake-based projects.
 
 ## Dependence from C-locale {#flatbuffers_locale_cpp}
-The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII 
+The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII
 character set for identifiers, alphanumeric literals, reserved words.
 
-Internal implementation of the Flatbuffers depends from functions which 
+Internal implementation of the Flatbuffers depends from functions which
 depend from C-locale: `strtod()` or `strtof()`, for example.
-The library expects the dot `.` symbol as the separator of an integer 
+The library expects the dot `.` symbol as the separator of an integer
 part from the fractional part of a float number.
-Another separator symbols (`,` for example) will break the compatibility 
+Another separator symbols (`,` for example) will break the compatibility
 and may lead to an error while parsing a Flatbuffers schema or a json file.
 
-The Standard C locale is a global resource, there is only one locale for 
-the entire application. Some modern compilers and platforms have 
-locale-independent or locale-narrow functions `strtof_l`, `strtod_l`, 
-`strtoll_l`, `strtoull_l` to resolve this dependency. 
-These functions use specified locale rather than the global or per-thread 
-locale instead. They are part of POSIX-2008 but not part of the C/C++ 
+The Standard C locale is a global resource, there is only one locale for
+the entire application. Some modern compilers and platforms have
+locale-independent or locale-narrow functions `strtof_l`, `strtod_l`,
+`strtoll_l`, `strtoull_l` to resolve this dependency.
+These functions use specified locale rather than the global or per-thread
+locale instead. They are part of POSIX-2008 but not part of the C/C++
 standard library, therefore, may be missing on some platforms.
 
-The Flatbuffers library try to detect these functions at configuration and 
+The Flatbuffers library try to detect these functions at configuration and
 compile time:
 - `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
 - `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
 - `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
 
-After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be 
+After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be
 set to `0` or `1`.
 
-It is possible to test the compatibility of the Flatbuffers library with 
+It is possible to test the compatibility of the Flatbuffers library with
 a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
 ```sh
 >FLATBUFFERS_TEST_LOCALE="" ./flattests

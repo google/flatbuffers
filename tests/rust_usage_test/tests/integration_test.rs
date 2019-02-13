@@ -656,8 +656,8 @@ mod generated_code_alignment_and_padding {
     }
 
     #[test]
-    fn struct_vec3_is_aligned_to_16() {
-        assert_eq!(16, ::std::mem::align_of::<my_game::example::Vec3>());
+    fn struct_vec3_is_aligned_to_8() {
+        assert_eq!(8, ::std::mem::align_of::<my_game::example::Vec3>());
     }
 
     #[test]

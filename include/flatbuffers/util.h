@@ -66,7 +66,7 @@ inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
 
 inline bool is_xdigit(char c) {
   // Replace by look-up table.
-  return is_digit(c) | check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
+  return is_digit(c) || check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum
@@ -272,7 +272,7 @@ inline void strtoval_impl(float *val, const char *str, char **endptr) {
 //
 // Return value (like strtoull and strtoll, but reject partial result):
 // - If successful, an integer value corresponding to the str is returned.
-// - If full string conversion can't be performed, ​0​ is returned.
+// - If full string conversion can't be performed, 0 is returned.
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T>
@@ -316,7 +316,7 @@ inline bool StringToFloatImpl(T *val, const char *const str) {
 // Convert a string to an instance of T.
 // Return value (matched with StringToInteger64Impl and strtod):
 // - If successful, a numeric value corresponding to the str is returned.
-// - If full string conversion can't be performed, ​0​ is returned.
+// - If full string conversion can't be performed, 0 is returned.
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T> inline bool StringToNumber(const char *s, T *val) {

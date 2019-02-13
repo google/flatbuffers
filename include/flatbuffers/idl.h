@@ -258,6 +258,7 @@ struct FieldDef : public Definition {
       : deprecated(false),
         required(false),
         key(false),
+        shared(false),
         native_inline(false),
         flexbuffer(false),
         nested_flatbuffer(NULL),
@@ -273,6 +274,8 @@ struct FieldDef : public Definition {
                     // written in new data nor accessed in new code.
   bool required;    // Field must always be present.
   bool key;         // Field functions as a key for creating sorted vectors.
+  bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
+                // as default serialization behavior if field is a string.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
@@ -326,7 +329,7 @@ inline size_t InlineAlignment(const Type &type) {
 
 struct EnumVal {
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
-  EnumVal(){};
+  EnumVal() : value(0){};
 
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
@@ -422,6 +425,7 @@ struct IDLOptions {
   std::string go_import;
   std::string go_namespace;
   bool reexport_ts_modules;
+  bool js_ts_short_names;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -493,6 +497,7 @@ struct IDLOptions {
         binary_schema_builtins(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
+        js_ts_short_names(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
@@ -608,6 +613,7 @@ class Parser : public ParserState {
     known_attributes_["deprecated"] = true;
     known_attributes_["required"] = true;
     known_attributes_["key"] = true;
+    known_attributes_["shared"] = true;
     known_attributes_["hash"] = true;
     known_attributes_["id"] = true;
     known_attributes_["force_align"] = true;
@@ -672,7 +678,7 @@ class Parser : public ParserState {
   bool Deserialize(const reflection::Schema* schema);
 
   Type* DeserializeType(const reflection::Type* type);
-  
+
   // Checks that the schema represented by this parser is a safe evolution
   // of the schema provided. Returns non-empty error on any problems.
   std::string ConformTo(const Parser &base);

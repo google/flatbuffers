@@ -7,7 +7,9 @@
 #include "flatbuffers/flatbuffers.h"
 #include "test_assert.h"
 
-using namespace MyGame::Example;
+using MyGame::Example::Color;
+using MyGame::Example::Monster;
+
 namespace flatbuffers {
 namespace grpc {
 class MessageBuilder;

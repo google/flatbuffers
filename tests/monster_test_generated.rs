@@ -491,8 +491,8 @@ impl Test {
   }
 }
 
-// struct Vec3, aligned to 16
-#[repr(C, align(16))]
+// struct Vec3, aligned to 8
+#[repr(C, align(8))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
   x_: f32,

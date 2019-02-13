@@ -94,7 +94,7 @@ std::string MakeCamel(const std::string &in, bool first) {
 void DeserializeDoc( std::vector<std::string> &doc,
                      const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
-  for (uoffset_t index = 0; index < documentation->Length(); index++)
+  for (uoffset_t index = 0; index < documentation->size(); index++)
     doc.push_back(documentation->Get(index)->str());
 }
 
@@ -412,7 +412,7 @@ CheckedError Parser::Next() {
           cursor_ += 2;
           break;
         }
-        // fall thru
+        FLATBUFFERS_FALLTHROUGH(); // else fall thru
       default:
         const auto has_sign = (c == '+') || (c == '-');
         // '-'/'+' and following identifier - can be a predefined constant like:
@@ -767,6 +767,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+  field->shared = field->attributes.Lookup("shared") != nullptr;
+  if (field->shared && field->value.type.base_type != BASE_TYPE_STRING)
+    return Error("shared can only be defined on strings");
 
   auto field_native_custom_alloc =
       field->attributes.Lookup("native_custom_alloc");
@@ -777,7 +780,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   field->native_inline = field->attributes.Lookup("native_inline") != nullptr;
   if (field->native_inline && !IsStruct(field->value.type))
-    return Error("native_inline can only be defined on structs'");
+    return Error("native_inline can only be defined on structs");
 
   auto nested = field->attributes.Lookup("nested_flatbuffer");
   if (nested) {
@@ -2752,9 +2755,9 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
   minalign = object->minalign();
   predecl = false;
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
-  std::vector<uoffset_t> indexes = 
-    std::vector<uoffset_t>(object->fields()->Length());
-  for (uoffset_t i = 0; i < object->fields()->Length(); i++)
+  std::vector<uoffset_t> indexes =
+    std::vector<uoffset_t>(object->fields()->size());
+  for (uoffset_t i = 0; i < object->fields()->size(); i++)
     indexes[object->fields()->Get(i)->id()] = i;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = object->fields()->Get(indexes[i]);
@@ -2768,7 +2771,7 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
       // Recompute padding since that's currently not serialized.
       auto size = InlineSize(field_def->value.type);
       auto next_field =
-          i + 1 < indexes.size() 
+          i + 1 < indexes.size()
           ? object->fields()->Get(indexes[i+1])
           : nullptr;
       bytesize += size;
@@ -3036,7 +3039,7 @@ bool Parser::Deserialize(const uint8_t *buf, const size_t size) {
       return false;
     else
       size_prefixed = true;
-  } 
+  }
   auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
                                  : &reflection::VerifySchemaBuffer;
   if (!verify_fn(verifier)) {

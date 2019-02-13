@@ -152,6 +152,7 @@ set(FlatBuffers_GRPCTest_SRCS
 if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   # do not apply any global settings if the toolchain
   # is being configured externally
+  message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
@@ -185,6 +186,9 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
   set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
+  if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.8)
+    list(APPEND FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wimplicit-fallthrough" "-Werror=unused-private-field") # enable warning
+  endif()
   if(FLATBUFFERS_LIBCXX_WITH_CLANG)
     if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
       set(CMAKE_CXX_FLAGS
@@ -255,7 +259,7 @@ endif()
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
-  if(FLATBUFFERS_CODE_SANITIZE)
+  if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
@@ -313,12 +317,17 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
-  if(FLATBUFFERS_CODE_SANITIZE)
-    add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
-  endif()
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
+  if(FLATBUFFERS_CODE_SANITIZE)
+    if(WIN32)
+      target_compile_definitions(flattests PRIVATE FLATBUFFERS_MEMORY_LEAK_TRACKING)
+      message(STATUS "Sanitizer MSVC::_CrtDumpMemoryLeaks added to flattests")
+    else()
+      add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
+    endif()
+  endif()
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
