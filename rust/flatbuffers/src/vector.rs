@@ -19,7 +19,9 @@ use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
-use endian_scalar::{EndianScalar, read_scalar};
+#[cfg(target_endian = "little")]
+use endian_scalar::EndianScalar;
+use endian_scalar::read_scalar;
 use follow::Follow;
 use primitives::*;
 
@@ -105,6 +107,7 @@ impl<'a> Follow<'a> for &'a str {
     }
 }
 
+#[cfg(target_endian = "little")]
 fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
     let sz = size_of::<T>();
     debug_assert!(sz > 0);
