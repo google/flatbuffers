@@ -521,13 +521,9 @@ class Builder(object):
     def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
-        prepSize = N.UOffsetTFlags.bytewidth
-        if sizePrefix:
-            prepSize += N.Int32Flags.bytewidth
+
         if file_identifier is not None:
-            prepSize += N.Uint8Flags.bytewidth * 4
-        self.Prep(self.minalign, prepSize)
-        if file_identifier is not None:
+            self.Prep(N.UOffsetTFlags.bytewidth, N.Uint8Flags.bytewidth*4)
             # Convert bytes object file_identifier to an array of 4 8-bit integers, and use big-endian to enforce size compliance (https://docs.python.org/2/library/struct.html#format-characters)
             file_identifier = N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
