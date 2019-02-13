@@ -1750,7 +1750,7 @@ class RustGenerator : public BaseGenerator {
       std::string indent = std::string(white_spaces, ' ');
       code_ += indent + "use std::mem;";
       code_ += indent + "use std::cmp::Ordering;";
-      code_ += indent + "use fflatbuffers::EndianScalar;";
+      code_ += indent + "use flatbuffers::EndianScalar;";
   }
 
   // Set up the correct namespace. This opens a namespace if the current
