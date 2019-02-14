@@ -258,7 +258,7 @@ namespace FlatBuffers.Test
             }
             else
             {
-                Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length == 0);
+                Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length != 0);
             }
 #else
             var nameBytes = monster.GetNameBytes().Value;
