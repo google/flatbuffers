@@ -763,6 +763,10 @@ class JsTsGenerator : public BaseGenerator {
                 GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                     field.value.type.enum_def->file) +
                 " {\n";
+
+            if (!parser_.opts.generate_all) {
+              imported_files.insert(field.value.type.enum_def->file);
+            }
           } else {
             code += "):" + GenTypeName(field.value.type, false, true) + " {\n";
           }
@@ -1259,7 +1263,7 @@ class JsTsGenerator : public BaseGenerator {
           // Generate a convenient CreateX function
           code += "static create" + Verbose(struct_def);
           code += "(builder:flatbuffers.Builder";
-          
+
           for (auto it = struct_def.fields.vec.begin();
                it != struct_def.fields.vec.end(); ++it) {
             const auto &field = **it;
@@ -1307,7 +1311,7 @@ class JsTsGenerator : public BaseGenerator {
       return argname;
   }
 
-  std::string Verbose(const StructDef &struct_def, 
+  std::string Verbose(const StructDef &struct_def,
                       const char* prefix = "")
   {
     return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
