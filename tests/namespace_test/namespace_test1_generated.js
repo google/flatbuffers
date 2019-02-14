@@ -104,6 +104,17 @@ NamespaceA.NamespaceB.TableInNestedNS.endTableInNestedNS = function(builder) {
 };
 
 /**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} foo
+ * @returns {flatbuffers.Offset}
+ */
+NamespaceA.NamespaceB.TableInNestedNS.createTableInNestedNS = function(builder, foo) {
+  NamespaceA.NamespaceB.TableInNestedNS.startTableInNestedNS(builder);
+  NamespaceA.NamespaceB.TableInNestedNS.addFoo(builder, foo);
+  return NamespaceA.NamespaceB.TableInNestedNS.endTableInNestedNS(builder);
+}
+
+/**
  * @constructor
  */
 NamespaceA.NamespaceB.StructInNestedNS = function() {
