@@ -77,7 +77,7 @@ class JsTsGenerator : public BaseGenerator {
       reexport_map;
 
   JsTsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name)
+                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
         lang_(GetJsLangParams(parser_.opts.lang)){};
   // Iterate through all definitions we haven't generate code for (enums,
@@ -105,10 +105,10 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
         !parser_.opts.skip_js_exports) {
-        if( parser_.opts.use_ES6_js_export_format )
-            code += "// Exports for ECMAScript6 Modules\n";
-        else
-            code += "// Exports for Node.js and RequireJS\n";
+      if (parser_.opts.use_ES6_js_export_format)
+        code += "// Exports for ECMAScript6 Modules\n";
+      else
+        code += "// Exports for Node.js and RequireJS\n";
       code += exports_code;
     }
 
@@ -127,8 +127,8 @@ class JsTsGenerator : public BaseGenerator {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
-      if (basename != file_name_) {
-        code += GenPrefixedImport(file, basename);
+      if (basename != file_name_) { 
+        code += GenPrefixedImport(file, basename); 
       }
     }
   }
@@ -225,7 +225,7 @@ class JsTsGenerator : public BaseGenerator {
           code += "var ";
           if (parser_.opts.use_goog_js_export_format) {
             exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
-          } else if( parser_.opts.use_ES6_js_export_format){
+          } else if (parser_.opts.use_ES6_js_export_format) {
             exports += "export {" + *it + "};\n";
           } else {
             exports += "this." + *it + " = " + *it + ";\n";
@@ -310,8 +310,8 @@ class JsTsGenerator : public BaseGenerator {
       }
       default: { result += " {" + type_name + "}"; }
     }
-    if (!arg_name.empty()) {
-      result += " " + arg_name;
+    if (!arg_name.empty()) { 
+      result += " " + arg_name; 
     }
     if (include_newline) {
       result += "\n";
@@ -548,7 +548,9 @@ class JsTsGenerator : public BaseGenerator {
                                   const std::string &file) {
     const auto basename =
         flatbuffers::StripPath(flatbuffers::StripExtension(file));
-    if (basename == file_name_ || parser_.opts.generate_all) { return typeName; }
+    if (basename == file_name_ || parser_.opts.generate_all) {
+      return typeName;
+    }
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
@@ -695,7 +697,7 @@ class JsTsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kParam, object_name + "=", "obj") +
                         GenTypeAnnotation(kReturns, object_name, "", false));
       if (lang_.language == IDLOptions::kTs) {
-        code += "static getRoot" + Verbose(struct_def,"As");
+        code += "static getRoot" + Verbose(struct_def, "As");
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
@@ -880,7 +882,7 @@ class JsTsGenerator : public BaseGenerator {
                 code += prefix + ", obj?:" + vectortypename;
 
                 if (!parser_.opts.generate_all) {
-                    imported_files.insert(vectortype.struct_def->file);
+                  imported_files.insert(vectortype.struct_def->file);
                 }
               } else if (vectortype.base_type == BASE_TYPE_STRING) {
                 code += prefix + "):string\n";
@@ -1087,7 +1089,8 @@ class JsTsGenerator : public BaseGenerator {
                                                 "", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static create" + Verbose(struct_def) + "(builder:flatbuffers.Builder";
+        code += "static create" + Verbose(struct_def) +
+                "(builder:flatbuffers.Builder";
         code += arguments + "):flatbuffers.Offset {\n";
       } else {
         code += object_name + ".create" + Verbose(struct_def);
@@ -1103,7 +1106,8 @@ class JsTsGenerator : public BaseGenerator {
                                                 "builder", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static start" + Verbose(struct_def) + "(builder:flatbuffers.Builder) {\n";
+        code += "static start" + Verbose(struct_def) +
+                "(builder:flatbuffers.Builder) {\n";
       } else {
         code += object_name + ".start" + Verbose(struct_def);
         code += " = function(builder) {\n";
@@ -1129,8 +1133,8 @@ class JsTsGenerator : public BaseGenerator {
 
         if (lang_.language == IDLOptions::kTs) {
           code += "static add" + MakeCamel(field.name);
-          code += "(builder:flatbuffers.Builder, " + argname + ":" + GetArgType(field) +
-                  ") {\n";
+          code += "(builder:flatbuffers.Builder, " + argname + ":" +
+                  GetArgType(field) + ") {\n";
         } else {
           code += object_name + ".add" + MakeCamel(field.name);
           code += " = function(builder, " + argname + ") {\n";
@@ -1245,7 +1249,8 @@ class JsTsGenerator : public BaseGenerator {
 
         if (lang_.language == IDLOptions::kTs) {
           code += "static finish" + Verbose(struct_def) + "Buffer";
-          code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+          code +=
+              "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
         } else {
           code += object_name + ".finish" + Verbose(struct_def) + "Buffer";
           code += " = function(builder, offset) {\n";
@@ -1259,40 +1264,77 @@ class JsTsGenerator : public BaseGenerator {
         code += "};\n\n";
       }
 
-      if (lang_.language == IDLOptions::kTs) {
-          // Generate a convenient CreateX function
-          code += "static create" + Verbose(struct_def);
-          code += "(builder:flatbuffers.Builder";
+      // Generate a convenient CreateX function
+      if (lang_.language == IDLOptions::kJs) {
+        std::string paramDoc =
+            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
+        for (auto it = struct_def.fields.vec.begin();
+             it != struct_def.fields.vec.end(); ++it) {
+          const auto &field = **it;
+          if (field.deprecated) 
+            continue;
+          paramDoc +=
+              GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
+        }
+        paramDoc +=
+            GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
 
-          for (auto it = struct_def.fields.vec.begin();
-               it != struct_def.fields.vec.end(); ++it) {
-            const auto &field = **it;
-            if (field.deprecated)
-              continue;
-
-            code += ", " + GetArgName(field) + ":" + GetArgType(field);
-          }
-
-          code += "):flatbuffers.Offset {\n";
-          code += "  " + struct_def.name + ".start" + Verbose(struct_def) + "(builder);\n";
-
-          for (auto it = struct_def.fields.vec.begin();
-               it != struct_def.fields.vec.end(); ++it) {
-              const auto &field = **it;
-              if (field.deprecated)
-                continue;
-
-              code += "  " + struct_def.name + ".add" + MakeCamel(field.name) +"(";
-              code += "builder, " + GetArgName(field) + ");\n";
-          }
-
-          code += "  return " + struct_def.name + ".end" + Verbose(struct_def) + "(builder);\n";
-          code += "}\n";
+        GenDocComment(code_ptr, paramDoc);
       }
+
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static create" + Verbose(struct_def);
+        code += "(builder:flatbuffers.Builder";
+      } else {
+        code += object_name + ".create" + Verbose(struct_def);
+        code += " = function(builder";
+      }
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        if (field.deprecated) 
+          continue;
+
+        if (lang_.language == IDLOptions::kTs) {
+          code += ", " + GetArgName(field) + ":" + GetArgType(field);
+        } else {
+          code += ", " + GetArgName(field);
+        }
+      }
+
+      if (lang_.language == IDLOptions::kTs) {
+        code += "):flatbuffers.Offset {\n";
+        code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
+                "(builder);\n";
+      } else {
+        code += ") {\n";
+        code += "  " + object_name + ".start" + Verbose(struct_def) +
+                "(builder);\n";
+      }
+
+      std::string methodPrefix =
+          lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        if (field.deprecated) 
+          continue;
+
+        code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
+        code += "builder, " + GetArgName(field) + ");\n";
+      }
+
+      code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
+              "(builder);\n";
+      code += "}\n";
+      if (lang_.language == IDLOptions::kJs)
+        code += "\n";
     }
 
     if (lang_.language == IDLOptions::kTs) {
-      if (!object_namespace.empty()) { code += "}\n"; }
+      if (!object_namespace.empty()) { 
+        code += "}\n"; 
+      }
       code += "}\n";
     }
   }
@@ -1305,10 +1347,10 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   static std::string GetArgName(const FieldDef &field) {
-      auto argname = MakeCamel(field.name, false);
-      if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
+    auto argname = MakeCamel(field.name, false);
+    if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
 
-      return argname;
+    return argname;
   }
 
   std::string Verbose(const StructDef &struct_def,
@@ -1320,13 +1362,13 @@ class JsTsGenerator : public BaseGenerator {
 }  // namespace jsts
 
 bool GenerateJSTS(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
+                  const std::string &file_name) {
   jsts::JsTsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
 std::string JSTSMakeRule(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+                         const std::string &file_name) {
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetJsLangParams(parser.opts.lang);
 

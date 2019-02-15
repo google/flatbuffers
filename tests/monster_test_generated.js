@@ -115,6 +115,15 @@ MyGame.InParentNamespace.endInParentNamespace = function(builder) {
 };
 
 /**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.InParentNamespace.createInParentNamespace = function(builder) {
+  MyGame.InParentNamespace.startInParentNamespace(builder);
+  return MyGame.InParentNamespace.endInParentNamespace(builder);
+}
+
+/**
  * @constructor
  */
 MyGame.Example2.Monster = function() {
@@ -164,6 +173,15 @@ MyGame.Example2.Monster.endMonster = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example2.Monster.createMonster = function(builder) {
+  MyGame.Example2.Monster.startMonster(builder);
+  return MyGame.Example2.Monster.endMonster(builder);
+}
 
 /**
  * @constructor
@@ -330,6 +348,17 @@ MyGame.Example.TestSimpleTableWithEnum.endTestSimpleTableWithEnum = function(bui
   var offset = builder.endObject();
   return offset;
 };
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {MyGame.Example.Color} color
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TestSimpleTableWithEnum.createTestSimpleTableWithEnum = function(builder, color) {
+  MyGame.Example.TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
+  MyGame.Example.TestSimpleTableWithEnum.addColor(builder, color);
+  return MyGame.Example.TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
+}
 
 /**
  * @constructor
@@ -717,6 +746,21 @@ MyGame.Example.Stat.endStat = function(builder) {
 };
 
 /**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} idOffset
+ * @param {flatbuffers.Long} val
+ * @param {number} count
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Stat.createStat = function(builder, idOffset, val, count) {
+  MyGame.Example.Stat.startStat(builder);
+  MyGame.Example.Stat.addId(builder, idOffset);
+  MyGame.Example.Stat.addVal(builder, val);
+  MyGame.Example.Stat.addCount(builder, count);
+  return MyGame.Example.Stat.endStat(builder);
+}
+
+/**
  * @constructor
  */
 MyGame.Example.Referrable = function() {
@@ -797,6 +841,17 @@ MyGame.Example.Referrable.endReferrable = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Long} id
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Referrable.createReferrable = function(builder, id) {
+  MyGame.Example.Referrable.startReferrable(builder);
+  MyGame.Example.Referrable.addId(builder, id);
+  return MyGame.Example.Referrable.endReferrable(builder);
+}
 
 /**
  * an example documentation comment: monster object
@@ -2504,6 +2559,109 @@ MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
 };
 
 /**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} posOffset
+ * @param {number} mana
+ * @param {number} hp
+ * @param {flatbuffers.Offset} nameOffset
+ * @param {flatbuffers.Offset} inventoryOffset
+ * @param {MyGame.Example.Color} color
+ * @param {MyGame.Example.Any} testType
+ * @param {flatbuffers.Offset} testOffset
+ * @param {flatbuffers.Offset} test4Offset
+ * @param {flatbuffers.Offset} testarrayofstringOffset
+ * @param {flatbuffers.Offset} testarrayoftablesOffset
+ * @param {flatbuffers.Offset} enemyOffset
+ * @param {flatbuffers.Offset} testnestedflatbufferOffset
+ * @param {flatbuffers.Offset} testemptyOffset
+ * @param {boolean} testbool
+ * @param {number} testhashs32Fnv1
+ * @param {number} testhashu32Fnv1
+ * @param {flatbuffers.Long} testhashs64Fnv1
+ * @param {flatbuffers.Long} testhashu64Fnv1
+ * @param {number} testhashs32Fnv1a
+ * @param {number} testhashu32Fnv1a
+ * @param {flatbuffers.Long} testhashs64Fnv1a
+ * @param {flatbuffers.Long} testhashu64Fnv1a
+ * @param {flatbuffers.Offset} testarrayofboolsOffset
+ * @param {number} testf
+ * @param {number} testf2
+ * @param {number} testf3
+ * @param {flatbuffers.Offset} testarrayofstring2Offset
+ * @param {flatbuffers.Offset} testarrayofsortedstructOffset
+ * @param {flatbuffers.Offset} flexOffset
+ * @param {flatbuffers.Offset} test5Offset
+ * @param {flatbuffers.Offset} vectorOfLongsOffset
+ * @param {flatbuffers.Offset} vectorOfDoublesOffset
+ * @param {flatbuffers.Offset} parentNamespaceTestOffset
+ * @param {flatbuffers.Offset} vectorOfReferrablesOffset
+ * @param {flatbuffers.Long} singleWeakReference
+ * @param {flatbuffers.Offset} vectorOfWeakReferencesOffset
+ * @param {flatbuffers.Offset} vectorOfStrongReferrablesOffset
+ * @param {flatbuffers.Long} coOwningReference
+ * @param {flatbuffers.Offset} vectorOfCoOwningReferencesOffset
+ * @param {flatbuffers.Long} nonOwningReference
+ * @param {flatbuffers.Offset} vectorOfNonOwningReferencesOffset
+ * @param {MyGame.Example.AnyUniqueAliases} anyUniqueType
+ * @param {flatbuffers.Offset} anyUniqueOffset
+ * @param {MyGame.Example.AnyAmbiguousAliases} anyAmbiguousType
+ * @param {flatbuffers.Offset} anyAmbiguousOffset
+ * @param {flatbuffers.Offset} vectorOfEnumsOffset
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset) {
+  MyGame.Example.Monster.startMonster(builder);
+  MyGame.Example.Monster.addPos(builder, posOffset);
+  MyGame.Example.Monster.addMana(builder, mana);
+  MyGame.Example.Monster.addHp(builder, hp);
+  MyGame.Example.Monster.addName(builder, nameOffset);
+  MyGame.Example.Monster.addInventory(builder, inventoryOffset);
+  MyGame.Example.Monster.addColor(builder, color);
+  MyGame.Example.Monster.addTestType(builder, testType);
+  MyGame.Example.Monster.addTest(builder, testOffset);
+  MyGame.Example.Monster.addTest4(builder, test4Offset);
+  MyGame.Example.Monster.addTestarrayofstring(builder, testarrayofstringOffset);
+  MyGame.Example.Monster.addTestarrayoftables(builder, testarrayoftablesOffset);
+  MyGame.Example.Monster.addEnemy(builder, enemyOffset);
+  MyGame.Example.Monster.addTestnestedflatbuffer(builder, testnestedflatbufferOffset);
+  MyGame.Example.Monster.addTestempty(builder, testemptyOffset);
+  MyGame.Example.Monster.addTestbool(builder, testbool);
+  MyGame.Example.Monster.addTesthashs32Fnv1(builder, testhashs32Fnv1);
+  MyGame.Example.Monster.addTesthashu32Fnv1(builder, testhashu32Fnv1);
+  MyGame.Example.Monster.addTesthashs64Fnv1(builder, testhashs64Fnv1);
+  MyGame.Example.Monster.addTesthashu64Fnv1(builder, testhashu64Fnv1);
+  MyGame.Example.Monster.addTesthashs32Fnv1a(builder, testhashs32Fnv1a);
+  MyGame.Example.Monster.addTesthashu32Fnv1a(builder, testhashu32Fnv1a);
+  MyGame.Example.Monster.addTesthashs64Fnv1a(builder, testhashs64Fnv1a);
+  MyGame.Example.Monster.addTesthashu64Fnv1a(builder, testhashu64Fnv1a);
+  MyGame.Example.Monster.addTestarrayofbools(builder, testarrayofboolsOffset);
+  MyGame.Example.Monster.addTestf(builder, testf);
+  MyGame.Example.Monster.addTestf2(builder, testf2);
+  MyGame.Example.Monster.addTestf3(builder, testf3);
+  MyGame.Example.Monster.addTestarrayofstring2(builder, testarrayofstring2Offset);
+  MyGame.Example.Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
+  MyGame.Example.Monster.addFlex(builder, flexOffset);
+  MyGame.Example.Monster.addTest5(builder, test5Offset);
+  MyGame.Example.Monster.addVectorOfLongs(builder, vectorOfLongsOffset);
+  MyGame.Example.Monster.addVectorOfDoubles(builder, vectorOfDoublesOffset);
+  MyGame.Example.Monster.addParentNamespaceTest(builder, parentNamespaceTestOffset);
+  MyGame.Example.Monster.addVectorOfReferrables(builder, vectorOfReferrablesOffset);
+  MyGame.Example.Monster.addSingleWeakReference(builder, singleWeakReference);
+  MyGame.Example.Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset);
+  MyGame.Example.Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset);
+  MyGame.Example.Monster.addCoOwningReference(builder, coOwningReference);
+  MyGame.Example.Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset);
+  MyGame.Example.Monster.addNonOwningReference(builder, nonOwningReference);
+  MyGame.Example.Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset);
+  MyGame.Example.Monster.addAnyUniqueType(builder, anyUniqueType);
+  MyGame.Example.Monster.addAnyUnique(builder, anyUniqueOffset);
+  MyGame.Example.Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
+  MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
+  MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  return MyGame.Example.Monster.endMonster(builder);
+}
+
+/**
  * @constructor
  */
 MyGame.Example.TypeAliases = function() {
@@ -2971,6 +3129,39 @@ MyGame.Example.TypeAliases.endTypeAliases = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} i8
+ * @param {number} u8
+ * @param {number} i16
+ * @param {number} u16
+ * @param {number} i32
+ * @param {number} u32
+ * @param {flatbuffers.Long} i64
+ * @param {flatbuffers.Long} u64
+ * @param {number} f32
+ * @param {number} f64
+ * @param {flatbuffers.Offset} v8Offset
+ * @param {flatbuffers.Offset} vf64Offset
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TypeAliases.createTypeAliases = function(builder, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64, v8Offset, vf64Offset) {
+  MyGame.Example.TypeAliases.startTypeAliases(builder);
+  MyGame.Example.TypeAliases.addI8(builder, i8);
+  MyGame.Example.TypeAliases.addU8(builder, u8);
+  MyGame.Example.TypeAliases.addI16(builder, i16);
+  MyGame.Example.TypeAliases.addU16(builder, u16);
+  MyGame.Example.TypeAliases.addI32(builder, i32);
+  MyGame.Example.TypeAliases.addU32(builder, u32);
+  MyGame.Example.TypeAliases.addI64(builder, i64);
+  MyGame.Example.TypeAliases.addU64(builder, u64);
+  MyGame.Example.TypeAliases.addF32(builder, f32);
+  MyGame.Example.TypeAliases.addF64(builder, f64);
+  MyGame.Example.TypeAliases.addV8(builder, v8Offset);
+  MyGame.Example.TypeAliases.addVf64(builder, vf64Offset);
+  return MyGame.Example.TypeAliases.endTypeAliases(builder);
+}
 
 // Exports for Node.js and RequireJS
 this.MyGame = MyGame;

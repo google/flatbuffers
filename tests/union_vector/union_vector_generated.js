@@ -96,6 +96,17 @@ Attacker.endAttacker = function(builder) {
 };
 
 /**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} swordAttackDamage
+ * @returns {flatbuffers.Offset}
+ */
+Attacker.createAttacker = function(builder, swordAttackDamage) {
+  Attacker.startAttacker(builder);
+  Attacker.addSwordAttackDamage(builder, swordAttackDamage);
+  return Attacker.endAttacker(builder);
+}
+
+/**
  * @constructor
  */
 function Rapunzel() {
@@ -428,6 +439,23 @@ Movie.endMovie = function(builder) {
 Movie.finishMovieBuffer = function(builder, offset) {
   builder.finish(offset, 'MOVI');
 };
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Character} mainCharacterType
+ * @param {flatbuffers.Offset} mainCharacterOffset
+ * @param {flatbuffers.Offset} charactersTypeOffset
+ * @param {flatbuffers.Offset} charactersOffset
+ * @returns {flatbuffers.Offset}
+ */
+Movie.createMovie = function(builder, mainCharacterType, mainCharacterOffset, charactersTypeOffset, charactersOffset) {
+  Movie.startMovie(builder);
+  Movie.addMainCharacterType(builder, mainCharacterType);
+  Movie.addMainCharacter(builder, mainCharacterOffset);
+  Movie.addCharactersType(builder, charactersTypeOffset);
+  Movie.addCharacters(builder, charactersOffset);
+  return Movie.endMovie(builder);
+}
 
 // Exports for Node.js and RequireJS
 this.Character = Character;
