@@ -1,0 +1,23 @@
+---
+buildifier: true
+platforms:
+  ubuntu1404:
+    build_targets:
+    - "..."
+    test_targets:
+    - "..."
+  ubuntu1604:
+    build_targets:
+    - "..."
+    test_targets:
+    - "..."
+  macos:
+    build_targets:
+    - "..."
+    test_targets:
+    - "..."
+  windows:
+    build_targets:
+    - "..."
+    test_targets:
+    - "..."
