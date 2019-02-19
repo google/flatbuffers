@@ -55,10 +55,15 @@ namespace FlatBuffers
     public abstract class ByteBufferAllocator : IDisposable
     {
 #if ENABLE_SPAN_T
-        public abstract Span<byte> GetSpan();
-        public abstract Span<byte> GetSpan(int start);
         public abstract Span<byte> GetSpan(int start, int length);
+        public abstract ReadOnlySpan<byte> GetReadOnlySpan(int start, int length);
         public abstract Memory<byte> GetMemory(int start, int length);
+        public abstract ReadOnlyMemory<byte> GetReadOnlyMemory(int start, int length);
+
+        public virtual Span<byte> GetSpan() { return GetSpan(0, Length); }
+        public virtual Span<byte> GetSpan(int start) { return GetSpan(start, Length - start); }
+        public virtual ReadOnlySpan<byte> GetReadOnlySpan() { return GetReadOnlySpan(0, Length); }
+        public virtual ReadOnlySpan<byte> GetReadOnlySpan(int start) { return GetReadOnlySpan(start, Length - start); }
 #else
         public byte[] Buffer
         {
@@ -112,22 +117,16 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
-        public override Span<byte> GetSpan()
-        {
-            return _buffer;
-        }
-        public override Span<byte> GetSpan(int start)
-        {
-            return _buffer.AsSpan(start);
-        }
-        public override Span<byte> GetSpan(int start, int length)
-        {
-            return _buffer.AsSpan(start, length);
-        }
-        public override Memory<byte> GetMemory(int start, int length)
-        {
-            return _buffer.AsMemory(start, length);
-        }
+        public override Span<byte> GetSpan() { return _buffer; }
+        public override Span<byte> GetSpan(int start) { return _buffer.AsSpan(start); }
+        public override Span<byte> GetSpan(int start, int length) { return _buffer.AsSpan(start, length); }
+
+        public override ReadOnlySpan<byte> GetReadOnlySpan() { return _buffer; }
+        public override ReadOnlySpan<byte> GetReadOnlySpan(int start) { return _buffer.AsSpan(start); }
+        public override ReadOnlySpan<byte> GetReadOnlySpan(int start, int length) { return _buffer.AsSpan(start, length); }
+
+        public override Memory<byte> GetMemory(int start, int length) { return _buffer.AsMemory(start, length); }
+        public override ReadOnlyMemory<byte> GetReadOnlyMemory(int start, int length) { return _buffer.AsMemory(start, length); }
 #endif
 
         private void InitBuffer()
@@ -270,7 +269,7 @@ namespace FlatBuffers
             {
                 AssertOffsetAndLength(pos, len);
                 T[] arr = new T[len];
-                var typed = MemoryMarshal.Cast<byte, T>(_buffer.GetSpan(pos));
+                var typed = MemoryMarshal.Cast<byte, T>(_buffer.GetReadOnlySpan(pos));
                 typed.Slice(0, arr.Length).CopyTo(arr);
                 return arr;
             }
@@ -297,12 +296,17 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
+        public ReadOnlyMemory<byte> ToReadOnlyMemory(int pos, int len)
+        {
+            return _buffer.GetReadOnlyMemory(pos, len);
+        }
+
         public Memory<byte> ToMemory(int pos, int len)
         {
             return _buffer.GetMemory(pos, len);
         }
 
-        public unsafe Span<byte> ToSpan(int pos, int len)
+        public Span<byte> ToSpan(int pos, int len)
         {
             return _buffer.GetSpan(pos, len);
         }
@@ -379,15 +383,15 @@ namespace FlatBuffers
             {
                 for (int i = 0; i < count; i++)
                 {
-                  r |= (ulong)_buffer.Buffer[offset + i] << i * 8;
+                    r |= (ulong)_buffer.Buffer[offset + i] << i * 8;
                 }
             }
             else
             {
-              for (int i = 0; i < count; i++)
-              {
-                r |= (ulong)_buffer.Buffer[offset + count - 1 - i] << i * 8;
-              }
+                for (int i = 0; i < count; i++)
+                {
+                    r |= (ulong)_buffer.Buffer[offset + count - 1 - i] << i * 8;
+                }
             }
             return r;
         }
@@ -404,19 +408,19 @@ namespace FlatBuffers
 
 #if ENABLE_SPAN_T
 
-        public unsafe void PutSbyte(int offset, sbyte value)
+        public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
             _buffer.GetSpan(offset)[0] = (byte)value;
         }
 
-        public unsafe void PutByte(int offset, byte value)
+        public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
             _buffer.GetSpan(offset)[0] = value;
         }
 
-        public unsafe void PutByte(int offset, byte value, int count)
+        public void PutByte(int offset, byte value, int count)
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
             Span<byte> span = _buffer.GetSpan(offset);
@@ -632,16 +636,16 @@ namespace FlatBuffers
 #endif // UNSAFE_BYTEBUFFER
 
 #if ENABLE_SPAN_T
-        public unsafe sbyte GetSbyte(int index)
+        public sbyte GetSbyte(int index)
         {
             AssertOffsetAndLength(index, sizeof(sbyte));
-            return (sbyte)_buffer.GetSpan(index)[0];
+            return (sbyte)_buffer.GetReadOnlySpan(index)[0];
         }
 
-        public unsafe byte Get(int index)
+        public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
-            return _buffer.GetSpan(index)[0];
+            return _buffer.GetReadOnlySpan(index)[0];
         }
 #else
         public sbyte GetSbyte(int index)
@@ -660,7 +664,7 @@ namespace FlatBuffers
 #if ENABLE_SPAN_T
         public unsafe string GetStringUTF8(int startPos, int len)
         {
-            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.GetSpan(startPos)))
+            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan(startPos)))
             {
                 return Encoding.UTF8.GetString(buffer, len);
             }
@@ -683,7 +687,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
             return BinaryPrimitives.ReadUInt16LittleEndian(span);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -704,7 +708,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(uint));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
             return BinaryPrimitives.ReadUInt32LittleEndian(span);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -725,7 +729,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
             return BinaryPrimitives.ReadUInt64LittleEndian(span);
 #else            
             fixed (byte* ptr = _buffer.Buffer)
@@ -741,7 +745,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(float));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetSpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan()))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -762,7 +766,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(double));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetSpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan()))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -802,7 +806,7 @@ namespace FlatBuffers
 
         public long GetLong(int index)
         {
-           return (long)ReadLittleEndian(index, sizeof(long));
+            return (long)ReadLittleEndian(index, sizeof(long));
         }
 
         public ulong GetUlong(int index)
@@ -882,7 +886,7 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
-        public unsafe int Put<T>(int offset, Span<T> x)
+        public int Put<T>(int offset, Span<T> x)
             where T : struct
         {
             if (x.Length == 0)
