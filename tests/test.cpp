@@ -1240,7 +1240,7 @@ void TestError_(const char *src, const char *error_substr, const char *file,
   TestError_(src, error_substr, false, file, line, func);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define TestError(src, ...) \
     TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
 #else
