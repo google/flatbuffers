@@ -428,7 +428,7 @@ CheckedError Parser::Next() {
 
         auto dot_lvl = (c == '.') ? 0 : 1;  // dot_lvl==0 <=> exactly one '.' seen
         if (!dot_lvl && !is_digit(*cursor_)) return NoError(); // enum?
-        // Parser accepts hexadecimal-ﬂoating-literal (see C++ 5.13.4).
+        // Parser accepts hexadecimal-floating-literal (see C++ 5.13.4).
         if (is_digit(c) || has_sign || !dot_lvl) {
           const auto start = cursor_ - 1;
           auto start_digits = !is_digit(c) ? cursor_ : cursor_ - 1;

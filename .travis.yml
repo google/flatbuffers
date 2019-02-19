@@ -89,6 +89,7 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
+      - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
       - cmake . 
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
