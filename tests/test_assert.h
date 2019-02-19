@@ -21,7 +21,7 @@
 #define TEST_NOTNULL(exp) TestEq(exp == NULL, false, #exp, __FILE__, __LINE__)
 #define TEST_EQ_STR(exp, val) TestEqStr(exp, val, #exp, __FILE__, __LINE__)
 
-#ifdef WIN32
+#ifdef _WIN32
   #define TEST_ASSERT_FUNC(exp) TestEq(exp, true, #exp, __FILE__, __LINE__, __FUNCTION__)
   #define TEST_EQ_FUNC(exp, val) TestEq(exp, val, #exp, __FILE__, __LINE__, __FUNCTION__)
 #else
