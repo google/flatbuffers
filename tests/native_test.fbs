@@ -1,0 +1,34 @@
+native_include "custom_native.h";
+
+struct Complex (native_type:"std::complex<double>")  {
+  i:double;
+  q:double;
+}
+
+struct Comp {
+  i:double;
+  q:double;
+}
+
+enum BundleSize: byte
+{
+  Size2,
+  Size3,
+  Size6
+}
+
+table Mat (native_type:"MyMat") {
+  rows: int;
+  data: [Complex];
+}
+
+table Foo {
+  enumData:BundleSize;
+  bitData:Mat;
+  iqData:[Complex]; // native_type feature
+  iqSample:Complex;
+  iqSample2:Comp;
+  newInt: int;
+}
+
+root_type Foo;

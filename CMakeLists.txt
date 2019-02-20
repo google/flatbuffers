@@ -69,6 +69,7 @@ set(FlatBuffers_Library_SRCS
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_cpp.cpp
+  src/idl_gen_cpp_native.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_general.cpp
   src/idl_gen_go.cpp
@@ -107,6 +108,18 @@ set(FlatBuffers_Tests_SRCS
   tests/test_builder.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+)
+
+set(FlatBuffers_Tests_Native_SRCS
+  ${FlatBuffers_Library_SRCS}
+  tests/test_native.cpp
+  tests/test_assert.h
+  tests/test_assert.cpp
+  tests/test_builder.h
+  tests/test_builder.cpp
+  tests/custom_native.h
+  # file generate by running compiler on tests/native_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_test_native.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -303,6 +316,22 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     DEPENDS flatc)
 endfunction()
 
+function(compile_flatbuffers_schema_to_cpp_native SRC_FBS)
+  get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
+  string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+  string(REGEX REPLACE "\\.fbs$" "_native.h" GEN_NATIVE_HEADER ${SRC_FBS})
+  add_custom_command(
+    OUTPUT ${GEN_HEADER} ${GEN_NATIVE_HEADER}
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c -N
+            --gen-compare -o "${SRC_FBS_DIR}"
+            --cpp-ptr-type inline --object-suffix \"\"
+            --reflect-names
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+    MAIN_DEPENDENCY ${SRC_FBS}
+    DEPENDS flatc)
+endfunction()
+
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
@@ -328,6 +357,9 @@ if(FLATBUFFERS_BUILD_TESTS)
       add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
     endif()
   endif()
+
+  compile_flatbuffers_schema_to_cpp_native(tests/native_test.fbs)
+  add_executable(flattestsnative ${FlatBuffers_Tests_Native_SRCS})
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
