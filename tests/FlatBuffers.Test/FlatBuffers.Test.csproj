@@ -43,7 +43,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(EnableSpan)' == 'true'">
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="System.Memory">
+      <Version>4.5.1</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
