@@ -92,10 +92,9 @@ test_script:
   - "cd FlatBuffers.Test"
   - "msbuild.exe /property:Configuration=Release;OutputPath=tempcs /verbosity:minimal FlatBuffers.Test.csproj"
   - "tempcs\\FlatBuffers.Test.exe"
-  # Run tests with ENABLE_SPAN_T
-  - "msbuild.exe /t:Restore /property:Configuration=Release;EnableSpan=true /verbosity:minimal FlatBuffers.Test.csproj"
-  - "msbuild.exe /property:Configuration=Release;EnableSpan=true;OutputPath=tempcsSpan /verbosity:minimal FlatBuffers.Test.csproj"
-  - "tempcsSpan\\FlatBuffers.Test.exe"
+  # Run tests with UNSAFE_BYTEBUFFER
+  - "msbuild.exe /property:Configuration=Release;UnsafeByteBuffer=true;OutputPath=tempcsUnsafe /verbosity:minimal FlatBuffers.Test.csproj"
+  - "tempcsUnsafe\\FlatBuffers.Test.exe"
   # TODO: add more languages.
   - "cd ..\\.."
 
