@@ -52,7 +52,7 @@ using System.Buffers.Binary;
 
 namespace FlatBuffers
 {
-    public abstract class ByteBufferAllocator : IDisposable
+    public abstract class ByteBufferAllocator
     {
 #if ENABLE_SPAN_T
         public abstract Span<byte> GetSpan(int start, int length);
@@ -76,16 +76,6 @@ namespace FlatBuffers
         {
             get;
             protected set;
-        }
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            Dispose(true);
-        }
-
-        public virtual void Dispose(bool disposing)
-        {
         }
 
         public abstract void GrowFront(int newSize);
@@ -141,7 +131,7 @@ namespace FlatBuffers
     /// <summary>
     /// Class to mimic Java's ByteBuffer which is used heavily in Flatbuffers.
     /// </summary>
-    public class ByteBuffer : IDisposable
+    public class ByteBuffer
     {
         private ByteBufferAllocator _buffer;
         private int _pos;  // Must track start of the buffer.
@@ -160,14 +150,6 @@ namespace FlatBuffers
         {
             _buffer = new ByteArrayAllocator(buffer);
             _pos = pos;
-        }
-
-        public void Dispose()
-        {
-            if (_buffer != null)
-            {
-                _buffer.Dispose();
-            }
         }
 
         public int Position

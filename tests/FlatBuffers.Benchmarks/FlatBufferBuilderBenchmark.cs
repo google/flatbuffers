@@ -44,7 +44,6 @@ namespace FlatBuffers.Benchmarks
                 var monster1 = Monster.EndMonster(fbb1);
                 Monster.FinishMonsterBuffer(fbb1, monster1);
                 var fbb1Bytes = fbb1.SizedByteArray();
-                fbb1.DataBuffer.Dispose();
                 fbb1 = null;
 
                 // Create a Monster which has the first buffer as a nested buffer
@@ -58,7 +57,6 @@ namespace FlatBuffers.Benchmarks
                 Monster.AddTestnestedflatbuffer(fbb2, nestedBuffer);
                 var monster = Monster.EndMonster(fbb2);
                 Monster.FinishMonsterBuffer(fbb2, monster);
-                fbb2.DataBuffer.Dispose();
             }
         }
 
@@ -81,7 +79,6 @@ namespace FlatBuffers.Benchmarks
 
                 var monster1 = Monster.EndMonster(builder);
                 Monster.FinishMonsterBuffer(builder, monster1);
-                builder.DataBuffer.Dispose();
             }
         }
 
