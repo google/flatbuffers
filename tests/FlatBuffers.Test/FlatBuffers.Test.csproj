@@ -31,11 +31,19 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableSpan)' == 'true'">
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER;ENABLE_SPAN_T</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableSpan)' == 'true'">
+    <PackageReference Include="System.Memory" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\net\FlatBuffers\ByteBuffer.cs">
