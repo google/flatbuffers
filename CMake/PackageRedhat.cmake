@@ -5,7 +5,7 @@ if (UNIX)
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FlatBuffers serialization library and schema compiler.")
     
     set(CPACK_RPM_PACKAGE_HOMEPAGE "https://github.com/google/flatbuffers")
-    set(CPACK_RPM_PACKAGE_MAINTAINER "Vitaly Isaev <vitalyisaev2@gmail.com>")
+    set(CPACK_RPM_PACKAGE_MAINTAINER "Marc Butler <mockbutler@gmail.com>")
 
     set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
     set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
