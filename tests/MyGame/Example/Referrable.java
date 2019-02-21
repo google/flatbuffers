@@ -7,7 +7,8 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")public final class Referrable extends Table {
+@SuppressWarnings("unused")
+public final class Referrable extends Table {
   public static Referrable getRootAsReferrable(ByteBuffer _bb) { return getRootAsReferrable(_bb, new Referrable()); }
   public static Referrable getRootAsReferrable(ByteBuffer _bb, Referrable obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
