@@ -7,7 +7,8 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")public final class TableInC extends Table {
+@SuppressWarnings("unused")
+public final class TableInC extends Table {
   public static TableInC getRootAsTableInC(ByteBuffer _bb) { return getRootAsTableInC(_bb, new TableInC()); }
   public static TableInC getRootAsTableInC(ByteBuffer _bb, TableInC obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }

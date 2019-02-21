@@ -73,6 +73,8 @@ class JavaTest {
 
         TestSizedInputStream();
 
+        TestVectorOfUnions();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -413,6 +415,40 @@ class JavaTest {
         TestEq(pos.x(), 55.0f);
         pos.mutateX(1.0f);
         TestEq(pos.x(), 1.0f);
+    }
+
+    static void TestVectorOfUnions() {
+        final FlatBufferBuilder fbb = new FlatBufferBuilder();
+
+        final int swordAttackDamage = 1;
+
+        final int[] characterVector = new int[] {
+            Attacker.createAttacker(fbb, swordAttackDamage),
+        };
+
+        final byte[] characterTypeVector = new byte[]{
+            Character.MuLan,
+        };
+
+        Movie.finishMovieBuffer(
+            fbb,
+            Movie.createMovie(
+                fbb,
+                (byte)0,
+                (byte)0,
+                Movie.createCharactersTypeVector(fbb, characterTypeVector),
+                Movie.createCharactersVector(fbb, characterVector)
+            )
+        );
+
+        final Movie movie = Movie.getRootAsMovie(fbb.dataBuffer());
+
+        TestEq(movie.charactersTypeLength(), characterTypeVector.length);
+        TestEq(movie.charactersLength(), characterVector.length);
+
+        TestEq(movie.charactersType(0), characterTypeVector[0]);
+
+        TestEq(((Attacker)movie.characters(new Attacker(), 0)).swordAttackDamage(), swordAttackDamage);
     }
 
     static <T> void TestEq(T a, T b) {
