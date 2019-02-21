@@ -55,15 +55,11 @@ namespace FlatBuffers
     public abstract class ByteBufferAllocator
     {
 #if ENABLE_SPAN_T
-        public abstract Span<byte> GetSpan(int start, int length);
-        public abstract ReadOnlySpan<byte> GetReadOnlySpan(int start, int length);
-        public abstract Memory<byte> GetMemory(int start, int length);
-        public abstract ReadOnlyMemory<byte> GetReadOnlyMemory(int start, int length);
+        public abstract Span<byte> Span { get; }
+        public abstract ReadOnlySpan<byte> ReadOnlySpan { get; }
+        public abstract Memory<byte> Memory { get; }
+        public abstract ReadOnlyMemory<byte> ReadOnlyMemory { get; }
 
-        public virtual Span<byte> GetSpan() { return GetSpan(0, Length); }
-        public virtual Span<byte> GetSpan(int start) { return GetSpan(start, Length - start); }
-        public virtual ReadOnlySpan<byte> GetReadOnlySpan() { return GetReadOnlySpan(0, Length); }
-        public virtual ReadOnlySpan<byte> GetReadOnlySpan(int start) { return GetReadOnlySpan(start, Length - start); }
 #else
         public byte[] Buffer
         {
@@ -81,7 +77,7 @@ namespace FlatBuffers
         public abstract void GrowFront(int newSize);
     }
 
-    public class ByteArrayAllocator : ByteBufferAllocator
+    public sealed class ByteArrayAllocator : ByteBufferAllocator
     {
         private byte[] _buffer;
 
@@ -107,16 +103,10 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
-        public override Span<byte> GetSpan() { return _buffer; }
-        public override Span<byte> GetSpan(int start) { return _buffer.AsSpan(start); }
-        public override Span<byte> GetSpan(int start, int length) { return _buffer.AsSpan(start, length); }
-
-        public override ReadOnlySpan<byte> GetReadOnlySpan() { return _buffer; }
-        public override ReadOnlySpan<byte> GetReadOnlySpan(int start) { return _buffer.AsSpan(start); }
-        public override ReadOnlySpan<byte> GetReadOnlySpan(int start, int length) { return _buffer.AsSpan(start, length); }
-
-        public override Memory<byte> GetMemory(int start, int length) { return _buffer.AsMemory(start, length); }
-        public override ReadOnlyMemory<byte> GetReadOnlyMemory(int start, int length) { return _buffer.AsMemory(start, length); }
+        public override Span<byte> Span => _buffer;
+        public override ReadOnlySpan<byte> ReadOnlySpan => _buffer;
+        public override Memory<byte> Memory => _buffer;
+        public override ReadOnlyMemory<byte> ReadOnlyMemory => _buffer;
 #endif
 
         private void InitBuffer()
@@ -247,14 +237,8 @@ namespace FlatBuffers
         public T[] ToArray<T>(int pos, int len)
             where T : struct
         {
-            unsafe
-            {
-                AssertOffsetAndLength(pos, len);
-                T[] arr = new T[len];
-                var typed = MemoryMarshal.Cast<byte, T>(_buffer.GetReadOnlySpan(pos));
-                typed.Slice(0, arr.Length).CopyTo(arr);
-                return arr;
-            }
+            AssertOffsetAndLength(pos, len);
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos)).Slice(0, len).ToArray();
         }
 #else
         public T[] ToArray<T>(int pos, int len)
@@ -280,17 +264,17 @@ namespace FlatBuffers
 #if ENABLE_SPAN_T
         public ReadOnlyMemory<byte> ToReadOnlyMemory(int pos, int len)
         {
-            return _buffer.GetReadOnlyMemory(pos, len);
+            return _buffer.ReadOnlyMemory.Slice(pos, len);
         }
 
         public Memory<byte> ToMemory(int pos, int len)
         {
-            return _buffer.GetMemory(pos, len);
+            return _buffer.Memory.Slice(pos, len);
         }
 
         public Span<byte> ToSpan(int pos, int len)
         {
-            return _buffer.GetSpan(pos, len);
+            return _buffer.Span.Slice(pos, len);
         }
 #else
         public ArraySegment<byte> ToArraySegment(int pos, int len)
@@ -393,20 +377,20 @@ namespace FlatBuffers
         public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
-            _buffer.GetSpan(offset)[0] = (byte)value;
+            _buffer.Span[offset] = (byte)value;
         }
 
         public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
-            _buffer.GetSpan(offset)[0] = value;
+            _buffer.Span[offset] = value;
         }
 
         public void PutByte(int offset, byte value, int count)
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
-            Span<byte> span = _buffer.GetSpan(offset);
-            for (var i = 0; i < count; ++i)
+            Span<byte> span = _buffer.Span.Slice(offset, count);
+            for (var i = 0; i < span.Length; ++i)
                 span[i] = value;
         }
 #else
@@ -442,7 +426,7 @@ namespace FlatBuffers
             AssertOffsetAndLength(offset, value.Length);
             fixed (char* s = value)
             {
-                fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.GetSpan()))
+                fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.Span))
                 {
                     Encoding.UTF8.GetBytes(s, value.Length, buffer + offset, Length - offset);
                 }
@@ -468,7 +452,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            Span<byte> span = _buffer.Span.Slice(offset);
             BinaryPrimitives.WriteUInt16LittleEndian(span, value);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -489,7 +473,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(uint));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            Span<byte> span = _buffer.Span.Slice(offset);
             BinaryPrimitives.WriteUInt32LittleEndian(span, value);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -510,7 +494,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
 #if ENABLE_SPAN_T
-            Span<byte> span = _buffer.GetSpan(offset);
+            Span<byte> span = _buffer.Span.Slice(offset);
             BinaryPrimitives.WriteUInt64LittleEndian(span, value);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -526,7 +510,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(float));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetSpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.Span))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -546,7 +530,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(double));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetSpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.Span))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -621,13 +605,13 @@ namespace FlatBuffers
         public sbyte GetSbyte(int index)
         {
             AssertOffsetAndLength(index, sizeof(sbyte));
-            return (sbyte)_buffer.GetReadOnlySpan(index)[0];
+            return (sbyte)_buffer.ReadOnlySpan[index];
         }
 
         public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
-            return _buffer.GetReadOnlySpan(index)[0];
+            return _buffer.ReadOnlySpan[index];
         }
 #else
         public sbyte GetSbyte(int index)
@@ -646,7 +630,7 @@ namespace FlatBuffers
 #if ENABLE_SPAN_T
         public unsafe string GetStringUTF8(int startPos, int len)
         {
-            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan(startPos)))
+            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan.Slice(startPos)))
             {
                 return Encoding.UTF8.GetString(buffer, len);
             }
@@ -669,7 +653,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
 #if ENABLE_SPAN_T
-            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
             return BinaryPrimitives.ReadUInt16LittleEndian(span);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -690,7 +674,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(uint));
 #if ENABLE_SPAN_T
-            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
             return BinaryPrimitives.ReadUInt32LittleEndian(span);
 #else
             fixed (byte* ptr = _buffer.Buffer)
@@ -711,7 +695,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
 #if ENABLE_SPAN_T
-            ReadOnlySpan<byte> span = _buffer.GetReadOnlySpan(offset);
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
             return BinaryPrimitives.ReadUInt64LittleEndian(span);
 #else            
             fixed (byte* ptr = _buffer.Buffer)
@@ -727,7 +711,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(float));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -748,7 +732,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(double));
 #if ENABLE_SPAN_T
-            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.GetReadOnlySpan()))
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan))
 #else
             fixed (byte* ptr = _buffer.Buffer)
 #endif
@@ -849,7 +833,7 @@ namespace FlatBuffers
                 AssertOffsetAndLength(offset, numBytes);
                 // if we are LE, just do a block copy
 #if ENABLE_SPAN_T
-                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.GetSpan(offset, numBytes));
+                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
 #else
                 Buffer.BlockCopy(x, 0, _buffer.Buffer, offset, numBytes);
 #endif
@@ -888,7 +872,7 @@ namespace FlatBuffers
                 offset -= numBytes;
                 AssertOffsetAndLength(offset, numBytes);
                 // if we are LE, just do a block copy
-                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.GetSpan(offset, numBytes));
+                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
             }
             else
             {
