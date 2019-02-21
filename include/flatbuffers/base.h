@@ -118,7 +118,8 @@
 #endif // __s390x__
 #if !defined(FLATBUFFERS_LITTLEENDIAN)
   #if defined(__GNUC__) || defined(__clang__)
-    #ifdef __BIG_ENDIAN__
+    #if (defined(__BIG_ENDIAN__) || \
+         (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
       #define FLATBUFFERS_LITTLEENDIAN 0
     #else
       #define FLATBUFFERS_LITTLEENDIAN 1
