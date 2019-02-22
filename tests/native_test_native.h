@@ -51,6 +51,7 @@ inline Foo UnPack(const ::Foo &_f, const flatbuffers::resolver_function_t *_reso
   { auto _e = _f.iqSample(); if (_e) _o.iqSample = Native::UnPack(*_e); };
   { auto _e = _f.iqSample2(); if (_e) _o.iqSample2 = *_e; };
   { auto _e = _f.newInt(); _o.newInt = _e; };
+  return _o;
 }
 
 inline flatbuffers::Offset<::Foo> Pack(flatbuffers::FlatBufferBuilder &_fbb, const Foo &_o, const flatbuffers::rehasher_function_t *_rehasher) {

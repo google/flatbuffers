@@ -926,6 +926,7 @@ class CppNativeGenerator : public BaseGenerator {
       auto postfix = " };";
       code_ += std::string(prefix) + check + statement + postfix;
     }
+    code_ += "  return _o;";
     code_ += "}";
     code_ += "";
 
