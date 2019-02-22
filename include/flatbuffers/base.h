@@ -363,6 +363,11 @@ void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 
+template<typename T> struct Offset;
+template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
+  *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
+}
+
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
 // memory).
