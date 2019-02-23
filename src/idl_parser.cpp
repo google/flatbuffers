@@ -374,7 +374,7 @@ CheckedError Parser::Next() {
                   "illegal Unicode sequence (unpaired high surrogate)");
             }
             // reset if non-printable
-            attr_is_trivial_ascii_string_ &= check_in_range(*cursor_, ' ', '~');
+            attr_is_trivial_ascii_string_ &= check_ascii_range(*cursor_, ' ', '~');
 
             attribute_ += *cursor_++;
           }
@@ -476,7 +476,7 @@ CheckedError Parser::Next() {
         }
         std::string ch;
         ch = c;
-        if (false == check_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
+        if (false == check_ascii_range(c, ' ', '~')) ch = "code: " + NumToString(c);
         return Error("illegal character: " + ch);
     }
   }
