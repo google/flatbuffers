@@ -9,10 +9,11 @@ import com.google.flatbuffers.*;
 public final class Attacker extends Table {
   public static Attacker getRootAsAttacker(ByteBuffer _bb) { return getRootAsAttacker(_bb, new Attacker()); }
   public static Attacker getRootAsAttacker(ByteBuffer _bb, Attacker obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; vtable_start = bb_pos - bb.getInt(bb_pos); vtable_size = bb.getShort(vtable_start); }
   public Attacker __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int swordAttackDamage() { int o = __offset(4); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateSwordAttackDamage(int sword_attack_damage) { int o = __offset(4); if (o != 0) { bb.putInt(o + bb_pos, sword_attack_damage); return true; } else { return false; } }
 
   public static int createAttacker(FlatBufferBuilder builder,
       int sword_attack_damage) {

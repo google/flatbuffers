@@ -17,7 +17,7 @@ if "%1"=="-b" set buildtype=%2
 
 ..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --rust --ts --php --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --cpp --java --csharp --go --binary --python --lobster --lua --js --rust --ts --php --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs || goto FAIL
 
