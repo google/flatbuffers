@@ -89,8 +89,7 @@ public class Table {
    */
   protected String __string(int offset) {
     offset += bb.getInt(offset);
-    ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
-    int length = src.getInt(offset);
+    int length = bb.getInt(offset);
     return utf8.decodeUtf8(bb, offset + SIZEOF_INT, length);
   }
 
