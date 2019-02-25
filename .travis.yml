@@ -91,10 +91,10 @@ matrix:
       script:
       - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
-      - cmake . 
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+      - cmake .
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
@@ -109,13 +109,13 @@ matrix:
         matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
-      
+
       script:
       - bash grpc/build_grpc.sh
       - cmake .
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
@@ -169,6 +169,8 @@ matrix:
         - gcc
 
       before_install:
+        # Output something every 10 minutes or Travis kills the job
+        - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
         - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
         - export ANDROID_NDK_HOME=$HOME/android-ndk-root
         # Setup environment for Linux build which is required to build the sample.
@@ -180,3 +182,5 @@ matrix:
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
       script:
         - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
+        # Kill the sleep loop
+        - kill %1
