@@ -79,7 +79,7 @@ class JsTsGenerator : public BaseGenerator {
   JsTsGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
-        lang_(GetJsLangParams(parser_.opts.lang)){};
+        lang_(GetJsLangParams(parser_.opts.lang)) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -127,8 +127,8 @@ class JsTsGenerator : public BaseGenerator {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
-      if (basename != file_name_) { 
-        code += GenPrefixedImport(file, basename); 
+      if (basename != file_name_) {
+        code += GenPrefixedImport(file, basename);
       }
     }
   }
@@ -310,8 +310,8 @@ class JsTsGenerator : public BaseGenerator {
       }
       default: { result += " {" + type_name + "}"; }
     }
-    if (!arg_name.empty()) { 
-      result += " " + arg_name; 
+    if (!arg_name.empty()) {
+      result += " " + arg_name;
     }
     if (include_newline) {
       result += "\n";
@@ -1271,7 +1271,7 @@ class JsTsGenerator : public BaseGenerator {
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
-          if (field.deprecated) 
+          if (field.deprecated)
             continue;
           paramDoc +=
               GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
@@ -1292,7 +1292,7 @@ class JsTsGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated) 
+        if (field.deprecated)
           continue;
 
         if (lang_.language == IDLOptions::kTs) {
@@ -1317,7 +1317,7 @@ class JsTsGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated) 
+        if (field.deprecated)
           continue;
 
         code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
@@ -1332,8 +1332,8 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     if (lang_.language == IDLOptions::kTs) {
-      if (!object_namespace.empty()) { 
-        code += "}\n"; 
+      if (!object_namespace.empty()) {
+        code += "}\n";
       }
       code += "}\n";
     }

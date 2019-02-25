@@ -2169,7 +2169,7 @@ class CppGenerator : public BaseGenerator {
         break;
       }
     }
-  };
+  }
 
   std::string GenUnpackFieldStatement(const FieldDef &field,
                                       const FieldDef *union_field) {

@@ -132,7 +132,7 @@ extern void GenComment(const std::vector<std::string> &dc,
 
 class FloatConstantGenerator {
  public:
-  virtual ~FloatConstantGenerator(){};
+  virtual ~FloatConstantGenerator() {}
   std::string GenFloatConstant(const FieldDef &field) const;
 
  private:

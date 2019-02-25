@@ -113,12 +113,12 @@ class FlatBufService : public grpc_generator::Service {
 
   int method_count() const {
     return static_cast<int>(service_->calls.vec.size());
-  };
+  }
 
   std::unique_ptr<const grpc_generator::Method> method(int i) const {
     return std::unique_ptr<const grpc_generator::Method>(
         new FlatBufMethod(service_->calls.vec[i]));
-  };
+  }
 
  private:
   const ServiceDef *service_;
@@ -235,7 +235,7 @@ class FlatBufFile : public grpc_generator::File {
 
   int service_count() const {
     return static_cast<int>(parser_.services_.vec.size());
-  };
+  }
 
   std::unique_ptr<const grpc_generator::Service> service(int i) const {
     return std::unique_ptr<const grpc_generator::Service>(
