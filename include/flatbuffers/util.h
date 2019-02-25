@@ -130,6 +130,9 @@ template<> inline std::string NumToString<signed char>(signed char t) {
 template<> inline std::string NumToString<unsigned char>(unsigned char t) {
   return NumToString(static_cast<int>(t));
 }
+template<> inline std::string NumToString<char>(char t) {
+  return NumToString(static_cast<int>(t));
+}
 #if defined(FLATBUFFERS_CPP98_STL)
 template<> inline std::string NumToString<long long>(long long t) {
   char buf[21];  // (log((1 << 63) - 1) / log(10)) + 2
