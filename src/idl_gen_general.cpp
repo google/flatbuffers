@@ -874,7 +874,15 @@ class GeneralGenerator : public BaseGenerator {
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ " + lang_.accessor_prefix + "bb_pos = _i; ";
-    code += lang_.accessor_prefix + "bb = _bb; }\n";
+    code += lang_.accessor_prefix + "bb = _bb; ";
+    if (!struct_def.fixed && lang_.language == IDLOptions::kJava) {
+      code += lang_.accessor_prefix + "vtable_start = " + lang_.accessor_prefix + "bb_pos - ";
+      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etInt(";
+      code += lang_.accessor_prefix + "bb_pos); " + lang_.accessor_prefix + "vtable_size = ";
+      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etShort(";
+      code += lang_.accessor_prefix + "vtable_start); ";
+    }
+    code += "}\n";
     code +=
         "  public " + struct_def.name + " __assign(int _i, ByteBuffer _bb) ";
     code += "{ __init(_i, _bb); return this; }\n\n";
