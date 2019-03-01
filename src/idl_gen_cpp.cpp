@@ -578,6 +578,12 @@ class CppGenerator : public BaseGenerator {
     return ret;
   }
 
+  bool FlexibleStringConstructor(const FieldDef *field) {
+    auto attr = field ? (field->attributes.Lookup("cpp_str_flex_ctor") != nullptr) : false;
+    auto ret = attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
+    return (ret && NativeString(field) != "std::string"); // Only for custom string types.
+  }
+
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
@@ -2138,7 +2144,11 @@ class CppGenerator : public BaseGenerator {
                            bool invector, const FieldDef &afield) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
-        return val + "->str()";
+        if (FlexibleStringConstructor(&afield)) {
+          return NativeString(&afield) + "(" + val + "->c_str(), " + val + "->size())";
+        } else {
+          return val + "->str()";
+        }
       }
       case BASE_TYPE_STRUCT: {
         const auto name = WrapInNameSpace(*type.struct_def);
@@ -2169,7 +2179,7 @@ class CppGenerator : public BaseGenerator {
         break;
       }
     }
-  };
+  }
 
   std::string GenUnpackFieldStatement(const FieldDef &field,
                                       const FieldDef *union_field) {

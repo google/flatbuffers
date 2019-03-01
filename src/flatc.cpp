@@ -100,14 +100,18 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-compare      Generate operator== for object-based API types.\n"
     "  --gen-nullable     Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
     "  --gen-generated    Add @Generated annotation for Java\n"
-    "  --gen-all          Generate not just code for the current schema files,\n" 
+    "  --gen-all          Generate not just code for the current schema files,\n"
     "                     but for all files it includes as well.\n"
     "                     If the language uses a single file for output (by default\n"
     "                     the case for C++ and JS), all code will end up in this one\n"
     "                     file.\n"
     "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr).\n"
     "  --cpp-str-type T   Set object API string type (default std::string).\n"
-    "                     T::c_str() and T::length() must be supported.\n"
+    "                     T::c_str(), T::length() and T::empty() must be supported.\n"
+    "                     The custom type also needs to be constructible from std::string\n"
+    "                     (see the --cpp-str-flex-ctor option to change this behavior).\n"
+    "  --cpp-str-flex-ctor Don't construct custom string types by passing std::string\n"
+    "                     from Flatbuffers, but (char* + length).\n"
     "  --object-prefix    Customise class prefix for C++ object-based API.\n"
     "  --object-suffix    Customise class suffix for C++ object-based API.\n"
     "                     Default value is \"T\".\n"
@@ -247,6 +251,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--cpp-str-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_string_type = argv[argi];
+      } else if (arg == "--cpp-str-flex-ctor") {
+        opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--gen-generated") {
