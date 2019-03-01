@@ -2341,7 +2341,13 @@ class CppGenerator : public BaseGenerator {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
           case BASE_TYPE_STRING: {
-            code += "_fbb.CreateVectorOfStrings(" + value + ")";
+            // Use by-function serialization to emulate CreateVectorOfStrings();
+            // this works also with non-std strings.
+            code += "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> ";
+            code += "(" + value + ".size(), ";
+            code += "[](size_t i, _VectorArgs *__va) { ";
+            code += "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
+            code += " }, &_va )";
             break;
           }
           case BASE_TYPE_STRUCT: {
