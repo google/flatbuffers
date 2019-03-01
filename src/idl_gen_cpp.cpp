@@ -43,103 +43,104 @@ class CppGenerator : public BaseGenerator {
         float_const_gen_("std::numeric_limits<double>::",
                          "std::numeric_limits<float>::", "quiet_NaN()",
                          "infinity()") {
-    static const char * const keywords[] = {
-                               "alignas",
-                               "alignof",
-                               "and",
-                               "and_eq",
-                               "asm",
-                               "atomic_cancel",
-                               "atomic_commit",
-                               "atomic_noexcept",
-                               "auto",
-                               "bitand",
-                               "bitor",
-                               "bool",
-                               "break",
-                               "case",
-                               "catch",
-                               "char",
-                               "char16_t",
-                               "char32_t",
-                               "class",
-                               "compl",
-                               "concept",
-                               "const",
-                               "constexpr",
-                               "const_cast",
-                               "continue",
-                               "co_await",
-                               "co_return",
-                               "co_yield",
-                               "decltype",
-                               "default",
-                               "delete",
-                               "do",
-                               "double",
-                               "dynamic_cast",
-                               "else",
-                               "enum",
-                               "explicit",
-                               "export",
-                               "extern",
-                               "false",
-                               "float",
-                               "for",
-                               "friend",
-                               "goto",
-                               "if",
-                               "import",
-                               "inline",
-                               "int",
-                               "long",
-                               "module",
-                               "mutable",
-                               "namespace",
-                               "new",
-                               "noexcept",
-                               "not",
-                               "not_eq",
-                               "nullptr",
-                               "operator",
-                               "or",
-                               "or_eq",
-                               "private",
-                               "protected",
-                               "public",
-                               "register",
-                               "reinterpret_cast",
-                               "requires",
-                               "return",
-                               "short",
-                               "signed",
-                               "sizeof",
-                               "static",
-                               "static_assert",
-                               "static_cast",
-                               "struct",
-                               "switch",
-                               "synchronized",
-                               "template",
-                               "this",
-                               "thread_local",
-                               "throw",
-                               "true",
-                               "try",
-                               "typedef",
-                               "typeid",
-                               "typename",
-                               "union",
-                               "unsigned",
-                               "using",
-                               "virtual",
-                               "void",
-                               "volatile",
-                               "wchar_t",
-                               "while",
-                               "xor",
-                               "xor_eq",
-                               nullptr };
+    static const char *const keywords[] = {
+      "alignas",
+      "alignof",
+      "and",
+      "and_eq",
+      "asm",
+      "atomic_cancel",
+      "atomic_commit",
+      "atomic_noexcept",
+      "auto",
+      "bitand",
+      "bitor",
+      "bool",
+      "break",
+      "case",
+      "catch",
+      "char",
+      "char16_t",
+      "char32_t",
+      "class",
+      "compl",
+      "concept",
+      "const",
+      "constexpr",
+      "const_cast",
+      "continue",
+      "co_await",
+      "co_return",
+      "co_yield",
+      "decltype",
+      "default",
+      "delete",
+      "do",
+      "double",
+      "dynamic_cast",
+      "else",
+      "enum",
+      "explicit",
+      "export",
+      "extern",
+      "false",
+      "float",
+      "for",
+      "friend",
+      "goto",
+      "if",
+      "import",
+      "inline",
+      "int",
+      "long",
+      "module",
+      "mutable",
+      "namespace",
+      "new",
+      "noexcept",
+      "not",
+      "not_eq",
+      "nullptr",
+      "operator",
+      "or",
+      "or_eq",
+      "private",
+      "protected",
+      "public",
+      "register",
+      "reinterpret_cast",
+      "requires",
+      "return",
+      "short",
+      "signed",
+      "sizeof",
+      "static",
+      "static_assert",
+      "static_cast",
+      "struct",
+      "switch",
+      "synchronized",
+      "template",
+      "this",
+      "thread_local",
+      "throw",
+      "true",
+      "try",
+      "typedef",
+      "typeid",
+      "typename",
+      "union",
+      "unsigned",
+      "using",
+      "virtual",
+      "void",
+      "volatile",
+      "wchar_t",
+      "while",
+      "xor",
+      "xor_eq",
+      nullptr,
+    };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 
@@ -242,7 +243,7 @@ class CppGenerator : public BaseGenerator {
     // Generate forward declarations for all equal operators
     if (parser_.opts.generate_object_based_api && parser_.opts.gen_compare) {
       for (auto it = parser_.structs_.vec.begin();
-          it != parser_.structs_.vec.end(); ++it) {
+           it != parser_.structs_.vec.end(); ++it) {
         const auto &struct_def = **it;
         if (!struct_def.generated) {
           SetNameSpace(struct_def.defined_namespace);
@@ -494,8 +495,8 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
-    static const char * const ctypename[] = {
-    // clang-format off
+    static const char *const ctypename[] = {
+// clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
                            RTYPE) \
             #CTYPE,
@@ -581,8 +582,7 @@ class CppGenerator : public BaseGenerator {
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
     if (ptr_type != "naked") {
-      return (ptr_type != "default_ptr_type" ? ptr_type :
-              parser_.opts.cpp_object_api_pointer_type) + "<" + type + ">";
+      return (ptr_type != "default_ptr_type" ? ptr_type : parser_.opts.cpp_object_api_pointer_type) + "<" + type + ">";
     } else if (is_constructor) {
       return "";
     } else {
@@ -1128,13 +1128,13 @@ class CppGenerator : public BaseGenerator {
         code_ += "  switch (lhs.type) {";
 
         for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-           ++it) {
+             ++it) {
           const auto &ev = **it;
           code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
           if (ev.value) {
             const auto native_type =
                 NativeName(GetUnionElement(ev, true, true, true),
-                          ev.union_type.struct_def, parser_.opts);
+                           ev.union_type.struct_def, parser_.opts);
             code_.SetValue("NATIVE_TYPE", native_type);
             code_ += "    case {{NATIVE_ID}}: {";
             code_ += "      return *(reinterpret_cast<const {{NATIVE_TYPE}} *>(lhs.value)) ==";
@@ -1395,7 +1395,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GenDefaultConstant(const FieldDef &field) {
-    if(IsFloat(field.value.type.base_type))
+    if (IsFloat(field.value.type.base_type))
       return float_const_gen_.GenFloatConstant(field);
     else
       return field.value.constant;
@@ -1461,8 +1461,8 @@ class CppGenerator : public BaseGenerator {
       auto cpp_type = field.attributes.Lookup("cpp_type");
       auto full_type =
           (cpp_type ? (field.value.type.base_type == BASE_TYPE_VECTOR
-                      ? "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + "> "
-                      : GenTypeNativePtr(cpp_type->constant, &field, false))
+                           ? "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + "> "
+                           : GenTypeNativePtr(cpp_type->constant, &field, false))
                     : type + " ");
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
@@ -1520,9 +1520,9 @@ class CppGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
-        field.value.type.base_type != BASE_TYPE_UTYPE &&
-        (field.value.type.base_type != BASE_TYPE_VECTOR ||
-         field.value.type.element != BASE_TYPE_UTYPE)) {
+          field.value.type.base_type != BASE_TYPE_UTYPE &&
+          (field.value.type.base_type != BASE_TYPE_VECTOR ||
+           field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) {
           compare_op += " &&\n      ";
         }
@@ -1705,7 +1705,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
-
 
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
@@ -2064,8 +2063,9 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a CreateXDirect function with vector types as parameters
     if (has_string_or_vector_fields) {
-      code_ += "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
-               "Create{{STRUCT_NAME}}Direct(";
+      code_ +=
+          "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
+          "Create{{STRUCT_NAME}}Direct(";
       code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
@@ -2223,7 +2223,7 @@ class CppGenerator : public BaseGenerator {
         } else {
           code += "_o->" + name + "[_i]" + access + " = ";
           code +=
-            GenUnpackVal(field.value.type.VectorType(), indexing, true, field);
+              GenUnpackVal(field.value.type.VectorType(), indexing, true, field);
         }
         code += "; } }";
         break;
@@ -2293,7 +2293,6 @@ class CppGenerator : public BaseGenerator {
           "static_cast<" +
           type + ">((*_rehasher)(" + value + GenPtrGet(field) + ")) : 0";
     }
-
 
     std::string code;
     switch (field.value.type.base_type) {
