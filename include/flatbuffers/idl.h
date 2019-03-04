@@ -719,7 +719,9 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
-                                          const StructDef *parent_struct_def);
+                                          const StructDef *parent_struct_def,
+                                          uoffset_t count,
+                                          bool inside_vector = false);
   template<typename F>
   FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
                                                  const StructDef *struct_def,
@@ -728,8 +730,9 @@ class Parser : public ParserState {
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   template<typename F>
-  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t &count, F body);
-  FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue);
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(uoffset_t &count, F body);
+  FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue,
+                                        FieldDef *field, size_t fieldn);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                                   size_t fieldn,
                                                   const StructDef *parent_struct_def);
@@ -775,7 +778,7 @@ class Parser : public ParserState {
                                        const char *suffix,
                                        BaseType baseType);
 
-  bool SupportsVectorOfUnions() const;
+  bool SupportsAdvancedUnionFeatures() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
