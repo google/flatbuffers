@@ -1216,8 +1216,15 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
 
     // Parse JSON substring into new flatbuffer builder using nested_parser
-    if (!nested_parser.Parse(substring.c_str(), nullptr, nullptr)) {
-      ECHECK(Error(nested_parser.error_));
+    bool ok = nested_parser.Parse(substring.c_str(), nullptr, nullptr);
+
+    // Clean nested_parser to avoid deleting the elements in
+    // the SymbolTables on destruction
+    nested_parser.enums_.dict.clear();
+    nested_parser.enums_.vec.clear();
+
+    if (!ok) {
+      ECHECK(Error(nested_parser.error_)); 
     }
     // Force alignment for nested flatbuffer
     builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
@@ -1226,11 +1233,6 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
     val.constant = NumToString(off.o);
-
-    // Clean nested_parser before destruction to avoid deleting the elements in
-    // the SymbolTables
-    nested_parser.enums_.dict.clear();
-    nested_parser.enums_.vec.clear();
   }
   return NoError();
 }
