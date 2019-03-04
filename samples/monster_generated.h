@@ -166,7 +166,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
 
  public:
   Vec3() {
-    memset(this, 0, sizeof(Vec3));
+    memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
   Vec3(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
