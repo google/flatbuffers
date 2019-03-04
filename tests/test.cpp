@@ -2017,17 +2017,20 @@ void InvalidNestedFlatbufferTest() {
 }
 
 void UnionVectorTest() {
-  // load FlatBuffer fbs schema.
-  // TODO: load a JSON file with such a vector when JSON support is ready.
-  std::string schemafile;
+  // load FlatBuffer fbs schema and json.
+  std::string schemafile, jsonfile;
   TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "union_vector/union_vector.fbs").c_str(), false,
-              &schemafile),
+              (test_data_path + "union_vector/union_vector.fbs").c_str(),
+              false, &schemafile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "union_vector/union_vector.json").c_str(),
+              false, &jsonfile),
           true);
 
   // parse schema.
   flatbuffers::IDLOptions idl_opts;
-  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kCpp;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
   flatbuffers::Parser parser(idl_opts);
   TEST_EQ(parser.Parse(schemafile.c_str()), true);
 
@@ -2093,6 +2096,13 @@ void UnionVectorTest() {
 
   TestMovie(flat_movie);
 
+  // Also test the JSON we loaded above.
+  TEST_EQ(parser.Parse(jsonfile.c_str()), true);
+  auto jbuf = parser.builder_.GetBufferPointer();
+  flatbuffers::Verifier jverifier(jbuf, parser.builder_.GetSize());
+  TEST_EQ(VerifyMovieBuffer(jverifier), true);
+  TestMovie(GetMovie(jbuf));
+
   auto movie_object = flat_movie->UnPack();
   TEST_EQ(movie_object->main_character.AsRapunzel()->hair_length(), 6);
   TEST_EQ(movie_object->characters[0].AsBelle()->books_read(), 7);
@@ -2150,6 +2160,13 @@ void UnionVectorTest() {
       "    \"Unused\"\n"
       "  ]\n"
       "}");
+
+  flatbuffers::Parser parser2(idl_opts);
+  TEST_EQ(parser2.Parse("struct Bool { b:bool; }"
+                        "union Any { Bool }"
+                        "table Root { a:Any; }"
+                        "root_type Root;"), true);
+  TEST_EQ(parser2.Parse("{a_type:Bool,a:{b:true}}"), true);
 }
 
 void ConformTest() {
