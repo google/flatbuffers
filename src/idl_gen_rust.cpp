@@ -1144,8 +1144,6 @@ class RustGenerator : public BaseGenerator {
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
-    GenComment(struct_def.doc_comment);
-
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("OFFSET_TYPELABEL", Name(struct_def) + "Offset");
     code_.SetValue("STRUCT_NAME_SNAKECASE", MakeSnakeCase(Name(struct_def)));
@@ -1155,6 +1153,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "pub enum {{OFFSET_TYPELABEL}} {}";
     code_ += "#[derive(Copy, Clone, Debug, PartialEq)]";
     code_ += "";
+
+    GenComment(struct_def.doc_comment);
+
     code_ += "pub struct {{STRUCT_NAME}}<'a> {";
     code_ += "  pub _tab: flatbuffers::Table<'a>,";
     code_ += "}";
