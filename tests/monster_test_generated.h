@@ -2489,7 +2489,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _test_type = _o->test.type;
   auto _test = _o->test.Pack(_fbb);
   auto _test4 = _o->test4.size() ? _fbb.CreateVectorOfStructs(_o->test4) : 0;
-  auto _testarrayofstring = _o->testarrayofstring.size() ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> (_o->testarrayofstring.size(), [](size_t i, _VectorArgs *__va) { return __va->__fbb->CreateString(__va->__o->testarrayofstring[i]); }, &_va ) : 0;
+  auto _testarrayofstring = _o->testarrayofstring.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring) : 0;
   auto _testarrayoftables = _o->testarrayoftables.size() ? _fbb.CreateVector<flatbuffers::Offset<Monster>> (_o->testarrayoftables.size(), [](size_t i, _VectorArgs *__va) { return CreateMonster(*__va->__fbb, __va->__o->testarrayoftables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _enemy = _o->enemy ? CreateMonster(_fbb, _o->enemy.get(), _rehasher) : 0;
   auto _testnestedflatbuffer = _o->testnestedflatbuffer.size() ? _fbb.CreateVector(_o->testnestedflatbuffer) : 0;
@@ -2507,7 +2507,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _testf = _o->testf;
   auto _testf2 = _o->testf2;
   auto _testf3 = _o->testf3;
-  auto _testarrayofstring2 = _o->testarrayofstring2.size() ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> (_o->testarrayofstring2.size(), [](size_t i, _VectorArgs *__va) { return __va->__fbb->CreateString(__va->__o->testarrayofstring2[i]); }, &_va ) : 0;
+  auto _testarrayofstring2 = _o->testarrayofstring2.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring2) : 0;
   auto _testarrayofsortedstruct = _o->testarrayofsortedstruct.size() ? _fbb.CreateVectorOfStructs(_o->testarrayofsortedstruct) : 0;
   auto _flex = _o->flex.size() ? _fbb.CreateVector(_o->flex) : 0;
   auto _test5 = _o->test5.size() ? _fbb.CreateVectorOfStructs(_o->test5) : 0;
