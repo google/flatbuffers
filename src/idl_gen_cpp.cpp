@@ -231,10 +231,9 @@ class CppGenerator : public BaseGenerator {
         SetNameSpace(struct_def.defined_namespace);
         code_ += "struct " + Name(struct_def) + ";";
         if (parser_.opts.generate_object_based_api) {
-          auto nativeName = NativeName(Name(struct_def), &struct_def, parser_.opts);
-          if (!struct_def.fixed) {
-            code_ += "struct " + nativeName + ";";
-          }
+          auto nativeName =
+              NativeName(Name(struct_def), &struct_def, parser_.opts);
+          if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
         }
         code_ += "";
       }
@@ -247,8 +246,10 @@ class CppGenerator : public BaseGenerator {
         const auto &struct_def = **it;
         if (!struct_def.generated) {
           SetNameSpace(struct_def.defined_namespace);
-          auto nativeName = NativeName(Name(struct_def), &struct_def, parser_.opts);
-          code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
+          auto nativeName =
+              NativeName(Name(struct_def), &struct_def, parser_.opts);
+          code_ += "bool operator==(const " + nativeName + " &lhs, const " +
+                   nativeName + " &rhs);";
         }
       }
       code_ += "";
@@ -358,7 +359,8 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline \\";
       code_ +=
-          "const {{CPP_NAME}} *{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
+          "const {{CPP_NAME}} "
+          "*{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
           "*buf) {";
       code_ += "  return flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
       code_ += "}";
@@ -403,7 +405,8 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
       code_ += "    flatbuffers::Verifier &verifier) {";
-      code_ += "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
+      code_ +=
+          "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
@@ -496,13 +499,13 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     static const char *const ctypename[] = {
-    // clang-format off
+// clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
                            RTYPE) \
             #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
-    // clang-format on
+      // clang-format on
     };
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
@@ -579,16 +582,23 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool FlexibleStringConstructor(const FieldDef *field) {
-    auto attr = field ? (field->attributes.Lookup("cpp_str_flex_ctor") != nullptr) : false;
-    auto ret = attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
-    return ret && NativeString(field) != "std::string"; // Only for custom string types.
+    auto attr = field
+                    ? (field->attributes.Lookup("cpp_str_flex_ctor") != nullptr)
+                    : false;
+    auto ret =
+        attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
+    return ret && NativeString(field) !=
+                      "std::string";  // Only for custom string types.
   }
 
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
     if (ptr_type != "naked") {
-      return (ptr_type != "default_ptr_type" ? ptr_type : parser_.opts.cpp_object_api_pointer_type) + "<" + type + ">";
+      return (ptr_type != "default_ptr_type"
+                  ? ptr_type
+                  : parser_.opts.cpp_object_api_pointer_type) +
+             "<" + type + ">";
     } else if (is_constructor) {
       return "";
     } else {
@@ -598,8 +608,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string GenPtrGet(const FieldDef &field) {
     auto cpp_ptr_type_get = field.attributes.Lookup("cpp_ptr_type_get");
-    if (cpp_ptr_type_get)
-      return cpp_ptr_type_get->constant;
+    if (cpp_ptr_type_get) return cpp_ptr_type_get->constant;
     auto &ptr_type = PtrType(&field);
     return ptr_type == "naked" ? "" : ".get()";
   }
@@ -949,14 +958,15 @@ class CppGenerator : public BaseGenerator {
     code_ += "};";
 
     if (parser_.opts.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
-      code_ += "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
+      code_ +=
+          "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
     code_ += "";
 
     // Generate an array of all enumeration values
     auto num_fields = NumToString(enum_def.vals.vec.size());
-    code_ += "inline const {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" + num_fields +
-             "] {";
+    code_ += "inline const {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" +
+             num_fields + "] {";
     code_ += "  static const {{ENUM_NAME}} values[] = {";
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
@@ -1000,7 +1010,8 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
 
-      code_ += "  if (e < " + GetEnumValUse(enum_def, *enum_def.vals.vec.front()) +
+      code_ += "  if (e < " +
+               GetEnumValUse(enum_def, *enum_def.vals.vec.front()) +
                " || e > " + GetEnumValUse(enum_def, *enum_def.vals.vec.back()) +
                ") return \"\";";
 
@@ -1129,7 +1140,9 @@ class CppGenerator : public BaseGenerator {
 
       if (parser_.opts.gen_compare) {
         code_ += "";
-        code_ += "inline bool operator==(const {{NAME}}Union &lhs, const {{NAME}}Union &rhs) {";
+        code_ +=
+            "inline bool operator==(const {{NAME}}Union &lhs, const "
+            "{{NAME}}Union &rhs) {";
         code_ += "  if (lhs.type != rhs.type) return false;";
         code_ += "  switch (lhs.type) {";
 
@@ -1143,8 +1156,12 @@ class CppGenerator : public BaseGenerator {
                            ev.union_type.struct_def, parser_.opts);
             code_.SetValue("NATIVE_TYPE", native_type);
             code_ += "    case {{NATIVE_ID}}: {";
-            code_ += "      return *(reinterpret_cast<const {{NATIVE_TYPE}} *>(lhs.value)) ==";
-            code_ += "             *(reinterpret_cast<const {{NATIVE_TYPE}} *>(rhs.value));";
+            code_ +=
+                "      return *(reinterpret_cast<const {{NATIVE_TYPE}} "
+                "*>(lhs.value)) ==";
+            code_ +=
+                "             *(reinterpret_cast<const {{NATIVE_TYPE}} "
+                "*>(rhs.value));";
             code_ += "    }";
           } else {
             code_ += "    case {{NATIVE_ID}}: {";
@@ -1325,7 +1342,8 @@ class CppGenerator : public BaseGenerator {
               "      value = new {{TYPE}}(*reinterpret_cast<{{TYPE}} *>"
               "(u.value));";
         } else {
-          code_ += "      FLATBUFFERS_ASSERT(false);  // {{TYPE}} not copyable.";
+          code_ +=
+              "      FLATBUFFERS_ASSERT(false);  // {{TYPE}} not copyable.";
         }
         code_ += "      break;";
         code_ += "    }";
@@ -1466,10 +1484,14 @@ class CppGenerator : public BaseGenerator {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
       auto full_type =
-          (cpp_type ? (field.value.type.base_type == BASE_TYPE_VECTOR
-                           ? "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + "> "
-                           : GenTypeNativePtr(cpp_type->constant, &field, false))
-                    : type + " ");
+          (cpp_type
+               ? (field.value.type.base_type == BASE_TYPE_VECTOR
+                      ? "std::vector<" +
+                            GenTypeNativePtr(cpp_type->constant, &field,
+                                             false) +
+                            "> "
+                      : GenTypeNativePtr(cpp_type->constant, &field, false))
+               : type + " ");
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
@@ -1491,7 +1513,11 @@ class CppGenerator : public BaseGenerator {
         if (IsScalar(field.value.type.base_type)) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field);
-          initializer_list += "(" + (native_default ? std::string(native_default->constant) : GetDefaultScalarValue(field, true)) + ")";
+          initializer_list +=
+              "(" +
+              (native_default ? std::string(native_default->constant)
+                              : GetDefaultScalarValue(field, true)) +
+              ")";
         } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
           if (IsStruct(field.value.type)) {
             if (native_default) {
@@ -1520,7 +1546,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
-  void GenCompareOperator(const StructDef &struct_def, std::string accessSuffix = "") {
+  void GenCompareOperator(const StructDef &struct_def,
+                          std::string accessSuffix = "") {
     std::string compare_op;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1529,9 +1556,7 @@ class CppGenerator : public BaseGenerator {
           field.value.type.base_type != BASE_TYPE_UTYPE &&
           (field.value.type.base_type != BASE_TYPE_VECTOR ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
-        if (!compare_op.empty()) {
-          compare_op += " &&\n      ";
-        }
+        if (!compare_op.empty()) { compare_op += " &&\n      "; }
         auto accessor = Name(field) + accessSuffix;
         compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
       }
@@ -1553,7 +1578,9 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("CMP_LHS", cmp_lhs);
     code_.SetValue("CMP_RHS", cmp_rhs);
     code_ += "";
-    code_ += "inline bool operator==(const {{NATIVE_NAME}} &{{CMP_LHS}}, const {{NATIVE_NAME}} &{{CMP_RHS}}) {";
+    code_ +=
+        "inline bool operator==(const {{NATIVE_NAME}} &{{CMP_LHS}}, const "
+        "{{NATIVE_NAME}} &{{CMP_RHS}}) {";
     code_ += "{{CMP_OP}}";
     code_ += "}";
   }
@@ -1707,7 +1734,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
-      code_ += "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
+      code_ +=
+          "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
@@ -1719,7 +1747,8 @@ class CppGenerator : public BaseGenerator {
       // We need to add a trailing comma to all elements except the last one as
       // older versions of gcc complain about this.
       code_.SetValue("SEP", "");
-      code_ += "  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {";
+      code_ +=
+          "  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
@@ -1794,9 +1823,8 @@ class CppGenerator : public BaseGenerator {
           auto full_struct_name = GetUnionElement(ev, true, true);
 
           // @TODO: Mby make this decisions more universal? How?
-          code_.SetValue(
-              "U_GET_TYPE",
-              EscapeKeyword(field.name + UnionTypeFieldSuffix()));
+          code_.SetValue("U_GET_TYPE",
+                         EscapeKeyword(field.name + UnionTypeFieldSuffix()));
           code_.SetValue(
               "U_ELEMENT_TYPE",
               WrapInNameSpace(u->defined_namespace, GetEnumValUse(*u, ev)));
@@ -1860,7 +1888,9 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
 
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
-        code_ += "    return flatbuffers::GetRoot<{{CPP_NAME}}>({{FIELD_NAME}}()->Data());";
+        code_ +=
+            "    return "
+            "flatbuffers::GetRoot<{{CPP_NAME}}>({{FIELD_NAME}}()->Data());";
         code_ += "  }";
       }
 
@@ -1868,7 +1898,8 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
             " const {";
-        // Both Data() and size() are const-methods, therefore call order doesn't matter.
+        // Both Data() and size() are const-methods, therefore call order
+        // doesn't matter.
         code_ +=
             "    return flexbuffers::GetRoot({{FIELD_NAME}}()->Data(), "
             "{{FIELD_NAME}}()->size());";
@@ -1876,9 +1907,7 @@ class CppGenerator : public BaseGenerator {
       }
 
       // Generate a comparison function for this field if it is a key.
-      if (field.key) {
-        GenKeyFieldMethods(field);
-      }
+      if (field.key) { GenKeyFieldMethods(field); }
     }
 
     // Generate a verifier function that can check a buffer from an untrusted
@@ -2134,10 +2163,10 @@ class CppGenerator : public BaseGenerator {
   std::string GenUnionUnpackVal(const FieldDef &afield,
                                 const char *vec_elem_access,
                                 const char *vec_type_access) {
-    return afield.value.type.enum_def->name +
-           "Union::UnPack(" + "_e" + vec_elem_access + ", " +
-           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) +
-           "()" + vec_type_access + ", _resolver)";
+    return afield.value.type.enum_def->name + "Union::UnPack(" + "_e" +
+           vec_elem_access + ", " +
+           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
+           vec_type_access + ", _resolver)";
   }
 
   std::string GenUnpackVal(const Type &type, const std::string &val,
@@ -2145,7 +2174,8 @@ class CppGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
         if (FlexibleStringConstructor(&afield)) {
-          return NativeString(&afield) + "(" + val + "->c_str(), " + val + "->size())";
+          return NativeString(&afield) + "(" + val + "->c_str(), " + val +
+                 "->size())";
         } else {
           return val + "->str()";
         }
@@ -2220,26 +2250,29 @@ class CppGenerator : public BaseGenerator {
           code += "//vector resolver, " + PtrType(&field) + "\n";
           code += "if (_resolver) ";
           code += "(*_resolver)";
-          code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access + "), ";
+          code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access +
+                  "), ";
           code += "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
           if (PtrType(&field) == "naked") {
             code += " else ";
             code += "_o->" + name + "[_i]" + access + " = nullptr";
           } else {
-            //code += " else ";
-            //code += "_o->" + name + "[_i]" + access + " = " + GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
+            // code += " else ";
+            // code += "_o->" + name + "[_i]" + access + " = " +
+            // GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
             code += "/* else do nothing */";
           }
         } else {
           code += "_o->" + name + "[_i]" + access + " = ";
-          code +=
-              GenUnpackVal(field.value.type.VectorType(), indexing, true, field);
+          code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
+                               field);
         }
         code += "; } }";
         break;
       }
       case BASE_TYPE_UTYPE: {
-        FLATBUFFERS_ASSERT(union_field->value.type.base_type == BASE_TYPE_UNION);
+        FLATBUFFERS_ASSERT(union_field->value.type.base_type ==
+                           BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
         code += "_o->" + union_field->name + ".type = _e;";
@@ -2270,8 +2303,9 @@ class CppGenerator : public BaseGenerator {
             code += " else ";
             code += "_o->" + Name(field) + " = nullptr;";
           } else {
-            //code += " else ";
-            //code += "_o->" + Name(field) + " = " + GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
+            // code += " else ";
+            // code += "_o->" + Name(field) + " = " +
+            // GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
             code += "/* else do nothing */;";
           }
         } else {
@@ -2296,7 +2330,8 @@ class CppGenerator : public BaseGenerator {
     } else {
       value += Name(field);
     }
-    if (field.value.type.base_type != BASE_TYPE_VECTOR && field.attributes.Lookup("cpp_type")) {
+    if (field.value.type.base_type != BASE_TYPE_VECTOR &&
+        field.attributes.Lookup("cpp_type")) {
       auto type = GenTypeBasic(field.value.type, false);
       value =
           "_rehasher ? "
@@ -2344,12 +2379,15 @@ class CppGenerator : public BaseGenerator {
             if (NativeString(&field) == "std::string") {
               code += "_fbb.CreateVectorOfStrings(" + value + ")";
             } else {
-              // Use by-function serialization to emulate CreateVectorOfStrings();
-              // this works also with non-std strings.
-              code += "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> ";
+              // Use by-function serialization to emulate
+              // CreateVectorOfStrings(); this works also with non-std strings.
+              code +=
+                  "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>"
+                  " ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
-              code += "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
+              code +=
+                  "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
               code += " }, &_va )";
             }
             break;
@@ -2729,9 +2767,7 @@ class CppGenerator : public BaseGenerator {
       }
 
       // Generate a comparison function for this field if it is a key.
-      if (field.key) {
-        GenKeyFieldMethods(field);
-      }
+      if (field.key) { GenKeyFieldMethods(field); }
     }
     code_.SetValue("NATIVE_NAME", Name(struct_def));
     GenOperatorNewDelete(struct_def);
