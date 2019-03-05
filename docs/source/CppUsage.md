@@ -270,8 +270,8 @@ custom string types; the `--cpp-str-flex-ctor` argument to `flatc` or the
 per field attribute `cpp_str_flex_ctor` can be used to change this behavior,
 so that the custom string type is constructed by passing the pointer and
 length of the FlatBuffers String. The custom string class will require a
-constructor in the following format: custom_str_class(const char *, uint32_t).
-Please note that the character array is not guaranteed to be NUL terminated,
+constructor in the following format: custom_str_class(const char *, size_t).
+Please note that the character array is not guaranteed to be NULL terminated,
 you should always use the provided size to determine end of string.
 
 ## Reflection (& Resizing)

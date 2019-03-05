@@ -496,13 +496,13 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     static const char *const ctypename[] = {
-// clang-format off
+    // clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
                            RTYPE) \
             #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
-      // clang-format on
+    // clang-format on
     };
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
@@ -581,7 +581,7 @@ class CppGenerator : public BaseGenerator {
   bool FlexibleStringConstructor(const FieldDef *field) {
     auto attr = field ? (field->attributes.Lookup("cpp_str_flex_ctor") != nullptr) : false;
     auto ret = attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
-    return (ret && NativeString(field) != "std::string"); // Only for custom string types.
+    return ret && NativeString(field) != "std::string"; // Only for custom string types.
   }
 
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
@@ -2341,13 +2341,17 @@ class CppGenerator : public BaseGenerator {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
           case BASE_TYPE_STRING: {
-            // Use by-function serialization to emulate CreateVectorOfStrings();
-            // this works also with non-std strings.
-            code += "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> ";
-            code += "(" + value + ".size(), ";
-            code += "[](size_t i, _VectorArgs *__va) { ";
-            code += "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
-            code += " }, &_va )";
+            if (NativeString(&field) == "std::string") {
+              code += "_fbb.CreateVectorOfStrings(" + value + ")";
+            } else {
+              // Use by-function serialization to emulate CreateVectorOfStrings();
+              // this works also with non-std strings.
+              code += "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>> ";
+              code += "(" + value + ".size(), ";
+              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
+              code += " }, &_va )";
+            }
             break;
           }
           case BASE_TYPE_STRUCT: {
