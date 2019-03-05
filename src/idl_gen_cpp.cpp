@@ -498,15 +498,15 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
+    // clang-format off
     static const char *const ctypename[] = {
-// clang-format off
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
                            RTYPE) \
             #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
