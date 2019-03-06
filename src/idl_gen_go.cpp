@@ -620,6 +620,27 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
+  // Mutate an element of a vector of scalars.
+  void MutateElementOfVectorOfNonStruct(const StructDef &struct_def,
+                                        const FieldDef &field,
+                                        std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    auto vectortype = field.value.type.VectorType();
+    std::string type = MakeCamel(GenTypeBasic(vectortype));
+    std::string setter = "rcv._tab.Mutate" + type;
+    GenReceiver(struct_def, code_ptr);
+    code += " Mutate" + MakeCamel(field.name);
+    code += "(j int, n " + TypeName(field) + ") bool ";
+    code += OffsetPrefix(field);
+    code += "\t\ta := rcv._tab.Vector(o)\n";
+    code += "\t\treturn " + setter + "(";
+    code += "a+flatbuffers.UOffsetT(j*";
+    code += NumToString(InlineSize(vectortype)) + "), n)\n";
+    code += "\t}\n";
+    code += "\treturn false\n";
+    code += "}\n\n";
+  }
+
   // Generate a struct field setter, conditioned on its child type(s).
   void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
                         std::string *code_ptr) {
@@ -629,6 +650,10 @@ class GoGenerator : public BaseGenerator {
         MutateScalarFieldOfStruct(struct_def, field, code_ptr);
       } else {
         MutateScalarFieldOfTable(struct_def, field, code_ptr);
+      }
+    } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsScalar(field.value.type.element)) {
+        MutateElementOfVectorOfNonStruct(struct_def, field, code_ptr);
       }
     }
   }

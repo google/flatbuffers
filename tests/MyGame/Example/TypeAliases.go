@@ -163,6 +163,15 @@ func (rcv *TypeAliases) V8Length() int {
 	return 0
 }
 
+func (rcv *TypeAliases) MutateV8(j int, n int8) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
+	}
+	return false
+}
+
 func (rcv *TypeAliases) Vf64(j int) float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -178,6 +187,15 @@ func (rcv *TypeAliases) Vf64Length() int {
 		return rcv._tab.VectorLen(o)
 	}
 	return 0
+}
+
+func (rcv *TypeAliases) MutateVf64(j int, n float64) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
+	}
+	return false
 }
 
 func TypeAliasesStart(builder *flatbuffers.Builder) {
