@@ -1653,6 +1653,43 @@ mod follow_impls {
     use flatbuffers::Follow;
     use flatbuffers::field_index_to_field_offset as fi2fo;
 
+    // Define a test struct to use in a few tests. This replicates the work that the code generator
+    // would normally do when defining a FlatBuffer struct. For reference, compare the following
+    // `FooStruct` code with the code generated for the `Vec3` struct in
+    // `../../monster_test_generated.rs`.
+    use flatbuffers::EndianScalar;
+    #[derive(Copy, Clone, Debug, PartialEq)]
+    #[repr(C, packed)]
+    struct FooStruct {
+        a: i8,
+        b: u8,
+        c: i16,
+    }
+    impl FooStruct {
+        fn new(_a: i8, _b: u8, _c: i16) -> Self {
+            FooStruct {
+                a: _a.to_little_endian(),
+                b: _b.to_little_endian(),
+                c: _c.to_little_endian(),
+            }
+        }
+    }
+    impl flatbuffers::SafeSliceAccess for FooStruct {}
+    impl<'a> flatbuffers::Follow<'a> for FooStruct {
+        type Inner = &'a FooStruct;
+        #[inline(always)]
+        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            <&'a FooStruct>::follow(buf, loc)
+        }
+    }
+    impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
+        type Inner = &'a FooStruct;
+        #[inline(always)]
+        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
+        }
+    }
+
     #[test]
     fn to_u8() {
         let vec: Vec<u8> = vec![255, 3];
@@ -1721,31 +1758,6 @@ mod follow_impls {
 
     #[test]
     fn to_struct() {
-        use flatbuffers::EndianScalar;
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl FooStruct {
-            fn new(_a: i8, _b: u8, _c: i16) -> Self {
-                FooStruct {
-                    a: _a.to_little_endian(),
-                    b: _b.to_little_endian(),
-                    c: _c.to_little_endian(),
-                }
-            }
-        }
-        impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let vec: Vec<u8> = vec![255, 255, 255, 255, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<&FooStruct> = flatbuffers::FollowStart::new();
         assert_eq!(*off.self_follow(&vec[..], 4), FooStruct::new(1, 2, 1027));
@@ -1761,32 +1773,6 @@ mod follow_impls {
 
     #[test]
     fn to_slice_of_struct_elements() {
-        use flatbuffers::EndianScalar;
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl FooStruct {
-            fn new(_a: i8, _b: u8, _c: i16) -> Self {
-                FooStruct {
-                    a: _a.to_little_endian(),
-                    b: _b.to_little_endian(),
-                    c: _c.to_little_endian(),
-                }
-            }
-        }
-        impl flatbuffers::SafeSliceAccess for FooStruct {}
-        impl<'a> flatbuffers::Follow<'a> for FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
         assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct::new(1, 2, 1027)][..]);
@@ -1794,31 +1780,6 @@ mod follow_impls {
 
     #[test]
     fn to_vector_of_struct_elements() {
-        use flatbuffers::EndianScalar;
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl FooStruct {
-            fn new(_a: i8, _b: u8, _c: i16) -> Self {
-                FooStruct {
-                    a: _a.to_little_endian(),
-                    b: _b.to_little_endian(),
-                    c: _c.to_little_endian(),
-                }
-            }
-        }
-        impl<'a> flatbuffers::Follow<'a> for FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
         assert_eq!(fs.self_follow(&buf[..], 0).len(), 1);
