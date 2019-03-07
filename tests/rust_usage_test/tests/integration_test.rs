@@ -1721,12 +1721,22 @@ mod follow_impls {
 
     #[test]
     fn to_struct() {
+        use flatbuffers::EndianScalar;
         #[derive(Copy, Clone, Debug, PartialEq)]
         #[repr(C, packed)]
         struct FooStruct {
             a: i8,
             b: u8,
             c: i16,
+        }
+        impl FooStruct {
+            fn new(_a: i8, _b: u8, _c: i16) -> Self {
+                FooStruct {
+                    a: _a.to_little_endian(),
+                    b: _b.to_little_endian(),
+                    c: _c.to_little_endian(),
+                }
+            }
         }
         impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
             type Inner = &'a FooStruct;
@@ -1738,14 +1748,7 @@ mod follow_impls {
 
         let vec: Vec<u8> = vec![255, 255, 255, 255, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<&FooStruct> = flatbuffers::FollowStart::new();
-        #[cfg(target_endian = "little")]
-        {
-            assert_eq!(*off.self_follow(&vec[..], 4), FooStruct{a: 1, b: 2, c: 1027});
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            assert_eq!(*off.self_follow(&vec[..], 4), FooStruct{a: 1, b: 2, c: 772});
-        }
+        assert_eq!(*off.self_follow(&vec[..], 4), FooStruct::new(1, 2, 1027));
     }
 
     #[test]
@@ -1758,12 +1761,22 @@ mod follow_impls {
 
     #[test]
     fn to_slice_of_struct_elements() {
+        use flatbuffers::EndianScalar;
         #[derive(Copy, Clone, Debug, PartialEq)]
         #[repr(C, packed)]
         struct FooStruct {
             a: i8,
             b: u8,
             c: i16,
+        }
+        impl FooStruct {
+            fn new(_a: i8, _b: u8, _c: i16) -> Self {
+                FooStruct {
+                    a: _a.to_little_endian(),
+                    b: _b.to_little_endian(),
+                    c: _c.to_little_endian(),
+                }
+            }
         }
         impl flatbuffers::SafeSliceAccess for FooStruct {}
         impl<'a> flatbuffers::Follow<'a> for FooStruct {
@@ -1776,24 +1789,27 @@ mod follow_impls {
 
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
-        #[cfg(target_endian = "little")]
-        {
-            assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct{a: 1, b: 2, c: 1027}][..]);
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct{a: 1, b: 2, c: 772}][..]);
-        }
+        assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct::new(1, 2, 1027)][..]);
     }
 
     #[test]
     fn to_vector_of_struct_elements() {
+        use flatbuffers::EndianScalar;
         #[derive(Copy, Clone, Debug, PartialEq)]
         #[repr(C, packed)]
         struct FooStruct {
             a: i8,
             b: u8,
             c: i16,
+        }
+        impl FooStruct {
+            fn new(_a: i8, _b: u8, _c: i16) -> Self {
+                FooStruct {
+                    a: _a.to_little_endian(),
+                    b: _b.to_little_endian(),
+                    c: _c.to_little_endian(),
+                }
+            }
         }
         impl<'a> flatbuffers::Follow<'a> for FooStruct {
             type Inner = &'a FooStruct;
@@ -1806,14 +1822,7 @@ mod follow_impls {
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
         assert_eq!(fs.self_follow(&buf[..], 0).len(), 1);
-        #[cfg(target_endian = "little")]
-        {
-            assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct{a: 1, b: 2, c: 1027});
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct{a: 1, b: 2, c: 772});
-        }
+        assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct::new(1, 2, 1027));
     }
 
     #[test]
