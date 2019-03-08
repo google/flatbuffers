@@ -2169,7 +2169,7 @@ class CppGenerator : public BaseGenerator {
         break;
       }
     }
-  };
+  }
 
   std::string GenUnpackFieldStatement(const FieldDef &field,
                                       const FieldDef *union_field) {
@@ -2617,7 +2617,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a default constructor.
     code_ += "  {{STRUCT_NAME}}() {";
-    code_ += "    memset(this, 0, sizeof({{STRUCT_NAME}}));";
+    code_ += "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
     code_ += "  }";
 
     // Generate a constructor that takes all fields as arguments.

@@ -516,7 +516,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
 
  public:
   Test() {
-    memset(this, 0, sizeof(Test));
+    memset(static_cast<void *>(this), 0, sizeof(Test));
   }
   Test(int16_t _a, int8_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
@@ -559,7 +559,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
 
  public:
   Vec3() {
-    memset(this, 0, sizeof(Vec3));
+    memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
   Vec3(float _x, float _y, float _z, double _test1, Color _test2, const Test &_test3)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -631,7 +631,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
 
  public:
   Ability() {
-    memset(this, 0, sizeof(Ability));
+    memset(static_cast<void *>(this), 0, sizeof(Ability));
   }
   Ability(uint32_t _id, uint32_t _distance)
       : id_(flatbuffers::EndianScalar(_id)),

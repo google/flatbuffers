@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1240,7 +1240,7 @@ void TestError_(const char *src, const char *error_substr, const char *file,
   TestError_(src, error_substr, false, file, line, func);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define TestError(src, ...) \
     TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
 #else
@@ -1996,6 +1996,26 @@ void ParseUnionTest() {
           true);
 }
 
+void InvalidNestedFlatbufferTest() {
+  // First, load and parse FlatBuffer schema (.fbs)
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse(schemafile.c_str(), include_directories), true);
+
+  // "color" inside nested flatbuffer contains invalid enum value
+  TEST_EQ(parser1.Parse("{ name: \"Bender\", testnestedflatbuffer: { name: "
+                        "\"Leela\", color: \"nonexistent\"}}"),
+          false);
+  // Check that Parser is destroyed correctly after parsing invalid json
+}
+
 void UnionVectorTest() {
   // load FlatBuffer fbs schema.
   // TODO: load a JSON file with such a vector when JSON support is ready.
@@ -2524,6 +2544,7 @@ int FlatBufferTests() {
   InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
+  InvalidNestedFlatbufferTest();
   ConformTest();
   ParseProtoBufAsciiTest();
   TypeAliasesTest();

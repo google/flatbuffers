@@ -118,7 +118,8 @@
 #endif // __s390x__
 #if !defined(FLATBUFFERS_LITTLEENDIAN)
   #if defined(__GNUC__) || defined(__clang__)
-    #ifdef __BIG_ENDIAN__
+    #if (defined(__BIG_ENDIAN__) || \
+         (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
       #define FLATBUFFERS_LITTLEENDIAN 0
     #else
       #define FLATBUFFERS_LITTLEENDIAN 1
@@ -360,6 +361,11 @@ template<typename T>
 __supress_ubsan__("alignment")
 void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
+}
+
+template<typename T> struct Offset;
+template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
+  *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
 }
 
 // Computes how many bytes you'd have to pad to be able to write an

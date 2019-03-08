@@ -1331,8 +1331,8 @@ class RustGenerator : public BaseGenerator {
 
         code_ += "  #[inline]";
         code_ += "  #[allow(non_snake_case)]";
-        code_ += "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&'a self) -> "
-                 "Option<{{U_ELEMENT_TABLE_TYPE}}> {";
+        code_ += "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
+                 "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
         code_ += "    if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
         code_ += "      self.{{FIELD_NAME}}().map(|u| "
                  "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";

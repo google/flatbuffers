@@ -11,6 +11,7 @@ public final class BookReader extends Struct {
   public BookReader __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int booksRead() { return bb.getInt(bb_pos + 0); }
+  public void mutateBooksRead(int books_read) { bb.putInt(bb_pos + 0, books_read); }
 
   public static int createBookReader(FlatBufferBuilder builder, int booksRead) {
     builder.prep(4, 4);

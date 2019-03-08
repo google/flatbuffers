@@ -334,6 +334,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == int8(2) }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(5) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(6) }},
+		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(2) }},
 	}
 
 	testMutability := []testcase{
@@ -347,6 +348,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(20) }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).MutateA(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).MutateB(60) }},
+		testcase{"Inventory[2]", func() bool { return monster.MutateInventory(2, 200) }},
 	}
 
 	testForMutatedValues := []testcase{
@@ -360,6 +362,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == int8(20) }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(60) }},
+		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(200) }},
 	}
 
 	// make sure original values are okay
@@ -412,6 +415,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	monster.Pos(nil).MutateTest2(2)
 	monster.Pos(nil).Test3(nil).MutateA(5)
 	monster.Pos(nil).Test3(nil).MutateB(6)
+	monster.MutateInventory(2, 2)
 
 	for _, t := range testForOriginalValues {
 		if !t.testfn() {
