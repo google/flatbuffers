@@ -88,7 +88,7 @@ impl EndianScalar for f32 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f32(&self)
+            byte_swap_f32(self)
         }
     }
     /// Convert f32 from little-endian to host endian-ness.
@@ -100,7 +100,7 @@ impl EndianScalar for f32 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f32(&self)
+            byte_swap_f32(self)
         }
     }
 }
@@ -115,7 +115,7 @@ impl EndianScalar for f64 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f64(&self)
+            byte_swap_f64(self)
         }
     }
     /// Convert f64 from little-endian to host endian-ness.
@@ -127,7 +127,7 @@ impl EndianScalar for f64 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f64(&self)
+            byte_swap_f64(self)
         }
     }
 }
