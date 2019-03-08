@@ -805,6 +805,9 @@ mod roundtrip_vectors {
                 result_vec.push(got.get(i));
             }
             assert_eq!(result_vec, xs);
+
+            let rust_vec_iter = got.iter().collect::<Vec<T>>();
+            assert_eq!(rust_vec_iter, xs);
         }
 
         #[test]
