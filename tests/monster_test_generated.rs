@@ -170,7 +170,7 @@ pub mod example {
 
 #[allow(non_camel_case_types)]
 #[repr(i8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Color {
   Red = 1,
   Green = 2,
@@ -238,7 +238,7 @@ pub fn enum_name_color(e: Color) -> &'static str {
 
 #[allow(non_camel_case_types)]
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Any {
   NONE = 0,
   Monster = 1,
@@ -305,7 +305,7 @@ pub fn enum_name_any(e: Any) -> &'static str {
 pub struct AnyUnionTableOffset {}
 #[allow(non_camel_case_types)]
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum AnyUniqueAliases {
   NONE = 0,
   M = 1,
@@ -372,7 +372,7 @@ pub fn enum_name_any_unique_aliases(e: AnyUniqueAliases) -> &'static str {
 pub struct AnyUniqueAliasesUnionTableOffset {}
 #[allow(non_camel_case_types)]
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum AnyAmbiguousAliases {
   NONE = 0,
   M1 = 1,
@@ -1095,13 +1095,13 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice() )
   }
   #[inline]
-  pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
+  pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING, None)
   }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
   #[inline]
-  pub fn testarrayoftables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>> {
+  pub fn testarrayoftables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>>>(Monster::VT_TESTARRAYOFTABLES, None)
   }
   #[inline]
@@ -1178,7 +1178,7 @@ impl<'a> Monster<'a> {
     self._tab.get::<f32>(Monster::VT_TESTF3, Some(0.0)).unwrap()
   }
   #[inline]
-  pub fn testarrayofstring2(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>> {
+  pub fn testarrayofstring2(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING2, None)
   }
   #[inline]
@@ -1206,7 +1206,7 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<super::InParentNamespace<'a>>>(Monster::VT_PARENT_NAMESPACE_TEST, None)
   }
   #[inline]
-  pub fn vector_of_referrables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+  pub fn vector_of_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)
   }
   #[inline]
@@ -1218,7 +1218,7 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_WEAK_REFERENCES, None)
   }
   #[inline]
-  pub fn vector_of_strong_referrables(&self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+  pub fn vector_of_strong_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)
   }
   #[inline]
