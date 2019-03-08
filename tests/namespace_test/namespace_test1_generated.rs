@@ -31,7 +31,7 @@ pub mod namespace_b {
 
 #[allow(non_camel_case_types)]
 #[repr(i8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum EnumInNestedNS {
   A = 0,
   B = 1,

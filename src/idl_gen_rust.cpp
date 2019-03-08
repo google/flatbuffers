@@ -586,7 +586,7 @@ class RustGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment);
     code_ += "#[allow(non_camel_case_types)]";
     code_ += "#[repr({{BASE_TYPE}})]";
-    code_ += "#[derive(Clone, Copy, PartialEq, Debug)]";
+    code_ += "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]";
     code_ += "pub enum " + Name(enum_def) + " {";
 
     int64_t anyv = 0;
@@ -1027,11 +1027,11 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired("flatbuffers::Vector<flatbuffers::ForwardsUOffset<" + \
+        return WrapInOptionIfNotRequired("flatbuffers::Vector<" + lifetime + ", flatbuffers::ForwardsUOffset<" + \
                typname + "<" + lifetime + ">>>", field.required);
       }
       case ftVectorOfString: {
-        return WrapInOptionIfNotRequired("flatbuffers::Vector<flatbuffers::ForwardsUOffset<&" + \
+        return WrapInOptionIfNotRequired("flatbuffers::Vector<" + lifetime + ", flatbuffers::ForwardsUOffset<&" + \
                lifetime + " str>>", field.required);
       }
       case ftVectorOfUnionValue: {
