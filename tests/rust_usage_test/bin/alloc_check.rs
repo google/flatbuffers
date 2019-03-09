@@ -28,6 +28,7 @@ static A: TrackingAllocator = TrackingAllocator;
 
 // import the flatbuffers generated code:
 extern crate flatbuffers;
+#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
