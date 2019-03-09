@@ -1,7 +1,12 @@
 root = true
-[*.{cpp,cc,h,sh}]
-end_of_line = LF
+[*.{cpp,cc,h,bat}]
+end_of_line = CRLF
 indent_style = space
 indent_size = 2
 insert_final_newline = true
 
+[*.{sh}]
+end_of_line = LF
+indent_style = space
+indent_size = 2
+insert_final_newline = true

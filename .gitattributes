@@ -1,1 +1,7 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
+
+# Declare files that will always have CRLF line endings on checkout.
+*.cpp text eol=crlf
+*.h   text eol=crlf
+*.md  text eol=crlf
