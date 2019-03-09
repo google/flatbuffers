@@ -19,11 +19,15 @@ public final class Movie extends Table {
   public Table mainCharacter(Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte charactersType(int j) { int o = __offset(8); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int charactersTypeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
+  public ByteVector charactersTypeVector() { return charactersTypeVector(new ByteVector()); }
+  public ByteVector charactersTypeVector(ByteVector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer charactersTypeAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer charactersTypeInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
   public boolean mutateCharactersType(int j, byte characters_type) { int o = __offset(8); if (o != 0) { bb.put(__vector(o) + j * 1, characters_type); return true; } else { return false; } }
   public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
+  public UnionVector charactersVector() { return charactersVector(new UnionVector()); }
+  public UnionVector charactersVector(UnionVector obj) { int o = __offset(10); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
   public static int createMovie(FlatBufferBuilder builder,
       byte main_character_type,
@@ -53,5 +57,12 @@ public final class Movie extends Table {
   }
   public static void finishMovieBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MOVI"); }
   public static void finishSizePrefixedMovieBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "MOVI"); }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public Movie get(int j) { return get(new Movie(), j); }
+    public Movie get(Movie obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

@@ -1199,6 +1199,36 @@ class GeneralGenerator : public BaseGenerator {
           }
         }
       }
+      // Generate the accessors for vector of structs with vector access object
+      if (lang_.language == IDLOptions::kJava &&
+          field.value.type.base_type == BASE_TYPE_VECTOR) {
+        std::string vector_type_name;
+        const auto &element_base_type = field.value.type.VectorType().base_type;
+        if (IsScalar(element_base_type)) {
+          vector_type_name = MakeCamel(type_name, true) + "Vector";
+        } else if (element_base_type == BASE_TYPE_STRING) {
+          vector_type_name = "StringVector";
+        } else if (element_base_type == BASE_TYPE_UNION) {
+          vector_type_name = "UnionVector";
+        } else {
+          vector_type_name = type_name + ".Vector";
+        }
+        auto vector_method_start =
+            GenNullableAnnotation(field.value.type) + "  public " +
+            vector_type_name + optional + " " +
+            MakeCamel(field.name, lang_.first_camel_upper) + "Vector";
+        code += vector_method_start + "() { return ";
+        code += MakeCamel(field.name, lang_.first_camel_upper) + "Vector";
+        code += "(new " + vector_type_name + "()); }\n";
+        code += vector_method_start + "(" + vector_type_name + " obj)";
+        code += offset_prefix + conditional_cast + obj + ".__assign" + "(";
+        code += lang_.accessor_prefix + "__vector(o), ";
+        if (!IsScalar(element_base_type)) {
+          auto vectortype = field.value.type.VectorType();
+          code += NumToString(InlineSize(vectortype)) + ", ";
+        }
+        code += lang_.accessor_prefix + "bb) : null" + member_suffix + "}\n";
+      }
       // Generate a ByteBuffer accessor for strings & vectors of scalars.
       if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
            IsScalar(field.value.type.VectorType().base_type)) ||
@@ -1625,11 +1655,79 @@ class GeneralGenerator : public BaseGenerator {
       code += "    return null;\n";
       code += "  }\n";
     }
+    if (lang_.language == IDLOptions::kJava)
+      GenVectorAccessObject(struct_def, code_ptr);
     code += "}";
     // Java does not need the closing semi-colon on class definitions.
     code += (lang_.language != IDLOptions::kJava) ? ";" : "";
     code += "\n\n";
   }
+
+  void GenVectorAccessObject(StructDef &struct_def,
+                             std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    // Generate a vector of structs accessor class.
+    code += "\n";
+    code += "  ";
+    if (!struct_def.attributes.Lookup("private"))
+      code += "public ";
+    code += "static ";
+    code += lang_.unsubclassable_decl;
+    code += lang_.accessor_type + "Vector" + lang_.inheritance_marker;
+    code += "BaseVector" + lang_.open_curly;
+
+    // Generate the __assign method that sets the field in a pre-existing
+    // accessor object. This is to allow object reuse.
+    std::string method_indent = "    ";
+    code += method_indent + "public Vector ";
+    code += "__assign(int _vector, int _element_size, ByteBuffer _bb) { ";
+    code += "__reset(_vector, _element_size, _bb); return this; }\n\n";
+
+    auto type_name = struct_def.name;
+    auto method_start =
+        method_indent + "public " + type_name + " " + FunctionStart('G') + "et";
+    // Generate the accessors that don't do object reuse.
+    code += method_start + "(int j) { return " + FunctionStart('G') + "et";
+    code += "(new " + type_name + "(), j); }\n";
+    code += method_start + "(" + type_name + " obj, int j) { ";
+    code += " return obj.__assign(";
+    auto index = lang_.accessor_prefix + "__element(j)";
+    code += struct_def.fixed
+                ? index
+                : lang_.accessor_prefix + "__indirect(" + index + ", bb)";
+    code += ", " + lang_.accessor_prefix + "bb); }\n";
+    // See if we should generate a by-key accessor.
+    if (!struct_def.fixed) {
+      auto &fields = struct_def.fields.vec;
+      for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
+        auto &key_field = **kit;
+        if (key_field.key) {
+          auto nullable_annotation =
+              parser_.opts.gen_nullable ? "@Nullable " : "";
+          code += method_indent + nullable_annotation;
+          code += "public " + type_name + lang_.optional_suffix + " ";
+          code += FunctionStart('G') + "et" + "ByKey(";
+          code += GenTypeNameDest(key_field.value.type) + " key) { ";
+          code += " return __lookup_by_key(null, ";
+          code += lang_.accessor_prefix + "__vector(), key, ";
+          code += lang_.accessor_prefix + "bb); ";
+          code += "}\n";
+          code += method_indent + nullable_annotation;
+          code += "public " + type_name + lang_.optional_suffix + " ";
+          code += FunctionStart('G') + "et" + "ByKey(";
+          code += type_name + lang_.optional_suffix + " obj, ";
+          code += GenTypeNameDest(key_field.value.type) + " key) { ";
+          code += " return __lookup_by_key(obj, ";
+          code += lang_.accessor_prefix + "__vector(), key, ";
+          code += lang_.accessor_prefix + "bb); ";
+          code += "}\n";
+          break;
+        }
+      }
+    }
+    code += "  }\n";
+  }
+
   const LanguageParameters &lang_;
   // This tracks the current namespace used to determine if a type need to be
   // prefixed by its namespace
