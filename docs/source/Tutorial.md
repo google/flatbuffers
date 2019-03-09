@@ -495,6 +495,7 @@ The first step is to import/include the library, generated files, etc.
   extern crate flatbuffers;
 
   // import the generated code
+  #[allow(dead_code, unused_imports)]
   #[path = "./monster_generated.rs"]
   mod monster_generated;
   pub use monster_generated::my_game::sample::{get_root_as_monster,
@@ -2042,6 +2043,7 @@ import './monster_my_game.sample_generated.dart' as myGame;
   extern crate flatbuffers;
 
   // import the generated code
+  #[allow(dead_code, unused_imports)]
   #[path = "./monster_generated.rs"]
   mod monster_generated;
   pub use monster_generated::my_game::sample::{get_root_as_monster,
