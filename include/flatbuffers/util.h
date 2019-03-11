@@ -35,19 +35,19 @@ namespace flatbuffers {
 
 // @locale-independent functions for ASCII characters set.
 
-// Check that integer scalar is in closed range: (a <= x <= b)
+// Fast checking that character lies in closed range: [a <= x <= b]
 // using one compare (conditional branch) operator.
-template<typename T> inline bool check_in_range(T x, T a, T b) {
+inline bool check_ascii_range(char x, char a, char b) {
+  FLATBUFFERS_ASSERT(a <= b);
   // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
-  FLATBUFFERS_ASSERT(a <= b);  // static_assert only if 'a' & 'b' templated
-  typedef typename flatbuffers::make_unsigned<T>::type U;
-  return (static_cast<U>(x - a) <= static_cast<U>(b - a));
+  // The x, a, b will be promoted to int and subtracted without overflow.
+  return static_cast<unsigned int>(x - a) <= static_cast<unsigned int>(b - a);
 }
 
 // Case-insensitive isalpha
 inline bool is_alpha(char c) {
   // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
-  return check_in_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
+  return check_ascii_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
 }
 
 // Check (case-insensitive) that `c` is equal to alpha.
@@ -62,11 +62,11 @@ inline bool is_alpha_char(char c, char alpha) {
 // functions that are not affected by the currently installed C locale. although
 // some implementations (e.g. Microsoft in 1252 codepage) may classify
 // additional single-byte characters as digits.
-inline bool is_digit(char c) { return check_in_range(c, '0', '9'); }
+inline bool is_digit(char c) { return check_ascii_range(c, '0', '9'); }
 
 inline bool is_xdigit(char c) {
   // Replace by look-up table.
-  return is_digit(c) || check_in_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
+  return is_digit(c) || check_ascii_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum
