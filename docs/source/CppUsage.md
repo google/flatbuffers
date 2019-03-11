@@ -255,14 +255,24 @@ you, so you'll have to manage their lifecycles manually.  To reference the
 pointer type specified by the `--cpp-ptr-type` argument to `flatc` from a
 flatbuffer field set the `cpp_ptr_type` attribute to `default_ptr_type`.
 
-
 # Using different string type.
 
 By default the object tree is built out of `std::string`, but you can
 influence this either globally (using the `--cpp-str-type` argument to
 `flatc`) or per field using the `cpp_str_type` attribute.
 
-The type must support T::c_str() and T::length() as member functions.
+The type must support T::c_str(), T::length() and T::empty() as member functions.
+
+Further, the type must be constructible from std::string, as by default a
+std::string instance is constructed and then used to initialize the custom
+string type. This behavior impedes efficient and zero-copy construction of
+custom string types; the `--cpp-str-flex-ctor` argument to `flatc` or the
+per field attribute `cpp_str_flex_ctor` can be used to change this behavior,
+so that the custom string type is constructed by passing the pointer and
+length of the FlatBuffers String. The custom string class will require a
+constructor in the following format: custom_str_class(const char *, size_t).
+Please note that the character array is not guaranteed to be NULL terminated,
+you should always use the provided size to determine end of string.
 
 ## Reflection (& Resizing)
 
