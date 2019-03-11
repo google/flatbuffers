@@ -16,7 +16,7 @@ documentation to build `flatc` and should be familiar with
 
 ## FlatBuffers Dart library code location
 
-The code for the FlatBuffers Go library can be found at
+The code for the FlatBuffers Dart library can be found at
 `flatbuffers/dart`. You can browse the library code on the [FlatBuffers
 GitHub page](https://github.com/google/flatbuffers/tree/master/dart).
 
