@@ -410,6 +410,7 @@ struct IDLOptions {
   bool gen_compare;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
+  bool cpp_object_api_string_flexible_constructor;
   bool gen_nullable;
   bool gen_generated;
   std::string object_prefix;
@@ -486,6 +487,7 @@ struct IDLOptions {
         generate_object_based_api(false),
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
+        cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
         gen_generated(false),
         object_suffix("T"),
@@ -627,6 +629,7 @@ class Parser : public ParserState {
     known_attributes_["cpp_ptr_type"] = true;
     known_attributes_["cpp_ptr_type_get"] = true;
     known_attributes_["cpp_str_type"] = true;
+    known_attributes_["cpp_str_flex_ctor"] = true;
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
     known_attributes_["native_type"] = true;
