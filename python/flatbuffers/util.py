@@ -22,8 +22,15 @@ def GetSizePrefix(buf, offset):
 
 def GetBufferIdentifier(buf, offset, size_prefixed=False):
         """Extract the file_identifier from a buffer"""
-        offset += (number_types.UOffsetTFlags.bytewidth if size_prefixed else 0) + number_types.UOffsetTFlags.bytewidth # offset sizeof(root table offset) + sizeof(size prefix) if present   
-        return buf[offset:offset+encode.FILE_IDENTIFIER_LENGTH]
+        if size_prefixed:
+                # increase offfset by size of UOffetTFlags
+                offset += number_types.UOffsetTFlags.bytewidth
+        # increase offset by size of root table pointer
+        offset += number_types.UOffsetTFlags.bytewidth
+        # end of FILE_IDENTIFIER
+        FILE_IDENTIFIER_END_OFFSET = offset + encode.FILE_IDENTIFIER_LENGTH
+        #return FILE_IDENTIFIER
+        return buf[offset:FILE_IDENTIFIER_END_OFFSET]
 
 def BufferHasIdentifier(buf, offset, file_identifier, size_prefixed=False):
         return GetBufferIdentifier(buf, offset, size_prefixed=size_prefixed)==file_identifier
