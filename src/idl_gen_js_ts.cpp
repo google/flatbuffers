@@ -168,7 +168,8 @@ class JsTsGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, false);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, true);
     }
   }
 
@@ -322,12 +323,16 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-               std::string *exports_ptr, reexport_map &reexports) {
+               std::string *exports_ptr, reexport_map &reexports,
+               bool reverse) {
     if (enum_def.generated) return;
+    if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
     std::string &code = *code_ptr;
     std::string &exports = *exports_ptr;
-    GenDocComment(enum_def.doc_comment, code_ptr, "@enum");
+    GenDocComment(enum_def.doc_comment, code_ptr,
+                  reverse ? "@enum {string}" : "@enum {number}");
     std::string ns = GetNameSpace(enum_def);
+    std::string enum_def_name = enum_def.name + (reverse ? "Name" : "");
     if (lang_.language == IDLOptions::kTs) {
       if (!ns.empty()) { code += "export namespace " + ns + "{\n"; }
       code += "export enum " + enum_def.name + "{\n";
@@ -335,15 +340,15 @@ class JsTsGenerator : public BaseGenerator {
       if (enum_def.defined_namespace->components.empty()) {
         code += "var ";
         if (parser_.opts.use_goog_js_export_format) {
-          exports += "goog.exportSymbol('" + enum_def.name + "', " +
+          exports += "goog.exportSymbol('" + enum_def_name + "', " +
                      enum_def.name + ");\n";
         } else if (parser_.opts.use_ES6_js_export_format) {
-          exports += "export {" + enum_def.name + "};\n";
+          exports += "export {" + enum_def_name + "};\n";
         } else {
-          exports += "this." + enum_def.name + " = " + enum_def.name + ";\n";
+          exports += "this." + enum_def_name + " = " + enum_def_name + ";\n";
         }
       }
-      code += WrapInNameSpace(enum_def) + " = {\n";
+      code += WrapInNameSpace(enum_def) + (reverse ? "Name" : "") + " = {\n";
     }
     for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
          ++it) {
@@ -354,18 +359,14 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       // Generate mapping between EnumName: EnumValue(int)
-      code += "  " + ev.name;
-      code += lang_.language == IDLOptions::kTs ? "= " : ": ";
-      code += NumToString(ev.value);
-
-      if (lang_.language == IDLOptions::kJs) {
-        // In pure Javascript, generate mapping between EnumValue(int):
-        // 'EnumName' so enums can be looked up by their ID.
-        code += ", ";
-
-        code += NumToString(ev.value);
+      if (reverse) {
+        code += "  " + NumToString(ev.value);
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
         code += "'" + ev.name + "'";
+      } else {
+        code += "  " + ev.name;
+        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += NumToString(ev.value);
       }
 
       code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
