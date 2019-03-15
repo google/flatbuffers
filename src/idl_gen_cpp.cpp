@@ -591,6 +591,20 @@ class CppGenerator : public BaseGenerator {
                       "std::string";  // Only for custom string types.
   }
 
+  bool NativeVectorDefined(const FieldDef *field) {
+    auto attr = field ? field->attributes.Lookup("cpp_vec_type") : nullptr;
+    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_vector_type;
+    if (ret.empty()) { return false; }
+    return true;
+  }
+
+  const std::string NativeVector(const FieldDef *field) {
+    auto attr = field ? field->attributes.Lookup("cpp_vec_type") : nullptr;
+    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_vector_type;
+    if (ret.empty()) { return "std::vector"; }
+    return ret;
+  }
+
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
                                bool is_constructor) {
     auto &ptr_type = PtrType(field);
@@ -625,10 +639,10 @@ class CppGenerator : public BaseGenerator {
             type.struct_def->attributes.Lookup("native_custom_alloc")) {
           auto native_custom_alloc =
               type.struct_def->attributes.Lookup("native_custom_alloc");
-          return "std::vector<" + type_name + "," +
+          return NativeVector(&field) + "<" + type_name + "," +
                  native_custom_alloc->constant + "<" + type_name + ">>";
         } else
-          return "std::vector<" + type_name + ">";
+          return NativeVector(&field) + "<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
@@ -1486,7 +1500,7 @@ class CppGenerator : public BaseGenerator {
       auto full_type =
           (cpp_type
                ? (field.value.type.base_type == BASE_TYPE_VECTOR
-                      ? "std::vector<" +
+                      ? NativeVector(&field) + "<" +
                             GenTypeNativePtr(cpp_type->constant, &field,
                                              false) +
                             "> "
@@ -2227,8 +2241,9 @@ class CppGenerator : public BaseGenerator {
         if (field.value.type.element == BASE_TYPE_BOOL) { indexing += " != 0"; }
 
         // Generate code that pushes data from _e to _o in the form:
-        //   for (uoffset_t i = 0; i < _e->size(); ++i) {
-        //     _o->field.push_back(_e->Get(_i));
+        //   _o->resize(_e->size());
+        //   for (uoffset_t i = 0; i < _e->size(); i++) {
+        //     _o->field[i] = _e->Get(i);
         //   }
         auto name = Name(field);
         if (field.value.type.element == BASE_TYPE_UTYPE) {
@@ -2366,12 +2381,13 @@ class CppGenerator : public BaseGenerator {
       }
       // Vector fields come in several flavours, of the forms:
       //   _fbb.CreateVector(_o->field);
-      //   _fbb.CreateVector((const utype*)_o->field.data(), _o->field.size());
-      //   _fbb.CreateVectorOfStrings(_o->field)
-      //   _fbb.CreateVectorOfStructs(_o->field)
-      //   _fbb.CreateVector<Offset<T>>(_o->field.size() [&](size_t i) {
+      //   _fbb.CreateVector(_o->field.data(), _o->field.size());
+      //   _fbb.CreateVectorOfStrings(_o->field);
+      //   _fbb.CreateVectorOfStructs(_o->field);
+      //   _fbb.CreateVector<Offset<T>>(_o->field.size(), [&](size_t i) {
       //     return CreateT(_fbb, _o->Get(i), rehasher);
       //   });
+      // STLPort NOTE: no vector.data() is present, use flatbuffers::data().
       case BASE_TYPE_VECTOR: {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
@@ -2394,6 +2410,7 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_STRUCT: {
             if (IsStruct(vector_type)) {
+              // Flatbuffers struct, not table.
               auto native_type =
                   field.value.type.struct_def->attributes.Lookup("native_type");
               if (native_type) {
@@ -2402,8 +2419,17 @@ class CppGenerator : public BaseGenerator {
               } else {
                 code += "_fbb.CreateVectorOfStructs";
               }
-              code += "(" + value + ")";
+              if (!NativeVectorDefined(&field)) {
+                // Use std::vector variant.
+                code += "(" + value + ")";
+              } else {
+                // Non-std vector, use ptr+size variant.
+                // This is a user-defined type, we can require .data() and
+                // don't have to care about STLPort compatibility.
+                code += "(" + value + ".data(), " + value + ".size())";
+              }
             } else {
+              // Flatbuffers table, not struct.
               code += "_fbb.CreateVector<flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
               code += "(" + value + ".size(), ";
@@ -2416,7 +2442,17 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_BOOL: {
-            code += "_fbb.CreateVector(" + value + ")";
+            if (!NativeVectorDefined(&field)) {
+              // Use std::vector<bool> variant.
+              code += "_fbb.CreateVector(" + value + ")";
+            } else {
+              // Use CreateVectorScalarCast() to emulate
+              // CreateVector(std::vector<bool>) for non-std vectors.
+              // This is a user-defined type, we can require .data() and
+              // don't have to care about STLPort compatibility.
+              code += "_fbb.CreateVectorScalarCast<uint8_t, bool> ";
+              code += "(" + value + ".data(), " + value + ".size())";
+            }
             break;
           }
           case BASE_TYPE_UNION: {
@@ -2443,9 +2479,18 @@ class CppGenerator : public BaseGenerator {
               // the underlying storage type (eg. uint8_t).
               const auto basetype = GenTypeBasic(
                   field.value.type.enum_def->underlying_type, false);
-              code += "_fbb.CreateVectorScalarCast<" + basetype +
-                      ">(flatbuffers::data(" + value + "), " + value +
-                      ".size())";
+              code += "_fbb.CreateVectorScalarCast<" + basetype + ">";
+              if (!NativeVectorDefined(&field)) {
+                // Use std::vector variant, requires flatbuffers::data() for
+                // STLPort compatibility.
+                code +=
+                    "(flatbuffers::data(" + value + "), " + value + ".size())";
+              } else {
+                // Non-std vector, use ptr+size variant.
+                // This is a user-defined type, we can require .data() and
+                // don't have to care about STLPort compatibility.
+                code += "(" + value + ".data(), " + value + ".size())";
+              }
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);
               code += "_fbb.CreateVector<" + type + ">(" + value + ".size(), ";
@@ -2455,7 +2500,16 @@ class CppGenerator : public BaseGenerator {
               code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";
               code += "; }, &_va )";
             } else {
-              code += "_fbb.CreateVector(" + value + ")";
+              if (!NativeVectorDefined(&field)) {
+                // Use std::vector variant,
+                code += "_fbb.CreateVector(" + value + ")";
+              } else {
+                // Non-std vector, use ptr+size variant.
+                // This is a user-defined type, we can require .data() and
+                // don't have to care about STLPort compatibility.
+                code += "_fbb.CreateVector(" + value + ".data(), " + value +
+                        ".size())";
+              }
             }
             break;
           }
@@ -2674,7 +2728,8 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a default constructor.
     code_ += "  {{STRUCT_NAME}}() {";
-    code_ += "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
+    code_ +=
+        "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
     code_ += "  }";
 
     // Generate a constructor that takes all fields as arguments.

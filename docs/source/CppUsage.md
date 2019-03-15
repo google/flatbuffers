@@ -274,6 +274,15 @@ constructor in the following format: custom_str_class(const char *, size_t).
 Please note that the character array is not guaranteed to be NULL terminated,
 you should always use the provided size to determine end of string.
 
+# Using different vector type.
+
+By default the object tree is built out of `std::vector`, but you can
+influence this either globally (using the `--cpp-vec-type` argument
+to `flatc`) or per field using the `cpp_vec_type` attribute.
+
+The type must support T::data(), T::size(), T::resize() and T::[]
+as member functions.
+
 ## Reflection (& Resizing)
 
 There is experimental support for reflection in FlatBuffers, allowing you to
