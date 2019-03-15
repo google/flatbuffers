@@ -1543,6 +1543,45 @@ class TestExceptions(unittest.TestCase):
                      flatbuffers.builder.BuilderNotFinishedError)
 
 
+class TestNamespaces(unittest.TestCase):
+    def test_cross_namespace_fields(self):
+        # a table with a field of a type defined in another namespace should resolve correctly
+
+        from NamespaceA import (
+                TableInFirstNS,
+                SecondTableInA,
+        )
+        from NamespaceA.NamespaceB import StructInNestedNS
+        from NamespaceC import TableInC
+        def make_namespace_buffer():
+            builder = flatbuffers.Builder(0)
+
+            namespace_b_struct = StructInNestedNS.CreateStructInNestedNS(builder, 42, 17)
+
+            TableInFirstNS.TableInFirstNSStart(builder)
+            TableInFirstNS.TableInFirstNSAddFooStruct(builder, namespace_b_struct)
+            namespace_a_table = TableInFirstNS.TableInFirstNSEnd(builder)
+
+            TableInC.TableInCStart(builder)
+            TableInC.TableInCAddReferToA1(builder, namespace_a_table)
+            namespace_c_table = TableInC.TableInCEnd(builder)
+
+            SecondTableInA.SecondTableInAStart(builder)
+            SecondTableInA.SecondTableInAAddReferToC(builder, namespace_c_table)
+            namespace_a_2nd_table = SecondTableInA.SecondTableInAEnd(builder)
+
+            builder.Finish(namespace_a_2nd_table)
+            return builder.Output()
+
+        buf = make_namespace_buffer()
+        namespace_a_2nd_table = SecondTableInA.SecondTableInA.GetRootAsSecondTableInA(buf, 0)
+        namespace_c_table = namespace_a_2nd_table.ReferToC()
+        namespace_a_table = namespace_c_table.ReferToA1()
+        namespace_b_struct = namespace_a_table.FooStruct()
+        self.assertEqual(namespace_b_struct.A(), 42)
+        self.assertEqual(namespace_b_struct.B(), 17)
+
+
 def CheckAgainstGoldDataGo():
     try:
         gen_buf, gen_off = make_monster_from_generated_code()

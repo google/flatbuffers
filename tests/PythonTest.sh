@@ -18,9 +18,13 @@ pushd "$(dirname $0)" >/dev/null
 test_dir="$(pwd)"
 gen_code_path=${test_dir}
 runtime_library_dir=${test_dir}/../python
+namespace_test_dir=${test_dir}/namespace_test
 
 # Emit Python code for the example schema in the test dir:
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs
+
+# Emit Python code for the namespace schemas
+${test_dir}/../flatc -p -o ${namespace_test_dir} ${namespace_test_dir}/namespace_test1.fbs ${namespace_test_dir}/namespace_test2.fbs
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>
@@ -30,8 +34,8 @@ function run_tests() {
     echo "Testing with interpreter: ${1}"
     PYTHONDONTWRITEBYTECODE=1 \
     JYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
-    JYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+    PYTHONPATH=${runtime_library_dir}:${gen_code_path}:${namespace_test_dir} \
+    JYTHONPATH=${runtime_library_dir}:${gen_code_path}:${namespace_test_dir} \
     COMPARE_GENERATED_TO_GO=0 \
     COMPARE_GENERATED_TO_JAVA=0 \
     $1 py_test.py $2 $3 $4
@@ -63,7 +67,7 @@ if $(which coverage >/dev/null); then
   echo 'Found coverage utility, running coverage with default Python:'
 
   PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+  PYTHONPATH=${runtime_library_dir}:${gen_code_path}:${namespace_test_dir} \
   coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 > /dev/null
 
   echo

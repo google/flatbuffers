@@ -24,7 +24,7 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vec3 import Vec3
+            from MyGame.Example.Vec3 import Vec3
             obj = Vec3()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -103,7 +103,7 @@ class Monster(object):
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
-            from .Test import Test
+            from MyGame.Example.Test import Test
             obj = Test()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -140,7 +140,7 @@ class Monster(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Monster import Monster
+            from MyGame.Example.Monster import Monster
             obj = Monster()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -158,7 +158,7 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .Monster import Monster
+            from MyGame.Example.Monster import Monster
             obj = Monster()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -191,7 +191,7 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .Stat import Stat
+            from MyGame.Example.Stat import Stat
             obj = Stat()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -324,7 +324,7 @@ class Monster(object):
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 8
-            from .Ability import Ability
+            from MyGame.Example.Ability import Ability
             obj = Ability()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -365,7 +365,7 @@ class Monster(object):
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
-            from .Test import Test
+            from MyGame.Example.Test import Test
             obj = Test()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -427,7 +427,7 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(72))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .InParentNamespace import InParentNamespace
+            from MyGame.InParentNamespace import InParentNamespace
             obj = InParentNamespace()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -440,7 +440,7 @@ class Monster(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Referrable import Referrable
+            from MyGame.Example.Referrable import Referrable
             obj = Referrable()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -489,7 +489,7 @@ class Monster(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Referrable import Referrable
+            from MyGame.Example.Referrable import Referrable
             obj = Referrable()
             obj.Init(self._tab.Bytes, x)
             return obj

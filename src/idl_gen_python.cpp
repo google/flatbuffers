@@ -36,7 +36,7 @@ class PythonGenerator : public BaseGenerator {
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */),
+                      "."),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
     static const char * const keywords[] = {
       "False",
@@ -239,7 +239,7 @@ class PythonGenerator : public BaseGenerator {
       code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
     }
     code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+    code += "from " + QualifiedTypeName(field) + " import " + TypeName(field) + "\n";
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
     code += Indent + Indent + Indent + "return obj\n";
@@ -273,7 +273,7 @@ class PythonGenerator : public BaseGenerator {
       code += Indent + Indent + Indent + "from flatbuffers.table import Table\n";
     } else {
       code += Indent + Indent + Indent;
-      code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+      code += "from " + QualifiedTypeName(field) + " import " + TypeName(field) + "\n";
     }
     code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
     code += Indent + Indent + Indent + GenGetter(field.value.type);
@@ -299,7 +299,7 @@ class PythonGenerator : public BaseGenerator {
       code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
     }
     code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+    code += "from " + QualifiedTypeName(field) + " import " + TypeName(field) + "\n";
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
     code += Indent + Indent + Indent + "return obj\n";
@@ -647,6 +647,11 @@ class PythonGenerator : public BaseGenerator {
 
   std::string TypeName(const FieldDef &field) {
     return GenTypeGet(field.value.type);
+  }
+
+  // Get the qualified name (including modules) of the given field's type
+  std::string QualifiedTypeName(const FieldDef &field) {
+    return WrapInNameSpace(field.value.type.struct_def->defined_namespace, TypeName(field));
   }
 
   // Create a struct with a builder and the struct's arguments.
