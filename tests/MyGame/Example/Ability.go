@@ -11,8 +11,7 @@ type Ability struct {
 }
 
 func (rcv *Ability) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *Ability) Table() flatbuffers.Table {
@@ -20,17 +19,17 @@ func (rcv *Ability) Table() flatbuffers.Table {
 }
 
 func (rcv *Ability) Id() uint32 {
-	return rcv._tab.GetUint32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
+	return rcv._tab.GetUint32(rcv._tab.Pos() + flatbuffers.UOffsetT(0))
 }
 func (rcv *Ability) MutateId(n uint32) bool {
-	return rcv._tab.MutateUint32(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv._tab.MutateUint32(rcv._tab.Pos()+flatbuffers.UOffsetT(0), n)
 }
 
 func (rcv *Ability) Distance() uint32 {
-	return rcv._tab.GetUint32(rcv._tab.Pos + flatbuffers.UOffsetT(4))
+	return rcv._tab.GetUint32(rcv._tab.Pos() + flatbuffers.UOffsetT(4))
 }
 func (rcv *Ability) MutateDistance(n uint32) bool {
-	return rcv._tab.MutateUint32(rcv._tab.Pos+flatbuffers.UOffsetT(4), n)
+	return rcv._tab.MutateUint32(rcv._tab.Pos()+flatbuffers.UOffsetT(4), n)
 }
 
 func CreateAbility(builder *flatbuffers.Builder, id uint32, distance uint32) flatbuffers.UOffsetT {

@@ -20,8 +20,7 @@ func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTab
 }
 
 func (rcv *SecondTableInA) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *SecondTableInA) Table() flatbuffers.Table {
@@ -31,11 +30,11 @@ func (rcv *SecondTableInA) Table() flatbuffers.Table {
 func (rcv *SecondTableInA) ReferToC(obj *NamespaceC.TableInC) *NamespaceC.TableInC {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(NamespaceC.TableInC)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil

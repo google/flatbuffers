@@ -18,8 +18,7 @@ func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *Monster) Table() flatbuffers.Table {

@@ -18,8 +18,7 @@ func GetRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInN
 }
 
 func (rcv *TableInNestedNS) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *TableInNestedNS) Table() flatbuffers.Table {
@@ -29,7 +28,7 @@ func (rcv *TableInNestedNS) Table() flatbuffers.Table {
 func (rcv *TableInNestedNS) Foo() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+		return rcv._tab.GetInt32(o + rcv._tab.Pos())
 	}
 	return 0
 }

@@ -237,7 +237,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 
 		// initialize a Monster from the Table from the union
 		var monster2 example.Monster
-		monster2.Init(table2.Bytes, table2.Pos)
+		monster2.Init(table2.Bytes(), table2.Pos())
 
 		if got := monster2.Name(); !bytes.Equal([]byte("Fred"), got) {
 			fail(FailString("monster2.Name()", "Fred", got))
@@ -510,10 +510,8 @@ func checkFuzz(fuzzFields, fuzzObjects int, fail func(string, ...interface{})) {
 	// so this is deterministic.
 	for i := 0; i < fuzzObjects; i++ {
 
-		table := &flatbuffers.Table{
-			Bytes: builder.Bytes,
-			Pos:   flatbuffers.UOffsetT(len(builder.Bytes)) - objects[i],
-		}
+		var table flatbuffers.Table
+		table.Init(builder.Bytes, flatbuffers.UOffsetT(len(builder.Bytes))-objects[i])
 
 		for j := 0; j < fuzzFields; j++ {
 			f := flatbuffers.VOffsetT((flatbuffers.VtableMetadataFields + j) * flatbuffers.SizeVOffsetT)
@@ -1198,7 +1196,7 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	vec3 := &example.Vec3{}
 	flatbuffers.GetRootAs(vec3Bytes, 0, vec3)
 
-	if bytes.Compare(vec3Bytes, vec3.Table().Bytes) != 0 {
+	if bytes.Compare(vec3Bytes, vec3.Table().Bytes()) != 0 {
 		fail("invalid vec3 table")
 	}
 
@@ -1215,7 +1213,7 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	stat := &example.Stat{}
 	flatbuffers.GetRootAs(statBytes, 0, stat)
 
-	if bytes.Compare(statBytes, stat.Table().Bytes) != 0 {
+	if bytes.Compare(statBytes, stat.Table().Bytes()) != 0 {
 		fail("invalid stat table")
 	}
 }
@@ -1273,11 +1271,12 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 			len(want), want, len(got), got)
 	}
 
-	table0 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
-	table1 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
-	table2 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj2}
+	var table0, table1, table2 flatbuffers.Table
+	table0.Init(b.Bytes, flatbuffers.UOffsetT(len(b.Bytes))-obj0)
+	table1.Init(b.Bytes, flatbuffers.UOffsetT(len(b.Bytes))-obj1)
+	table2.Init(b.Bytes, flatbuffers.UOffsetT(len(b.Bytes))-obj2)
 
-	testTable := func(tab *flatbuffers.Table, a flatbuffers.VOffsetT, b, c, d byte) {
+	testTable := func(tab flatbuffers.Table, a flatbuffers.VOffsetT, b, c, d byte) {
 		// vtable size
 		if got := tab.GetVOffsetTSlot(0, 0); 12 != got {
 			fail("failed 0, 0: %d", got)
@@ -1560,16 +1559,14 @@ func CheckMutateMethods(fail func(string, ...interface{})) {
 
 	offset := b.EndObject()
 
-	t := &flatbuffers.Table{
-		Bytes: b.Bytes,
-		Pos:   flatbuffers.UOffsetT(len(b.Bytes)) - offset,
-	}
+	var t flatbuffers.Table
+	t.Init(b.Bytes, flatbuffers.UOffsetT(len(b.Bytes))-offset)
 
 	calcVOffsetT := func(slot int) (vtableOffset flatbuffers.VOffsetT) {
 		return flatbuffers.VOffsetT((flatbuffers.VtableMetadataFields + slot) * flatbuffers.SizeVOffsetT)
 	}
 	calcUOffsetT := func(vtableOffset flatbuffers.VOffsetT) (valueOffset flatbuffers.UOffsetT) {
-		return t.Pos + flatbuffers.UOffsetT(t.Offset(vtableOffset))
+		return t.Pos() + flatbuffers.UOffsetT(t.Offset(vtableOffset))
 	}
 
 	type testcase struct {
@@ -1742,7 +1739,7 @@ func BenchmarkParseGold(b *testing.B) {
 		reuse_test3.B()
 		monster.TestType()
 		monster.Test(&reuse_table2)
-		reuse_monster2.Init(reuse_table2.Bytes, reuse_table2.Pos)
+		reuse_monster2.Init(reuse_table2.Bytes(), reuse_table2.Pos())
 		name2 := reuse_monster2.Name()
 		_ = name2[0]
 		_ = name2[len(name2)-1]

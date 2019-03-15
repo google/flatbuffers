@@ -20,8 +20,7 @@ func GetRootAsTableInC(buf []byte, offset flatbuffers.UOffsetT) *TableInC {
 }
 
 func (rcv *TableInC) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *TableInC) Table() flatbuffers.Table {
@@ -31,11 +30,11 @@ func (rcv *TableInC) Table() flatbuffers.Table {
 func (rcv *TableInC) ReferToA1(obj *NamespaceA.TableInFirstNS) *NamespaceA.TableInFirstNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(NamespaceA.TableInFirstNS)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -44,11 +43,11 @@ func (rcv *TableInC) ReferToA1(obj *NamespaceA.TableInFirstNS) *NamespaceA.Table
 func (rcv *TableInC) ReferToA2(obj *NamespaceA.SecondTableInA) *NamespaceA.SecondTableInA {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(NamespaceA.SecondTableInA)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil

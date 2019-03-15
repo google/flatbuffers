@@ -18,8 +18,7 @@ func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *Stat) Table() flatbuffers.Table {
@@ -29,7 +28,7 @@ func (rcv *Stat) Table() flatbuffers.Table {
 func (rcv *Stat) Id() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }
@@ -37,7 +36,7 @@ func (rcv *Stat) Id() []byte {
 func (rcv *Stat) Val() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetInt64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -49,7 +48,7 @@ func (rcv *Stat) MutateVal(n int64) bool {
 func (rcv *Stat) Count() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
-		return rcv._tab.GetUint16(o + rcv._tab.Pos)
+		return rcv._tab.GetUint16(o + rcv._tab.Pos())
 	}
 	return 0
 }

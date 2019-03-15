@@ -21,8 +21,7 @@ func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *Monster) Table() flatbuffers.Table {
@@ -32,11 +31,11 @@ func (rcv *Monster) Table() flatbuffers.Table {
 func (rcv *Monster) Pos(obj *Vec3) *Vec3 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := o + rcv._tab.Pos
+		x := o + rcv._tab.Pos()
 		if obj == nil {
 			obj = new(Vec3)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -45,7 +44,7 @@ func (rcv *Monster) Pos(obj *Vec3) *Vec3 {
 func (rcv *Monster) Mana() int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt16(o + rcv._tab.Pos)
+		return rcv._tab.GetInt16(o + rcv._tab.Pos())
 	}
 	return 150
 }
@@ -57,7 +56,7 @@ func (rcv *Monster) MutateMana(n int16) bool {
 func (rcv *Monster) Hp() int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
-		return rcv._tab.GetInt16(o + rcv._tab.Pos)
+		return rcv._tab.GetInt16(o + rcv._tab.Pos())
 	}
 	return 100
 }
@@ -69,7 +68,7 @@ func (rcv *Monster) MutateHp(n int16) bool {
 func (rcv *Monster) Name() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }
@@ -94,7 +93,7 @@ func (rcv *Monster) InventoryLength() int {
 func (rcv *Monster) InventoryBytes() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }
@@ -111,7 +110,7 @@ func (rcv *Monster) MutateInventory(j int, n byte) bool {
 func (rcv *Monster) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos())
 	}
 	return 8
 }
@@ -123,7 +122,7 @@ func (rcv *Monster) MutateColor(n Color) bool {
 func (rcv *Monster) TestType() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -146,7 +145,7 @@ func (rcv *Monster) Test4(obj *Test, j int) bool {
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -185,7 +184,7 @@ func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
 		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -204,11 +203,11 @@ func (rcv *Monster) TestarrayoftablesLength() int {
 func (rcv *Monster) Enemy(obj *Monster) *Monster {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(Monster)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -234,7 +233,7 @@ func (rcv *Monster) TestnestedflatbufferLength() int {
 func (rcv *Monster) TestnestedflatbufferBytes() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(30))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }
@@ -251,11 +250,11 @@ func (rcv *Monster) MutateTestnestedflatbuffer(j int, n byte) bool {
 func (rcv *Monster) Testempty(obj *Stat) *Stat {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(32))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(Stat)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -264,7 +263,7 @@ func (rcv *Monster) Testempty(obj *Stat) *Stat {
 func (rcv *Monster) Testbool() bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(34))
 	if o != 0 {
-		return rcv._tab.GetBool(o + rcv._tab.Pos)
+		return rcv._tab.GetBool(o + rcv._tab.Pos())
 	}
 	return false
 }
@@ -276,7 +275,7 @@ func (rcv *Monster) MutateTestbool(n bool) bool {
 func (rcv *Monster) Testhashs32Fnv1() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(36))
 	if o != 0 {
-		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+		return rcv._tab.GetInt32(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -288,7 +287,7 @@ func (rcv *Monster) MutateTesthashs32Fnv1(n int32) bool {
 func (rcv *Monster) Testhashu32Fnv1() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(38))
 	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
+		return rcv._tab.GetUint32(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -300,7 +299,7 @@ func (rcv *Monster) MutateTesthashu32Fnv1(n uint32) bool {
 func (rcv *Monster) Testhashs64Fnv1() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(40))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetInt64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -312,7 +311,7 @@ func (rcv *Monster) MutateTesthashs64Fnv1(n int64) bool {
 func (rcv *Monster) Testhashu64Fnv1() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(42))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -324,7 +323,7 @@ func (rcv *Monster) MutateTesthashu64Fnv1(n uint64) bool {
 func (rcv *Monster) Testhashs32Fnv1a() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(44))
 	if o != 0 {
-		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+		return rcv._tab.GetInt32(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -336,7 +335,7 @@ func (rcv *Monster) MutateTesthashs32Fnv1a(n int32) bool {
 func (rcv *Monster) Testhashu32Fnv1a() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(46))
 	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
+		return rcv._tab.GetUint32(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -348,7 +347,7 @@ func (rcv *Monster) MutateTesthashu32Fnv1a(n uint32) bool {
 func (rcv *Monster) Testhashs64Fnv1a() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(48))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetInt64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -360,7 +359,7 @@ func (rcv *Monster) MutateTesthashs64Fnv1a(n int64) bool {
 func (rcv *Monster) Testhashu64Fnv1a() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(50))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -398,7 +397,7 @@ func (rcv *Monster) MutateTestarrayofbools(j int, n bool) bool {
 func (rcv *Monster) Testf() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(54))
 	if o != 0 {
-		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos())
 	}
 	return 3.14159
 }
@@ -410,7 +409,7 @@ func (rcv *Monster) MutateTestf(n float32) bool {
 func (rcv *Monster) Testf2() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(56))
 	if o != 0 {
-		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos())
 	}
 	return 3.0
 }
@@ -422,7 +421,7 @@ func (rcv *Monster) MutateTestf2(n float32) bool {
 func (rcv *Monster) Testf3() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(58))
 	if o != 0 {
-		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos())
 	}
 	return 0.0
 }
@@ -453,7 +452,7 @@ func (rcv *Monster) Testarrayofsortedstruct(obj *Ability, j int) bool {
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 8
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -487,7 +486,7 @@ func (rcv *Monster) FlexLength() int {
 func (rcv *Monster) FlexBytes() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }
@@ -506,7 +505,7 @@ func (rcv *Monster) Test5(obj *Test, j int) bool {
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -575,11 +574,11 @@ func (rcv *Monster) MutateVectorOfDoubles(j int, n float64) bool {
 func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.InParentNamespace {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(MyGame.InParentNamespace)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -591,7 +590,7 @@ func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
 		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -608,7 +607,7 @@ func (rcv *Monster) VectorOfReferrablesLength() int {
 func (rcv *Monster) SingleWeakReference() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(76))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -649,7 +648,7 @@ func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
 		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return true
 	}
 	return false
@@ -666,7 +665,7 @@ func (rcv *Monster) VectorOfStrongReferrablesLength() int {
 func (rcv *Monster) CoOwningReference() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(82))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -704,7 +703,7 @@ func (rcv *Monster) MutateVectorOfCoOwningReferences(j int, n uint64) bool {
 func (rcv *Monster) NonOwningReference() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(86))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -742,7 +741,7 @@ func (rcv *Monster) MutateVectorOfNonOwningReferences(j int, n uint64) bool {
 func (rcv *Monster) AnyUniqueType() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(90))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -763,7 +762,7 @@ func (rcv *Monster) AnyUnique(obj *flatbuffers.Table) bool {
 func (rcv *Monster) AnyAmbiguousType() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(94))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -801,7 +800,7 @@ func (rcv *Monster) VectorOfEnumsLength() int {
 func (rcv *Monster) VectorOfEnumsBytes() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv._tab.ByteVector(o + rcv._tab.Pos())
 	}
 	return nil
 }

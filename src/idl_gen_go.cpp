@@ -221,8 +221,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
     code += "{\n";
-    code += "\trcv._tab.Bytes = buf\n";
-    code += "\trcv._tab.Pos = i\n";
+    code += "\trcv._tab.Init(buf, i)\n";
     code += "}\n\n";
   }
 
@@ -262,7 +261,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + MakeCamel(field.name) + "Bytes(";
     code += ") []byte " + OffsetPrefix(field);
-    code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos)\n\t}\n";
+    code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos())\n\t}\n";
     code += "\treturn nil\n}\n\n";
   }
 
@@ -276,7 +275,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " {\n";
     code += "\treturn " + getter;
-    code += "(rcv._tab.Pos + flatbuffers.UOffsetT(";
+    code += "(rcv._tab.Pos() + flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "))\n}\n";
   }
 
@@ -290,7 +289,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field) + "\t\treturn " + getter;
-    code += "(o + rcv._tab.Pos)\n\t}\n";
+    code += "(o + rcv._tab.Pos())\n\t}\n";
     code += "\treturn " + GenConstant(field) + "\n";
     code += "}\n\n";
   }
@@ -309,7 +308,7 @@ class GoGenerator : public BaseGenerator {
     code += "\tif obj == nil {\n";
     code += "\t\tobj = new(" + TypeName(field) + ")\n";
     code += "\t}\n";
-    code += "\tobj.Init(rcv._tab.Bytes, rcv._tab.Pos+";
+    code += "\tobj.Init(rcv._tab.Bytes(), rcv._tab.Pos()+";
     code += NumToString(field.value.offset) + ")";
     code += "\n\treturn obj\n";
     code += "}\n";
@@ -327,14 +326,14 @@ class GoGenerator : public BaseGenerator {
     code += TypeName(field);
     code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
     if (field.value.type.struct_def->fixed) {
-      code += "\t\tx := o + rcv._tab.Pos\n";
+      code += "\t\tx := o + rcv._tab.Pos()\n";
     } else {
-      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos())\n";
     }
     code += "\t\tif obj == nil {\n";
     code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
     code += "\t\t}\n";
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+    code += "\t\tobj.Init(rcv._tab.Bytes(), x)\n";
     code += "\t\treturn obj\n\t}\n\treturn nil\n";
     code += "}\n\n";
   }
@@ -348,7 +347,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
-    code += "(o + rcv._tab.Pos)\n\t}\n\treturn nil\n";
+    code += "(o + rcv._tab.Pos())\n\t}\n\treturn nil\n";
     code += "}\n\n";
   }
 
@@ -383,7 +382,7 @@ class GoGenerator : public BaseGenerator {
     if (!(vectortype.struct_def->fixed)) {
       code += "\t\tx = rcv._tab.Indirect(x)\n";
     }
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+    code += "\t\tobj.Init(rcv._tab.Bytes(), x)\n";
     code += "\t\treturn true\n\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
@@ -602,7 +601,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
     code += "(n " + TypeName(field) + ") bool {\n\treturn " + setter;
-    code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
+    code += "(rcv._tab.Pos()+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), n)\n}\n\n";
   }
 

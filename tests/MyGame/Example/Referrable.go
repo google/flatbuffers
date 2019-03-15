@@ -18,8 +18,7 @@ func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *Referrable) Table() flatbuffers.Table {
@@ -29,7 +28,7 @@ func (rcv *Referrable) Table() flatbuffers.Table {
 func (rcv *Referrable) Id() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos())
 	}
 	return 0
 }

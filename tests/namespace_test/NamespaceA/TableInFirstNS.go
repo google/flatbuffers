@@ -20,8 +20,7 @@ func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFi
 }
 
 func (rcv *TableInFirstNS) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *TableInFirstNS) Table() flatbuffers.Table {
@@ -31,11 +30,11 @@ func (rcv *TableInFirstNS) Table() flatbuffers.Table {
 func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS) *NamespaceA__NamespaceB.TableInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos())
 		if obj == nil {
 			obj = new(NamespaceA__NamespaceB.TableInNestedNS)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil
@@ -44,7 +43,7 @@ func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS)
 func (rcv *TableInFirstNS) FooEnum() EnumInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt8(o + rcv._tab.Pos)
+		return rcv._tab.GetInt8(o + rcv._tab.Pos())
 	}
 	return 0
 }
@@ -56,11 +55,11 @@ func (rcv *TableInFirstNS) MutateFooEnum(n EnumInNestedNS) bool {
 func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
-		x := o + rcv._tab.Pos
+		x := o + rcv._tab.Pos()
 		if obj == nil {
 			obj = new(NamespaceA__NamespaceB.StructInNestedNS)
 		}
-		obj.Init(rcv._tab.Bytes, x)
+		obj.Init(rcv._tab.Bytes(), x)
 		return obj
 	}
 	return nil

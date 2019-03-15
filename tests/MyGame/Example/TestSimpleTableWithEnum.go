@@ -18,8 +18,7 @@ func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *
 }
 
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {
@@ -29,7 +28,7 @@ func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {
 func (rcv *TestSimpleTableWithEnum) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos())
 	}
 	return 2
 }

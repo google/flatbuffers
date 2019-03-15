@@ -18,8 +18,7 @@ func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InPare
 }
 
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
+	rcv._tab.Init(buf, i)
 }
 
 func (rcv *InParentNamespace) Table() flatbuffers.Table {
