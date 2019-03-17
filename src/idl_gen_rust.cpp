@@ -698,14 +698,14 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub fn enum_name_{{ENUM_NAME_SNAKE}}(e: {{ENUM_NAME}}) -> "
                "&'static str {";
 
-      code_ += "  let index: usize = e as usize\\";
+      code_ += "  let index = e as {{BASE_TYPE}}\\";
       if (enum_def.vals.vec.front()->value) {
         auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
-        code_ += " - " + vals + " as usize\\";
+        code_ += " - " + vals + " as {{BASE_TYPE}}\\";
       }
       code_ += ";";
 
-      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index]";
+      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index as usize]";
       code_ += "}";
       code_ += "";
     }
