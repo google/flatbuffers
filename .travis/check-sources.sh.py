@@ -18,12 +18,11 @@ def check_encoding(encoding, scan_dir, regex_pattern):
         btext.decode(encoding=encoding, errors="strict")
         if encoding == "utf-8" and btext.startswith(b'\xEF\xBB\xBF'):
           raise ValueError("unexpected BOM in file")
-        # check strict CRLF line-ending
-        LF = btext.count(b'\r')
-        CRLF = btext.count(b'\r\n')
-        assert LF >= CRLF, "CRLF logic error"
-        if CRLF != LF:
-          raise ValueError("CRLF violation: found {} LF characters".format(LF - CRLF))
+        # check LF line endings
+        LF = btext.count(b'\n')
+        CR = btext.count(b'\r')
+        if CR!=0:
+          raise ValueError("invalid line endings: LF({})/CR({})".format(LF, CR))
   except Exception as err:
     print("ERROR with [{}]: {}".format(fname, err))
     return -1
