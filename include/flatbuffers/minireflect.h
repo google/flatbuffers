@@ -289,12 +289,12 @@ struct ToStringVisitor : public IterationVisitor {
   size_t indent_level;
   bool vector_delimited;
   ToStringVisitor(std::string delimiter, bool quotes, std::string indent,
-                  bool vector_delimited = true)
+                  bool vdelimited = true)
       : d(delimiter),
         q(quotes),
         in(indent),
         indent_level(0),
-        vector_delimited(vector_delimited) {}
+        vector_delimited(vdelimited) {}
   ToStringVisitor(std::string delimiter)
       : d(delimiter),
         q(false),
