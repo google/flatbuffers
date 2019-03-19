@@ -230,8 +230,6 @@ class CppNativeGenerator : public BaseGenerator {
         if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
           auto nativeName = NativeName(struct_def);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
-          code_ += TablePackSignature(struct_def, true) + ";";
-          code_ += TableUnPackSignature(struct_def, true) + ";";
           code_ += "";
         }
       }
@@ -255,6 +253,22 @@ class CppNativeGenerator : public BaseGenerator {
       if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
         SetNameSpace(*struct_def.defined_namespace);
         GenNativeTable(struct_def);
+      }
+    }
+
+    SetNameSpace(Namespace{});
+
+    // Generate forward declarations for pack / unpack operators
+    if (parser_.opts.gen_compare) {
+      for (auto it = parser_.structs_.vec.begin();
+           it != parser_.structs_.vec.end(); ++it) {
+        const auto &struct_def = **it;
+        if (!struct_def.fixed && !struct_def.generated &&
+            !hasNative(struct_def)) {
+          code_ += TablePackSignature(struct_def, true) + ";";
+          code_ += TableUnPackSignature(struct_def, true) + ";";
+          code_ += "";
+        }
       }
     }
 
@@ -354,7 +368,7 @@ class CppNativeGenerator : public BaseGenerator {
 
   static inline Namespace NativeNamespace(Namespace ns)
   {
-    ns.components.insert(ns.components.begin(), "Native");
+    ns.components.push_back("Native");
     return ns;
   }
 
@@ -662,11 +676,11 @@ class CppNativeGenerator : public BaseGenerator {
         std::string unpacker;
         if (IsStruct(type)) {
           if (hasNative(*type.struct_def))
-            unpacker = "Native::UnPack(*" + val + ")";
+            unpacker = "::Native::UnPack(*" + val + ")";
           else
             unpacker = "*" + val;
         } else {
-          unpacker = "Native::UnPack(*" + val + ", _resolver)";
+          unpacker = "::Native::UnPack(*" + val + ", _resolver)";
         }
 
         if (invector || isInline(afield)) {
@@ -800,7 +814,7 @@ class CppNativeGenerator : public BaseGenerator {
                 code += "_fbb.CreateVectorOfStructs<";
                 code += name + ">(" + value + ".size(),";
                 code += "[&](size_t i, " + name + " *r) {";
-                code += "*r = Native::Pack(" + value + "[i]);})";
+                code += "*r = ::Native::Pack(" + value + "[i]);})";
               } else {
                 code += "_fbb.CreateVectorOfStructs(" + value + ")";
               }
@@ -809,7 +823,7 @@ class CppNativeGenerator : public BaseGenerator {
               code += name + ">> ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
-              code += "return Native::Pack(*__va->__fbb, __va->_" + value + "[i], ";
+              code += "return ::Native::Pack(*__va->__fbb, __va->_" + value + "[i], ";
               code += "__va->__rehasher); }, &_va )";
             }
             break;
@@ -871,8 +885,8 @@ class CppNativeGenerator : public BaseGenerator {
           if (hasNative(*field.value.type.struct_def))
           {
             packer = "& static_cast<const " +
-                Name(*field.value.type.struct_def) + 
-                " &>(Native::Pack(" + valueRef + "))";
+              NameNameSpace(*field.value.type.struct_def) + 
+                " &>(::Native::Pack(" + valueRef + "))";
           } else {
             if (isInline(field)) {
               packer = "&" + value;
@@ -881,7 +895,7 @@ class CppNativeGenerator : public BaseGenerator {
             }
           }
         } else {
-          packer = "Native::Pack(_fbb, " + valueRef + ", _rehasher)";
+          packer = "::Native::Pack(_fbb, " + valueRef + ", _rehasher)";
         }
         if (isInline(field)) {
           code += packer;
@@ -957,7 +971,7 @@ class CppNativeGenerator : public BaseGenerator {
       }
     }
 
-    code_ += "  " + Name(struct_def) + "Builder builder_(_fbb);";
+    code_ += "  " + NameNameSpace(struct_def) + "Builder builder_(_fbb);";
 
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {

@@ -24,15 +24,15 @@ inline bool operator==(const MyMat &lhs, const MyMat &rhs) {
 
 namespace Native
 {
-  inline const std::complex<double> UnPack(const ::Complex &v) {
+  inline const std::complex<double> UnPack(const TestN::Complex &v) {
     return std::complex<double>(v.i(), v.q());
   }
 
-  inline const ::Complex Pack(const std::complex<double> &v) {
-    return ::Complex(v.real(), v.imag());
+  inline const TestN::Complex Pack(const std::complex<double> &v) {
+    return TestN::Complex(v.real(), v.imag());
   }
 
-  inline MyMat UnPack(const ::Mat &_f, const flatbuffers::resolver_function_t *) {
+  inline MyMat UnPack(const TestN::Mat &_f, const flatbuffers::resolver_function_t *) {
     std::vector<std::complex<double>> dat;
     auto _e = _f.data();
     dat.resize(_e->size());
@@ -42,21 +42,19 @@ namespace Native
     return MyMat(_f.rows(), dat);
   }
 
-  inline flatbuffers::Offset<::Mat> Pack( flatbuffers::FlatBufferBuilder &_fbb, const MyMat &_o,
+  inline flatbuffers::Offset<TestN::Mat> Pack( flatbuffers::FlatBufferBuilder &_fbb, const MyMat &_o,
       const flatbuffers::rehasher_function_t *) {
 
-    auto data__ = _o.dat().size() ? _fbb.CreateVectorOfStructs<::Complex>(
+    auto data__ = _o.dat().size() ? _fbb.CreateVectorOfStructs<TestN::Complex>(
                                        _o.dat().size(),
-                                       [&](size_t i, ::Complex *r) {
+                                       [&](size_t i, TestN::Complex *r) {
                                          *r = Native::Pack(_o.dat()[i]);
                                        })
                                  : 0;
 
-    MatBuilder builder_(_fbb);
+    TestN::MatBuilder builder_(_fbb);
     builder_.add_data(data__);
     builder_.add_rows(_o.rows());
     return builder_.Finish();
   }
-
-
 }

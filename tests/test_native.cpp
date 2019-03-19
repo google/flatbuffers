@@ -33,8 +33,8 @@
 #include "test_assert.h"
 
 void CompileTest() {
-  Native::Foo foo;
-  foo.enumData = BundleSize_Size3;
+  TestN::Native::Foo foo;
+  foo.enumData = TestN::BundleSize_Size3;
 
   for (auto i = 0; i < 3; ++i) {
     auto c = std::complex<double>(static_cast<double>(i), 1.);
@@ -47,7 +47,7 @@ void CompileTest() {
 
   // debugging + access to serialized data
   auto s = flatbuffers::FlatBufferToString(fbb.GetBufferPointer(),
-                                           FooTypeTable(), true);
+                                           TestN::FooTypeTable(), true);
 
   TEST_EQ_STR(s.c_str(), "sdf");
 }

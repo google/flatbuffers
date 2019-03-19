@@ -1,5 +1,7 @@
 native_include "custom_native.h";
 
+namespace TestN;
+
 struct Complex (native_type:"std::complex<double>")  {
   i:double;
   q:double;
