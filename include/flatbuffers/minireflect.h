@@ -289,12 +289,12 @@ struct ToStringVisitor : public IterationVisitor {
   size_t indent_level;
   bool vector_delimited;
   ToStringVisitor(std::string delimiter, bool quotes, std::string indent,
-                  bool _vector_delimited = true)
+                  bool vdelimited = true)
       : d(delimiter),
         q(quotes),
         in(indent),
         indent_level(0),
-        vector_delimited(_vector_delimited) {}
+        vector_delimited(vdelimited) {}
   ToStringVisitor(std::string delimiter)
       : d(delimiter),
         q(false),
@@ -360,15 +360,15 @@ struct ToStringVisitor : public IterationVisitor {
   void Unknown(const uint8_t *) { s += "(?)"; }
   void StartVector() {
     s += "[";
+    s += d;
     if (vector_delimited) {
-      s += d;
       indent_level++;
       append_indent();
     }
   }
   void EndVector() {
+    s += d;
     if (vector_delimited) {
-      s += d;
       indent_level--;
       append_indent();
     }
@@ -378,8 +378,8 @@ struct ToStringVisitor : public IterationVisitor {
                const TypeTable * /*type_table*/, const uint8_t * /*val*/) {
     if (i) {
       s += ",";
+      s += d;
       if (vector_delimited) {
-        s += d;
         append_indent();
       }
     }
