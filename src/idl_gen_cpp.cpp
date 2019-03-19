@@ -569,40 +569,46 @@ class CppGenerator : public BaseGenerator {
                             : name;
   }
 
-  const std::string &PtrType(const FieldDef *field) {
-    auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
-    return attr ? attr->constant : parser_.opts.cpp_object_api_pointer_type;
+  const std::string FieldStringLookup(const FieldDef *field,
+                                      const std::string &attrName) {
+    auto attr = field ? field->attributes.Lookup(attrName) : nullptr;
+    if (attr) {
+      return attr->constant;
+    } else {
+      if (attrName == "cpp_ptr_type") {
+        return parser_.opts.cpp_object_api_pointer_type;
+      } else if (attrName == "cpp_str_type") {
+        return parser_.opts.cpp_object_api_string_type;
+      } else if (attrName == "cpp_vec_type") {
+        return parser_.opts.cpp_object_api_vector_type;
+      } else {
+        return "";
+      }
+    }
+  }
+
+  const std::string PtrType(const FieldDef *field) {
+    return FieldStringLookup(field, "cpp_ptr_type");
   }
 
   const std::string NativeString(const FieldDef *field) {
-    auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
-    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_string_type;
-    if (ret.empty()) { return "std::string"; }
-    return ret;
-  }
-
-  bool FlexibleStringConstructor(const FieldDef *field) {
-    auto attr = field
-                    ? (field->attributes.Lookup("cpp_str_flex_ctor") != nullptr)
-                    : false;
-    auto ret =
-        attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
-    return ret && NativeString(field) !=
-                      "std::string";  // Only for custom string types.
-  }
-
-  bool NativeVectorDefined(const FieldDef *field) {
-    auto attr = field ? field->attributes.Lookup("cpp_vec_type") : nullptr;
-    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_vector_type;
-    if (ret.empty()) { return false; }
-    return true;
+    return FieldStringLookup(field, "cpp_str_type");
   }
 
   const std::string NativeVector(const FieldDef *field) {
-    auto attr = field ? field->attributes.Lookup("cpp_vec_type") : nullptr;
-    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_vector_type;
-    if (ret.empty()) { return "std::vector"; }
-    return ret;
+    return FieldStringLookup(field, "cpp_vec_type");
+  }
+
+  bool NativeVectorDefined(const FieldDef *field) {
+    return NativeVector(field) != "std::vector";
+  }
+
+  bool FlexibleStringConstructor(const FieldDef *field) {
+    // This is a boolean field, cannot use FieldStringLookup().
+    auto attr = field ? field->attributes.Lookup("cpp_str_flex_ctor") : nullptr;
+    auto ret =
+        attr ? true : parser_.opts.cpp_object_api_string_flexible_constructor;
+    return ret && NativeString(field) != "std::string";
   }
 
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
@@ -2335,6 +2341,19 @@ class CppGenerator : public BaseGenerator {
     return code;
   }
 
+  const std::string VectorAccessor(const FieldDef *field,
+                                   const std::string &value) {
+    if (!NativeVectorDefined(field)) {
+      // Use std::vector variant,
+      return "(" + value + ")";
+    } else {
+      // Non-std vector, use ptr+size variant.
+      // This is a user-defined type, we can require .data() and
+      // don't have to care about STLPort compatibility.
+      return "(" + value + ".data(), " + value + ".size())";
+    }
+  }
+
   std::string GenCreateParam(const FieldDef &field) {
     const IDLOptions &opts = parser_.opts;
 
@@ -2419,15 +2438,7 @@ class CppGenerator : public BaseGenerator {
               } else {
                 code += "_fbb.CreateVectorOfStructs";
               }
-              if (!NativeVectorDefined(&field)) {
-                // Use std::vector variant.
-                code += "(" + value + ")";
-              } else {
-                // Non-std vector, use ptr+size variant.
-                // This is a user-defined type, we can require .data() and
-                // don't have to care about STLPort compatibility.
-                code += "(" + value + ".data(), " + value + ".size())";
-              }
+              code += VectorAccessor(&field, value);
             } else {
               // Flatbuffers table, not struct.
               code += "_fbb.CreateVector<flatbuffers::Offset<";
@@ -2444,15 +2455,13 @@ class CppGenerator : public BaseGenerator {
           case BASE_TYPE_BOOL: {
             if (!NativeVectorDefined(&field)) {
               // Use std::vector<bool> variant.
-              code += "_fbb.CreateVector(" + value + ")";
+              code += "_fbb.CreateVector";
             } else {
               // Use CreateVectorScalarCast() to emulate
               // CreateVector(std::vector<bool>) for non-std vectors.
-              // This is a user-defined type, we can require .data() and
-              // don't have to care about STLPort compatibility.
-              code += "_fbb.CreateVectorScalarCast<uint8_t, bool> ";
-              code += "(" + value + ".data(), " + value + ".size())";
+              code += "_fbb.CreateVectorScalarCast<uint8_t, bool>";
             }
+            code += VectorAccessor(&field, value);
             break;
           }
           case BASE_TYPE_UNION: {
@@ -2482,14 +2491,11 @@ class CppGenerator : public BaseGenerator {
               code += "_fbb.CreateVectorScalarCast<" + basetype + ">";
               if (!NativeVectorDefined(&field)) {
                 // Use std::vector variant, requires flatbuffers::data() for
-                // STLPort compatibility.
+                // STLPort compatibility, cannot use VectorAccessor().
                 code +=
                     "(flatbuffers::data(" + value + "), " + value + ".size())";
               } else {
-                // Non-std vector, use ptr+size variant.
-                // This is a user-defined type, we can require .data() and
-                // don't have to care about STLPort compatibility.
-                code += "(" + value + ".data(), " + value + ".size())";
+                code += VectorAccessor(&field, value);
               }
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);
@@ -2500,16 +2506,8 @@ class CppGenerator : public BaseGenerator {
               code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";
               code += "; }, &_va )";
             } else {
-              if (!NativeVectorDefined(&field)) {
-                // Use std::vector variant,
-                code += "_fbb.CreateVector(" + value + ")";
-              } else {
-                // Non-std vector, use ptr+size variant.
-                // This is a user-defined type, we can require .data() and
-                // don't have to care about STLPort compatibility.
-                code += "_fbb.CreateVector(" + value + ".data(), " + value +
-                        ".size())";
-              }
+              code += "_fbb.CreateVector";
+              code += VectorAccessor(&field, value);
             }
             break;
           }
