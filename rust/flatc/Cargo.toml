@@ -1,0 +1,14 @@
+[package]
+name = "flatc"
+version = "0.1.0"
+authors = ["Richard Berry <rjsberry@pm.me>", "FlatBuffers Maintainers"]
+license = "Apache-2.0"
+build = "build.rs"
+description = "Companion package to flatbuffers to generate code at compile time."
+homepage = "https://google.github.io/flatbuffers/"
+repository = "https://github.com/google/flatbuffers"
+keywords = ["flatbuffers", "serialization", "zero-copy"]
+categories = ["encoding", "data-structures", "memory-management"]
+
+[build-dependencies]
+cmake = "0.1"

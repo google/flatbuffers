@@ -1,16 +1,19 @@
 extern crate flatbuffers;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/include_test1_generated.rs"]
-pub mod include_test1_generated;
+pub mod include_test1_generated {
+    include!(concat!(env!("OUT_DIR"), "/include_test1_generated.rs"));
+}
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/sub/include_test2_generated.rs"]
-pub mod include_test2_generated;
+pub mod include_test2_generated {
+    include!(concat!(env!("OUT_DIR"), "/include_test2_generated.rs"));
+}
 
 #[allow(dead_code, unused_imports, clippy::approx_constant)]
-#[path = "../../monster_test_generated.rs"]
-mod monster_test_generated;
+mod monster_test_generated {
+    include!(concat!(env!("OUT_DIR"), "/monster_test_generated.rs"));
+}
 pub use monster_test_generated::my_game;
 
 use std::io::Read;

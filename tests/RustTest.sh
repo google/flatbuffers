@@ -32,8 +32,19 @@ function check_test_result() {
 }
 
 cd ./rust_usage_test
+<<<<<<< HEAD
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
+=======
+cargo test $TARGET_FLAG -- --quiet --skip build_script_wrapper
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust tests passed."
+else
+    echo "KO: Rust tests failed."
+    exit 1
+fi
+>>>>>>> d9e935e4... [Rust] flatc build script wrapper
 
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
@@ -45,6 +56,15 @@ check_test_result "Rust flexbuffers heap alloc test"
 rustup component add clippy
 cargo clippy $TARGET_FLAG
 check_test_result "No Cargo clippy lints test"
+
+cargo test $TARGET_FLAG -- --quiet --test build_script_wrapper
+TEST_RESULT=$?
+if [[ $TEST_RESULT == 0 ]]; then
+    echo "OK: Rust flatc build script wrapper test passed."
+else
+    echo "KO: Rust flatc build script wrapper test failed."
+    exit 1
+fi
 
 cargo bench $TARGET_FLAG
 

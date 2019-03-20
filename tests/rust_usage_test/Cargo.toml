@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Robert Winslow <hello@rwinslow.com>",
            "Casper Neo <cneo@google.com>",
            "FlatBuffers Maintainers"]
+build = "build.rs"
 
 [dependencies]
 flatbuffers = { path = "../../rust/flatbuffers" }
@@ -43,6 +44,11 @@ bencher = "0.1.5"
 static_assertions = "1.0.0"
 rand = "*"
 quickcheck_derive = "*"
+syn = { version = "0.15", features = ["full", "parsing"] }
+
+[build-dependencies]
+flatc = { path = "../../rust/flatc" }
+tempfile = "3.0"
 
 [[bench]]
 # setup for bencher

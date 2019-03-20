@@ -120,6 +120,7 @@ dart/pubspec.lock
 dart/.dart_tool/
 dart/build/
 dart/doc/api/
+!rust/flatc
 Cargo.lock
 .corpus**
 .seed**
