@@ -2,6 +2,7 @@
 name = "rust_usage_test"
 version = "0.1.0"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
+build = "build.rs"
 
 [dependencies]
 flatbuffers = { path = "../../rust/flatbuffers" }
@@ -14,11 +15,15 @@ path = "bin/monster_example.rs"
 name = "alloc_check"
 path = "bin/alloc_check.rs"
 
-
 [dev-dependencies]
 quickcheck = "0.6"
 # TODO(rw): look into moving to criterion.rs
 bencher = "0.1.5"
+syn = { version = "0.15", features = ["full", "parsing"] }
+
+[build-dependencies]
+flatc = { path = "../../rust/flatc" }
+tempfile = "3.0"
 
 [[bench]]
 # setup for bencher

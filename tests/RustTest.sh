@@ -22,7 +22,7 @@ if [[ "$1" == "mips-unknown-linux-gnu" ]]; then
 fi
 
 cd ./rust_usage_test
-cargo test $TARGET_FLAG -- --quiet
+cargo test $TARGET_FLAG -- --quiet --skip build_script_wrapper
 TEST_RESULT=$?
 if [[ $TEST_RESULT  == 0 ]]; then
     echo "OK: Rust tests passed."
@@ -37,6 +37,15 @@ if [[ $TEST_RESULT  == 0 ]]; then
     echo "OK: Rust heap alloc test passed."
 else
     echo "KO: Rust heap alloc test failed."
+    exit 1
+fi
+
+cargo test $TARGET_FLAG -- --quiet --test build_script_wrapper
+TEST_RESULT=$?
+if [[ $TEST_RESULT == 0 ]]; then
+    echo "OK: Rust flatc build script wrapper test passed."
+else
+    echo "KO: Rust flatc build script wrapper test failed."
     exit 1
 fi
 
