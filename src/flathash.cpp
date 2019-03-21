@@ -25,7 +25,7 @@ enum OutputFormat { kDecimal, kHexadecimal, kHexadecimal0x };
 int main(int argc, char *argv[]) {
   const char *name = argv[0];
   if (argc <= 1) {
-    printf("%s HASH [OPTION]... STRING... [-- STRING...]\n", name);
+    printf("%s HASH [OPTION]... [--] STRING...\n", name);
     printf("Available hashing algorithms:\n");
     printf("  16 bit:\n");
     size_t size = sizeof(flatbuffers::kHashFunctions16) /
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
         "  -x         Output hash in hexadecimal.\n"
         "  -0x        Output hash in hexadecimal and prefix with 0x.\n"
         "  -c         Append the string to the output in a c-style comment.\n");
-    return 0;
+    return 1;
   }
 
   const char *hash_algorithm = argv[1];
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 
   if (!hash_function16 && !hash_function32 && !hash_function64) {
     printf("\"%s\" is not a known hash algorithm.\n", hash_algorithm);
-    return 0;
+    return 1;
   }
 
   OutputFormat output_format = kHexadecimal;
