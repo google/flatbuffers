@@ -25,7 +25,7 @@ enum OutputFormat { kDecimal, kHexadecimal, kHexadecimal0x };
 int main(int argc, char *argv[]) {
   const char *name = argv[0];
   if (argc <= 1) {
-    printf("%s HASH [OPTION]... STRING... [-- STRING...]\n", name);
+    printf("%s HASH [OPTION]... [--] STRING...\n", name);
     printf("Available hashing algorithms:\n");
     printf("  16 bit:\n");
     size_t size = sizeof(flatbuffers::kHashFunctions16) /
