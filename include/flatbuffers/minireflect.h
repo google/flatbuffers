@@ -360,17 +360,21 @@ struct ToStringVisitor : public IterationVisitor {
   void Unknown(const uint8_t *) { s += "(?)"; }
   void StartVector() {
     s += "[";
-    s += d;
     if (vector_delimited) {
+      s += d;
       indent_level++;
       append_indent();
+    } else {
+      s += " ";
     }
   }
   void EndVector() {
-    s += d;
     if (vector_delimited) {
+      s += d;
       indent_level--;
       append_indent();
+    } else {
+      s += " ";
     }
     s += "]";
   }
@@ -378,9 +382,11 @@ struct ToStringVisitor : public IterationVisitor {
                const TypeTable * /*type_table*/, const uint8_t * /*val*/) {
     if (i) {
       s += ",";
-      s += d;
       if (vector_delimited) {
+        s += d;
         append_indent();
+      } else {
+        s += " ";
       }
     }
   }
