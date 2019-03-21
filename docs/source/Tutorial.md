@@ -274,43 +274,43 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
 
 <div class="language-cpp">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --cpp monster.fbs
 ~~~
 </div>
 <div class="language-java">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --java monster.fbs
 ~~~
 </div>
 <div class="language-csharp">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --csharp monster.fbs
 ~~~
 </div>
 <div class="language-go">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --go monster.fbs
 ~~~
 </div>
 <div class="language-python">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --python monster.fbs
 ~~~
 </div>
 <div class="language-javascript">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --js monster.fbs
 ~~~
 </div>
 <div class="language-typescript">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --ts monster.fbs
 ~~~
 </div>
@@ -331,25 +331,25 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
 </div>
 <div class="language-dart">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --dart monster.fbs
 ~~~
 </div>
 <div class="language-lua">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --lua monster.fbs
 ~~~
 </div>
 <div class="language-lobster">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --lobster monster.fbs
 ~~~
 </div>
 <div class="language-rust">
 ~~~{.sh}
-  cd flatbuffers/sample
+  cd flatbuffers/samples
   ./../flatc --rust monster.fbs
 ~~~
 </div>
