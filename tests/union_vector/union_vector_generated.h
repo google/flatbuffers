@@ -17,9 +17,13 @@ struct Movie;
 struct MovieT;
 
 bool operator==(const AttackerT &lhs, const AttackerT &rhs);
+bool operator!=(const AttackerT &lhs, const AttackerT &rhs);
 bool operator==(const Rapunzel &lhs, const Rapunzel &rhs);
+bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs);
 bool operator==(const BookReader &lhs, const BookReader &rhs);
+bool operator!=(const BookReader &lhs, const BookReader &rhs);
 bool operator==(const MovieT &lhs, const MovieT &rhs);
+bool operator!=(const MovieT &lhs, const MovieT &rhs);
 
 inline const flatbuffers::TypeTable *AttackerTypeTable();
 
@@ -180,6 +184,11 @@ inline bool operator==(const CharacterUnion &lhs, const CharacterUnion &rhs) {
     }
   }
 }
+
+inline bool operator!=(const CharacterUnion &lhs, const CharacterUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Character type);
 bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -208,6 +217,11 @@ inline bool operator==(const Rapunzel &lhs, const Rapunzel &rhs) {
       (lhs.hair_length() == rhs.hair_length());
 }
 
+inline bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t books_read_;
@@ -233,6 +247,11 @@ inline bool operator==(const BookReader &lhs, const BookReader &rhs) {
       (lhs.books_read() == rhs.books_read());
 }
 
+inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
+    return !(lhs == rhs);
+}
+
+
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
   int32_t sword_attack_damage;
@@ -245,6 +264,11 @@ inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
   return
       (lhs.sword_attack_damage == rhs.sword_attack_damage);
 }
+
+inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
@@ -311,6 +335,11 @@ inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
       (lhs.main_character == rhs.main_character) &&
       (lhs.characters == rhs.characters);
 }
+
+inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
