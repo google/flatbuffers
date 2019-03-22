@@ -559,9 +559,9 @@ class PythonGenerator : public BaseGenerator {
     std::string escapedID;
     //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
     //to prevent this, convert all chars to their hex-escaped equivalent
-    for(auto it = parser_.file_identifier_.begin();
-		it != parser_.file_identifier_.end(); ++it){
-		escapedID += "\\x" + IntToStringHex(*it, 2);
+    for (auto it = parser_.file_identifier_.begin();
+		it != parser_.file_identifier_.end(); ++it) {
+	  escapedID += "\\x" + IntToStringHex(*it, 2);
     }
 	
     code += Indent + "@classmethod\n";
