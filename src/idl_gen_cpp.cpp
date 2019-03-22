@@ -1015,10 +1015,10 @@ class CppGenerator : public BaseGenerator {
                " || e > " + GetEnumValUse(enum_def, *enum_def.vals.vec.back()) +
                ") return \"\";";
 
-      code_ += "  const size_t index = static_cast<int>(e)\\";
+      code_ += "  const size_t index = static_cast<size_t>(e)\\";
       if (enum_def.vals.vec.front()->value) {
         auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
-        code_ += " - static_cast<int>(" + vals + ")\\";
+        code_ += " - static_cast<size_t>(" + vals + ")\\";
       }
       code_ += ";";
 

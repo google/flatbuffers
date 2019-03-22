@@ -95,7 +95,7 @@ inline const char * const *EnumNamesBaseType() {
 
 inline const char *EnumNameBaseType(BaseType e) {
   if (e < None || e > Union) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesBaseType()[index];
 }
 
