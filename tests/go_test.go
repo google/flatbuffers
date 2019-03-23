@@ -205,8 +205,8 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("Pos.Test1", float64(3.0), got))
 		}
 
-		if got := vec.Test2(); example.Color(2) != got {
-			fail(FailString("Pos.Test2", example.Color(2), got))
+		if got := vec.Test2(); example.ColorGreen != got {
+			fail(FailString("Pos.Test2", example.ColorGreen, got))
 		}
 
 		// initialize a Test from Test3(...)
@@ -337,7 +337,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Y'", func() bool { return monster.Pos(nil).Y() == float32(2.0) }},
 		testcase{"Pos.Z'", func() bool { return monster.Pos(nil).Z() == float32(3.0) }},
 		testcase{"Pos.Test1'", func() bool { return monster.Pos(nil).Test1() == float64(3.0) }},
-		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.Color(2) }},
+		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.ColorGreen }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(5) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(6) }},
 		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(2) }},
@@ -351,7 +351,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Y", func() bool { return monster.Pos(nil).MutateY(20.0) }},
 		testcase{"Pos.Z", func() bool { return monster.Pos(nil).MutateZ(30.0) }},
 		testcase{"Pos.Test1", func() bool { return monster.Pos(nil).MutateTest1(30.0) }},
-		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(20) }},
+		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(example.Color(20)) }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).MutateA(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).MutateB(60) }},
 		testcase{"Inventory[2]", func() bool { return monster.MutateInventory(2, 200) }},
