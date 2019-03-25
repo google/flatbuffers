@@ -133,7 +133,7 @@ inline const char * const *EnumNamesColor() {
 
 inline const char *EnumNameColor(Color e) {
   if (e < Color_Red || e > Color_Blue) return "";
-  const size_t index = static_cast<int>(e) - static_cast<int>(Color_Red);
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Color_Red);
   return EnumNamesColor()[index];
 }
 
@@ -169,7 +169,7 @@ inline const char * const *EnumNamesAny() {
 
 inline const char *EnumNameAny(Any e) {
   if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAny()[index];
 }
 
@@ -310,7 +310,7 @@ inline const char * const *EnumNamesAnyUniqueAliases() {
 
 inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
   if (e < AnyUniqueAliases_NONE || e > AnyUniqueAliases_M2) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyUniqueAliases()[index];
 }
 
@@ -451,7 +451,7 @@ inline const char * const *EnumNamesAnyAmbiguousAliases() {
 
 inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
   if (e < AnyAmbiguousAliases_NONE || e > AnyAmbiguousAliases_M3) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyAmbiguousAliases()[index];
 }
 
