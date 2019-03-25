@@ -2423,19 +2423,25 @@ void EqualOperatorTest() {
   MonsterT a;
   MonsterT b;
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.mana = 33;
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
   b.mana = 150;
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.inventory.push_back(3);
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
   b.inventory.clear();
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
 }
 
 // For testing any binaries, e.g. from fuzzing.

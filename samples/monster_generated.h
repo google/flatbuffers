@@ -18,8 +18,11 @@ struct Weapon;
 struct WeaponT;
 
 bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator!=(const Vec3 &lhs, const Vec3 &rhs);
 bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+bool operator!=(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const WeaponT &lhs, const WeaponT &rhs);
+bool operator!=(const WeaponT &lhs, const WeaponT &rhs);
 
 inline const flatbuffers::TypeTable *Vec3TypeTable();
 
@@ -155,6 +158,11 @@ inline bool operator==(const EquipmentUnion &lhs, const EquipmentUnion &rhs) {
     }
   }
 }
+
+inline bool operator!=(const EquipmentUnion &lhs, const EquipmentUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *obj, Equipment type);
 bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -201,6 +209,11 @@ inline bool operator==(const Vec3 &lhs, const Vec3 &rhs) {
       (lhs.z() == rhs.z());
 }
 
+inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
+    return !(lhs == rhs);
+}
+
+
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
   flatbuffers::unique_ptr<Vec3> pos;
@@ -229,6 +242,11 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.weapons == rhs.weapons) &&
       (lhs.equipped == rhs.equipped);
 }
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
@@ -440,6 +458,11 @@ inline bool operator==(const WeaponT &lhs, const WeaponT &rhs) {
       (lhs.name == rhs.name) &&
       (lhs.damage == rhs.damage);
 }
+
+inline bool operator!=(const WeaponT &lhs, const WeaponT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;

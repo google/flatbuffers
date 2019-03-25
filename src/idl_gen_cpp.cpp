@@ -250,6 +250,8 @@ class CppGenerator : public BaseGenerator {
               NativeName(Name(struct_def), &struct_def, parser_.opts);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " +
                    nativeName + " &rhs);";
+          code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
+              nativeName + " &rhs);";
         }
       }
       code_ += "";
@@ -1174,6 +1176,14 @@ class CppGenerator : public BaseGenerator {
         code_ += "    }";
         code_ += "  }";
         code_ += "}";
+
+        code_ += "";
+        code_ +=
+            "inline bool operator!=(const {{NAME}}Union &lhs, const "
+            "{{NAME}}Union &rhs) {";
+        code_ += "    return !(lhs == rhs);";
+        code_ += "}";
+        code_ += "";
       }
     }
 
@@ -1583,6 +1593,14 @@ class CppGenerator : public BaseGenerator {
         "{{NATIVE_NAME}} &{{CMP_RHS}}) {";
     code_ += "{{CMP_OP}}";
     code_ += "}";
+
+    code_ += "";
+    code_ +=
+        "inline bool operator!=(const {{NATIVE_NAME}} &lhs, const "
+        "{{NATIVE_NAME}} &rhs) {";
+    code_ += "    return !(lhs == rhs);";
+    code_ += "}";
+    code_ += "";
   }
 
   void GenOperatorNewDelete(const StructDef &struct_def) {

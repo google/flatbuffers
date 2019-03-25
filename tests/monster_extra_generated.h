@@ -12,6 +12,7 @@ struct MonsterExtra;
 struct MonsterExtraT;
 
 bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
+bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 
 inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
 
@@ -42,6 +43,11 @@ inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
       (lhs.testd_pinf == rhs.testd_pinf) &&
       (lhs.testd_ninf == rhs.testd_ninf);
 }
+
+inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
