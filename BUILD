@@ -159,6 +159,7 @@ cc_test(
         ":tests/prototest/test_union.golden",
         ":tests/unicode_test.json",
         ":tests/union_vector/union_vector.fbs",
+        ":tests/union_vector/union_vector.json",
     ],
     includes = ["include/"],
     deps = [
