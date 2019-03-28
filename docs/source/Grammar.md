@@ -14,7 +14,7 @@ attribute\_decl = `attribute` ident | `"`ident`"` `;`
 
 type\_decl = ( `table` | `struct` ) ident metadata `{` field\_decl+ `}`
 
-enum\_decl = ( `enum` ident [ `:` type ] | `union` ident )  metadata `{`
+enum\_decl = ( `enum` ident `:` type | `union` ident )  metadata `{`
 commasep( enumval\_decl ) `}`
 
 root\_decl = `root_type` ident `;`
