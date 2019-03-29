@@ -557,13 +557,13 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
     std::string escapedID;
-    //in the event any of file_identifier characters are special(NULL, \, etc), problems occur.
-    //to prevent this, convert all chars to their hex-escaped equivalent
+    // In the event any of file_identifier characters are special(NULL, \, etc), problems occur.
+    // To prevent this, convert all chars to their hex-escaped equivalent
     for (auto it = parser_.file_identifier_.begin();
-		it != parser_.file_identifier_.end(); ++it) {
-	  escapedID += "\\x" + IntToStringHex(*it, 2);
+        it != parser_.file_identifier_.end(); ++it) {
+      escapedID += "\\x" + IntToStringHex(*it, 2);
     }
-	
+
     code += Indent + "@classmethod\n";
     code += Indent + "def " + NormalizedName(struct_def);
     code += "BufferHasIdentifier(cls, buf, offset, size_prefixed=False):";
@@ -573,7 +573,6 @@ class PythonGenerator : public BaseGenerator {
     code += escapedID;
     code += "\", size_prefixed=size_prefixed)\n";
     code += "\n";
-	 	  
   }
   
   // Generate struct or table methods.
@@ -586,10 +585,10 @@ class PythonGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
-      if(parser_.file_identifier_.length()){
-		  // Generate a special function to test file_identifier
-		  GenHasFileIdentifier(struct_def, code_ptr);
-	  }
+      if (parser_.file_identifier_.length()){
+        // Generate a special function to test file_identifier
+        GenHasFileIdentifier(struct_def, code_ptr);
+      }
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
