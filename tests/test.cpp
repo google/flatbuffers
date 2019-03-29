@@ -1684,17 +1684,17 @@ void InvalidFloatTest() {
 void GenerateTableTextTest() {
   std::string schemafile;
   std::string jsonfile;
-  bool ok = flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
-                                  false, &schemafile) &&
-            flatbuffers::LoadFile((test_data_path + "monsterdata_test.json").c_str(),
-                                  false, &jsonfile);
+  bool ok = flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),false, &schemafile) &&
+            flatbuffers::LoadFile((test_data_path + "monsterdata_test.json").c_str(), false, &jsonfile);
+  TEST_EQ(ok, true);
   auto include_test_path = flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(), include_test_path.c_str(), nullptr };
   flatbuffers::IDLOptions opt;
   opt.indent_step = -1;
   flatbuffers::Parser parser(opt);
   ok = parser.Parse(schemafile.c_str(), include_directories) &&
-  parser.Parse(jsonfile.c_str(), include_directories);
+       parser.Parse(jsonfile.c_str(), include_directories);
+  TEST_EQ(ok, true);
   // Test root table
   const Monster* monster = GetMonster(parser.builder_.GetBufferPointer());
   std::string jsongen;
