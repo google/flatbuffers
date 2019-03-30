@@ -1508,6 +1508,27 @@ void IntegerOutOfRangeTest() {
 }
 
 void IntegerBoundaryTest() {
+  // Check numerical compatibility with non-C++ languages.
+  // By the C++ standard, std::numerical_limits<int64_t>::min() == -9223372036854775807 (-2^63+1) or less*
+  // The Flatbuffers grammar and most of the languages (C#, Java, Rust) expect 
+  // that minimum values are: -128, -32768,.., -9223372036854775808.
+  // Since C++20, static_cast<int64>(0x8000000000000000ULL) is well-defined two's complement cast.
+  // Therefore -9223372036854775808 should be valid negative value.
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::min(), -128);
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::max(), 127);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::min(), -32768);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::max(), 32767);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::min(), -2147483648LL);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::max(), 2147483647ULL);
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min(),
+          (-9223372036854775807LL - 1LL));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(), 9223372036854775807ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint8_t>::max(), 255);
+  TEST_EQ(flatbuffers::numeric_limits<uint16_t>::max(), 65535);
+  TEST_EQ(flatbuffers::numeric_limits<uint32_t>::max(), 4294967295ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint64_t>::max(),
+          18446744073709551615ULL);
+
   TEST_EQ(TestValue<int8_t>("{ Y:127 }", "byte"), 127);
   TEST_EQ(TestValue<int8_t>("{ Y:-128 }", "byte"), -128);
   TEST_EQ(TestValue<uint8_t>("{ Y:255 }", "ubyte"), 255);
