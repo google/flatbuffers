@@ -1510,7 +1510,7 @@ void IntegerOutOfRangeTest() {
 void IntegerBoundaryTest() {
   // Check numerical compatibility with non-C++ languages.
   // By the C++ standard, std::numerical_limits<int64_t>::min() == -9223372036854775807 (-2^63+1) or less*
-  // The Flatbuffers grammar and most of the languages (C#, Java, Rust) expect 
+  // The Flatbuffers grammar and most of the languages (C#, Java, Rust) expect
   // that minimum values are: -128, -32768,.., -9223372036854775808.
   // Since C++20, static_cast<int64>(0x8000000000000000ULL) is well-defined two's complement cast.
   // Therefore -9223372036854775808 should be valid negative value.
@@ -1518,10 +1518,10 @@ void IntegerBoundaryTest() {
   TEST_EQ(flatbuffers::numeric_limits<int8_t>::max(), 127);
   TEST_EQ(flatbuffers::numeric_limits<int16_t>::min(), -32768);
   TEST_EQ(flatbuffers::numeric_limits<int16_t>::max(), 32767);
-  TEST_EQ(flatbuffers::numeric_limits<int32_t>::min(), -2147483648LL);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::min() + 1, -2147483647);
   TEST_EQ(flatbuffers::numeric_limits<int32_t>::max(), 2147483647ULL);
-  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min(),
-          (-9223372036854775807LL - 1LL));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min() + 1LL,
+          -9223372036854775807LL);
   TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(), 9223372036854775807ULL);
   TEST_EQ(flatbuffers::numeric_limits<uint8_t>::max(), 255);
   TEST_EQ(flatbuffers::numeric_limits<uint16_t>::max(), 65535);
@@ -1538,15 +1538,15 @@ void IntegerBoundaryTest() {
   TEST_EQ(TestValue<uint16_t>("{ Y:65535 }", "ushort"), 65535);
   TEST_EQ(TestValue<uint16_t>("{ Y:0 }", "ushort"), 0);
   TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }", "int"), 2147483647);
-  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }", "int"), (-2147483647 - 1));
+  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }", "int") + 1, -2147483647);
   TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }", "uint"), 4294967295);
   TEST_EQ(TestValue<uint32_t>("{ Y:0 }", "uint"), 0);
   TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }", "long"),
-          9223372036854775807);
-  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }", "long"),
-          (-9223372036854775807 - 1));
+          9223372036854775807LL);
+  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }", "long") + 1LL,
+          -9223372036854775807LL);
   TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }", "ulong"),
-          18446744073709551615U);
+          18446744073709551615ULL);
   TEST_EQ(TestValue<uint64_t>("{ Y:0 }", "ulong"), 0);
   TEST_EQ(TestValue<uint64_t>("{ Y: 18446744073709551615 }", "uint64"),
           18446744073709551615ULL);
