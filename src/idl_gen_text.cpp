@@ -264,9 +264,9 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
 
 // Generate a text representation of a flatbuffer in JSON format.
 bool GenerateTextFromTable(const Parser &parser, const void *table,
-                           const std::string& tablename,
+                           const std::string &table_name,
                            std::string *_text) {
-  StructDef* struct_def = parser.LookupStruct(tablename);
+  StructDef *struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) {
     return false;
   }
