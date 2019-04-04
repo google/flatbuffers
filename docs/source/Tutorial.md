@@ -653,14 +653,14 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 
   // Create the first `Weapon` ("Sword").
   sample.WeaponStart(builder)
-  sample.Weapon.AddName(builder, weaponOne)
-  sample.Weapon.AddDamage(builder, 3)
+  sample.WeaponAddName(builder, weaponOne)
+  sample.WeaponAddDamage(builder, 3)
   sword := sample.WeaponEnd(builder)
 
   // Create the second `Weapon` ("Axe").
   sample.WeaponStart(builder)
-  sample.Weapon.AddName(builder, weaponTwo)
-  sample.Weapon.AddDamage(builder, 5)
+  sample.WeaponAddName(builder, weaponTwo)
+  sample.WeaponAddDamage(builder, 5)
   axe := sample.WeaponEnd(builder)
 ~~~
 </div>
