@@ -1702,6 +1702,53 @@ void InvalidFloatTest() {
   TestError("table T { F:float; } root_type T; { F:null }", invalid_msg);
 }
 
+void GenerateTableTextTest() {
+  std::string schemafile;
+  std::string jsonfile;
+  bool ok =
+      flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                            false, &schemafile) &&
+      flatbuffers::LoadFile((test_data_path + "monsterdata_test.json").c_str(),
+                            false, &jsonfile);
+  TEST_EQ(ok, true);
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = {test_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
+  flatbuffers::IDLOptions opt;
+  opt.indent_step = -1;
+  flatbuffers::Parser parser(opt);
+  ok = parser.Parse(schemafile.c_str(), include_directories) &&
+       parser.Parse(jsonfile.c_str(), include_directories);
+  TEST_EQ(ok, true);
+  // Test root table
+  const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
+  std::string jsongen;
+  auto result = GenerateTextFromTable(parser, monster, "MyGame.Example.Monster",
+                                      &jsongen);
+  TEST_EQ(result, true);
+  // Test sub table
+  const Vec3 *pos = monster->pos();
+  jsongen.clear();
+  result = GenerateTextFromTable(parser, pos, "MyGame.Example.Vec3", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(
+      jsongen.c_str(),
+      "{x: 1.0,y: 2.0,z: 3.0,test1: 3.0,test2: \"Green\",test3: {a: 5,b: 6}}");
+  const Test &test3 = pos->test3();
+  jsongen.clear();
+  result =
+      GenerateTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), "{a: 5,b: 6}");
+  const Test *test4 = monster->test4()->Get(0);
+  jsongen.clear();
+  result =
+      GenerateTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
+}
+
 template<typename T>
 void NumericUtilsTestInteger(const char *lower, const char *upper) {
   T x;
@@ -2602,6 +2649,7 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
+  GenerateTableTextTest();
   return 0;
 }
 

@@ -834,6 +834,10 @@ extern std::string MakeCamel(const std::string &in, bool first = true);
 // strict_json adds "quotes" around field names if true.
 // If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
 // byte arrays in String values), returns false.
+extern bool GenerateTextFromTable(const Parser &parser,
+                                  const void *table,
+                                  const std::string &tablename,
+                                  std::string *text);
 extern bool GenerateText(const Parser &parser,
                          const void *flatbuffer,
                          std::string *text);
