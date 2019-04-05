@@ -84,8 +84,8 @@ const ENUM_NAMES_ENUM_IN_NESTED_NS:[&'static str; 3] = [
 ];
 
 pub fn enum_name_enum_in_nested_ns(e: EnumInNestedNS) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_ENUM_IN_NESTED_NS[index]
+  let index = e as i8;
+  ENUM_NAMES_ENUM_IN_NESTED_NS[index as usize]
 }
 
 // struct StructInNestedNS, aligned to 4

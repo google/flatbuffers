@@ -227,8 +227,8 @@ const ENUM_NAMES_COLOR:[&'static str; 8] = [
 ];
 
 pub fn enum_name_color(e: Color) -> &'static str {
-  let index: usize = e as usize - Color::Red as usize;
-  ENUM_NAMES_COLOR[index]
+  let index = e as i8 - Color::Red as i8;
+  ENUM_NAMES_COLOR[index as usize]
 }
 
 #[allow(non_camel_case_types)]
@@ -293,8 +293,8 @@ const ENUM_NAMES_ANY:[&'static str; 4] = [
 ];
 
 pub fn enum_name_any(e: Any) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_ANY[index]
+  let index = e as u8;
+  ENUM_NAMES_ANY[index as usize]
 }
 
 pub struct AnyUnionTableOffset {}
@@ -360,8 +360,8 @@ const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
 ];
 
 pub fn enum_name_any_unique_aliases(e: AnyUniqueAliases) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_ANY_UNIQUE_ALIASES[index]
+  let index = e as u8;
+  ENUM_NAMES_ANY_UNIQUE_ALIASES[index as usize]
 }
 
 pub struct AnyUniqueAliasesUnionTableOffset {}
@@ -427,8 +427,8 @@ const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
 ];
 
 pub fn enum_name_any_ambiguous_aliases(e: AnyAmbiguousAliases) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_ANY_AMBIGUOUS_ALIASES[index]
+  let index = e as u8;
+  ENUM_NAMES_ANY_AMBIGUOUS_ALIASES[index as usize]
 }
 
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
