@@ -13,6 +13,7 @@ public struct BookReader : IFlatbufferObject
   public BookReader __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int BooksRead { get { return __p.bb.GetInt(__p.bb_pos + 0); } }
+  public void MutateBooksRead(int books_read) { __p.bb.PutInt(__p.bb_pos + 0, books_read); }
 
   public static Offset<BookReader> CreateBookReader(FlatBufferBuilder builder, int BooksRead) {
     builder.Prep(4, 4);
