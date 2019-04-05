@@ -1044,7 +1044,7 @@ class GeneralGenerator : public BaseGenerator {
                           : lang_.accessor_prefix + "__indirect(" + index + ")";
               code += ", " + lang_.accessor_prefix + "bb";
             } else if (vectortype.base_type == BASE_TYPE_UNION) {
-              code += index + " - bb_pos";
+              code += index + " - " + lang_.accessor_prefix +  "bb_pos";
             } else {
               code += index;
             }

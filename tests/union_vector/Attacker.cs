@@ -15,6 +15,7 @@ public struct Attacker : IFlatbufferObject
   public Attacker __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int SwordAttackDamage { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public bool MutateSwordAttackDamage(int sword_attack_damage) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, sword_attack_damage); return true; } else { return false; } }
 
   public static Offset<Attacker> CreateAttacker(FlatBufferBuilder builder,
       int sword_attack_damage = 0) {

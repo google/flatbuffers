@@ -16,6 +16,7 @@ public struct Movie : IFlatbufferObject
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
+  public bool MutateMainCharacterType(Character main_character_type) { int o = __p.__offset(4); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)main_character_type); return true; } else { return false; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -25,7 +26,8 @@ public struct Movie : IFlatbufferObject
   public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
   public Character[] GetCharactersTypeArray() { return __p.__vector_as_array<Character>(8); }
-  public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
+  public bool MutateCharactersType(int j, Character characters_type) { int o = __p.__offset(8); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)characters_type); return true; } else { return false; } }
+  public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4 - __p.bb_pos) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<Movie> CreateMovie(FlatBufferBuilder builder,
