@@ -58,11 +58,15 @@ struct Monster : flatbuffers_handle
         buf_.flatbuffers_field_int8(pos_, 20, 0)
     def equipped_as_Weapon():
         MyGame_Sample_Weapon { buf_, buf_.flatbuffers_field_table(pos_, 22) }
+    def path(i:int):
+        MyGame_Sample_Vec3 { buf_, buf_.flatbuffers_field_vector(pos_, 24) + i * 12 }
+    def path_length():
+        buf_.flatbuffers_field_vector_len(pos_, 24)
 
 def GetRootAsMonster(buf:string): Monster { buf, buf.flatbuffers_indirect(0) }
 
 def MonsterStart(b_:flatbuffers_builder):
-    b_.StartObject(10)
+    b_.StartObject(11)
 def MonsterAddPos(b_:flatbuffers_builder, pos:int):
     b_.PrependStructSlot(0, pos, 0)
 def MonsterAddMana(b_:flatbuffers_builder, mana:int):
@@ -93,6 +97,10 @@ def MonsterAddEquippedType(b_:flatbuffers_builder, equipped_type:int):
     b_.PrependUint8Slot(8, equipped_type, 0)
 def MonsterAddEquipped(b_:flatbuffers_builder, equipped:int):
     b_.PrependUOffsetTRelativeSlot(9, equipped, 0)
+def MonsterAddPath(b_:flatbuffers_builder, path:int):
+    b_.PrependUOffsetTRelativeSlot(10, path, 0)
+def MonsterStartPathVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(12, n_, 4)
 def MonsterEnd(b_:flatbuffers_builder):
     b_.EndObject()
 
