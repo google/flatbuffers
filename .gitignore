@@ -26,6 +26,9 @@
 **/install_manifest.txt
 **/CMakeCache.txt
 **/CMakeTestfile.cmake
+**/CPackConfig.cmake
+**/CPackSourceConfig.cmake
+**/compile_commands.json
 **/Debug/**
 **/Release/**
 **/RelWithDebInfo/**
