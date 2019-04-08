@@ -324,8 +324,8 @@ Current understood attributes:
     Note: currently not guaranteed to have an effect when used with
     `--object-api`, since that may allocate objects at alignments less than
     what you specify with `force_align`.
--   `bit_flags` (on an enum): the values of this field indicate bits,
-    meaning that any value N specified in the schema will end up
+-   `bit_flags` (on an unsigned enum): the values of this field indicate bits,
+    meaning that any unsigned value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
 -   `nested_flatbuffer: "table_name"` (on a field): this indicates that the field

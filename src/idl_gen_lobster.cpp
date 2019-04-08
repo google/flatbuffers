@@ -149,10 +149,10 @@ class LobsterGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UNION: {
-        for (auto it = field.value.type.enum_def->vals.vec.begin();
-             it != field.value.type.enum_def->vals.vec.end(); ++it) {
+        for (auto it = field.value.type.enum_def->Vals().begin();
+             it != field.value.type.enum_def->Vals().end(); ++it) {
           auto &ev = **it;
-          if (ev.value) {
+          if (ev.IsNonZero()) {
             code += def + "_as_" + ev.name + "():\n        " +
                     NamespacedName(*ev.union_type.struct_def) +
                     " { buf_, buf_.flatbuffers_field_table(pos_, " + offsets +
@@ -259,13 +259,12 @@ class LobsterGenerator : public BaseGenerator {
     CheckNameSpace(enum_def, &code);
     GenComment(enum_def.doc_comment, code_ptr, nullptr, "");
     code += "enum + \n";
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-        ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "    ");
       code += "    " + enum_def.name + "_" + NormalizedName(ev) + " = " +
               NumToString(ev.value);
-      if (it + 1 != enum_def.vals.vec.end()) code += ",";
+      if (it + 1 != enum_def.Vals().end()) code += ",";
       code += "\n";
     }
     code += "\n";
