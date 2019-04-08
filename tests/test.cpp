@@ -1305,15 +1305,20 @@ void ErrorTest() {
   TestError("enum X:bool { Y = true }", "must be integral");
 }
 
-template<typename T> T TestValue(const char *json, const char *type_name) {
+template<typename T>
+T TestValue(const char *json, const char *type_name,
+            const char *decls = nullptr) {
   flatbuffers::Parser parser;
   parser.builder_.ForceDefaults(true);  // return defaults
   auto check_default = json ? false : true;
   if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
-  std::string schema =
-      "table X { Y:" + std::string(type_name) + "; } root_type X;";
-  TEST_EQ(parser.Parse(schema.c_str()), true);
+  std::string schema = std::string(decls ? decls : "") + "\n" +
+                       "table X { Y:" + std::string(type_name) +
+                       "; } root_type X;";
+  auto schema_done = parser.Parse(schema.c_str());
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(schema_done, true);
 
   auto done = parser.Parse(check_default ? "{}" : json);
   TEST_EQ_STR(parser.error_.c_str(), "");
@@ -1437,6 +1442,24 @@ void EnumOutOfRangeTest() {
   // TODO: these are perfectly valid constants that shouldn't fail
   TestError("enum X:ulong { Y = 13835058055282163712 }", "constant does not fit");
   TestError("enum X:ulong { Y = 18446744073709551615 }", "constant does not fit");
+}
+
+void EnumValueTest() {
+  // json: "{ Y:0 }", schema: table X { Y : "E"}
+  // 0 in enum (V=0) E then Y=0 is valid.
+  TEST_EQ(TestValue<int>("{ Y:0 }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ Y:V }", "E", "enum E:int { V }"), 0);
+  // A default value of Y is 0.
+  TEST_EQ(TestValue<int>("{ }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { V=5 }"), 5);
+  // 5 in enum
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E", "enum E:int { Z, V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { Z, V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E", "enum E:int { Z, V=5 }"), 0);
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { Z, V=5 }"), 5);
 }
 
 void IntegerOutOfRangeTest() {
@@ -2622,6 +2645,7 @@ int FlatBufferTests() {
 
   ErrorTest();
   ValueTest();
+  EnumValueTest();
   EnumStringsTest();
   EnumNamesTest();
   EnumOutOfRangeTest();
