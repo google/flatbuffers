@@ -86,7 +86,7 @@ std::string GenType(const Type &type) {
     }
     case BASE_TYPE_UNION: {
       std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->vals.vec;
+      const auto &union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
@@ -94,7 +94,7 @@ std::string GenType(const Type &type) {
           union_type_string.append(
               "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
         }
-        if (union_type != *type.enum_def->vals.vec.rbegin()) {
+        if (union_type != *type.enum_def->Vals().rbegin()) {
           union_type_string.append(",");
         }
       }
@@ -128,10 +128,10 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += "    \"" + GenFullName(*e) + "\" : {";
       code_ += "      " + GenType("string") + ",";
       std::string enumdef("      \"enum\": [");
-      for (auto enum_value = (*e)->vals.vec.begin();
-           enum_value != (*e)->vals.vec.end(); ++enum_value) {
+      for (auto enum_value = (*e)->Vals().begin();
+           enum_value != (*e)->Vals().end(); ++enum_value) {
         enumdef.append("\"" + (*enum_value)->name + "\"");
-        if (*enum_value != (*e)->vals.vec.back()) { enumdef.append(", "); }
+        if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
       }
       enumdef.append("]");
       code_ += enumdef;

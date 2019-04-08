@@ -334,6 +334,8 @@ struct EnumVal {
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   bool Deserialize(const Parser &parser, const reflection::EnumVal *val);
+  bool IsZero() const { return 0 == value; }
+  bool IsNonZero() const { return !IsZero(); }
 
   std::string name;
   std::vector<std::string> doc_comment;
@@ -345,9 +347,9 @@ struct EnumDef : public Definition {
   EnumDef() : is_union(false), uses_multiple_type_instances(false) {}
 
   EnumVal *ReverseLookup(int64_t enum_idx, bool skip_union_default = true) {
-    for (auto it = vals.vec.begin() +
+    for (auto it = Vals().begin() +
                    static_cast<int>(is_union && skip_union_default);
-         it != vals.vec.end(); ++it) {
+         it != Vals().end(); ++it) {
       if ((*it)->value == enum_idx) { return *it; }
     }
     return nullptr;
@@ -356,6 +358,12 @@ struct EnumDef : public Definition {
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   bool Deserialize(Parser &parser, const reflection::Enum *values);
+
+  size_t size() const { return vals.vec.size(); }
+
+  const std::vector<EnumVal *> &Vals() const {
+    return vals.vec;
+  }
 
   SymbolTable<EnumVal> vals;
   bool is_union;
@@ -691,17 +699,15 @@ class Parser : public ParserState {
   bool ParseFlexBuffer(const char *source, const char *source_filename,
                        flexbuffers::Builder *builder);
 
-  FLATBUFFERS_CHECKED_ERROR InvalidNumber(const char *number,
-                                          const std::string &msg);
-
   StructDef *LookupStruct(const std::string &id) const;
 
   std::string UnqualifiedName(std::string fullQualifiedName);
 
+  FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
+
  private:
   void Message(const std::string &msg);
   void Warning(const std::string &msg);
-  FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
   FLATBUFFERS_CHECKED_ERROR Next();
   FLATBUFFERS_CHECKED_ERROR SkipByteOrderMark();
@@ -745,7 +751,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseHash(Value &e, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR TokenError();
   FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e, bool check_now);
-  FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(Type &type, int64_t *result);
+  FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(const Type &type, std::string *result);
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);

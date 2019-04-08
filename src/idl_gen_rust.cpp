@@ -295,7 +295,7 @@ class RustGenerator : public BaseGenerator {
   // structs, and tables) and output them to a single file.
   bool generate() {
     code_.Clear();
-    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n"; 
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     assert(!cur_name_space_);
 
@@ -591,8 +591,7 @@ class RustGenerator : public BaseGenerator {
 
     int64_t anyv = 0;
     const EnumVal *minv = nullptr, *maxv = nullptr;
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
 
       GenComment(ev.doc_comment, "  ");
@@ -655,15 +654,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate an array of all enumeration values.
-    auto num_fields = NumToString(enum_def.vals.vec.size());
+    auto num_fields = NumToString(enum_def.size());
     code_ += "#[allow(non_camel_case_types)]";
     code_ += "const ENUM_VALUES_{{ENUM_NAME_CAPS}}:[{{ENUM_NAME}}; " +
               num_fields + "] = [";
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
       auto value = GetEnumValUse(enum_def, ev);
-      auto suffix = *it != enum_def.vals.vec.back() ? "," : "";
+      auto suffix = *it != enum_def.Vals().back() ? "," : "";
       code_ += "  " + value + suffix;
     }
     code_ += "];";
@@ -684,8 +682,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
                 NumToString(range) + "] = [";
 
-      auto val = enum_def.vals.vec.front()->value;
-      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+      auto val = enum_def.Vals().front()->value;
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
         const auto &ev = **it;
         while (val++ != ev.value) { code_ += "    \"\","; }
@@ -1317,7 +1315,7 @@ class RustGenerator : public BaseGenerator {
 
       code_.SetValue("FIELD_NAME", Name(field));
 
-      for (auto u_it = u->vals.vec.begin(); u_it != u->vals.vec.end(); ++u_it) {
+      for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
         auto &ev = **u_it;
         if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
 

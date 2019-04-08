@@ -543,8 +543,7 @@ class GeneralGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kJava) {
       code += "  private " + enum_def.name + "() { }\n";
     }
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &lang_.comment_config, "  ");
       if (lang_.language != IDLOptions::kCSharp) {
@@ -574,8 +573,8 @@ class GeneralGenerator : public BaseGenerator {
         code += lang_.const_decl;
         code += lang_.string_type;
         code += "[] names = { ";
-        auto val = enum_def.vals.vec.front()->value;
-        for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+        auto val = enum_def.Vals().front()->value;
+        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
           while (val++ != (*it)->value) code += "\"\", ";
           code += "\"" + (*it)->name + "\", ";

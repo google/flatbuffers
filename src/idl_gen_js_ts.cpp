@@ -350,11 +350,10 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += WrapInNameSpace(enum_def) + (reverse ? "Name" : "") + " = {\n";
     }
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
-        if (it != enum_def.vals.vec.begin()) { code += '\n'; }
+        if (it != enum_def.Vals().begin()) { code += '\n'; }
         GenDocComment(ev.doc_comment, code_ptr, "", "  ");
       }
 
@@ -369,7 +368,7 @@ class JsTsGenerator : public BaseGenerator {
         code += NumToString(ev.value);
       }
 
-      code += (it + 1) != enum_def.vals.vec.end() ? ",\n" : "\n";
+      code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
 
       if (ev.union_type.struct_def) {
         ReexportDescription desc = { ev.name,
