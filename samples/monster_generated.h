@@ -119,12 +119,12 @@ struct EquipmentUnion {
   void Reset();
 
 #ifndef FLATBUFFERS_CPP98_STL
-  template <typename T>
+  template <typename T, typename RT = typename std::remove_reference<T>::type>
   void Set(T&& val) {
     Reset();
-    type = EquipmentTraits<typename T::TableType>::enum_value;
+    type = EquipmentTraits<typename RT::TableType>::enum_value;
     if (type != Equipment_NONE) {
-      value = new T(std::forward<T>(val));
+      value = new RT(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL

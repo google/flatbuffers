@@ -1096,13 +1096,12 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
       if (!enum_def.uses_multiple_type_instances) {
         code_ += "#ifndef FLATBUFFERS_CPP98_STL";
-        code_ += "  template <typename T>";
+        code_ += "  template <typename T, typename RT = typename std::remove_reference<T>::type>";
         code_ += "  void Set(T&& val) {";
         code_ += "    Reset();";
-        code_ +=
-            "    type = {{NAME}}Traits<typename T::TableType>::enum_value;";
+        code_ += "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
-        code_ += "      value = new T(std::forward<T>(val));";
+        code_ += "      value = new RT(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
         code_ += "#endif  // FLATBUFFERS_CPP98_STL";
