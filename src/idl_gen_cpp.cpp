@@ -1096,8 +1096,9 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
       if (!enum_def.uses_multiple_type_instances) {
         code_ += "#ifndef FLATBUFFERS_CPP98_STL";
-        code_ += "  template <typename T, typename RT = typename std::remove_reference<T>::type>";
+        code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
+        code_ += "    using RT = typename std::remove_reference<T>::type;";
         code_ += "    Reset();";
         code_ += "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
