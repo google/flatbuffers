@@ -207,12 +207,12 @@ struct AnyUnion {
   void Reset();
 
 #ifndef FLATBUFFERS_CPP98_STL
-  template <typename T>
+  template <typename T, typename RT = typename std::remove_reference<T>::type>
   void Set(T&& val) {
     Reset();
-    type = AnyTraits<typename T::TableType>::enum_value;
+    type = AnyTraits<typename RT::TableType>::enum_value;
     if (type != Any_NONE) {
-      value = new T(std::forward<T>(val));
+      value = new RT(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL
@@ -348,12 +348,12 @@ struct AnyUniqueAliasesUnion {
   void Reset();
 
 #ifndef FLATBUFFERS_CPP98_STL
-  template <typename T>
+  template <typename T, typename RT = typename std::remove_reference<T>::type>
   void Set(T&& val) {
     Reset();
-    type = AnyUniqueAliasesTraits<typename T::TableType>::enum_value;
+    type = AnyUniqueAliasesTraits<typename RT::TableType>::enum_value;
     if (type != AnyUniqueAliases_NONE) {
-      value = new T(std::forward<T>(val));
+      value = new RT(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL
