@@ -2035,10 +2035,18 @@ CheckedError Parser::ParseProtoDecl() {
 
     // Temp: remove any duplicates, as .fbs files can't handle them.
     for (auto it = v.begin(); it != v.end();) {
-      if (it != v.begin() && it[0]->value == it[-1]->value)
+      if (it != v.begin() && it[0]->value == it[-1]->value) {
+        auto ref = it[-1];
+        auto ev = it[0];
+        for (auto dit = enum_def->vals.dict.begin();
+             dit != enum_def->vals.dict.end(); ++dit) {
+          if (dit->second == ev) dit->second = ref;  // reassign
+        }
+        delete ev;  // delete enum value
         it = v.erase(it);
-      else
+      } else {
         ++it;
+      }
     }
   } else if (IsIdent("syntax")) {  // Skip these.
     NEXT();
