@@ -125,8 +125,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "const ";
     code += ev.name;
     code += " = ";
-    code += NumToString(ev.value) + ";\n";
-    (void)enum_def;
+    code += enum_def.ToString(ev) + ";\n";
   }
 
   // End enum code.

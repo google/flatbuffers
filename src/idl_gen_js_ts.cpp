@@ -359,13 +359,13 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
-        code += "  " + NumToString(ev.value);
+        code += "  " + enum_def.ToString(ev);
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
         code += "'" + ev.name + "'";
       } else {
         code += "  " + ev.name;
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
-        code += NumToString(ev.value);
+        code += enum_def.ToString(ev);
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";

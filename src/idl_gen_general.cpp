@@ -439,21 +439,12 @@ class GeneralGenerator : public BaseGenerator {
   }
 
   std::string GenEnumDefaultValue(const FieldDef &field) const {
-    auto& value = field.value;
-    auto enum_def = value.type.enum_def;
-    auto vec = enum_def->vals.vec;
-    auto default_value = StringToInt(value.constant.c_str());
-
-    auto result = value.constant;
-    for (auto it = vec.begin(); it != vec.end(); ++it) {
-      auto enum_val = **it;
-      if (enum_val.value == default_value) {
-        result = WrapInNameSpace(*enum_def) + "." + enum_val.name;
-        break;
-      }
-    }
-
-    return result;
+    auto &value = field.value;
+    FLATBUFFERS_ASSERT(value.type.enum_def);
+    auto &enum_def = *value.type.enum_def;
+    auto enum_val = enum_def.FindByValue(value.constant);
+    return enum_val ? (WrapInNameSpace(enum_def) + "." + enum_val->name)
+                    : value.constant;
   }
 
   std::string GenDefaultValue(const FieldDef &field, bool enableLangOverrides) const {
@@ -552,7 +543,7 @@ class GeneralGenerator : public BaseGenerator {
         code += GenTypeBasic(enum_def.underlying_type, false);
       }
       code += " " + ev.name + " = ";
-      code += NumToString(ev.value);
+      code += enum_def.ToString(ev);
       code += lang_.enum_separator;
     }
 
@@ -562,21 +553,22 @@ class GeneralGenerator : public BaseGenerator {
       // Problem is, if values are very sparse that could generate really big
       // tables. Ideally in that case we generate a map lookup instead, but for
       // the moment we simply don't output a table at all.
-      auto range = enum_def.vals.vec.back()->value -
-                   enum_def.vals.vec.front()->value + 1;
+      auto range = enum_def.Distance();
       // Average distance between values above which we consider a table
       // "too sparse". Change at will.
-      static const int kMaxSparseness = 5;
-      if (range / static_cast<int64_t>(enum_def.vals.vec.size()) <
-          kMaxSparseness) {
+      static const uint64_t kMaxSparseness = 5;
+      if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
         code += "\n  public static";
         code += lang_.const_decl;
         code += lang_.string_type;
         code += "[] names = { ";
-        auto val = enum_def.Vals().front()->value;
+        auto val = enum_def.Vals().front();
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
-          while (val++ != (*it)->value) code += "\"\", ";
+          auto ev = *it;
+          for (auto k = enum_def.Distance(val, ev); k > 1; --k)
+            code += "\"\", ";
+          val = ev;
           code += "\"" + (*it)->name + "\", ";
         }
         code += "};\n\n";
@@ -584,8 +576,8 @@ class GeneralGenerator : public BaseGenerator {
         code += lang_.string_type;
         code += " " + MakeCamel("name", lang_.first_camel_upper);
         code += "(int e) { return names[e";
-        if (enum_def.vals.vec.front()->value)
-          code += " - " + enum_def.vals.vec.front()->name;
+        if (enum_def.MinValue()->IsNonZero())
+          code += " - " + enum_def.MinValue()->name;
         code += "]; }\n";
       }
     }
