@@ -894,6 +894,17 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
       "vector_of_enums: [ Blue, Green ] "
       "}");
+
+  Test test(16, 32);
+  Vec3 vec(1,2,3, 1.5, Color_Red, test);
+  flatbuffers::FlatBufferBuilder vec_builder;
+  vec_builder.Finish(vec_builder.CreateStruct(vec));
+  auto vec_buffer = vec_builder.Release();
+  auto vec_str = flatbuffers::FlatBufferToString(vec_buffer.data(),
+                                                 Vec3::MiniReflectTypeTable());
+  TEST_EQ_STR(
+      vec_str.c_str(),
+      "{ x: 1.0, y: 2.0, z: 3.0, test1: 1.5, test2: Red, test3: { a: 16, b: 32 } }");
 }
 
 // Parse a .proto schema, output as .fbs
