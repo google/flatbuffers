@@ -5,7 +5,7 @@ summary: FlatBuffers compiler
 description: |
   FlatBuffers compiler
 
-grade: stable
+grade: devel
 confinement: strict
 
 parts:
